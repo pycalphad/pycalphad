@@ -149,6 +149,64 @@ def fill_equilibrium_system_for_phase(equilibrium_matrix, equilibrium_rhs, energ
                                       c_component[chempot_idx, :])
 
 
+def fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, compsets, chemical_potentials,
+                            current_elemental_amounts, phase_amt, free_chemical_potential_indices,
+                            free_statevar_indices, free_stable_compset_indices, fixed_chemical_potential_indices,
+                            prescribed_element_indices, prescribed_elemental_amounts,
+                            num_statevars, prescribed_system_amount, dof):
+    num_components = chemical_potentials.shape[0]
+    num_stable_phases = free_stable_compset_indices.shape[0]
+    num_fixed_components = len(prescribed_elemental_amounts)
+    for stable_idx in range(free_stable_compset_indices.shape[0]):
+        idx = free_stable_compset_indices[stable_idx]
+        compset = compsets[idx]
+        # TODO: Use better dof storage
+        # Calculate key phase quantities starting here
+        x = dof[idx]
+        energy_tmp = np.zeros((1, 1))
+        masses_tmp = np.zeros((num_components, 1))
+        mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
+        phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
+                                 compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
+        hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
+                             num_statevars + compset.phase_record.phase_dof))
+        grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
+
+        compset.phase_record.obj(energy_tmp[:, 0], x)
+        for comp_idx in range(num_components):
+            compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
+            compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
+        compset.phase_record.hess(hess_tmp, x)
+        compset.phase_record.grad(grad_tmp, x)
+
+        compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, x)
+
+        e_matrix = np.linalg.inv(phase_matrix)[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof]
+
+        fill_equilibrium_system_for_phase(equilibrium_matrix, equilibrium_rhs, energy_tmp[0, 0], grad_tmp, hess_tmp,
+                                          masses_tmp, mass_jac_tmp, e_matrix, chemical_potentials,
+                                          phase_amt, free_chemical_potential_indices, free_statevar_indices,
+                                          free_stable_compset_indices, fixed_chemical_potential_indices,
+                                          prescribed_element_indices, prescribed_elemental_amounts,
+                                          idx, stable_idx, num_statevars)
+
+    # Add mass residual to fixed component row RHS, plus N=1 row
+    mass_residual = 0.0
+    component_row_offset = num_stable_phases
+    system_amount_index = component_row_offset + num_fixed_components
+    current_system_amount = float(phase_amt.sum())
+    for fixed_component_idx in range(num_fixed_components):
+        component_idx = prescribed_element_indices[fixed_component_idx]
+        mass_residual += abs(
+            current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
+        equilibrium_rhs[component_row_offset + fixed_component_idx] -= current_elemental_amounts[component_idx] - \
+                                                                       prescribed_elemental_amounts[
+                                                                           fixed_component_idx]
+    mass_residual += abs(current_system_amount - prescribed_system_amount)
+    equilibrium_rhs[system_amount_index] -= current_system_amount - prescribed_system_amount
+    return mass_residual
+
+
 def find_solution(compsets, free_stable_compset_indices,
                   num_statevars, num_components, prescribed_system_amount,
                   initial_chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
@@ -157,13 +215,6 @@ def find_solution(compsets, free_stable_compset_indices,
     phase_amt = np.array([compset.NP for compset in compsets])
     dof = [np.array(compset.dof) for compset in compsets]
     chemical_potentials = np.array(initial_chemical_potentials)
-    print('dof', dof)
-    print('free_stable_compset_indices', free_stable_compset_indices)
-    print('fixed_statevar_indices', fixed_statevar_indices)
-    print('free_statevar_indices', free_statevar_indices)
-    #print('prescribed_elemental_amounts', prescribed_elemental_amounts)
-    #print('prescribed_element_indices', prescribed_element_indices)
-    #print('phase_amt', phase_amt)
     delta_statevars = np.zeros(num_statevars)
     iterations_since_phase_change = 0
 
@@ -200,7 +251,7 @@ def find_solution(compsets, free_stable_compset_indices,
                 if phase_amt[idx] > 0:
                     current_elemental_amounts[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
             compset.phase_record.obj(all_phase_energies[idx, :], x)
-            # print(compset.phase_record.phase_name, idx, new_y)
+
         # SECOND STEP: Update potentials and phase amounts, according to conditions
         num_stable_phases = free_stable_compset_indices.shape[0]
         num_fixed_components = len(prescribed_elemental_amounts)
@@ -210,57 +261,14 @@ def find_solution(compsets, free_stable_compset_indices,
         equilibrium_rhs = np.zeros(num_stable_phases + num_fixed_components + 1)
         if (num_stable_phases + num_fixed_components + 1) != num_free_variables:
             raise ValueError('Conditions do not obey Gibbs Phase Rule')
-        for stable_idx in range(free_stable_compset_indices.shape[0]):
-            idx = free_stable_compset_indices[stable_idx]
-            compset = compsets[idx]
-            # TODO: Use better dof storage
-            # Calculate key phase quantities starting here
-            x = dof[idx]
-            # print('x', x)
-            energy_tmp = np.zeros((1, 1))
-            masses_tmp = np.zeros((num_components, 1))
-            mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
-            phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
-                                     compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
-            hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
-                                 num_statevars + compset.phase_record.phase_dof))
-            grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
 
-            compset.phase_record.obj(energy_tmp[:, 0], x)
-            for comp_idx in range(num_components):
-                compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
-                compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
-            compset.phase_record.hess(hess_tmp, x)
-            compset.phase_record.grad(grad_tmp, x)
+        mass_residual = fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, compsets, chemical_potentials,
+                                                current_elemental_amounts, phase_amt, free_chemical_potential_indices,
+                                                free_statevar_indices, free_stable_compset_indices,
+                                                fixed_chemical_potential_indices,
+                                                prescribed_element_indices, prescribed_elemental_amounts,
+                                                num_statevars, prescribed_system_amount, dof)
 
-            compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, x)
-
-            e_matrix = np.linalg.inv(phase_matrix)[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof]
-
-            fill_equilibrium_system_for_phase(equilibrium_matrix, equilibrium_rhs, energy_tmp[0, 0], grad_tmp, hess_tmp,
-                                              masses_tmp, mass_jac_tmp, e_matrix, chemical_potentials,
-                                              phase_amt, free_chemical_potential_indices, free_statevar_indices,
-                                              free_stable_compset_indices, fixed_chemical_potential_indices,
-                                              prescribed_element_indices, prescribed_elemental_amounts,
-                                              idx, stable_idx, num_statevars)
-
-        # Add mass residual to fixed component row RHS, plus N=1 row
-        mass_residual = 0.0
-        component_row_offset = num_stable_phases
-        system_amount_index = component_row_offset + num_fixed_components
-        current_system_amount = float(phase_amt.sum())
-        print('current_system_amount', current_system_amount)
-        print('prescribed_system_amount', prescribed_system_amount)
-        print('current_elemental_amounts', current_elemental_amounts)
-        for fixed_component_idx in range(num_fixed_components):
-            component_idx = prescribed_element_indices[fixed_component_idx]
-            mass_residual += abs(
-                current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
-            equilibrium_rhs[component_row_offset + fixed_component_idx] -= current_elemental_amounts[component_idx] - \
-                                                                           prescribed_elemental_amounts[
-                                                                               fixed_component_idx]
-        mass_residual += abs(current_system_amount - prescribed_system_amount)
-        equilibrium_rhs[system_amount_index] -= current_system_amount - prescribed_system_amount
         equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, rcond=None)
         equilibrium_soln = equilibrium_soln[0]
         soln_index_offset = 0
