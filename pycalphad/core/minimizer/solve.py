@@ -21,11 +21,14 @@ def compute_phase_system(phase_matrix, phase_rhs, compset, delta_statevars, chem
     "Compute the system of equations in Eq. 41, Sundman 2015."
     num_statevars = delta_statevars.shape[0]
     num_components = chemical_potentials.shape[0]
+    num_internal_cons = compset.phase_record.num_internal_cons
+    cons_tmp = np.zeros(num_internal_cons)
     grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
     mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
     hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
                          num_statevars + compset.phase_record.phase_dof))
 
+    compset.phase_record.internal_cons_func(cons_tmp, phase_dof)
     compset.phase_record.hess(hess_tmp, phase_dof)
     compset.phase_record.grad(grad_tmp, phase_dof)
 
@@ -39,6 +42,10 @@ def compute_phase_system(phase_matrix, phase_rhs, compset, delta_statevars, chem
     phase_rhs[:compset.phase_record.phase_dof] -= np.dot(hess_tmp[num_statevars:, :num_statevars],
                                                          delta_statevars)
     phase_rhs[:compset.phase_record.phase_dof] += mass_jac_tmp.T[num_statevars:].dot(chemical_potentials)
+
+    phase_rhs[compset.phase_record.phase_dof:
+              compset.phase_record.phase_dof+num_internal_cons] = -cons_tmp
+    return np.abs(cons_tmp).max()
 
 
 def fill_equilibrium_system_for_phase(equilibrium_matrix, equilibrium_rhs, energy, grad, hess,
@@ -263,13 +270,15 @@ def find_solution(compsets, free_stable_compset_indices,
     dof = [np.array(compset.dof) for compset in compsets]
     chemical_potentials = np.array(initial_chemical_potentials)
     delta_statevars = np.zeros(num_statevars)
+    converged = True
 
-    for iteration in range(100):
+    for iteration in range(500):
         current_elemental_amounts = np.zeros_like(chemical_potentials)
         all_phase_energies = np.zeros((len(compsets), 1))
         all_phase_amounts = np.zeros((len(compsets), len(chemical_potentials)))
         largest_statevar_change = np.zeros((1, 1))
         largest_internal_dof_change = 0
+        largest_internal_cons_max_residual = 0
         largest_phase_amt_change = np.zeros((1, 1))
         # FIRST STEP: Update phase internal degrees of freedom
         for idx, compset in enumerate(compsets):
@@ -280,7 +289,9 @@ def find_solution(compsets, free_stable_compset_indices,
             phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
                                      compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
             rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
-            compute_phase_system(phase_matrix, rhs, compset, delta_statevars, chemical_potentials, x)
+            internal_cons_max_residual = \
+                compute_phase_system(phase_matrix, rhs, compset, delta_statevars, chemical_potentials, x)
+            largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
 
             soln = np.linalg.solve(phase_matrix, rhs)
             delta_y = soln[:compset.phase_record.phase_dof]
@@ -325,8 +336,7 @@ def find_solution(compsets, free_stable_compset_indices,
 
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
-
-        system_is_feasible = mass_residual < 1e-10
+        system_is_feasible = (mass_residual < 1e-10) and (largest_internal_cons_max_residual < 1e-10)
         if system_is_feasible:
             free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
             # Check driving forces for metastable phases
@@ -338,9 +348,13 @@ def find_solution(compsets, free_stable_compset_indices,
                                                     largest_statevar_change)
             free_stable_compset_indices = new_free_stable_compset_indices
 
+    print ('mass_residual', mass_residual, 'largest_internal_cons_max_residual', largest_internal_cons_max_residual)
+    print('largest_internal_dof_change', largest_internal_dof_change,
+          'largest_phase_amt_change', largest_phase_amt_change,
+          'largest_statevar_change', largest_statevar_change)
     x = dof[0]
     for cs_dof in dof[1:]:
         x = np.r_[x, cs_dof[num_statevars:]]
     x = np.r_[x, phase_amt]
 
-    return x, chemical_potentials
+    return converged, x, chemical_potentials

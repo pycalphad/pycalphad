@@ -216,7 +216,7 @@ class SundmanSolver(SolverBase):
                 fixed_statevar_indices.append(statevar_idx)
         free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)))
 
-        x, chemical_potentials = find_solution(compsets, free_stable_compset_indices,
+        converged, x, chemical_potentials = find_solution(compsets, free_stable_compset_indices,
                   num_statevars, num_components, prescribed_system_amount,
                   chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
                   prescribed_element_indices, prescribed_elemental_amounts,
