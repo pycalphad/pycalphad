@@ -40,7 +40,7 @@ before_install:
 # Install packages
 install:
   - |
-      . $HOME/miniconda2/etc/profile.d/conda.sh
+      . $HOME/miniconda3/etc/profile.d/conda.sh
       conda deactivate
       conda activate condaenv
       echo "!!! Installing pycalphad dependencies via conda"
