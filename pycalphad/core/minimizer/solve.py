@@ -306,8 +306,6 @@ def find_solution(compsets, free_stable_compset_indices,
             new_y[new_y < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
             new_y[new_y > 1] = 1
             largest_internal_dof_change = max(largest_internal_dof_change, np.max(np.abs(new_y - old_y)))
-            print(idx, 'delta_y', delta_y)
-            print(idx, 'new_y', new_y)
             x[num_statevars:] = new_y
 
             for comp_idx in range(num_components):
@@ -315,7 +313,6 @@ def find_solution(compsets, free_stable_compset_indices,
                 all_phase_amounts[idx, comp_idx] = masses_tmp[comp_idx, 0]
                 if phase_amt[idx] > 0:
                     current_elemental_amounts[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
-            print(idx, 'mass', masses_tmp[:, 0])
             compset.phase_record.obj(all_phase_energies[idx, :], x)
 
         # SECOND STEP: Update potentials and phase amounts, according to conditions
@@ -337,14 +334,12 @@ def find_solution(compsets, free_stable_compset_indices,
                                                 dof)
 
         equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, rcond=1e-21)
-        print('equilibrium_soln', equilibrium_soln)
         equilibrium_soln = equilibrium_soln[0]
 
         extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars,
                                      free_chemical_potential_indices, free_statevar_indices,
                                      free_stable_compset_indices, equilibrium_soln,
                                      largest_statevar_change[0], largest_phase_amt_change[0], dof)
-        print(iteration, 'chemical_potentials', chemical_potentials)
 
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
@@ -360,14 +355,9 @@ def find_solution(compsets, free_stable_compset_indices,
                                                     largest_statevar_change)
             free_stable_compset_indices = new_free_stable_compset_indices
             if converged:
-                print('CONVERGED')
                 converged = True
                 break
 
-    print ('mass_residual', mass_residual, 'largest_internal_cons_max_residual', largest_internal_cons_max_residual)
-    print('largest_internal_dof_change', largest_internal_dof_change,
-          'largest_phase_amt_change', largest_phase_amt_change,
-          'largest_statevar_change', largest_statevar_change)
     x = dof[0]
     for cs_dof in dof[1:]:
         x = np.r_[x, cs_dof[num_statevars:]]
