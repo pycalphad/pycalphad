@@ -337,7 +337,7 @@ def find_solution(compsets, free_stable_compset_indices,
                                                 prescribed_elemental_amounts, num_statevars, prescribed_system_amount,
                                                 dof)
 
-        equilibrium_soln = scipy.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, cond=1e-30)
+        equilibrium_soln = scipy.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, cond=1e-21)
         print('equilibrium_soln', equilibrium_soln)
         equilibrium_soln = equilibrium_soln[0]
 
