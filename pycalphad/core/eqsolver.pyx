@@ -169,7 +169,7 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
     prob = problem(composition_sets, comps, cur_conds)
     result = iter_solver.solve(prob)
     composition_sets = prob.composition_sets
-    if result.converged:
+    if True:
         x = result.x
         compset = composition_sets[0]
         var_offset = len(compset.phase_record.state_variables)
@@ -300,8 +300,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         while (iterations < 10) and (not iter_solver.ignore_convergence):
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
 
-            if result.converged:
-                chemical_potentials[:] = result.chemical_potentials
+            chemical_potentials[:] = result.chemical_potentials
             changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
                                             grid, curr_idx, chemical_potentials, state_variable_values,
                                             1e-4, verbose)

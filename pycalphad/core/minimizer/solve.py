@@ -1,9 +1,11 @@
 import numpy as np
+import scipy.linalg
 from pycalphad.core.constants import MIN_SITE_FRACTION
 
 
-def compute_phase_matrix(phase_matrix, hess, compset, num_statevars, phase_dof):
+def compute_phase_matrix(phase_matrix, hess, compset, num_statevars, frozen_dof_indices, phase_dof):
     "Compute the LHS of Eq. 41, Sundman 2015."
+    #print('frozen_dof_indices', frozen_dof_indices)
     cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
                              num_statevars + compset.phase_record.phase_dof))
     compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
@@ -11,13 +13,21 @@ def compute_phase_matrix(phase_matrix, hess, compset, num_statevars, phase_dof):
                                                                                      num_statevars:,
                                                                                      num_statevars:]
 
-    phase_matrix[compset.phase_record.phase_dof:, :compset.phase_record.phase_dof] = cons_jac_tmp[:,
-                                                                                     num_statevars:]
-    phase_matrix[:compset.phase_record.phase_dof, compset.phase_record.phase_dof:] = cons_jac_tmp[:,
-                                                                                     num_statevars:].T
+    phase_matrix[compset.phase_record.phase_dof:compset.phase_record.phase_dof+compset.phase_record.num_internal_cons,
+                 :compset.phase_record.phase_dof] = cons_jac_tmp[:, num_statevars:]
+    phase_matrix[:compset.phase_record.phase_dof,
+                 compset.phase_record.phase_dof:compset.phase_record.phase_dof+compset.phase_record.num_internal_cons] \
+        = cons_jac_tmp[:, num_statevars:].T
+    # Add constraint for internal frozen degrees of freedom
+    offset_idx = compset.phase_record.phase_dof+compset.phase_record.num_internal_cons
+    for idx in range(frozen_dof_indices.shape[0]):
+        frozen_idx = frozen_dof_indices[idx]
+        phase_matrix[offset_idx+idx, frozen_idx] = 1
+        phase_matrix[frozen_idx, offset_idx+idx] = 1
+    #print('phase_matrix', phase_matrix)
 
 
-def compute_phase_system(phase_matrix, phase_rhs, compset, delta_statevars, chemical_potentials, phase_dof):
+def compute_phase_system(phase_matrix, phase_rhs, compset, delta_statevars, chemical_potentials, frozen_dof_indices, phase_dof):
     "Compute the system of equations in Eq. 41, Sundman 2015."
     num_statevars = delta_statevars.shape[0]
     num_components = chemical_potentials.shape[0]
@@ -35,7 +45,7 @@ def compute_phase_system(phase_matrix, phase_rhs, compset, delta_statevars, chem
     for comp_idx in range(num_components):
         compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], phase_dof, comp_idx)
 
-    compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, phase_dof)
+    compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, frozen_dof_indices, phase_dof)
 
     # Compute right-hand side of Eq. 41, Sundman 2015
     phase_rhs[:compset.phase_record.phase_dof] = -grad_tmp[num_statevars:]
@@ -122,16 +132,16 @@ def fill_equilibrium_system_for_phase(equilibrium_matrix, equilibrium_rhs, energ
         # 2a. This component row: free chemical potentials
         for i in range(free_chemical_potential_indices.shape[0]):
             chempot_idx = free_chemical_potential_indices[i]
-            # equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += \
-            #    phase_amt[idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
-            #                            c_component[chempot_idx, :])
+            equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += \
+                phase_amt[idx] * np.dot(mass_jac[component_idx, num_statevars:],
+                                        c_component[chempot_idx, :])
         free_variable_column_offset += free_chemical_potential_indices.shape[0]
         # 2a. This component row: free stable composition sets
         for i in range(free_stable_compset_indices.shape[0]):
             compset_idx = free_stable_compset_indices[i]
             # Only fill this out if the current idx is equal to a free composition set
             if compset_idx == idx:
-                equilibrium_matrix[system_amount_index, free_variable_column_offset + i] = 1
+                equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += masses[component_idx, 0]
         free_variable_column_offset += free_stable_compset_indices.shape[0]
         # 2a. This component row: free state variables
         for i in range(free_statevar_indices.shape[0]):
@@ -160,7 +170,7 @@ def fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, compsets, chemi
                             current_elemental_amounts, phase_amt, free_chemical_potential_indices,
                             free_statevar_indices, free_stable_compset_indices, fixed_chemical_potential_indices,
                             prescribed_element_indices, prescribed_elemental_amounts,
-                            num_statevars, prescribed_system_amount, dof):
+                            num_statevars, prescribed_system_amount, all_frozen_dof_indices, dof):
     num_components = chemical_potentials.shape[0]
     num_stable_phases = free_stable_compset_indices.shape[0]
     num_fixed_components = len(prescribed_elemental_amounts)
@@ -173,8 +183,11 @@ def fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, compsets, chemi
         energy_tmp = np.zeros((1, 1))
         masses_tmp = np.zeros((num_components, 1))
         mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
-        phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
-                                 compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
+        # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
+        frozen_dof_indices = all_frozen_dof_indices[idx]
+        phase_matrix = np.zeros(
+            (compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + frozen_dof_indices.shape[0],
+             compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + frozen_dof_indices.shape[0]))
         hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
                              num_statevars + compset.phase_record.phase_dof))
         grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
@@ -186,7 +199,7 @@ def fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, compsets, chemi
         compset.phase_record.hess(hess_tmp, x)
         compset.phase_record.grad(grad_tmp, x)
 
-        compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, x)
+        compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, frozen_dof_indices, x)
 
         e_matrix = np.linalg.inv(phase_matrix)[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof]
 
@@ -205,7 +218,8 @@ def fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, compsets, chemi
     for fixed_component_idx in range(num_fixed_components):
         component_idx = prescribed_element_indices[fixed_component_idx]
         mass_residual += abs(
-            current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
+            current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx]) \
+            / abs(prescribed_elemental_amounts[fixed_component_idx])
         equilibrium_rhs[component_row_offset + fixed_component_idx] -= current_elemental_amounts[component_idx] - \
                                                                        prescribed_elemental_amounts[
                                                                            fixed_component_idx]
@@ -255,8 +269,8 @@ def check_convergence_and_change_phases(current_free_stable_compset_indices, dri
     converged = False
     if len(set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)) == 0:
         # feasible system, and no phases to add or remove
-        if (largest_internal_dof_change < 1e-13) and (largest_phase_amt_change[0, 0] < 1e-10) and \
-                (largest_statevar_change[0, 0] < 1e-3):
+        if (largest_internal_dof_change < 1e-11) and (largest_phase_amt_change[0, 0] < 1e-10) and \
+                (largest_statevar_change[0, 0] < 1e-1):
             converged = True
     return converged, new_free_stable_compset_indices
 
@@ -270,7 +284,7 @@ def find_solution(compsets, free_stable_compset_indices,
     dof = [np.array(compset.dof) for compset in compsets]
     chemical_potentials = np.array(initial_chemical_potentials)
     delta_statevars = np.zeros(num_statevars)
-    converged = True
+    converged = False
 
     for iteration in range(500):
         current_elemental_amounts = np.zeros_like(chemical_potentials)
@@ -280,26 +294,49 @@ def find_solution(compsets, free_stable_compset_indices,
         largest_internal_dof_change = 0
         largest_internal_cons_max_residual = 0
         largest_phase_amt_change = np.zeros((1, 1))
+        all_frozen_dof_indices = []
         # FIRST STEP: Update phase internal degrees of freedom
         for idx, compset in enumerate(compsets):
             # TODO: Use better dof storage
             x = dof[idx]
             masses_tmp = np.zeros((num_components, 1))
+            # First, don't freeze any degrees of freedom at the bounds
+            frozen_dof_indices = np.array([])
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
-            phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
-                                     compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
-            rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
-            internal_cons_max_residual = \
-                compute_phase_system(phase_matrix, rhs, compset, delta_statevars, chemical_potentials, x)
-            largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
+            phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + frozen_dof_indices.shape[0],
+                                     compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + frozen_dof_indices.shape[0]))
+            rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + frozen_dof_indices.shape[0])
+            _ = compute_phase_system(phase_matrix, rhs, compset, delta_statevars, chemical_potentials,
+                                     frozen_dof_indices, x)
+
 
             soln = np.linalg.solve(phase_matrix, rhs)
             delta_y = soln[:compset.phase_record.phase_dof]
-            largest_internal_dof_change = max(largest_internal_dof_change, np.max(np.abs(delta_y)))
+
+            # Repeat calculation for binding degrees of freedom
+            # A dof binds if it is at the bounds and "wants" to step outside the domain
+            #frozen_dof_indices = np.nonzero((x[num_statevars:] <= MIN_SITE_FRACTION) & (delta_y < 1e-10))[0]
+            print(iteration, idx, 'frozen_dof_indices', frozen_dof_indices)
+            all_frozen_dof_indices.append(frozen_dof_indices)
+            phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + frozen_dof_indices.shape[0],
+                                     compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + frozen_dof_indices.shape[0]))
+            rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + frozen_dof_indices.shape[0])
+            internal_cons_max_residual = \
+                compute_phase_system(phase_matrix, rhs, compset, delta_statevars, chemical_potentials,
+                                     frozen_dof_indices, x)
+
+
+            soln = np.linalg.solve(phase_matrix, rhs)
+            delta_y = soln[:compset.phase_record.phase_dof]
+
+            largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
             old_y = np.array(x[num_statevars:])
             new_y = old_y + delta_y
             new_y[new_y < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
             new_y[new_y > 1] = 1
+            largest_internal_dof_change = max(largest_internal_dof_change, np.max(np.abs(new_y - old_y)))
+            print(idx, 'delta_y', delta_y)
+            print(idx, 'new_y', new_y)
             x[num_statevars:] = new_y
 
             for comp_idx in range(num_components):
@@ -307,6 +344,7 @@ def find_solution(compsets, free_stable_compset_indices,
                 all_phase_amounts[idx, comp_idx] = masses_tmp[comp_idx, 0]
                 if phase_amt[idx] > 0:
                     current_elemental_amounts[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
+            print(idx, 'mass', masses_tmp[:, 0])
             compset.phase_record.obj(all_phase_energies[idx, :], x)
 
         # SECOND STEP: Update potentials and phase amounts, according to conditions
@@ -323,20 +361,23 @@ def find_solution(compsets, free_stable_compset_indices,
                                                 current_elemental_amounts, phase_amt, free_chemical_potential_indices,
                                                 free_statevar_indices, free_stable_compset_indices,
                                                 fixed_chemical_potential_indices,
-                                                prescribed_element_indices, prescribed_elemental_amounts,
-                                                num_statevars, prescribed_system_amount, dof)
+                                                prescribed_element_indices,
+                                                prescribed_elemental_amounts, num_statevars, prescribed_system_amount,
+                                                all_frozen_dof_indices, dof)
 
-        equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, rcond=None)
+        equilibrium_soln = scipy.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, cond=1e-30)
+        print('equilibrium_soln', equilibrium_soln)
         equilibrium_soln = equilibrium_soln[0]
 
         extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars,
                                      free_chemical_potential_indices, free_statevar_indices,
                                      free_stable_compset_indices, equilibrium_soln,
                                      largest_statevar_change[0], largest_phase_amt_change[0], dof)
+        print(iteration, 'chemical_potentials', chemical_potentials)
 
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
-        system_is_feasible = (mass_residual < 1e-10) and (largest_internal_cons_max_residual < 1e-10)
+        system_is_feasible = (mass_residual < 1e-06) and (largest_internal_cons_max_residual < 1e-10)
         if system_is_feasible:
             free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
             # Check driving forces for metastable phases
@@ -347,6 +388,10 @@ def find_solution(compsets, free_stable_compset_indices,
                                                     largest_internal_dof_change, largest_phase_amt_change,
                                                     largest_statevar_change)
             free_stable_compset_indices = new_free_stable_compset_indices
+            if converged:
+                print('CONVERGED')
+                converged = True
+                break
 
     print ('mass_residual', mass_residual, 'largest_internal_cons_max_residual', largest_internal_cons_max_residual)
     print('largest_internal_dof_change', largest_internal_dof_change,

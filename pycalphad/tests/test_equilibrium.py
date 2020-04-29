@@ -199,7 +199,15 @@ def test_eq_ternary_edge_case_mass():
                       v.X('CO'): 0.11188888888888888, v.P: 101325}, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.88811111111111107, 0.11188888888888888, 0]
-    assert np.all(np.abs(mass_error) < 0.01)
+    assert_allclose(eq.GM.values, -97913.542)  # from Thermo-Calc 2017b
+    result_chempots = eq.MU.values.flatten()
+    assert_allclose(result_chempots[:2], [-86994.575, -184582.17, ], atol=0.1)  # from Thermo-Calc 2017b
+    #assert_allclose(result_chempots[2], -451366.1)  # from Thermo-Calc 2017b
+    # Precision differences do not allow us to get the right chemical potential for the dilute component
+    # It is not clear whether this is a difference in the allowed precision of _specified conditions_ in TC
+    # or a real difference in the solution.
+    assert result_chempots[2] < -400000  # Estimated
+    assert np.all(np.abs(mass_error) < 1e-8)
 
 def test_eq_ternary_inside_mass():
     """
@@ -319,7 +327,7 @@ def test_eq_unary_issue78():
     np.testing.assert_allclose(eq.SM, 68.143273)
     eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
     np.testing.assert_allclose(eq.GM, 1000)
-    np.testing.assert_allclose(eq.SM, 0)
+    np.testing.assert_allclose(eq.SM, 0, atol=1e-15)
 
 def test_eq_gas_phase():
     eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, verbose=True)
