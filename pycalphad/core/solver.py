@@ -3,7 +3,7 @@ ipopt.setLoggingLevel(50)
 import numpy as np
 from collections import namedtuple
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.minimizer.solve import find_solution
+from pycalphad.core.minimizer import find_solution
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
 

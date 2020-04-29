@@ -53,6 +53,12 @@ setup(
                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include()],
                                      ),
+                           Extension('pycalphad.core.minimizer',
+                                     sources=['pycalphad/core/minimizer.pyx'],
+                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],
+                                     extra_link_args=["-std=c++11"],
+                                     include_dirs=['.', np.get_include()],
+                                     ),
 
                           ], include_path=['.', np.get_include()]),
     package_data={
