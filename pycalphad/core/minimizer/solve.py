@@ -276,7 +276,7 @@ def find_solution(compsets, free_stable_compset_indices,
     delta_statevars = np.zeros(num_statevars)
     converged = False
 
-    for iteration in range(500):
+    for iteration in range(100):
         current_elemental_amounts = np.zeros_like(chemical_potentials)
         all_phase_energies = np.zeros((len(compsets), 1))
         all_phase_amounts = np.zeros((len(compsets), len(chemical_potentials)))
