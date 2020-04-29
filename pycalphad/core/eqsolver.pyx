@@ -169,16 +169,15 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
     prob = problem(composition_sets, comps, cur_conds)
     result = iter_solver.solve(prob)
     composition_sets = prob.composition_sets
-    if True:
-        x = result.x
-        compset = composition_sets[0]
-        var_offset = len(compset.phase_record.state_variables)
-        phase_idx = 0
-        for compset in composition_sets:
-            compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                           x[prob.num_vars - prob.num_phases + phase_idx], x[:len(compset.phase_record.state_variables)], True)
-            var_offset += compset.phase_record.phase_dof
-            phase_idx += 1
+    x = result.x
+    compset = composition_sets[0]
+    var_offset = len(compset.phase_record.state_variables)
+    phase_idx = 0
+    for compset in composition_sets:
+        compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
+                       x[prob.num_vars - prob.num_phases + phase_idx], x[:len(compset.phase_record.state_variables)], True)
+        var_offset += compset.phase_record.phase_dof
+        phase_idx += 1
     return result
 
 def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose,
