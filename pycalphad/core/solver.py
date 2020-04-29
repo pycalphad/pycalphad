@@ -215,18 +215,12 @@ class SundmanSolver(SolverBase):
             if str(statevar) in [str(k) for k in cur_conds.keys()]:
                 fixed_statevar_indices.append(statevar_idx)
         free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)))
-        print('INITIALIZE compsets', compsets)
         converged, x, chemical_potentials = find_solution(compsets, free_stable_compset_indices,
                   num_statevars, num_components, prescribed_system_amount,
                   chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
                   prescribed_element_indices, prescribed_elemental_amounts,
                   free_statevar_indices, fixed_statevar_indices)
-        test_chemical_potentials = prob.chemical_potentials(x)
-        print('chemical_potentials', chemical_potentials)
-        print('test_chemical_potentials', test_chemical_potentials)
 
-        # TODO: Do not force convergence
-        #converged = True
         if self.verbose:
             print('Chemical Potentials', chemical_potentials)
             print(x)
