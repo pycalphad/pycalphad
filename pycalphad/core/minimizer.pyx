@@ -1,21 +1,56 @@
+# distutils: language = c++
 import numpy as np
+from pycalphad.core.phase_rec cimport LowLevelPhaseRecord, PhaseRecord
 from pycalphad.core.constants import MIN_SITE_FRACTION
+from libc.stdlib cimport malloc, free
 
+cdef cppclass PhaseWorkspace:
+    int num_statevars
+    int num_phase_dof
+    int num_internal_cons
+    LowLevelPhaseRecord phase_record
+    double* phase_dof
+    double* phase_matrix
+    double* e_matrix
+    double* cons_jac
+    __init__(PhaseRecord prx) nogil:
+        this.phase_record = prx.get_lowlevel()
+        this.num_statevars = prx.num_statevars
+        this.num_phase_dof = prx.phase_dof.shape[0]
+        this.num_internal_cons = prx.num_internal_cons
+        this.phase_dof = <double*>malloc((this.num_statevars + prx.phase_dof) * sizeof(double))
+        this.phase_matrix = <double*>malloc((prx.phase_dof + prx.num_internal_cons) *
+                                             (prx.phase_dof + prx.num_internal_cons) * sizeof(double))
+        this.e_matrix = <double*>malloc((prx.phase_dof + prx.num_internal_cons) *
+                                         (prx.phase_dof + prx.num_internal_cons) * sizeof(double))
+        this.cons_jac = <double*>malloc(prx.num_internal_cons *
+                                         (this.num_statevars + prx.phase_dof) * sizeof(double))
+    __dealloc__():
+        free(this.phase_dof)
+        free(this.phase_matrix)
+        free(this.e_matrix)
+        free(this.cons_jac)
 
-def compute_phase_matrix(phase_matrix, hess, compset, num_statevars, phase_dof):
-    "Compute the LHS of Eq. 41, Sundman 2015."
-    cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
-                             num_statevars + compset.phase_record.phase_dof))
-    compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
-    phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess[
-                                                                                     num_statevars:,
-                                                                                     num_statevars:]
+    double* compute_phase_matrix(double* hess, double* phase_dof) nogil:
+        "Compute the LHS of Eq. 41, Sundman 2015."
+        cdef int i, j
+        for i in range(this.num_phase_dof):
+            this.phase_dof[i] = phase_dof[i]
+        this.phase_record.internal_cons_jac(this.cons_jac, this.phase_dof)
 
-    phase_matrix[compset.phase_record.phase_dof:compset.phase_record.phase_dof+compset.phase_record.num_internal_cons,
-                 :compset.phase_record.phase_dof] = cons_jac_tmp[:, num_statevars:]
-    phase_matrix[:compset.phase_record.phase_dof,
-                 compset.phase_record.phase_dof:compset.phase_record.phase_dof+compset.phase_record.num_internal_cons] \
-        = cons_jac_tmp[:, num_statevars:].T
+        for i in range(this.num_phase_dof):
+            for j in range(this.num_phase_dof):
+                this.phase_matrix[i * (this.num_phase_dof + this.num_internal_cons) + j] = \
+                    hess[((this.num_statevars + i) * (this.num_phase_dof + this.num_internal_cons)) + (this.num_statevars + j)]
+
+        for i in range(this.num_phase_dof):
+            for j in range(this.num_internal_cons):
+                this.phase_matrix
+        this.phase_matrix[num_phase_dof:num_phase_dof+this.num_internal_cons,
+                          :num_phase_dof] = this.cons_jac[:, this.num_statevars:]
+        this.phase_matrix[:num_phase_dof, num_phase_dof:num_phase_dof+this.num_internal_cons] \
+            = this.cons_jac[:, this.num_statevars:].T
+        return this.phase_matrix
 
 
 def compute_phase_system(phase_matrix, phase_rhs, compset, delta_statevars, chemical_potentials, phase_dof):
@@ -270,11 +305,18 @@ def find_solution(compsets, free_stable_compset_indices,
                   initial_chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
                   prescribed_element_indices, prescribed_elemental_amounts,
                   free_statevar_indices, fixed_statevar_indices):
+    cdef PhaseRecord prx
+    cdef PhaseWorkspace* pwksp
     phase_amt = np.array([compset.NP for compset in compsets])
     dof = [np.array(compset.dof) for compset in compsets]
     chemical_potentials = np.array(initial_chemical_potentials)
     delta_statevars = np.zeros(num_statevars)
     converged = False
+
+    for compset in compsets:
+        prx = compset.phase_record
+        pwksp = new PhaseWorkspace(prx)
+        del pwksp
 
     for iteration in range(100):
         current_elemental_amounts = np.zeros_like(chemical_potentials)

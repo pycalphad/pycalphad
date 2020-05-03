@@ -25,6 +25,11 @@ cdef class FastFunction:
     cdef void call(self, double *out, double *inp) nogil:
         if self.f_ptr != NULL:
             self.f_ptr(out, inp, self.func_data)
+    cdef FastFunctionInfo get_info(self) nogil:
+        cdef FastFunctionInfo ffinfo = FastFunctionInfo()
+        ffinfo.f_ptr = self.f_ptr
+        ffinfo.func_data = self.func_data
+        return ffinfo
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -96,6 +101,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         self.num_statevars = len(state_variables)
         self.pure_elements = pure_elements
         self.nonvacant_elements = nonvacant_elements
+        self.num_nonvacant_elements = len(nonvacant_elements)
         self.phase_dof = 0
         self.parameters = parameters
         self.num_internal_cons = num_internal_cons
@@ -318,3 +324,26 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         (<FastFunction>self._masshessians_ptr[comp_idx]).call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
+    cdef LowLevelPhaseRecord get_lowlevel(self) nogil:
+        cdef int i
+        cdef LowLevelPhaseRecord llprx = LowLevelPhaseRecord()
+        llprx.num_statevars = self.num_statevars
+        llprx.phase_dof = self.phase_dof
+        llprx.parameters = self.parameters
+        llprx._obj = self._obj.get_info()
+        llprx._grad = self._grad.get_info()
+        llprx._hess = self._hess.get_info()
+        llprx._internal_cons_func = self._internal_cons_func.get_info()
+        llprx._internal_cons_jac = self._internal_cons_jac.get_info()
+        llprx._internal_cons_hess = self._internal_cons_hess.get_info()
+        llprx._multiphase_cons_func = self._multiphase_cons_func.get_info()
+        llprx._multiphase_cons_jac = self._multiphase_cons_jac.get_info()
+        llprx._multiphase_cons_hess = self._multiphase_cons_hess.get_info()
+        llprx._masses_ptr = <FastFunctionInfo*>malloc(self.num_nonvacant_elements * sizeof(FastFunctionInfo))
+        llprx._massgrads_ptr = <FastFunctionInfo*>malloc(self.num_nonvacant_elements * sizeof(FastFunctionInfo))
+        llprx._masshessians_ptr = <FastFunctionInfo*>malloc(self.num_nonvacant_elements * sizeof(FastFunctionInfo))
+        for i in range(self.num_nonvacant_elements):
+            llprx._masses_ptr[i] = (<FastFunction>self._masses_ptr[i]).get_info()
+            llprx._massgrads_ptr[i] = (<FastFunction>self._massgrads_ptr[i]).get_info()
+            llprx._masshessians_ptr[i] = (<FastFunction>self._masshessians_ptr[i]).get_info()
+        return llprx
