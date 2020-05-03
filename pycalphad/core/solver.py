@@ -203,18 +203,21 @@ class SundmanSolver(SolverBase):
                 el_idx = list(prob.nonvacant_elements).index(el)
                 prescribed_elemental_amounts.append(float(value))
                 prescribed_element_indices.append(el_idx)
+        prescribed_element_indices = np.array(prescribed_element_indices, dtype=np.int32)
+        prescribed_elemental_amounts = np.array(prescribed_elemental_amounts)
         prescribed_system_amount = cur_conds.get('N', 1.0)
-        free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(prob.fixed_chempot_indices)))
-        fixed_chemical_potential_indices = np.array(prob.fixed_chempot_indices)
+        free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(prob.fixed_chempot_indices)), dtype=np.int32)
+        fixed_chemical_potential_indices = np.array(prob.fixed_chempot_indices, dtype=np.int32)
         for fixed_chempot_index in fixed_chemical_potential_indices:
             el = prob.nonvacant_elements[fixed_chempot_index]
             chemical_potentials[fixed_chempot_index] = cur_conds.get('MU_' + str(el))
-        free_stable_compset_indices = np.array(list(range(len(compsets))))
+        free_stable_compset_indices = np.array(list(range(len(compsets))), dtype=np.int32)
         fixed_statevar_indices = []
         for statevar_idx, statevar in enumerate(state_variables):
             if str(statevar) in [str(k) for k in cur_conds.keys()]:
                 fixed_statevar_indices.append(statevar_idx)
-        free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)))
+        free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)), dtype=np.int32)
+        fixed_statevar_indices = np.array(fixed_statevar_indices, dtype=np.int32)
         converged, x, chemical_potentials = find_solution(compsets, free_stable_compset_indices,
                   num_statevars, num_components, prescribed_system_amount,
                   chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
