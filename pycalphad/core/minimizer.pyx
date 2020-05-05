@@ -49,14 +49,28 @@ cdef void invert_matrix(double *A, int N, double *A_inv_out, int* ipiv) nogil:
             A_inv_out[i] = -1e19
 
 cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess, CompositionSet compset,
-                               int num_statevars, double[::1] phase_dof):
+                               int num_statevars, double[::1] chemical_potentials, double[::1] phase_dof):
     "Compute the LHS of Eq. 41, Sundman 2015."
+    cdef int comp_idx, i, j
+    cdef int num_components = chemical_potentials.shape[0]
     cdef double[:, ::1] cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
                                                 num_statevars + compset.phase_record.phase_dof))
+    cdef double[:,:, ::1] mass_hess_tmp = np.zeros((num_components,
+                                                    num_statevars + compset.phase_record.phase_dof,
+                                                    num_statevars + compset.phase_record.phase_dof))
     compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
     phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess[
                                                                                      num_statevars:,
                                                                                      num_statevars:]
+    for comp_idx in range(num_components):
+        compset.phase_record.mass_hess(mass_hess_tmp[comp_idx, :, :], phase_dof, comp_idx)
+    for comp_idx in range(num_components):
+        for i in range(compset.phase_record.phase_dof):
+            for j in range(i, compset.phase_record.phase_dof):
+                phase_matrix[i, j] -= chemical_potentials[comp_idx] * mass_hess_tmp[comp_idx,
+                                                                                    num_statevars+i,
+                                                                                    num_statevars+j]
+                phase_matrix[j, i] = phase_matrix[i, j]
 
     phase_matrix[compset.phase_record.phase_dof:compset.phase_record.phase_dof+compset.phase_record.num_internal_cons,
                  :compset.phase_record.phase_dof] = cons_jac_tmp[:, num_statevars:]
@@ -86,7 +100,7 @@ cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_r
     for comp_idx in range(num_components):
         compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], phase_dof, comp_idx)
 
-    compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, phase_dof)
+    compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, chemical_potentials, phase_dof)
 
     # Compute right-hand side of Eq. 41, Sundman 2015
     for i in range(compset.phase_record.phase_dof):
@@ -276,7 +290,7 @@ cdef double fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         compset.phase_record.hess(hess_tmp, x)
         compset.phase_record.grad(grad_tmp, x)
 
-        compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, x)
+        compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, chemical_potentials, x)
 
         invert_matrix(&phase_matrix[0,0], phase_matrix.shape[0], &full_e_matrix[0,0], &ipiv[0])
 
