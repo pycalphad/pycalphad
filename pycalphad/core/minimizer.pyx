@@ -8,6 +8,27 @@ cimport scipy.linalg.cython_lapack as cython_lapack
 from libc.stdlib cimport malloc, free
 
 @cython.boundscheck(False)
+cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
+    cdef int i
+    cdef int NRHS = 1
+    cdef int iwork = 0
+    cdef int info = 0
+    cdef int SMLSIZ = 50  # this is a guess
+    cdef int NLVL = 10  # this is also a guess
+    cdef int lwork = 12*N + 2*N*SMLSIZ + 8*N*NLVL + N*NRHS + (SMLSIZ+1)**2
+    cdef int rank = 0
+    cdef double* work = <double*>malloc(lwork * sizeof(double))
+    cdef double* singular_values = <double*>malloc(N * sizeof(double))
+    # with lwork=-1, we calculate the optimal workspace size,
+    cython_lapack.dgelsd(&M, &N, &NRHS, A, &N, x, &M, singular_values, &rcond, &rank,
+                         work, &lwork, &iwork, &info)
+    free(singular_values)
+    free(work)
+    if info != 0:
+        for i in range(N):
+            x[i] = -1e19
+
+@cython.boundscheck(False)
 cdef void solve(double* A, int N, double* x, int* ipiv) nogil:
     cdef int i
     cdef int info = 0
@@ -82,7 +103,7 @@ cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_r
     return max_cons
 
 
-cdef void fill_equilibrium_system_for_phase(double[:,::1] equilibrium_matrix, double[::1] equilibrium_rhs,
+cdef void fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
                                             double energy, double[::1] grad, double[:, ::1] hess,
                                             double[:, ::1] masses, double[:, ::1] mass_jac, int num_phase_dof,
                                             double[:, ::1] full_e_matrix, double[::1] chemical_potentials,
@@ -206,7 +227,7 @@ cdef void fill_equilibrium_system_for_phase(double[:,::1] equilibrium_matrix, do
                     chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
 
 
-cdef double fill_equilibrium_system(double[:,::1] equilibrium_matrix, double[::1] equilibrium_rhs,
+cdef double fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
                                     object compsets, double[::1] chemical_potentials,
                                     double[::1] current_elemental_amounts, double[::1] phase_amt,
                                     int[::1] free_chemical_potential_indices,
@@ -353,9 +374,10 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef double[::1] current_elemental_amounts = np.zeros(chemical_potentials.shape[0])
     cdef double[:,::1] all_phase_energies = np.zeros((len(compsets), 1))
     cdef double[:,::1] all_phase_amounts = np.zeros((len(compsets), chemical_potentials.shape[0]))
-    cdef double[:,::1] equilibrium_matrix, masses_tmp
+    cdef double[:,::1] masses_tmp
+    cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[:,::1] phase_matrix  # Fortran ordering required by call into lapack, but this is symmetric
-    cdef double[::1] equilibrium_rhs, phase_rhs, soln
+    cdef double[::1] equilibrium_rhs, equilibrium_soln, phase_rhs, soln
     cdef double[::1] delta_statevars = np.zeros(num_statevars)
     cdef double[1] largest_statevar_change, largest_phase_amt_change
     cdef double largest_internal_dof_change, largest_cons_max_residual, largest_internal_cons_max_residual
@@ -409,21 +431,20 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         num_fixed_components = len(prescribed_elemental_amounts)
         num_free_variables = free_chemical_potential_indices.shape[0] + num_stable_phases + \
                              free_statevar_indices.shape[0]
-        equilibrium_matrix = np.zeros((num_stable_phases + num_fixed_components + 1, num_free_variables))
-        equilibrium_rhs = np.zeros(num_stable_phases + num_fixed_components + 1)
+        equilibrium_matrix = np.zeros((num_stable_phases + num_fixed_components + 1, num_free_variables), order='F')
+        equilibrium_soln = np.zeros(num_stable_phases + num_fixed_components + 1)
         if (num_stable_phases + num_fixed_components + 1) != num_free_variables:
             raise ValueError('Conditions do not obey Gibbs Phase Rule')
 
-        mass_residual = fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, compsets, chemical_potentials,
+        mass_residual = fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, compsets, chemical_potentials,
                                                 current_elemental_amounts, phase_amt, free_chemical_potential_indices,
                                                 free_statevar_indices, free_stable_compset_indices,
                                                 fixed_chemical_potential_indices,
                                                 prescribed_element_indices,
                                                 prescribed_elemental_amounts, num_statevars, prescribed_system_amount,
                                                 dof)
-
-        equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, rcond=1e-21)
-        equilibrium_soln = equilibrium_soln[0]
+        lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
+              &equilibrium_soln[0], 1e-21)
 
         extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars,
                                      free_chemical_potential_indices, free_statevar_indices,
