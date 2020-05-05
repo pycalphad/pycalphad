@@ -56,6 +56,7 @@ cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_r
     cdef double[:, ::1] mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
     cdef double[:, ::1] hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
                                              num_statevars + compset.phase_record.phase_dof))
+    cdef double max_cons = 0
 
     compset.phase_record.internal_cons_func(cons_tmp, phase_dof)
     compset.phase_record.hess(hess_tmp, phase_dof)
@@ -76,7 +77,9 @@ cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_r
 
     for cons_idx in range(num_internal_cons):
         phase_rhs[compset.phase_record.phase_dof + cons_idx] = -cons_tmp[cons_idx]
-    return np.abs(cons_tmp).max()
+        if abs(cons_tmp[cons_idx]) > max_cons:
+            max_cons = abs(cons_tmp[cons_idx])
+    return max_cons
 
 
 cdef void fill_equilibrium_system_for_phase(double[:,::1] equilibrium_matrix, double[::1] equilibrium_rhs,
@@ -281,12 +284,14 @@ cdef double fill_equilibrium_system(double[:,::1] equilibrium_matrix, double[::1
     return mass_residual
 
 
-def extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars,
-                                 free_chemical_potential_indices, free_statevar_indices,
-                                 free_stable_compset_indices, equilibrium_soln,
-                                 largest_statevar_change, largest_phase_amt_change, dof):
-    num_statevars = delta_statevars.shape[0]
-    soln_index_offset = 0
+cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[::1] phase_amt, double[::1] delta_statevars,
+                                 int[::1] free_chemical_potential_indices, int[::1] free_statevar_indices,
+                                 int[::1] free_stable_compset_indices, double[::1] equilibrium_soln,
+                                 double[:] largest_statevar_change, double[:] largest_phase_amt_change, list dof):
+    cdef int i, idx, chempot_idx, compset_idx
+    cdef int num_statevars = delta_statevars.shape[0]
+    cdef int soln_index_offset = 0
+    cdef double chempot_change, percent_chempot_change, phase_amt_change, psc
     for i in range(free_chemical_potential_indices.shape[0]):
         chempot_idx = free_chemical_potential_indices[i]
         chempot_change = equilibrium_soln[soln_index_offset + i] - chemical_potentials[chempot_idx]
@@ -308,45 +313,62 @@ def extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars
     for i in range(free_statevar_indices.shape[0]):
         statevar_idx = free_statevar_indices[i]
         delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
-    percent_statevar_changes = np.abs(delta_statevars / dof[0][:num_statevars])
-    percent_statevar_changes[np.isnan(percent_statevar_changes)] = 0
-    largest_statevar_change[0] = max(largest_statevar_change[0], np.max(percent_statevar_changes))
+    for i in range(delta_statevars.shape[0]):
+        psc = abs(delta_statevars[i] / dof[0][i])
+        largest_statevar_change[0] = max(largest_statevar_change[0], psc)
     for idx in range(len(dof)):
-        dof[idx][:num_statevars] += delta_statevars
+        for i in range(delta_statevars.shape[0]):
+            dof[idx][i] += delta_statevars[i]
 
 
 def check_convergence_and_change_phases(current_free_stable_compset_indices, driving_forces,
                                         largest_internal_dof_change, largest_phase_amt_change, largest_statevar_change):
-    compsets_to_add = set(np.nonzero(driving_forces[:, 0] > -1e-5)[0])
+    compsets_to_add = set(np.nonzero(np.array(driving_forces[:, 0]) > -1e-5)[0])
     new_free_stable_compset_indices = np.array(sorted(set(current_free_stable_compset_indices) | compsets_to_add))
     converged = False
     if len(set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)) == 0:
         # feasible system, and no phases to add or remove
-        if (largest_internal_dof_change < 1e-11) and (largest_phase_amt_change[0, 0] < 1e-10) and \
-                (largest_statevar_change[0, 0] < 1e-1):
+        if (largest_internal_dof_change < 1e-11) and (largest_phase_amt_change[0] < 1e-10) and \
+                (largest_statevar_change[0] < 1e-1):
             converged = True
     return converged, new_free_stable_compset_indices
 
 
-cpdef find_solution(compsets, int[::1] free_stable_compset_indices,
-                  num_statevars, num_components, prescribed_system_amount,
-                  initial_chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
-                  prescribed_element_indices, prescribed_elemental_amounts,
-                  free_statevar_indices, fixed_statevar_indices):
-    phase_amt = np.array([compset.NP for compset in compsets])
-    dof = [np.array(compset.dof) for compset in compsets]
-    chemical_potentials = np.array(initial_chemical_potentials)
-    delta_statevars = np.zeros(num_statevars)
-    converged = False
+cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
+                    int num_statevars, int num_components, double prescribed_system_amount,
+                    double[::1] initial_chemical_potentials, int[::1] free_chemical_potential_indices,
+                    int[::1] fixed_chemical_potential_indices,
+                    int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
+                    int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
+    cdef int iteration, idx, comp_idx, i
+    cdef int num_stable_phases, num_fixed_components, num_free_variables
+    cdef CompositionSet compset
+    cdef double[::1] x, new_y, delta_y
+    cdef double[::1] phase_amt = np.array([compset.NP for compset in compsets])
+    cdef list dof = [np.array(compset.dof) for compset in compsets]
+    cdef int[::1] ipiv = np.zeros(len(compsets) * max([compset.phase_record.phase_dof +
+                                                       compset.phase_record.num_internal_cons
+                                                       for compset in compsets]), dtype=np.int32)
+    cdef double[::1] chemical_potentials = np.array(initial_chemical_potentials)
+    cdef double[::1] current_elemental_amounts = np.zeros(chemical_potentials.shape[0])
+    cdef double[:,::1] all_phase_energies = np.zeros((len(compsets), 1))
+    cdef double[:,::1] all_phase_amounts = np.zeros((len(compsets), chemical_potentials.shape[0]))
+    cdef double[:,::1] equilibrium_matrix, masses_tmp
+    cdef double[:,::1] phase_matrix  # Fortran ordering required by call into lapack, but this is symmetric
+    cdef double[::1] equilibrium_rhs, phase_rhs, soln
+    cdef double[::1] delta_statevars = np.zeros(num_statevars)
+    cdef double[1] largest_statevar_change, largest_phase_amt_change
+    cdef double largest_internal_dof_change, largest_cons_max_residual, largest_internal_cons_max_residual
+    cdef bint converged = False
 
     for iteration in range(100):
-        current_elemental_amounts = np.zeros_like(chemical_potentials)
-        all_phase_energies = np.zeros((len(compsets), 1))
-        all_phase_amounts = np.zeros((len(compsets), len(chemical_potentials)))
-        largest_statevar_change = np.zeros((1, 1))
+        current_elemental_amounts[:] = 0
+        all_phase_energies[:,:] = 0
+        all_phase_amounts[:,:] = 0
+        largest_statevar_change[0] = 0
         largest_internal_dof_change = 0
         largest_internal_cons_max_residual = 0
-        largest_phase_amt_change = np.zeros((1, 1))
+        largest_phase_amt_change[0] = 0
         # FIRST STEP: Update phase internal degrees of freedom
         for idx, compset in enumerate(compsets):
             # TODO: Use better dof storage
@@ -355,20 +377,24 @@ cpdef find_solution(compsets, int[::1] free_stable_compset_indices,
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
             phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
                                      compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
-            rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
+            soln = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
+            # RHS copied into soln, then overwritten by solve()
             internal_cons_max_residual = \
-                compute_phase_system(phase_matrix, rhs, compset, delta_statevars, chemical_potentials, x)
+                compute_phase_system(phase_matrix, soln, compset, delta_statevars, chemical_potentials, x)
+            # phase_matrix is symmetric by construction, so we can pass in a C-ordered array
+            solve(&phase_matrix[0,0], phase_matrix.shape[0], &soln[0], &ipiv[0])
 
-
-            soln = np.linalg.solve(phase_matrix, rhs)
             delta_y = soln[:compset.phase_record.phase_dof]
 
             largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
-            old_y = np.array(x[num_statevars:])
-            new_y = old_y + delta_y
-            new_y[new_y < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
-            new_y[new_y > 1] = 1
-            largest_internal_dof_change = max(largest_internal_dof_change, np.max(np.abs(new_y - old_y)))
+            new_y = np.array(x[num_statevars:])
+            for i in range(new_y.shape[0]):
+                new_y[i] = x[num_statevars+i] + delta_y[i]
+                if new_y[i] > 1:
+                    new_y[i] = 1
+                elif new_y[i] < MIN_SITE_FRACTION:
+                    new_y[i] = MIN_SITE_FRACTION
+                largest_internal_dof_change = max(largest_internal_dof_change, abs(new_y[i] - x[num_statevars+i]))
             x[num_statevars:] = new_y
 
             for comp_idx in range(num_components):
@@ -402,13 +428,14 @@ cpdef find_solution(compsets, int[::1] free_stable_compset_indices,
         extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars,
                                      free_chemical_potential_indices, free_statevar_indices,
                                      free_stable_compset_indices, equilibrium_soln,
-                                     largest_statevar_change[0], largest_phase_amt_change[0], dof)
+                                     largest_statevar_change, largest_phase_amt_change, dof)
 
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         system_is_feasible = (mass_residual < 1e-05) and (largest_internal_cons_max_residual < 1e-10)
         if system_is_feasible:
-            free_stable_compset_indices = np.array(np.nonzero(phase_amt > MIN_SITE_FRACTION)[0], dtype=np.int32)
+            free_stable_compset_indices = np.array([i for i in range(phase_amt.shape[0])
+                                                    if phase_amt[i] > MIN_SITE_FRACTION], dtype=np.int32)
             # Check driving forces for metastable phases
             for idx in range(len(compsets)):
                 all_phase_energies[idx, 0] -= np.dot(chemical_potentials, all_phase_amounts[idx, :])
