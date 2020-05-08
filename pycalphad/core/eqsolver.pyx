@@ -142,6 +142,10 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         # To add a phase, must not be within COMP_DIFFERENCE_TOL of composition of the same phase of its type
         df_comp = current_grid_X[df_idx]
         df_phase_name = <unicode>current_grid_Phase[df_idx]
+        if df_phase_name == '_FAKE_':
+            if verbose:
+                print('Chemical potentials are poorly conditioned')
+            return False
         for compset in composition_sets:
             if compset.phase_record.phase_name != df_phase_name:
                 continue
