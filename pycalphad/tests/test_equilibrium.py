@@ -269,9 +269,6 @@ def test_eq_large_vacancy_hessian():
     assert_allclose(eq.GM.values, -154338.129)
     assert_allclose(eq.MU.values.flatten(), [-167636.23822714, -142072.78317111])
     assert_allclose(eq.X.sel(vertex=0).values.flatten(), [0.4798, 0.5202])
-    assert_allclose(eq.Y.sel(vertex=0).values.flatten()[:7],
-                    [9.49718498e-01, 5.02814978e-02, 4.35555687e-09,
-                     1.49677184e-03,9.81027763e-01, 1.74754652e-02, 1.00000000e+00])
 
 def test_eq_stepsize_reduction():
     """
