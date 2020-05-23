@@ -251,7 +251,8 @@ def _compute_phase_values(components, statevar_dict,
     else:
         output_columns = ['points']
     if parameter_array_length > 1:
-        parameter_column = ['parameters']
+        parameter_column = ['samples']
+        coordinate_dict['param_symbols'] = [str(x) for x in param_symbols]
     else:
         parameter_column = []
     data_arrays = {'X': (output_columns + ['component'], phase_compositions),
@@ -263,6 +264,8 @@ def _compute_phase_values(components, statevar_dict,
         # Add state variables as data variables rather than as coordinates
         for sym, vals in zip(statevar_dict.keys(), statevars):
             data_arrays.update({sym: (output_columns, vals)})
+    if parameter_array_length > 1:
+        data_arrays['param_values'] = (['samples', 'param_symbols'], parameter_array)
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 
