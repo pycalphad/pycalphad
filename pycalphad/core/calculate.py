@@ -7,13 +7,14 @@ from pycalphad.codegen.callables import build_phase_records
 from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
+from pycalphad.core.utils import filter_phases, unpack_condition,\
     unpack_components, extract_parameters, instantiate_models
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
 import numpy as np
+from numpy import broadcast_to
 import itertools
 import collections
 from xarray import Dataset, concat
