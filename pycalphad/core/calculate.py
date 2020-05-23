@@ -8,7 +8,7 @@ from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
-    unpack_components, get_state_variables, instantiate_models
+    unpack_components, extract_parameters, instantiate_models
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
@@ -186,25 +186,14 @@ def _compute_phase_values(components, statevar_dict,
     dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
 
-    if parameters is not None:
-        parameter_array_lengths = set(np.atleast_1d(val).size for val in parameters.values())
-    else:
-        parameter_array_lengths = set()
-    if len(parameter_array_lengths) > 1:
-        raise ValueError('parameters kwarg does not contain arrays of equal length')
-    elif len(parameter_array_lengths) == 0:
+    param_symbols, parameter_array = extract_parameters(parameters)
+    parameter_array_length = parameter_array.shape[0]
+    if parameter_array_length == 0:
         # No parameters specified
-        parameter_array_length = 0
         phase_output = np.zeros(dof.shape[0], order='C')
         phase_record.obj_2d(phase_output, dof)
     else:
         # Vectorized parameter arrays
-        parameter_array_length = list(parameter_array_lengths)[0]
-        parameter_array = np.zeros((parameter_array_length, len(parameters.keys())), order='C')
-        idx = 0
-        for param_name, param_val in sorted(parameters.items()):
-            parameter_array[:, idx] = param_val
-            idx += 1
         phase_output = np.zeros((dof.shape[0], parameter_array_length), order='C')
         phase_record.obj_parameters_2d(phase_output, dof, parameter_array)
 

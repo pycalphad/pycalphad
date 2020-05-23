@@ -365,12 +365,18 @@ def extract_parameters(parameters):
     Returns
     -------
     tuple
-        Tuple of parameter symbols and parameter values
+        Tuple of parameter symbols (list) and parameter values (parameter_array_length, # parameters)
     """
+    if parameters is not None:
+        parameter_array_lengths = set(np.atleast_1d(val).size for val in parameters.values())
+    else:
+        parameter_array_lengths = set()
+    if len(parameter_array_lengths) > 1:
+        raise ValueError('parameters kwarg does not contain arrays of equal length')
     if len(parameters) > 0:
         param_symbols, param_values = zip(*[(wrap_symbol(key), val) for key, val in sorted(parameters.items(),
                                                                               key=operator.itemgetter(0))])
-        param_values = np.asarray(param_values, dtype=np.float64)
+        param_values = np.atleast_2d(np.ascontiguousarray(np.asarray(param_values, dtype=np.float64).T))
     else:
         param_symbols = []
         param_values = np.empty(0)
