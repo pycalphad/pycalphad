@@ -147,8 +147,7 @@ def unpack_phases(phases):
     if isinstance(phases, (list, tuple, set)):
         active_phases = sorted(phases)
     elif isinstance(phases, dict):
-        active_phases = sorted([phn for phn, status in phases.items() \
-            if status == 'entered'])
+        active_phases = sorted(phases.keys())
     elif type(phases) is str:
         active_phases = [phases]
     return active_phases
