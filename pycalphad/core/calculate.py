@@ -217,7 +217,10 @@ def _compute_phase_values(components, statevar_dict,
         output_shape = points.shape[:-2] + (max_tieline_vertices,)
         if parameter_array_length > 1:
             output_shape = output_shape + (parameter_array_length,)
-        phase_output = np.concatenate((broadcast_to(largest_energy, output_shape), phase_output), axis=-1)
+            concat_axis = -2
+        else:
+            concat_axis = -1
+        phase_output = np.concatenate((broadcast_to(largest_energy, output_shape), phase_output), axis=concat_axis)
         phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (max_tieline_vertices,)),
                                       np.full(points.shape[:-1], phase_record.phase_name, dtype='U' + str(len(phase_record.phase_name)))), axis=-1)
     else:
