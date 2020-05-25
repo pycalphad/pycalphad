@@ -15,7 +15,7 @@ _plot_labels = {v.T: 'Temperature (K)', v.P: 'Pressure (Pa)'}
 
 
 def _axis_label(ax_var):
-    if isinstance(ax_var, v.Composition):
+    if isinstance(ax_var, v.MoleFraction):
         return 'X({})'.format(ax_var.species.name)
     elif isinstance(ax_var, v.StateVariable):
         return _plot_labels[ax_var]
@@ -71,7 +71,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
     conds = OrderedDict([(_map_coord_to_variable(key), unpack_condition(np.asarray(value)))
                          for key, value in sorted(eq.coords.items(), key=str)
                          if (key in ('T', 'P', 'N')) or (key.startswith('X_'))])
-    indep_comps = sorted([key for key, value in conds.items() if isinstance(key, v.Composition) and len(value) > 1], key=str)
+    indep_comps = sorted([key for key, value in conds.items() if isinstance(key, v.MoleFraction) and len(value) > 1], key=str)
     indep_pots = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(value) > 1]
 
     # determine what the type of plot will be
@@ -128,7 +128,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
         # get tieline endpoint compositions
         two_phase_x = eq.X.sel(component=x.species.name).values[two_phase_idx][..., :2]
         # handle special case for potential
-        if isinstance(y, v.Composition):
+        if isinstance(y, v.MoleFraction):
             two_phase_y = eq.X.sel(component=y.species.name).values[two_phase_idx][..., :2]
         else:
             # it's a StateVariable. This must be True

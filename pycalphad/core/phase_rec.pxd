@@ -54,4 +54,16 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil
-
+    # Used only to reconstitute if pickled (i.e. via __reduce__)
+    cdef public object ofunc_
+    cdef public object gfunc_
+    cdef public object hfunc_
+    cdef public object internal_cons_func_
+    cdef public object internal_cons_jac_
+    cdef public object internal_cons_hess_
+    cdef public object multiphase_cons_func_
+    cdef public object multiphase_cons_jac_
+    cdef public object multiphase_cons_hess_
+    cdef public object massfuncs_
+    cdef public object massgradfuncs_
+    cdef public object masshessianfuncs_

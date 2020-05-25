@@ -8,7 +8,7 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.starting_point import starting_point
 from pycalphad.core.utils import instantiate_models, get_state_variables, \
-    unpack_components, unpack_condition, get_pure_elements
+    unpack_components, unpack_condition, filter_phases, get_pure_elements
 from .compsets import get_compsets, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
 
@@ -62,6 +62,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
         calc_kwargs['pdens'] = 2000
 
     species = unpack_components(dbf, comps)
+    phases = filter_phases(dbf, species, phases)
     parameters = eq_kwargs.get('parameters', {})
     models = eq_kwargs.get('model')
     statevars = get_state_variables(models=models, conds=conds)
@@ -71,7 +72,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     prxs = build_phase_records(dbf, species, phases, conds, models, output='GM',
                                parameters=parameters, build_gradients=True, build_hessians=True)
 
-    indep_comp = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(np.atleast_1d(value)) > 1]
+    indep_comp = [key for key, value in conds.items() if isinstance(key, v.MoleFraction) and len(np.atleast_1d(value)) > 1]
     indep_pot = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comp) != 1) or (len(indep_pot) != 1):
         raise ValueError('Binary map requires exactly one composition and one potential coordinate')
@@ -107,8 +108,8 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
         Xmax_visited = 0.0
         hull_time = time.time()
         grid = calculate(dbf, comps, phases, fake_points=True, output='GM',
-                                     T=T, P=grid_conds[v.P], N=1,
-                                     model=models, parameters=parameters, to_xarray=False, **calc_kwargs)
+                         T=T, P=grid_conds[v.P], N=1, model=models,
+                         parameters=parameters, to_xarray=False, **calc_kwargs)
         hull = starting_point(eq_conds, statevars, prxs, grid)
         convex_hull_time += time.time() - hull_time
         convex_hulls_calculated += 1

@@ -12,7 +12,7 @@ tabular data. It is an N-dimensional analog to the Pandas DataFrame.
 
 This notebook will walk through the structure of xarray Datasets in
 pycalphad and some basics of using them. For more in-depth tutorials and
-documentation on using xarray Datasets and DataArray's fully, see the
+documentation on using xarray Datasets and DataArray’s fully, see the
 `xarray
 documentation <http://xarray.pydata.org/en/stable/index.html>`__.
 
@@ -24,7 +24,7 @@ the values of the properties as a function of the different conditions.
 There are three key terms:
 
 -  ``Dimensions``: these are the conditions that are calculated over,
-   e.g. pressure (P) and temperature (T). They are essentially labels.
+   e.g. pressure (P) and temperature (T). They are essentially labels.
 -  ``Coordinates``: these are the actual *values* that are taken on by
    the dimensions.
 -  ``Data variables``: these are the properties calculated by pycalphad,
@@ -39,15 +39,15 @@ dimensions/coordinates:
 -  ``P``: pressures (in Pa).
 -  ``T``: temperatures (in K).
 -  ``component``: the string names of the components in the system
--  ``internal_dof``: The internal\_dof (internal degrees of freedom) is
-   the index of the site in any phase's site fraction array. Below the
-   FCC\_A1 phase has the sublattice model (AL, ZN) and thus the
-   internal\_dof are integers 0 and 1 referring to the AL site (index 0)
+-  ``internal_dof``: The internal_dof (internal degrees of freedom) is
+   the index of the site in any phase’s site fraction array. Below the
+   FCC_A1 phase has the sublattice model (AL, ZN) and thus the
+   internal_dof are integers 0 and 1 referring to the AL site (index 0)
    and the ZN site (index 1).
 -  ``points``: By default, the calculate function samples points over
    all of the internal degrees of freedom. Each coordinate point simply
    represents the index is a list of all configurations of the
-   internal\_dof sampled. There is no underlying physical meaning or
+   internal_dof sampled. There is no underlying physical meaning or
    order.
 
 There are also at least four Data variables:
@@ -57,9 +57,9 @@ There are also at least four Data variables:
 -  ``X``: The composition of each component in mole fraction as a
    function of the temperature, pressure, and the index of the points
    (there is one composition for each point).
--  ``Y``: The site fraction of each index in the internal\_dof array for
+-  ``Y``: The site fraction of each index in the internal_dof array for
    the given temperature, pressure and point.
--  ``output``: "output" is always whatever property is calculated by the
+-  ``output``: “output” is always whatever property is calculated by the
    output keyword passed to ``calculate``. The default is the molar
    Gibbs energy, GM.
 
@@ -92,7 +92,7 @@ There are also at least four Data variables:
 
 We can manipulate this by selecting data by value (of a coordinate)
 using ``sel`` or index (of a coordinate) using ``isel`` similar to a
-Pandas array. Below we get the site fraction of ZN (internal\_dof index
+Pandas array. Below we get the site fraction of ZN (internal_dof index
 of 1 selected by index) at 1000K (selected by value) for the 50th point
 (selected by index).
 
@@ -154,10 +154,10 @@ equilibrium Datasets, there are six dimensions/coordinates:
 -  ``component``: (Same as calculate) The string names of the components
    in the system.
 -  ``internal_dof``: (Same as calculate, except it will be the longest
-   possible internal\_dof for all phases) The internal\_dof (internal
-   degrees of freedom) is the index of the site in any phase's site
-   fraction array. Below the FCC\_A1 phase has the sublattice model (AL,
-   ZN) and thus the internal\_dof are integers 0 and 1 referring to the
+   possible internal_dof for all phases) The internal_dof (internal
+   degrees of freedom) is the index of the site in any phase’s site
+   fraction array. Below the FCC_A1 phase has the sublattice model (AL,
+   ZN) and thus the internal_dof are integers 0 and 1 referring to the
    AL site (index 0) and the ZN site (index 1).
 -  ``X_ZN``: This is the composition of the species that was passed into
    the conditions array. Since we passed ``v.X('ZN')`` to the conditions
@@ -173,12 +173,12 @@ There are also at least six Data variables:
 -  ``Phase``: The string name of the phase in equilibrium at the
    conditions. There are as many as ``len(vertex)`` phases. Any time
    there are fewer phases in equilibrium than the indices described by
-   ``vertex``, the values of phase are paded by ``''``, e.g. for a
-   single phase region for FCC\_A1, the values of Phase will be
+   ``vertex``, the values of phase are paded by ``''``, e.g. for a
+   single phase region for FCC_A1, the values of Phase will be
    ``['FCC_A1', '']``. When more than one phase is present, it is
    important to note that they are not necessarily sorted.
 -  ``NP``: Phase fraction of each phase in equilibrium. When there is no
-   other equilibrium phase (e.g. single phase ``['FCC_A1', '']``) then
+   other equilibrium phase (e.g. single phase ``['FCC_A1', '']``) then
    the value of ``NP`` will be ``nan`` for the absence of a phase,
    rather than 0.
 -  ``MU``: The chemical potentials of each component for the conditions
@@ -189,7 +189,7 @@ There are also at least six Data variables:
    the calculated conditions.
 -  ``GM``: Same as ``output`` for ``calculate``. It is always reported
    no matter the value of ``output``.
--  ``output``: (optional) "output" is always whatever equilibrium
+-  ``output``: (optional) “output” is always whatever equilibrium
    property is calculated by the output keyword passed to
    ``equilibrium``. Unlike ``calculate``, this will be in addition to
    the ``GM`` because ``GM`` is always reported.
@@ -225,17 +225,17 @@ There are also at least six Data variables:
         created:  2017-11-16T07:56:07.904845
 
 
-A common operation might be to find the phase fractions of the HCP\_A3
+A common operation might be to find the phase fractions of the HCP_A3
 phase as a function of composition for T=800.
 
 However, the only way we can access the values of the phase fraction is
 by either the indices or values of the coordinates, we would have to
-know which index the HCP\_A3 phase is in before hand to use the ``sel``
+know which index the HCP_A3 phase is in before hand to use the ``sel``
 or ``isel`` commands.
 
 Since we do not know this, we can do what is called
 `masking <http://xarray.pydata.org/en/stable/indexing.html#masking-with-where>`__
-to find the data values that match a condition (the Phase is FCC\_A1):
+to find the data values that match a condition (the Phase is FCC_A1):
 
 .. code:: ipython3
 

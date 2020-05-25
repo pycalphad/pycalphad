@@ -24,15 +24,15 @@ def _adjust_conditions(conds):
     for key, value in sorted(conds.items(), key=str):
         if key == str(key):
             key = getattr(v, key, key)
-        if isinstance(key, v.Composition):
+        if isinstance(key, v.MoleFraction):
             new_conds[key] = [max(val, MIN_SITE_FRACTION*1000) for val in unpack_condition(value)]
         else:
             new_conds[key] = unpack_condition(value)
     return new_conds
 
 
-def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, callables=None, parameters=None,
-                 **kwargs):
+def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, callables=None, model=None,
+                 parameters=None, **kwargs):
     """
     WARNING: API/calling convention not finalized.
     Compute the *equilibrium value* of a property.
@@ -56,20 +56,20 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     output : str
         Equilibrium model property (e.g., CPM, HM, etc.) to compute.
         This must be defined as an attribute in the Model class of each phase.
-    data : Dataset, optional
+    data : Dataset
         Previous result of call to `equilibrium`.
         Should contain the equilibrium configurations at the conditions of interest.
         If the databases are not the same as in the original calculation,
-        the results may be meaningless. If None, `equilibrium` will be called.
-        Specifying this keyword argument can save the user some time if several properties
-        need to be calculated in succession.
+        the results may be meaningless.
     per_phase : bool, optional
         If True, compute and return the property for each phase present.
         If False, return the total system value, weighted by the phase fractions.
-    parameters : dict, optional
-        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
     callables : dict
         Callable functions to compute 'output' for each phase.
+    model : a dict of phase names to Model
+        Model class to use for each phase.
+    parameters : dict, optional
+        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
     kwargs
         Passed to `calculate`.
 
@@ -78,8 +78,10 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     Dataset of property as a function of equilibrium conditions
     """
     if data is None:
-        data = equilibrium(dbf, comps, phases, conditions, to_xarray=False)
-    active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
+        raise ValueError('Required kwarg "data" is not specified')
+    if model is None:
+        raise ValueError('Required kwarg "model" is not specified')
+    active_phases = unpack_phases(phases)
     conds = _adjust_conditions(conditions)
     indep_vars = ['N', 'P', 'T']
     # TODO: Rewrite this to use the coord dict from 'data'
@@ -101,7 +103,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     # For each phase select all conditions where that phase exists
     # Perform the appropriate calculation and then write the result back
     for phase in active_phases:
-        dof = sum([len(x) for x in dbf.phases[phase].constituents])
+        dof = len(model[phase].site_fractions)
         current_phase_indices = (data.Phase == phase)
         if ~np.any(current_phase_indices):
             continue
@@ -113,7 +115,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         if statevars.get('mode', None) is None:
             statevars['mode'] = 'numpy'
         calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False,
-                            callables=callables, parameters=parameters, **statevars)
+                            callables=callables, parameters=parameters, model=model, **statevars)
         result[output][np.nonzero(current_phase_indices)] = calcres[output].values
     if not per_phase:
         out = np.nansum(result[output] * data['NP'], axis=-1)
@@ -213,7 +215,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     conds = _adjust_conditions(conditions)
 
     for cond in conds.keys():
-        if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
+        if isinstance(cond, (v.MoleFraction, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))
     state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())

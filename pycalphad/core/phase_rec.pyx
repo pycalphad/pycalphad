@@ -8,6 +8,8 @@ import pycalphad.variables as v
 import ctypes
 
 cdef class FastFunction:
+    """``FastFunction`` provides a stable(-ish) interface that encapsulates SymEngine function pointers.
+    """
     def __cinit__(self, object func):
         if func is None:
             self.f_ptr = NULL
@@ -69,9 +71,10 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     """
     def __reduce__(self):
             return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
-                                 self._obj, self._grad, self._hess, self._masses, self._massgrads,
-                                 self._masshessians, self._internal_cons_func, self._internal_cons_jac, self._internal_cons_hess,
-                                 self._multiphase_cons_func, self._multiphase_cons_jac, self._multiphase_cons_hess,
+                                 self.ofunc_, self.gfunc_, self.hfunc_,
+                                 self.massfuncs_, self.massgradfuncs_, self.masshessianfuncs_,
+                                 self.internal_cons_func_, self.internal_cons_jac_, self.internal_cons_hess_,
+                                 self.multiphase_cons_func_, self.multiphase_cons_jac_, self.multiphase_cons_hess_,
                                  self.num_internal_cons, self.num_multiphase_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,
@@ -103,6 +106,20 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
                 continue
             self.phase_name = <unicode>variable.phase_name
             self.phase_dof += 1
+
+        # Used only to reconstitute if pickled (i.e. via __reduce__)
+        self.ofunc_ = ofunc
+        self.gfunc_ = gfunc
+        self.hfunc_ = hfunc
+        self.internal_cons_func_ = internal_cons_func
+        self.internal_cons_jac_ = internal_cons_jac
+        self.internal_cons_hess_ = internal_cons_hess
+        self.multiphase_cons_func_ = multiphase_cons_func
+        self.multiphase_cons_jac_ = multiphase_cons_jac
+        self.multiphase_cons_hess_ = multiphase_cons_hess
+        self.massfuncs_ = massfuncs
+        self.massgradfuncs_ = massgradfuncs
+        self.masshessianfuncs_ = masshessianfuncs
 
         if ofunc is not None:
             self._obj = FastFunction(ofunc)

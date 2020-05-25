@@ -10,7 +10,7 @@ http://dx.doi.org/10.1016/j.calphad.2010.01.004.
 (http://www.sciencedirect.com/science/article/pii/S0364591610000052)
 
 The TDB file used here differs slightly from the published TDB to ensure
-compatibility with pycalphad's TDB parser. All phases except cementite
+compatibility with pycalphad’s TDB parser. All phases except cementite
 are omitted. The numerical results should be the same.
 
 .. code:: ipython3
@@ -56,7 +56,7 @@ with a step size of 0.5K.
 
 We do this with the ``calculate`` routine instead of ``equilibrium``
 because the cementite phase has zero internal degrees of freedom. Since
-there's nothing to minimize, we can do the computation faster with
+there’s nothing to minimize, we can do the computation faster with
 ``calculate``.
 
 .. code:: ipython3

@@ -7,7 +7,7 @@ import pytest
 from sympy import S
 from pycalphad import Database, Model, ReferenceState
 from pycalphad.core.utils import make_callable
-from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, ALFE_TDB, \
+from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
     CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
@@ -18,6 +18,7 @@ ALFE_DBF = Database(ALFE_TDB)
 FEMN_DBF = Database(FEMN_TDB)
 CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
 CUMG_DBF = Database(CUMG_TDB)
+FE_MN_S_DBF = Database(FE_MN_S_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 
 def test_sympify_safety():
@@ -389,3 +390,81 @@ def test_shift_reference_state_model_contribs_take_effect():
     # At x=0.5, the reference xsmix energy is added to by 0.5*1000.0, which is
     # then subtracted out of the GM energy
     check_output(m, statevars, 'GMR', idmix_val-1000.0)
+
+
+def test_ionic_liquid_energy_anion_sublattice():
+    """Test that having anions, vacancies, and neutral species in the anion sublattice of a two sublattice ionic liquid produces the correct Gibbs energy"""
+
+    # Uses the sublattice model (FE+2)(S-2, VA, S)
+    mod = Model(FE_MN_S_DBF, ['FE', 'S', 'VA'], 'IONIC_LIQ')
+
+    # Same potentials for all test cases here
+    potentials = {v.P: 101325, v.T: 1600}
+
+    # All values checked by Thermo-Calc using set-start-constitution and show gm(ionic_liq)
+
+    # Test the three endmembers produce the corect energy
+    em_FE_Sneg2 = {
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', {'FE': 1.0}, charge=2)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 1e-12,
+        v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1e-12,
+    }
+    out = np.array(mod.ast.subs({**potentials, **em_FE_Sneg2}), dtype=np.complex)
+    assert np.isclose(out, -148395.0, atol=0.1)
+
+    em_FE_VA = {
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', {'FE': 1.0}, charge=2)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 1e-12,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1e-12,
+    }
+    out = np.array(mod.ast.subs({**potentials, **em_FE_VA}), dtype=np.complex)
+    assert np.isclose(out, -87735.077, atol=0.1)
+
+    em_FE_S = {
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', {'FE': 1.0}, charge=2)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 1e-12,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 1e-12,
+        v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1.0,
+    }
+    out = np.array(mod.ast.subs({**potentials, **em_FE_S}), dtype=np.complex)
+    assert np.isclose(out, -102463.52, atol=0.1)
+
+    # Test some ficticious "nice" mixing cases
+    mix_equal = {
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', {'FE': 1.0}, charge=2)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 0.33333333,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.33333333,
+        v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 0.33333333,
+    }
+    out = np.array(mod.ast.subs({**potentials, **mix_equal}), dtype=np.complex)
+    assert np.isclose(out, -130358.2, atol=0.1)
+
+    mix_unequal = {
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', {'FE': 1.0}, charge=2)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 0.5,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.25,
+        v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 0.25,
+    }
+    out = np.array(mod.ast.subs({**potentials, **mix_unequal}), dtype=np.complex)
+    assert np.isclose(out, -138484.11, atol=0.1)
+
+    # Test the energies for the two equilibrium internal DOF for the conditions
+    eq_sf_1 = {
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', {'FE': 1.0}, charge=2)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 3.98906E-01,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.00545E-04,
+        v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 6.00994E-01,
+    }
+    out = np.array(mod.ast.subs({**potentials, **eq_sf_1}), dtype=np.complex)
+    assert np.isclose(out, -141545.37, atol=0.1)
+
+    eq_sf_2 = {
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', charge=2)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('S-2', charge=-2)): 1.53788E-02,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.45273E-04,
+        v.Y('IONIC_LIQ', 1, v.Species('S')): 9.84476E-01,
+    }
+    out = np.array(mod.ast.subs({**potentials, **eq_sf_2}), dtype=np.complex)
+    assert np.isclose(out, -104229.18, atol=0.1)

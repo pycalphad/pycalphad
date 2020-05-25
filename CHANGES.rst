@@ -1,6 +1,27 @@
 What's New
 ==========
 
+0.8.3 (2020-03-31)
+------------------
+
+This is a minor bug fix release.
+
+* FIX: Improved ``model_hints`` construction when reading databases with out of order type definitions, fixes detecting disordered phases with ``filter_phases`` ( :issue:`269` )
+* FIX: Complex infinity in ``Model`` expressions are converted to real infinity so SymEngine can ``lambdify`` the expressions ( :issue:`267` )
+
+0.8.2 (2020-03-07)
+------------------
+
+This is a minor release with bug fixes and performance improvements. Python 2.7 support is dropped as well as Python 3.5 and below. Python 3.6-3.8 are explictly supported.
+
+* ENH: Reading large databases via delayed parameter processing ( :issue:`266` )
+* FIX: Support PhaseRecord pickling, switch SymEngine backend to LLVM ( :issue:`264` )
+* DOC: Regenerate examples ( :issue:`263` )
+* DOC: Update examples ( :issue:`262` )
+* ENH: variables.MassFraction object implementation ( :issue:`254` )
+* MAINT: Update and pin to SymPy 1.5 ( :issue:`251` )
+* MAINT: Support Python 3.8, drop Python 2, <3.6 ( :issue:`257` )
+
 0.8.1 (2019-11-28)
 ------------------
 

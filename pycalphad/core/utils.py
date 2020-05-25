@@ -147,8 +147,7 @@ def unpack_phases(phases):
     if isinstance(phases, (list, tuple, set)):
         active_phases = sorted(phases)
     elif isinstance(phases, dict):
-        active_phases = sorted([phn for phn, status in phases.items() \
-            if status == 'entered'])
+        active_phases = sorted(phases.keys())
     elif type(phases) is str:
         active_phases = [phases]
     return active_phases
@@ -326,8 +325,8 @@ def filter_phases(dbf, comps, candidate_phases=None):
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
-    comps : list
-        Names of components to consider in the calculation.
+    comps : list of v.Species
+        Species to consider in the calculation.
     candidate_phases : list
         Names of phases to consider in the calculation, if not passed all phases from DBF will be considered
     Returns
