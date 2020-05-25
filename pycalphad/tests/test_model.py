@@ -5,6 +5,7 @@ from pycalphad import Database, Model, variables as v, equilibrium
 from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
 from pycalphad.core.errors import DofError
 from pycalphad.core.utils import unpack_components
+from pycalphad.tests.test_energy import check_energy
 from tinydb import where
 import numpy as np
 import pytest
@@ -114,3 +115,15 @@ def test_params_array_validity():
             True if (len(s) == 3 and s[2][0] == C) else False)))
     assert Model(dbf,['B','C'],'BETA')._interaction_test(bad_comp_param) == False
     assert Model(dbf,['B','C'],'BETA')._interaction_test(extra_subl_param) == False
+
+def test_model_energy():
+    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    ALPHA = Model(dbf, ['A','B'], 'ALPHA')
+    BETA = Model(dbf, ['B','C'], 'BETA')
+    #checks if components not specified in a sublattice are being filtered
+    check_energy(ALPHA,{v.T:1000,v.P:101325,v.Y('ALPHA',0,'A'):1,
+        v.Y('ALPHA',1,'A'):1, v.Y('ALPHA',1,'B'):0, v.Y('ALPHA',0,'B'):1},-10,'sympy')
+    #checks if extrasublattices or not specified components are being filtered
+    check_energy(BETA,{v.T:1000,v.P:101325,v.Y('BETA',0,'B'):1,
+        v.Y('BETA',1,'B'):1, v.Y('BETA',1,'C'):1, v.Y('BETA',2,'C'):1,
+        v.Y('BETA',1,'D'):1},-13.333333,'sympy')
