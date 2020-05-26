@@ -451,7 +451,12 @@ class Model(object):
             # species can be specified in the anion sublattice without any
             # species in the cation sublattice.
             if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-                pass
+                for sublattice in constituent_array:
+                    if (set(sublattice).issubset(self.constituents[1]) \
+                        or (sublattice[0] == v.Species('*'))):
+                        return True
+                    else:
+                        return False
             else:
                 return False
             return False
