@@ -65,6 +65,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     phases = filter_phases(dbf, species, phases)
     parameters = eq_kwargs.get('parameters', {})
     models = eq_kwargs.get('model')
+    solver = eq_kwargs.get('solver', None)
     statevars = get_state_variables(models=models, conds=conds)
     if models is None:
         models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'),
@@ -123,7 +124,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
             eq_conds[comp_cond] = [float(Xeq)]
             eq_time = time.time()
             start_point = starting_point(eq_conds, statevars, prxs, grid)
-            eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False)
+            eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False, solver=solver)
             equilibrium_time += time.time() - eq_time
             equilibria_calculated += 1
             iter_equilibria += 1
@@ -148,7 +149,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
                 eq_time = time.time()
                 # TODO: starting point could be improved by basing it off the previous calculation
                 start_point = starting_point(eq_conds, statevars, prxs, grid)
-                eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False)
+                eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False, solver=solver)
                 equilibrium_time += time.time() - eq_time
                 equilibria_calculated += 1
                 compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
