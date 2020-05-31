@@ -441,38 +441,38 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             compset.phase_record.obj(energy_tmp[0, :], x)
 
             largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
-            new_y = np.array(x[num_statevars:])
+            new_y = np.array(x)
             candidate_y_energy = np.zeros((1,1))
             candidate_y_masses = np.zeros((num_components, 1))
             candidate_internal_cons = np.zeros(compset.phase_record.num_internal_cons)
+            current_phase_gradient = np.array(phase_gradient)
             step_size = 1.0
             minimum_step_size = 1e-2
             while step_size >= minimum_step_size:
-                current_phase_gradient = np.array(phase_gradient)
                 exceeded_bounds = False
-                for i in range(new_y.shape[0]):
-                    new_y[i] = x[num_statevars+i] + step_size * delta_y[i]
+                for i in range(num_statevars, new_y.shape[0]):
+                    new_y[i] = x[i] + step_size * delta_y[i-num_statevars]
                     if new_y[i] > 1:
                         if (new_y[i] - 1) > 1e-3:
                             # Allow some tolerance in the name of progress
                             exceeded_bounds = True
                         new_y[i] = 1
-                        if delta_y[i] > 0:
-                            current_phase_gradient[i] = 0
+                        if delta_y[i-num_statevars] > 0:
+                            current_phase_gradient[i-num_statevars] = 0
                     elif new_y[i] < MIN_SITE_FRACTION:
                         if (MIN_SITE_FRACTION - new_y[i]) > 1e-3:
                             # Allow some tolerance in the name of progress
                             exceeded_bounds = True
                         new_y[i] = MIN_SITE_FRACTION
-                        if delta_y[i] < 0:
-                            current_phase_gradient[i] = 0
+                        if delta_y[i-num_statevars] < 0:
+                            current_phase_gradient[i-num_statevars] = 0
                 if exceeded_bounds:
                     step_size /= 2
                     continue
                 for comp_idx in range(num_components):
-                    compset.phase_record.mass_obj(candidate_y_masses[comp_idx, :], np.r_[x[:num_statevars], new_y], comp_idx)
-                compset.phase_record.internal_cons_func(candidate_internal_cons, np.r_[x[:num_statevars], new_y])
-                compset.phase_record.obj(candidate_y_energy[0,:], np.r_[x[:num_statevars], new_y])
+                    compset.phase_record.mass_obj(candidate_y_masses[comp_idx, :], new_y, comp_idx)
+                compset.phase_record.internal_cons_func(candidate_internal_cons, new_y)
+                compset.phase_record.obj(candidate_y_energy[0,:], new_y)
                 wolfe_criteria = (candidate_y_energy[0,0] - np.dot(chemical_potentials, candidate_y_masses[:,0]) - \
                                   np.dot(internal_lagrange, internal_cons_tmp)) - \
                                  (energy_tmp[0,0] - np.dot(chemical_potentials, masses_tmp[:,0]) - \
@@ -485,9 +485,9 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 candidate_internal_cons[:] = 0
                 step_size /= 2
 
-            for i in range(new_y.shape[0]):
-                largest_internal_dof_change = max(largest_internal_dof_change, abs(new_y[i] - x[num_statevars+i]))
-            x[num_statevars:] = new_y
+            for i in range(num_statevars, new_y.shape[0]):
+                largest_internal_dof_change = max(largest_internal_dof_change, abs(new_y[i] - x[i]))
+            x[:] = new_y
             #print(idx, 'new_y', np.array(new_y), 'step_size', step_size)
 
             for comp_idx in range(num_components):
