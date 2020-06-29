@@ -15,6 +15,8 @@ cdef class FastFunction:
             self.f_ptr = NULL
             self.func_data = NULL
             return
+        if isinstance(func, FastFunction):
+            func = func._objref
         # Preserve reference to object to prevent garbage collection
         self._objref = func
         addr1, addr2 = func.as_ctypes()
