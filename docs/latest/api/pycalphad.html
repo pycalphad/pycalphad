@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.8.3+3.g023f957 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.8.3+4.g925b01b documentation</title>
   
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
 
   
   
@@ -17,7 +20,9 @@
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -25,15 +30,11 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
@@ -51,7 +52,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> pycalphad
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> pycalphad
           
 
           
@@ -64,7 +65,7 @@
             
             
               <div class="version">
-                0.8.3+3.g023f957
+                0.8.3+4.g925b01b
               </div>
             
           
@@ -81,6 +82,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -116,6 +118,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -154,7 +157,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="modules.html">API Documentation</a> &raquo;</li>
         
@@ -673,7 +676,7 @@ If not specified, randomly generated and saved to self.solution</p></li>
 <p>Classes and constants for representing thermodynamic variables.</p>
 <dl class="py class">
 <dt id="pycalphad.variables.ChemicalPotential">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">ChemicalPotential</code><a class="reference internal" href="../_modules/pycalphad/variables.html#ChemicalPotential"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.ChemicalPotential" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">ChemicalPotential</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">species</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">assumptions</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#ChemicalPotential"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.ChemicalPotential" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>Chemical potentials are symbols with built-in assumptions of being real.</p>
 <dl class="py attribute">
@@ -696,7 +699,7 @@ If not specified, randomly generated and saved to self.solution</p></li>
 
 <dl class="py class">
 <dt id="pycalphad.variables.MassFraction">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">MassFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#MassFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.MassFraction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">MassFraction</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#MassFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.MassFraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>Weight fractions are symbols with built-in assumptions of being real and nonnegative.</p>
 <dl class="py attribute">
@@ -713,7 +716,7 @@ If not specified, randomly generated and saved to self.solution</p></li>
 
 <dl class="py class">
 <dt id="pycalphad.variables.MoleFraction">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">MoleFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#MoleFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.MoleFraction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">MoleFraction</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#MoleFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.MoleFraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>MoleFractions are symbols with built-in assumptions of being real
 and nonnegative.</p>
@@ -731,7 +734,7 @@ and nonnegative.</p>
 
 <dl class="py class">
 <dt id="pycalphad.variables.PhaseFraction">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">PhaseFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#PhaseFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.PhaseFraction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">PhaseFraction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">phase_name</span></em>, <em class="sig-param"><span class="n">multiplicity</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#PhaseFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.PhaseFraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>Phase fractions are symbols with built-in assumptions of being real
 and nonnegative. The constructor handles formatting of the name.</p>
@@ -749,7 +752,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
 
 <dl class="py class">
 <dt id="pycalphad.variables.SiteFraction">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">SiteFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#SiteFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.SiteFraction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">SiteFraction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">phase_name</span></em>, <em class="sig-param"><span class="n">subl_index</span></em>, <em class="sig-param"><span class="n">species</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#SiteFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.SiteFraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>Site fractions are symbols with built-in assumptions of being real
 and nonnegative. The constructor handles formatting of the name.</p>
@@ -767,7 +770,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
 
 <dl class="py class">
 <dt id="pycalphad.variables.Species">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">Species</code><a class="reference internal" href="../_modules/pycalphad/variables.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.Species" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">Species</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">constituents</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">charge</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.Species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A chemical species.</p>
 <dl class="py attribute">
@@ -825,7 +828,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
 
 <dl class="py class">
 <dt id="pycalphad.variables.StateVariable">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">StateVariable</code><a class="reference internal" href="../_modules/pycalphad/variables.html#StateVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.StateVariable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">StateVariable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">assumptions</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#StateVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.StateVariable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.core.symbol.Symbol</span></code></p>
 <p>State variables are symbols with built-in assumptions of being real.</p>
 <dl class="py attribute">
@@ -934,11 +937,19 @@ which they can be retrieved.</p></li>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2015, pycalphad Development Team
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -949,7 +960,6 @@ which they can be retrieved.</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {
