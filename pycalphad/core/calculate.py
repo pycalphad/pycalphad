@@ -7,13 +7,14 @@ from pycalphad.codegen.callables import build_phase_records
 from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
-    unpack_components, get_state_variables, instantiate_models
+from pycalphad.core.utils import filter_phases, unpack_condition,\
+    unpack_components, extract_parameters, instantiate_models
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
 import numpy as np
+from numpy import broadcast_to
 import itertools
 import collections
 from xarray import Dataset, concat
@@ -186,25 +187,14 @@ def _compute_phase_values(components, statevar_dict,
     dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
 
-    if parameters is not None:
-        parameter_array_lengths = set(np.atleast_1d(val).size for val in parameters.values())
-    else:
-        parameter_array_lengths = set()
-    if len(parameter_array_lengths) > 1:
-        raise ValueError('parameters kwarg does not contain arrays of equal length')
-    elif len(parameter_array_lengths) == 0:
+    param_symbols, parameter_array = extract_parameters(parameters)
+    parameter_array_length = parameter_array.shape[0]
+    if parameter_array_length == 0:
         # No parameters specified
-        parameter_array_length = 0
         phase_output = np.zeros(dof.shape[0], order='C')
         phase_record.obj_2d(phase_output, dof)
     else:
         # Vectorized parameter arrays
-        parameter_array_length = list(parameter_array_lengths)[0]
-        parameter_array = np.zeros((parameter_array_length, len(parameters.keys())), order='C')
-        idx = 0
-        for param_name, param_val in sorted(parameters.items()):
-            parameter_array[:, idx] = param_val
-            idx += 1
         phase_output = np.zeros((dof.shape[0], parameter_array_length), order='C')
         phase_record.obj_parameters_2d(phase_output, dof, parameter_array)
 
@@ -227,7 +217,10 @@ def _compute_phase_values(components, statevar_dict,
         output_shape = points.shape[:-2] + (max_tieline_vertices,)
         if parameter_array_length > 1:
             output_shape = output_shape + (parameter_array_length,)
-        phase_output = np.concatenate((broadcast_to(largest_energy, output_shape), phase_output), axis=-1)
+            concat_axis = -2
+        else:
+            concat_axis = -1
+        phase_output = np.concatenate((broadcast_to(largest_energy, output_shape), phase_output), axis=concat_axis)
         phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (max_tieline_vertices,)),
                                       np.full(points.shape[:-1], phase_record.phase_name, dtype='U' + str(len(phase_record.phase_name)))), axis=-1)
     else:
@@ -262,7 +255,8 @@ def _compute_phase_values(components, statevar_dict,
     else:
         output_columns = ['points']
     if parameter_array_length > 1:
-        parameter_column = ['parameters']
+        parameter_column = ['samples']
+        coordinate_dict['param_symbols'] = [str(x) for x in param_symbols]
     else:
         parameter_column = []
     data_arrays = {'X': (output_columns + ['component'], phase_compositions),
@@ -274,6 +268,8 @@ def _compute_phase_values(components, statevar_dict,
         # Add state variables as data variables rather than as coordinates
         for sym, vals in zip(statevar_dict.keys(), statevars):
             data_arrays.update({sym: (output_columns, vals)})
+    if parameter_array_length > 1:
+        data_arrays['param_values'] = (['samples', 'param_symbols'], parameter_array)
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 

@@ -196,6 +196,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         # We are trusting parameters.shape[1] to be sized correctly here
         cdef size_t num_params = parameters.shape[1]
         cdef size_t num_dof = self.num_statevars + self.phase_dof + num_params
+        cdef size_t dof_offset = self.num_statevars + self.phase_dof
         cdef double* dof_concat = <double *> malloc(num_param_inps * num_dof * sizeof(double))
         for i in range(num_dof_inps):
             # Initialize all parameter arrays with current dof
@@ -203,7 +204,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
                 for dof_idx in range(num_dof-num_params):
                     dof_concat[j * num_dof + dof_idx] = dof[i, dof_idx]
                 for param_idx in range(num_params):
-                    dof_concat[j * num_dof + (num_dof-num_params)+param_idx] = parameters[j, param_idx]
+                    dof_concat[j * num_dof + dof_offset + param_idx] = parameters[j, param_idx]
             for j in range(num_param_inps):
                 self._obj.call(&outp[i,j], &dof_concat[j * num_dof])
         free(dof_concat)

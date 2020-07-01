@@ -3,16 +3,17 @@ The calculate test module verifies that calculate() calculates
 Model quantities correctly.
 """
 
-from io import StringIO
 import pytest
 from pycalphad import Database, calculate, Model
 import numpy as np
+from numpy.testing import assert_allclose
 from pycalphad import ConditionError
-from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB, CUMG_PARAMETERS_TDB
 
 
 DBF = Database(TDB_TEST_STRING)
 ALFE_DBF = Database(ALFE_TDB)
+CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
 
 def test_surface():
     "Bare minimum: calculation produces a result."
@@ -66,6 +67,27 @@ def test_calculate_raises_with_no_active_phases_passed():
     # Phase cannot be built without FE
     with pytest.raises(ConditionError):
         calculate(ALFE_DBF, ['AL', 'VA'], ['AL13FE4'], T=1200, P=101325)
+
+
+def test_calculate_with_parameters_vectorized():
+    # Second set of parameter values are directly copied from the TDB
+    parameters = {'VV0000': [-33134.699474175846, -32539.5], 'VV0001': [7734.114029426941, 8236.3],
+                  'VV0002': [-13498.542175596054, -14675.0], 'VV0003': [-26555.048975092268, -24441.2],
+                  'VV0004': [20777.637577083482, 20149.6], 'VV0005': [41915.70425630003, 46500.0],
+                  'VV0006': [-34525.21964215504, -39591.3], 'VV0007': [95457.14639216446, 104160.0],
+                  'VV0008': [21139.578967453144, 21000.0], 'VV0009': [19047.833726419598, 17772.0],
+                  'VV0010': [20468.91829601273, 21240.0], 'VV0011': [19601.617855958328, 14321.1],
+                  'VV0012': [-4546.9325861738, -4923.18], 'VV0013': [-1640.6354331231278, -1962.8],
+                  'VV0014': [-35682.950005357634, -31626.6]}
+    res = calculate(CUMG_PARAMETERS_DBF, ['CU', 'MG'], ['HCP_A3'], parameters=parameters, T=743.15, P=1e5)
+    res_noparams = calculate(CUMG_PARAMETERS_DBF, ['CU', 'MG'], ['HCP_A3'], parameters=None, T=743.15, P=1e5)
+    param_values = []
+    for symbol in sorted(parameters.keys()):
+        param_values.append(parameters[symbol])
+    param_values = np.array(param_values).T
+    assert all(res['param_symbols'] == sorted([str(x) for x in parameters.keys()]))
+    assert_allclose(np.squeeze(res['param_values'].values), param_values)
+    assert_allclose(res.GM.isel(samples=1).values, res_noparams.GM.values)
 
 
 def test_incompatible_model_instance_raises():
