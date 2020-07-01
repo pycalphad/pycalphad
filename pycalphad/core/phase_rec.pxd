@@ -42,6 +42,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public unicode phase_name
     cpdef void obj(self, double[::1] out, double[::1] dof) nogil
     cpdef void obj_2d(self, double[::1] out, double[:, ::1] dof) nogil
+    cpdef void obj_parameters_2d(self, double[:, ::1] out, double[:, ::1] dof, double[:, ::1] parameters) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil
     cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) nogil

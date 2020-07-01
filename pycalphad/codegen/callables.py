@@ -203,6 +203,11 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                     build_gradients=build_gradients,
                                     build_hessians=build_hessians)
 
+    # If a vector of parameters is specified, only pass the first row to the PhaseRecord
+    # Future callers of PhaseRecord.obj_parameters_2d() can pass the full param_values array as an argument
+    if len(param_values.shape) > 1:
+        param_values = param_values[0]
+
     for name in phases:
         mod = models[name]
         site_fracs = mod.site_fractions
