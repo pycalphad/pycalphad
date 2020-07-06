@@ -607,7 +607,13 @@ class Model(object):
                     mixing_term = mixing_term.xreplace(pair_rule)
                     # This parameter is normalized differently due to the variable charge valence of vacancies
                     mixing_term *= self.site_ratios[va_subl_idx]
-            rk_terms.append(mixing_term * param['parameter'])
+            param_val = param['parameter']
+            if isinstance(param_val, Piecewise):
+                # Eliminate redundant Piecewise and extrapolate beyond temperature limits
+                filtered_args = [i for i in param_val.args if not ((i.cond == S.true) and (i.expr == S.Zero))]
+                if len(filtered_args) == 1:
+                    param_val = filtered_args[0].expr
+            rk_terms.append(mixing_term * param_val)
         return Add(*rk_terms)
 
     def reference_energy(self, dbe):
