@@ -301,6 +301,9 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         iterations = 0
         history = []
         while (iterations < 10) and (not iter_solver.ignore_convergence):
+            if len(composition_sets) == 0:
+                changed_phases = False
+                break
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
 
             chemical_potentials[:] = result.chemical_potentials
