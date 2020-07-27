@@ -206,6 +206,9 @@ cdef class Problem:
     def chemical_potential_parameter_gradient(self, x_in):
         "Assuming the input is a feasible solution."
         # mu' = (A+)' grad + (A+) hess
+        cdef CompositionSet compset = self.composition_sets[0]
+        if len(compset.phase_record.parameters) == 0:
+            return np.zeros((len(self.nonvacant_elements), 1))
         jac = self.mass_jacobian(x_in).T
         jac_pinv = np.linalg.pinv(jac)
         param_jac = self.parameter_jacobian(x_in)
