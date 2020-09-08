@@ -445,7 +445,7 @@ cpdef compute_infeasibility(list compsets, object dof, double[::1] lmul, double[
             all_phase_amounts[phase_idx, comp_idx] = masses_tmp[comp_idx, 0]
             for dof_idx in range(num_statevars):
                 mass_jac[comp_idx, dof_idx] += phase_amt[phase_idx] * tmp_mass_jac[dof_idx]
-                for dof_idx_2 in range(num_statevars):
+                for dof_idx_2 in range(dof_idx, num_statevars):
                     mass_hess[comp_idx, dof_idx, dof_idx_2] += phase_amt[phase_idx] * tmp_mass_hess[dof_idx, dof_idx_2]
                     if dof_idx != dof_idx_2:
                         mass_hess[comp_idx, dof_idx_2, dof_idx] += phase_amt[phase_idx] * tmp_mass_hess[dof_idx, dof_idx_2]
@@ -456,7 +456,7 @@ cpdef compute_infeasibility(list compsets, object dof, double[::1] lmul, double[
                 mass_hess[comp_idx, dof_idx, output_phase_idx] = tmp_mass_jac[dof_idx]
             for dof_idx in range(compset.phase_record.phase_dof):
                 mass_jac[comp_idx, dof_offset + dof_idx] += phase_amt[phase_idx] * tmp_mass_jac[num_statevars + dof_idx]
-                for dof_idx_2 in range(compset.phase_record.phase_dof):
+                for dof_idx_2 in range(dof_idx, compset.phase_record.phase_dof):
                     mass_hess[comp_idx, dof_offset + dof_idx, dof_offset + dof_idx_2] += phase_amt[phase_idx] * tmp_mass_hess[num_statevars + dof_idx, num_statevars + dof_idx_2]
                     if dof_idx != dof_idx_2:
                         mass_hess[comp_idx, dof_offset + dof_idx_2, dof_offset + dof_idx] += phase_amt[phase_idx] * tmp_mass_hess[num_statevars + dof_idx, num_statevars + dof_idx_2]
@@ -472,26 +472,26 @@ cpdef compute_infeasibility(list compsets, object dof, double[::1] lmul, double[
         compset.phase_record.internal_cons_hess(tmp_internal_cons_hess, x)
 
         for constraint_idx in range(tmp_internal_cons.shape[0]):
-            total_infeasibility_gradient[infeasibility_dof+constraint_offset+constraint_idx] = tmp_internal_cons[constraint_idx]
+            total_infeasibility_gradient[infeasibility_dof+constraint_offset+constraint_idx] = -tmp_internal_cons[constraint_idx]
             for dof_idx in range(num_statevars):
-                total_infeasibility_gradient[dof_idx] += lmul[constraint_offset+constraint_idx] * tmp_internal_cons_jac[constraint_idx, dof_idx]
-                for dof_idx_2 in range(num_statevars):
-                    total_infeasibility_hess[dof_idx, dof_idx_2] += lmul[constraint_offset+constraint_idx] * tmp_internal_cons_hess[constraint_idx, dof_idx, dof_idx_2]
+                total_infeasibility_gradient[dof_idx] -= lmul[constraint_offset+constraint_idx] * tmp_internal_cons_jac[constraint_idx, dof_idx]
+                for dof_idx_2 in range(dof_idx, num_statevars):
+                    total_infeasibility_hess[dof_idx, dof_idx_2] -= lmul[constraint_offset+constraint_idx] * tmp_internal_cons_hess[constraint_idx, dof_idx, dof_idx_2]
                     if dof_idx != dof_idx_2:
-                        total_infeasibility_hess[dof_idx_2, dof_idx] = total_infeasibility_hess[dof_idx, dof_idx_2]
+                        total_infeasibility_hess[dof_idx_2, dof_idx] -= lmul[constraint_offset+constraint_idx] * tmp_internal_cons_hess[constraint_idx, dof_idx, dof_idx_2]
                 for dof_idx_2 in range(compset.phase_record.phase_dof):
-                    total_infeasibility_hess[dof_idx, dof_offset + dof_idx_2] += lmul[constraint_offset+constraint_idx] *  tmp_internal_cons_hess[constraint_idx, dof_idx, num_statevars + dof_idx_2]
+                    total_infeasibility_hess[dof_idx, dof_offset + dof_idx_2] -= lmul[constraint_offset+constraint_idx] *  tmp_internal_cons_hess[constraint_idx, dof_idx, num_statevars + dof_idx_2]
                     total_infeasibility_hess[dof_offset + dof_idx_2, dof_idx] = total_infeasibility_hess[dof_idx, dof_offset + dof_idx_2]
-                total_infeasibility_hess[dof_idx, infeasibility_dof+constraint_offset+constraint_idx] = tmp_internal_cons_jac[constraint_idx, dof_idx]
-                total_infeasibility_hess[infeasibility_dof+constraint_offset+constraint_idx, dof_idx] = tmp_internal_cons_jac[constraint_idx, dof_idx]
+                total_infeasibility_hess[dof_idx, infeasibility_dof+constraint_offset+constraint_idx] = -tmp_internal_cons_jac[constraint_idx, dof_idx]
+                total_infeasibility_hess[infeasibility_dof+constraint_offset+constraint_idx, dof_idx] = -tmp_internal_cons_jac[constraint_idx, dof_idx]
             for dof_idx in range(compset.phase_record.phase_dof):
-                total_infeasibility_gradient[dof_offset+dof_idx] += lmul[constraint_offset+constraint_idx] * tmp_internal_cons_jac[constraint_idx, num_statevars + dof_idx]
-                for dof_idx_2 in range(compset.phase_record.phase_dof):
-                    total_infeasibility_hess[dof_offset + dof_idx, dof_offset + dof_idx_2] += lmul[constraint_offset+constraint_idx] * tmp_internal_cons_hess[constraint_idx, num_statevars + dof_idx, num_statevars + dof_idx_2]
+                total_infeasibility_gradient[dof_offset+dof_idx] -= lmul[constraint_offset+constraint_idx] * tmp_internal_cons_jac[constraint_idx, num_statevars + dof_idx]
+                for dof_idx_2 in range(dof_idx, compset.phase_record.phase_dof):
+                    total_infeasibility_hess[dof_offset + dof_idx, dof_offset + dof_idx_2] -= lmul[constraint_offset+constraint_idx] * tmp_internal_cons_hess[constraint_idx, num_statevars + dof_idx, num_statevars + dof_idx_2]
                     if dof_idx != dof_idx_2:
-                        total_infeasibility_hess[dof_offset + dof_idx_2, dof_idx] = total_infeasibility_hess[dof_idx, dof_offset + dof_idx_2]
-                total_infeasibility_hess[dof_offset+dof_idx, infeasibility_dof+constraint_offset+constraint_idx] = tmp_internal_cons_jac[constraint_idx, num_statevars + dof_idx]
-                total_infeasibility_hess[infeasibility_dof+constraint_offset+constraint_idx, dof_offset+dof_idx] = tmp_internal_cons_jac[constraint_idx, num_statevars + dof_idx]
+                        total_infeasibility_hess[dof_offset + dof_idx_2, dof_idx] -= lmul[constraint_offset+constraint_idx] * tmp_internal_cons_hess[constraint_idx, num_statevars + dof_idx, num_statevars + dof_idx_2]
+                total_infeasibility_hess[dof_offset+dof_idx, infeasibility_dof+constraint_offset+constraint_idx] = -tmp_internal_cons_jac[constraint_idx, num_statevars + dof_idx]
+                total_infeasibility_hess[infeasibility_dof+constraint_offset+constraint_idx, dof_offset+dof_idx] = -tmp_internal_cons_jac[constraint_idx, num_statevars + dof_idx]
         dof_offset += compset.phase_record.phase_dof
         constraint_offset += compset.phase_record.num_internal_cons
         masses_tmp[:,:] = 0
@@ -499,28 +499,37 @@ cpdef compute_infeasibility(list compsets, object dof, double[::1] lmul, double[
         tmp_internal_cons_jac[:,:] = 0
         tmp_internal_cons_hess[:,:,:] = 0
 
+    partials = []
     # Compute objective function, gradient and Hessian (sum-squares of mass residual)
     for pei_idx in range(prescribed_element_indices.shape[0]):
         comp_idx = prescribed_element_indices[pei_idx]
         comp_amt = np.dot(all_phase_amounts[:, comp_idx], phase_amt)
-        total_infeasibility += ((comp_amt / prescribed_elemental_amounts[pei_idx]) - 1)**2
+        partials.append(comp_amt)
+        total_infeasibility += (comp_amt - prescribed_elemental_amounts[pei_idx])**2
         for dof_idx in range(infeasibility_dof):
-            total_infeasibility_gradient[dof_idx] += 2 * ((comp_amt / prescribed_elemental_amounts[pei_idx]) - 1) * \
-                                                     mass_jac[comp_idx, dof_idx] / prescribed_elemental_amounts[pei_idx]
-            for dof_idx_2 in range(infeasibility_dof):
-                total_infeasibility_hess[dof_idx, dof_idx_2] += 2 * ((mass_jac[comp_idx, dof_idx] / prescribed_elemental_amounts[pei_idx])**2 +
-                                                                     ((comp_amt / prescribed_elemental_amounts[pei_idx]) - 1) * mass_hess[comp_idx, dof_idx, dof_idx_2] / prescribed_elemental_amounts[pei_idx])
+            total_infeasibility_gradient[dof_idx] += 2 * mass_jac[comp_idx, dof_idx] * (comp_amt - prescribed_elemental_amounts[pei_idx])
+            for dof_idx_2 in range(dof_idx, infeasibility_dof):
+                total_infeasibility_hess[dof_idx, dof_idx_2] += 2 * (mass_hess[comp_idx, dof_idx, dof_idx_2] *
+                                                                     (comp_amt - prescribed_elemental_amounts[pei_idx]) +
+                                                                      mass_jac[comp_idx, dof_idx_2] * mass_jac[comp_idx, dof_idx]
+                                                                     )
                 if dof_idx != dof_idx_2:
-                    total_infeasibility_hess[dof_idx_2, dof_idx] = total_infeasibility_hess[dof_idx, dof_idx_2]
+                    total_infeasibility_hess[dof_idx_2, dof_idx] += 2 * (mass_hess[comp_idx, dof_idx, dof_idx_2] *
+                                                                     (comp_amt - prescribed_elemental_amounts[pei_idx]) +
+                                                                      mass_jac[comp_idx, dof_idx_2] * mass_jac[comp_idx, dof_idx]
+                                                                     )
+    print('pea', np.array(prescribed_elemental_amounts))
+    print('partials', partials)
+    print('els', [compset.phase_record.nonvacant_elements[i] for i in prescribed_element_indices])
 
     # infeasibility from phase_amt sum constraint: sum(phase_amt) - prescribed_system_amount = 0
-    total_infeasibility_gradient[infeasibility_dof+constraint_offset] = np.sum(phase_amt) - prescribed_system_amount
+    total_infeasibility_gradient[infeasibility_dof+constraint_offset] = -(np.sum(phase_amt) - prescribed_system_amount)
     for phase_idx in free_stable_compset_indices:
         output_phase_idx = mass_jac.shape[1] - phase_amt.shape[0] + phase_idx
         compset = compsets[phase_idx]
-        total_infeasibility_gradient[output_phase_idx] += lmul[constraint_offset] * 1
-        total_infeasibility_hess[output_phase_idx, infeasibility_dof+constraint_offset] += 1
-        total_infeasibility_hess[infeasibility_dof+constraint_offset, output_phase_idx] += 1
+        total_infeasibility_gradient[output_phase_idx] -= lmul[constraint_offset] * 1
+        total_infeasibility_hess[output_phase_idx, infeasibility_dof+constraint_offset] -= 1
+        total_infeasibility_hess[infeasibility_dof+constraint_offset, output_phase_idx] -= 1
 
     return total_infeasibility, np.array(total_infeasibility_gradient), np.array(total_infeasibility_hess)
 
@@ -548,6 +557,7 @@ def check_infeasibility_grad(compsets, dof, phase_amt, free_stable_compset_indic
         #return fun, gr
     return scipy.optimize.approx_fprime(x0, lambda x: f(x)[0], 1e-8) - np.array(f(x0)[1])
 
+from copy import deepcopy
 cpdef restore_solution_feasibility(list compsets, object dof, double[::1] phase_amt,
                                    int[::1] free_stable_compset_indices, int num_statevars, int num_components,
                                    double prescribed_system_amount, int[::1] free_chemical_potential_indices,
@@ -556,55 +566,85 @@ cpdef restore_solution_feasibility(list compsets, object dof, double[::1] phase_
     cdef int dof_offset
     cdef int iteration = 0
     cdef CompositionSet compset
-    cdef int num_constraints = sum([compset.phase_record.num_internal_cons for compset in compsets]) + 1 # sum(phase_amt)
-    cdef double[::1] lmul = np.zeros(num_constraints)
+    cdef int num_constraints = 0
+    cdef double[::1] lmul, new_lmul, new_phase_amt
+    for phase_idx in free_stable_compset_indices:
+        compset = compsets[phase_idx]
+        num_constraints += compset.phase_record.num_internal_cons
+    num_constraints += 1 # sum(phase_amt)
+    lmul = np.zeros(num_constraints)
     infeasibility, infeas_grad, infeas_hess = compute_infeasibility(compsets, dof, lmul, phase_amt, free_stable_compset_indices,
                                                       num_statevars, num_components, prescribed_system_amount,
                                                       free_chemical_potential_indices, prescribed_element_indices,
                                                       prescribed_elemental_amounts)
-    while infeasibility > 10:
+    while infeasibility > 1e-6:
         orig_infeasibility = float(infeasibility)
+        print('orig_infeasibility', orig_infeasibility, 'step', step_size)
         print(np.testing.assert_equal(infeas_hess, infeas_hess.T))
         print(np.testing.assert_equal(infeas_hess[:num_statevars, :num_statevars], 0.0))
-        dx = np.linalg.lstsq(infeas_hess[:, :], -infeas_grad[:], rcond=None)[0]
-        print('orig_infeasibility', orig_infeasibility)
+        #dx = -infeas_grad
+        dx = np.linalg.lstsq(infeas_hess, -infeas_grad[:], rcond=None)[0]
         #print(check_infeasibility_grad(compsets, dof, phase_amt, free_stable_compset_indices,
         #                                              num_statevars, num_components, prescribed_system_amount,
         #                                              free_chemical_potential_indices, prescribed_element_indices,
         #                                              prescribed_elemental_amounts))
         #print('dx', np.array(dx))
-        dof_offset = num_statevars
-        # TODO: Update state variables in response to infeasibility (not yet passed as arguments)
-        for phase_idx in free_stable_compset_indices:
-            compset = compsets[phase_idx]
-            x = dof[phase_idx]
-            print(phase_idx, compset.phase_record.phase_name, phase_idx, phase_amt[phase_idx], np.array(x))
-            for dof_idx in range(compset.phase_record.phase_dof):
-                if (x[num_statevars+dof_idx] <= MIN_SITE_FRACTION) and (dx[dof_offset+dof_idx] < 0):
-                    dx[dof_offset+dof_idx] = 0
-                elif (x[num_statevars+dof_idx] >= 1.0) and (dx[dof_offset+dof_idx] > 0):
-                    dx[dof_offset+dof_idx] = 0
-                x[num_statevars+dof_idx] += step_size * dx[dof_offset+dof_idx]
-                x[num_statevars+dof_idx] = np.clip(x[num_statevars+dof_idx], MIN_SITE_FRACTION, 1.0)
-            phase_amt[phase_idx] += step_size * dx[dx.shape[0] - lmul.shape[0] - phase_amt.shape[0] + phase_idx]
-            if (phase_amt[phase_idx] <= 1e-6):
-                phase_amt[phase_idx] = 0
-            if phase_amt[phase_idx] > prescribed_system_amount:
-                phase_amt[phase_idx] = prescribed_system_amount
-            dof_offset += compset.phase_record.phase_dof
-        for constraint_idx in range(lmul.shape[0]):
-            lmul[constraint_idx] += dx[dx.shape[0] - lmul.shape[0] + constraint_idx]
-        #free_stable_compset_indices = np.array(np.nonzero(phase_amt)[0], dtype=np.int32)
-        infeasibility, infeas_grad, infeas_hess = compute_infeasibility(compsets, dof, lmul, phase_amt, free_stable_compset_indices,
-                                                          num_statevars, num_components, prescribed_system_amount,
-                                                          free_chemical_potential_indices, prescribed_element_indices,
-                                                          prescribed_elemental_amounts)
+        for step_size in np.logspace(-1, -6, 20):
+            print('step_size', step_size)
+            print('-infeas_grad', -infeas_grad)
+            print('dx', dx)
+            new_phase_amt = np.zeros(phase_amt.shape[0])
+            new_phase_amt[:] = phase_amt
+            new_lmul = np.array(lmul)
+            new_dof = deepcopy(dof)
+            dof_offset = num_statevars
+            # TODO: Update state variables in response to infeasibility (not yet passed as arguments)
+            for phase_idx in free_stable_compset_indices:
+                compset = compsets[phase_idx]
+                x = new_dof[phase_idx]
+                print(phase_idx, compset.phase_record.phase_name, phase_idx, new_phase_amt[phase_idx], np.array(x))
+                for dof_idx in range(compset.phase_record.phase_dof):
+                    x[num_statevars+dof_idx] += step_size * dx[dof_offset+dof_idx]
+                    x[num_statevars+dof_idx] = np.clip(x[num_statevars+dof_idx], MIN_SITE_FRACTION, 1.0)
+                new_phase_amt[phase_idx] += step_size * dx[dx.shape[0] - new_lmul.shape[0] - new_phase_amt.shape[0] + phase_idx]
+                if (new_phase_amt[phase_idx] <= 1e-3):
+                    new_phase_amt[phase_idx] = 0
+                if new_phase_amt[phase_idx] > prescribed_system_amount:
+                    new_phase_amt[phase_idx] = prescribed_system_amount
+                dof_offset += compset.phase_record.phase_dof
+            for constraint_idx in range(new_lmul.shape[0]):
+                new_lmul[constraint_idx] += dx[dx.shape[0] - new_lmul.shape[0] + constraint_idx]
+            print('new_lmul ', np.array(new_lmul))
+            infeasibility, infeas_grad, infeas_hess = compute_infeasibility(compsets, new_dof, new_lmul, new_phase_amt, free_stable_compset_indices,
+                                                              num_statevars, num_components, prescribed_system_amount,
+                                                              free_chemical_potential_indices, prescribed_element_indices,
+                                                              prescribed_elemental_amounts)
+            print('candidate_infeasibility', infeasibility)
+            if infeasibility < orig_infeasibility:
+                dof[:] = new_dof
+                assert phase_amt.shape[0] == new_phase_amt.shape[0]
+                phase_amt[:] = new_phase_amt
+                lmul[:] = new_lmul
+                # Check if the stable set of phases should change
+                new_free_stable_compset_indices = np.array(np.nonzero(phase_amt)[0], dtype=np.int32)
+                if np.any(new_free_stable_compset_indices != free_stable_compset_indices):
+                    print('new_free_stable_compset_indices', new_free_stable_compset_indices)
+                    num_constraints = 0
+                    for phase_idx in new_free_stable_compset_indices:
+                        compset = compsets[phase_idx]
+                        num_constraints += compset.phase_record.num_internal_cons
+                    num_constraints += 1 # sum(phase_amt)
+                    lmul = np.zeros(num_constraints)
+                    free_stable_compset_indices = new_free_stable_compset_indices
+                    iteration = 0
+                break
         iteration += 1
         if iteration > 10:
-            raise ValueError('Unable to restore solution feasibility')
-    if infeasibility <= 10:
+            print('Unable to restore solution feasibility')
+            break
+    if infeasibility <= 1e-6:
         print('RESTORED')
-    return np.array(lmul)
+    return np.array(lmul), np.array(free_stable_compset_indices, dtype=np.int32)
 
 
 cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
@@ -814,18 +854,19 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 free_stable_compset_indices = np.array([i for i in range(phase_amt.shape[0])
                                             if phase_amt[i] > MIN_SITE_FRACTION], dtype=np.int32)
 
+        infeasibility = 0
+        if False:
+            # Restoration phase
+            lmul, free_stable_compset_indices = restore_solution_feasibility(compsets, dof, phase_amt,
+                                            free_stable_compset_indices, num_statevars, num_components,
+                                            prescribed_system_amount, free_chemical_potential_indices,
+                                            prescribed_element_indices, prescribed_elemental_amounts)
 
-        # Restoration phase
-        lmul = restore_solution_feasibility(compsets, dof, phase_amt,
-                                        free_stable_compset_indices, num_statevars, num_components,
-                                        prescribed_system_amount, free_chemical_potential_indices,
-                                        prescribed_element_indices, prescribed_elemental_amounts)
-
-        infeasibility, _, _ = compute_infeasibility(compsets, dof, lmul, phase_amt,
-                                free_stable_compset_indices, num_statevars, num_components,
-                                prescribed_system_amount, free_chemical_potential_indices,
-                                prescribed_element_indices, prescribed_elemental_amounts)
-        free_stable_compset_indices = np.array(np.nonzero(phase_amt)[0], dtype=np.int32)
+            infeasibility, _, _ = compute_infeasibility(compsets, dof, lmul, phase_amt,
+                                    free_stable_compset_indices, num_statevars, num_components,
+                                    prescribed_system_amount, free_chemical_potential_indices,
+                                    prescribed_element_indices, prescribed_elemental_amounts)
+            free_stable_compset_indices = np.array(np.nonzero(phase_amt)[0], dtype=np.int32)
 
         # SECOND STEP: Update potentials and phase amounts, according to conditions
         num_stable_phases = free_stable_compset_indices.shape[0]
