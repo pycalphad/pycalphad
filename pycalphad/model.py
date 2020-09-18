@@ -243,7 +243,7 @@ class Model(object):
     def __hash__(self):
         return hash(repr(self))
 
-    def moles(self, species):
+    def moles(self, species, per_formula_unit=False):
         "Number of moles of species or elements."
         species = v.Species(species)
         is_pure_element = (len(species.constituents.keys()) == 1 and
@@ -269,7 +269,10 @@ class Model(object):
                 normalization += self.site_ratios[idx] * \
                     sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec)
                         for spec in active)
-        return result / normalization
+        if not per_formula_unit:
+            return result / normalization
+        else:
+            return result
 
     @property
     def ast(self):

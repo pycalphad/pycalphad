@@ -77,6 +77,9 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         'massfuncs': {},
         'massgradfuncs': {},
         'masshessfuncs': {},
+        'formulamolefuncs': {},
+        'formulamolegradfuncs': {},
+        'formulamolehessfuncs': {},
         'callables': {},
         'grad_callables': {},
         'hess_callables': {},
@@ -130,6 +133,19 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         _callables['massfuncs'][name] = mcf
         _callables['massgradfuncs'][name] = mgf
         _callables['masshessfuncs'][name] = mhf
+
+        # Build the callables for moles per formula unit
+        # TODO: In principle, we should also check for undefs in mod.moles()
+        fmcf, fmgf, fmhf = zip(*[build_functions(mod.moles(el, per_formula_unit=True), state_variables + site_fracs,
+                                                 include_obj=True,
+                                                 include_grad=build_gradients,
+                                                 include_hess=build_hessians,
+                                                 parameters=parameter_symbols)
+                                 for el in pure_elements])
+
+        _callables['formulamolefuncs'][name] = fmcf
+        _callables['formulamolegradfuncs'][name] = fmgf
+        _callables['formulamolehessfuncs'][name] = fmhf
     return {output: _callables}
 
 
@@ -229,6 +245,9 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                                   callables[output]['massfuncs'][name],
                                                   callables[output]['massgradfuncs'][name],
                                                   callables[output]['masshessfuncs'][name],
+                                                  callables[output]['formulamolefuncs'][name],
+                                                  callables[output]['formulamolegradfuncs'][name],
+                                                  callables[output]['formulamolehessfuncs'][name],
                                                   _constraints['internal_cons_func'][name],
                                                   _constraints['internal_cons_jac'][name],
                                                   _constraints['internal_cons_hess'][name],

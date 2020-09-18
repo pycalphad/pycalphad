@@ -65,7 +65,7 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess, C
                                                                                      num_statevars:,
                                                                                      num_statevars:]
     for comp_idx in range(num_components):
-        compset.phase_record.mass_hess(mass_hess_tmp[comp_idx, :, :], phase_dof, comp_idx)
+        compset.phase_record.formulamole_hess(mass_hess_tmp[comp_idx, :, :], phase_dof, comp_idx)
     for comp_idx in range(num_components):
         for i in range(compset.phase_record.phase_dof):
             for j in range(i, compset.phase_record.phase_dof):
@@ -100,7 +100,7 @@ cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_r
     compset.phase_record.grad(grad_tmp, phase_dof)
 
     for comp_idx in range(num_components):
-        compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], phase_dof, comp_idx)
+        compset.phase_record.formulamole_grad(mass_jac_tmp[comp_idx, :], phase_dof, comp_idx)
 
     compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, chemical_potentials, phase_dof)
 
@@ -267,7 +267,8 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     cdef int num_fixed_components = len(prescribed_elemental_amounts)
     # Placeholder (output unused)
     cdef int[::1] ipiv = np.empty(10*num_components*num_stable_phases, dtype=np.int32)
-    cdef double mass_residual, current_system_amount
+    cdef double mass_residual
+    cdef double current_system_amount = 0
     cdef double[::1] x
     cdef double[::1,:] energy_tmp
     cdef double[::1] grad_tmp
@@ -299,8 +300,9 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
 
         compset.phase_record.obj(energy_tmp[:, 0], x)
         for comp_idx in range(num_components):
-            compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
-            compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
+            compset.phase_record.formulamole_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
+            compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
+            current_system_amount += phase_amt[idx] * masses_tmp[comp_idx, 0]
         compset.phase_record.hess(hess_tmp, x)
         compset.phase_record.grad(grad_tmp, x)
 
@@ -324,7 +326,6 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     mass_residual = 0.0
     component_row_offset = num_stable_phases
     system_amount_index = component_row_offset + num_fixed_components
-    current_system_amount = float(np.sum(phase_amt))
     for fixed_component_idx in range(num_fixed_components):
         component_idx = prescribed_element_indices[fixed_component_idx]
         mass_residuals[fixed_component_idx] = (current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
@@ -461,10 +462,10 @@ cpdef repair_solution(list compsets, object dof, double[::1] phase_amt,
         compset.phase_record.internal_cons_func(tmp_internal_cons, x)
         compset.phase_record.internal_cons_jac(tmp_internal_cons_jac, x)
 
-        # Compute mass and mass Jacobian of this phase
+        # Compute moles and mole Jacobian of this phase
         for comp_idx in range(num_components):
-            compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
-            compset.phase_record.mass_grad(tmp_mass_jac[comp_idx, :], x, comp_idx)
+            compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
+            compset.phase_record.formulamole_grad(tmp_mass_jac[comp_idx, :], x, comp_idx)
             #for dof_idx in range(tmp_mass_jac.shape[0]):
             #    mass_jac[phase_idx, comp_idx, dof_idx] = tmp_mass_jac[dof_idx]
             phase_moles[phase_idx, comp_idx] = masses_tmp[comp_idx, 0]
@@ -495,6 +496,7 @@ cpdef repair_solution(list compsets, object dof, double[::1] phase_amt,
         augmented_mass_matrix[constraint_offset, dof_idx] = 1
         constraint_offset += 1
 
+    # XXX: May no longer be true
     # Last constraint: sum of phase_amt steps should equal the negative deviation of the system amount
     augmented_mass_matrix[constraint_offset, num_internal_dof:num_internal_dof+num_stable_phases] = 1
     residual_vector[constraint_offset] = -(np.sum(phase_amt) - prescribed_system_amount)
@@ -656,7 +658,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             internal_lagrange = soln[compset.phase_record.phase_dof:]
 
             for comp_idx in range(num_components):
-                compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
+                compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
                 all_phase_amounts[idx, comp_idx] = masses_tmp[comp_idx, 0]
             compset.phase_record.internal_cons_func(internal_cons_tmp, x)
             compset.phase_record.obj(energy_tmp[0, :], x)
@@ -675,7 +677,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #    step_size = 0.5
             #else:
             #    step_size = 1e-7 / np.max(np.abs(delta_y))
-            step_size = 1.0 / (2 + float(np.max(np.abs(delta_y))))
+            step_size = 1.0 / (4 + float(np.max(np.abs(delta_y))))
             minimum_step_size = 1e-20 * step_size
             wolfe_passed = False
             while step_size >= minimum_step_size:
@@ -701,7 +703,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                     step_size /= 2
                     continue
                 for comp_idx in range(num_components):
-                    compset.phase_record.mass_obj(candidate_y_masses[comp_idx, :], new_y, comp_idx)
+                    compset.phase_record.formulamole_obj(candidate_y_masses[comp_idx, :], new_y, comp_idx)
                 compset.phase_record.internal_cons_func(candidate_internal_cons, new_y)
                 if np.any(np.abs(candidate_internal_cons) > 1e-6) and np.all(np.abs(internal_cons_tmp) <= 1e-6):
                     step_size /= 2
@@ -718,7 +720,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 #print('bypassing')
                 #wolfe_passed = True
                 #compset_step_sizes[idx] = step_size
-                if wolfe_criteria <= 1e-6 * step_size * np.dot(current_phase_gradient, -np.dot(pt_inv, current_phase_gradient)):
+                if True: #wolfe_criteria <= 1e-6 * step_size * np.dot(current_phase_gradient, -np.dot(pt_inv, current_phase_gradient)):
                     wolfe_passed = True
                     #compset_step_sizes[idx] = step_size
                     break
@@ -742,23 +744,22 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 raise ValueError('Internal constraint violation too large')
 
             for comp_idx in range(num_components):
-                compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
+                compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
                 all_phase_amounts[idx, comp_idx] = masses_tmp[comp_idx, 0]
                 if phase_amt[idx] > 0:
                     current_elemental_amounts[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
             compset.phase_record.obj(all_phase_energies[idx, :], x)
 
-        if (mass_residual > 0.1):
+        if True: #(mass_residual > 0.1):
             print('Repairing poor solution')
             binding_dof_indices = []
-            for idx in range(phase_amt.shape[0]):
-                phase_amt[idx] *= prescribed_system_amount / np.sum(phase_amt)
             repair_iterations = 0
             while True:
                 new_bound_dof, phases_to_destabilize = repair_solution(compsets, dof, phase_amt,
                                 free_stable_compset_indices, num_statevars, num_components,
                                 prescribed_system_amount, free_chemical_potential_indices,
                                 prescribed_element_indices, prescribed_elemental_amounts, binding_dof_indices)
+                break
                 if not new_bound_dof and (len(phases_to_destabilize) == 0) and (repair_iterations > 20):
                     # Check internal constraints of each phase
                     # If a phase has large constraint violation at this point, it may not be feasible
@@ -808,7 +809,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             masses_tmp = np.zeros((num_components, 1))
             x = dof[idx]
             for comp_idx in range(num_components):
-                compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
+                compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
                 all_phase_amounts[idx, comp_idx] = masses_tmp[comp_idx, 0]
                 if phase_amt[idx] > 0:
                     current_elemental_amounts[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
@@ -854,8 +855,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         for dof_idx in range(phase_amt.shape[0]):
             if phase_amt[dof_idx] < 0.0:
                 phase_amt[dof_idx] = 0
-            elif phase_amt[dof_idx] > prescribed_system_amount:
-                phase_amt[dof_idx] = prescribed_system_amount
+            #elif phase_amt[dof_idx] > prescribed_system_amount:
+            #    phase_amt[dof_idx] = prescribed_system_amount
         chemical_potentials = new_chemical_potentials
         print('new_phase_amt', np.array(phase_amt))
         print('free_stable_compset_indices', np.array(free_stable_compset_indices))

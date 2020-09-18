@@ -29,6 +29,12 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef void** _massgrads_ptr
     cdef numpy.ndarray _masshessians
     cdef void** _masshessians_ptr
+    cdef numpy.ndarray _formulamoles
+    cdef void** _formulamoles_ptr
+    cdef numpy.ndarray _formulamolegrads
+    cdef void** _formulamolegrads_ptr
+    cdef numpy.ndarray _formulamolehessians
+    cdef void** _formulamolehessians_ptr
     cdef public size_t num_internal_cons
     cdef public size_t num_multiphase_cons
     cdef public object variables
@@ -55,6 +61,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil
+    cpdef void formulamole_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil
+    cpdef void formulamole_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
+    cpdef void formulamole_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil
     # Used only to reconstitute if pickled (i.e. via __reduce__)
     cdef public object ofunc_
     cdef public object gfunc_
@@ -68,3 +77,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object massfuncs_
     cdef public object massgradfuncs_
     cdef public object masshessianfuncs_
+    cdef public object formulamolefuncs_
+    cdef public object formulamolegradfuncs_
+    cdef public object formulamolehessianfuncs_
