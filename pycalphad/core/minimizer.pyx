@@ -500,10 +500,10 @@ cpdef repair_solution(list compsets, object dof, double[::1] phase_amt,
     residual_vector[constraint_offset] = -(np.sum(phase_amt) - prescribed_system_amount)
 
     # Solve system
-    print('augmented_mass_matrix.shape', (augmented_mass_matrix.shape[0], augmented_mass_matrix.shape[1]))
-    print('augmented_mass_matrix', np.array(augmented_mass_matrix))
+    #print('augmented_mass_matrix.shape', (augmented_mass_matrix.shape[0], augmented_mass_matrix.shape[1]))
+    #print('augmented_mass_matrix', np.array(augmented_mass_matrix))
     step = np.linalg.lstsq(augmented_mass_matrix, residual_vector, rcond=None)[0]
-    #step *= 1.0 / (2 + np.max(np.abs(step)))
+    #step *= 1e-2
     print('residual_vector', np.array(residual_vector))
     print('step', step)
     print('dof', dof)

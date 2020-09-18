@@ -71,7 +71,10 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
         # Their NP values will be added to the kept phase
         # and they will be nulled out
         for redundant in removed_phases:
+            compset = composition_sets[kept_phase]
             composition_sets[kept_phase].NP += composition_sets[redundant].NP
+            for dof_idx in range(compset.dof.shape[0]):
+                compset.dof[dof_idx] = (compset.NP * compset.dof[dof_idx] + composition_sets[redundant].NP * composition_sets[redundant].dof[dof_idx]) / (compset.NP + composition_sets[redundant].NP)
             if verbose:
                 print('Redundant phase:', composition_sets[redundant])
             composition_sets[redundant].NP = np.nan
@@ -158,7 +161,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                     print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
                 return False
         compset = CompositionSet(phase_records[df_phase_name])
-        compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
+        compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1e-6,
                        state_variables, False)
         composition_sets.append(compset)
         if verbose:
