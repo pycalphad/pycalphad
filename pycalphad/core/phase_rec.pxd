@@ -17,6 +17,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef FastFunction _obj
     cdef FastFunction _grad
     cdef FastFunction _hess
+    cdef FastFunction _formulaobj
+    cdef FastFunction _formulagrad
+    cdef FastFunction _formulahess
     cdef FastFunction _internal_cons_func
     cdef FastFunction _internal_cons_jac
     cdef FastFunction _internal_cons_hess
@@ -47,10 +50,13 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public int num_statevars
     cdef public unicode phase_name
     cpdef void obj(self, double[::1] out, double[::1] dof) nogil
+    cpdef void formulaobj(self, double[::1] out, double[::1] dof) nogil
     cpdef void obj_2d(self, double[::1] out, double[:, ::1] dof) nogil
     cpdef void obj_parameters_2d(self, double[:, ::1] out, double[:, ::1] dof, double[:, ::1] parameters) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil
+    cpdef void formulagrad(self, double[::1] out, double[::1] dof) nogil
     cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil
+    cpdef void formulahess(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) nogil
     cpdef void internal_cons_jac(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void internal_cons_hess(self, double[:,:,::1] out, double[::1] dof) nogil
@@ -68,6 +74,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object ofunc_
     cdef public object gfunc_
     cdef public object hfunc_
+    cdef public object formulaofunc_
+    cdef public object formulagfunc_
+    cdef public object formulahfunc_
     cdef public object internal_cons_func_
     cdef public object internal_cons_jac_
     cdef public object internal_cons_hess_

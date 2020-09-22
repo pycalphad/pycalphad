@@ -59,7 +59,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef void update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables, bint skip_derivatives) nogil:
+    cpdef void update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables, bint skip_derivatives):
         cdef int comp_idx
         self.dof[:state_variables.shape[0]] = state_variables
         self.dof[state_variables.shape[0]:] = site_fracs

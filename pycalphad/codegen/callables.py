@@ -218,6 +218,12 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                     additional_statevars=state_variables,
                                     build_gradients=build_gradients,
                                     build_hessians=build_hessians)
+        # XXX: Temporary; do not merge
+        formulacallables = build_callables(dbf, comps, phases, models,
+                                           parameter_symbols=parameters.keys(), output='G',
+                                           additional_statevars=state_variables,
+                                           build_gradients=build_gradients,
+                                           build_hessians=build_hessians)
 
     # If a vector of parameters is specified, only pass the first row to the PhaseRecord
     # Future callers of PhaseRecord.obj_parameters_2d() can pass the full param_values array as an argument
@@ -242,6 +248,9 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                                   callables[output]['callables'][name],
                                                   callables[output]['grad_callables'][name],
                                                   callables[output]['hess_callables'][name],
+                                                  formulacallables['G']['callables'][name],
+                                                  formulacallables['G']['grad_callables'][name],
+                                                  formulacallables['G']['hess_callables'][name],
                                                   callables[output]['massfuncs'][name],
                                                   callables[output]['massgradfuncs'][name],
                                                   callables[output]['masshessfuncs'][name],

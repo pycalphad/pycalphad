@@ -317,6 +317,7 @@ class Model(object):
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
     energy = GM = property(lambda self: self.ast)
+    formulaenergy = G = property(lambda self: self.ast * self._site_ratio_normalization)
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
@@ -707,10 +708,7 @@ class Model(object):
         Returns the ideal mixing energy in symbolic form.
         """
         phase = dbe.phases[self.phase_name]
-        # Normalize site ratios
-        site_ratio_normalization = self._site_ratio_normalization
         site_ratios = self.site_ratios
-        site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
         sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
         for subl_index, sublattice in enumerate(phase.constituents):
@@ -726,7 +724,7 @@ class Model(object):
                                         evaluate=False)
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
-        return ideal_mixing_term
+        return ideal_mixing_term / self._site_ratio_normalization
 
     def excess_mixing_energy(self, dbe):
         """
