@@ -44,12 +44,12 @@ install:
       conda deactivate
       conda activate condaenv
       echo "!!! Installing pycalphad dependencies via conda"
-      conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pytest pytest-cov pandas sympy=1.5.1 pyparsing dask dill python-symengine=0.6 xarray cython cyipopt
+      conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pytest pytest-cov pandas sympy=1.5.1 pyparsing dask dill python-symengine=0.6.1 xarray cython cyipopt
       echo "!!! conda installing test packages"
       # coverage<5, see https://github.com/coveralls-clients/coveralls-python/issues/213
       conda install --yes sphinx sphinx_rtd_theme coveralls "coverage<5" ipython
       echo "!!! pip pycalphad as editable"
-      pip install -e .
+      pip install --no-deps -e .
 
 # Run test
 script:

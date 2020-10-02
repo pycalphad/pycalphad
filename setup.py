@@ -66,7 +66,7 @@ setup(
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
     install_requires=['matplotlib', 'pandas', 'xarray>=0.11.2', 'sympy==1.5.1', 'pyparsing', 'Cython>=0.24',
-                      'tinydb>=3.8', 'scipy', 'numpy>=1.13', 'ipopt', 'symengine==0.6'],
+                      'tinydb>=3.8', 'scipy', 'numpy>=1.13', 'ipopt', 'symengine==0.6.1'],
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
