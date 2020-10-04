@@ -121,7 +121,8 @@ cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_r
 
 cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
                                             double energy, double[::1] grad, double[:, ::1] hess,
-                                            double[:, ::1] masses, double[:, ::1] mass_jac, int num_phase_dof,
+                                            double[:, ::1] masses, double[:, ::1] mass_jac,
+                                            double [::1] system_mole_fractions, double current_system_amount, int num_phase_dof,
                                             double[:, ::1] full_e_matrix, double[::1] chemical_potentials,
                                             double[::1] phase_amt, int[::1] free_chemical_potential_indices,
                                             int[::1] free_statevar_indices, int[::1] free_stable_compset_indices,
@@ -136,6 +137,8 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
     cdef double[::1] c_G = np.zeros(num_phase_dof)
     cdef double[:, ::1] c_statevars = np.zeros((num_phase_dof, num_statevars))
     cdef double[:, ::1] c_component = np.zeros((num_components, num_phase_dof))
+    cdef double moles_normalization = 0
+    cdef double[:, ::1] moles_normalization_grad = np.zeros((num_components, num_statevars+num_phase_dof)) # 'K_alpha' in Sundman et al 2015
     for i in range(num_phase_dof):
         for j in range(num_phase_dof):
             c_G[i] -= full_e_matrix[i, j] * grad[num_statevars+j]
@@ -155,6 +158,13 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
             mu_c_sum = np.dot(np.array(c_component)[:, i], chemical_potentials)
             delta_m[comp_idx] += mass_jac[comp_idx, num_statevars + i] * (mu_c_sum + c_G[i])
     print('delta_m', np.array(delta_m), np.sum(delta_m))
+    for comp_idx in range(num_components):
+        moles_normalization += masses[comp_idx, 0]
+        for i in range(num_phase_dof+num_statevars):
+            moles_normalization_grad[comp_idx, i] += mass_jac[comp_idx, i]
+    print('current_system_amount', current_system_amount)
+    print('moles_normalization', moles_normalization)
+    print('moles_normalization_grad', np.array(moles_normalization_grad))
     # KEY STEPS for filling equilibrium matrix
     # 1. Contribute to the row corresponding to this composition set
     # 1a. Loop through potential conditions to fill out each column
@@ -178,7 +188,7 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
         statevar_idx = free_statevar_indices[i]
         equilibrium_matrix[stable_idx, free_variable_column_offset + i] = -grad[statevar_idx]
 
-    # 2. Contribute to the row of all fixed components
+    # 2. Contribute to the row of all fixed components (fixed mole fraction)
     component_row_offset = num_stable_phases
     for fixed_component_idx in range(num_fixed_components):
         component_idx = prescribed_element_indices[fixed_component_idx]
@@ -188,7 +198,10 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
             chempot_idx = free_chemical_potential_indices[i]
             for j in range(c_component.shape[1]):
                 equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
-                    phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
+                    (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
+            for j in range(c_component.shape[1]):
+                equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
+                    (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_component[chempot_idx, j]
         free_variable_column_offset += free_chemical_potential_indices.shape[0]
         # 2a. This component row: free stable composition sets
         for i in range(free_stable_compset_indices.shape[0]):
@@ -197,18 +210,25 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
             if compset_idx == idx:
                 equilibrium_matrix[
                     component_row_offset + fixed_component_idx, free_variable_column_offset + i] = \
-                    masses[component_idx, 0]
+                    (1./current_system_amount)*(masses[component_idx, 0] - system_mole_fractions[component_idx] * moles_normalization)
         free_variable_column_offset += free_stable_compset_indices.shape[0]
         # 2a. This component row: free state variables
         for i in range(free_statevar_indices.shape[0]):
             statevar_idx = free_statevar_indices[i]
+            # XXX: Isn't this missing a dZ/dT term? Only relevant for T-dependent mass calculations...
             for j in range(c_statevars.shape[0]):
                 equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
-                    phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_statevars[j, statevar_idx]
+                    (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_statevars[j, statevar_idx]
+            for j in range(c_statevars.shape[0]):
+                equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
+                    (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_statevars[j, statevar_idx]
         # 3.
         for j in range(c_G.shape[0]):
-            equilibrium_rhs[component_row_offset + fixed_component_idx] += -phase_amt[idx] * \
+            equilibrium_rhs[component_row_offset + fixed_component_idx] += -(phase_amt[idx]/current_system_amount) * \
                 mass_jac[component_idx, num_statevars+j] * c_G[j]
+        for j in range(c_G.shape[0]):
+            equilibrium_rhs[component_row_offset + fixed_component_idx] += -(phase_amt[idx]/current_system_amount) * \
+                (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_G[j]
 
     system_amount_index = component_row_offset + num_fixed_components
     # 2X. Also handle the N=1 row
@@ -278,8 +298,22 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     cdef double[:,::1] mass_jac_tmp
     cdef double[:,::1] phase_matrix
     cdef double[:,::1] e_matrix, full_e_matrix
+    cdef double[::1] mole_fractions = np.zeros(num_components)
     all_delta_m = []
     mass_residuals = np.zeros(num_components)
+    # Compute normalized global quantities
+    for stable_idx in range(free_stable_compset_indices.shape[0]):
+        idx = free_stable_compset_indices[stable_idx]
+        x = dof[idx]
+        compset = compsets[idx]
+        masses_tmp = np.zeros((num_components, 1))
+        for comp_idx in range(num_components):
+            compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
+            mole_fractions[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
+            current_system_amount += phase_amt[idx] * masses_tmp[comp_idx, 0]
+    for comp_idx in range(mole_fractions.shape[0]):
+        mole_fractions[comp_idx] /= current_system_amount
+    print('mole_fractions', np.array(mole_fractions))
     for stable_idx in range(free_stable_compset_indices.shape[0]):
         idx = free_stable_compset_indices[stable_idx]
         compset = compsets[idx]
@@ -303,7 +337,6 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         for comp_idx in range(num_components):
             compset.phase_record.formulamole_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
             compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
-            current_system_amount += phase_amt[idx] * masses_tmp[comp_idx, 0]
         compset.phase_record.formulahess(hess_tmp, x)
         compset.phase_record.formulagrad(grad_tmp, x)
 
@@ -316,7 +349,8 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         full_e_matrix = step_size * eigvecs @ np.diag(1./eigvals) @ eigvecs.T
 
         delta_m = fill_equilibrium_system_for_phase(equilibrium_matrix, equilibrium_rhs, energy_tmp[0, 0], grad_tmp, hess_tmp,
-                                          masses_tmp, mass_jac_tmp, compset.phase_record.phase_dof, full_e_matrix, chemical_potentials,
+                                          masses_tmp, mass_jac_tmp, mole_fractions, current_system_amount,
+                                          compset.phase_record.phase_dof, full_e_matrix, chemical_potentials,
                                           phase_amt, free_chemical_potential_indices, free_statevar_indices,
                                           free_stable_compset_indices, fixed_chemical_potential_indices,
                                           prescribed_element_indices, prescribed_elemental_amounts,
@@ -329,10 +363,10 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     system_amount_index = component_row_offset + num_fixed_components
     for fixed_component_idx in range(num_fixed_components):
         component_idx = prescribed_element_indices[fixed_component_idx]
-        mass_residuals[fixed_component_idx] = (current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
+        mass_residuals[fixed_component_idx] = (mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
         mass_residual += abs(
-            current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx]) #/ abs(prescribed_elemental_amounts[fixed_component_idx])
-        equilibrium_rhs[component_row_offset + fixed_component_idx] -= current_elemental_amounts[component_idx] - \
+            mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx]) #/ abs(prescribed_elemental_amounts[fixed_component_idx])
+        equilibrium_rhs[component_row_offset + fixed_component_idx] -= mole_fractions[component_idx] - \
                                                                        prescribed_elemental_amounts[
                                                                            fixed_component_idx]
     mass_residual += abs(current_system_amount - prescribed_system_amount)
@@ -391,7 +425,7 @@ def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_i
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
     if can_add_phases:
         newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - set(current_free_stable_compset_indices)
-        add_criteria = np.logical_and(np.array(driving_forces[:, 0]) > -1e-5, np.array(times_compset_removed) < 4)
+        add_criteria = np.logical_and(np.array(driving_forces) > -1e-5, np.array(times_compset_removed) < 4)
         compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
     else:
         compsets_to_add = set()
@@ -681,7 +715,10 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #    step_size = 0.5
             #else:
             #    step_size = 1e-7 / np.max(np.abs(delta_y))
-            step_size = 1.0 / (4 + float(np.max(np.abs(delta_y))))
+            if iteration > 50:
+                step_size = 1.0 / (1 + float(np.max(np.abs(delta_y))))
+            else:
+                step_size = 1.0 / (6 + float(np.max(np.abs(delta_y))))
             minimum_step_size = 1e-20 * step_size
             wolfe_passed = False
             while step_size >= minimum_step_size:
@@ -853,7 +890,14 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         print('mass_residuals', np.array(mass_residuals))
         print('comp_corrections', comp_corrections)
         print('mass_residual', np.sum(np.abs(mass_residuals)), 'correction', sum(comp_corrections))
-        free_stable_compset_indices = np.array(np.nonzero(np.array(phase_amt) > 0)[0], dtype=np.int32)
+        new_free_stable_compset_indices = np.array(np.nonzero(np.array(phase_amt) > 0)[0], dtype=np.int32)
+        if len(new_free_stable_compset_indices) == 0:
+            # Do not allow all phases to leave the system
+            for phase_idx in free_stable_compset_indices:
+                phase_amt[phase_idx] = 1
+            chemical_potentials[:] = 0
+        else:
+            free_stable_compset_indices = new_free_stable_compset_indices
         print('new_chemical_potentials', np.array(new_chemical_potentials))
         #if np.all(np.abs(new_chemical_potentials - np.array(chemical_potentials)) < 1.0):
         #    print('Chemical potentials settled; change phases')
@@ -877,21 +921,34 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         print(f'mass_residual {mass_residual} largest_internal_cons_max_residual {largest_internal_cons_max_residual}')
         #print(f'largest_internal_dof_change {largest_internal_dof_change}')
-        system_is_feasible = (mass_residual < 1e-8) and (largest_internal_cons_max_residual < 1e-6)
+        system_is_feasible = (mass_residual < 1e-10) and (largest_internal_cons_max_residual < 1e-10)
         if system_is_feasible:
             converged = True
-            #free_stable_compset_indices = np.array([i for i in range(phase_amt.shape[0])
-            #                                        if (phase_amt[i] > MIN_SITE_FRACTION) and \
-            #                                        (i not in suspended_compsets)], dtype=np.int32)
+            new_free_stable_compset_indices = np.array([i for i in range(phase_amt.shape[0])
+                                                        if (phase_amt[i] > MIN_SITE_FRACTION) and \
+                                                        (i not in suspended_compsets)], dtype=np.int32)
+            if set(free_stable_compset_indices) == set(new_free_stable_compset_indices):
+                converged = True
+            free_stable_compset_indices = new_free_stable_compset_indices
             # Check driving forces for metastable phases
-            for idx in range(len(compsets)):
-                all_phase_energies[idx, 0] -= np.dot(chemical_potentials, all_phase_amounts[idx, :])
-            converged, new_free_stable_compset_indices = \
-                check_convergence_and_change_phases(phase_amt, free_stable_compset_indices, metastable_phase_iterations,
-                                                    times_compset_removed, all_phase_energies,
-                                                    largest_internal_dof_change, largest_phase_amt_change,
-                                                    largest_statevar_change, iteration > 3)
-            free_stable_compset_indices = np.array(new_free_stable_compset_indices, dtype=np.int32)
+            # This needs to be done per mole of atoms, not per formula unit, since we compare phases to each other
+            #driving_forces = np.zeros(len(compsets))
+            #phase_energies_per_mole_atoms = np.zeros((len(compsets), 1))
+            #phase_amounts_per_mole_atoms = np.zeros((len(compsets), num_components, 1))
+            #for idx in range(len(compsets)):
+            #    compset = compsets[idx]
+            #    x = dof[idx]
+            #    for comp_idx in range(num_components):
+            #        compset.phase_record.mass_obj(phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
+            #    compset.phase_record.obj(phase_energies_per_mole_atoms[idx, :], x)
+            #    driving_forces[idx] = phase_energies_per_mole_atoms[idx, 0] - np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0])
+            #print(f'driving_forces {driving_forces}')
+            #converged, new_free_stable_compset_indices = \
+            #    check_convergence_and_change_phases(phase_amt, free_stable_compset_indices, metastable_phase_iterations,
+            #                                        times_compset_removed, driving_forces,
+            #                                        largest_internal_dof_change, largest_phase_amt_change,
+            #                                        largest_statevar_change, iteration > 3)
+            #free_stable_compset_indices = np.array(new_free_stable_compset_indices, dtype=np.int32)
             if converged:
                 converged = True
                 break
@@ -905,11 +962,11 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     x = dof[0]
     for cs_dof in dof[1:]:
         x = np.r_[x, cs_dof[num_statevars:]]
-    x = np.r_[x, phase_amt]
-    saved_debug_ds = xr.Dataset({'MU': saved_chemical_potentials, 'NP': saved_phase_amounts,
-                                 'stepsize': saved_phase_stepsizes, 'GM': saved_phase_energies,
-                                 'all_dof': saved_phase_dof, 'delta_dof': saved_phase_delta_dof,
-                                 'X': saved_phase_compositions, 'DF': saved_phase_driving_forces,
-                                 'infeasibility': saved_infeasibilities})
-    saved_debug_ds.to_netcdf(f'debug-{stamp}.cdf')
+    x = np.r_[x, np.array(phase_amt)/np.sum(phase_amt)]
+    #saved_debug_ds = xr.Dataset({'MU': saved_chemical_potentials, 'NP': saved_phase_amounts,
+    #                             'stepsize': saved_phase_stepsizes, 'GM': saved_phase_energies,
+    #                             'all_dof': saved_phase_dof, 'delta_dof': saved_phase_delta_dof,
+    #                             'X': saved_phase_compositions, 'DF': saved_phase_driving_forces,
+    #                             'infeasibility': saved_infeasibilities})
+    #saved_debug_ds.to_netcdf(f'debug-{stamp}.cdf')
     return converged, x, np.array(chemical_potentials)
