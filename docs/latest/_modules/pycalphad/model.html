@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.8.3+6.g0d10322 documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.8.3+7.ge4d1107 documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.8.3+6.g0d10322
+                0.8.3+7.ge4d1107
               </div>
             
           
@@ -832,7 +832,13 @@
                     <span class="n">mixing_term</span> <span class="o">=</span> <span class="n">mixing_term</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">pair_rule</span><span class="p">)</span>
                     <span class="c1"># This parameter is normalized differently due to the variable charge valence of vacancies</span>
                     <span class="n">mixing_term</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span><span class="p">[</span><span class="n">va_subl_idx</span><span class="p">]</span>
-            <span class="n">rk_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixing_term</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span>
+            <span class="n">param_val</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param_val</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">):</span>
+                <span class="c1"># Eliminate redundant Piecewise and extrapolate beyond temperature limits</span>
+                <span class="n">filtered_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">param_val</span><span class="o">.</span><span class="n">args</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">cond</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">expr</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">))]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtered_args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">param_val</span> <span class="o">=</span> <span class="n">filtered_args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">expr</span>
+            <span class="n">rk_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixing_term</span> <span class="o">*</span> <span class="n">param_val</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="n">rk_terms</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Model.reference_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.reference_energy">[docs]</a>    <span class="k">def</span> <span class="nf">reference_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
