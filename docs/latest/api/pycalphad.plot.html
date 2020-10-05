@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot package &mdash; pycalphad 0.8.3+4.g925b01b documentation</title>
+  <title>pycalphad.plot package &mdash; pycalphad 0.8.3+6.g0d10322 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.3+4.g925b01b
+                0.8.3+6.g0d10322
               </div>
             
           
@@ -280,29 +280,26 @@ Must correspond to an independent condition.</p></li>
 <dt id="pycalphad.plot.triangular.TriangularAxes.drag_pan">
 <code class="sig-name descname">drag_pan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">button</span></em>, <em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.drag_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.drag_pan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when the mouse moves during a pan operation.</p>
-<p><em>button</em> is the mouse button number:</p>
-<ul class="simple">
-<li><p>1: LEFT</p></li>
-<li><p>2: MIDDLE</p></li>
-<li><p>3: RIGHT</p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>button</strong> (<cite>.MouseButton</cite>) – The pressed mouse button.</p></li>
+<li><p><strong>key</strong> (<em>str</em><em> or </em><em>None</em>) – The pressed key, if any.</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – The mouse coordinates in display coords.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The mouse coordinates in display coords.</p></li>
 </ul>
-<p><em>key</em> is a “shift” key</p>
-<p><em>x</em>, <em>y</em> are the mouse coordinates in display coords.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Intended to be overridden by new projection types.</p>
-</div>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This is intended to be overridden by new projection types.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.end_pan">
 <code class="sig-name descname">end_pan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.end_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.end_pan" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when a pan operation completes (when the mouse button
-is up.)</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Intended to be overridden by new projection types.</p>
-</div>
+<dd><p>Called when a pan operation completes (when the mouse button is up.)</p>
+<p class="rubric">Notes</p>
+<p>This is intended to be overridden by new projection types.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -432,17 +429,17 @@ place axis elements in different locations.</p>
 <dt id="pycalphad.plot.triangular.TriangularAxes.start_pan">
 <code class="sig-name descname">start_pan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">button</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.start_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.start_pan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when a pan operation has started.</p>
-<p><em>x</em>, <em>y</em> are the mouse coordinates in display coords.
-button is the mouse button number:</p>
-<ul class="simple">
-<li><p>1: LEFT</p></li>
-<li><p>2: MIDDLE</p></li>
-<li><p>3: RIGHT</p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The mouse coordinates in display coords.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The mouse coordinates in display coords.</p></li>
+<li><p><strong>button</strong> (<cite>.MouseButton</cite>) – The pressed mouse button.</p></li>
 </ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Intended to be overridden by new projection types.</p>
-</div>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This is intended to be overridden by new projection types.</p>
 </dd></dl>
 
 </dd></dl>

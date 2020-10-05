@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.8.3+4.g925b01b documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.8.3+6.g0d10322 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.3+4.g925b01b
+                0.8.3+6.g0d10322
               </div>
             
           
@@ -1233,7 +1233,11 @@ Return a matrix corresponding to the compositions of all endmembers.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dof</strong> (<em>list of int</em>) – Number of components in each sublattice.</p></li>
-<li><p><strong>list of list of int</strong><strong>, </strong><strong>optional</strong> (<em>vacancy_indices</em><em>,</em>) – If vacancies are present in every sublattice, specify their indices
+<li><p><strong>vacancy_indices</strong> – If vacancies are present in every sublattice, specify their indices
+in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p></li>
+<li><p><strong>of list of int</strong> (<em>list</em>) – If vacancies are present in every sublattice, specify their indices
+in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p></li>
+<li><p><strong>optional</strong> – If vacancies are present in every sublattice, specify their indices
 in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p></li>
 </ul>
 </dd>
@@ -1370,9 +1374,27 @@ construct the Model instances.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>SymPy object</strong> (<em>model</em><em>,</em>) – Abstract representation of function</p></li>
-<li><p><strong>list</strong> (<em>variables</em><em>,</em>) – Input variables, ordered in the way the return function will expect</p></li>
-<li><p><strong>[</strong><strong>'numpy'</strong><strong>, </strong><strong>'numba'</strong><strong>, </strong><strong>'sympy'</strong><strong>]</strong><strong>, </strong><strong>optional</strong> (<em>mode</em><em>,</em>) – Method to use when ‘compiling’ the function. SymPy mode is
+<li><p><strong>model</strong> – Abstract representation of function</p></li>
+<li><p><strong>object</strong> (<em>SymPy</em>) – Abstract representation of function</p></li>
+<li><p><strong>variables</strong> – Input variables, ordered in the way the return function will expect</p></li>
+<li><p><strong>list</strong> – Input variables, ordered in the way the return function will expect</p></li>
+<li><p><strong>mode</strong> – Method to use when ‘compiling’ the function. SymPy mode is
+slow and should only be used for debugging. If Numba is installed,
+it can offer speed-ups when calling the energy function many
+times on multi-core CPUs.</p></li>
+<li><p><strong>[</strong><strong>'numpy'</strong> – Method to use when ‘compiling’ the function. SymPy mode is
+slow and should only be used for debugging. If Numba is installed,
+it can offer speed-ups when calling the energy function many
+times on multi-core CPUs.</p></li>
+<li><p><strong>'numba'</strong> – Method to use when ‘compiling’ the function. SymPy mode is
+slow and should only be used for debugging. If Numba is installed,
+it can offer speed-ups when calling the energy function many
+times on multi-core CPUs.</p></li>
+<li><p><strong>'sympy'</strong><strong>]</strong> – Method to use when ‘compiling’ the function. SymPy mode is
+slow and should only be used for debugging. If Numba is installed,
+it can offer speed-ups when calling the energy function many
+times on multi-core CPUs.</p></li>
+<li><p><strong>optional</strong> – Method to use when ‘compiling’ the function. SymPy mode is
 slow and should only be used for debugging. If Numba is installed,
 it can offer speed-ups when calling the energy function many
 times on multi-core CPUs.</p></li>

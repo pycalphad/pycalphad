@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen package &mdash; pycalphad 0.8.3+4.g925b01b documentation</title>
+  <title>pycalphad.codegen package &mdash; pycalphad 0.8.3+6.g0d10322 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.3+4.g925b01b
+                0.8.3+6.g0d10322
               </div>
             
           
@@ -355,7 +355,7 @@ functions or PhaseRecords. The following issues track this behavior:</p>
 
 <dl class="py function">
 <dt id="pycalphad.codegen.sympydiff_utils.build_constraint_functions">
-<code class="sig-prename descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="sig-name descname">build_constraint_functions</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_constraint_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_constraint_functions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="sig-name descname">build_constraint_functions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">constraints</span></em>, <em class="sig-param"><span class="n">parameters</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">func_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">jac_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">hess_options</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_constraint_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_constraint_functions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build callables functions for the constraints, constraint Jacobian, and constraint Hessian.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -383,7 +383,7 @@ parameters that are controlled by the user.</p></li>
 
 <dl class="py function">
 <dt id="pycalphad.codegen.sympydiff_utils.build_functions">
-<code class="sig-prename descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="sig-name descname">build_functions</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="sig-name descname">build_functions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sympy_graph</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">parameters</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">wrt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">include_obj</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">include_grad</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">include_hess</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">func_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">grad_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">hess_options</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build function, gradient, and Hessian callables of the sympy_graph.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

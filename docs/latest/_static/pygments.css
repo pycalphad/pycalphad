@@ -1,5 +1,10 @@
+pre { line-height: 125%; margin: 0; }
+td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
 .highlight .hll { background-color: #ffffcc }
-.highlight  { background: #ffffff; }
+.highlight { background: #ffffff; }
 .highlight .c { color: #888888 } /* Comment */
 .highlight .err { color: #FF0000; background-color: #FFAAAA } /* Error */
 .highlight .k { color: #008800; font-weight: bold } /* Keyword */
