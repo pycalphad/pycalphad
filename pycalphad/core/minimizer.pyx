@@ -605,7 +605,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef double largest_internal_dof_change, largest_cons_max_residual, largest_internal_cons_max_residual
     cdef bint converged = False
     cdef int max_dof = num_statevars + max([compset.phase_record.phase_dof for compset in compsets])
-    iterations = np.arange(100)
+    iterations = np.arange(1000)
     phase_names = [compset.phase_record.phase_name for compset in compsets]
     saved_chemical_potentials = xr.DataArray(np.full((iterations.shape[0], chemical_potentials.shape[0]), np.nan),
                                              dims=('iterations', 'component'),
@@ -646,7 +646,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     from datetime import datetime
     stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     mass_residual = 1e10
-    for iteration in range(100):
+    for iteration in range(1000):
         current_elemental_amounts[:] = 0
         all_phase_energies[:,:] = 0
         all_phase_amounts[:,:] = 0
@@ -678,18 +678,18 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             internal_cons_max_residual = \
                 compute_phase_system(phase_matrix, soln, compset, delta_statevars, chemical_potentials, x)
             print('chemical_potentials', np.array(chemical_potentials))
-            print('phase_matrix', np.array(phase_matrix))
-            print('phase_rhs', np.array(soln))
+            #print('phase_matrix', np.array(phase_matrix))
+            #print('phase_rhs', np.array(soln))
             phase_gradient = -np.array(soln[:compset.phase_record.phase_dof])
-            eigvals, eigvecs = np.linalg.eigh(phase_matrix)
+            #eigvals, eigvecs = np.linalg.eigh(phase_matrix)
             # phase_matrix is symmetric by construction, so we can pass in a C-ordered array
-            #solve(&phase_matrix[0,0], phase_matrix.shape[0], &soln[0], &ipiv[0])
+            solve(&phase_matrix[0,0], phase_matrix.shape[0], &soln[0], &ipiv[0])
             #eigvals = np.abs(eigvals)
             #eigvals[eigvals < 1e-04] = 1e-04
-            pt_inv = eigvecs @ np.diag(1./eigvals) @ eigvecs.T
+            #pt_inv = eigvecs @ np.diag(1./eigvals) @ eigvecs.T
             #np.testing.assert_allclose(pt_inv, np.linalg.inv(phase_matrix))
-            phase_rhs = np.array(soln) # soln contains RHS of Eq. 41 from call to compute_phase_system()
-            soln = np.dot(pt_inv, phase_rhs)
+            #phase_rhs = np.array(soln) # soln contains RHS of Eq. 41 from call to compute_phase_system()
+            #soln = np.dot(pt_inv, phase_rhs)
 
             delta_y = soln[:compset.phase_record.phase_dof]
             saved_phase_delta_dof[iteration, idx, num_statevars:num_statevars+len(delta_y)] = delta_y
@@ -715,15 +715,16 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #    step_size = 0.5
             #else:
             #    step_size = 1e-7 / np.max(np.abs(delta_y))
-            if iteration > 50:
-                step_size = 1.0 / (1 + float(np.max(np.abs(delta_y))))
+            # Compute the largest step size which will not exceed the bounds
+            if (iteration > 50) or (mass_residual < 1e-2):
+                step_size = 1/(10 + np.max(np.abs(delta_y)))
             else:
-                step_size = 1.0 / (6 + float(np.max(np.abs(delta_y))))
+                step_size = 1.0/100
+            print('step_size', step_size)
             minimum_step_size = 1e-20 * step_size
             wolfe_passed = False
             while step_size >= minimum_step_size:
                 exceeded_bounds = False
-                current_phase_gradient = -np.array(phase_rhs)
                 for i in range(num_statevars, new_y.shape[0]):
                     new_y[i] = x[i] + step_size * delta_y[i-num_statevars]
                     if new_y[i] > 1:
@@ -731,24 +732,24 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                             # Allow some tolerance in the name of progress
                             exceeded_bounds = True
                         new_y[i] = 1
-                        #if delta_y[i-num_statevars] > 0:
-                        #    current_phase_gradient[i-num_statevars] = 0
+                        if delta_y[i-num_statevars] > 0:
+                            current_phase_gradient[i-num_statevars] = 0
                     elif new_y[i] < MIN_SITE_FRACTION:
                         if (MIN_SITE_FRACTION - new_y[i]) > 1e-12:
                             # Allow some tolerance in the name of progress
                             exceeded_bounds = True
                         new_y[i] = MIN_SITE_FRACTION
-                        #if delta_y[i-num_statevars] < 0:
-                        #    current_phase_gradient[i-num_statevars] = 0
-                if exceeded_bounds:
-                    step_size /= 2
-                    continue
+                        if delta_y[i-num_statevars] < 0:
+                            current_phase_gradient[i-num_statevars] = 0
+                #if exceeded_bounds:
+                #    step_size *= 0.9
+                #    continue
                 for comp_idx in range(num_components):
                     compset.phase_record.formulamole_obj(candidate_y_masses[comp_idx, :], new_y, comp_idx)
                 compset.phase_record.internal_cons_func(candidate_internal_cons, new_y)
-                if np.any(np.abs(candidate_internal_cons) > 1e-6) and np.all(np.abs(internal_cons_tmp) <= 1e-6):
-                    step_size /= 2
-                    continue
+                #if np.any(np.abs(candidate_internal_cons) > 1e-8) and np.all(np.abs(internal_cons_tmp) <= 1e-8):
+                #    step_size *= 0.5
+                #    continue
                 compset.phase_record.formulaobj(candidate_y_energy[0,:], new_y)
                 saved_phase_energies[iteration, idx] = candidate_y_energy[0, 0]
                 saved_phase_driving_forces[iteration, idx] = candidate_y_energy[0,0] - np.dot(chemical_potentials, candidate_y_masses[:,0])
@@ -757,22 +758,22 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                   np.dot(internal_lagrange, internal_cons_tmp)) - \
                                  (energy_tmp[0,0] - np.dot(chemical_potentials, masses_tmp[:,0]) - \
                                   np.dot(internal_lagrange, candidate_internal_cons))
-                print(idx, 'wolfe', wolfe_criteria, (step_size*np.dot(current_phase_gradient, -np.dot(pt_inv, current_phase_gradient))))
+                #print(idx, 'wolfe', wolfe_criteria, (step_size*np.dot(delta_y, current_phase_gradient)))
                 #print('bypassing')
                 #wolfe_passed = True
                 #compset_step_sizes[idx] = step_size
-                if True: #wolfe_criteria <= 1e-6 * step_size * np.dot(current_phase_gradient, -np.dot(pt_inv, current_phase_gradient)):
+                if True:#wolfe_criteria <= 1e-6 * step_size * np.dot(delta_y, current_phase_gradient):
                     wolfe_passed = True
                     #compset_step_sizes[idx] = step_size
                     break
                 candidate_y_masses[:,0] = 0
                 candidate_y_energy[0,0] = 0
                 candidate_internal_cons[:] = 0
-                step_size /= 2
+                step_size *= 0.9
             #if exceeded_bounds:
             #    raise ValueError('Minimum step exceeded bounds')
-            #if not wolfe_passed:
-            #    raise ValueError('Wolfe criteria not satisfied for minimum step')
+            if not wolfe_passed:
+                raise ValueError('Wolfe criteria not satisfied for minimum step')
             saved_phase_stepsizes[iteration, idx] = step_size
             for i in range(num_statevars, new_y.shape[0]):
                 largest_internal_dof_change = max(largest_internal_dof_change, abs(new_y[i] - x[i]))
@@ -781,8 +782,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             print(idx, 'new_y', np.array(new_y))
             print(compset.phase_record.variables)
             # XXX: This needs some work, to deal with infeasible composition sets which had to be removed
-            if np.any(np.abs(candidate_internal_cons) > 1e-6) and phase_amt[idx] > 0:
-                raise ValueError('Internal constraint violation too large')
+            #if np.any(np.abs(candidate_internal_cons) > 1e-6) and phase_amt[idx] > 0:
+            #    raise ValueError('Internal constraint violation too large')
 
             for comp_idx in range(num_components):
                 compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
@@ -886,10 +887,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                      largest_statevar_change, largest_phase_amt_change, dof)
         print('delta_phase_amt', np.array(new_phase_amt) - np.array(phase_amt))
         phase_amt = new_phase_amt
-        comp_corrections = np.dot(delta_ms.T, [phase_amt[i] for i in free_stable_compset_indices])
         print('mass_residuals', np.array(mass_residuals))
-        print('comp_corrections', comp_corrections)
-        print('mass_residual', np.sum(np.abs(mass_residuals)), 'correction', sum(comp_corrections))
+        print('mass_residual', np.sum(np.abs(mass_residuals)))
         new_free_stable_compset_indices = np.array(np.nonzero(np.array(phase_amt) > 0)[0], dtype=np.int32)
         if len(new_free_stable_compset_indices) == 0:
             # Do not allow all phases to leave the system
@@ -921,7 +920,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         print(f'mass_residual {mass_residual} largest_internal_cons_max_residual {largest_internal_cons_max_residual}')
         #print(f'largest_internal_dof_change {largest_internal_dof_change}')
-        system_is_feasible = (mass_residual < 1e-10) and (largest_internal_cons_max_residual < 1e-10)
+        system_is_feasible = (mass_residual < 1e-10) and (largest_internal_cons_max_residual < 1e-9) and (iteration > 5)
         if system_is_feasible:
             converged = True
             new_free_stable_compset_indices = np.array([i for i in range(phase_amt.shape[0])

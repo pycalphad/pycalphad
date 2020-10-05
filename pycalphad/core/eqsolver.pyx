@@ -300,7 +300,12 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
         # Remove duplicate phases -- we will add them back later
-        remove_degenerate_phases(composition_sets, [], 1e-2, 100, verbose)
+        #remove_degenerate_phases(composition_sets, [], 1e-2, 100, verbose)
+        phase_amt_sum = 0.0
+        for compset in composition_sets:
+            phase_amt_sum += compset.NP
+        for compset in composition_sets:
+            compset.NP /= phase_amt_sum
         iterations = 0
         history = []
         while (iterations < 10) and (not iter_solver.ignore_convergence):
@@ -310,10 +315,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
 
             chemical_potentials[:] = result.chemical_potentials
-            changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
-                                            grid, curr_idx, chemical_potentials, state_variable_values,
-                                            1e-4, verbose)
-            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, 1e-3, 0, verbose)
+            changes_phases = False 
+            #changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
+            #                                grid, curr_idx, chemical_potentials, state_variable_values,
+            #                                1e-4, verbose)
+            #changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, 1e-3, 0, verbose)
             iterations += 1
             if not changed_phases:
                 break
