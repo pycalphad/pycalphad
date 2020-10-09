@@ -258,11 +258,11 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
         for j in range(c_G.shape[0]):
             equilibrium_rhs[system_amount_index] += -phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_G[j]
     # 4.
-    equilibrium_rhs[idx] = energy
+    equilibrium_rhs[stable_idx] = energy
     # 5. Subtract fixed chemical potentials from each phase RHS
     for i in range(fixed_chemical_potential_indices.shape[0]):
         chempot_idx = fixed_chemical_potential_indices[i]
-        equilibrium_rhs[idx] -= masses[chempot_idx, 0] * chemical_potentials[chempot_idx]
+        equilibrium_rhs[stable_idx] -= masses[chempot_idx, 0] * chemical_potentials[chempot_idx]
         # 6. Subtract fixed chemical potentials from each fixed component RHS
         for fixed_component_idx in range(num_fixed_components):
             component_idx = prescribed_element_indices[fixed_component_idx]
