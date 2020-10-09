@@ -194,7 +194,7 @@ class SundmanSolver(SolverBase):
         state_variables = compsets[0].phase_record.state_variables
         num_statevars = len(state_variables)
         num_components = len(prob.nonvacant_elements)
-        chemical_potentials = prob.chemical_potentials(prob.x0)
+        chemical_potentials = np.zeros(num_components)
         prescribed_elemental_amounts = []
         prescribed_element_indices = []
         for cond, value in cur_conds.items():
