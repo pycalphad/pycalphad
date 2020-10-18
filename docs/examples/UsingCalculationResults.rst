@@ -1,4 +1,3 @@
-
 Exploring ``calculate`` and ``equilibrium`` xarray Datasets
 ===========================================================
 
@@ -88,7 +87,7 @@ There are also at least four Data variables:
         GM         (P, T, points) float64 -1.559e+04 -2.01e+04 -2.01e+04 ...
         X          (P, T, points, component) float64 1.0 1e-12 1e-12 1.0 1e-12 ...
         Phase      (P, T, points) <U6 'FCC_A1' 'FCC_A1' 'FCC_A1' 'FCC_A1' ...
-
+    
 
 We can manipulate this by selecting data by value (of a coordinate)
 using ``sel`` or index (of a coordinate) using ``isel`` similar to a
@@ -113,7 +112,7 @@ Datasets <http://xarray.pydata.org/en/stable/data-structures.html>`__).
     Coordinates:
         T        float64 1e+03
       * P        (P) float64 1.013e+05
-
+    
 
 accessing the ``values`` attribute on any on any DataArray returns the
 multidimensional NumPy array
@@ -140,7 +139,7 @@ multidimensional NumPy array
        [  1.56995650e-01   8.43004350e-01]
        [  1.12072782e-01   8.87927218e-01]
        [  7.43933641e-01   2.56066359e-01]]]]
-
+    
 
 ``equilibrium()`` results
 -------------------------
@@ -223,7 +222,7 @@ There are also at least six Data variables:
     Attributes:
         engine:   pycalphad 0.5.2.post1+22.gc2a1cf7f.dirty
         created:  2017-11-16T07:56:07.904845
-
+    
 
 A common operation might be to find the phase fractions of the HCP_A3
 phase as a function of composition for T=800.
@@ -270,4 +269,4 @@ to find the data values that match a condition (the Phase is FCC_A1):
         T        float64 800.0
       * X_ZN     (X_ZN) float64 1e-09 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 ...
       * vertex   (vertex) int64 0 1
-
+    

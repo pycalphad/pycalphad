@@ -1,4 +1,3 @@
-
 Heat Capacity of Cementite (:math:`Fe_3C`)
 ==========================================
 
@@ -74,6 +73,6 @@ there’s nothing to minimize, we can do the computation faster with
 
 
 
-.. image:: CementiteAnalysis_files/CementiteAnalysis_8_0.png
+.. image:: CementiteAnalysis_files%5CCementiteAnalysis_8_0.png
 
 

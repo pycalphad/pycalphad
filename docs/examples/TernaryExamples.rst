@@ -1,4 +1,3 @@
-
 Plotting Ternary Phase Diagrams and Using Triangular Axes
 =========================================================
 
@@ -15,7 +14,7 @@ ternplot
 Here we well use the ternplot API to plot an isothermal section of the
 Al-Cu-Y system from the thermodynamic database found at the `NIST
 CALPHAD assessments <http://hdl.handle.net/11115/101>`__ assessed by
-Zhang et al. \ `Calphad 35
+Zhang et al. `Calphad 35
 (2011) <https://doi.org/10.1016/j.calphad.2011.09.008>`__. Note that we
 have commented out the Cu6Y phase in the TDB because it utilized the Cu2
 species. Species are not currently supported in pycalphad.
@@ -43,7 +42,7 @@ species. Species are not currently supported in pycalphad.
 
 
 
-.. image:: TernaryExamples_files/TernaryExamples_2_1.png
+.. image:: TernaryExamples_files%5CTernaryExamples_2_1.png
 
 
 triangular projection
@@ -70,14 +69,14 @@ axes.
     c = calculate(db_al_cu_y, comps, 'FCC_A1', output='HM_MIX', T=830, P=101325, pdens=5000)
     
     # Here we are getting the values from our plot. 
-    xs = c.X.values[0, 0, :, 0]  # 1D array of Al compositions
-    ys = c.X.values[0, 0, :, 1]  # 1D array of Cu compositions
-    zs = c.HM_MIX.values[0,0, :]  # 1D array of mixing enthalpies at these compositions
+    xs = c.X.values[0, 0, 0, :, 0]  # 1D array of Al compositions
+    ys = c.X.values[0, 0, 0, :, 1]  # 1D array of Cu compositions
+    zs = c.HM_MIX.values[0, 0, 0, :]  # 1D array of mixing enthalpies at these compositions
     
     # when we imported the pycalphad.plot.triangular module, it made the 'triangular' projection available for us to use.
     fig = plt.figure()
     ax = fig.gca(projection='triangular')
-    ax.scatter(xs, ys, c=c.HM_MIX.values[0,0, :], 
+    ax.scatter(xs, ys, c=zs, 
                cmap='coolwarm', 
                linewidth=0.0)
     
@@ -103,6 +102,6 @@ axes.
 
 
 
-.. image:: TernaryExamples_files/TernaryExamples_4_1.png
+.. image:: TernaryExamples_files%5CTernaryExamples_4_1.png
 
 

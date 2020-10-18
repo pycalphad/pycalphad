@@ -1,4 +1,3 @@
-
 Calculate and Plot Activity
 ===========================
 
@@ -101,5 +100,5 @@ Plot the result
 
 
 
-.. image:: PlotActivity_files/PlotActivity_11_1.png
+.. image:: PlotActivity_files%5CPlotActivity_11_1.png
 

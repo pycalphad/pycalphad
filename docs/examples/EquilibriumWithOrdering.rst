@@ -1,4 +1,3 @@
-
 Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)
 =============================================================
 
@@ -68,7 +67,7 @@ the value of ``output``.
     Attributes:
         engine:   pycalphad 0.7+5.g20149e02.dirty
         created:  2018-04-18T19:27:07.389851
-
+    
 
 We also compute degree of ordering at fixed temperature as a function of
 composition.
@@ -102,7 +101,7 @@ composition.
     Attributes:
         engine:   pycalphad 0.7+5.g20149e02.dirty
         created:  2018-04-18T19:27:24.936901
-
+    
 
 Plots
 ~~~~~
@@ -120,14 +119,14 @@ partially ordered B2 to disordered bcc (A2).
     plt.gca().set_ylim((-0.1,1.1))
     # Generate a list of all indices where B2 is stable
     phase_indices = np.nonzero(eq.Phase.values == 'B2_BCC')
-    # phase_indices[1] refers to all temperature indices
+    # phase_indices[2] refers to all temperature indices
     # We know this because pycalphad always returns indices in order like P, T, X's
-    plt.plot(np.take(eq['T'].values, phase_indices[1]), eq['degree_of_ordering'].values[phase_indices])
+    plt.plot(np.take(eq['T'].values, phase_indices[2]), eq['degree_of_ordering'].values[phase_indices])
     plt.show()
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_8_0.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_8_0.png
 
 
 For the heat capacity curve shown below we notice a sharp increase in
@@ -152,7 +151,7 @@ corresponding to the melting of the bcc phase.
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_10_0.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_10_0.png
 
 
 To understand more about what’s happening around 700 K, we plot the
@@ -174,7 +173,7 @@ bcc (A2) until around 13% Al or Fe, when the phase begins to order.
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_12_0.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_12_0.png
 
 
 Al-Ni (Degree of Ordering)
@@ -211,7 +210,7 @@ Al-Ni (Degree of Ordering)
     Attributes:
         engine:   pycalphad 0.7+5.g20149e02.dirty
         created:  2018-04-18T19:29:04.721929
-
+    
 
 Plots
 ~~~~~
@@ -234,7 +233,7 @@ disappears around 750 K, leaving only the disordered gamma phase.
     
     for name in phases:
         phase_indices = np.nonzero(eq_alni.Phase.values == name)
-        plt.scatter(np.take(eq_alni['T'].values, phase_indices[1]), eq_alni.NP.values[phase_indices], color=phasemap[name])
+        plt.scatter(np.take(eq_alni['T'].values, phase_indices[2]), eq_alni.NP.values[phase_indices], color=phasemap[name])
     plt.gca().legend(phase_handles, phases, loc='lower right')
 
 
@@ -247,7 +246,7 @@ disappears around 750 K, leaving only the disordered gamma phase.
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_16_1.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_16_1.png
 
 
 In the plot below we see that the degree of ordering does not change at
@@ -267,17 +266,17 @@ gamma phase. This is a first-order phase transition.
     # Generate a list of all indices where FCC_L12 is stable and disordered
     fcc_phase_indices = np.nonzero(np.logical_and((eq_alni.Phase.values == 'FCC_L12'),
                                                   (eq_alni.degree_of_ordering.values <= 0.01)))
-    # phase_indices[1] refers to all temperature indices
+    # phase_indices[2] refers to all temperature indices
     # We know this because pycalphad always returns indices in order like P, T, X's
-    plt.plot(np.take(eq_alni['T'].values, L12_phase_indices[1]), eq_alni['degree_of_ordering'].values[L12_phase_indices],
+    plt.plot(np.take(eq_alni['T'].values, L12_phase_indices[2]), eq_alni['degree_of_ordering'].values[L12_phase_indices],
                 label='$\gamma\prime$ (ordered fcc)', color='red')
-    plt.plot(np.take(eq_alni['T'].values, fcc_phase_indices[1]), eq_alni['degree_of_ordering'].values[fcc_phase_indices],
+    plt.plot(np.take(eq_alni['T'].values, fcc_phase_indices[2]), eq_alni['degree_of_ordering'].values[fcc_phase_indices],
                 label='$\gamma$ (disordered fcc)', color='blue')
     plt.legend()
     plt.show()
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_18_0.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_18_0.png
 
 
