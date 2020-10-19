@@ -446,6 +446,8 @@ def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_i
         #if (largest_internal_dof_change < 1e-11) and (largest_phase_amt_change[0] < 1e-10) and \
         #        (largest_statevar_change[0] < 1e-1) and can_add_phases:
         converged = True
+    else:
+        print('No convergence: Current and new composition sets did not compare equal')
     return converged, new_free_stable_compset_indices
 
 cpdef repair_solution(list compsets, object dof, double[::1] phase_amt,
@@ -914,7 +916,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         phase_amt = new_phase_amt
         print('mass_residuals', np.array(mass_residuals))
         print('mass_residual', np.sum(np.abs(mass_residuals)))
-        new_free_stable_compset_indices = np.array(np.nonzero(np.array(phase_amt) > 0)[0], dtype=np.int32)
+        new_free_stable_compset_indices = np.array(free_stable_compset_indices, dtype=np.int32)
         # Consolidate duplicate phases
         compsets_to_remove = set()
         for idx in range(len(compsets)):
@@ -969,7 +971,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         print(f'mass_residual {mass_residual} largest_internal_cons_max_residual {largest_internal_cons_max_residual}')
         #print(f'largest_internal_dof_change {largest_internal_dof_change}')
-        system_is_feasible = (mass_residual < 5e-8) and (largest_internal_cons_max_residual < 1e-9) and (iteration > 5)
+        system_is_feasible = (mass_residual < 5e-11) and (largest_internal_cons_max_residual < 1e-9) and (iteration > 5)
         if system_is_feasible:
             converged = True
             new_free_stable_compset_indices = np.array([i for i in range(phase_amt.shape[0])
@@ -996,9 +998,14 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                                     times_compset_removed, driving_forces,
                                                     largest_internal_dof_change, largest_phase_amt_change,
                                                     largest_statevar_change, iteration > 3)
+            # Force some amount of newly stable phases
             for idx in new_free_stable_compset_indices:
                 if phase_amt[idx] < 1e-6:
                     phase_amt[idx] = 1e-6
+            # Force unstable phase amounts to zero
+            for idx in range(phase_amt.shape[0]):
+                if phase_amt[idx] < 1e-6:
+                    phase_amt[idx] = 0
             if converged:
                 converged = True
                 break
