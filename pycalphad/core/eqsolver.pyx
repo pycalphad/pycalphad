@@ -180,11 +180,19 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
     compset = composition_sets[0]
     var_offset = len(compset.phase_record.state_variables)
     phase_idx = 0
+    compsets_to_remove = []
     for compset in composition_sets:
+        phase_amt = x[prob.num_vars - prob.num_phases + phase_idx]
+        # Mark unstable phases for removal
+        if phase_amt == 0.0:
+            compsets_to_remove.append(int(phase_idx))
         compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                       x[prob.num_vars - prob.num_phases + phase_idx], x[:len(compset.phase_record.state_variables)], True)
+                       phase_amt, x[:len(compset.phase_record.state_variables)], True)
         var_offset += compset.phase_record.phase_dof
         phase_idx += 1
+    # Watch removal order here, as the indices of composition_sets are changing!
+    for idx in reversed(compsets_to_remove):
+        del composition_sets[idx]
     return result
 
 def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose,
@@ -327,7 +335,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             chemical_potentials[:] = result.chemical_potentials
         if not iter_solver.ignore_convergence:
             converged = result.converged
-            remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
+            #remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
         else:
             converged = True
         if converged:

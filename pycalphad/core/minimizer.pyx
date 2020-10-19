@@ -426,26 +426,26 @@ def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_i
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
     if can_add_phases:
         newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - set(current_free_stable_compset_indices)
-        add_criteria = np.logical_and(np.array(driving_forces) > -1e-5, np.array(times_compset_removed) < 4)
+        add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(times_compset_removed) < 4)
         compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
     else:
         compsets_to_add = set()
-    #print('compsets_to_add', compsets_to_add)
+    print('compsets_to_add', compsets_to_add)
     compsets_to_remove = set(np.nonzero(np.array(phase_amt) < 1e-9)[0])
     #print('current_free_stable', set(current_free_stable_compset_indices))
-    #print('compsets_to_remove', compsets_to_remove)
+    print('compsets_to_remove', compsets_to_remove)
     new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove) | compsets_to_add))
-    #print('new_free_stable', set(new_free_stable_compset_indices))
+    print('new_free_stable', set(new_free_stable_compset_indices))
     removed_compset_indices = set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)
     #print('removed_compset_indices', removed_compset_indices)
     for idx in removed_compset_indices:
         times_compset_removed[idx] += 1
     converged = False
-    if len(set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)) == 0:
+    if set(current_free_stable_compset_indices) == set(new_free_stable_compset_indices):
         # feasible system, and no phases to add or remove
-        if (largest_internal_dof_change < 1e-11) and (largest_phase_amt_change[0] < 1e-10) and \
-                (largest_statevar_change[0] < 1e-1) and can_add_phases:
-            converged = True
+        #if (largest_internal_dof_change < 1e-11) and (largest_phase_amt_change[0] < 1e-10) and \
+        #        (largest_statevar_change[0] < 1e-1) and can_add_phases:
+        converged = True
     return converged, new_free_stable_compset_indices
 
 cpdef repair_solution(list compsets, object dof, double[::1] phase_amt,
@@ -895,7 +895,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             # XXX: Not strictly valid for varying state variables
             delta_phase_amt = np.abs(np.array(equilibrium_soln[num_components:]))
             print('trial_delta_phase_amt', np.array(delta_phase_amt))
-            if np.any(delta_phase_amt > 0.2):
+            if False:#np.any(delta_phase_amt > 0.2):
                 compset_step_sizes = 0.1*np.array(compset_step_sizes)
                 continue
             else:
@@ -980,26 +980,30 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             free_stable_compset_indices = new_free_stable_compset_indices
             # Check driving forces for metastable phases
             # This needs to be done per mole of atoms, not per formula unit, since we compare phases to each other
-            #driving_forces = np.zeros(len(compsets))
-            #phase_energies_per_mole_atoms = np.zeros((len(compsets), 1))
-            #phase_amounts_per_mole_atoms = np.zeros((len(compsets), num_components, 1))
-            #for idx in range(len(compsets)):
-            #    compset = compsets[idx]
-            #    x = dof[idx]
-            #    for comp_idx in range(num_components):
-            #        compset.phase_record.mass_obj(phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
-            #    compset.phase_record.obj(phase_energies_per_mole_atoms[idx, :], x)
-            #    driving_forces[idx] = phase_energies_per_mole_atoms[idx, 0] - np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0])
-            #print(f'driving_forces {driving_forces}')
-            #converged, new_free_stable_compset_indices = \
-            #    check_convergence_and_change_phases(phase_amt, free_stable_compset_indices, metastable_phase_iterations,
-            #                                        times_compset_removed, driving_forces,
-            #                                        largest_internal_dof_change, largest_phase_amt_change,
-            #                                        largest_statevar_change, iteration > 3)
-            #free_stable_compset_indices = np.array(new_free_stable_compset_indices, dtype=np.int32)
+            driving_forces = np.zeros(len(compsets))
+            phase_energies_per_mole_atoms = np.zeros((len(compsets), 1))
+            phase_amounts_per_mole_atoms = np.zeros((len(compsets), num_components, 1))
+            for idx in range(len(compsets)):
+                compset = compsets[idx]
+                x = dof[idx]
+                for comp_idx in range(num_components):
+                    compset.phase_record.mass_obj(phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
+                compset.phase_record.obj(phase_energies_per_mole_atoms[idx, :], x)
+                driving_forces[idx] =  np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0]) - phase_energies_per_mole_atoms[idx, 0]
+            print(f'driving_forces {driving_forces}')
+            converged, new_free_stable_compset_indices = \
+                check_convergence_and_change_phases(phase_amt, free_stable_compset_indices, metastable_phase_iterations,
+                                                    times_compset_removed, driving_forces,
+                                                    largest_internal_dof_change, largest_phase_amt_change,
+                                                    largest_statevar_change, iteration > 3)
+            for idx in new_free_stable_compset_indices:
+                if phase_amt[idx] < 1e-6:
+                    phase_amt[idx] = 1e-6
             if converged:
                 converged = True
                 break
+            free_stable_compset_indices = np.array(new_free_stable_compset_indices, dtype=np.int32)
+
         for idx in range(len(compsets)):
             if idx in free_stable_compset_indices:
                 metastable_phase_iterations[idx] = 0
