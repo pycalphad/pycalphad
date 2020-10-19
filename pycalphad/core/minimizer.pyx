@@ -916,14 +916,14 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         phase_amt = new_phase_amt
         print('mass_residuals', np.array(mass_residuals))
         print('mass_residual', np.sum(np.abs(mass_residuals)))
-        new_free_stable_compset_indices = np.array(free_stable_compset_indices, dtype=np.int32)
-        # Consolidate duplicate phases
+        # Consolidate duplicate phases and remove unstable phases
         compsets_to_remove = set()
         for idx in range(len(compsets)):
             compset = compsets[idx]
             if idx in compsets_to_remove:
                 continue
-            if not (idx in new_free_stable_compset_indices):
+            if phase_amt[idx] < 1e-10:
+                compsets_to_remove.add(idx)
                 continue
             for idx2 in range(len(compsets)):
                 compset2 = compsets[idx2]
@@ -933,14 +933,12 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                     continue
                 if idx2 in compsets_to_remove:
                     continue
-                if not (idx2 in new_free_stable_compset_indices):
-                    continue
                 compset_distance = np.max(np.abs(np.array(all_phase_amounts[idx]) - np.array(all_phase_amounts[idx2])))
                 if compset_distance < 1e-4:
                     compsets_to_remove.add(idx2)
                     phase_amt[idx] += phase_amt[idx2]
                     phase_amt[idx2] = 0
-        new_free_stable_compset_indices = np.array(sorted(set(new_free_stable_compset_indices) - set(compsets_to_remove)), dtype=np.int32)
+        new_free_stable_compset_indices = np.array(sorted(set(free_stable_compset_indices) - set(compsets_to_remove)), dtype=np.int32)
         if len(new_free_stable_compset_indices) == 0:
             # Do not allow all phases to leave the system
             for phase_idx in free_stable_compset_indices:
@@ -1000,11 +998,11 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                                     largest_statevar_change, iteration > 3)
             # Force some amount of newly stable phases
             for idx in new_free_stable_compset_indices:
-                if phase_amt[idx] < 1e-6:
-                    phase_amt[idx] = 1e-6
+                if phase_amt[idx] < 1e-10:
+                    phase_amt[idx] = 1e-10
             # Force unstable phase amounts to zero
             for idx in range(phase_amt.shape[0]):
-                if phase_amt[idx] < 1e-6:
+                if phase_amt[idx] < 1e-10:
                     phase_amt[idx] = 0
             if converged:
                 converged = True
