@@ -265,8 +265,11 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
         for fixed_component_idx in range(num_fixed_components):
             component_idx = prescribed_element_indices[fixed_component_idx]
             for j in range(c_component.shape[1]):
-                equilibrium_rhs[component_row_offset + fixed_component_idx] -= phase_amt[idx] * chemical_potentials[
+                equilibrium_rhs[component_row_offset + fixed_component_idx] -= (phase_amt[idx]/current_system_amount) * chemical_potentials[
                     chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
+            for j in range(c_component.shape[1]):
+                equilibrium_rhs[component_row_offset + fixed_component_idx] -= (phase_amt[idx]/current_system_amount) * chemical_potentials[
+                    chempot_idx] * (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_component[chempot_idx, j]
     return delta_m
 
 
@@ -907,6 +910,10 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                              free_chemical_potential_indices, free_statevar_indices,
                                              free_stable_compset_indices, equilibrium_soln,
                                              largest_statevar_change, largest_phase_amt_change, dof)
+                # Force some chemical potentials to adopt their fixed values
+                for cp_idx in range(fixed_chemical_potential_indices.shape[0]):
+                    comp_idx = fixed_chemical_potential_indices[cp_idx]
+                    new_chemical_potentials[comp_idx] = initial_chemical_potentials[comp_idx]
                 break
             #lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
             #      &equilibrium_soln[0], 1e-21)
@@ -944,6 +951,10 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             for phase_idx in free_stable_compset_indices:
                 phase_amt[phase_idx] = 1
             chemical_potentials[:] = 0
+            # Force some chemical potentials to adopt their fixed values
+            for cp_idx in range(fixed_chemical_potential_indices.shape[0]):
+                comp_idx = fixed_chemical_potential_indices[cp_idx]
+                chemical_potentials[comp_idx] = initial_chemical_potentials[comp_idx]
         else:
             free_stable_compset_indices = new_free_stable_compset_indices
         print('new_chemical_potentials', np.array(new_chemical_potentials))
