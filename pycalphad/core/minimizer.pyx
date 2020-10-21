@@ -64,6 +64,18 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess, C
     phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess[
                                                                                      num_statevars:,
                                                                                      num_statevars:]
+    for comp_idx in range(num_components):
+        compset.phase_record.formulamole_hess(mass_hess_tmp[comp_idx, :, :], phase_dof, comp_idx)
+    for comp_idx in range(num_components):
+        for i in range(compset.phase_record.phase_dof):
+            for j in range(i, compset.phase_record.phase_dof):
+                phase_matrix[i, j] -= chemical_potentials[comp_idx] * mass_hess_tmp[comp_idx,
+                                                                                    num_statevars+i,
+                                                                                    num_statevars+j]
+                if i != j:
+                    phase_matrix[j, i] -= chemical_potentials[comp_idx] * mass_hess_tmp[comp_idx,
+                                                                                        num_statevars+j,
+                                                                                        num_statevars+i]
 
     phase_matrix[compset.phase_record.phase_dof:compset.phase_record.phase_dof+compset.phase_record.num_internal_cons,
                  :compset.phase_record.phase_dof] = cons_jac_tmp[:, num_statevars:]
