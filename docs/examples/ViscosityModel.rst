@@ -1,3 +1,4 @@
+
 Custom Models in pycalphad: Viscosity
 =====================================
 
@@ -70,7 +71,7 @@ should be on the list of supported parameter types.
 
     Failed while parsing:     PARAMETER ETA(LIQUID,AL;0) 2.98150E+02 +0.000281*EXP(12300/(8.3145*T)); 6.00000E+03 N REF:0 
     Tokens: None
-    
+
 
 ::
 
@@ -84,158 +85,158 @@ should be on the list of supported parameter types.
     
 
     ~/Projects/pycalphad/pycalphad/io/database.py in __new__(cls, *args)
-        127             elif fname.find('\n') == -1:
-        128                 # Single-line string; it's probably a filename
-    --> 129                 return cls.from_file(fname, fmt=fmt)
-        130             else:
-        131                 # Newlines found: probably a full database string
-    
+        117             elif fname.find('\n') == -1:
+        118                 # Single-line string; it's probably a filename
+    --> 119                 return cls.from_file(fname, fmt=fmt)
+        120             else:
+        121                 # Newlines found: probably a full database string
+
 
     ~/Projects/pycalphad/pycalphad/io/database.py in from_file(fname, fmt)
-        221         try:
-        222             dbf = Database()
-    --> 223             format_registry[fmt.lower()].read(dbf, fd)
-        224         finally:
-        225             # Close file descriptors created in this routine
-    
+        211         try:
+        212             dbf = Database()
+    --> 213             format_registry[fmt.lower()].read(dbf, fd)
+        214         finally:
+        215             # Close file descriptors created in this routine
+
 
     ~/Projects/pycalphad/pycalphad/io/tdb.py in read_tdb(dbf, fd)
-        913         tokens = None
-        914         try:
-    --> 915             tokens = grammar.parseString(command)
-        916             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
-        917         except ParseException:
-    
+        950         tokens = None
+        951         try:
+    --> 952             tokens = grammar.parseString(command)
+        953             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
+        954         except:
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseString(self, instring, parseAll)
-       1826             else:
-       1827                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-    -> 1828                 raise exc
-       1829         else:
-       1830             return tokens
-    
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseString(self, instring, parseAll)
-       1816             instring = instring.expandtabs()
-       1817         try:
-    -> 1818             loc, tokens = self._parse( instring, 0 )
-       1819             if parseAll:
-       1820                 loc = self.preParse( instring, loc )
-    
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseString(self, instring, parseAll)
+       1943             else:
+       1944                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
+    -> 1945                 raise exc
+       1946         else:
+       1947             return tokens
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-       1721                 ParserElement.packrat_cache_stats[MISS] += 1
-       1722                 try:
-    -> 1723                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-       1724                 except ParseBaseException as pe:
-       1725                     # cache a copy of the exception, without the traceback
-    
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-       1560             if self.mayIndexError or preloc >= len(instring):
-       1561                 try:
-    -> 1562                     loc,tokens = self.parseImpl( instring, preloc, doActions )
-       1563                 except IndexError:
-       1564                     raise ParseException( instring, len(instring), self.errmsg, self )
-    
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseString(self, instring, parseAll)
+       1933             instring = instring.expandtabs()
+       1934         try:
+    -> 1935             loc, tokens = self._parse(instring, 0)
+       1936             if parseAll:
+       1937                 loc = self.preParse(instring, loc)
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-       3915             if maxException is not None:
-       3916                 maxException.msg = self.errmsg
-    -> 3917                 raise maxException
-       3918             else:
-       3919                 raise ParseException(instring, loc, "no defined alternatives to match", self)
-    
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-       3900         for e in self.exprs:
-       3901             try:
-    -> 3902                 ret = e._parse( instring, loc, doActions )
-       3903                 return ret
-       3904             except ParseException as err:
-    
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
+       1834                 ParserElement.packrat_cache_stats[MISS] += 1
+       1835                 try:
+    -> 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
+       1837                 except ParseBaseException as pe:
+       1838                     # cache a copy of the exception, without the traceback
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-       1721                 ParserElement.packrat_cache_stats[MISS] += 1
-       1722                 try:
-    -> 1723                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-       1724                 except ParseBaseException as pe:
-       1725                     # cache a copy of the exception, without the traceback
-    
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-       1560             if self.mayIndexError or preloc >= len(instring):
-       1561                 try:
-    -> 1562                     loc,tokens = self.parseImpl( instring, preloc, doActions )
-       1563                 except IndexError:
-       1564                     raise ParseException( instring, len(instring), self.errmsg, self )
-    
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
+       1673             if self.mayIndexError or preloc >= len(instring):
+       1674                 try:
+    -> 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
+       1676                 except IndexError:
+       1677                     raise ParseException(instring, len(instring), self.errmsg, self)
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-       3750                     raise ParseSyntaxException(instring, len(instring), self.errmsg, self)
-       3751             else:
-    -> 3752                 loc, exprtokens = e._parse( instring, loc, doActions )
-       3753             if exprtokens or exprtokens.haskeys():
-       3754                 resultlist += exprtokens
-    
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-       1721                 ParserElement.packrat_cache_stats[MISS] += 1
-       1722                 try:
-    -> 1723                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-       1724                 except ParseBaseException as pe:
-       1725                     # cache a copy of the exception, without the traceback
-    
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+       4248             if maxException is not None:
+       4249                 maxException.msg = self.errmsg
+    -> 4250                 raise maxException
+       4251             else:
+       4252                 raise ParseException(instring, loc, "no defined alternatives to match", self)
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-       1560             if self.mayIndexError or preloc >= len(instring):
-       1561                 try:
-    -> 1562                     loc,tokens = self.parseImpl( instring, preloc, doActions )
-       1563                 except IndexError:
-       1564                     raise ParseException( instring, len(instring), self.errmsg, self )
-    
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-       3915             if maxException is not None:
-       3916                 maxException.msg = self.errmsg
-    -> 3917                 raise maxException
-       3918             else:
-       3919                 raise ParseException(instring, loc, "no defined alternatives to match", self)
-    
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+       4233         for e in self.exprs:
+       4234             try:
+    -> 4235                 ret = e._parse(instring, loc, doActions)
+       4236                 return ret
+       4237             except ParseException as err:
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-       3900         for e in self.exprs:
-       3901             try:
-    -> 3902                 ret = e._parse( instring, loc, doActions )
-       3903                 return ret
-       3904             except ParseException as err:
-    
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-       1721                 ParserElement.packrat_cache_stats[MISS] += 1
-       1722                 try:
-    -> 1723                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-       1724                 except ParseBaseException as pe:
-       1725                     # cache a copy of the exception, without the traceback
-    
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
+       1834                 ParserElement.packrat_cache_stats[MISS] += 1
+       1835                 try:
+    -> 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
+       1837                 except ParseBaseException as pe:
+       1838                     # cache a copy of the exception, without the traceback
 
-    ~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-       1564                     raise ParseException( instring, len(instring), self.errmsg, self )
-       1565             else:
-    -> 1566                 loc,tokens = self.parseImpl( instring, preloc, doActions )
-       1567 
-       1568         tokens = self.postParse( instring, loc, tokens )
-    
+
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
+       1673             if self.mayIndexError or preloc >= len(instring):
+       1674                 try:
+    -> 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
+       1676                 except IndexError:
+       1677                     raise ParseException(instring, len(instring), self.errmsg, self)
+
+
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+       4048                     raise ParseSyntaxException(instring, len(instring), self.errmsg, self)
+       4049             else:
+    -> 4050                 loc, exprtokens = e._parse(instring, loc, doActions)
+       4051             if exprtokens or exprtokens.haskeys():
+       4052                 resultlist += exprtokens
+
+
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
+       1834                 ParserElement.packrat_cache_stats[MISS] += 1
+       1835                 try:
+    -> 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
+       1837                 except ParseBaseException as pe:
+       1838                     # cache a copy of the exception, without the traceback
+
+
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
+       1673             if self.mayIndexError or preloc >= len(instring):
+       1674                 try:
+    -> 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
+       1676                 except IndexError:
+       1677                     raise ParseException(instring, len(instring), self.errmsg, self)
+
+
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+       4248             if maxException is not None:
+       4249                 maxException.msg = self.errmsg
+    -> 4250                 raise maxException
+       4251             else:
+       4252                 raise ParseException(instring, loc, "no defined alternatives to match", self)
+
+
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+       4233         for e in self.exprs:
+       4234             try:
+    -> 4235                 ret = e._parse(instring, loc, doActions)
+       4236                 return ret
+       4237             except ParseException as err:
+
+
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
+       1834                 ParserElement.packrat_cache_stats[MISS] += 1
+       1835                 try:
+    -> 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
+       1837                 except ParseBaseException as pe:
+       1838                     # cache a copy of the exception, without the traceback
+
+
+    ~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
+       1677                     raise ParseException(instring, len(instring), self.errmsg, self)
+       1678             else:
+    -> 1679                 loc, tokens = self.parseImpl(instring, preloc, doActions)
+       1680 
+       1681         tokens = self.postParse(instring, loc, tokens)
+
 
     ~/Projects/pycalphad/pycalphad/io/tdb.py in parseImpl(self, instring, loc, doActions)
-        174         except ValueError:
-        175             pass
-    --> 176         raise ParseException(instring, loc, self.errmsg, self)
-        177 
-        178 def _tdb_grammar(): #pylint: disable=R0914
-    
+        186         except ValueError:
+        187             pass
+    --> 188         raise ParseException(instring, loc, self.errmsg, self)
+        189 
+        190 def _tdb_grammar(): #pylint: disable=R0914
 
-    ParseException: Expected {{"ELEMENT" W:(ABCD...) [Suppress:(W:(ABCD...))] [Suppress:({Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')}...)] LineEnd} | {"SPECIES" W:(ABCD...) [Suppress:("%")] Group:({{W:(ABCD...) [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')]}}...) [{Suppress:("/") W:(+-01...)}] LineEnd} | {"TYPE_DEFINITION" Suppress:(<SP><TAB><CR><LF>) !W:( !) SkipTo:(LineEnd)} | {"FUNCTION" W:(ABCD...) {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:({W:(YNyn) | <SP><TAB><CR><LF>})}}...}} | {"ASSESSED_SYSTEMS" SkipTo:(LineEnd)} | {"DEFINE_SYSTEM_DEFAULT" SkipTo:(LineEnd)} | {"DEFAULT_COMMAND" SkipTo:(LineEnd)} | {"DATABASE_INFO" SkipTo:(LineEnd)} | {"VERSION_DATE" SkipTo:(LineEnd)} | {"REFERENCE_FILE" SkipTo:(LineEnd)} | {"ADD_REFERENCES" SkipTo:(LineEnd)} | {"LIST_OF_REFERENCES" SkipTo:(LineEnd)} | {"TEMPERATURE_LIMITS" SkipTo:(LineEnd)} | {"PHASE" W:(ABCD...) Suppress:(<SP><TAB><CR><LF>) !W:( !) Suppress:(<SP><TAB><CR><LF>) Suppress:(W:(0123...)) Group:({Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')}...) LineEnd} | {"CONSTITUENT" W:(ABCD...) Suppress:(<SP><TAB><CR><LF>) Suppress:(":") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) Suppress:(":") LineEnd} | {"PARAMETER" {"BMAGN" | "DF" | "DQ" | "G" | "GD" | "L" | "MF" | "MQ" | "NT" | "TC" | "THETA" | "V0" | "VS"} Suppress:("(") W:(ABCD...) [{Suppress:("&") W:(ABCD...)}] Suppress:(",") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) [{Suppress:(";") W:(0123...)}] Suppress:(")") {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:({W:(YNyn) | <SP><TAB><CR><LF>})}}...}}} (at char 17), (line:1, col:18)
+
+    ParseException: Expected {{"ELEMENT" W:(ABCD...) W:(ABCD...) Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') LineEnd} | {"SPECIES" W:(ABCD...) [Suppress:("%")] Group:({{W:(ABCD...) [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')]}}...) [{Suppress:("/") W:(+-01...)}] LineEnd} | {"TYPE_DEFINITION" Suppress:(<SP><TAB><CR><LF>) !W:( !) SkipTo:(LineEnd)} | {"FUNCTION" W:(ABCD...) {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:({W:(YNyn) | <SP><TAB><CR><LF>})}}...}} | {"ASSESSED_SYSTEMS" SkipTo:(LineEnd)} | {"DEFINE_SYSTEM_DEFAULT" SkipTo:(LineEnd)} | {"DEFAULT_COMMAND" SkipTo:(LineEnd)} | {"DATABASE_INFO" SkipTo:(LineEnd)} | {"VERSION_DATE" SkipTo:(LineEnd)} | {"REFERENCE_FILE" SkipTo:(LineEnd)} | {"ADD_REFERENCES" SkipTo:(LineEnd)} | {"LIST_OF_REFERENCES" SkipTo:(LineEnd)} | {"TEMPERATURE_LIMITS" SkipTo:(LineEnd)} | {"PHASE" W:(ABCD...) Suppress:(<SP><TAB><CR><LF>) !W:( !) Suppress:(<SP><TAB><CR><LF>) Suppress:(W:(0123...)) Group:({Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')}...) Suppress:(SkipTo:(LineEnd))} | {"CONSTITUENT" W:(ABCD...) Suppress:(<SP><TAB><CR><LF>) Suppress:(":") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) Suppress:(":") LineEnd} | {"PARAMETER" {"BMAGN" | "DF" | "DQ" | "G" | "GD" | "L" | "MF" | "MQ" | "NT" | "TC" | "THETA" | "V0" | "VS"} Suppress:("(") W:(ABCD...) [{Suppress:("&") W:(ABCD...)}] Suppress:(",") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) [{Suppress:(";") W:(0123...)}] Suppress:(")") {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:({W:(YNyn) | <SP><TAB><CR><LF>})}}...}}}, found '('  (at char 17), (line:1, col:18)
 
 
 Adding the ``ETA`` parameter to the TDB parser
@@ -324,8 +325,8 @@ the viscosity.
 
 .. parsed-literal::
 
-    (1 + 0.240543628600637*(LIQUID0CU*LIQUID0ZR*(LIQUID0CU - LIQUID0ZR)**3*Piecewise((105.895 - 13.6488*log(T), (T >= 298.15) & (T < 6000.0)), (0, True)) + LIQUID0CU*LIQUID0ZR*(LIQUID0CU - LIQUID0ZR)**2*Piecewise((36.8512*log(T) - 270.5305, (T >= 298.15) & (T < 6000.0)), (0, True)) + LIQUID0CU*LIQUID0ZR*(LIQUID0CU - LIQUID0ZR)*Piecewise((75.3798 - 9.6125*log(T), (T >= 298.15) & (T < 6000.0)), (0, True)) + LIQUID0CU*LIQUID0ZR*Piecewise((392.8485 - 51.3121*log(T), (T >= 298.15) & (T < 6000.0)), (0, True)))/(1.0*LIQUID0CU + 1.0*LIQUID0ZR))*(LIQUID0CU*Piecewise((0.000657*exp(2585.84400745685/T), (T >= 298.15) & (T < 6000.0)), (0, True)) + LIQUID0ZR*Piecewise((0.01531616 - 4.97e-6*T, (T >= 298.15) & (T < 6000.0)), (0, True)))
-    
+    (1 + 0.240543628600637*(LIQUID0CU*LIQUID0ZR*(75.3798 - 9.6125*log(T))*(LIQUID0CU - LIQUID0ZR) + LIQUID0CU*LIQUID0ZR*(105.895 - 13.6488*log(T))*(LIQUID0CU - LIQUID0ZR)**3 + LIQUID0CU*LIQUID0ZR*(392.8485 - 51.3121*log(T)) + LIQUID0CU*LIQUID0ZR*(LIQUID0CU - LIQUID0ZR)**2*(36.8512*log(T) - 270.5305))/(1.0*LIQUID0CU + 1.0*LIQUID0ZR))*(0.000657*LIQUID0CU*exp(2585.84400745685/T) + LIQUID0ZR*(0.01531616 - 4.97e-6*T))
+
 
 Finally we calculate and plot the viscosity.
 
@@ -353,7 +354,7 @@ Finally we calculate and plot the viscosity.
 
 
 
-.. image:: ViscosityModel_files%5CViscosityModel_14_0.png
+.. image:: ViscosityModel_files/ViscosityModel_14_0.png
 
 
 We repeat the calculation for Al-Cu.
@@ -379,6 +380,6 @@ We repeat the calculation for Al-Cu.
 
 
 
-.. image:: ViscosityModel_files%5CViscosityModel_16_0.png
+.. image:: ViscosityModel_files/ViscosityModel_16_0.png
 
 

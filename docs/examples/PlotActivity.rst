@@ -1,3 +1,4 @@
+
 Calculate and Plot Activity
 ===========================
 
@@ -95,10 +96,10 @@ Plot the result
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x11352f5c0>
+    <matplotlib.legend.Legend at 0x7fd3009b8668>
 
 
 
 
-.. image:: PlotActivity_files%5CPlotActivity_11_1.png
+.. image:: PlotActivity_files/PlotActivity_11_1.png
 

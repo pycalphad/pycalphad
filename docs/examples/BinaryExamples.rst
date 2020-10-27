@@ -1,3 +1,4 @@
+
 Plotting Isobaric Binary Phase Diagrams with ``binplot``
 ========================================================
 
@@ -77,14 +78,14 @@ S. an Mey, Zeitschrift für Metallkunde 84(7) (1993) 451-455.
 
 
 
-.. image:: BinaryExamples_files%5CBinaryExamples_4_0.png
+.. image:: BinaryExamples_files/BinaryExamples_4_0.png
 
 
 Al-Mg (Y. Zhong, 2005)
 ----------------------
 
 Y. Zhong, M. Yang, Z.-K. Liu, CALPHAD 29 (2005) 303-311
-doi:`10.1016/j.calphad.2005.08.004 <https://doi.org/10.1016/j.calphad.2005.08.004>`__
+doi:\ `10.1016/j.calphad.2005.08.004 <https://doi.org/10.1016/j.calphad.2005.08.004>`__
 
 .. code:: ipython3
 
@@ -107,7 +108,7 @@ doi:`10.1016/j.calphad.2005.08.004 <https://doi.org/10.1016/j.calphad.2005.08.00
 
 
 
-.. image:: BinaryExamples_files%5CBinaryExamples_6_0.png
+.. image:: BinaryExamples_files/BinaryExamples_6_0.png
 
 
 Al-Ni (Dupin, 2001)
@@ -117,7 +118,7 @@ Components and conditions can also be stored as variables and passed to
 binplot.
 
 N. Dupin, I. Ansara, B. Sundman, CALPHAD 25(2) (2001) 279-298
-doi:`10.1016/S0364-5916(01)00049-9 <https://doi.org/10.1016/S0364-5916(01)00049-9>`__
+doi:\ `10.1016/S0364-5916(01)00049-9 <https://doi.org/10.1016/S0364-5916(01)00049-9>`__
 
 .. code:: ipython3
 
@@ -150,7 +151,7 @@ doi:`10.1016/S0364-5916(01)00049-9 <https://doi.org/10.1016/S0364-5916(01)00049-
 
 
 
-.. image:: BinaryExamples_files%5CBinaryExamples_8_0.png
+.. image:: BinaryExamples_files/BinaryExamples_8_0.png
 
 
 Al-Fe (M. Seiersten, 1991)
@@ -181,14 +182,14 @@ Removing tielines
 
 
 
-.. image:: BinaryExamples_files%5CBinaryExamples_10_0.png
+.. image:: BinaryExamples_files/BinaryExamples_10_0.png
 
 
 Nb-Re (Liu, 2013)
 -----------------
 
 X.L. Liu, C.Z. Hargather, Z.-K. Liu, CALPHAD 41 (2013) 119-127
-doi:`10.1016/j.calphad.2013.02.006 <https://doi.org/10.1016/j.calphad.2013.02.006>`__
+doi:\ `10.1016/j.calphad.2013.02.006 <https://doi.org/10.1016/j.calphad.2013.02.006>`__
 
 .. code:: ipython3
 
@@ -212,7 +213,7 @@ doi:`10.1016/j.calphad.2013.02.006 <https://doi.org/10.1016/j.calphad.2013.02.00
 
 
 
-.. image:: BinaryExamples_files%5CBinaryExamples_12_0.png
+.. image:: BinaryExamples_files/BinaryExamples_12_0.png
 
 
 Calculating Energy Surfaces of Binary Systems
@@ -261,5 +262,5 @@ equilibrium phase diagram.
 
 
 
-.. image:: BinaryExamples_files%5CBinaryExamples_14_0.png
+.. image:: BinaryExamples_files/BinaryExamples_14_0.png
 

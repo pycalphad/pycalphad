@@ -1,3 +1,4 @@
+
 Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)
 =============================================================
 
@@ -67,7 +68,7 @@ the value of ``output``.
     Attributes:
         engine:   pycalphad 0.7+5.g20149e02.dirty
         created:  2018-04-18T19:27:07.389851
-    
+
 
 We also compute degree of ordering at fixed temperature as a function of
 composition.
@@ -82,26 +83,27 @@ composition.
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:             (P: 1, T: 1, X_AL: 100, component: 2, internal_dof: 5, vertex: 2)
+    Dimensions:             (N: 1, P: 1, T: 1, X_AL: 100, component: 2, internal_dof: 5, vertex: 3)
     Coordinates:
+      * N                   (N) float64 1.0
       * P                   (P) float64 1.013e+05
       * T                   (T) float64 700.0
-      * X_AL                (X_AL) float64 1e-09 0.01 0.02 0.03 0.04 0.05 0.06 ...
-      * vertex              (vertex) int64 0 1
+      * X_AL                (X_AL) float64 1e-12 0.01 0.02 0.03 ... 0.97 0.98 0.99
+      * vertex              (vertex) int64 0 1 2
       * component           (component) <U2 'AL' 'FE'
     Dimensions without coordinates: internal_dof
     Data variables:
-        NP                  (P, T, X_AL, vertex) float64 1.0 nan 1.0 nan 1.0 nan ...
-        GM                  (P, T, X_AL) float64 -2.447e+04 -2.564e+04 ...
-        MU                  (P, T, X_AL, component) float64 -2.312e+05 ...
-        X                   (P, T, X_AL, vertex, component) float64 1e-09 1.0 ...
-        Y                   (P, T, X_AL, vertex, internal_dof) float64 9.999e-10 ...
-        Phase               (P, T, X_AL, vertex) <U6 'B2_BCC' '' 'B2_BCC' '' ...
-        degree_of_ordering  (P, T, X_AL, vertex) float64 4.028e-05 nan 7.14e-17 ...
+        NP                  (N, P, T, X_AL, vertex) float64 1.0 nan nan ... nan nan
+        GM                  (N, P, T, X_AL) float64 -2.447e+04 ... -1.949e+04
+        MU                  (N, P, T, X_AL, component) float64 -2.714e+05 ... -1.444e+05
+        X                   (N, P, T, X_AL, vertex, component) float64 1e-12 ... nan
+        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 1e-12 ... nan
+        Phase               (N, P, T, X_AL, vertex) <U6 'B2_BCC' '' '' ... '' ''
+        degree_of_ordering  (N, P, T, X_AL, vertex) float64 3.029e-16 nan ... nan
     Attributes:
-        engine:   pycalphad 0.7+5.g20149e02.dirty
-        created:  2018-04-18T19:27:24.936901
-    
+        engine:   pycalphad 0.8.3+10.gfd19517e.dirty
+        created:  2020-10-27T14:48:18.391819
+
 
 Plots
 ~~~~~
@@ -126,7 +128,7 @@ partially ordered B2 to disordered bcc (A2).
 
 
 
-.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_8_0.png
+.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_8_0.png
 
 
 For the heat capacity curve shown below we notice a sharp increase in
@@ -151,7 +153,7 @@ corresponding to the melting of the bcc phase.
 
 
 
-.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_10_0.png
+.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_10_0.png
 
 
 To understand more about what’s happening around 700 K, we plot the
@@ -164,16 +166,14 @@ bcc (A2) until around 13% Al or Fe, when the phase begins to order.
     plt.gca().set_title('Al-Fe: Degree of bcc ordering vs X(AL) [T=700 K]')
     plt.gca().set_xlabel('X(AL)')
     plt.gca().set_ylabel('Degree of ordering')
-    # Generate a list of all indices where B2 is stable
-    phase_indices = np.nonzero(eq2.Phase.values == 'B2_BCC')
-    # phase_indices[2] refers to all composition indices
-    # We know this because pycalphad always returns indices in order like P, T, X's
-    plt.plot(np.take(eq2['X_AL'].values, phase_indices[2]), eq2['degree_of_ordering'].values[phase_indices])
+    # Select all points in the datasets where B2_BCC is stable, dropping the others
+    eq2_b2_bcc = eq2.where(eq2.Phase == 'B2_BCC', drop=True)
+    plt.plot(eq2_b2_bcc['X_AL'].values, eq2_b2_bcc['degree_of_ordering'].values.squeeze())
     plt.show()
 
 
 
-.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_12_0.png
+.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_12_0.png
 
 
 Al-Ni (Degree of Ordering)
@@ -191,26 +191,27 @@ Al-Ni (Degree of Ordering)
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:             (P: 1, T: 110, X_AL: 1, component: 2, internal_dof: 5, vertex: 2)
+    Dimensions:             (N: 1, P: 1, T: 110, X_AL: 1, component: 2, internal_dof: 5, vertex: 3)
     Coordinates:
+      * N                   (N) float64 1.0
       * P                   (P) float64 1.013e+05
-      * T                   (T) float64 300.0 320.0 340.0 360.0 380.0 400.0 ...
+      * T                   (T) float64 300.0 320.0 340.0 ... 2.46e+03 2.48e+03
       * X_AL                (X_AL) float64 0.1
-      * vertex              (vertex) int64 0 1
+      * vertex              (vertex) int64 0 1 2
       * component           (component) <U2 'AL' 'NI'
     Dimensions without coordinates: internal_dof
     Data variables:
-        NP                  (P, T, X_AL, vertex) float64 0.6363 0.3637 0.6457 ...
-        GM                  (P, T, X_AL) float64 -2.526e+04 -2.585e+04 ...
-        MU                  (P, T, X_AL, component) float64 -1.719e+05 ...
-        X                   (P, T, X_AL, vertex, component) float64 0.01427 ...
-        Y                   (P, T, X_AL, vertex, internal_dof) float64 0.01427 ...
-        Phase               (P, T, X_AL, vertex) <U7 'FCC_L12' 'FCC_L12' ...
-        degree_of_ordering  (P, T, X_AL, vertex) float64 1.429e-10 1.0 9.578e-11 ...
+        NP                  (N, P, T, X_AL, vertex) float64 0.6363 0.3637 ... nan
+        GM                  (N, P, T, X_AL) float64 -2.526e+04 ... -1.944e+05
+        MU                  (N, P, T, X_AL, component) float64 -1.719e+05 ... -1.816e+05
+        X                   (N, P, T, X_AL, vertex, component) float64 0.01427 ... nan
+        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 0.01427 ... nan
+        Phase               (N, P, T, X_AL, vertex) <U7 'FCC_L12' 'FCC_L12' ... ''
+        degree_of_ordering  (N, P, T, X_AL, vertex) float64 2.396e-15 1.0 ... nan
     Attributes:
-        engine:   pycalphad 0.7+5.g20149e02.dirty
-        created:  2018-04-18T19:29:04.721929
-    
+        engine:   pycalphad 0.8.3+10.gfd19517e.dirty
+        created:  2020-10-27T14:48:26.640842
+
 
 Plots
 ~~~~~
@@ -241,12 +242,12 @@ disappears around 750 K, leaving only the disordered gamma phase.
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x10eaad588>
+    <matplotlib.legend.Legend at 0x7faec02c0208>
 
 
 
 
-.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_16_1.png
+.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_16_1.png
 
 
 In the plot below we see that the degree of ordering does not change at
@@ -277,6 +278,6 @@ gamma phase. This is a first-order phase transition.
 
 
 
-.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_18_0.png
+.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_18_0.png
 
 
