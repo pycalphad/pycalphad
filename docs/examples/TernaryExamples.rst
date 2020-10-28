@@ -70,14 +70,14 @@ axes.
     c = calculate(db_al_cu_y, comps, 'FCC_A1', output='HM_MIX', T=830, P=101325, pdens=5000)
     
     # Here we are getting the values from our plot. 
-    xs = c.X.values[0, 0, :, 0]  # 1D array of Al compositions
-    ys = c.X.values[0, 0, :, 1]  # 1D array of Cu compositions
-    zs = c.HM_MIX.values[0,0, :]  # 1D array of mixing enthalpies at these compositions
+    xs = c.X.values[0, 0, 0, :, 0]  # 1D array of Al compositions
+    ys = c.X.values[0, 0, 0, :, 1]  # 1D array of Cu compositions
+    zs = c.HM_MIX.values[0, 0, 0, :]  # 1D array of mixing enthalpies at these compositions
     
     # when we imported the pycalphad.plot.triangular module, it made the 'triangular' projection available for us to use.
     fig = plt.figure()
     ax = fig.gca(projection='triangular')
-    ax.scatter(xs, ys, c=c.HM_MIX.values[0,0, :], 
+    ax.scatter(xs, ys, c=zs, 
                cmap='coolwarm', 
                linewidth=0.0)
     

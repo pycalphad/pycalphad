@@ -77,17 +77,18 @@ There are also at least four Data variables:
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:    (P: 1, T: 2, component: 2, internal_dof: 2, points: 4001)
+    Dimensions:    (N: 1, P: 1, T: 2, component: 2, internal_dof: 2, points: 4001)
     Coordinates:
-      * T          (T) float64 500.0 1e+03
       * component  (component) <U2 'AL' 'ZN'
+      * N          (N) float64 1.0
       * P          (P) float64 1.013e+05
+      * T          (T) float64 500.0 1e+03
     Dimensions without coordinates: internal_dof, points
     Data variables:
-        Y          (P, T, points, internal_dof) float64 1.0 1e-12 1e-12 1.0 ...
-        GM         (P, T, points) float64 -1.559e+04 -2.01e+04 -2.01e+04 ...
-        X          (P, T, points, component) float64 1.0 1e-12 1e-12 1.0 1e-12 ...
-        Phase      (P, T, points) <U6 'FCC_A1' 'FCC_A1' 'FCC_A1' 'FCC_A1' ...
+        X          (N, P, T, points, component) float64 1.0 1e-15 ... 0.7439 0.2561
+        Phase      (N, P, T, points) <U6 'FCC_A1' 'FCC_A1' ... 'FCC_A1' 'FCC_A1'
+        Y          (N, P, T, points, internal_dof) float64 1.0 1e-15 ... 0.2561
+        GM         (N, P, T, points) float64 -1.559e+04 -2.01e+04 ... -4.81e+04
 
 
 We can manipulate this by selecting data by value (of a coordinate)
@@ -108,11 +109,12 @@ Datasets <http://xarray.pydata.org/en/stable/data-structures.html>`__).
 
 .. parsed-literal::
 
-    <xarray.DataArray 'Y' (P: 1)>
-    array([ 0.976488])
+    <xarray.DataArray 'Y' (N: 1, P: 1)>
+    array([[0.97648824]])
     Coordinates:
-        T        float64 1e+03
+      * N        (N) float64 1.0
       * P        (P) float64 1.013e+05
+        T        float64 1e+03
 
 
 accessing the ``values`` attribute on any on any DataArray returns the
@@ -125,21 +127,21 @@ multidimensional NumPy array
 
 .. parsed-literal::
 
-    [[[[  1.00000000e+00   1.00000000e-12]
-       [  1.00000000e-12   1.00000000e+00]
-       [  1.00000000e-12   1.00000000e+00]
-       ..., 
-       [  1.56995650e-01   8.43004350e-01]
-       [  1.12072782e-01   8.87927218e-01]
-       [  7.43933641e-01   2.56066359e-01]]
+    [[[[[1.00000000e+00 1.00000000e-15]
+        [1.00000000e-15 1.00000000e+00]
+        [1.00000000e-15 1.00000000e+00]
+        ...
+        [1.56995650e-01 8.43004350e-01]
+        [1.12072782e-01 8.87927218e-01]
+        [7.43933641e-01 2.56066359e-01]]
     
-      [[  1.00000000e+00   1.00000000e-12]
-       [  1.00000000e-12   1.00000000e+00]
-       [  1.00000000e-12   1.00000000e+00]
-       ..., 
-       [  1.56995650e-01   8.43004350e-01]
-       [  1.12072782e-01   8.87927218e-01]
-       [  7.43933641e-01   2.56066359e-01]]]]
+       [[1.00000000e+00 1.00000000e-15]
+        [1.00000000e-15 1.00000000e+00]
+        [1.00000000e-15 1.00000000e+00]
+        ...
+        [1.56995650e-01 8.43004350e-01]
+        [1.12072782e-01 8.87927218e-01]
+        [7.43933641e-01 2.56066359e-01]]]]]
 
 
 ``equilibrium()`` results
@@ -204,25 +206,26 @@ There are also at least six Data variables:
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:    (P: 1, T: 5, X_ZN: 20, component: 2, internal_dof: 2, vertex: 2)
+    Dimensions:    (N: 1, P: 1, T: 5, X_ZN: 20, component: 2, internal_dof: 2, vertex: 3)
     Coordinates:
+      * N          (N) float64 1.0
       * P          (P) float64 1.013e+05
       * T          (T) float64 500.0 600.0 700.0 800.0 900.0
-      * X_ZN       (X_ZN) float64 1e-09 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 ...
-      * vertex     (vertex) int64 0 1
+      * X_ZN       (X_ZN) float64 1e-12 0.05 0.1 0.15 0.2 ... 0.75 0.8 0.85 0.9 0.95
+      * vertex     (vertex) int64 0 1 2
       * component  (component) <U2 'AL' 'ZN'
     Dimensions without coordinates: internal_dof
     Data variables:
-        X          (P, T, X_ZN, vertex, component) float64 1.0 1e-09 nan nan ...
-        GM         (P, T, X_ZN) float64 -1.559e+04 -1.615e+04 -1.649e+04 ...
-        Phase      (P, T, X_ZN, vertex) <U6 'FCC_A1' '' 'FCC_A1' '' 'FCC_A1' ...
-        NP         (P, T, X_ZN, vertex) float64 1.0 nan 1.0 nan 0.9761 0.02392 ...
-        Y          (P, T, X_ZN, vertex, internal_dof) float64 1.0 1e-09 0.9991 ...
-        MU         (P, T, X_ZN, component) float64 -1.559e+04 -9.584e+04 ...
-        HM         (P, T, X_ZN) float64 5.194e+03 5.859e+03 6.188e+03 6.152e+03 ...
+        NP         (N, P, T, X_ZN, vertex) float64 1.0 nan nan 1.0 ... 1.0 nan nan
+        GM         (N, P, T, X_ZN) float64 -1.559e+04 -1.615e+04 ... -5.068e+04
+        MU         (N, P, T, X_ZN, component) float64 -1.559e+04 ... -5.065e+04
+        X          (N, P, T, X_ZN, vertex, component) float64 1.0 1e-12 ... nan nan
+        Y          (N, P, T, X_ZN, vertex, internal_dof) float64 1.0 1e-12 ... nan
+        Phase      (N, P, T, X_ZN, vertex) <U6 'FCC_A1' '' '' ... 'LIQUID' '' ''
+        HM         (N, P, T, X_ZN) float64 5.194e+03 5.859e+03 ... 2.528e+04
     Attributes:
-        engine:   pycalphad 0.5.2.post1+22.gc2a1cf7f.dirty
-        created:  2017-11-16T07:56:07.904845
+        engine:   pycalphad 0.8.3+10.gfd19517e
+        created:  2020-10-27T14:30:03.243487
 
 
 A common operation might be to find the phase fractions of the HCP_A3
@@ -244,30 +247,32 @@ to find the data values that match a condition (the Phase is FCC_A1):
 
 .. parsed-literal::
 
-    <xarray.DataArray (X_ZN: 20, vertex: 2)>
-    array([[ 1.      ,       nan],
-           [ 1.      ,       nan],
-           [ 1.      ,       nan],
-           [ 1.      ,       nan],
-           [ 0.897399,       nan],
-           [ 0.71825 ,       nan],
-           [ 0.539101,       nan],
-           [ 0.359952,       nan],
-           [ 0.180803,       nan],
-           [ 0.001654,       nan],
-           [      nan,       nan],
-           [      nan,       nan],
-           [      nan,       nan],
-           [      nan,       nan],
-           [      nan,       nan],
-           [      nan,       nan],
-           [      nan,       nan],
-           [      nan,       nan],
-           [      nan,       nan],
-           [      nan,       nan]])
+    <xarray.DataArray 'NP' (N: 1, X_ZN: 20, vertex: 3)>
+    array([[[1.        ,        nan,        nan],
+            [1.        ,        nan,        nan],
+            [1.        ,        nan,        nan],
+            [1.        ,        nan,        nan],
+            [0.89739918,        nan,        nan],
+            [0.71825009,        nan,        nan],
+            [0.53910097,        nan,        nan],
+            [0.35995186,        nan,        nan],
+            [0.18080276,        nan,        nan],
+            [0.00165369,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan],
+            [       nan,        nan,        nan]]])
     Coordinates:
+      * N        (N) float64 1.0
         P        float64 1.013e+05
         T        float64 800.0
-      * X_ZN     (X_ZN) float64 1e-09 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 ...
-      * vertex   (vertex) int64 0 1
+      * X_ZN     (X_ZN) float64 1e-12 0.05 0.1 0.15 0.2 ... 0.75 0.8 0.85 0.9 0.95
+      * vertex   (vertex) int64 0 1 2
+
 
