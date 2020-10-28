@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Custom Models in pycalphad: Viscosity &mdash; pycalphad 0.8.3+7.ge4d1107 documentation</title>
+  <title>Custom Models in pycalphad: Viscosity &mdash; pycalphad 0.8.4 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.3+7.ge4d1107
+                0.8.4
               </div>
             
           
@@ -250,158 +250,158 @@ ParseException                            Traceback (most recent call last)
 
 
 ~/Projects/pycalphad/pycalphad/io/database.py in __new__(cls, *args)
-    127             elif fname.find(&#39;\n&#39;) == -1:
-    128                 # Single-line string; it&#39;s probably a filename
---&gt; 129                 return cls.from_file(fname, fmt=fmt)
-    130             else:
-    131                 # Newlines found: probably a full database string
+    117             elif fname.find(&#39;\n&#39;) == -1:
+    118                 # Single-line string; it&#39;s probably a filename
+--&gt; 119                 return cls.from_file(fname, fmt=fmt)
+    120             else:
+    121                 # Newlines found: probably a full database string
 
 
 ~/Projects/pycalphad/pycalphad/io/database.py in from_file(fname, fmt)
-    221         try:
-    222             dbf = Database()
---&gt; 223             format_registry[fmt.lower()].read(dbf, fd)
-    224         finally:
-    225             # Close file descriptors created in this routine
+    211         try:
+    212             dbf = Database()
+--&gt; 213             format_registry[fmt.lower()].read(dbf, fd)
+    214         finally:
+    215             # Close file descriptors created in this routine
 
 
 ~/Projects/pycalphad/pycalphad/io/tdb.py in read_tdb(dbf, fd)
-    913         tokens = None
-    914         try:
---&gt; 915             tokens = grammar.parseString(command)
-    916             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
-    917         except ParseException:
+    950         tokens = None
+    951         try:
+--&gt; 952             tokens = grammar.parseString(command)
+    953             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
+    954         except:
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseString(self, instring, parseAll)
-   1826             else:
-   1827                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
--&gt; 1828                 raise exc
-   1829         else:
-   1830             return tokens
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseString(self, instring, parseAll)
+   1943             else:
+   1944                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
+-&gt; 1945                 raise exc
+   1946         else:
+   1947             return tokens
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseString(self, instring, parseAll)
-   1816             instring = instring.expandtabs()
-   1817         try:
--&gt; 1818             loc, tokens = self._parse( instring, 0 )
-   1819             if parseAll:
-   1820                 loc = self.preParse( instring, loc )
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseString(self, instring, parseAll)
+   1933             instring = instring.expandtabs()
+   1934         try:
+-&gt; 1935             loc, tokens = self._parse(instring, 0)
+   1936             if parseAll:
+   1937                 loc = self.preParse(instring, loc)
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-   1721                 ParserElement.packrat_cache_stats[MISS] += 1
-   1722                 try:
--&gt; 1723                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-   1724                 except ParseBaseException as pe:
-   1725                     # cache a copy of the exception, without the traceback
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
+   1834                 ParserElement.packrat_cache_stats[MISS] += 1
+   1835                 try:
+-&gt; 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
+   1837                 except ParseBaseException as pe:
+   1838                     # cache a copy of the exception, without the traceback
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-   1560             if self.mayIndexError or preloc &gt;= len(instring):
-   1561                 try:
--&gt; 1562                     loc,tokens = self.parseImpl( instring, preloc, doActions )
-   1563                 except IndexError:
-   1564                     raise ParseException( instring, len(instring), self.errmsg, self )
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
+   1673             if self.mayIndexError or preloc &gt;= len(instring):
+   1674                 try:
+-&gt; 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
+   1676                 except IndexError:
+   1677                     raise ParseException(instring, len(instring), self.errmsg, self)
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   3915             if maxException is not None:
-   3916                 maxException.msg = self.errmsg
--&gt; 3917                 raise maxException
-   3918             else:
-   3919                 raise ParseException(instring, loc, &quot;no defined alternatives to match&quot;, self)
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+   4248             if maxException is not None:
+   4249                 maxException.msg = self.errmsg
+-&gt; 4250                 raise maxException
+   4251             else:
+   4252                 raise ParseException(instring, loc, &quot;no defined alternatives to match&quot;, self)
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   3900         for e in self.exprs:
-   3901             try:
--&gt; 3902                 ret = e._parse( instring, loc, doActions )
-   3903                 return ret
-   3904             except ParseException as err:
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+   4233         for e in self.exprs:
+   4234             try:
+-&gt; 4235                 ret = e._parse(instring, loc, doActions)
+   4236                 return ret
+   4237             except ParseException as err:
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-   1721                 ParserElement.packrat_cache_stats[MISS] += 1
-   1722                 try:
--&gt; 1723                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-   1724                 except ParseBaseException as pe:
-   1725                     # cache a copy of the exception, without the traceback
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
+   1834                 ParserElement.packrat_cache_stats[MISS] += 1
+   1835                 try:
+-&gt; 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
+   1837                 except ParseBaseException as pe:
+   1838                     # cache a copy of the exception, without the traceback
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-   1560             if self.mayIndexError or preloc &gt;= len(instring):
-   1561                 try:
--&gt; 1562                     loc,tokens = self.parseImpl( instring, preloc, doActions )
-   1563                 except IndexError:
-   1564                     raise ParseException( instring, len(instring), self.errmsg, self )
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
+   1673             if self.mayIndexError or preloc &gt;= len(instring):
+   1674                 try:
+-&gt; 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
+   1676                 except IndexError:
+   1677                     raise ParseException(instring, len(instring), self.errmsg, self)
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   3750                     raise ParseSyntaxException(instring, len(instring), self.errmsg, self)
-   3751             else:
--&gt; 3752                 loc, exprtokens = e._parse( instring, loc, doActions )
-   3753             if exprtokens or exprtokens.haskeys():
-   3754                 resultlist += exprtokens
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+   4048                     raise ParseSyntaxException(instring, len(instring), self.errmsg, self)
+   4049             else:
+-&gt; 4050                 loc, exprtokens = e._parse(instring, loc, doActions)
+   4051             if exprtokens or exprtokens.haskeys():
+   4052                 resultlist += exprtokens
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-   1721                 ParserElement.packrat_cache_stats[MISS] += 1
-   1722                 try:
--&gt; 1723                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-   1724                 except ParseBaseException as pe:
-   1725                     # cache a copy of the exception, without the traceback
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
+   1834                 ParserElement.packrat_cache_stats[MISS] += 1
+   1835                 try:
+-&gt; 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
+   1837                 except ParseBaseException as pe:
+   1838                     # cache a copy of the exception, without the traceback
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-   1560             if self.mayIndexError or preloc &gt;= len(instring):
-   1561                 try:
--&gt; 1562                     loc,tokens = self.parseImpl( instring, preloc, doActions )
-   1563                 except IndexError:
-   1564                     raise ParseException( instring, len(instring), self.errmsg, self )
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
+   1673             if self.mayIndexError or preloc &gt;= len(instring):
+   1674                 try:
+-&gt; 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
+   1676                 except IndexError:
+   1677                     raise ParseException(instring, len(instring), self.errmsg, self)
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   3915             if maxException is not None:
-   3916                 maxException.msg = self.errmsg
--&gt; 3917                 raise maxException
-   3918             else:
-   3919                 raise ParseException(instring, loc, &quot;no defined alternatives to match&quot;, self)
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+   4248             if maxException is not None:
+   4249                 maxException.msg = self.errmsg
+-&gt; 4250                 raise maxException
+   4251             else:
+   4252                 raise ParseException(instring, loc, &quot;no defined alternatives to match&quot;, self)
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   3900         for e in self.exprs:
-   3901             try:
--&gt; 3902                 ret = e._parse( instring, loc, doActions )
-   3903                 return ret
-   3904             except ParseException as err:
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
+   4233         for e in self.exprs:
+   4234             try:
+-&gt; 4235                 ret = e._parse(instring, loc, doActions)
+   4236                 return ret
+   4237             except ParseException as err:
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-   1721                 ParserElement.packrat_cache_stats[MISS] += 1
-   1722                 try:
--&gt; 1723                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-   1724                 except ParseBaseException as pe:
-   1725                     # cache a copy of the exception, without the traceback
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
+   1834                 ParserElement.packrat_cache_stats[MISS] += 1
+   1835                 try:
+-&gt; 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
+   1837                 except ParseBaseException as pe:
+   1838                     # cache a copy of the exception, without the traceback
 
 
-~/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-   1564                     raise ParseException( instring, len(instring), self.errmsg, self )
-   1565             else:
--&gt; 1566                 loc,tokens = self.parseImpl( instring, preloc, doActions )
-   1567
-   1568         tokens = self.postParse( instring, loc, tokens )
+~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
+   1677                     raise ParseException(instring, len(instring), self.errmsg, self)
+   1678             else:
+-&gt; 1679                 loc, tokens = self.parseImpl(instring, preloc, doActions)
+   1680
+   1681         tokens = self.postParse(instring, loc, tokens)
 
 
 ~/Projects/pycalphad/pycalphad/io/tdb.py in parseImpl(self, instring, loc, doActions)
-    174         except ValueError:
-    175             pass
---&gt; 176         raise ParseException(instring, loc, self.errmsg, self)
-    177
-    178 def _tdb_grammar(): #pylint: disable=R0914
+    186         except ValueError:
+    187             pass
+--&gt; 188         raise ParseException(instring, loc, self.errmsg, self)
+    189
+    190 def _tdb_grammar(): #pylint: disable=R0914
 
 
-ParseException: Expected {{&quot;ELEMENT&quot; W:(ABCD...) [Suppress:(W:(ABCD...))] [Suppress:({Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)}...)] LineEnd} | {&quot;SPECIES&quot; W:(ABCD...) [Suppress:(&quot;%&quot;)] Group:({{W:(ABCD...) [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)]}}...) [{Suppress:(&quot;/&quot;) W:(+-01...)}] LineEnd} | {&quot;TYPE_DEFINITION&quot; Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {&quot;FUNCTION&quot; W:(ABCD...) {{Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) | [&quot;,&quot;]...} {{SkipTo:(&quot;;&quot;) Suppress:(&quot;;&quot;) [Suppress:(&quot;,&quot;)]... [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}} | {&quot;ASSESSED_SYSTEMS&quot; SkipTo:(LineEnd)} | {&quot;DEFINE_SYSTEM_DEFAULT&quot; SkipTo:(LineEnd)} | {&quot;DEFAULT_COMMAND&quot; SkipTo:(LineEnd)} | {&quot;DATABASE_INFO&quot; SkipTo:(LineEnd)} | {&quot;VERSION_DATE&quot; SkipTo:(LineEnd)} | {&quot;REFERENCE_FILE&quot; SkipTo:(LineEnd)} | {&quot;ADD_REFERENCES&quot; SkipTo:(LineEnd)} | {&quot;LIST_OF_REFERENCES&quot; SkipTo:(LineEnd)} | {&quot;TEMPERATURE_LIMITS&quot; SkipTo:(LineEnd)} | {&quot;PHASE&quot; W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0123...)) Group:({Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)}...) LineEnd} | {&quot;CONSTITUENT&quot; W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(&quot;:&quot;) Group:(Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...) [: Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...)]...) Suppress:(&quot;:&quot;) LineEnd} | {&quot;PARAMETER&quot; {&quot;BMAGN&quot; | &quot;DF&quot; | &quot;DQ&quot; | &quot;G&quot; | &quot;GD&quot; | &quot;L&quot; | &quot;MF&quot; | &quot;MQ&quot; | &quot;NT&quot; | &quot;TC&quot; | &quot;THETA&quot; | &quot;V0&quot; | &quot;VS&quot;} Suppress:(&quot;(&quot;) W:(ABCD...) [{Suppress:(&quot;&amp;&quot;) W:(ABCD...)}] Suppress:(&quot;,&quot;) Group:(Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...) [: Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...)]...) [{Suppress:(&quot;;&quot;) W:(0123...)}] Suppress:(&quot;)&quot;) {{Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) | [&quot;,&quot;]...} {{SkipTo:(&quot;;&quot;) Suppress:(&quot;;&quot;) [Suppress:(&quot;,&quot;)]... [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}}} (at char 17), (line:1, col:18)
+ParseException: Expected {{&quot;ELEMENT&quot; W:(ABCD...) W:(ABCD...) Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) LineEnd} | {&quot;SPECIES&quot; W:(ABCD...) [Suppress:(&quot;%&quot;)] Group:({{W:(ABCD...) [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)]}}...) [{Suppress:(&quot;/&quot;) W:(+-01...)}] LineEnd} | {&quot;TYPE_DEFINITION&quot; Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {&quot;FUNCTION&quot; W:(ABCD...) {{Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) | [&quot;,&quot;]...} {{SkipTo:(&quot;;&quot;) Suppress:(&quot;;&quot;) [Suppress:(&quot;,&quot;)]... [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}} | {&quot;ASSESSED_SYSTEMS&quot; SkipTo:(LineEnd)} | {&quot;DEFINE_SYSTEM_DEFAULT&quot; SkipTo:(LineEnd)} | {&quot;DEFAULT_COMMAND&quot; SkipTo:(LineEnd)} | {&quot;DATABASE_INFO&quot; SkipTo:(LineEnd)} | {&quot;VERSION_DATE&quot; SkipTo:(LineEnd)} | {&quot;REFERENCE_FILE&quot; SkipTo:(LineEnd)} | {&quot;ADD_REFERENCES&quot; SkipTo:(LineEnd)} | {&quot;LIST_OF_REFERENCES&quot; SkipTo:(LineEnd)} | {&quot;TEMPERATURE_LIMITS&quot; SkipTo:(LineEnd)} | {&quot;PHASE&quot; W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0123...)) Group:({Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)}...) Suppress:(SkipTo:(LineEnd))} | {&quot;CONSTITUENT&quot; W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(&quot;:&quot;) Group:(Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...) [: Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...)]...) Suppress:(&quot;:&quot;) LineEnd} | {&quot;PARAMETER&quot; {&quot;BMAGN&quot; | &quot;DF&quot; | &quot;DQ&quot; | &quot;G&quot; | &quot;GD&quot; | &quot;L&quot; | &quot;MF&quot; | &quot;MQ&quot; | &quot;NT&quot; | &quot;TC&quot; | &quot;THETA&quot; | &quot;V0&quot; | &quot;VS&quot;} Suppress:(&quot;(&quot;) W:(ABCD...) [{Suppress:(&quot;&amp;&quot;) W:(ABCD...)}] Suppress:(&quot;,&quot;) Group:(Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...) [: Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...)]...) [{Suppress:(&quot;;&quot;) W:(0123...)}] Suppress:(&quot;)&quot;) {{Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) | [&quot;,&quot;]...} {{SkipTo:(&quot;;&quot;) Suppress:(&quot;;&quot;) [Suppress:(&quot;,&quot;)]... [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}}}, found &#39;(&#39;  (at char 17), (line:1, col:18)
 </pre></div>
 </div>
 <div class="section" id="adding-the-eta-parameter-to-the-tdb-parser">
@@ -478,7 +478,7 @@ the viscosity.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">viscosity</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.240543628600637</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span><span class="o">*</span><span class="n">Piecewise</span><span class="p">((</span><span class="mf">105.895</span> <span class="o">-</span> <span class="mf">13.6488</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="p">(</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mf">298.15</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mf">6000.0</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span> <span class="o">+</span> <span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">Piecewise</span><span class="p">((</span><span class="mf">36.8512</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="mf">270.5305</span><span class="p">,</span> <span class="p">(</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mf">298.15</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mf">6000.0</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span> <span class="o">+</span> <span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span><span class="o">*</span><span class="n">Piecewise</span><span class="p">((</span><span class="mf">75.3798</span> <span class="o">-</span> <span class="mf">9.6125</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="p">(</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mf">298.15</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mf">6000.0</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span> <span class="o">+</span> <span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="n">Piecewise</span><span class="p">((</span><span class="mf">392.8485</span> <span class="o">-</span> <span class="mf">51.3121</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="p">(</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mf">298.15</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mf">6000.0</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)))</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="n">LIQUID0CU</span> <span class="o">+</span> <span class="mf">1.0</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">Piecewise</span><span class="p">((</span><span class="mf">0.000657</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="mf">2585.84400745685</span><span class="o">/</span><span class="n">T</span><span class="p">),</span> <span class="p">(</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mf">298.15</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mf">6000.0</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span> <span class="o">+</span> <span class="n">LIQUID0ZR</span><span class="o">*</span><span class="n">Piecewise</span><span class="p">((</span><span class="mf">0.01531616</span> <span class="o">-</span> <span class="mf">4.97e-6</span><span class="o">*</span><span class="n">T</span><span class="p">,</span> <span class="p">(</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mf">298.15</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mf">6000.0</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.240543628600637</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="mf">75.3798</span> <span class="o">-</span> <span class="mf">9.6125</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span> <span class="o">+</span> <span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="mf">105.895</span> <span class="o">-</span> <span class="mf">13.6488</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span> <span class="o">+</span> <span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="mf">392.8485</span> <span class="o">-</span> <span class="mf">51.3121</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">))</span> <span class="o">+</span> <span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="mf">36.8512</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="mf">270.5305</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="n">LIQUID0CU</span> <span class="o">+</span> <span class="mf">1.0</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="mf">0.000657</span><span class="o">*</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="mf">2585.84400745685</span><span class="o">/</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="mf">0.01531616</span> <span class="o">-</span> <span class="mf">4.97e-6</span><span class="o">*</span><span class="n">T</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Finally we calculate and plot the viscosity.</p>

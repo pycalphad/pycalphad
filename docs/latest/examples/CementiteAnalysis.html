@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Heat Capacity of Cementite (\(Fe_3C\)) &mdash; pycalphad 0.8.3+7.ge4d1107 documentation</title>
+  <title>Heat Capacity of Cementite (\(Fe_3C\)) &mdash; pycalphad 0.8.4 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.3+7.ge4d1107
+                0.8.4
               </div>
             
           
@@ -220,12 +220,12 @@ are omitted. The numerical results should be the same.</p>
 </pre></div>
 </div>
 <p>Compute the molar heat capacity at all temperatures from 1K to 2000K
-with a step size of 0.5K.</p>
+with a step size of 0.1K.</p>
 <p>We do this with the <code class="docutils literal notranslate"><span class="pre">calculate</span></code> routine instead of <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>
 because the cementite phase has zero internal degrees of freedom. Since
 there’s nothing to minimize, we can do the computation faster with
 <code class="docutils literal notranslate"><span class="pre">calculate</span></code>.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="s1">&#39;CEMENTITE_D011&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;heat_capacity&#39;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="s1">&#39;CEMENTITE_D011&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;heat_capacity&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Note: 4 moles of atoms per formula unit (Fe3C1). That&#39;s why we multiply times 4</span>

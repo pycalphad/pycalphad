@@ -52,7 +52,7 @@ Do some initial setup, including reading the database.
     db = Database(TDB)
 
 Compute the molar heat capacity at all temperatures from 1K to 2000K
-with a step size of 0.5K.
+with a step size of 0.1K.
 
 We do this with the ``calculate`` routine instead of ``equilibrium``
 because the cementite phase has zero internal degrees of freedom. Since
@@ -61,7 +61,7 @@ there’s nothing to minimize, we can do the computation faster with
 
 .. code:: ipython3
 
-    result = calculate(db, ['FE', 'C'], 'CEMENTITE_D011', T=(1, 2000, 0.5), output='heat_capacity')
+    result = calculate(db, ['FE', 'C'], 'CEMENTITE_D011', T=(1, 2000, 0.1), P=101325, N=1, output='heat_capacity')
 
 .. code:: ipython3
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.8.3+7.ge4d1107 documentation</title>
+  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.8.4 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.3+7.ge4d1107
+                0.8.4
               </div>
             
           
@@ -231,14 +231,14 @@ axes.</p>
 <span class="n">c</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM_MIX&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">830</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
 
 <span class="c1"># Here we are getting the values from our plot.</span>
-<span class="n">xs</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># 1D array of Al compositions</span>
-<span class="n">ys</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># 1D array of Cu compositions</span>
-<span class="n">zs</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">HM_MIX</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># 1D array of mixing enthalpies at these compositions</span>
+<span class="n">xs</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># 1D array of Al compositions</span>
+<span class="n">ys</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># 1D array of Cu compositions</span>
+<span class="n">zs</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">HM_MIX</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># 1D array of mixing enthalpies at these compositions</span>
 
 <span class="c1"># when we imported the pycalphad.plot.triangular module, it made the &#39;triangular&#39; projection available for us to use.</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s1">&#39;triangular&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">HM_MIX</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">zs</span><span class="p">,</span>
            <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">,</span>
            <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
