@@ -1,0 +1,377 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.plot.binary.map &mdash; pycalphad 0.8.4 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home" alt="Documentation Home"> pycalphad
+          
+
+          
+            
+            <img src="../../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.plot.binary.map</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.plot.binary.map</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="kn">import</span> <span class="n">build_phase_records</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="kn">import</span> <span class="n">_solve_eq_at_conditions</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.equilibrium</span> <span class="kn">import</span> <span class="n">_adjust_conditions</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.starting_point</span> <span class="kn">import</span> <span class="n">starting_point</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">get_state_variables</span><span class="p">,</span> \
+    <span class="n">unpack_components</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">get_pure_elements</span>
+<span class="kn">from</span> <span class="nn">.compsets</span> <span class="kn">import</span> <span class="n">get_compsets</span><span class="p">,</span> <span class="n">find_two_phase_region_compsets</span>
+<span class="kn">from</span> <span class="nn">.zpf_boundary_sets</span> <span class="kn">import</span> <span class="n">ZPFBoundarySets</span>
+
+<div class="viewcode-block" id="map_binary"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.map.map_binary">[docs]</a><span class="k">def</span> <span class="nf">map_binary</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">eq_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calc_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">boundary_sets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="kc">False</span><span class="p">,):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Map a binary T-X phase diagram</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">    comps : list of str</span>
+<span class="sd">    phases : list of str</span>
+<span class="sd">        List of phases to consider in mapping</span>
+<span class="sd">    conds : dict</span>
+<span class="sd">        Dictionary of conditions</span>
+<span class="sd">    eq_kwargs : dict</span>
+<span class="sd">        Dictionary of keyword arguments to pass to equilibrium</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        Print verbose output for mapping</span>
+<span class="sd">    boundary_sets : ZPFBoundarySets</span>
+<span class="sd">        Existing ZPFBoundarySets</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ZPFBoundarySets</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Assumes conditions in T and X.</span>
+
+<span class="sd">    Simple algorithm to map a binary phase diagram in T-X. More or less follows</span>
+<span class="sd">    the algorithm described in Figure 2 by Snider et al. [1] with the small</span>
+<span class="sd">    algorithmic improvement of constructing a convex hull to find the next</span>
+<span class="sd">    potential two phase region.</span>
+
+<span class="sd">    For each temperature, proceed along increasing composition, skipping two</span>
+<span class="sd">    over two phase regions, once calculated.</span>
+<span class="sd">    [1] J. Snider, I. Griva, X. Sun, M. Emelianenko, Set based framework for</span>
+<span class="sd">        Gibbs energy minimization, Calphad. 48 (2015) 18-26.</span>
+<span class="sd">        doi: 10.1016/j.calphad.2014.09.005</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">eq_kwargs</span> <span class="o">=</span> <span class="n">eq_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">calc_kwargs</span> <span class="o">=</span> <span class="n">calc_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="c1"># implicitly add v.N to conditions</span>
+    <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">conds</span><span class="p">:</span>
+        <span class="n">conds</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;pdens&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">calc_kwargs</span><span class="p">:</span>
+        <span class="n">calc_kwargs</span><span class="p">[</span><span class="s1">&#39;pdens&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2000</span>
+
+    <span class="n">species</span> <span class="o">=</span> <span class="n">unpack_components</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">)</span>
+    <span class="n">phases</span> <span class="o">=</span> <span class="n">filter_phases</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">phases</span><span class="p">)</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">eq_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">models</span> <span class="o">=</span> <span class="n">eq_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">)</span>
+    <span class="n">statevars</span> <span class="o">=</span> <span class="n">get_state_variables</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">conds</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">models</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="n">instantiate_models</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">eq_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">),</span>
+                                    <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">symbols_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">prxs</span> <span class="o">=</span> <span class="n">build_phase_records</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span>
+                               <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">build_gradients</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">build_hessians</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">indep_comp</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">indep_pot</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_comp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_pot</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Binary map requires exactly one composition and one potential coordinate&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">indep_pot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Binary map requires that a temperature grid must be defined&#39;</span><span class="p">)</span>
+
+    <span class="c1"># binary assumption, only one composition specified.</span>
+    <span class="n">comp_cond</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">indep_comp</span> <span class="o">=</span> <span class="n">comp_cond</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="n">indep_comp_idx</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">get_pure_elements</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">))</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">indep_comp</span><span class="p">)</span>
+    <span class="n">composition_grid</span> <span class="o">=</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">conds</span><span class="p">[</span><span class="n">comp_cond</span><span class="p">])</span>
+    <span class="n">dX</span> <span class="o">=</span> <span class="n">composition_grid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">composition_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">Xmax</span> <span class="o">=</span> <span class="n">composition_grid</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">temperature_grid</span> <span class="o">=</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">conds</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">])</span>
+    <span class="n">dT</span> <span class="o">=</span> <span class="n">temperature_grid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">temperature_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">boundary_sets</span> <span class="o">=</span> <span class="n">boundary_sets</span> <span class="ow">or</span> <span class="n">ZPFBoundarySets</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">comp_cond</span><span class="p">)</span>
+
+    <span class="n">equilibria_calculated</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">equilibrium_time</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">convex_hulls_calculated</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">convex_hull_time</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">curr_conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">str_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">curr_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+    <span class="n">grid_conds</span> <span class="o">=</span> <span class="n">_adjust_conditions</span><span class="p">(</span><span class="n">curr_conds</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">T_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">temperature_grid</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">temperature_grid</span><span class="p">[</span><span class="n">T_idx</span><span class="p">]</span>
+        <span class="n">iter_equilibria</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=== T = </span><span class="si">{}</span><span class="s2"> ===&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">T</span><span class="p">)))</span>
+        <span class="n">curr_conds</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">T</span><span class="p">)]</span>
+        <span class="n">eq_conds</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">curr_conds</span><span class="p">)</span>
+        <span class="n">Xmax_visited</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">hull_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span>
+                         <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">grid_conds</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">],</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span>
+                         <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">to_xarray</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">calc_kwargs</span><span class="p">)</span>
+        <span class="n">hull</span> <span class="o">=</span> <span class="n">starting_point</span><span class="p">(</span><span class="n">eq_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
+        <span class="n">convex_hull_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">hull_time</span>
+        <span class="n">convex_hulls_calculated</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="n">Xmax_visited</span> <span class="o">&lt;</span> <span class="n">Xmax</span><span class="p">:</span>
+            <span class="n">hull_compsets</span> <span class="o">=</span> <span class="n">find_two_phase_region_compsets</span><span class="p">(</span><span class="n">hull</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">,</span> <span class="n">minimum_composition</span><span class="o">=</span><span class="n">Xmax_visited</span><span class="p">,</span> <span class="n">misc_gap_tol</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">dX</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">hull_compsets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Convex hull: max visited = </span><span class="si">{}</span><span class="s2"> - no multiphase phase compsets found ==&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Xmax_visited</span><span class="p">,</span> <span class="n">hull_compsets</span><span class="p">))</span>
+                <span class="k">break</span>
+            <span class="n">Xeq</span> <span class="o">=</span> <span class="n">hull_compsets</span><span class="o">.</span><span class="n">mean_composition</span>
+            <span class="n">eq_conds</span><span class="p">[</span><span class="n">comp_cond</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">Xeq</span><span class="p">)]</span>
+            <span class="n">eq_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">start_point</span> <span class="o">=</span> <span class="n">starting_point</span><span class="p">(</span><span class="n">eq_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
+            <span class="n">eq_ds</span> <span class="o">=</span> <span class="n">_solve_eq_at_conditions</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">start_point</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">str_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">equilibrium_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">eq_time</span>
+            <span class="n">equilibria_calculated</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">iter_equilibria</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1"># composition sets in the plane of the calculation:</span>
+            <span class="c1"># even for isopleths, this should always be two.</span>
+            <span class="n">compsets</span> <span class="o">=</span> <span class="n">get_compsets</span><span class="p">(</span><span class="n">eq_ds</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Convex hull: max visited = </span><span class="si">{:0.4f}</span><span class="s2"> - hull compsets: </span><span class="si">{}</span><span class="s2"> equilibrium compsets: </span><span class="si">{}</span><span class="s2"> ==&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Xmax_visited</span><span class="p">,</span> <span class="n">hull_compsets</span><span class="p">,</span> <span class="n">compsets</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">compsets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># equilibrium calculation, didn&#39;t find a valid multiphase composition set</span>
+                <span class="c1"># we need to find the next feasible one from the convex hull.</span>
+                <span class="n">Xmax_visited</span> <span class="o">+=</span> <span class="n">dX</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">boundary_sets</span><span class="o">.</span><span class="n">add_compsets</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">Xtol</span><span class="o">=</span><span class="mf">0.10</span><span class="p">,</span> <span class="n">Ttol</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">dT</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">compsets</span><span class="o">.</span><span class="n">max_composition</span> <span class="o">&gt;</span> <span class="n">Xmax_visited</span><span class="p">:</span>
+                    <span class="n">Xmax_visited</span> <span class="o">=</span> <span class="n">compsets</span><span class="o">.</span><span class="n">max_composition</span>
+            <span class="c1"># this seems kind of sloppy, but captures the effect that we want to</span>
+            <span class="c1"># keep doing equilibrium calculations, if possible.</span>
+            <span class="k">while</span> <span class="n">Xmax_visited</span> <span class="o">&lt;</span> <span class="n">Xmax</span> <span class="ow">and</span> <span class="n">compsets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">eq_conds</span><span class="p">[</span><span class="n">comp_cond</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">Xmax_visited</span> <span class="o">+</span> <span class="n">dX</span><span class="p">)]</span>
+                <span class="n">eq_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="c1"># TODO: starting point could be improved by basing it off the previous calculation</span>
+                <span class="n">start_point</span> <span class="o">=</span> <span class="n">starting_point</span><span class="p">(</span><span class="n">eq_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
+                <span class="n">eq_ds</span> <span class="o">=</span> <span class="n">_solve_eq_at_conditions</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">start_point</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">str_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">equilibrium_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">eq_time</span>
+                <span class="n">equilibria_calculated</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">compsets</span> <span class="o">=</span> <span class="n">get_compsets</span><span class="p">(</span><span class="n">eq_ds</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">compsets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">Xmax_visited</span> <span class="o">=</span> <span class="n">compsets</span><span class="o">.</span><span class="n">max_composition</span>
+                    <span class="n">boundary_sets</span><span class="o">.</span><span class="n">add_compsets</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">Xtol</span><span class="o">=</span><span class="mf">0.10</span><span class="p">,</span> <span class="n">Ttol</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">dT</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">Xmax_visited</span> <span class="o">+=</span> <span class="n">dX</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Equilibrium: at X = </span><span class="si">{:0.4f}</span><span class="s2">, found compsets </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Xmax_visited</span><span class="p">,</span> <span class="n">compsets</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">iter_equilibria</span><span class="p">,</span> <span class="s1">&#39;equilibria calculated in this iteration.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">summary</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Convex hulls calculated (</span><span class="si">{:0.1f}</span><span class="s2">s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">convex_hulls_calculated</span><span class="p">,</span> <span class="n">convex_hull_time</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Equilbria calculated (</span><span class="si">{:0.1f}</span><span class="s2">s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">equilibria_calculated</span><span class="p">,</span> <span class="n">equilibrium_time</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:0.0f}% o</span><span class="s2">f brute force calculations skipped&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">100</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">equilibria_calculated</span><span class="o">/</span><span class="p">(</span><span class="n">composition_grid</span><span class="o">.</span><span class="n">size</span><span class="o">*</span><span class="n">temperature_grid</span><span class="o">.</span><span class="n">size</span><span class="p">))))</span>
+    <span class="k">return</span> <span class="n">boundary_sets</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

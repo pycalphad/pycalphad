@@ -1,0 +1,736 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.io package &mdash; pycalphad 0.8.4 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pycalphad.plot package" href="pycalphad.plot.html" />
+    <link rel="prev" title="pycalphad.core package" href="pycalphad.core.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> pycalphad
+          
+
+          
+            
+            <img src="../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pycalphad.html">pycalphad package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pycalphad.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.codegen.html">pycalphad.codegen package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">pycalphad.io package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.model">pycalphad.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#pycalphad-refdata-module">pycalphad.refdata module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.variables">pycalphad.variables module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">API Documentation</a> &raquo;</li>
+        
+          <li><a href="pycalphad.html">pycalphad package</a> &raquo;</li>
+        
+      <li>pycalphad.io package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/pycalphad.io.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pycalphad-io-package">
+<h1>pycalphad.io package<a class="headerlink" href="#pycalphad-io-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pycalphad.io.database">
+<span id="pycalphad-io-database-module"></span><h2>pycalphad.io.database module<a class="headerlink" href="#module-pycalphad.io.database" title="Permalink to this headline">¶</a></h2>
+<p>The database module provides support for reading and writing data types
+associated with structured thermodynamic/kinetic data.</p>
+<dl class="py class">
+<dt id="pycalphad.io.database.Database">
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.io.database.</code><code class="sig-name descname">Database</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Structured thermodynamic and/or kinetic data.</p>
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Database.elements">
+<code class="sig-name descname">elements</code><a class="headerlink" href="#pycalphad.io.database.Database.elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of elements in database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Database.species">
+<code class="sig-name descname">species</code><a class="headerlink" href="#pycalphad.io.database.Database.species" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of species in database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Database.phases">
+<code class="sig-name descname">phases</code><a class="headerlink" href="#pycalphad.io.database.Database.phases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Phase objects indexed by their system-local name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Database.symbols">
+<code class="sig-name descname">symbols</code><a class="headerlink" href="#pycalphad.io.database.Database.symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>SymPy objects indexed by their name (FUNCTIONs in Thermo-Calc).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Database.references">
+<code class="sig-name descname">references</code><a class="headerlink" href="#pycalphad.io.database.Database.references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reference objects indexed by their system-local identifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;$a complete TDB file as a string</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.add_parameter">
+<code class="sig-name descname">add_parameter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">param_type</span></em>, <em class="sig-param"><span class="n">phase_name</span></em>, <em class="sig-param"><span class="n">constituent_array</span></em>, <em class="sig-param"><span class="n">param_order</span></em>, <em class="sig-param"><span class="n">param</span></em>, <em class="sig-param"><span class="n">ref</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">diffusing_species</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">force_insert</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param_type</strong> (<em>str</em>) – Type name of the parameter, e.g., G, L, BMAGN.</p></li>
+<li><p><strong>phase_name</strong> (<em>str</em>) – Name of the phase.</p></li>
+<li><p><strong>constituent_array</strong> (<em>list</em>) – Configuration of the sublattices (elements and/or species).</p></li>
+<li><p><strong>param_order</strong> (<em>int</em>) – Polynomial order of the parameter.</p></li>
+<li><p><strong>param</strong> (<em>object</em>) – Abstract representation of the parameter, e.g., in SymPy format.</p></li>
+<li><p><strong>ref</strong> (<em>str</em><em>, </em><em>optional</em>) – Reference for the parameter.</p></li>
+<li><p><strong>diffusing_species</strong> (<em>str</em><em>, </em><em>optional</em>) – (If kinetic parameter) Diffusing species for this parameter.</p></li>
+<li><p><strong>force_insert</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, inserts into the database immediately. False is a delayed insert (for performance).</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.add_phase">
+<code class="sig-name descname">add_phase</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">phase_name</span></em>, <em class="sig-param"><span class="n">model_hints</span></em>, <em class="sig-param"><span class="n">sublattices</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a phase.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_name</strong> (<em>string</em>) – System-local name of the phase.</p></li>
+<li><p><strong>model_hints</strong> (<em>list</em>) – Structured “hints” for a Model trying to read this phase.
+Hints for major constituents and typedefs (Thermo-Calc) go here.</p></li>
+<li><p><strong>sublattices</strong> (<em>list</em>) – Site ratios of sublattices.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.add_phase_constituents">
+<code class="sig-name descname">add_phase_constituents</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">phase_name</span></em>, <em class="sig-param"><span class="n">constituents</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_phase_constituents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_phase_constituents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a phase.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_name</strong> (<em>string</em>) – System-local name of the phase.</p></li>
+<li><p><strong>constituents</strong> (<em>list</em>) – Possible phase constituents (elements and/or species).</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.add_structure_entry">
+<code class="sig-name descname">add_structure_entry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">local_name</span></em>, <em class="sig-param"><span class="n">global_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_structure_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_structure_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define a relation between the system-local name of a phase and a
+“global” identifier. This is used to link crystallographically
+similar phases known by different colloquial names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>local_name</strong> (<em>string</em>) – System-local name of the phase.</p></li>
+<li><p><strong>global_name</strong> (<em>object</em>) – Abstract representation of symbol, e.g., in SymPy format.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.from_file">
+<em class="property">static </em><code class="sig-name descname">from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">fmt</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Database from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em><em> or </em><em>file-like</em>) – File name/descriptor to read.</p></li>
+<li><p><strong>fmt</strong> (<em>str</em><em>, </em><em>optional</em>) – File format. If not specified, an attempt at auto-detection is made.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dbf</strong> – Database from file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database">Database</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.from_string">
+<em class="property">classmethod </em><code class="sig-name descname">from_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Database from a string in the specified format.
+This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>str</em>) – Raw database string in the specified format.</p></li>
+<li><p><strong>kwargs</strong> (<em>optional</em>) – See keyword arguments for <cite>from_file</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dbf</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database">Database</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.process_parameter_queue">
+<code class="sig-name descname">process_parameter_queue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.process_parameter_queue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.process_parameter_queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process the queue of parameters so they are added to the TinyDB in one transaction.
+This avoids repeated (expensive) calls to insert().</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.register_format">
+<em class="property">static </em><code class="sig-name descname">register_format</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fmt</span></em>, <em class="sig-param"><span class="n">read</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">write</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.register_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.register_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add support for reading and/or writing the specified format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fmt</strong> (<em>str</em>) – Format.</p></li>
+<li><p><strong>read</strong> (<em>callable</em><em>, </em><em>optional</em>) – Read function with arguments (Database, file_descriptor)</p></li>
+<li><p><strong>write</strong> (<em>callable</em><em>, </em><em>optional</em>) – Write function with arguments (Database, file_descriptor)</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.search">
+<code class="sig-name descname">search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for parameters matching the specified query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>query</strong> (<em>object</em>) – Structured database query in TinyDB format.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>&gt;&gt;&gt;&gt; from tinydb import where
+&gt;&gt;&gt;&gt; db = Database()
+&gt;&gt;&gt;&gt; eid = db.add_parameter(…) #TODO
+&gt;&gt;&gt;&gt; db.search(where(‘eid’) == eid)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.to_file">
+<code class="sig-name descname">to_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">fmt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">if_exists</span><span class="o">=</span><span class="default_value">'raise'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">write_kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the Database to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em><em> or </em><em>file-like</em>) – File name/descriptor to write.</p></li>
+<li><p><strong>fmt</strong> (<em>str</em><em>, </em><em>optional</em>) – File format. If not specified, an attempt at auto-detection is made.</p></li>
+<li><p><strong>if_exists</strong> (<em>string</em><em>, </em><em>optional</em><em> [</em><em>'raise'</em><em>, </em><em>'rename'</em><em>, </em><em>'overwrite'</em><em>]</em>) – Strategy if ‘fname’ already exists.
+The ‘raise’ option (default) will raise a FileExistsError.
+The ‘rename’ option will append the date/time to the filename.
+The ‘overwrite’ option will overwrite the file.
+This argument is ignored if ‘fname’ is file-like.</p></li>
+<li><p><strong>write_kwargs</strong> (<em>optional</em>) – Keyword arguments to pass to write function.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.Database.to_string">
+<code class="sig-name descname">to_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Database as a string.
+This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<em>optional</em>) – See keyword arguments for <cite>to_file</cite>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>result</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="pycalphad.io.database.DatabaseExportError">
+<em class="property">exception </em><code class="sig-prename descclassname">pycalphad.io.database.</code><code class="sig-name descname">DatabaseExportError</code><a class="reference internal" href="../_modules/pycalphad/io/database.html#DatabaseExportError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.DatabaseExportError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when a database cannot be written.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pycalphad.io.database.DatabaseFormat">
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.io.database.</code><code class="sig-name descname">DatabaseFormat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">read</span></em>, <em class="sig-param"><span class="n">write</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.io.database.DatabaseFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="pycalphad.io.database.DatabaseFormat.read">
+<em class="property">property </em><code class="sig-name descname">read</code><a class="headerlink" href="#pycalphad.io.database.DatabaseFormat.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.io.database.DatabaseFormat.write">
+<em class="property">property </em><code class="sig-name descname">write</code><a class="headerlink" href="#pycalphad.io.database.DatabaseFormat.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pycalphad.io.database.Phase">
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.io.database.</code><code class="sig-name descname">Phase</code><a class="reference internal" href="../_modules/pycalphad/io/database.html#Phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Phase in the database.</p>
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Phase.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pycalphad.io.database.Phase.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>System-local name of the phase.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Phase.constituents">
+<code class="sig-name descname">constituents</code><a class="headerlink" href="#pycalphad.io.database.Phase.constituents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Possible sublattice constituents (elements and/or species).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple of frozenset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Phase.sublattices">
+<code class="sig-name descname">sublattices</code><a class="headerlink" href="#pycalphad.io.database.Phase.sublattices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Site ratios of sublattices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pycalphad.io.database.Phase.model_hints">
+<code class="sig-name descname">model_hints</code><a class="headerlink" href="#pycalphad.io.database.Phase.model_hints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structured “hints” for a Model trying to read this phase.
+Hints for major constituents and typedefs (Thermo-Calc) go here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.io.grammar">
+<span id="pycalphad-io-grammar-module"></span><h2>pycalphad.io.grammar module<a class="headerlink" href="#module-pycalphad.io.grammar" title="Permalink to this headline">¶</a></h2>
+<p>“Common pyparsing grammar patterns.</p>
+<dl class="py function">
+<dt id="pycalphad.io.grammar.parse_chemical_formula">
+<code class="sig-prename descclassname">pycalphad.io.grammar.</code><code class="sig-name descname">parse_chemical_formula</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">formula</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/grammar.html#parse_chemical_formula"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.grammar.parse_chemical_formula" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.io.tdb">
+<span id="pycalphad-io-tdb-module"></span><h2>pycalphad.io.tdb module<a class="headerlink" href="#module-pycalphad.io.tdb" title="Permalink to this headline">¶</a></h2>
+<p>The tdb module provides support for reading and writing databases in
+Thermo-Calc TDB format.</p>
+<dl class="py class">
+<dt id="pycalphad.io.tdb.TCCommand">
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.io.tdb.</code><code class="sig-name descname">TCCommand</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">matchString</span></em>, <em class="sig-param"><span class="n">identChars</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#TCCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.TCCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pyparsing.CaselessKeyword</span></code></p>
+<p>Parser element for dealing with Thermo-Calc command abbreviations.</p>
+<dl class="py method">
+<dt id="pycalphad.io.tdb.TCCommand.parseImpl">
+<code class="sig-name descname">parseImpl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">instring</span></em>, <em class="sig-param"><span class="n">loc</span></em>, <em class="sig-param"><span class="n">doActions</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#TCCommand.parseImpl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.TCCommand.parseImpl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pycalphad.io.tdb.TCPrinter">
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.io.tdb.</code><code class="sig-name descname">TCPrinter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#TCPrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.TCPrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.printing.str.StrPrinter</span></code></p>
+<p>Prints Thermo-Calc style function expressions.</p>
+<dl class="py method">
+<dt id="pycalphad.io.tdb.TCPrinter.blacklisted">
+<code class="sig-name descname">blacklisted</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#TCPrinter.blacklisted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.TCPrinter.blacklisted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="pycalphad.io.tdb.read_tdb">
+<code class="sig-prename descclassname">pycalphad.io.tdb.</code><code class="sig-name descname">read_tdb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dbf</span></em>, <em class="sig-param"><span class="n">fd</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#read_tdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.read_tdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a TDB file into a pycalphad Database object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A pycalphad Database.</p></li>
+<li><p><strong>fd</strong> (<em>file-like</em>) – File descriptor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pycalphad.io.tdb.reflow_text">
+<code class="sig-prename descclassname">pycalphad.io.tdb.</code><code class="sig-name descname">reflow_text</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span></em>, <em class="sig-param"><span class="n">linewidth</span><span class="o">=</span><span class="default_value">80</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#reflow_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.reflow_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add line breaks to ensure text doesn’t exceed a certain line width.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>str</em>) – </p></li>
+<li><p><strong>linewidth</strong> (<em>int</em><em>, </em><em>optional</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>reflowed_text</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pycalphad.io.tdb.to_interval">
+<code class="sig-prename descclassname">pycalphad.io.tdb.</code><code class="sig-name descname">to_interval</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">relational</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#to_interval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.to_interval" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="pycalphad.io.tdb.write_tdb">
+<code class="sig-prename descclassname">pycalphad.io.tdb.</code><code class="sig-name descname">write_tdb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dbf</span></em>, <em class="sig-param"><span class="n">fd</span></em>, <em class="sig-param"><span class="n">groupby</span><span class="o">=</span><span class="default_value">'subsystem'</span></em>, <em class="sig-param"><span class="n">if_incompatible</span><span class="o">=</span><span class="default_value">'warn'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#write_tdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.write_tdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a TDB file from a pycalphad Database object.</p>
+<p>The goal is to produce TDBs that conform to the most restrictive subset of database specifications. Some of these
+can be adjusted for automatically, such as the Thermo-Calc line length limit of 78. Others require changing the
+database in non-trivial ways, such as the maximum length of function names (8). The default is to warn the user when
+attempting to write an incompatible database and the user must choose whether to warn and write the file anyway or
+to fix the incompatibility.</p>
+<p>Currently the supported compatibility fixes are:
+- Line length &lt;= 78 characters (Thermo-Calc)
+- Function names &lt;= 8 characters (Thermo-Calc)</p>
+<p>The current unsupported fixes include:
+- Keyword length &lt;= 2000 characters (Thermo-Calc)
+- Element names &lt;= 2 characters (Thermo-Calc)
+- Phase names &lt;= 24 characters (Thermo-Calc)</p>
+<p>Other TDB compatibility issues required by Thermo-Calc or other software should be reported to the issue tracker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A pycalphad Database.</p></li>
+<li><p><strong>fd</strong> (<em>file-like</em>) – File descriptor.</p></li>
+<li><p><strong>groupby</strong> (<em>[</em><em>'subsystem'</em><em>, </em><em>'phase'</em><em>]</em><em>, </em><em>optional</em>) – Desired grouping of parameters in the file.</p></li>
+<li><p><strong>if_incompatible</strong> (<em>string</em><em>, </em><em>optional</em><em> [</em><em>'raise'</em><em>, </em><em>'warn'</em><em>, </em><em>'fix'</em><em>]</em>) – Strategy if the database does not conform to the most restrictive database specification.
+The ‘warn’ option (default) will write out the incompatible database with a warning.
+The ‘raise’ option will raise a DatabaseExportError.
+The ‘ignore’ option will write out the incompatible database silently.
+The ‘fix’ option will rectify the incompatibilities e.g. through name mangling.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.io.tdb_keywords">
+<span id="pycalphad-io-tdb-keywords-module"></span><h2>pycalphad.io.tdb_keywords module<a class="headerlink" href="#module-pycalphad.io.tdb_keywords" title="Permalink to this headline">¶</a></h2>
+<p>This module defines valid Thermo-Calc TDB keywords and handles abbreviations.
+Note that not all of these keywords are fully supported yet.</p>
+<dl class="py function">
+<dt id="pycalphad.io.tdb_keywords.expand_keyword">
+<code class="sig-prename descclassname">pycalphad.io.tdb_keywords.</code><code class="sig-name descname">expand_keyword</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">possible</span></em>, <em class="sig-param"><span class="n">candidate</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb_keywords.html#expand_keyword"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb_keywords.expand_keyword" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand an abbreviated keyword based on the provided list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>possible</strong> (<em>list of str</em>) – Possible keywords for ‘candidate’ to be matched against.</p></li>
+<li><p><strong>candidate</strong> (<em>str</em>) – Abbreviated keyword to expand.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of str of matching expanded keywords</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.io">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.io" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pycalphad.plot.html" class="btn btn-neutral float-right" title="pycalphad.plot package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pycalphad.core.html" class="btn btn-neutral float-left" title="pycalphad.core package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
