@@ -25,7 +25,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda info
-          conda env update --file environment-test.yml
+          conda env update --file environment-test.yml --name test
       - name: Install pycalphad development version
         shell: bash -l {0}
         run: |

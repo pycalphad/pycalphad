@@ -1,5 +1,4 @@
 # Environment that installs all pycalphad dependencies and test suite dependencies
-name: test
 channels:
   - conda-forge
   - pycalphad
