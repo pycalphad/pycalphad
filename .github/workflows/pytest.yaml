@@ -22,7 +22,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda info
-          conda install -c conda-forge -c pycalphad cyipopt cython>=0.24 matplotlib numpy>=1.13 pyparsing python-symengine=0.6.1 python>=3.6 scipy symengine=0.6.0 sympy=1.5.1 tinydb>=3.8 xarray>=0.11.2
+          conda install -c conda-forge -c pycalphad "cyipopt" "cython>=0.24" "matplotlib" "numpy>=1.13" "pyparsing" "python-symengine=0.6.1" "python>=3.6" "scipy" "symengine=0.6.0" "sympy=1.5.1" "tinydb>=3.8" "xarray>=0.11.2"
       - name: Install pycalphad development version
         shell: bash -l {0}
         run: |
@@ -34,7 +34,7 @@ jobs:
         shell: bash -l {0}
         run: |
           # coverage<5, see https://github.com/coveralls-clients/coveralls-python/issues/213
-          conda install -c conda-forge pytest pytest-cov coveralls "coverage<5"
+          conda install -c conda-forge "pytest" "pytest-cov" "coveralls" "coverage<5"
           conda list
           pytest -v --cov=pycalphad
 
