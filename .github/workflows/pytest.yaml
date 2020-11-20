@@ -24,12 +24,12 @@ jobs:
       - name: Conda info
         shell: bash -l {0}
         run: conda info
-      - name: Install pycalphad development version
-        shell: bash -l {0}
-        run: pip install --no-deps -e .
       - name: Conda list
         shell: bash -l {0}
         run: conda list
+      - name: Install pycalphad development version
+        shell: bash -l {0}
+        run: pip install --no-deps -e .
       - name: Test with pytest
         shell: bash -l {0}
         run: |
