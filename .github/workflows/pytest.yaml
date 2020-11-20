@@ -14,6 +14,9 @@ jobs:
         python-version: ["3.8"]
         # python-version: ["3.6", "3.7", "3.8"]
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
