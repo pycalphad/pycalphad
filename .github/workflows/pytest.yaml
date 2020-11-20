@@ -27,7 +27,8 @@ jobs:
         shell: bash -l {0}
         run: |
           pwd
-          ls
+          ls -al
+          pwd
           pip install --no-deps -e .
       - name: Test with pytest
         shell: bash -l {0}
