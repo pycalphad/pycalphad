@@ -1,0 +1,34 @@
+name: pytest
+
+on: [push]
+
+jobs:
+  Tests:
+    name: Tests (${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 9
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python-version: ["3.6", "3.7", "3.8"]
+    steps:
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: conda env update --file environment.yml --name base
+      - name: Install pycalphad development version
+        shell: bash -l {0}
+        run: pip install --no-deps -e .
+      - name: Test with pytest
+        shell: bash -l {0}
+        run: |
+          # coverage<5, see https://github.com/coveralls-clients/coveralls-python/issues/213
+          conda install pytest pytest-cov coveralls "coverage<5"
+          conda list
+          pytest -v --cov=pycalphad
+
+
