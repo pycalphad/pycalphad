@@ -78,7 +78,7 @@ setup(
         'numpy>=1.13',
         'pyparsing',
         'scipy',
-        'symengine==0.6.1'
+        'symengine==0.6.1',
         'sympy==1.5.1',
         'tinydb>=3.8',
         'xarray>=0.11.2',
