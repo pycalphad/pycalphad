@@ -1,10 +1,10 @@
-name: pytest
+name: Tests
 
 on: [push]
 
 jobs:
   Tests:
-    name: Tests (${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Test ${{ matrix.os }} with ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
