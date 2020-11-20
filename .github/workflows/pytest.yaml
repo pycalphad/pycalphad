@@ -33,10 +33,16 @@ jobs:
       - name: macOS + Python 3.6 deployment target fix
         if: matrix.os == 'macos-latest' && matrix.python-version == '3.6'
         shell: bash -l {0}
-        run: export MACOSX_DEPLOYMENT_TARGET="10.9"
+        run: |
+          export MACOSX_DEPLOYMENT_TARGET="10.9"
+          echo "!! deployment target (in the fix step)"
+          echo $MACOSX_DEPLOYMENT_TARGET
       - name: Install pycalphad development version
         shell: bash -l {0}
-        run: pip install --no-deps -e .
+        run: |
+          echo "!! deployment target"
+          echo $MACOSX_DEPLOYMENT_TARGET
+          pip install --no-deps -e .
       - name: Test with pytest
         shell: bash -l {0}
         run: |
