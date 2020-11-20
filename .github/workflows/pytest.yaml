@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   Tests:
-    runs-on: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: [ubuntu-latest]
     strategy:
       max-parallel: 9
       matrix:
