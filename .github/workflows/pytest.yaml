@@ -20,13 +20,10 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
+          environment-file: environment-test.yml
       - name: Conda info
         shell: bash -l {0}
         run: conda-info
-      - name: Install dependencies
-        shell: bash -l {0}
-        run: |
-          conda env update --file environment-test.yml --name test
       - name: Install pycalphad development version
         shell: bash -l {0}
         run: pip install --no-deps -e .
