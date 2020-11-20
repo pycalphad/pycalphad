@@ -27,22 +27,6 @@ jobs:
       - name: Conda list
         shell: bash -l {0}
         run: conda list
-      - name: Build extension debugging
-        if: matrix.os == 'macos-latest'
-        shell: bash -l {0}
-        run: |
-          echo "!! ls /usr/local/miniconda/envs/test/include"
-          ls /usr/local/miniconda/envs/test/include
-          echo "!! ls /usr/local/miniconda/envs/test/include/c++"
-          ls /usr/local/miniconda/envs/test/include/c++
-          echo "!! ls /usr/local/miniconda/envs/test/include/c++/v1"
-          ls /usr/local/miniconda/envs/test/include/c++/v1
-          echo "!! find /usr/local/miniconda/envs/test/include -name "cstdlib""
-          find /usr/local/miniconda/envs/test/include -name "cstdlib"
-          echo "!! gcc --version"
-          gcc --version
-          echo "!! build_ext manually"
-          python setup.py build_ext
       - name: Install pycalphad development version
         shell: bash -l {0}
         run: pip install --no-deps -e .
