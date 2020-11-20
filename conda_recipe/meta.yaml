@@ -29,7 +29,6 @@ requirements:
     - cython >=0.24
     - matplotlib
     - numpy >=1.13
-    - pandas
     - pyparsing
     - pytest
     - python
@@ -46,7 +45,6 @@ requirements:
     - cython >=0.24
     - matplotlib
     - numpy >=1.13
-    - pandas
     - pyparsing
     - python
     - python-symengine ==0.6.1

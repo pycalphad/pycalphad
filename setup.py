@@ -70,7 +70,6 @@ setup(
         'ipopt',
         'matplotlib',
         'numpy>=1.13',
-        'pandas',
         'pyparsing',
         'scipy',
         'symengine==0.6.1'
