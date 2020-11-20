@@ -30,21 +30,15 @@ jobs:
       # The last conda-forge Python 3.6 build uses an old macOS deployment
       # target that causes C++ builds to break. This is a workaround. See
       # https://github.com/pycalphad/pycalphad/pull/285#issuecomment-731365552
-      # See https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
-      # for the syntax of setting environment variables
+      # For the syntax of setting environment variables see
+      # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
       - name: macOS + Python 3.6 deployment target fix
         if: matrix.os == 'macos-latest' && matrix.python-version == '3.6'
         shell: bash -l {0}
-        run: |
-          echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
-          echo "!! deployment target (in the fix step)"
-          echo $MACOSX_DEPLOYMENT_TARGET
+        run: echo "MACOSX_DEPLOYMENT_TARGET=10.9" >> $GITHUB_ENV
       - name: Install pycalphad development version
         shell: bash -l {0}
-        run: |
-          echo "!! deployment target (install step)"
-          echo $MACOSX_DEPLOYMENT_TARGET
-          pip install --no-deps -e .
+        run: pip install --no-deps -e .
       - name: Test with pytest
         shell: bash -l {0}
         run: |
