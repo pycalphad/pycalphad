@@ -25,36 +25,36 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
   host:
-    - python
-    - setuptools
-    - matplotlib
-    - pandas
-    - pytest
-    - xarray >=0.11.2
-    - sympy ==1.5.1
-    - pyparsing
-    - tinydb >=3.8
-    - scipy
-    - numpy >=1.13
-    - cython >=0.24
     - cyipopt
+    - cython >=0.24
+    - matplotlib
+    - numpy >=1.13
+    - pandas
+    - pyparsing
+    - pytest
+    - python
     - python-symengine ==0.6.1
+    - scipy
+    - setuptools
     - symengine ==0.6.1
+    - sympy ==1.5.1
+    - tinydb >=3.8
+    - xarray >=0.11.2
 
   run:
-    - python
-    - matplotlib
-    - pandas
-    - xarray >=0.11.2
-    - sympy ==1.5.1
-    - pyparsing
-    - tinydb >=3.8
-    - scipy
-    - numpy >=1.13
-    - cython >=0.24
     - cyipopt
+    - cython >=0.24
+    - matplotlib
+    - numpy >=1.13
+    - pandas
+    - pyparsing
+    - python
     - python-symengine ==0.6.1
+    - scipy
     - symengine ==0.6.1
+    - sympy ==1.5.1
+    - tinydb >=3.8
+    - xarray >=0.11.2
 
 build:
   script: python setup.py build_ext && python setup.py install --single-version-externally-managed --record=record.txt
