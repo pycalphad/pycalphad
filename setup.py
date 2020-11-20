@@ -66,6 +66,12 @@ setup(
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
     install_requires=[
+        # NOTE: please try to keep any depedencies in alphabetic order so they
+        # may be easily compared with other dependency lists
+        # NOTE: these dependencies may differ in name from those in the
+        # conda-forge Anaconda channel. For example, conda-forge/symengine
+        # gives the C++ SymEngine library, while conda-forge/python-symengine
+        # provides the Python package called `symengine`.
         'Cython>=0.24',
         'ipopt',
         'matplotlib',
