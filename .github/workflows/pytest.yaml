@@ -22,7 +22,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda info
-          conda env update --file environment.yml --name test
+          conda install cyipopt cython>=0.24 matplotlib numpy>=1.13 pyparsing python-symengine=0.6.1 python>=3.6 scipy symengine=0.6.0 sympy=1.5.1 tinydb>=3.8 xarray>=0.11.2
       - name: Install pycalphad development version
         shell: bash -l {0}
         run: pip install --no-deps -e .
