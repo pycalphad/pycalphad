@@ -27,8 +27,6 @@ dependencies:
   - tinydb>=3.8
   - xarray>=0.11.2
   # Dependences for tests only below
-  # coverage<5, see https://github.com/coveralls-clients/coveralls-python/issues/213
-  - coverage<5
   - coveralls
   - pytest
   - pytest-cov
