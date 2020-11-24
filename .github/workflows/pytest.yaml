@@ -22,6 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           environment-file: environment-dev.yml
       - name: Conda info
+        # login shell should be used so conda activate runs
         shell: bash -l {0}
         run: conda info
       - name: Conda list
