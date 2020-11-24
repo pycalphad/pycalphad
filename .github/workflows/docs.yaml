@@ -10,7 +10,6 @@ jobs:
   Latest-Docs:
     name: Build and deploy latest documentation
     runs-on: ubuntu-latest
-    needs: Tests
     env:
       TARGET_BRANCH: website-test
       DEPLOY_NAME: latest
