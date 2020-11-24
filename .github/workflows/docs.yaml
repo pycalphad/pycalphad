@@ -16,6 +16,8 @@ jobs:
       DEPLOYNAME: latesttt
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
