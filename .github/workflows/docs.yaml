@@ -31,7 +31,7 @@ jobs:
         # login shell should be used so conda activate runs
         shell: bash -l {0}
         run: sphinx-build -b html docs docs/_build/html
-      - name: Copy Documentation to ${{ env.DEPLOYNAME }}
+      - name: Copy Documentation to ${{ github.sha }}
         run: |
           mkdir -p docs/$DEPLOY_NAME
           # clean any existing contents
@@ -44,5 +44,5 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add docs/$DEPLOY_NAME
-          git commit -m 'DOC&#58; Deploy docs to website&#58;'
+          git commit -m "DOC&#58; Deploy ${DEPLOY_NAME} docs to website&#58; ${{ github.sha }}"
           git push
