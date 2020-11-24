@@ -31,5 +31,6 @@ dependencies:
   - pytest
   - pytest-cov
   # Documentation dependences
+  - ipython  # for pygments syntax highlighting
   - sphinx
   - sphinx_rtd_theme
