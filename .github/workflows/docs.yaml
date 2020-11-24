@@ -6,12 +6,12 @@ on:
       - gh-actions
 jobs:
   Latest-Docs:
-    name: Build and deploy ${{ env.DEPLOY_NAME }} documentation
     runs-on: ubuntu-latest
     needs: Tests
     env:
       TARGET_BRANCH: website-test
       DEPLOY_NAME: latest
+    name: Build and deploy ${{ env.DEPLOY_NAME }} documentation
     steps:
       - uses: actions/checkout@v2
       - name: Sphinx Build
