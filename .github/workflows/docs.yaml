@@ -29,5 +29,5 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add docs/$DEPLOY_NAME
-          git commit -m "DOC: Deploy ${DEPLOY_NAME} docs to website"
+          git commit -m "DOC:: Deploy ${DEPLOY_NAME} docs to website:: ${{ github.sha }}"
           git push
