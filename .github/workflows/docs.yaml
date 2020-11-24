@@ -36,7 +36,8 @@ jobs:
       - name: Sphinx Build
         shell: bash -l {0}
         run: sphinx-build -b html docs docs/_build/html
-      - name: Copy Documentation to ${{ github.sha }}
+      - run: git checkout $TARGET_BRANCH
+      - name: Copy Documentation to ${{ env.DEPLOY_NAME }}
         run: |
           mkdir -p docs/$DEPLOY_NAME
           # clean any existing contents
@@ -45,7 +46,6 @@ jobs:
           cp -Rf docs/_build/html/* docs/$DEPLOY_NAME
       - name: Commit and push changes
         run: |
-          git checkout $TARGET_BRANCH
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add docs/$DEPLOY_NAME
