@@ -2,14 +2,14 @@ name: Documentation
 on:
   push:
     branches:
-      - gh-actions
+      - develop
 
 jobs:
   Latest-Docs:
     name: Build and deploy latest documentation
     runs-on: ubuntu-latest
     env:
-      TARGET_BRANCH: website-test2
+      TARGET_BRANCH: website
       DEPLOY_NAME: latest
     steps:
       - uses: actions/checkout@v2
