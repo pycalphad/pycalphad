@@ -27,6 +27,9 @@ jobs:
       - name: Conda list
         shell: bash -l {0}
         run: conda list
+      - name: Install pycalphad development version
+        shell: bash -l {0}
+        run: pip install --no-deps -e .
       - name: Sphinx Build
         # login shell should be used so conda activate runs
         shell: bash -l {0}
