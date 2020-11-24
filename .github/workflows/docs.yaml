@@ -4,19 +4,21 @@ on:
   push:
     branches:
       - gh-actions
+
+env:
+  TARGET_BRANCH: website-test
+  DEPLOY_NAME: latest
+
 jobs:
   Latest-Docs:
-    name: Build and deploy ${{ DEPLOY_NAME }} documentation
+    name: Build and deploy ${{ env.DEPLOY_NAME }} documentation
     runs-on: ubuntu-latest
     needs: Tests
-    env:
-      TARGET_BRANCH: website-test
-      DEPLOY_NAME: latest
     steps:
       - uses: actions/checkout@v2
       - name: Sphinx Build
         run: sphinx-build -b html docs docs/_build/html
-      - name: Copy Documentation to ${{ DEPLOY_NAME }}
+      - name: Copy Documentation to ${{ env.DEPLOY_NAME }}
         run: |
           mkdir -p docs/$DEPLOY_NAME
           # clean any existing contents
