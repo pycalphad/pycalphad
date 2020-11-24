@@ -19,8 +19,10 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.8
+          python-version: "3.8"
           environment-file: environment-dev.yml
+      - name: Conda Info
+        run: conda info
       - name: Conda list
         run: conda list
       - name: Sphinx Build
