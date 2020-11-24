@@ -12,4 +12,3 @@ Checklist
 * [ ] If any dependencies have changed, the changes are reflected in the
   * [ ] `setup.py`
   * [ ] `environment-test.yml`
-  * [ ] `conda_recipe/meta.yaml`
