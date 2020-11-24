@@ -5,15 +5,15 @@ on:
     branches:
       - gh-actions
 
-env:
-  TARGET_BRANCH: website-test
-  DEPLOY_NAME: latest
 
 jobs:
   Latest-Docs:
-    name: Build and deploy ${{ env.DEPLOY_NAME }} documentation
+    name: Build and deploy latest documentation
     runs-on: ubuntu-latest
     needs: Tests
+    env:
+      TARGET_BRANCH: website-test
+      DEPLOY_NAME: latest
     steps:
       - uses: actions/checkout@v2
       - name: Sphinx Build
