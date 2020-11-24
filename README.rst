@@ -9,12 +9,8 @@ pycalphad, a library for the CALculation of PHAse Diagrams
     :target: https://coveralls.io/github/pycalphad/pycalphad?branch=master
     :alt: Test Coverage
 
-.. image:: https://ci.appveyor.com/api/projects/status/ua1hya8isg588fyp/branch/develop?svg=true
-    :target: https://ci.appveyor.com/project/richardotis/pycalphad
-    :alt: Windows Build Status
-
-.. image:: https://img.shields.io/travis/pycalphad/pycalphad/master.svg
-    :target: https://travis-ci.org/pycalphad/pycalphad
+.. image:: https://github.com/pycalphad/pycalphad/workflows/Tests/badge.svg
+    :target: https://github.com/pycalphad/pycalphad/actions?query=workflow%3ATests
     :alt: Build Status
 
 .. image:: https://img.shields.io/pypi/status/pycalphad.svg
@@ -35,16 +31,16 @@ pycalphad, a library for the CALculation of PHAse Diagrams
 
 **Note**: Unsolicited pull requests are _happily_ accepted!
 
-pycalphad is a free and open-source Python library for 
-designing thermodynamic models, calculating phase diagrams and 
-investigating phase equilibria within the CALPHAD method. It 
+pycalphad is a free and open-source Python library for
+designing thermodynamic models, calculating phase diagrams and
+investigating phase equilibria within the CALPHAD method. It
 provides routines for reading Thermo-Calc TDB files and for
 solving the multi-component, multi-phase Gibbs energy
 minimization problem.
 
 The purpose of this project is to provide any interested people
-the ability to tinker with and improve the nuts and bolts of 
-CALPHAD modeling without having to be a computer scientist or 
+the ability to tinker with and improve the nuts and bolts of
+CALPHAD modeling without having to be a computer scientist or
 expert programmer.
 
 For assistance in setting up your Python environment and/or
