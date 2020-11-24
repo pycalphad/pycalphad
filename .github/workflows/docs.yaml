@@ -1,10 +1,8 @@
-# Build to the "latest"
 name: Documentation
 on:
   push:
     branches:
       - gh-actions
-
 
 jobs:
   Latest-Docs:
