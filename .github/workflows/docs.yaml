@@ -39,7 +39,7 @@ jobs:
           # copy the output
           cp -Rf docs/_build/html/* docs/$DEPLOY_NAME
       - name: Commit and push changes
-        run:
+        run: |
           git checkout $TARGET_BRANCH
           git config user.name github-actions
           git config user.email github-actions@github.com
