@@ -30,3 +30,6 @@ dependencies:
   - coveralls
   - pytest
   - pytest-cov
+  # Documentation dependences
+  - sphinx
+  - sphinx_rtd_theme
