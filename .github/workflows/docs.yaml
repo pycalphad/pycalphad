@@ -11,9 +11,8 @@ jobs:
     name: Build and deploy latest documentation
     runs-on: ubuntu-latest
     env:
-      TARGET_BRANCH: website-test
+      TARGET_BRANCH: website-test2
       DEPLOY_NAME: latest
-      DEPLOYNAME: latesttt
     steps:
       - uses: actions/checkout@v2
         with:
@@ -37,7 +36,7 @@ jobs:
         shell: bash -l {0}
         run: sphinx-build -b html docs docs/_build/html
       - run: git checkout $TARGET_BRANCH
-      - name: Copy Documentation to ${{ env.DEPLOY_NAME }}
+      - name: Copy Documentation to destination
         run: |
           mkdir -p docs/$DEPLOY_NAME
           # clean any existing contents
