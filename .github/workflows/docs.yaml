@@ -22,10 +22,14 @@ jobs:
           python-version: "3.8"
           environment-file: environment-dev.yml
       - name: Conda Info
+        shell: bash -l {0}
         run: conda info
       - name: Conda list
+        shell: bash -l {0}
         run: conda list
       - name: Sphinx Build
+        # login shell should be used so conda activate runs
+        shell: bash -l {0}
         run: sphinx-build -b html docs docs/_build/html
       - name: Copy Documentation to ${{ env.DEPLOYNAME }}
         run: |
