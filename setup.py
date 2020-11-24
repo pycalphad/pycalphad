@@ -65,8 +65,24 @@ setup(
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
-    install_requires=['matplotlib', 'pandas', 'xarray>=0.11.2', 'sympy==1.5.1', 'pyparsing', 'Cython>=0.24',
-                      'tinydb>=3.8', 'scipy', 'numpy>=1.13', 'ipopt', 'symengine==0.6.1'],
+    install_requires=[
+        # NOTE: please try to keep any depedencies in alphabetic order so they
+        # may be easily compared with other dependency lists
+        # NOTE: these dependencies may differ in name from those in the
+        # conda-forge Anaconda channel. For example, conda-forge/symengine
+        # gives the C++ SymEngine library, while conda-forge/python-symengine
+        # provides the Python package called `symengine`.
+        'Cython>=0.24',
+        'ipopt',
+        'matplotlib',
+        'numpy>=1.13',
+        'pyparsing',
+        'scipy',
+        'symengine==0.6.1',
+        'sympy==1.5.1',
+        'tinydb>=3.8',
+        'xarray>=0.11.2',
+    ],
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
