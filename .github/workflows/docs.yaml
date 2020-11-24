@@ -13,6 +13,7 @@ jobs:
     env:
       TARGET_BRANCH: website-test
       DEPLOY_NAME: latest
+      DEPLOYNAME: latesttt
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
@@ -20,9 +21,11 @@ jobs:
           auto-update-conda: true
           python-version: 3.8
           environment-file: environment-dev.yml
+      - name: Conda list
+        run: conda list
       - name: Sphinx Build
         run: sphinx-build -b html docs docs/_build/html
-      - name: Copy Documentation to ${{ env.DEPLOY_NAME }}
+      - name: Copy Documentation to ${{ env.DEPLOYNAME }}
         run: |
           mkdir -p docs/$DEPLOY_NAME
           # clean any existing contents
