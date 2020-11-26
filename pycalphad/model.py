@@ -3,8 +3,9 @@ The model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 import copy
-from sympy import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
+
 from tinydb import where
+from sympy import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -122,6 +123,7 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         self.site_ratios = list(phase.sublattices)
         active_species = unpack_components(dbe, comps)
+        self.model_hints = copy.deepcopy(phase.model_hints)
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(active_species)
             self.components |= subl_comps
@@ -175,6 +177,13 @@ class Model(object):
                                         for el in constituents]
         self.pure_elements = sorted(set(desired_active_pure_elements))
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
+
+        # Warn if charged species present, but not charged model
+        comps_with_charge = {sp for sp in self.components if sp.charge != 0}
+        valid_charged_type_hints = ('ionic_liquid_2SL', 'charged_phase', 'aqueous', 'gas')
+        phase_has_charged_model = any(typ in self.model_hints for typ in valid_charged_type_hints)
+        if len(comps_with_charge) > 0 and not phase_has_charged_model:
+            warnings.warn( "Phase {} contains charged species, but is not a charged model (one of {})".format(phase_name, valid_charged_type_hints))
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
@@ -395,8 +404,17 @@ class Model(object):
 
     def get_internal_constraints(self):
         constraints = []
+        # Site fraction balance
         for idx, sublattice in enumerate(self.constituents):
             constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
+        # Charge balance for all phases that are charged
+        if self.model_hints.get('charged_phase', False):
+            TARGET_CHARGE = 0
+            total_charge = 0
+            for idx, (sublattice, site_ratio) in enumerate(zip(self.constituents, self.site_ratios)):
+                total_charge += sum(v.SiteFraction(self.phase_name, idx, spec)*spec.charge*site_ratio for spec in sublattice) - TARGET_CHARGE
+            total_charge *= 1.0/100.0  # rescale charge constraints
+            constraints.append(total_charge)
         return constraints
 
     def get_multiphase_constraints(self, conds):

@@ -28,6 +28,7 @@ CUO_DBF = Database(CUO_TDB)
 PBSN_DBF = Database(PBSN_TDB)
 AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
+AL2O3_ND2O3_ZRO2_DBF = Database(AL2O3_ND2O3_ZRO2_TDB)
 
 
 # ROSE DIAGRAM TEST
@@ -492,6 +493,7 @@ def test_eq_magnetic_chempot_cond():
     assert_allclose(np.squeeze(eq.GM.values), -35427.1, atol=0.1)
     assert_allclose(np.squeeze(eq.MU.values), [-8490.7, -123110], atol=0.1)
 
+
 def test_eq_calculation_with_parameters():
     parameters = {'VV0000': -33134.699474175846, 'VV0001': 7734.114029426941, 'VV0002': -13498.542175596054,
                   'VV0003': -26555.048975092268, 'VV0004': 20777.637577083482, 'VV0005': 41915.70425630003,
@@ -502,3 +504,33 @@ def test_eq_calculation_with_parameters():
                      {v.X('CU'): 0.0001052, v.P: 101325.0, v.T: 743.15, v.N: 1},
                      parameters=parameters, verbose=True)
     assert_allclose(eq.GM.values, -30374.196034, atol=0.1)
+
+
+def test_charge_balance_constraint():
+    """Phases with charged species are correctly calculated and charged balanced in equilibrium"""
+    comps = ['ND', 'ZR', 'O', 'VA']
+    #phases = list(AL2O3_ND2O3_ZRO2_DBF.phases.keys())
+    phases = ['ND2O3_A', 'PYRO']
+    conds = {v.P: 101325, v.N: 1, v.T: 1400, v.X('ND'): 0.25, v.X('O'): 0.625}
+    # Higher point density is required for convergence. Lower point densities
+    # Can result in either no phases, or only FLUO phase (incorrect)
+    res = equilibrium(AL2O3_ND2O3_ZRO2_DBF, comps, phases, conds, calc_opts={'pdens':2000}, verbose=True)
+    # Values below checked with Thermo-Calc
+    assert np.isclose(-432325.423784, res.GM.values.squeeze())
+    assert np.all(res.Phase.values.squeeze() == np.array(['ND2O3_A', 'PYRO', '', '']))
+    assert np.allclose(res.NP.values.squeeze()[:2], [0.30164254, 0.69835646])
+    # site fractions of ND2O3_A
+    Y_ND2O3_A = res.Y.values.squeeze()[0, :5]
+    Y_PYRO = res.Y.values.squeeze()[1, :]
+    SPEC_CHG_ND2O3_A = np.array([3, 4, -2, -2, 0])  # (ND+3,ZR+4):(O-2):(O-2,VA)
+    SITE_RATIO_ND2O3_A = np.array([2, 2, 3, 1, 1])  # 2:3:1
+    SPEC_CHG_PYRO = np.array([3, 4, 3, 4, -2, 0, -2, -2, 0])  # (ND+3,ZR+4):(ND+3,ZR+4):(O-2,VA):(O-2):(O-2,VA)
+    SITE_RATIO_PYRO = np.array([2, 2, 2, 2, 6, 6, 1, 1, 1])  # 2:2:6:1:1
+    CHG_ND2O3_A = np.dot(Y_ND2O3_A*SPEC_CHG_ND2O3_A, SITE_RATIO_ND2O3_A)
+    CHG_PYRO = np.dot(Y_PYRO*SPEC_CHG_PYRO, SITE_RATIO_PYRO)
+    print('CHARGE ND2O3_A', CHG_ND2O3_A)
+    print('CHARGE PYRO', CHG_PYRO)
+    assert np.isclose(CHG_ND2O3_A, 0)
+    assert np.isclose(CHG_PYRO, 0)
+    assert np.allclose(Y_ND2O3_A, [9.79497936e-01, 2.05020639e-02, 1.00000000e+00, 2.05020639e-02, 9.79497936e-01], rtol=5e-4)
+    assert np.allclose(Y_PYRO, [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01, 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
