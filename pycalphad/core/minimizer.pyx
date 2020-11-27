@@ -293,7 +293,7 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
                                     int[::1] fixed_chemical_potential_indices,
                                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                                     int num_statevars, double prescribed_system_amount, object dof,
-                                    double[::1] compset_step_sizes) except +:
+                                    double[::1] compset_step_sizes, bint flip_residual_sign) except +:
     cdef int stable_idx, idx, component_row_offset, component_idx, fixed_component_idx, comp_idx, system_amount_index
     cdef CompositionSet compset
     cdef int num_components = chemical_potentials.shape[0]
@@ -379,7 +379,10 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         mass_residuals[fixed_component_idx] = (mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
         mass_residual += abs(
             mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx]) #/ abs(prescribed_elemental_amounts[fixed_component_idx])
-        component_residual = mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx]
+        if not flip_residual_sign:
+            component_residual = mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx]
+        else:
+            component_residual = prescribed_elemental_amounts[fixed_component_idx] - mole_fractions[component_idx]
         # Prevent numerical instability by setting a ceiling on the residual
         component_residual = np.clip(component_residual, -1e-2, 1e-2)
         equilibrium_rhs[component_row_offset + fixed_component_idx] -= component_residual
@@ -664,6 +667,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     from datetime import datetime
     stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     mass_residual = 1e10
+    flip_residual_sign = False
     logbarrier_scale = 0
     for iteration in range(500):
         current_elemental_amounts[:] = 0
@@ -894,6 +898,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             raise ValueError('Conditions do not obey Gibbs Phase Rule')
         new_chemical_potentials = np.array(chemical_potentials)
         new_phase_amt = np.array(phase_amt)
+        if (iteration > 100) and (mass_residual > 0.1):
+            flip_residual_sign = True
         for inner_iteration in range(10):
             print('inner_iteration', inner_iteration)
             equilibrium_matrix[:,:] = 0
@@ -904,7 +910,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                                     fixed_chemical_potential_indices,
                                                     prescribed_element_indices,
                                                     prescribed_elemental_amounts, num_statevars, prescribed_system_amount,
-                                                    dof, compset_step_sizes)
+                                                    dof, compset_step_sizes, flip_residual_sign)
             print('equilibrium_matrix', np.array(equilibrium_matrix))
             print('equilibrium_rhs', np.array(equilibrium_soln))
             mass_residual = np.sum(np.abs(mass_residuals))
