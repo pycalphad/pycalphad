@@ -786,11 +786,6 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 for comp_idx in range(num_components):
                     compset.phase_record.formulamole_obj(candidate_y_masses[comp_idx, :], new_y, comp_idx)
                 compset.phase_record.internal_cons_func(candidate_internal_cons, new_y)
-                #if np.any(np.abs(candidate_internal_cons) > 1e-8) and np.all(np.abs(internal_cons_tmp) <= 1e-8):
-                #    step_size *= 0.5
-                #    candidate_y_masses[:,0] = 0
-                #    candidate_internal_cons[:] = 0
-                #    continue
                 compset.phase_record.formulaobj(candidate_y_energy[0,:], new_y)
                 saved_phase_energies[iteration, idx] = candidate_y_energy[0, 0]
                 saved_phase_driving_forces[iteration, idx] = candidate_y_energy[0,0] - np.dot(chemical_potentials, candidate_y_masses[:,0])
@@ -914,7 +909,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Internal degrees of freedom at MIN_SITE_FRACTION need to be fixed when computing chemical potentials.
         # This is to ensure that the gradients accurately reflect the boundary condition.
         # However, we do not want to fix dof during the optimization, so we only enable this when close to convergence.
-        finalize_chemical_potentials = False #(mass_residual < 1e-10)
+        finalize_chemical_potentials = (mass_residual < 1e-10)
 
         if (iteration > 100) and (mass_residual > 0.1):
             if np.mean(np.diff(all_mass_residuals[-10:])) > 0:
@@ -1066,12 +1061,22 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 metastable_phase_iterations[idx] += 1
     if not converged:
         raise ValueError('Not converged')
+    # Convert moles of formula units to phase fractions
+    current_system_amount = 0.0
+    for idx in range(phase_amt.shape[0]):
+        compset = compsets[idx]
+        masses_tmp = np.zeros((num_components, 1))
+        x = dof[idx]
+        for comp_idx in range(num_components):
+            compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
+            current_system_amount += phase_amt[idx] * masses_tmp[comp_idx, 0]
+            masses_tmp[:,:] = 0
+    print('current_system_amount', current_system_amount)
+    phase_amt = (np.array(phase_amt) / np.sum(phase_amt)) / current_system_amount
+
     x = dof[0]
     for cs_dof in dof[1:]:
         x = np.r_[x, cs_dof[num_statevars:]]
-    # Convert moles of formula units to phase fractions
-    phase_amt = np.array(phase_amt) * np.sum(all_phase_amounts, axis=1)
-    phase_amt /= np.sum(phase_amt)
     x = np.r_[x, phase_amt]
     #saved_debug_ds = xr.Dataset({'MU': saved_chemical_potentials, 'NP': saved_phase_amounts,
     #                             'stepsize': saved_phase_stepsizes, 'GM': saved_phase_energies,
