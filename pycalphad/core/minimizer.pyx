@@ -1069,7 +1069,10 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     x = dof[0]
     for cs_dof in dof[1:]:
         x = np.r_[x, cs_dof[num_statevars:]]
-    x = np.r_[x, np.array(phase_amt)/np.sum(phase_amt)]
+    # Convert moles of formula units to phase fractions
+    phase_amt = np.array(phase_amt) * np.sum(all_phase_amounts, axis=1)
+    phase_amt /= np.sum(phase_amt)
+    x = np.r_[x, phase_amt]
     #saved_debug_ds = xr.Dataset({'MU': saved_chemical_potentials, 'NP': saved_phase_amounts,
     #                             'stepsize': saved_phase_stepsizes, 'GM': saved_phase_energies,
     #                             'all_dof': saved_phase_dof, 'delta_dof': saved_phase_delta_dof,
