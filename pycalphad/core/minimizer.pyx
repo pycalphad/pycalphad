@@ -845,7 +845,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             current_system_amount += phase_amt[idx] * masses_tmp[comp_idx, 0]
             masses_tmp[:,:] = 0
     print('current_system_amount', current_system_amount)
-    phase_amt = (np.array(phase_amt) / np.sum(phase_amt)) / current_system_amount
+    phase_amt = np.array(phase_amt) * np.sum(all_phase_amounts, axis=1)
 
     x = dof[0]
     for cs_dof in dof[1:]:
