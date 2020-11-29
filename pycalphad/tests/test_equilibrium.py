@@ -196,19 +196,15 @@ def test_eq_ternary_edge_case_mass():
     Equilibrium along an edge of composition space will still balance mass.
     """
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
-                     {v.T: 1523, v.X('AL'): 0.88811111111111107,
-                      v.X('CO'): 0.11188888888888888, v.P: 101325}, verbose=True)
+                     {v.T: 1523, v.X('AL'): 0.8881111111,
+                      v.X('CO'): 0.1118888888, v.P: 101325}, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
-                 [0.88811111111111107, 0.11188888888888888, 0]
+                 [0.8881111111, 0.1118888888, 1e-10]
     assert_allclose(eq.GM.values, -97913.542)  # from Thermo-Calc 2017b
     result_chempots = eq.MU.values.flatten()
-    assert_allclose(result_chempots[:2], [-86994.575, -184582.17, ], atol=0.1)  # from Thermo-Calc 2017b
-    #assert_allclose(result_chempots[2], -451366.1)  # from Thermo-Calc 2017b
-    # Precision differences do not allow us to get the right chemical potential for the dilute component
-    # It is not clear whether this is a difference in the allowed precision of _specified conditions_ in TC
-    # or a real difference in the solution.
-    assert result_chempots[2] < -400000  # Estimated
-    assert np.all(np.abs(mass_error) < 1e-8)
+    assert_allclose(result_chempots[:2], [-86994.575, -184582.17], atol=0.1)  # from Thermo-Calc 2017b
+    assert result_chempots[2] < -380000  # Estimated
+    assert np.all(np.abs(mass_error) < 5e-10)
 
 def test_eq_ternary_inside_mass():
     """
