@@ -594,7 +594,6 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 step_size = 1/(10 + np.max(np.abs(delta_y)))
             else:
                 step_size = 1.0/100
-            step_size = min(step_size, np.max(np.abs(x))/np.max(np.abs(delta_y)))
             print('step_size', step_size)
             minimum_step_size = 1e-20 * step_size
             wolfe_passed = False
