@@ -286,6 +286,11 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
             for j in range(c_component.shape[1]):
                 equilibrium_rhs[component_row_offset + fixed_component_idx] -= (phase_amt[idx]/current_system_amount) * chemical_potentials[
                     chempot_idx] * (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_component[chempot_idx, j]
+        # 7. Subtract fixed chemical potentials from the N=1 row
+        for component_idx in range(num_components):
+            for j in range(c_component.shape[1]):
+                equilibrium_rhs[system_amount_index] -= phase_amt[idx] * chemical_potentials[
+                    chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
     return delta_m
 
 
@@ -777,6 +782,14 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 phase_amt[dof_idx] = 0
             #elif phase_amt[dof_idx] > prescribed_system_amount:
             #    phase_amt[dof_idx] = prescribed_system_amount
+
+        # Only include chemical potential difference if chemical potential conditions were enabled
+        # XXX: This really should be a condition defined in terms of delta_m, because chempot_diff is only necessary
+        # because mass_residual is no longer driving convergence for partially/fully open systems
+        if fixed_chemical_potential_indices.shape[0] > 0:
+            chempot_diff = np.max(np.abs(np.array(new_chemical_potentials)/np.array(chemical_potentials) - 1))
+        else:
+            chempot_diff = 0.0
         chemical_potentials = new_chemical_potentials
         print('new_phase_amt', np.array(phase_amt))
         print('free_stable_compset_indices', np.array(free_stable_compset_indices))
@@ -788,7 +801,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         print(f'mass_residual {mass_residual} largest_internal_cons_max_residual {largest_internal_cons_max_residual}')
         #print(f'largest_internal_dof_change {largest_internal_dof_change}')
-        system_is_feasible = (mass_residual < 5e-11) and (largest_internal_cons_max_residual < 1e-9) and (iteration > 5)
+        system_is_feasible = (mass_residual < 5e-11) and (largest_internal_cons_max_residual < 1e-9) and (chempot_diff < 1e-12) and (iteration > 5)
         if system_is_feasible:
             converged = True
             new_free_stable_compset_indices = np.array([i for i in range(phase_amt.shape[0])
