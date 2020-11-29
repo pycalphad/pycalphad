@@ -669,6 +669,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         current_elemental_amounts[:] = 0
 
         for idx in range(phase_amt.shape[0]):
+            compset = compsets[idx]
             masses_tmp = np.zeros((num_components, 1))
             x = dof[idx]
             for comp_idx in range(num_components):
