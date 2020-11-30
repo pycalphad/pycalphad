@@ -1,6 +1,18 @@
 What's New
 ==========
 
+0.8.4 (2020-10-28)
+------------------
+
+This is a minor release containing performance improvements and bug fixes.
+
+* DOC: Fix array indexing in examples ( :issue:`282` )
+* ENH: Improve compilation performance by unwraping ``Piecewise`` with only one nonzero branch in ``Model.redlich_kister_sum`` ( :issue:`281` )
+* ENH: Improve ``hyperplane()`` performance and support parameter vectorization in ``calculate()`` ( :issue:`274` )
+* FIX: Bug fixes and tests for the two sublattice ionic liquid where energies were calculated incorrectly ( :issue:`273` )
+* MAINT: Fixes an internal API regression in ``_eqcalculate``, the ``models`` aregument is now ``model`` ( :issue:`272` )
+* FIX: Fixes a bug where databases with many components would raise an error because ``_eqcalculate`` computed the degrees of freedom based on  all components instead of the active components defined in the current ``Model`` instance ( :issue:`270` )
+
 0.8.3 (2020-03-31)
 ------------------
 
