@@ -514,8 +514,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef bint converged = False
     cdef int max_dof = num_statevars + max([compset.phase_record.phase_dof for compset in compsets])
 
-    #print('prescribed_element_indices', np.array(prescribed_element_indices))
-    #print('prescribed_elemental_amounts', np.array(prescribed_elemental_amounts))
+    print('prescribed_element_indices', np.array(prescribed_element_indices))
+    print('prescribed_elemental_amounts', np.array(prescribed_elemental_amounts))
 
     from datetime import datetime
     stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -743,8 +743,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         all_mass_residuals.append(mass_residual)
         #print('delta_phase_amt', np.array(new_phase_amt) - np.array(phase_amt))
         phase_amt = new_phase_amt
-        #print('mass_residuals', np.array(mass_residuals))
-        #print('mass_residual', np.sum(np.abs(mass_residuals)))
+        print('mass_residuals', np.array(mass_residuals))
+        print('mass_residual', np.sum(np.abs(mass_residuals)))
         # Consolidate duplicate phases and remove unstable phases
         compsets_to_remove = set()
         for idx in range(len(compsets)):
@@ -779,7 +779,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 chemical_potentials[comp_idx] = initial_chemical_potentials[comp_idx]
         else:
             free_stable_compset_indices = new_free_stable_compset_indices
-        #print('new_chemical_potentials', np.array(new_chemical_potentials))
+        print('new_chemical_potentials', np.array(new_chemical_potentials))
         #if np.all(np.abs(new_chemical_potentials - np.array(chemical_potentials)) < 1.0):
         #    print('Chemical potentials settled; change phases')
         #    free_stable_compset_indices = np.array(np.nonzero(np.array(phase_amt) > 0)[0], dtype=np.int32)
@@ -808,7 +808,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         #print(f'mass_residual {mass_residual} largest_internal_cons_max_residual {largest_internal_cons_max_residual}')
         #print(f'largest_internal_dof_change {largest_internal_dof_change}')
-        system_is_feasible = (mass_residual < 5e-11) and (largest_internal_cons_max_residual < 1e-9) and \
+        system_is_feasible = (mass_residual < 5e-9) and (largest_internal_cons_max_residual < 1e-9) and \
                              (chempot_diff < 1e-12) and (largest_moles_change < 1e-10) and (iteration > 5)
         if system_is_feasible:
             converged = True
@@ -830,7 +830,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                     compset.phase_record.mass_obj(phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
                 compset.phase_record.obj(phase_energies_per_mole_atoms[idx, :], x)
                 driving_forces[idx] =  np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0]) - phase_energies_per_mole_atoms[idx, 0]
-            #print(f'driving_forces {driving_forces}')
+            print(f'driving_forces {driving_forces}')
             converged, new_free_stable_compset_indices = \
                 check_convergence_and_change_phases(phase_amt, free_stable_compset_indices, metastable_phase_iterations,
                                                     times_compset_removed, driving_forces,
