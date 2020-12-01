@@ -513,7 +513,6 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef double largest_internal_dof_change, largest_cons_max_residual, largest_internal_cons_max_residual
     cdef bint converged = False
     cdef int max_dof = num_statevars + max([compset.phase_record.phase_dof for compset in compsets])
-    iterations = np.arange(500)
 
     #print('prescribed_element_indices', np.array(prescribed_element_indices))
     #print('prescribed_elemental_amounts', np.array(prescribed_elemental_amounts))
@@ -524,7 +523,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     all_mass_residuals = []
     flip_residual_sign = False
     logbarrier_scale = 0
-    for iteration in range(500):
+    for iteration in range(1000):
         current_elemental_amounts[:] = 0
         all_phase_energies[:,:] = 0
         all_phase_amounts[:,:] = 0
@@ -713,10 +712,19 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                                 prescribed_element_indices,
                                                 prescribed_elemental_amounts, num_statevars, prescribed_system_amount,
                                                 dof, compset_step_sizes, flip_residual_sign, finalize_chemical_potentials)
+        # In some cases we may have only one stoichiometric phase stable in the system.
+        # This will cause the equilibrium matrix to become singular, and the chemical potentials will be nonsensical.
+        # This case can be identified by the presence of a row of all zeros in a fixed-mole-fraction row.
+        # For this case, we freeze some of the chemical potentials in place.
+        for i in range(num_fixed_components):
+            if np.all(np.array(equilibrium_matrix[num_stable_phases + i, :]) == 0):
+                equilibrium_matrix[num_stable_phases + i, i] = 1
+                equilibrium_soln[i] = chemical_potentials[prescribed_element_indices[i]]
         #print('equilibrium_matrix', np.array(equilibrium_matrix))
         #print('equilibrium_rhs', np.array(equilibrium_soln))
         mass_residual = np.sum(np.abs(mass_residuals))
-        equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_soln)[0]
+        lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
+              &equilibrium_soln[0], 1e-50)
         # XXX: Not strictly valid for varying state variables
         delta_phase_amt = np.abs(np.array(equilibrium_soln[num_components:]))
         #print('trial_delta_phase_amt', np.array(delta_phase_amt))
@@ -731,8 +739,6 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         for cp_idx in range(fixed_chemical_potential_indices.shape[0]):
             comp_idx = fixed_chemical_potential_indices[cp_idx]
             new_chemical_potentials[comp_idx] = initial_chemical_potentials[comp_idx]
-        #lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
-        #      &equilibrium_soln[0], 1e-21)
 
         all_mass_residuals.append(mass_residual)
         #print('delta_phase_amt', np.array(new_phase_amt) - np.array(phase_amt))
@@ -848,8 +854,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 metastable_phase_iterations[idx] = 0
             else:
                 metastable_phase_iterations[idx] += 1
-    #if not converged:
-    #    raise ValueError('Not converged')
+    if not converged:
+        raise ValueError('Not converged')
     # Convert moles of formula units to phase fractions
     current_system_amount = 0.0
     for idx in range(phase_amt.shape[0]):
