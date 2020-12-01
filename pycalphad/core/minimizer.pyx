@@ -585,8 +585,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             candidate_y_masses = np.zeros((num_components, 1))
             candidate_internal_cons = np.zeros(compset.phase_record.num_internal_cons)
             current_phase_gradient = np.array(phase_gradient)
-            #print('grad_delta_dot', np.dot(current_phase_gradient, delta_y))
-            #print('delta_y', np.array(delta_y))
+            print('grad_delta_dot', np.dot(current_phase_gradient, delta_y))
+            print('delta_y', np.array(delta_y))
             #if np.dot(current_phase_gradient, delta_y) > 0:
             #    print('delta_y is not a descent direction!')
             #if np.max(np.abs(delta_y)) < 1e-7:
@@ -649,9 +649,9 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             for i in range(num_statevars, new_y.shape[0]):
                 largest_internal_dof_change = max(largest_internal_dof_change, abs(new_y[i] - x[i]))
             x[:] = new_y
-            #print('step_size', step_size)
-            #print('candidate_internal_cons', np.array(candidate_internal_cons))
-            #print(idx, 'new_y', np.array(new_y))
+            print('step_size', step_size)
+            print('candidate_internal_cons', np.array(candidate_internal_cons))
+            print(idx, 'new_y', np.array(new_y))
             #print(compset.phase_record.variables)
             # XXX: This needs some work, to deal with infeasible composition sets which had to be removed
             #if np.any(np.abs(candidate_internal_cons) > 1e-6) and phase_amt[idx] > 0:
@@ -701,7 +701,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         if (iteration > 100) and (mass_residual > 0.1):
             if np.mean(np.diff(all_mass_residuals[-10:])) > 0:
                 flip_residual_sign = True
-        #print('flip_residual_sign ', flip_residual_sign)
+        print('flip_residual_sign ', flip_residual_sign)
         #print('finalize_chemical_potentials', finalize_chemical_potentials)
         equilibrium_matrix[:,:] = 0
         equilibrium_soln[:] = 0
@@ -763,7 +763,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 if idx2 in compsets_to_remove:
                     continue
                 compset_distance = np.max(np.abs(np.array(all_phase_amounts[idx]) - np.array(all_phase_amounts[idx2])))
-                if compset_distance < 1e-4:
+                if compset_distance < 1e-10:
                     compsets_to_remove.add(idx2)
                     phase_amt[idx] += phase_amt[idx2]
                     phase_amt[idx2] = 0
