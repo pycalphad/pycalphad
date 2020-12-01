@@ -203,8 +203,8 @@ def test_eq_ternary_edge_case_mass():
     assert_allclose(eq.GM.values, -97913.542)  # from Thermo-Calc 2017b
     result_chempots = eq.MU.values.flatten()
     assert_allclose(result_chempots[:2], [-86994.575, -184582.17], atol=0.1)  # from Thermo-Calc 2017b
-    assert result_chempots[2] < -380000  # Estimated
-    assert np.all(np.abs(mass_error) < 5e-10)
+    assert result_chempots[2] < -350000  # Estimated
+    assert np.all(np.abs(mass_error) < 1e-10)
 
 def test_eq_ternary_inside_mass():
     """
