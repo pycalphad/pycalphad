@@ -151,7 +151,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
             ax.add_collection(lc)
 
     # If we found three phase regions:
-    if three_phase_idx[0].size > 0:
+    if (three_phase_idx[0].size > 0) and (len(indep_comps) == 2):
         found_three_phase = eq.Phase.values[three_phase_idx][..., :3]
         # get tieline endpoints
         three_phase_x = eq.X.sel(component=x.species.name).values[three_phase_idx][..., :3]
