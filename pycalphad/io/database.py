@@ -66,10 +66,10 @@ class Database(object): #pylint: disable=R0902
 
     Attributes
     ----------
-    elements : list
-        List of elements in database.
-    species : list
-        List of species in database.
+    elements : set
+        Set of elements in database.
+    species : set
+        Set of species in database.
     phases : dict
         Phase objects indexed by their system-local name.
     symbols : dict
@@ -415,7 +415,7 @@ class Database(object): #pylint: disable=R0902
         ----------
         phase_name : string
             System-local name of the phase.
-        model_hints : list
+        model_hints : dict
             Structured "hints" for a Model trying to read this phase.
             Hints for major constituents and typedefs (Thermo-Calc) go here.
         sublattices : list
