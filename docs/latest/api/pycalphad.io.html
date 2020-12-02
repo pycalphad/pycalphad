@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io package &mdash; pycalphad 0.8.4+2.g55640ea2 documentation</title>
+  <title>pycalphad.io package &mdash; pycalphad 0.8.4+3.g415e759d documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.4+2.g55640ea2
+                0.8.4+3.g415e759d
               </div>
             
           
@@ -199,10 +199,10 @@ associated with structured thermodynamic/kinetic data.</p>
 <dl class="py attribute">
 <dt id="pycalphad.io.database.Database.elements">
 <code class="sig-name descname">elements</code><a class="headerlink" href="#pycalphad.io.database.Database.elements" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of elements in database.</p>
+<dd><p>Set of elements in database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
+<dd class="field-odd"><p>set</p>
 </dd>
 </dl>
 </dd></dl>
@@ -210,10 +210,10 @@ associated with structured thermodynamic/kinetic data.</p>
 <dl class="py attribute">
 <dt id="pycalphad.io.database.Database.species">
 <code class="sig-name descname">species</code><a class="headerlink" href="#pycalphad.io.database.Database.species" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of species in database.</p>
+<dd><p>Set of species in database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
+<dd class="field-odd"><p>set</p>
 </dd>
 </dl>
 </dd></dl>
@@ -288,7 +288,7 @@ associated with structured thermodynamic/kinetic data.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>phase_name</strong> (<em>string</em>) – System-local name of the phase.</p></li>
-<li><p><strong>model_hints</strong> (<em>list</em>) – Structured “hints” for a Model trying to read this phase.
+<li><p><strong>model_hints</strong> (<em>dict</em>) – Structured “hints” for a Model trying to read this phase.
 Hints for major constituents and typedefs (Thermo-Calc) go here.</p></li>
 <li><p><strong>sublattices</strong> (<em>list</em>) – Site ratios of sublattices.</p></li>
 </ul>
