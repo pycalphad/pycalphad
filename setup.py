@@ -72,8 +72,8 @@ setup(
         # conda-forge Anaconda channel. For example, conda-forge/symengine
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
-        'Cython>=0.24',
         'cyipopt>=1.0',
+        'Cython>=0.24',
         'matplotlib',
         'numpy>=1.13',
         'pyparsing',
