@@ -10,7 +10,7 @@ dependencies:
   # `setup.py`). For example, conda-forge/symengine gives the C++ SymEngine
   # library, while conda-forge/python-symengine provides the Python package
   # called `symengine`.
-  - cyipopt>=0.3
+  - cyipopt>=1.0
   - cython>=0.24
   - matplotlib
   - numpy>=1.13
