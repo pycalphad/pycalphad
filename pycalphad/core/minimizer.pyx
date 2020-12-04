@@ -731,7 +731,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         #print('equilibrium_rhs', np.array(equilibrium_soln))
         mass_residual = np.sum(np.abs(mass_residuals))
         lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
-              &equilibrium_soln[0], 1e-50)
+              &equilibrium_soln[0], -1)
         # XXX: Not strictly valid for varying state variables
         delta_phase_amt = np.abs(np.array(equilibrium_soln[num_components:]))
         #print('trial_delta_phase_amt', np.array(delta_phase_amt))
