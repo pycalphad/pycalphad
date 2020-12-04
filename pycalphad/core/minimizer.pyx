@@ -51,7 +51,7 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess, C
                                int num_statevars, double[::1] chemical_potentials, double[::1] phase_dof,
                                int[::1] fixed_phase_dof_indices):
     "Compute the LHS of Eq. 41, Sundman 2015."
-    cdef int comp_idx, i, j
+    cdef int comp_idx, i, j, cons_idx, fixed_dof_idx
     cdef int num_components = chemical_potentials.shape[0]
     cdef double[:, ::1] cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
                                                 num_statevars + compset.phase_record.phase_dof))
@@ -88,8 +88,7 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess, C
 
 
 cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_rhs, CompositionSet compset,
-                                 double[::1] delta_statevars, double[::1] chemical_potentials, double[::1] phase_dof,
-                                 double logbarrier_scale):
+                                 double[::1] delta_statevars, double[::1] chemical_potentials, double[::1] phase_dof):
     "Compute the system of equations in Eq. 41, Sundman 2015."
     cdef int i, cons_idx, comp_idx, sv_idx
     cdef int num_statevars = delta_statevars.shape[0]
@@ -112,10 +111,6 @@ cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_r
     compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, chemical_potentials, phase_dof,
                          np.array([], dtype=np.int32))
 
-    # Add log-barrier terms to Hessian; only affects the diagonal
-    for i in range(compset.phase_record.phase_dof):
-        phase_matrix[i, i] += logbarrier_scale * (1.0/(phase_dof[num_statevars+i]**2))
-
     # Compute right-hand side of Eq. 41, Sundman 2015
     for i in range(compset.phase_record.phase_dof):
         phase_rhs[i] = -grad_tmp[num_statevars+i]
@@ -123,8 +118,6 @@ cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_r
             phase_rhs[i] -= hess_tmp[num_statevars + i, sv_idx] * delta_statevars[sv_idx]
         for comp_idx in range(num_components):
             phase_rhs[i] += chemical_potentials[comp_idx] * mass_jac_tmp[comp_idx, num_statevars + i]
-        # Add log-barrier terms to right-hand side
-        phase_rhs[i] -= logbarrier_scale * (-1.0/phase_dof[num_statevars+i])
 
     for cons_idx in range(num_internal_cons):
         phase_rhs[compset.phase_record.phase_dof + cons_idx] = -cons_tmp[cons_idx]
@@ -149,6 +142,7 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
     cdef int num_fixed_components = prescribed_elemental_amounts.shape[0]
     # Eq. 44
     cdef double[::1] c_G = np.zeros(num_phase_dof)
+    cdef double[::1] delta_m = np.zeros(num_components)
     cdef double[:, ::1] c_statevars = np.zeros((num_phase_dof, num_statevars))
     cdef double[:, ::1] c_component = np.zeros((num_components, num_phase_dof))
     cdef double moles_normalization = 0
@@ -166,7 +160,6 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
             for j in range(num_phase_dof):
                 c_component[comp_idx, i] += mass_jac[comp_idx, num_statevars + j] * full_e_matrix[i, j]
     #print('c_component', np.array(c_component))
-    delta_m = np.zeros(num_components)
     for comp_idx in range(num_components):
         for i in range(num_phase_dof):
             mu_c_sum = np.dot(np.array(c_component)[:, i], chemical_potentials)
@@ -291,7 +284,7 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
             for j in range(c_component.shape[1]):
                 equilibrium_rhs[system_amount_index] -= phase_amt[idx] * chemical_potentials[
                     chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
-    return delta_m
+    return np.array(delta_m)
 
 
 cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
@@ -302,7 +295,7 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
                                     int[::1] fixed_chemical_potential_indices,
                                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                                     int num_statevars, double prescribed_system_amount, object dof,
-                                    double[::1] compset_step_sizes, bint flip_residual_sign, bint finalize_chempots) except +:
+                                    bint flip_residual_sign, bint finalize_chempots) except +:
     cdef int stable_idx, idx, component_row_offset, component_idx, fixed_component_idx, comp_idx, system_amount_index
     cdef CompositionSet compset
     cdef int num_components = chemical_potentials.shape[0]
@@ -311,6 +304,7 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     # Placeholder (output unused)
     cdef int[::1] ipiv = np.empty(10*num_components*num_stable_phases, dtype=np.int32)
     cdef double mass_residual
+    cdef double step_size = 1.0
     cdef double current_system_amount = 0
     cdef double[::1] x
     cdef double[::1,:] energy_tmp
@@ -321,7 +315,8 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     cdef double[:,::1] phase_matrix
     cdef double[:,::1] e_matrix, full_e_matrix
     cdef double[::1] mole_fractions = np.zeros(num_components)
-    all_delta_m = []
+    cdef np.ndarray[ndim=2,dtype=np.float64_t] all_delta_m = np.zeros((free_stable_compset_indices.shape[0], num_components))
+
     mass_residuals = np.zeros(num_components)
     # Compute normalized global quantities
     for stable_idx in range(free_stable_compset_indices.shape[0]):
@@ -339,7 +334,6 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     for stable_idx in range(free_stable_compset_indices.shape[0]):
         idx = free_stable_compset_indices[stable_idx]
         compset = compsets[idx]
-        step_size = compset_step_sizes[idx]
         # TODO: Use better dof storage
         # Calculate key phase quantities starting here
         x = dof[idx]
@@ -381,7 +375,7 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
                                           free_stable_compset_indices, fixed_chemical_potential_indices,
                                           prescribed_element_indices, prescribed_elemental_amounts,
                                           idx, stable_idx, num_statevars)
-        all_delta_m.append(np.array(delta_m))
+        all_delta_m[stable_idx, :] = delta_m
 
     # Add mass residual to fixed component row RHS, plus N=1 row
     mass_residual = 0.0
@@ -487,7 +481,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                     int[::1] fixed_chemical_potential_indices,
                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                     int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
-    cdef int iteration, idx, idx2, comp_idx, i
+    cdef int iteration, idx, idx2, comp_idx, phase_idx, i
     cdef int num_stable_phases, num_fixed_components, num_free_variables
     cdef CompositionSet compset, compset2
     cdef double mass_residual = 1e-30
@@ -510,19 +504,17 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef double[::1] equilibrium_rhs, equilibrium_soln, phase_rhs, soln
     cdef double[::1] delta_statevars = np.zeros(num_statevars)
     cdef double[1] largest_statevar_change, largest_phase_amt_change
+    cdef double grad_delta_dot
     cdef double largest_internal_dof_change, largest_cons_max_residual, largest_internal_cons_max_residual
     cdef bint converged = False
     cdef int max_dof = num_statevars + max([compset.phase_record.phase_dof for compset in compsets])
 
-    print('prescribed_element_indices', np.array(prescribed_element_indices))
-    print('prescribed_elemental_amounts', np.array(prescribed_elemental_amounts))
+    #print('prescribed_element_indices', np.array(prescribed_element_indices))
+    #print('prescribed_elemental_amounts', np.array(prescribed_elemental_amounts))
 
-    from datetime import datetime
-    stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     mass_residual = 1e10
     all_mass_residuals = []
     flip_residual_sign = False
-    logbarrier_scale = 0
     for iteration in range(1000):
         current_elemental_amounts[:] = 0
         all_phase_energies[:,:] = 0
@@ -535,8 +527,6 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #print('Mass residual and chemical potentials too big; resetting chemical potentials')
             chemical_potentials[:] = initial_chemical_potentials
         # FIRST STEP: Update phase internal degrees of freedom
-        compset_step_sizes = np.zeros(len(compsets))
-        compset_step_sizes[:] = 1.0
         large_internal_cons = False
         for idx, compset in enumerate(compsets):
             if iteration == 0:
@@ -555,7 +545,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             internal_cons_tmp[:] = 0
             # RHS copied into soln, then overwritten by solve()
             internal_cons_max_residual = \
-                compute_phase_system(phase_matrix, soln, compset, delta_statevars, chemical_potentials, x, logbarrier_scale)
+                compute_phase_system(phase_matrix, soln, compset, delta_statevars, chemical_potentials, x)
             #print('chemical_potentials', np.array(chemical_potentials))
             #print('phase_matrix', np.array(phase_matrix))
             #print('phase_rhs', np.array(soln))
@@ -582,8 +572,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             compset.phase_record.formulaobj(energy_tmp[0, :], x)
             delta_m = np.dot(mass_gradient[:, num_statevars:], delta_y)
             rel_delta_m = np.array(delta_m) / np.squeeze(masses_tmp)
-            print('delta_m', np.array(delta_m))
-            print('rel_delta_m', np.array(rel_delta_m))
+            #print('delta_m', np.array(delta_m))
+            #print('rel_delta_m', np.array(rel_delta_m))
             largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
             new_y = np.array(x)
             candidate_y_energy = np.zeros((1,1))
@@ -591,9 +581,9 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             candidate_internal_cons = np.zeros(compset.phase_record.num_internal_cons)
             current_phase_gradient = np.array(phase_gradient)
             grad_delta_dot = np.dot(current_phase_gradient, delta_y)
-            print('grad_delta_dot', grad_delta_dot)
-            print('delta_y', np.array(delta_y))
-            print('grad_delta_over_dm', grad_delta_dot/delta_m)
+            #print('grad_delta_dot', grad_delta_dot)
+            #print('delta_y', np.array(delta_y))
+            #print('grad_delta_over_dm', grad_delta_dot/delta_m)
             #if np.dot(current_phase_gradient, delta_y) > 0:
             #    print('delta_y is not a descent direction!')
             #if np.max(np.abs(delta_y)) < 1e-7:
@@ -640,10 +630,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 #print(idx, 'wolfe', wolfe_criteria, (step_size*np.dot(delta_y, current_phase_gradient)))
                 #print('bypassing')
                 #wolfe_passed = True
-                #compset_step_sizes[idx] = step_size
                 if True:#wolfe_criteria <= 1e-6 * step_size * np.dot(delta_y, current_phase_gradient):
                     wolfe_passed = True
-                    #compset_step_sizes[idx] = step_size
                     break
                 candidate_y_masses[:,0] = 0
                 candidate_y_energy[0,0] = 0
@@ -656,13 +644,9 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             for i in range(num_statevars, new_y.shape[0]):
                 largest_internal_dof_change = max(largest_internal_dof_change, abs(new_y[i] - x[i]))
             x[:] = new_y
-            print('step_size', step_size)
-            print('candidate_internal_cons', np.array(candidate_internal_cons))
-            print(idx, 'new_y', np.array(new_y))
-            #print(compset.phase_record.variables)
-            # XXX: This needs some work, to deal with infeasible composition sets which had to be removed
-            #if np.any(np.abs(candidate_internal_cons) > 1e-6) and phase_amt[idx] > 0:
-            #    raise ValueError('Internal constraint violation too large')
+            #print('step_size', step_size)
+            #print('candidate_internal_cons', np.array(candidate_internal_cons))
+            #print(idx, 'new_y', np.array(new_y))
 
             for comp_idx in range(num_components):
                 compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
@@ -671,12 +655,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                     current_elemental_amounts[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
             compset.phase_record.formulaobj(all_phase_energies[idx, :], x)
 
-        #print('all_phase_amounts', np.array(all_phase_amounts))
         # SECOND STEP: Update potentials and phase amounts, according to conditions
-        #print('chemical_potentials', np.array(chemical_potentials))
-        #print('phase_amt', np.array(phase_amt))
-        #print('free_stable_compset_indices', np.array(free_stable_compset_indices))
-        #print('compset_step_sizes', np.array(compset_step_sizes))
         current_elemental_amounts[:] = 0
 
         for idx in range(phase_amt.shape[0]):
@@ -708,7 +687,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         if (iteration > 100) and (mass_residual > 0.1):
             if np.mean(np.diff(all_mass_residuals[-10:])) > 0:
                 flip_residual_sign = True
-        print('flip_residual_sign ', flip_residual_sign)
+        #print('flip_residual_sign ', flip_residual_sign)
         #print('finalize_chemical_potentials', finalize_chemical_potentials)
         equilibrium_matrix[:,:] = 0
         equilibrium_soln[:] = 0
@@ -718,7 +697,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                                 fixed_chemical_potential_indices,
                                                 prescribed_element_indices,
                                                 prescribed_elemental_amounts, num_statevars, prescribed_system_amount,
-                                                dof, compset_step_sizes, flip_residual_sign, finalize_chemical_potentials)
+                                                dof, flip_residual_sign, finalize_chemical_potentials)
         # In some cases we may have only one stoichiometric phase stable in the system.
         # This will cause the equilibrium matrix to become singular, and the chemical potentials will be nonsensical.
         # This case can be identified by the presence of a row of all zeros in a fixed-mole-fraction row.
@@ -750,8 +729,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         all_mass_residuals.append(mass_residual)
         #print('delta_phase_amt', np.array(new_phase_amt) - np.array(phase_amt))
         phase_amt = new_phase_amt
-        print('mass_residuals', np.array(mass_residuals))
-        print('mass_residual', np.sum(np.abs(mass_residuals)))
+        #print('mass_residuals', np.array(mass_residuals))
+        #print('mass_residual', np.sum(np.abs(mass_residuals)))
         # Consolidate duplicate phases and remove unstable phases
         compsets_to_remove = set()
         for idx in range(len(compsets)):
@@ -786,7 +765,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 chemical_potentials[comp_idx] = initial_chemical_potentials[comp_idx]
         else:
             free_stable_compset_indices = new_free_stable_compset_indices
-        print('new_chemical_potentials', np.array(new_chemical_potentials))
+        #print('new_chemical_potentials', np.array(new_chemical_potentials))
         #if np.all(np.abs(new_chemical_potentials - np.array(chemical_potentials)) < 1.0):
         #    print('Chemical potentials settled; change phases')
         #    free_stable_compset_indices = np.array(np.nonzero(np.array(phase_amt) > 0)[0], dtype=np.int32)
@@ -837,7 +816,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                     compset.phase_record.mass_obj(phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
                 compset.phase_record.obj(phase_energies_per_mole_atoms[idx, :], x)
                 driving_forces[idx] =  np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0]) - phase_energies_per_mole_atoms[idx, 0]
-            print(f'driving_forces {driving_forces}')
+            #print(f'driving_forces {driving_forces}')
             converged, new_free_stable_compset_indices = \
                 check_convergence_and_change_phases(phase_amt, free_stable_compset_indices, metastable_phase_iterations,
                                                     times_compset_removed, driving_forces,
