@@ -203,7 +203,7 @@ def test_eq_ternary_edge_case_mass():
     assert_allclose(eq.GM.values, -97913.542)  # from Thermo-Calc 2017b
     result_chempots = eq.MU.values.flatten()
     assert_allclose(result_chempots[:2], [-86994.575, -184582.17], atol=0.1)  # from Thermo-Calc 2017b
-    assert result_chempots[2] < -350000  # Estimated
+    assert result_chempots[2] < -300000  # Estimated
     assert np.all(np.abs(mass_error) < 1e-10)
 
 def test_eq_ternary_inside_mass():
@@ -240,7 +240,7 @@ def test_eq_issue43_chempots_misc_gap():
     # TODO: This change needs discussion
     # Do we care if the absolute mass error in the Ni amount is 2e-9, instead of 1e-9?
     assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.1246, 1e-9, 1-(.1246+1e-9)], rtol=1e-5)
-    assert_allclose(np.squeeze(eq.MU.values), chempots, rtol=1e-6)
+    assert_allclose(np.squeeze(eq.MU.values), chempots, rtol=1e-5)
     assert_allclose(np.squeeze(eq.GM.values), -81933.259)
 
 def test_eq_issue43_chempots_tricky_potentials():
