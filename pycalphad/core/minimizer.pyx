@@ -347,7 +347,7 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         masses_tmp = np.zeros((num_components, 1))
         mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
         if finalize_chempots:
-            fixed_phase_dof_indices = np.array(np.nonzero(np.array(x)[num_statevars:] <= 10*MIN_SITE_FRACTION)[0], dtype=np.int32)
+            fixed_phase_dof_indices = np.array(np.nonzero(np.array(x)[num_statevars:] <= 1.1*MIN_SITE_FRACTION)[0], dtype=np.int32)
         else:
             fixed_phase_dof_indices = np.array([], dtype=np.int32)
         # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
@@ -572,21 +572,28 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
 
             delta_y = soln[:compset.phase_record.phase_dof]
             internal_lagrange = soln[compset.phase_record.phase_dof:]
+            mass_gradient = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
 
             for comp_idx in range(num_components):
                 compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
+                compset.phase_record.formulamole_grad(mass_gradient[comp_idx, :], x, comp_idx)
                 all_phase_amounts[idx, comp_idx] = masses_tmp[comp_idx, 0]
             compset.phase_record.internal_cons_func(internal_cons_tmp, x)
             compset.phase_record.formulaobj(energy_tmp[0, :], x)
-
+            delta_m = np.dot(mass_gradient[:, num_statevars:], delta_y)
+            rel_delta_m = np.array(delta_m) / np.squeeze(masses_tmp)
+            print('delta_m', np.array(delta_m))
+            print('rel_delta_m', np.array(rel_delta_m))
             largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
             new_y = np.array(x)
             candidate_y_energy = np.zeros((1,1))
             candidate_y_masses = np.zeros((num_components, 1))
             candidate_internal_cons = np.zeros(compset.phase_record.num_internal_cons)
             current_phase_gradient = np.array(phase_gradient)
-            print('grad_delta_dot', np.dot(current_phase_gradient, delta_y))
+            grad_delta_dot = np.dot(current_phase_gradient, delta_y)
+            print('grad_delta_dot', grad_delta_dot)
             print('delta_y', np.array(delta_y))
+            print('grad_delta_over_dm', grad_delta_dot/delta_m)
             #if np.dot(current_phase_gradient, delta_y) > 0:
             #    print('delta_y is not a descent direction!')
             #if np.max(np.abs(delta_y)) < 1e-7:
@@ -606,21 +613,21 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 for i in range(num_statevars, new_y.shape[0]):
                     new_y[i] = x[i] + step_size * delta_y[i-num_statevars]
                     if new_y[i] > 1:
-                        if (new_y[i] - 1) > 1e-6:
+                        if (new_y[i] - 1) > 1e-11:
                             # Allow some tolerance in the name of progress
                             exceeded_bounds = True
                         new_y[i] = 1
                         if delta_y[i-num_statevars] > 0:
                             current_phase_gradient[i-num_statevars] = 0
                     elif new_y[i] < MIN_SITE_FRACTION:
-                        if (MIN_SITE_FRACTION - new_y[i]) > 1e-6:
+                        if (MIN_SITE_FRACTION - new_y[i]) > 1e-11:
                             # Allow some tolerance in the name of progress
                             exceeded_bounds = True
                         new_y[i] = MIN_SITE_FRACTION
                         if delta_y[i-num_statevars] < 0:
                             current_phase_gradient[i-num_statevars] = 0
                 if exceeded_bounds:
-                    step_size *= 0.9
+                    step_size *= 0.5
                     continue
                 for comp_idx in range(num_components):
                     compset.phase_record.formulamole_obj(candidate_y_masses[comp_idx, :], new_y, comp_idx)
@@ -696,7 +703,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Internal degrees of freedom at MIN_SITE_FRACTION need to be fixed when computing chemical potentials.
         # This is to ensure that the gradients accurately reflect the boundary condition.
         # However, we do not want to fix dof during the optimization, so we only enable this when close to convergence.
-        finalize_chemical_potentials = False#(mass_residual < 1e-10)
+        finalize_chemical_potentials = (mass_residual < 1e-7)
 
         if (iteration > 100) and (mass_residual > 0.1):
             if np.mean(np.diff(all_mass_residuals[-10:])) > 0:
@@ -808,7 +815,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         #print(f'mass_residual {mass_residual} largest_internal_cons_max_residual {largest_internal_cons_max_residual}')
         #print(f'largest_internal_dof_change {largest_internal_dof_change}')
-        system_is_feasible = (mass_residual < 5e-9) and (largest_internal_cons_max_residual < 1e-9) and \
+        system_is_feasible = (mass_residual < 1e-8) and (largest_internal_cons_max_residual < 1e-9) and \
                              (chempot_diff < 1e-12) and (largest_moles_change < 1e-10) and (iteration > 5)
         if system_is_feasible:
             converged = True
