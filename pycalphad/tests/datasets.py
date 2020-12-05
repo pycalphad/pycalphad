@@ -5569,21 +5569,19 @@ DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
 PHASE ALPHA %  2 0.5 0.5 !
 CONSTITUENT ALPHA :A: A,B :  !
 
-$  ALPHA  $
 PARAMETER G(ALPHA,A:A;0) 1 -10; 10000 N !
 PARAMETER G(ALPHA,A:B;0) 1 -10; 10000 N !
 
-$ Erroneous parameter! B is not in the first sublattice
+$ _array_validitiy should filter this parameter because B is not in the first sublattice
 PARAMETER G(ALPHA,B:A;0) 1 1e5; 10000 N !
 
 PHASE BETA % 2 0.5 0.5 !
 CONSTITUENT BETA :B: B,C :  !
 
 PARAMETER G(BETA,B:B;0) 1 -10; 10000 N !
-$Parameter to check if interaction_test is working well 
 PARAMETER G(BETA,B:B,C;0) 1 -10; 10000 N !
-$Erroneous parameter! _array_validity should filter bad comps params
+$ _array_validity should filter this parameter because D is not in the sublattice model
 PARAMETER G(BETA,B:D;0) 1 1e5; 10000 N !
-$Erroneous parameter! _array_validity should filter extra sublattice params
+$ _array_validity should filter this parameter because there are 3 sublattices
 PARAMETER G(BETA,B:B:C;0) 1 1e5; 10000 N !
 """
