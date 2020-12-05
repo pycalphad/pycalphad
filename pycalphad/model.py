@@ -441,19 +441,15 @@ class Model(object):
             # Allow an exception for the ionic liquid model, where neutral
             # species can be specified in the anion sublattice without any
             # species in the cation sublattice.
-            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-                for sublattice in constituent_array:
-                    if (set(sublattice).issubset(self.constituents[1]) \
-                        or (sublattice[0] == v.Species('*'))):
-                        return True
-                    else:
-                        return False
-            else:
-                return False
+            ionic_liquid_2SL = self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False)
+            if ionic_liquid_2SL and len(constituent_array) == 1:
+                param_sublattice = constituent_array[0]
+                model_anion_sublattice = self.constituents[1]
+                if (set(param_sublattice).issubset(model_anion_sublattice) or (param_sublattice[0] == v.Species('*'))):
+                    return True
             return False
-        for param_sublattice, model_sublattice in zip(constituent_array,self.constituents):
-            if not (set(param_sublattice).issubset(model_sublattice) \
-                or (param_sublattice[0] == v.Species('*'))):
+        for param_sublattice, model_sublattice in zip(constituent_array, self.constituents):
+            if not (set(param_sublattice).issubset(model_sublattice) or (param_sublattice[0] == v.Species('*'))):
                 return False
         return True
 
