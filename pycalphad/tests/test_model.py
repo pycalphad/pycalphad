@@ -73,57 +73,11 @@ def test_detect_pure_vacancy_phases():
         Model(dbf,['AL','CU','VA'],'ZRO2_CUBIC')
 
 
-def test_bad_constituents_not_in_model():
+def test_constituents_not_in_model():
+    """Test that parameters with constituent arrays not matching the phase model are filtered out correctly"""
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
     modA = Model(dbf, ['A', 'B'], 'ALPHA')
     modB = Model(dbf, ['B', 'C'], 'BETA')
     assert v.SiteFraction('ALPHA', 0, 'B') not in modA.ast.free_symbols
     assert v.SiteFraction('BETA', 1, 'D') not in modB.ast.free_symbols
     assert v.SiteFraction('BETA', 2, 'C') not in modB.ast.free_symbols
-
-
-def test_bad_constituents_do_not_affect_equilibrium():
-    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
-    assert np.isclose(equilibrium(dbf, ['A', 'B'], ['ALPHA'], {v.P: 101325, v.T: 300, v.N: 1, v.X('B'): 0.5}).GM.values.squeeze(), -10.0)
-    assert np.isclose(equilibrium(dbf, ['B', 'C'], ['BETA'], {v.P: 101325, v.T: 300, v.N: 1, v.X('C'): 0.001}).GM.values.squeeze(), -28, rtol=0.01)
-
-
-def test_interation_test_method():
-    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
-    A = {v.Species('A')}
-    B = {v.Species('B')}
-    C = {v.Species('C')}
-
-    interacting_query = where('constituent_array').test(lambda s: s[0][0] in B and B.union(C).issubset(s[1]))
-    interacting_consts = dbf.search(interacting_query)[0]['constituent_array']
-    assert Model(dbf, ['B', 'C'], 'BETA')._interaction_test(interacting_consts)
-
-    non_interacting_query = where('constituent_array').test(lambda s: s[0][0] in B and s[1][0] in A)
-    non_interacing_consts = dbf.search(non_interacting_query)[0]['constituent_array']
-    assert not Model(dbf, ['A', 'B'], 'ALPHA')._interaction_test(non_interacing_consts)
-
-
-def test_params_array_validity():
-    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
-    C = {v.Species('C')}
-    D = v.Species('D')
-    mod = Model(dbf, ['B', 'C'], 'BETA')
-
-
-    bad_comp_param = dbf.search(where('constituent_array').test(lambda s: (s[1][0] == D)))[0]['constituent_array']
-    assert not mod._interaction_test(bad_comp_param)
-
-    extra_subl_param = dbf.search(where('constituent_array').test(lambda s: len(s) == 3 and s[2][0] == C))[0]['constituent_array']
-    assert not mod._interaction_test(extra_subl_param)
-
-
-def test_model_energy():
-    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
-
-    # checks if components not specified in a sublattice are being filtered
-    ALPHA = Model(dbf, ['A', 'B'], 'ALPHA')
-    check_energy(ALPHA, {v.T: 1000, v.P: 101325, v.Y('ALPHA', 0, 'A'): 1, v.Y('ALPHA', 1, 'A'): 1, v.Y('ALPHA', 1, 'B'): 0, v.Y('ALPHA', 0, 'B'): 1}, -10, 'sympy')
-
-    # checks if extrasublattices or not specified components are being filtered
-    BETA = Model(dbf, ['B', 'C'], 'BETA')
-    check_energy(BETA, {v.T: 1000, v.P: 101325, v.Y('BETA', 0, 'B'): 1, v.Y('BETA', 1, 'B'): 1, v.Y('BETA', 1, 'C'): 1, v.Y('BETA', 2, 'C'): 1, v.Y('BETA', 1, 'D'): 1}, -13.333333, 'sympy')
