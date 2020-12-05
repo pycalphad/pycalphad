@@ -433,15 +433,6 @@ class Model(object):
         for key, value in self.__class__.contributions:
             self.models[key] = S(getattr(self, value)(dbe))
 
-    def _purity_test(self, constituent_array):
-        """
-        Check if constituent array only has one species in its array
-        This species must also be an active species and contained in model sublattice
-        """
-        if not self._array_validity(constituent_array):
-            return False
-        return not any(len(sublattice) != 1 for sublattice in constituent_array)
-
     def _array_validity(self, constituent_array):
         """
         Check that the current array contains only active species.
@@ -465,6 +456,15 @@ class Model(object):
                 or (param_sublattice[0] == v.Species('*'))):
                 return False
         return True
+
+    def _purity_test(self, constituent_array):
+        """
+        Check if constituent array only has one species in its array
+        This species must also be an active species and contained in model sublattice
+        """
+        if not self._array_validity(constituent_array):
+            return False
+        return not any(len(sublattice) != 1 for sublattice in constituent_array)
 
     def _interaction_test(self, constituent_array):
         """
