@@ -435,7 +435,7 @@ class Model(object):
 
     def _array_validity(self, constituent_array):
         """
-        Check that the current array contains only active species.
+        Return True if the constituent_array contains only active species of the current Model instance.
         """
         if len(constituent_array) != len(self.constituents):
             # Allow an exception for the ionic liquid model, where neutral
@@ -455,8 +455,8 @@ class Model(object):
 
     def _purity_test(self, constituent_array):
         """
-        Check if constituent array only has one species in its array
-        This species must also be an active species and contained in model sublattice
+        Return True if the constituent_array is valid and has exactly one
+        species in every sublattice.
         """
         if not self._array_validity(constituent_array):
             return False
@@ -464,8 +464,8 @@ class Model(object):
 
     def _interaction_test(self, constituent_array):
         """
-        Check if constituent array has more than one active species in
-        its array for at least one sublattice.
+        Return True if the constituent_array is valid and has more than one
+        species in at least one sublattice.
         """
         if not self._array_validity(constituent_array):
             return False
