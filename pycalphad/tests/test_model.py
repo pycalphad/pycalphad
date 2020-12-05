@@ -4,9 +4,6 @@ The test_model module contains unit tests for the Model object.
 from pycalphad import Database, Model, variables as v, equilibrium
 from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
 from pycalphad.core.errors import DofError
-from pycalphad.core.utils import unpack_components
-from pycalphad.tests.test_energy import check_energy
-from tinydb import where
 import numpy as np
 import pytest
 
