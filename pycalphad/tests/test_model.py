@@ -72,6 +72,7 @@ def test_detect_pure_vacancy_phases():
     with pytest.raises(DofError):
         Model(dbf,['AL','CU','VA'],'ZRO2_CUBIC')
 
+
 def test_bad_constituents_not_in_model():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
     modA = Model(dbf, ['A', 'B'], 'ALPHA')
@@ -80,10 +81,12 @@ def test_bad_constituents_not_in_model():
     assert v.SiteFraction('BETA', 1, 'D') not in modB.ast.free_symbols
     assert v.SiteFraction('BETA', 2, 'C') not in modB.ast.free_symbols
 
+
 def test_bad_constituents_do_not_affect_equilibrium():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
     assert np.isclose(equilibrium(dbf, ['A', 'B'], ['ALPHA'], {v.P: 101325, v.T: 300, v.N: 1, v.X('B'): 0.5}).GM.values.squeeze(), -10.0)
     assert np.isclose(equilibrium(dbf, ['B', 'C'], ['BETA'], {v.P: 101325, v.T: 300, v.N: 1, v.X('C'): 0.001}).GM.values.squeeze(), -28, rtol=0.01)
+
 
 def test_interation_test_method():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
@@ -101,20 +104,20 @@ def test_interation_test_method():
     assert Model(dbf,['B','C'],'BETA')._interaction_test(interacting_consts) == True
     assert Model(dbf, ['A','B'],'ALPHA')._interaction_test(non_interacing_consts) == False
 
+
 def test_params_array_validity():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
     D = v.Species('D')
     C = unpack_components(dbf, ['C'])
     bad_comp_param = dbf.search(
-        where('parameter') and \
         where('constituent_array').test(lambda s:(
             s[1][0] == D)))
     extra_subl_param = dbf.search(
-        where('parameter') and \
         where('constituent_array').test(lambda s:(
             True if (len(s) == 3 and s[2][0] == C) else False)))
     assert Model(dbf,['B','C'],'BETA')._interaction_test(bad_comp_param) == False
     assert Model(dbf,['B','C'],'BETA')._interaction_test(extra_subl_param) == False
+
 
 def test_model_energy():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
