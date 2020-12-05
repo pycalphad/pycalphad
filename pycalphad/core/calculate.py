@@ -7,13 +7,14 @@ from pycalphad.codegen.callables import build_phase_records
 from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
-    unpack_components, get_state_variables, instantiate_models
+from pycalphad.core.utils import filter_phases, unpack_condition,\
+    unpack_components, extract_parameters, instantiate_models
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
 import numpy as np
+from numpy import broadcast_to
 import itertools
 import collections
 from xarray import Dataset, concat
@@ -118,7 +119,8 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
 
 
 def _compute_phase_values(components, statevar_dict,
-                          points, phase_record, output, maximum_internal_dof, broadcast=True, fake_points=False,
+                          points, phase_record, output, maximum_internal_dof, broadcast=True,
+                          parameters=None, fake_points=False,
                           largest_energy=None):
     """
     Calculate output values for a particular phase.
@@ -141,6 +143,9 @@ def _compute_phase_values(components, statevar_dict,
     broadcast : bool
         If True, broadcast state variables against each other to create a grid.
         If False, assume state variables are given as equal-length lists (or single-valued).
+    parameters : OrderedDict {str -> float or sequence}, optional
+        Maps SymPy symbols to a scalar or 1-D array. The arrays must be equal length.
+        The corresponding PhaseRecord must have been initialized with the same parameters.
     fake_points : bool, optional (Default: False)
         If True, the first few points of the output surface will be fictitious
         points used to define an equilibrium hyperplane guaranteed to be above
@@ -180,9 +185,19 @@ def _compute_phase_values(components, statevar_dict,
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
     pts = points.reshape(-1, points.shape[-1])
     dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
-    phase_output = np.zeros(dof.shape[0], order='C')
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
-    phase_record.obj_2d(phase_output, dof)
+
+    param_symbols, parameter_array = extract_parameters(parameters)
+    parameter_array_length = parameter_array.shape[0]
+    if parameter_array_length == 0:
+        # No parameters specified
+        phase_output = np.zeros(dof.shape[0], order='C')
+        phase_record.obj_2d(phase_output, dof)
+    else:
+        # Vectorized parameter arrays
+        phase_output = np.zeros((dof.shape[0], parameter_array_length), order='C')
+        phase_record.obj_parameters_2d(phase_output, dof, parameter_array)
+
     for el_idx in range(len(pure_elements)):
         phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)
 
@@ -192,11 +207,20 @@ def _compute_phase_values(components, statevar_dict,
     if isinstance(phase_compositions, (float, int)):
         phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
     phase_output = np.asarray(phase_output, dtype=np.float)
-    phase_output.shape = points.shape[:-1]
+    if parameter_array_length <= 1:
+        phase_output.shape = points.shape[:-1]
+    else:
+        phase_output.shape = points.shape[:-1] + (parameter_array_length,)
     phase_compositions = np.asarray(phase_compositions, dtype=np.float)
     phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
     if fake_points:
-        phase_output = np.concatenate((broadcast_to(largest_energy, points.shape[:-2] + (max_tieline_vertices,)), phase_output), axis=-1)
+        output_shape = points.shape[:-2] + (max_tieline_vertices,)
+        if parameter_array_length > 1:
+            output_shape = output_shape + (parameter_array_length,)
+            concat_axis = -2
+        else:
+            concat_axis = -1
+        phase_output = np.concatenate((broadcast_to(largest_energy, output_shape), phase_output), axis=concat_axis)
         phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (max_tieline_vertices,)),
                                       np.full(points.shape[:-1], phase_record.phase_name, dtype='U' + str(len(phase_record.phase_name)))), axis=-1)
     else:
@@ -230,15 +254,22 @@ def _compute_phase_values(components, statevar_dict,
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
     else:
         output_columns = ['points']
+    if parameter_array_length > 1:
+        parameter_column = ['samples']
+        coordinate_dict['param_symbols'] = [str(x) for x in param_symbols]
+    else:
+        parameter_column = []
     data_arrays = {'X': (output_columns + ['component'], phase_compositions),
                    'Phase': (output_columns, phase_names),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
-                   output: (['dim_'+str(i) for i in range(len(phase_output.shape) - len(output_columns))] + output_columns, phase_output)
+                   output: (['dim_'+str(i) for i in range(len(phase_output.shape) - (len(output_columns)+len(parameter_column)))] + output_columns + parameter_column, phase_output)
                    }
     if not broadcast:
         # Add state variables as data variables rather than as coordinates
         for sym, vals in zip(statevar_dict.keys(), statevars):
             data_arrays.update({sym: (output_columns, vals)})
+    if parameter_array_length > 1:
+        data_arrays['param_values'] = (['samples', 'param_symbols'], parameter_array)
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 
@@ -361,7 +392,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
         phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
                                          points, phase_record, output,
-                                         maximum_internal_dof, broadcast=broadcast,
+                                         maximum_internal_dof, broadcast=broadcast, parameters=parameters,
                                          largest_energy=float(largest_energy), fake_points=fp)
         all_phase_data.append(phase_ds)
 

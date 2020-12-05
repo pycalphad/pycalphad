@@ -1,0 +1,50 @@
+name: Documentation
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  Latest-Docs:
+    name: Build and deploy latest documentation
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: website
+      DEPLOY_NAME: latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: "3.8"
+          environment-file: environment-dev.yml
+      - name: Conda Info
+        # login shell should be used so conda activate runs
+        shell: bash -l {0}
+        run: conda info
+      - name: Conda list
+        shell: bash -l {0}
+        run: conda list
+      - name: Install pycalphad development version
+        shell: bash -l {0}
+        run: pip install --no-deps -e .
+      - name: Sphinx Build
+        shell: bash -l {0}
+        run: sphinx-build -b html docs docs/_build/html
+      - run: git checkout $TARGET_BRANCH
+      - name: Copy Documentation to destination
+        run: |
+          mkdir -p docs/$DEPLOY_NAME
+          # clean any existing contents
+          rm -rf docs/$DEPLOY_NAME/*
+          # copy the output
+          cp -Rf docs/_build/html/* docs/$DEPLOY_NAME
+      - name: Commit and push changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add docs/$DEPLOY_NAME
+          git commit -m 'DOC: Deploy ${{ env.DEPLOY_NAME }} docs to website: ${{ github.sha }}'
+          git push

@@ -13,14 +13,6 @@ import itertools
 import collections
 from collections.abc import Iterable, Mapping
 
-try:
-    # Only available in numpy 1.10 and newer
-    from numpy import broadcast_to
-except ImportError:
-    def broadcast_to(arr, shape):
-        "Broadcast an array to a desired shape. Returns a view."
-        return np.broadcast_arrays(arr, np.empty(shape, dtype=np.bool))[0]
-
 
 def point_sample(comp_count, pdof=10):
     """
@@ -364,12 +356,15 @@ def extract_parameters(parameters):
     Returns
     -------
     tuple
-        Tuple of parameter symbols and parameter values
+        Tuple of parameter symbols (list) and parameter values (parameter_array_length, # parameters)
     """
+    parameter_array_lengths = set(np.atleast_1d(val).size for val in parameters.values())
+    if len(parameter_array_lengths) > 1:
+        raise ValueError('parameters kwarg does not contain arrays of equal length')
     if len(parameters) > 0:
         param_symbols, param_values = zip(*[(wrap_symbol(key), val) for key, val in sorted(parameters.items(),
                                                                               key=operator.itemgetter(0))])
-        param_values = np.asarray(param_values, dtype=np.float64)
+        param_values = np.atleast_2d(np.ascontiguousarray(np.asarray(param_values, dtype=np.float64).T))
     else:
         param_symbols = []
         param_values = np.empty(0)

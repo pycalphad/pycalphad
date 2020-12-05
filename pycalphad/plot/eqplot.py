@@ -137,32 +137,34 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
             two_phase_y = np.array([two_phase_y, two_phase_y]).swapaxes(0, 1)
 
         # plot two phase points
-        two_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]], found_two_phase)), dtype='U') # from pycalphad
-        ax.scatter(two_phase_x[..., 0], two_phase_y[..., 0], s=3, c=two_phase_plotcolors[:,0], edgecolors='None', zorder=2, **kwargs)
-        ax.scatter(two_phase_x[..., 1], two_phase_y[..., 1], s=3, c=two_phase_plotcolors[:,1], edgecolors='None', zorder=2, **kwargs)
+        two_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]], found_two_phase)), dtype='U')
+        ax.scatter(two_phase_x[..., 0], two_phase_y[..., 0], s=3, c=two_phase_plotcolors[:, 0], edgecolors='None', zorder=2, **kwargs)
+        ax.scatter(two_phase_x[..., 1], two_phase_y[..., 1], s=3, c=two_phase_plotcolors[:, 1], edgecolors='None', zorder=2, **kwargs)
 
         if tielines:
             # construct and plot tielines
             two_phase_tielines = np.array([np.concatenate((two_phase_x[..., 0][..., np.newaxis], two_phase_y[..., 0][..., np.newaxis]), axis=-1),
                                            np.concatenate((two_phase_x[..., 1][..., np.newaxis], two_phase_y[..., 1][..., np.newaxis]), axis=-1)])
             two_phase_tielines = np.rollaxis(two_phase_tielines, 1)
-            lc = mc.LineCollection(two_phase_tielines, zorder=1, colors=[0,1,0,1], linewidths=[0.5, 0.5])
+            green_tieline_color = [0, 1, 0, 1]  # RGBA
+            lc = mc.LineCollection(two_phase_tielines, zorder=1, colors=green_tieline_color, linewidths=[0.5, 0.5])
             ax.add_collection(lc)
 
     # If we found three phase regions:
-    if three_phase_idx[0].size > 0:
+    if (three_phase_idx[0].size > 0) and (len(indep_comps) == 2):
         found_three_phase = eq.Phase.values[three_phase_idx][..., :3]
         # get tieline endpoints
         three_phase_x = eq.X.sel(component=x.species.name).values[three_phase_idx][..., :3]
         three_phase_y = eq.X.sel(component=y.species.name).values[three_phase_idx][..., :3]
         # three phase tielines, these are tie triangles and we always plot them
         three_phase_tielines = np.array([np.concatenate((three_phase_x[..., 0][..., np.newaxis], three_phase_y[..., 0][..., np.newaxis]), axis=-1),
-                                     np.concatenate((three_phase_x[..., 1][..., np.newaxis], three_phase_y[..., 1][..., np.newaxis]), axis=-1),
-                                     np.concatenate((three_phase_x[..., 2][..., np.newaxis], three_phase_y[..., 2][..., np.newaxis]), axis=-1)])
-        three_phase_tielines = np.rollaxis(three_phase_tielines,1)
-        three_lc = mc.LineCollection(three_phase_tielines, zorder=1, colors=[1,0,0,1], linewidths=[0.5, 0.5])
+                                         np.concatenate((three_phase_x[..., 1][..., np.newaxis], three_phase_y[..., 1][..., np.newaxis]), axis=-1),
+                                         np.concatenate((three_phase_x[..., 2][..., np.newaxis], three_phase_y[..., 2][..., np.newaxis]), axis=-1)])
+        three_phase_tielines = np.rollaxis(three_phase_tielines, 1)
+        red_tie_triangle_color = [1, 0, 0, 1]  # RGBA
+        three_lc = mc.LineCollection(three_phase_tielines, zorder=1, colors=red_tie_triangle_color, linewidths=[0.5, 0.5])
         # plot three phase points and tielines
-        three_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]], colorlist[x[2]]], found_three_phase)), dtype='U') # from pycalphad
+        three_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]], colorlist[x[2]]], found_three_phase)), dtype='U')
         ax.scatter(three_phase_x[..., 0], three_phase_y[..., 0], s=3, c=three_phase_plotcolors[:, 0], edgecolors='None', zorder=2, **kwargs)
         ax.scatter(three_phase_x[..., 1], three_phase_y[..., 1], s=3, c=three_phase_plotcolors[:, 1], edgecolors='None', zorder=2, **kwargs)
         ax.scatter(three_phase_x[..., 2], three_phase_y[..., 2], s=3, c=three_phase_plotcolors[:, 2], edgecolors='None', zorder=2, **kwargs)
