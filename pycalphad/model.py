@@ -433,70 +433,43 @@ class Model(object):
         for key, value in self.__class__.contributions:
             self.models[key] = S(getattr(self, value)(dbe))
 
-    def _purity_test(self, constituent_array):
+    def _array_validity(self, constituent_array):
         """
-        Check if constituent array only has one species in its array
-        This species must also be an active species
+        Return True if the constituent_array contains only active species of the current Model instance.
         """
         if len(constituent_array) != len(self.constituents):
             # Allow an exception for the ionic liquid model, where neutral
             # species can be specified in the anion sublattice without any
             # species in the cation sublattice.
-            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-                pass
-            else:
-                return False
-        for sublattice in constituent_array:
-            if len(sublattice) != 1:
-                return False
-            if (sublattice[0] not in self.components) and \
-                (sublattice[0] != v.Species('*')):
+            ionic_liquid_2SL = self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False)
+            if ionic_liquid_2SL and len(constituent_array) == 1:
+                param_sublattice = constituent_array[0]
+                model_anion_sublattice = self.constituents[1]
+                if (set(param_sublattice).issubset(model_anion_sublattice) or (param_sublattice[0] == v.Species('*'))):
+                    return True
+            return False
+        for param_sublattice, model_sublattice in zip(constituent_array, self.constituents):
+            if not (set(param_sublattice).issubset(model_sublattice) or (param_sublattice[0] == v.Species('*'))):
                 return False
         return True
 
-    def _array_validity(self, constituent_array):
+    def _purity_test(self, constituent_array):
         """
-        Check that the current array contains only active species.
+        Return True if the constituent_array is valid and has exactly one
+        species in every sublattice.
         """
-        if len(constituent_array) != len(self.constituents):
-            # Allow an exception for the ionic liquid model, where neutral
-            # species can be specified in the anion sublattice without any
-            # species in the cation sublattice.
-            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-                pass
-            else:
-                return False
-        for sublattice in constituent_array:
-            valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == v.Species('*')
-            if not valid:
-                return False
-        return True
+        if not self._array_validity(constituent_array):
+            return False
+        return not any(len(sublattice) != 1 for sublattice in constituent_array)
 
     def _interaction_test(self, constituent_array):
         """
-        Check if constituent array has more than one active species in
-        its array for at least one sublattice.
+        Return True if the constituent_array is valid and has more than one
+        species in at least one sublattice.
         """
-        result = False
-        if len(constituent_array) != len(self.constituents):
-            # Allow an exception for the ionic liquid model, where neutral
-            # species can be specified in the anion sublattice without any
-            # species in the cation sublattice.
-            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-                pass
-            else:
-                return False
-        for sublattice in constituent_array:
-            # check if all elements involved are also active
-            valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == v.Species('*')
-            if len(sublattice) > 1 and valid:
-                result = True
-            if not valid:
-                result = False
-                break
-        return result
+        if not self._array_validity(constituent_array):
+            return False
+        return any([len(sublattice) > 1 for sublattice in constituent_array])
 
     @property
     def _site_ratio_normalization(self):
