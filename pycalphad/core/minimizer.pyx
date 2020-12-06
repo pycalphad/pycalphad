@@ -473,6 +473,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                                                        for compset in compsets]), dtype=np.int32)
     cdef double[::1] chemical_potentials = np.array(initial_chemical_potentials)
     cdef double[::1] current_elemental_amounts = np.zeros(chemical_potentials.shape[0])
+    cdef int[::1] stable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
     cdef int[::1] metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
     cdef int[::1] times_compset_removed = np.zeros(len(compsets), dtype=np.int32)
     cdef double[:,::1] all_phase_energies = np.zeros((len(compsets), 1))
@@ -494,6 +495,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     mass_residual = 1e10
     all_mass_residuals = []
     flip_residual_sign = False
+    phase_change_counter = 5
     for iteration in range(1000):
         current_elemental_amounts[:] = 0
         all_phase_energies[:,:] = 0
@@ -543,7 +545,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             compset.phase_record.formulaobj(energy_tmp[0, :], x)
             delta_m = np.dot(mass_gradient[:, num_statevars:], delta_y)
             rel_delta_m = np.array(delta_m) / np.squeeze(masses_tmp)
-            #print('delta_m', np.array(delta_m))
+            print(idx, 'delta_m', np.array(delta_m))
             #print('rel_delta_m', np.array(rel_delta_m))
             largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
             new_y = np.array(x)
@@ -552,7 +554,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             candidate_internal_cons = np.zeros(compset.phase_record.num_internal_cons)
             current_phase_gradient = np.array(phase_gradient)
             grad_delta_dot = np.dot(current_phase_gradient, delta_y)
-            #print('grad_delta_dot', grad_delta_dot)
+            print(idx, 'grad_delta_dot', grad_delta_dot)
             #print('delta_y', np.array(delta_y))
             #print('grad_delta_over_dm', grad_delta_dot/delta_m)
             #if np.dot(current_phase_gradient, delta_y) > 0:
@@ -562,7 +564,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #else:
             #    step_size = 1e-7 / np.max(np.abs(delta_y))
             # Compute the largest step size which will not exceed the bounds
-            if (iteration > 50) or (mass_residual < 1e-2):
+            if (phase_change_counter == 0) and ((iteration > 50) or (mass_residual < 1e-2)):
                 step_size = 1/(10 + np.max(np.abs(delta_y)))
             else:
                 step_size = 1.0/100
@@ -595,7 +597,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             for i in range(num_statevars, new_y.shape[0]):
                 largest_internal_dof_change = max(largest_internal_dof_change, abs(new_y[i] - x[i]))
             x[:] = new_y
-            #print('step_size', step_size)
+            print(idx, 'step_size', step_size)
             #print(idx, 'new_y', np.array(new_y))
 
             for comp_idx in range(num_components):
@@ -634,11 +636,11 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # However, we do not want to fix dof during the optimization, so we only enable this when close to convergence.
         finalize_chemical_potentials = (mass_residual < 1e-7)
 
-        if (iteration > 100) and (mass_residual > 0.1):
-            if np.mean(np.diff(all_mass_residuals[-10:])) > 0:
+        if (iteration > 100) and (mass_residual > 0.1) and (phase_change_counter == 0):
+            if np.mean(np.diff(all_mass_residuals[-5:])) > 0:
                 flip_residual_sign = True
-        #print('flip_residual_sign ', flip_residual_sign)
-        #print('finalize_chemical_potentials', finalize_chemical_potentials)
+        print('flip_residual_sign ', flip_residual_sign)
+        print('finalize_chemical_potentials', finalize_chemical_potentials)
         equilibrium_matrix[:,:] = 0
         equilibrium_soln[:] = 0
         mass_residuals, delta_ms = fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, compsets, chemical_potentials,
@@ -679,8 +681,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         all_mass_residuals.append(mass_residual)
         #print('delta_phase_amt', np.array(new_phase_amt) - np.array(phase_amt))
         phase_amt = new_phase_amt
-        #print('mass_residuals', np.array(mass_residuals))
-        #print('mass_residual', np.sum(np.abs(mass_residuals)))
+        print('mass_residuals', np.array(mass_residuals))
+        print('mass_residual', np.sum(np.abs(mass_residuals)))
         # Consolidate duplicate phases and remove unstable phases
         compsets_to_remove = set()
         for idx in range(len(compsets)):
@@ -715,7 +717,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 chemical_potentials[comp_idx] = initial_chemical_potentials[comp_idx]
         else:
             free_stable_compset_indices = new_free_stable_compset_indices
-        #print('new_chemical_potentials', np.array(new_chemical_potentials))
+        print('new_chemical_potentials', np.array(new_chemical_potentials))
         for dof_idx in range(phase_amt.shape[0]):
             if phase_amt[dof_idx] < 0.0:
                 phase_amt[dof_idx] = 0
@@ -729,7 +731,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             chempot_diff = 0.0
         largest_moles_change = np.max(np.abs(delta_ms))
         chemical_potentials = new_chemical_potentials
-        #print('new_phase_amt', np.array(phase_amt))
+        print('new_phase_amt', np.array(phase_amt))
         #print('free_stable_compset_indices', np.array(free_stable_compset_indices))
 
         #print('new_chemical_potentials', np.array(chemical_potentials))
@@ -740,7 +742,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         #print(f'mass_residual {mass_residual} largest_internal_cons_max_residual {largest_internal_cons_max_residual}')
         #print(f'largest_internal_dof_change {largest_internal_dof_change}')
         system_is_feasible = (mass_residual < 1e-8) and (largest_internal_cons_max_residual < 1e-9) and \
-                             (chempot_diff < 1e-12) and (largest_moles_change < 1e-10) and (iteration > 5)
+                             (chempot_diff < 1e-12) and (iteration > 5) and (largest_moles_change < 1e-11) and (phase_change_counter == 0)
         if system_is_feasible:
             converged = True
             new_free_stable_compset_indices = np.array([i for i in range(phase_amt.shape[0])
@@ -761,7 +763,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                     compset.phase_record.mass_obj(phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
                 compset.phase_record.obj(phase_energies_per_mole_atoms[idx, :], x)
                 driving_forces[idx] =  np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0]) - phase_energies_per_mole_atoms[idx, 0]
-            #print(f'driving_forces {driving_forces}')
+            print(f'driving_forces {driving_forces}')
             converged, new_free_stable_compset_indices = \
                 check_convergence_and_change_phases(phase_amt, free_stable_compset_indices, metastable_phase_iterations,
                                                     times_compset_removed, driving_forces,
@@ -778,13 +780,18 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             if converged:
                 converged = True
                 break
+            phase_change_counter = 5
             free_stable_compset_indices = np.array(new_free_stable_compset_indices, dtype=np.int32)
 
         for idx in range(len(compsets)):
             if idx in free_stable_compset_indices:
                 metastable_phase_iterations[idx] = 0
+                stable_phase_iterations[idx] += 1
             else:
                 metastable_phase_iterations[idx] += 1
+                stable_phase_iterations[idx] = 0
+        if phase_change_counter > 0:
+            phase_change_counter -= 1
     if not converged:
         raise ValueError('Not converged')
     # Convert moles of formula units to phase fractions
