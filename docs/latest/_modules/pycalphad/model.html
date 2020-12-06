@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.8.4+3.g415e759d documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.8.4+4.g2a20a6d5 documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.8.4+3.g415e759d
+                0.8.4+4.g2a20a6d5
               </div>
             
           
@@ -593,70 +593,43 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">contributions</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)(</span><span class="n">dbe</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="nf">_purity_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_array_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check if constituent array only has one species in its array</span>
-<span class="sd">        This species must also be an active species</span>
+<span class="sd">        Return True if the constituent_array contains only active species of the current Model instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
             <span class="c1"># Allow an exception for the ionic liquid model, where neutral</span>
             <span class="c1"># species can be specified in the anion sublattice without any</span>
             <span class="c1"># species in the cation sublattice.</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="k">pass</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="ow">and</span> \
-                <span class="p">(</span><span class="n">sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)):</span>
+            <span class="n">ionic_liquid_2SL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ionic_liquid_2SL</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">param_sublattice</span> <span class="o">=</span> <span class="n">constituent_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">model_anion_sublattice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">param_sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">model_anion_sublattice</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">param_sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">))):</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">param_sublattice</span><span class="p">,</span> <span class="n">model_sublattice</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">param_sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">model_sublattice</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">param_sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">))):</span>
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">_array_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_purity_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check that the current array contains only active species.</span>
+<span class="sd">        Return True if the constituent_array is valid and has exactly one</span>
+<span class="sd">        species in every sublattice.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
-            <span class="c1"># Allow an exception for the ionic liquid model, where neutral</span>
-            <span class="c1"># species can be specified in the anion sublattice without any</span>
-            <span class="c1"># species in the cation sublattice.</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="k">pass</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">:</span>
-            <span class="n">valid</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> \
-                <span class="ow">or</span> <span class="n">sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_interaction_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check if constituent array has more than one active species in</span>
-<span class="sd">        its array for at least one sublattice.</span>
+<span class="sd">        Return True if the constituent_array is valid and has more than one</span>
+<span class="sd">        species in at least one sublattice.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
-            <span class="c1"># Allow an exception for the ionic liquid model, where neutral</span>
-            <span class="c1"># species can be specified in the anion sublattice without any</span>
-            <span class="c1"># species in the cation sublattice.</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="k">pass</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">:</span>
-            <span class="c1"># check if all elements involved are also active</span>
-            <span class="n">valid</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> \
-                <span class="ow">or</span> <span class="n">sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">valid</span><span class="p">:</span>
-                <span class="n">result</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
-                <span class="n">result</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="k">break</span>
-        <span class="k">return</span> <span class="n">result</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_site_ratio_normalization</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
