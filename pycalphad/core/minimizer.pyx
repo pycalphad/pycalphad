@@ -714,8 +714,9 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             x = dof[idx]
             for sv_idx in range(delta_statevars.shape[0]):
                 x[sv_idx] += delta_statevars[sv_idx]
-                # XXX: Do not merge this temporary hack
-                x[sv_idx] = max(300, x[sv_idx])
+            # XXX: Do not merge this temporary hack for the temperature
+            # We need real state variable bounds support
+            x[2] = max(300, x[sv_idx])
         # Force some chemical potentials to adopt their fixed values
         for cp_idx in range(fixed_chemical_potential_indices.shape[0]):
             comp_idx = fixed_chemical_potential_indices[cp_idx]
