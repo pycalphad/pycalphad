@@ -68,7 +68,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color = [
         List or RGBA components (0..1) to set the color of the three phase region
         tie triangles.
     legend_generator : Function
-        A function taht will be called with the list of phases and will return
+        A function that will be called with the list of phases and will return
         legend labels and colors for each phase. By default pycalphad.plot.utils.phase_legend
         is used
     kwargs : kwargs
