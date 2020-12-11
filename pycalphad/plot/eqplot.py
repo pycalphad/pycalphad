@@ -44,7 +44,7 @@ def _map_coord_to_variable(coord):
         return coord
 
 
-def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
+def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color = [0, 1, 0, 1], tie_triangle_color = [1, 0, 0, 1], legend_generator=phase_legend, **kwargs):
     """
     Plot the result of an equilibrium calculation.
 
@@ -61,6 +61,16 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
     z : StateVariable, optional
     tielines : bool
         If True, will plot tielines
+    tieline_color: [R,G,B,A]
+        List or RGBA components (0..1) to set the color of the two phase region
+        tielines.
+    tie_triangle_color: [R,G,B,A]
+        List or RGBA components (0..1) to set the color of the three phase region
+        tie triangles.
+    legend_generator : Function
+        A function taht will be called with the list of phases and will return
+        legend labels and colors for each phase. By default pycalphad.plot.utils.phase_legend
+        is used
     kwargs : kwargs
         Passed to `matplotlib.pyplot.scatter`.
 
@@ -119,7 +129,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
     three_phase_idx = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int) == 3)
     two_phase_idx = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int) == 2)
 
-    legend_handles, colorlist = phase_legend(phases)
+    legend_handles, colorlist = legend_generator(phases)
 
     # For both two and three phase, cast the tuple of indices to an array and flatten
     # If we found two phase regions:
@@ -146,8 +156,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
             two_phase_tielines = np.array([np.concatenate((two_phase_x[..., 0][..., np.newaxis], two_phase_y[..., 0][..., np.newaxis]), axis=-1),
                                            np.concatenate((two_phase_x[..., 1][..., np.newaxis], two_phase_y[..., 1][..., np.newaxis]), axis=-1)])
             two_phase_tielines = np.rollaxis(two_phase_tielines, 1)
-            green_tieline_color = [0, 1, 0, 1]  # RGBA
-            lc = mc.LineCollection(two_phase_tielines, zorder=1, colors=green_tieline_color, linewidths=[0.5, 0.5])
+            lc = mc.LineCollection(two_phase_tielines, zorder=1, colors=tieline_color, linewidths=[0.5, 0.5])
             ax.add_collection(lc)
 
     # If we found three phase regions:
@@ -161,8 +170,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
                                          np.concatenate((three_phase_x[..., 1][..., np.newaxis], three_phase_y[..., 1][..., np.newaxis]), axis=-1),
                                          np.concatenate((three_phase_x[..., 2][..., np.newaxis], three_phase_y[..., 2][..., np.newaxis]), axis=-1)])
         three_phase_tielines = np.rollaxis(three_phase_tielines, 1)
-        red_tie_triangle_color = [1, 0, 0, 1]  # RGBA
-        three_lc = mc.LineCollection(three_phase_tielines, zorder=1, colors=red_tie_triangle_color, linewidths=[0.5, 0.5])
+        three_lc = mc.LineCollection(three_phase_tielines, zorder=1, colors=tie_triangle_color, linewidths=[0.5, 0.5])
         # plot three phase points and tielines
         three_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]], colorlist[x[2]]], found_three_phase)), dtype='U')
         ax.scatter(three_phase_x[..., 0], three_phase_y[..., 0], s=3, c=three_phase_plotcolors[:, 0], edgecolors='None', zorder=2, **kwargs)
