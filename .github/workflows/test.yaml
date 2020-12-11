@@ -44,6 +44,7 @@ jobs:
         shell: bash -l {0}
         run: |
           pytest -v --cov=pycalphad
+          coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
