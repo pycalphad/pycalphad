@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   Tests:
-    name: Pull Request - Test ${{ matrix.os }} with ${{ matrix.python-version }}
+    name: Test ${{ matrix.os }} with ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
