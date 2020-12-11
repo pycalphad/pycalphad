@@ -1,6 +1,6 @@
 name: Tests
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   Tests:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      max-parallel: 9
+      max-parallel: 18
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.6", "3.7", "3.8"]
@@ -44,8 +44,8 @@ jobs:
         shell: bash -l {0}
         run: |
           pytest -v --cov=pycalphad
-      - name: Coveralls
-        shell: bash -l {0}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-        run: coveralls
+          coverage xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
