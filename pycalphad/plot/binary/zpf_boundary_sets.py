@@ -147,19 +147,21 @@ class ZPFBoundarySets():
         for cs in previous_all_compsets:
             self.add_compsets(cs, Xtol=Xtol, Ttol=Ttol)
 
-    def get_scatter_plot_boundaries(self, tieline_color = [0, 1, 0, 1], legend_generator=phase_legend):
+    def get_scatter_plot_boundaries(self, tieline_color=(0, 1, 0, 1), legend_generator=phase_legend):
         """
         Get the ZPF boundaries to plot from each two phase region.
 
         Parameters
         ----------
-        tieline_color: [R,G,B,A]
-            List or RGBA components (0..1) to set the color of the two phase region
-            tielines.
-        legend_generator : Function
-            A function that will be called with the list of phases and will return
-            legend labels and colors for each phase. By default pycalphad.plot.utils.phase_legend
-            is used
+        tieline_color: color
+            A valid matplotlib color, such as a named color string, hex RGB
+            string, or a tuple of RGBA components to set the color of the two
+            phase region tielines. The default is an RGBA tuple for green:
+            (0, 1, 0, 1).
+        legend_generator : Callable
+            A function that will be called with the list of phases and will
+            return legend labels and colors for each phase. By default
+            pycalphad.plot.utils.phase_legend is used
 
         Notes
         -----
@@ -204,7 +206,7 @@ class ZPFBoundarySets():
         tieline_collection = LineCollection(tieline_segments, zorder=1, linewidths=0.5, colors=tieline_colors)
         return scatter_dict, tieline_collection, legend_handles
 
-    def get_line_plot_boundaries(self, close_miscibility_gaps=0.05, tieline_color = [0, 1, 0, 1], legend_generator=phase_legend):
+    def get_line_plot_boundaries(self, close_miscibility_gaps=0.05, tieline_color=(0, 1, 0, 1), legend_generator=phase_legend):
         """
         Get the ZPF boundaries to plot from each two phase region.
 
@@ -214,13 +216,15 @@ class ZPFBoundarySets():
             If a float is passed, add a line segment between compsets at the top
              or bottom of a two phase region if the discrepancy is below a
              tolerance. If `None` is passed, do not close the gap.
-        tieline_color: [R,G,B,A]
-            List or RGBA components (0..1) to set the color of the two phase region
-            tielines.
-        legend_generator : Function
-            A function that will be called with the list of phases and will return
-            legend labels and colors for each phase. By default pycalphad.plot.utils.phase_legend
-            is used
+        tieline_color: color
+            A valid matplotlib color, such as a named color string, hex RGB
+            string, or a tuple of RGBA components to set the color of the two
+            phase region tielines. The default is an RGBA tuple for green:
+            (0, 1, 0, 1).
+        legend_generator : Callable
+            A function that will be called with the list of phases and will
+            return legend labels and colors for each phase. By default
+            pycalphad.plot.utils.phase_legend is used
 
         Notes
         -----

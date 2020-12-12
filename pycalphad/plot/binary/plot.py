@@ -11,7 +11,7 @@ from pycalphad.plot.utils import phase_legend
 from .map import map_binary
 
 
-def plot_boundaries(zpf_boundary_sets, tielines=True, tieline_color = [0, 1, 0, 1], scatter=True, legend_generator=phase_legend, ax=None, gridlines=False):
+def plot_boundaries(zpf_boundary_sets, tielines=True, tieline_color=(0, 1, 0, 1), scatter=True, legend_generator=phase_legend, ax=None, gridlines=False):
     """
     Plot a set of ZPFBoundarySets
 
@@ -20,18 +20,20 @@ def plot_boundaries(zpf_boundary_sets, tielines=True, tieline_color = [0, 1, 0, 
     zpf_boundary_sets : pycalphad.mapping.zpf_boundary_sets.ZPFBoundarySets
     tielines : optional, bool
         Whether the plot the tielines (defaults to True)
-    tieline_color: [R,G,B,A]
-        List or RGBA components (0..1) to set the color of the two phase region
-        tielines.
+    tieline_color: color
+        A valid matplotlib color, such as a named color string, hex RGB
+        string, or a tuple of RGBA components to set the color of the two
+        phase region tielines. The default is an RGBA tuple for green:
+        (0, 1, 0, 1).
     scatter : optional, bool
         Whether to use scatter plot the phase boundaries (True, the default) or
         to connect lines in the same two phase region by lines. Note that lines
         may appear broken when the set of phases change, even if the boundary
         does not change.
-    legend_generator : Function
-        A function that will be called with the list of phases and will return
-        legend labels and colors for each phase. By default pycalphad.plot.utils.phase_legend
-        is used
+    legend_generator : Callable
+        A function that will be called with the list of phases and will
+        return legend labels and colors for each phase. By default
+        pycalphad.plot.utils.phase_legend is used
     ax : plt.Axes
         Matplotlib axes to plot to. If none are pasesed, a new figure will be
         created.

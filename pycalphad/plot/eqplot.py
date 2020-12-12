@@ -44,7 +44,7 @@ def _map_coord_to_variable(coord):
         return coord
 
 
-def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color = [0, 1, 0, 1], tie_triangle_color = [1, 0, 0, 1], legend_generator=phase_legend, **kwargs):
+def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), legend_generator=phase_legend, **kwargs):
     """
     Plot the result of an equilibrium calculation.
 
@@ -61,16 +61,20 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color = [
     z : StateVariable, optional
     tielines : bool
         If True, will plot tielines
-    tieline_color: [R,G,B,A]
-        List or RGBA components (0..1) to set the color of the two phase region
-        tielines.
-    tie_triangle_color: [R,G,B,A]
-        List or RGBA components (0..1) to set the color of the three phase region
-        tie triangles.
-    legend_generator : Function
-        A function that will be called with the list of phases and will return
-        legend labels and colors for each phase. By default pycalphad.plot.utils.phase_legend
-        is used
+    tieline_color: color
+        A valid matplotlib color, such as a named color string, hex RGB
+        string, or a tuple of RGBA components to set the color of the two
+        phase region tielines. The default is an RGBA tuple for green:
+        (0, 1, 0, 1).
+    tie_triangle_color: color
+        A valid matplotlib color, such as a named color string, hex RGB
+        string, or a tuple of RGBA components to set the color of the two
+        phase region tielines. The default is an RGBA tuple for red:
+        (1, 0, 0, 1).
+    legend_generator : Callable
+        A function that will be called with the list of phases and will
+        return legend labels and colors for each phase. By default
+        pycalphad.plot.utils.phase_legend is used
     kwargs : kwargs
         Passed to `matplotlib.pyplot.scatter`.
 
