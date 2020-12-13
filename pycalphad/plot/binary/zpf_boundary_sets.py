@@ -147,9 +147,21 @@ class ZPFBoundarySets():
         for cs in previous_all_compsets:
             self.add_compsets(cs, Xtol=Xtol, Ttol=Ttol)
 
-    def get_scatter_plot_boundaries(self):
+    def get_scatter_plot_boundaries(self, tieline_color=(0, 1, 0, 1), legend_generator=phase_legend):
         """
         Get the ZPF boundaries to plot from each two phase region.
+
+        Parameters
+        ----------
+        tieline_color: color
+            A valid matplotlib color, such as a named color string, hex RGB
+            string, or a tuple of RGBA components to set the color of the two
+            phase region tielines. The default is an RGBA tuple for green:
+            (0, 1, 0, 1).
+        legend_generator : Callable
+            A function that will be called with the list of phases and will
+            return legend labels and colors for each phase. By default
+            pycalphad.plot.utils.phase_legend is used
 
         Notes
         -----
@@ -168,7 +180,7 @@ class ZPFBoundarySets():
         (scatter_dict, tieline_collection, legend_handles)
         """
         all_phases = self.get_phases()
-        legend_handles, colors = phase_legend(all_phases)
+        legend_handles, colors = legend_generator(all_phases)
         scatter_dict = {'x': [], 'y': [], 'c': []}
 
         tieline_segments = []
@@ -189,12 +201,12 @@ class ZPFBoundarySets():
                 # a segment is a list of [[x1, y1], [x2, y2]]
                 tieline_segments.append(np.array([xs, ys]).T)
                 # always a two phase region, green lines
-                tieline_colors.append([0, 1, 0, 1])
+                tieline_colors.append(tieline_color)
 
         tieline_collection = LineCollection(tieline_segments, zorder=1, linewidths=0.5, colors=tieline_colors)
         return scatter_dict, tieline_collection, legend_handles
 
-    def get_line_plot_boundaries(self, close_miscibility_gaps=0.05):
+    def get_line_plot_boundaries(self, close_miscibility_gaps=0.05, tieline_color=(0, 1, 0, 1), legend_generator=phase_legend):
         """
         Get the ZPF boundaries to plot from each two phase region.
 
@@ -204,6 +216,16 @@ class ZPFBoundarySets():
             If a float is passed, add a line segment between compsets at the top
              or bottom of a two phase region if the discrepancy is below a
              tolerance. If `None` is passed, do not close the gap.
+        tieline_color: color
+            A valid matplotlib color, such as a named color string, hex RGB
+            string, or a tuple of RGBA components to set the color of the two
+            phase region tielines. The default is an RGBA tuple for green:
+            (0, 1, 0, 1).
+        legend_generator : Callable
+            A function that will be called with the list of phases and will
+            return legend labels and colors for each phase. By default
+            pycalphad.plot.utils.phase_legend is used
+
         Notes
         -----
         For now, we will not support connecting regions with lines, so this
@@ -223,7 +245,7 @@ class ZPFBoundarySets():
         # TODO: add some tracking of the endpoints/startpoints and join them with
         #       a new line segment if they are close.
         all_phases = self.get_phases()
-        legend_handles, colors = phase_legend(all_phases)
+        legend_handles, colors = legend_generator(all_phases)
         tieline_segments = []
         tieline_colors = []
         boundary_segments = []
@@ -243,7 +265,7 @@ class ZPFBoundarySets():
                 # a segment is a list of [[x1, y1], [x2, y2]]
                 tieline_segments.append(np.array([xs, ys]).T)
                 # always a two phase region, green lines
-                tieline_colors.append([0, 1, 0, 1])
+                tieline_colors.append(tieline_color)
 
             # build the line collections for each two phase region
             ordered_phases = tpr.compsets[0].phases
@@ -268,4 +290,3 @@ class ZPFBoundarySets():
         boundary_collection = LineCollection(boundary_segments, colors=boundary_colors)
         tieline_collection = LineCollection(tieline_segments, zorder=1, linewidths=0.5, colors=tieline_colors)
         return boundary_collection, tieline_collection, legend_handles
-

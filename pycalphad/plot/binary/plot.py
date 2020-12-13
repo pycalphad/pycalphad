@@ -7,10 +7,11 @@ as `equilibrium`.
 import pycalphad.variables as v
 import matplotlib.pyplot as plt
 from pycalphad.plot.eqplot import _axis_label
+from pycalphad.plot.utils import phase_legend
 from .map import map_binary
 
 
-def plot_boundaries(zpf_boundary_sets, tielines=True, scatter=True, ax=None, gridlines=False):
+def plot_boundaries(zpf_boundary_sets, tielines=True, tieline_color=(0, 1, 0, 1), scatter=True, legend_generator=phase_legend, ax=None, gridlines=False):
     """
     Plot a set of ZPFBoundarySets
 
@@ -19,11 +20,20 @@ def plot_boundaries(zpf_boundary_sets, tielines=True, scatter=True, ax=None, gri
     zpf_boundary_sets : pycalphad.mapping.zpf_boundary_sets.ZPFBoundarySets
     tielines : optional, bool
         Whether the plot the tielines (defaults to True)
+    tieline_color: color
+        A valid matplotlib color, such as a named color string, hex RGB
+        string, or a tuple of RGBA components to set the color of the two
+        phase region tielines. The default is an RGBA tuple for green:
+        (0, 1, 0, 1).
     scatter : optional, bool
         Whether to use scatter plot the phase boundaries (True, the default) or
         to connect lines in the same two phase region by lines. Note that lines
         may appear broken when the set of phases change, even if the boundary
         does not change.
+    legend_generator : Callable
+        A function that will be called with the list of phases and will
+        return legend labels and colors for each phase. By default
+        pycalphad.plot.utils.phase_legend is used
     ax : plt.Axes
         Matplotlib axes to plot to. If none are pasesed, a new figure will be
         created.
@@ -38,10 +48,10 @@ def plot_boundaries(zpf_boundary_sets, tielines=True, scatter=True, ax=None, gri
     if ax is None:
         ax = plt.figure().gca()
     if scatter:
-        scatter_dict, tieline_coll, legend_handles = zpf_boundary_sets.get_scatter_plot_boundaries()
+        scatter_dict, tieline_coll, legend_handles = zpf_boundary_sets.get_scatter_plot_boundaries(tieline_color=tieline_color, legend_generator=legend_generator)
         ax.scatter(scatter_dict['x'], scatter_dict['y'], c=scatter_dict['c'], edgecolor='None', s=3, zorder=2)
     else:
-        boundary_collection, tieline_coll, legend_handles = zpf_boundary_sets.get_line_plot_boundaries()
+        boundary_collection, tieline_coll, legend_handles = zpf_boundary_sets.get_line_plot_boundaries(tieline_color=tieline_color, legend_generator=legend_generator)
         ax.add_collection(boundary_collection)
     if tielines:
         ax.add_collection(tieline_coll)
