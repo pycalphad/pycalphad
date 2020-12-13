@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot.binary.zpf_boundary_sets &mdash; pycalphad 0.8.4+5.g8ed33ba4 documentation</title>
+  <title>pycalphad.plot.binary.zpf_boundary_sets &mdash; pycalphad 0.8.4+6.gd217b4be documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.8.4+5.g8ed33ba4
+                0.8.4+6.gd217b4be
               </div>
             
           
@@ -307,9 +307,21 @@
         <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">previous_all_compsets</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_compsets</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">Xtol</span><span class="o">=</span><span class="n">Xtol</span><span class="p">,</span> <span class="n">Ttol</span><span class="o">=</span><span class="n">Ttol</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ZPFBoundarySets.get_scatter_plot_boundaries"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_scatter_plot_boundaries">[docs]</a>    <span class="k">def</span> <span class="nf">get_scatter_plot_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ZPFBoundarySets.get_scatter_plot_boundaries"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_scatter_plot_boundaries">[docs]</a>    <span class="k">def</span> <span class="nf">get_scatter_plot_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">legend_generator</span><span class="o">=</span><span class="n">phase_legend</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the ZPF boundaries to plot from each two phase region.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tieline_color: color</span>
+<span class="sd">            A valid matplotlib color, such as a named color string, hex RGB</span>
+<span class="sd">            string, or a tuple of RGBA components to set the color of the two</span>
+<span class="sd">            phase region tielines. The default is an RGBA tuple for green:</span>
+<span class="sd">            (0, 1, 0, 1).</span>
+<span class="sd">        legend_generator : Callable</span>
+<span class="sd">            A function that will be called with the list of phases and will</span>
+<span class="sd">            return legend labels and colors for each phase. By default</span>
+<span class="sd">            pycalphad.plot.utils.phase_legend is used</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -328,7 +340,7 @@
 <span class="sd">        (scatter_dict, tieline_collection, legend_handles)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">all_phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_phases</span><span class="p">()</span>
-        <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">(</span><span class="n">all_phases</span><span class="p">)</span>
+        <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">legend_generator</span><span class="p">(</span><span class="n">all_phases</span><span class="p">)</span>
         <span class="n">scatter_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="p">[]}</span>
 
         <span class="n">tieline_segments</span> <span class="o">=</span> <span class="p">[]</span>
@@ -349,12 +361,12 @@
                 <span class="c1"># a segment is a list of [[x1, y1], [x2, y2]]</span>
                 <span class="n">tieline_segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
                 <span class="c1"># always a two phase region, green lines</span>
-                <span class="n">tieline_colors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">tieline_colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tieline_color</span><span class="p">)</span>
 
         <span class="n">tieline_collection</span> <span class="o">=</span> <span class="n">LineCollection</span><span class="p">(</span><span class="n">tieline_segments</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">tieline_colors</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">scatter_dict</span><span class="p">,</span> <span class="n">tieline_collection</span><span class="p">,</span> <span class="n">legend_handles</span></div>
 
-<div class="viewcode-block" id="ZPFBoundarySets.get_line_plot_boundaries"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_line_plot_boundaries">[docs]</a>    <span class="k">def</span> <span class="nf">get_line_plot_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">close_miscibility_gaps</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+<div class="viewcode-block" id="ZPFBoundarySets.get_line_plot_boundaries"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_line_plot_boundaries">[docs]</a>    <span class="k">def</span> <span class="nf">get_line_plot_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">close_miscibility_gaps</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">legend_generator</span><span class="o">=</span><span class="n">phase_legend</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the ZPF boundaries to plot from each two phase region.</span>
 
@@ -364,6 +376,16 @@
 <span class="sd">            If a float is passed, add a line segment between compsets at the top</span>
 <span class="sd">             or bottom of a two phase region if the discrepancy is below a</span>
 <span class="sd">             tolerance. If `None` is passed, do not close the gap.</span>
+<span class="sd">        tieline_color: color</span>
+<span class="sd">            A valid matplotlib color, such as a named color string, hex RGB</span>
+<span class="sd">            string, or a tuple of RGBA components to set the color of the two</span>
+<span class="sd">            phase region tielines. The default is an RGBA tuple for green:</span>
+<span class="sd">            (0, 1, 0, 1).</span>
+<span class="sd">        legend_generator : Callable</span>
+<span class="sd">            A function that will be called with the list of phases and will</span>
+<span class="sd">            return legend labels and colors for each phase. By default</span>
+<span class="sd">            pycalphad.plot.utils.phase_legend is used</span>
+
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        For now, we will not support connecting regions with lines, so this</span>
@@ -383,7 +405,7 @@
         <span class="c1"># TODO: add some tracking of the endpoints/startpoints and join them with</span>
         <span class="c1">#       a new line segment if they are close.</span>
         <span class="n">all_phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_phases</span><span class="p">()</span>
-        <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">(</span><span class="n">all_phases</span><span class="p">)</span>
+        <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">legend_generator</span><span class="p">(</span><span class="n">all_phases</span><span class="p">)</span>
         <span class="n">tieline_segments</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">tieline_colors</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">boundary_segments</span> <span class="o">=</span> <span class="p">[]</span>
@@ -403,7 +425,7 @@
                 <span class="c1"># a segment is a list of [[x1, y1], [x2, y2]]</span>
                 <span class="n">tieline_segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
                 <span class="c1"># always a two phase region, green lines</span>
-                <span class="n">tieline_colors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">tieline_colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tieline_color</span><span class="p">)</span>
 
             <span class="c1"># build the line collections for each two phase region</span>
             <span class="n">ordered_phases</span> <span class="o">=</span> <span class="n">tpr</span><span class="o">.</span><span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phases</span>
@@ -428,7 +450,6 @@
         <span class="n">boundary_collection</span> <span class="o">=</span> <span class="n">LineCollection</span><span class="p">(</span><span class="n">boundary_segments</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">boundary_colors</span><span class="p">)</span>
         <span class="n">tieline_collection</span> <span class="o">=</span> <span class="n">LineCollection</span><span class="p">(</span><span class="n">tieline_segments</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">tieline_colors</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">boundary_collection</span><span class="p">,</span> <span class="n">tieline_collection</span><span class="p">,</span> <span class="n">legend_handles</span></div></div>
-
 </pre></div>
 
            </div>

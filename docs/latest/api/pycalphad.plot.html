@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot package &mdash; pycalphad 0.8.4+5.g8ed33ba4 documentation</title>
+  <title>pycalphad.plot package &mdash; pycalphad 0.8.4+6.gd217b4be documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.4+5.g8ed33ba4
+                0.8.4+6.gd217b4be
               </div>
             
           
@@ -196,7 +196,7 @@
 the results of equilibrium calculations.</p>
 <dl class="py function">
 <dt id="pycalphad.plot.eqplot.eqplot">
-<code class="sig-prename descclassname">pycalphad.plot.eqplot.</code><code class="sig-name descname">eqplot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">eq</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">z</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tielines</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/eqplot.html#eqplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.eqplot.eqplot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pycalphad.plot.eqplot.</code><code class="sig-name descname">eqplot</code><span class="sig-paren">(</span><em class="sig-param">eq</em>, <em class="sig-param">ax=None</em>, <em class="sig-param">x=None</em>, <em class="sig-param">y=None</em>, <em class="sig-param">z=None</em>, <em class="sig-param">tielines=True</em>, <em class="sig-param">tieline_color=(0</em>, <em class="sig-param">1</em>, <em class="sig-param">0</em>, <em class="sig-param">1)</em>, <em class="sig-param">tie_triangle_color=(1</em>, <em class="sig-param">0</em>, <em class="sig-param">0</em>, <em class="sig-param">1)</em>, <em class="sig-param">legend_generator=&lt;function phase_legend&gt;</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/eqplot.html#eqplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.eqplot.eqplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the result of an equilibrium calculation.</p>
 <p>The type of plot is controlled by the degrees of freedom in the equilibrium calculation.</p>
 <dl class="field-list simple">
@@ -208,6 +208,17 @@ the results of equilibrium calculations.</p>
 <li><p><strong>y</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><em>StateVariable</em></a><em>, </em><em>optional</em>) – </p></li>
 <li><p><strong>z</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><em>StateVariable</em></a><em>, </em><em>optional</em>) – </p></li>
 <li><p><strong>tielines</strong> (<em>bool</em>) – If True, will plot tielines</p></li>
+<li><p><strong>tieline_color</strong> (<em>color</em>) – A valid matplotlib color, such as a named color string, hex RGB
+string, or a tuple of RGBA components to set the color of the two
+phase region tielines. The default is an RGBA tuple for green:
+(0, 1, 0, 1).</p></li>
+<li><p><strong>tie_triangle_color</strong> (<em>color</em>) – A valid matplotlib color, such as a named color string, hex RGB
+string, or a tuple of RGBA components to set the color of the two
+phase region tielines. The default is an RGBA tuple for red:
+(1, 0, 0, 1).</p></li>
+<li><p><strong>legend_generator</strong> (<em>Callable</em>) – A function that will be called with the list of phases and will
+return legend labels and colors for each phase. By default
+pycalphad.plot.utils.phase_legend is used</p></li>
 <li><p><strong>kwargs</strong> (<em>kwargs</em>) – Passed to <cite>matplotlib.pyplot.scatter</cite>.</p></li>
 </ul>
 </dd>
