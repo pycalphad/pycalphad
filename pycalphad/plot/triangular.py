@@ -43,7 +43,9 @@ class TriangularAxes(Axes):
 
     def cla(self):
         """
-        Override to set up some reasonable defaults.
+        Hard-code axes limits to be on [0, 1] for both axes.
+
+        Warning: Limits not on [0, 1] may lead to clipping issues!
         """
         # Don't forget to call the base class
         super().cla()
