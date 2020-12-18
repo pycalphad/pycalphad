@@ -91,10 +91,7 @@ class TriangularAxes(Axes):
         # a simple affine change to the figure has been made (such as
         # resizing the window or changing the dpi).
 
-        # 1) The core transformation from data space into
-        # rectilinear space defined in the HammerTransform class.
-        self.transProjection = IdentityTransform()
-        # 2) The above has an output range that is not in the unit
+        # The above has an output range that is not in the unit
         # rectangle, so scale and translate it so it fits correctly
         # within the axes.  The peculiar calculations of xscale and
         # yscale are specific to a Aitoff-Hammer projection, so don't
@@ -142,7 +139,7 @@ class TriangularAxes(Axes):
         # pixels from the edge of the axes ellipse.
 
         self._yaxis_transform = self.transData
-        yaxis_text_base = self.transProjection + (self.transAffine + self.transAxes)
+        yaxis_text_base = self.transAffine + self.transAxes
         self._yaxis_text1_transform = yaxis_text_base + Affine2D().translate(-8.0, 0.0)
         self._yaxis_text2_transform = yaxis_text_base + Affine2D().translate(8.0, 0.0)
 
