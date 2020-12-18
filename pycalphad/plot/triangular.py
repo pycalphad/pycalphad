@@ -99,11 +99,8 @@ class TriangularAxes(Axes):
         # within the axes.  The peculiar calculations of xscale and
         # yscale are specific to a Aitoff-Hammer projection, so don't
         # worry about them too much.
-        self.transAffine = Affine2D.from_values(
-                1., 0, 0.5, np.sqrt(3)/2., 0, 0)
-        self.transAffinedep = Affine2D.from_values(
-                1., 0, -0.5, np.sqrt(3)/2., 0, 0)
-        #self.transAffine = IdentityTransform()
+        self.transAffine = Affine2D.from_values(1., 0, 0.5, np.sqrt(3)/2., 0, 0)
+        self.transAffinedep = Affine2D.from_values(1., 0, -0.5, np.sqrt(3)/2., 0, 0)
 
         # 3) This is the transformation from axes space to display
         # space.
@@ -114,10 +111,7 @@ class TriangularAxes(Axes):
         # transforms will be applied "in order".  The transforms are
         # automatically simplified, if possible, by the underlying
         # transformation framework.
-        self.transData = \
-            self.transProjection + \
-            self.transAffine + \
-            self.transAxes
+        self.transData = self.transAffine + self.transAxes
 
         # The main data transformation is set up.  Now deal with
         # gridlines and tick labels.
@@ -130,9 +124,7 @@ class TriangularAxes(Axes):
         # pixels from the equator.
 
         self._xaxis_pretransform = IdentityTransform()
-        self._xaxis_transform = \
-            self._xaxis_pretransform + \
-            self.transData
+        self._xaxis_transform = self._xaxis_pretransform + self.transData
         self._xaxis_text1_transform = \
             Affine2D().scale(1.0, 0.0) + \
             self.transData + \
@@ -150,19 +142,12 @@ class TriangularAxes(Axes):
         # pixels from the edge of the axes ellipse.
 
         self._yaxis_transform = self.transData
-        yaxis_text_base = \
-            self.transProjection + \
-            (self.transAffine + \
-             self.transAxes)
-        self._yaxis_text1_transform = \
-            yaxis_text_base + \
-            Affine2D().translate(-8.0, 0.0)
-        self._yaxis_text2_transform = \
-            yaxis_text_base + \
-            Affine2D().translate(8.0, 0.0)
+        yaxis_text_base = self.transProjection + (self.transAffine + self.transAxes)
+        self._yaxis_text1_transform = yaxis_text_base + Affine2D().translate(-8.0, 0.0)
+        self._yaxis_text2_transform = yaxis_text_base + Affine2D().translate(8.0, 0.0)
 
-    def get_xaxis_transform(self,which='grid'):
-        assert which in ['tick1','tick2','grid']
+    def get_xaxis_transform(self, which='grid'):
+        assert which in ['tick1', 'tick2', 'grid']
         return self._xaxis_transform
 
     def get_xaxis_text1_transform(self, pad):
@@ -171,8 +156,8 @@ class TriangularAxes(Axes):
     def get_xaxis_text2_transform(self, pad):
         return super().get_xaxis_text2_transform(pad)[0], 'top', 'center'
 
-    def get_yaxis_transform(self,which='grid'):
-        assert which in ['tick1','tick2','grid']
+    def get_yaxis_transform(self, which='grid'):
+        assert which in ['tick1', 'tick2', 'grid']
         return self._yaxis_transform
 
     def get_yaxis_text1_transform(self, pad):
@@ -197,8 +182,7 @@ class TriangularAxes(Axes):
         background of the plot.  It should be a subclass of Patch.
         Any data and gridlines will be clipped to this shape.
         """
-
-        return Polygon([[0,0], [0.5,np.sqrt(3)/2], [1,0]], closed=True)
+        return Polygon([[0, 0], [0.5, np.sqrt(3)/2], [1, 0]], closed=True)
 
     # Interactive panning and zooming is not supported with this projection,
     # so we override all of the following methods to disable it.
@@ -207,10 +191,13 @@ class TriangularAxes(Axes):
         Return True if this axes support the zoom box
         """
         return False
+
     def start_pan(self, x, y, button):
         pass
+
     def end_pan(self):
         pass
+
     def drag_pan(self, button, key, x, y):
         pass
 
