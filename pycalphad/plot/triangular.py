@@ -87,7 +87,7 @@ class TriangularAxes(Axes):
         self.transAffinedep = Affine2D.from_values(
                 1., 0, -0.5, np.sqrt(3)/2., 0, 0)
         #self.transAffine = IdentityTransform()
-        
+
         # 3) This is the transformation from axes space to display
         # space.
         self.transAxes = BboxTransformTo(self.bbox)
