@@ -98,38 +98,16 @@ class TriangularAxes(Axes):
         # space. The '+' operator applies these in order.
         self.transData = self.transAffine + self.transAxes
 
-        # The main data transformation is set up.  Now deal with
-        # gridlines and tick labels.
-
-        # Longitude gridlines and ticklabels.  The input to these
-        # transforms are in display space in x and axes space in y.
-        # Therefore, the input values will be in range (-xmin, 0),
-        # (xmax, 1).  The goal of these transforms is to go from that
-        # space to display space.  The tick labels will be offset 4
-        # pixels from the equator.
-
-        self._xaxis_pretransform = IdentityTransform()
-        self._xaxis_transform = self._xaxis_pretransform + self.transData
-        self._xaxis_text1_transform = \
-            Affine2D().scale(1.0, 0.0) + \
-            self.transData + \
-            Affine2D().translate(0.0, -20.0)
-        self._xaxis_text2_transform = \
-            Affine2D().scale(1.0, 0.0) + \
-            self.transData + \
-            Affine2D().translate(0.0, -4.0)
-
-        # Now set up the transforms for the latitude ticks.  The input to
-        # these transforms are in axes space in x and display space in
-        # y.  Therefore, the input values will be in range (0, -ymin),
-        # (1, ymax).  The goal of these transforms is to go from that
-        # space to display space.  The tick labels will be offset 4
-        # pixels from the edge of the axes ellipse.
+        # The main data transformation is set up.  Now deal with gridlines and
+        # tick labels. For these, we want the same trasnform as the, so we
+        # apply transData directly.
+        self._xaxis_transform = self.transData
+        self._xaxis_text1_transform = self.transData
+        self._xaxis_text2_transform = self.transData
 
         self._yaxis_transform = self.transData
-        yaxis_text_base = self.transAffine + self.transAxes
-        self._yaxis_text1_transform = yaxis_text_base + Affine2D().translate(-8.0, 0.0)
-        self._yaxis_text2_transform = yaxis_text_base + Affine2D().translate(8.0, 0.0)
+        self._yaxis_text1_transform = self.transData
+        self._yaxis_text2_transform = self.transData
 
     def get_xaxis_transform(self, which='grid'):
         assert which in ['tick1', 'tick2', 'grid']
