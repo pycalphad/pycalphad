@@ -1,3 +1,18 @@
+"""
+Register a ``'triangular'`` projection with matplotlib to plot diagrams on
+triangular axes.
+
+Users should not have to instantiate the TriangularAxes class directly.
+Instead, the projection name can be passed as a keyword argument to
+matplotlib.
+
+>>> import matplotlib.pyplot as plt
+>>> import numpy as np
+>>> plt.gca(projection='triangular')
+>>> plt.scatter(np.random.random(10), np.random.random(10))
+
+"""
+
 from matplotlib.axes import Axes
 from matplotlib.patches import Polygon
 from matplotlib.ticker import NullLocator, Formatter, FixedLocator
