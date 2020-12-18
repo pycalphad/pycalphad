@@ -164,7 +164,7 @@ class TriangularAxes(Axes):
         return self._xaxis_transform
 
     def get_xaxis_text1_transform(self, pad):
-        return super().get_xaxis_text1_transform(pad)[0], 'bottom', 'center'
+        return super().get_xaxis_text1_transform(pad)[0], 'top', 'center'
 
     def get_xaxis_text2_transform(self, pad):
         return super().get_xaxis_text2_transform(pad)[0], 'top', 'center'
