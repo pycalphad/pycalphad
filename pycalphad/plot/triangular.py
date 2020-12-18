@@ -149,31 +149,30 @@ class TriangularAxes(Axes):
         return self._xaxis_transform
 
     def get_xaxis_text1_transform(self, pad):
-        return self._xaxis_text1_transform, 'bottom', 'center'
+        return super().get_xaxis_text1_transform(pad)[0], 'bottom', 'center'
 
     def get_xaxis_text2_transform(self, pad):
-        return self._xaxis_text2_transform, 'top', 'center'
+        return super().get_xaxis_text2_transform(pad)[0], 'top', 'center'
 
     def get_yaxis_transform(self,which='grid'):
         assert which in ['tick1','tick2','grid']
         return self._yaxis_transform
 
     def get_yaxis_text1_transform(self, pad):
-        return self._yaxis_text1_transform, 'center', 'right'
+        return super().get_yaxis_text1_transform(pad)[0], 'center', 'right'
 
     def get_yaxis_text2_transform(self, pad):
-        return self._yaxis_text2_transform, 'center', 'left'
+        return super().get_yaxis_text2_transform(pad)[0], 'center', 'left'
 
     def _gen_axes_spines(self):
-        dep_spine = mspines.Spine.linear_spine(self,
-                                                   'right')
+        dep_spine = mspines.Spine.linear_spine(self, 'right')
         # Fix dependent axis to be transformed the correct way
         dep_spine.set_transform(self.transAffinedep + self.transAxes)
-        return {'left':mspines.Spine.linear_spine(self,
-                                                   'left'),
-                'bottom':mspines.Spine.linear_spine(self,
-                                                   'bottom'),
-        'right':dep_spine}
+        return {
+            'left': mspines.Spine.linear_spine(self, 'left'),
+            'bottom': mspines.Spine.linear_spine(self, 'bottom'),
+            'right': dep_spine,
+        }
 
     def _gen_axes_patch(self):
         """
