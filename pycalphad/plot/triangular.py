@@ -70,44 +70,32 @@ class TriangularAxes(Axes):
         This is called once when the plot is created to set up all the
         transforms for the data, text and grids.
         """
-        # There are three important coordinate spaces going on here:
-        #
-        #    1. Data space: The space of the data itself
-        #
-        #    2. Axes space: The unit rectangle (0, 0) to (1, 1)
-        #       covering the entire plot area.
-        #
-        #    3. Display space: The coordinates of the resulting image,
-        #       often in pixels or dpi/inch.
+        # This code is based off of matplotlib's example for a custom Hammer
+        # projection. See: https://matplotlib.org/gallery/misc/custom_projection.html#sphx-glr-gallery-misc-custom-projection-py
 
         # This function makes heavy use of the Transform classes in
         # ``lib/matplotlib/transforms.py.`` For more information, see
         # the inline documentation there.
 
-        # The goal of the first two transformations is to get from the
-        # data space (in this case longitude and latitude) to axes
-        # space.  It is separated into a non-affine and affine part so
-        # that the non-affine part does not have to be recomputed when
-        # a simple affine change to the figure has been made (such as
-        # resizing the window or changing the dpi).
+        # Affine2D.from_values(a, b, c, d, e, f) constructs an affine
+        # transformation matrix of
+        #    a c e
+        #    b d f
+        #    0 0 1
 
-        # The above has an output range that is not in the unit
-        # rectangle, so scale and translate it so it fits correctly
-        # within the axes.  The peculiar calculations of xscale and
-        # yscale are specific to a Aitoff-Hammer projection, so don't
-        # worry about them too much.
+        # The goal of this transformation is to get from the data space to axes
+        # space. We perform an affine transformation on the y-axis, i.e.
+        # transforming the y-axis from (0, 1) to (0.5, sqrt(3)/2).
         self.transAffine = Affine2D.from_values(1., 0, 0.5, np.sqrt(3)/2., 0, 0)
+        # Affine transformation along the dependent axis
         self.transAffinedep = Affine2D.from_values(1., 0, -0.5, np.sqrt(3)/2., 0, 0)
 
-        # 3) This is the transformation from axes space to display
-        # space.
+        # This is the transformation from axes space to display space.
         self.transAxes = BboxTransformTo(self.bbox)
 
-        # Now put these 3 transforms together -- from data all the way
-        # to display coordinates.  Using the '+' operator, these
-        # transforms will be applied "in order".  The transforms are
-        # automatically simplified, if possible, by the underlying
-        # transformation framework.
+        # The data transformation is the application of the affine
+        # transformation from data to axes space, then from axes to display
+        # space. The '+' operator applies these in order.
         self.transData = self.transAffine + self.transAxes
 
         # The main data transformation is set up.  Now deal with
@@ -164,8 +152,10 @@ class TriangularAxes(Axes):
         return super().get_yaxis_text2_transform(pad)[0], 'center', 'left'
 
     def _gen_axes_spines(self):
+        # The dependent axis (right hand side) spine should be set to complete
+        # the triangle, i.e. the spine from (1, 0) to (1, 1) will be
+        # transformed to (1, 0) to (0.5, sqrt(3)/2).
         dep_spine = mspines.Spine.linear_spine(self, 'right')
-        # Fix dependent axis to be transformed the correct way
         dep_spine.set_transform(self.transAffinedep + self.transAxes)
         return {
             'left': mspines.Spine.linear_spine(self, 'left'),
