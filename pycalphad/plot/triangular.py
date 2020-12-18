@@ -8,6 +8,7 @@ import matplotlib.axis as maxis
 
 import numpy as np
 
+
 class TriangularAxes(Axes):
     """
     A custom class for triangular projections.
@@ -16,7 +17,7 @@ class TriangularAxes(Axes):
     name = 'triangular'
 
     def __init__(self, *args, **kwargs):
-        Axes.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.set_aspect(1, adjustable='box', anchor='SW')
         self.cla()
 
@@ -30,8 +31,8 @@ class TriangularAxes(Axes):
         Override to set up some reasonable defaults.
         """
         # Don't forget to call the base class
-        Axes.cla(self)
-        
+        super().cla()
+
         x_min = 0
         y_min = 0
         x_max = 1
@@ -42,8 +43,8 @@ class TriangularAxes(Axes):
         self.yaxis.set_minor_locator(NullLocator())
         self.xaxis.set_ticks_position('bottom')
         self.yaxis.set_ticks_position('left')
-        Axes.set_xlim(self, x_min, x_max)
-        Axes.set_ylim(self, y_min, y_max)
+        super().set_xlim(x_min, x_max)
+        super().set_ylim(y_min, y_max)
         self.xaxis.set_ticks(np.arange(x_min, x_max+x_spacing, x_spacing))
         self.yaxis.set_ticks(np.arange(y_min, y_max+y_spacing, y_spacing))
 
