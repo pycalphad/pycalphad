@@ -83,6 +83,10 @@ class TriangularAxes(Axes):
         #    b d f
         #    0 0 1
 
+        # A useful reference for the different coordinate systems can be found
+        # in a table in the matplotlib transforms tutorial:
+        # https://matplotlib.org/tutorials/advanced/transforms_tutorial.html#transformations-tutorial
+
         # The goal of this transformation is to get from the data space to axes
         # space. We perform an affine transformation on the y-axis, i.e.
         # transforming the y-axis from (0, 1) to (0.5, sqrt(3)/2).
