@@ -170,34 +170,34 @@ class TriangularAxes(Axes):
     def drag_pan(self, button, key, x, y):
         pass
 
-    def set_ylabel(self, ylabel, fontdict=None, labelpad=None, rotation=60, **kwargs):
+    def set_ylabel(self, ylabel, fontdict=None, labelpad=None, *, loc=None, **kwargs):
         """
-        Set the label for the y-axis.
-
-        Rotated to 60 degrees (parallel to the axis) by default.
+        Set the label for the y-axis. Default rotation=60 degrees.
 
         Parameters
         ----------
         ylabel : str
             The label text.
 
-        labelpad : scalar, optional, default: None
+        labelpad : float, default: None
             Spacing in points from the axes bounding box including ticks
             and tick labels.
+
+        loc : {'bottom', 'center', 'top'}, default: :rc:`yaxis.labellocation`
+            The label position. This is a high-level alternative for passing
+            parameters *y* and *horizontalalignment*.
 
         Other Parameters
         ----------------
         **kwargs : `.Text` properties
             `.Text` properties control the appearance of the label.
 
-        See also
+        See Also
         --------
-        text : for information on how override and the optional args work
-
+        text : Documents the properties supported by `.Text`.
         """
-        if labelpad is not None:
-            self.yaxis.labelpad = labelpad
-        return self.yaxis.set_label_text(ylabel, fontdict, rotation=rotation, **kwargs)
+        kwargs.setdefault('rotation', 60)
+        return super().set_ylabel(ylabel, fontdict, labelpad, loc=loc, **kwargs)
 
 
 # Now register the projection with matplotlib so the user can select it.
