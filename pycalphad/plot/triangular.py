@@ -15,8 +15,8 @@ matplotlib.
 
 from matplotlib.axes import Axes
 from matplotlib.patches import Polygon
-from matplotlib.ticker import NullLocator, Formatter, FixedLocator
-from matplotlib.transforms import Affine2D, BboxTransformTo, IdentityTransform
+from matplotlib.ticker import NullLocator
+from matplotlib.transforms import Affine2D, BboxTransformTo
 from matplotlib.projections import register_projection
 import matplotlib.spines as mspines
 import matplotlib.axis as maxis
