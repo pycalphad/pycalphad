@@ -112,8 +112,6 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
     elif projection == 'triangular':
         x = indep_comps[0] if x is None else x
         y = indep_comps[1] if y is None else y
-        # plot settings
-        ax.yaxis.label.set_rotation(60)
         # Here we adjust the x coordinate of the ylabel.
         # We make it reasonably comparable to the position of the xlabel from the xaxis
         # As the figure size gets very large, the label approaches ~0.55 on the yaxis
