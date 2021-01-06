@@ -2,16 +2,15 @@
 name: test
 channels:
   - conda-forge
-  - pycalphad
 dependencies:
   # NOTE: please try to keep any depedencies in alphabetic order so they may
   # be easily compared with other dependency lists
-  # NOTE: these dependencies may differ in name from the conda-forge and
-  # pycalphad Anaconda channels  from those on PyPI (i.e. those found in
+  # NOTE: these dependencies may differ in name in the conda-forge Anaconda
+  # channel compared to those on PyPI (i.e. those found in
   # `setup.py`). For example, conda-forge/symengine gives the C++ SymEngine
   # library, while conda-forge/python-symengine provides the Python package
   # called `symengine`.
-  - cyipopt
+  - cyipopt>=0.3
   - cython>=0.24
   - matplotlib
   - numpy>=1.13
