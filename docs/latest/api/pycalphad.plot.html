@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.plot package &mdash; pycalphad 0.8.4+8.gde1cebf5 documentation</title>
+  <title>pycalphad.plot package &mdash; pycalphad 0.8.4+9.gbe404461 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.4+8.gde1cebf5
+                0.8.4+9.gbe404461
               </div>
             
           
@@ -274,6 +274,17 @@ Must correspond to an independent condition.</p></li>
 </div>
 <div class="section" id="module-pycalphad.plot.triangular">
 <span id="pycalphad-plot-triangular-module"></span><h2>pycalphad.plot.triangular module<a class="headerlink" href="#module-pycalphad.plot.triangular" title="Permalink to this headline">¶</a></h2>
+<p>Register a <code class="docutils literal notranslate"><span class="pre">'triangular'</span></code> projection with matplotlib to plot diagrams on
+triangular axes.</p>
+<p>Users should not have to instantiate the TriangularAxes class directly.
+Instead, the projection name can be passed as a keyword argument to
+matplotlib.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s1">&#39;triangular&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
 <dl class="py class">
 <dt id="pycalphad.plot.triangular.TriangularAxes">
 <em class="property">class </em><code class="sig-prename descclassname">pycalphad.plot.triangular.</code><code class="sig-name descname">TriangularAxes</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes" title="Permalink to this definition">¶</a></dt>
@@ -288,7 +299,8 @@ Must correspond to an independent condition.</p></li>
 <dl class="py method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.cla">
 <code class="sig-name descname">cla</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.cla"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.cla" title="Permalink to this definition">¶</a></dt>
-<dd><p>Override to set up some reasonable defaults.</p>
+<dd><p>Hard-code axes limits to be on [0, 1] for both axes.</p>
+<p>Warning: Limits not on [0, 1] may lead to clipping issues!</p>
 </dd></dl>
 
 <dl class="py method">
@@ -439,6 +451,33 @@ place axis elements in different locations.</p>
 <dt id="pycalphad.plot.triangular.TriangularAxes.name">
 <code class="sig-name descname">name</code><em class="property"> = 'triangular'</em><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt id="pycalphad.plot.triangular.TriangularAxes.set_ylabel">
+<code class="sig-name descname">set_ylabel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ylabel</span></em>, <em class="sig-param"><span class="n">fontdict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">labelpad</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">loc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.set_ylabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.set_ylabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the label for the y-axis. Default rotation=60 degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ylabel</strong> (<em>str</em>) – The label text.</p></li>
+<li><p><strong>labelpad</strong> (<em>float</em><em>, </em><em>default: None</em>) – Spacing in points from the axes bounding box including ticks
+and tick labels.</p></li>
+<li><p><strong>loc</strong> ({‘bottom’, ‘center’, ‘top’}, default: <a href="#id1"><span class="problematic" id="id2">:rc:`yaxis.labellocation`</span></a>) – The label position. This is a high-level alternative for passing
+parameters <em>y</em> and <em>horizontalalignment</em>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Other Parameters</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> (<cite>.Text</cite> properties) – <cite>.Text</cite> properties control the appearance of the label.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></dt><dd><p>Documents the properties supported by <cite>.Text</cite>.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
 
 <dl class="py method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.start_pan">

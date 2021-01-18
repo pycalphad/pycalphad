@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.plot.triangular &mdash; pycalphad 0.8.4+8.gde1cebf5 documentation</title>
+  <title>pycalphad.plot.triangular &mdash; pycalphad 0.8.4+9.gbe404461 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.8.4+8.gde1cebf5
+                0.8.4+9.gbe404461
               </div>
             
           
@@ -162,15 +162,31 @@
            <div itemprop="articleBody">
             
   <h1>Source code for pycalphad.plot.triangular</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Register a ``&#39;triangular&#39;`` projection with matplotlib to plot diagrams on</span>
+<span class="sd">triangular axes.</span>
+
+<span class="sd">Users should not have to instantiate the TriangularAxes class directly.</span>
+<span class="sd">Instead, the projection name can be passed as a keyword argument to</span>
+<span class="sd">matplotlib.</span>
+
+<span class="sd">&gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">&gt;&gt;&gt; import numpy as np</span>
+<span class="sd">&gt;&gt;&gt; plt.gca(projection=&#39;triangular&#39;)</span>
+<span class="sd">&gt;&gt;&gt; plt.scatter(np.random.random(10), np.random.random(10))</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
 <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Polygon</span>
-<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">NullLocator</span><span class="p">,</span> <span class="n">Formatter</span><span class="p">,</span> <span class="n">FixedLocator</span>
-<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="kn">import</span> <span class="n">Affine2D</span><span class="p">,</span> <span class="n">BboxTransformTo</span><span class="p">,</span> <span class="n">IdentityTransform</span>
+<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">NullLocator</span>
+<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="kn">import</span> <span class="n">Affine2D</span><span class="p">,</span> <span class="n">BboxTransformTo</span>
 <span class="kn">from</span> <span class="nn">matplotlib.projections</span> <span class="kn">import</span> <span class="n">register_projection</span>
 <span class="kn">import</span> <span class="nn">matplotlib.spines</span> <span class="k">as</span> <span class="nn">mspines</span>
 <span class="kn">import</span> <span class="nn">matplotlib.axis</span> <span class="k">as</span> <span class="nn">maxis</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
 
 <div class="viewcode-block" id="TriangularAxes"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes">[docs]</a><span class="k">class</span> <span class="nc">TriangularAxes</span><span class="p">(</span><span class="n">Axes</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -180,7 +196,7 @@
     <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;triangular&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Axes</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;SW&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
 
@@ -191,11 +207,13 @@
 
 <div class="viewcode-block" id="TriangularAxes.cla"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.cla">[docs]</a>    <span class="k">def</span> <span class="nf">cla</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Override to set up some reasonable defaults.</span>
+<span class="sd">        Hard-code axes limits to be on [0, 1] for both axes.</span>
+
+<span class="sd">        Warning: Limits not on [0, 1] may lead to clipping issues!</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Don&#39;t forget to call the base class</span>
-        <span class="n">Axes</span><span class="o">.</span><span class="n">cla</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
+
         <span class="n">x_min</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">y_min</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">x_max</span> <span class="o">=</span> <span class="mi">1</span>
@@ -206,8 +224,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_minor_locator</span><span class="p">(</span><span class="n">NullLocator</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
-        <span class="n">Axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">)</span>
-        <span class="n">Axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="o">+</span><span class="n">x_spacing</span><span class="p">,</span> <span class="n">x_spacing</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="o">+</span><span class="n">y_spacing</span><span class="p">,</span> <span class="n">y_spacing</span><span class="p">))</span></div>
 
@@ -216,127 +234,80 @@
 <span class="sd">        This is called once when the plot is created to set up all the</span>
 <span class="sd">        transforms for the data, text and grids.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># There are three important coordinate spaces going on here:</span>
-        <span class="c1">#</span>
-        <span class="c1">#    1. Data space: The space of the data itself</span>
-        <span class="c1">#</span>
-        <span class="c1">#    2. Axes space: The unit rectangle (0, 0) to (1, 1)</span>
-        <span class="c1">#       covering the entire plot area.</span>
-        <span class="c1">#</span>
-        <span class="c1">#    3. Display space: The coordinates of the resulting image,</span>
-        <span class="c1">#       often in pixels or dpi/inch.</span>
+        <span class="c1"># This code is based off of matplotlib&#39;s example for a custom Hammer</span>
+        <span class="c1"># projection. See: https://matplotlib.org/gallery/misc/custom_projection.html#sphx-glr-gallery-misc-custom-projection-py</span>
 
         <span class="c1"># This function makes heavy use of the Transform classes in</span>
         <span class="c1"># ``lib/matplotlib/transforms.py.`` For more information, see</span>
         <span class="c1"># the inline documentation there.</span>
 
-        <span class="c1"># The goal of the first two transformations is to get from the</span>
-        <span class="c1"># data space (in this case longitude and latitude) to axes</span>
-        <span class="c1"># space.  It is separated into a non-affine and affine part so</span>
-        <span class="c1"># that the non-affine part does not have to be recomputed when</span>
-        <span class="c1"># a simple affine change to the figure has been made (such as</span>
-        <span class="c1"># resizing the window or changing the dpi).</span>
+        <span class="c1"># Affine2D.from_values(a, b, c, d, e, f) constructs an affine</span>
+        <span class="c1"># transformation matrix of</span>
+        <span class="c1">#    a c e</span>
+        <span class="c1">#    b d f</span>
+        <span class="c1">#    0 0 1</span>
 
-        <span class="c1"># 1) The core transformation from data space into</span>
-        <span class="c1"># rectilinear space defined in the HammerTransform class.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transProjection</span> <span class="o">=</span> <span class="n">IdentityTransform</span><span class="p">()</span>
-        <span class="c1"># 2) The above has an output range that is not in the unit</span>
-        <span class="c1"># rectangle, so scale and translate it so it fits correctly</span>
-        <span class="c1"># within the axes.  The peculiar calculations of xscale and</span>
-        <span class="c1"># yscale are specific to a Aitoff-Hammer projection, so don&#39;t</span>
-        <span class="c1"># worry about them too much.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transAffine</span> <span class="o">=</span> <span class="n">Affine2D</span><span class="o">.</span><span class="n">from_values</span><span class="p">(</span>
-                <span class="mf">1.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transAffinedep</span> <span class="o">=</span> <span class="n">Affine2D</span><span class="o">.</span><span class="n">from_values</span><span class="p">(</span>
-                <span class="mf">1.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="c1">#self.transAffine = IdentityTransform()</span>
-        
-        <span class="c1"># 3) This is the transformation from axes space to display</span>
-        <span class="c1"># space.</span>
+        <span class="c1"># A useful reference for the different coordinate systems can be found</span>
+        <span class="c1"># in a table in the matplotlib transforms tutorial:</span>
+        <span class="c1"># https://matplotlib.org/tutorials/advanced/transforms_tutorial.html#transformations-tutorial</span>
+
+        <span class="c1"># The goal of this transformation is to get from the data space to axes</span>
+        <span class="c1"># space. We perform an affine transformation on the y-axis, i.e.</span>
+        <span class="c1"># transforming the y-axis from (0, 1) to (0.5, sqrt(3)/2).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transAffine</span> <span class="o">=</span> <span class="n">Affine2D</span><span class="o">.</span><span class="n">from_values</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># Affine transformation along the dependent axis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transAffinedep</span> <span class="o">=</span> <span class="n">Affine2D</span><span class="o">.</span><span class="n">from_values</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># This is the transformation from axes space to display space.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transAxes</span> <span class="o">=</span> <span class="n">BboxTransformTo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
 
-        <span class="c1"># Now put these 3 transforms together -- from data all the way</span>
-        <span class="c1"># to display coordinates.  Using the &#39;+&#39; operator, these</span>
-        <span class="c1"># transforms will be applied &quot;in order&quot;.  The transforms are</span>
-        <span class="c1"># automatically simplified, if possible, by the underlying</span>
-        <span class="c1"># transformation framework.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transData</span> <span class="o">=</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">transProjection</span> <span class="o">+</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">transAffine</span> <span class="o">+</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">transAxes</span>
+        <span class="c1"># The data transformation is the application of the affine</span>
+        <span class="c1"># transformation from data to axes space, then from axes to display</span>
+        <span class="c1"># space. The &#39;+&#39; operator applies these in order.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transAffine</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">transAxes</span>
 
-        <span class="c1"># The main data transformation is set up.  Now deal with</span>
-        <span class="c1"># gridlines and tick labels.</span>
-
-        <span class="c1"># Longitude gridlines and ticklabels.  The input to these</span>
-        <span class="c1"># transforms are in display space in x and axes space in y.</span>
-        <span class="c1"># Therefore, the input values will be in range (-xmin, 0),</span>
-        <span class="c1"># (xmax, 1).  The goal of these transforms is to go from that</span>
-        <span class="c1"># space to display space.  The tick labels will be offset 4</span>
-        <span class="c1"># pixels from the equator.</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_pretransform</span> <span class="o">=</span> <span class="n">IdentityTransform</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_transform</span> <span class="o">=</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_pretransform</span> <span class="o">+</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_text1_transform</span> <span class="o">=</span> \
-            <span class="n">Affine2D</span><span class="p">()</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">+</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">transData</span> <span class="o">+</span> \
-            <span class="n">Affine2D</span><span class="p">()</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">20.0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_text2_transform</span> <span class="o">=</span> \
-            <span class="n">Affine2D</span><span class="p">()</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">+</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">transData</span> <span class="o">+</span> \
-            <span class="n">Affine2D</span><span class="p">()</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.0</span><span class="p">)</span>
-
-        <span class="c1"># Now set up the transforms for the latitude ticks.  The input to</span>
-        <span class="c1"># these transforms are in axes space in x and display space in</span>
-        <span class="c1"># y.  Therefore, the input values will be in range (0, -ymin),</span>
-        <span class="c1"># (1, ymax).  The goal of these transforms is to go from that</span>
-        <span class="c1"># space to display space.  The tick labels will be offset 4</span>
-        <span class="c1"># pixels from the edge of the axes ellipse.</span>
+        <span class="c1"># The main data transformation is set up.  Now deal with gridlines and</span>
+        <span class="c1"># tick labels. For these, we want the same trasnform as the, so we</span>
+        <span class="c1"># apply transData directly.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_text1_transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_text2_transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
-        <span class="n">yaxis_text_base</span> <span class="o">=</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">transProjection</span> <span class="o">+</span> \
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transAffine</span> <span class="o">+</span> \
-             <span class="bp">self</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_text1_transform</span> <span class="o">=</span> \
-            <span class="n">yaxis_text_base</span> <span class="o">+</span> \
-            <span class="n">Affine2D</span><span class="p">()</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="o">-</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_text2_transform</span> <span class="o">=</span> \
-            <span class="n">yaxis_text_base</span> <span class="o">+</span> \
-            <span class="n">Affine2D</span><span class="p">()</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_text1_transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_text2_transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
 
-<div class="viewcode-block" id="TriangularAxes.get_xaxis_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_xaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tick1&#39;</span><span class="p">,</span><span class="s1">&#39;tick2&#39;</span><span class="p">,</span><span class="s1">&#39;grid&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="TriangularAxes.get_xaxis_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_xaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tick1&#39;</span><span class="p">,</span> <span class="s1">&#39;tick2&#39;</span><span class="p">,</span> <span class="s1">&#39;grid&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_transform</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.get_xaxis_text1_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_xaxis_text1_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_text1_transform</span><span class="p">,</span> <span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_xaxis_text1_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.get_xaxis_text2_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_xaxis_text2_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_text2_transform</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_xaxis_text2_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span></div>
 
-<div class="viewcode-block" id="TriangularAxes.get_yaxis_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_yaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tick1&#39;</span><span class="p">,</span><span class="s1">&#39;tick2&#39;</span><span class="p">,</span><span class="s1">&#39;grid&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="TriangularAxes.get_yaxis_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_yaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tick1&#39;</span><span class="p">,</span> <span class="s1">&#39;tick2&#39;</span><span class="p">,</span> <span class="s1">&#39;grid&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_transform</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.get_yaxis_text1_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_yaxis_text1_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_text1_transform</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_yaxis_text1_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.get_yaxis_text2_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_yaxis_text2_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_text2_transform</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_yaxis_text2_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span></div>
 
     <span class="k">def</span> <span class="nf">_gen_axes_spines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">dep_spine</span> <span class="o">=</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                                   <span class="s1">&#39;right&#39;</span><span class="p">)</span>
-        <span class="c1"># Fix dependent axis to be transformed the correct way</span>
+        <span class="c1"># The dependent axis (right hand side) spine should be set to complete</span>
+        <span class="c1"># the triangle, i.e. the spine from (1, 0) to (1, 1) will be</span>
+        <span class="c1"># transformed to (1, 0) to (0.5, sqrt(3)/2).</span>
+        <span class="n">dep_spine</span> <span class="o">=</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">)</span>
         <span class="n">dep_spine</span><span class="o">.</span><span class="n">set_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transAffinedep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;left&#39;</span><span class="p">:</span><span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                                   <span class="s1">&#39;left&#39;</span><span class="p">),</span>
-                <span class="s1">&#39;bottom&#39;</span><span class="p">:</span><span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                                   <span class="s1">&#39;bottom&#39;</span><span class="p">),</span>
-        <span class="s1">&#39;right&#39;</span><span class="p">:</span><span class="n">dep_spine</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;bottom&#39;</span><span class="p">:</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;bottom&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="n">dep_spine</span><span class="p">,</span>
+        <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_gen_axes_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -344,8 +315,7 @@
 <span class="sd">        background of the plot.  It should be a subclass of Patch.</span>
 <span class="sd">        Any data and gridlines will be clipped to this shape.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="n">Polygon</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">closed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Polygon</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">closed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Interactive panning and zooming is not supported with this projection,</span>
     <span class="c1"># so we override all of the following methods to disable it.</span>
@@ -354,12 +324,44 @@
 <span class="sd">        Return True if this axes support the zoom box</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">False</span></div>
+
 <div class="viewcode-block" id="TriangularAxes.start_pan"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.start_pan">[docs]</a>    <span class="k">def</span> <span class="nf">start_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">button</span><span class="p">):</span>
         <span class="k">pass</span></div>
+
 <div class="viewcode-block" id="TriangularAxes.end_pan"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.end_pan">[docs]</a>    <span class="k">def</span> <span class="nf">end_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span></div>
+
 <div class="viewcode-block" id="TriangularAxes.drag_pan"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.drag_pan">[docs]</a>    <span class="k">def</span> <span class="nf">drag_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">button</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-        <span class="k">pass</span></div></div>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="TriangularAxes.set_ylabel"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.set_ylabel">[docs]</a>    <span class="k">def</span> <span class="nf">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the label for the y-axis. Default rotation=60 degrees.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ylabel : str</span>
+<span class="sd">            The label text.</span>
+
+<span class="sd">        labelpad : float, default: None</span>
+<span class="sd">            Spacing in points from the axes bounding box including ticks</span>
+<span class="sd">            and tick labels.</span>
+
+<span class="sd">        loc : {&#39;bottom&#39;, &#39;center&#39;, &#39;top&#39;}, default: :rc:`yaxis.labellocation`</span>
+<span class="sd">            The label position. This is a high-level alternative for passing</span>
+<span class="sd">            parameters *y* and *horizontalalignment*.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        **kwargs : `.Text` properties</span>
+<span class="sd">            `.Text` properties control the appearance of the label.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        text : Documents the properties supported by `.Text`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;rotation&#39;</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="n">fontdict</span><span class="p">,</span> <span class="n">labelpad</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
 
 <span class="c1"># Now register the projection with matplotlib so the user can select it.</span>
