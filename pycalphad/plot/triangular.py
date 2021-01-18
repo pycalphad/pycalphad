@@ -1,12 +1,28 @@
+"""
+Register a ``'triangular'`` projection with matplotlib to plot diagrams on
+triangular axes.
+
+Users should not have to instantiate the TriangularAxes class directly.
+Instead, the projection name can be passed as a keyword argument to
+matplotlib.
+
+>>> import matplotlib.pyplot as plt
+>>> import numpy as np
+>>> plt.gca(projection='triangular')
+>>> plt.scatter(np.random.random(10), np.random.random(10))
+
+"""
+
 from matplotlib.axes import Axes
 from matplotlib.patches import Polygon
-from matplotlib.ticker import NullLocator, Formatter, FixedLocator
-from matplotlib.transforms import Affine2D, BboxTransformTo, IdentityTransform
+from matplotlib.ticker import NullLocator
+from matplotlib.transforms import Affine2D, BboxTransformTo
 from matplotlib.projections import register_projection
 import matplotlib.spines as mspines
 import matplotlib.axis as maxis
 
 import numpy as np
+
 
 class TriangularAxes(Axes):
     """
@@ -16,7 +32,7 @@ class TriangularAxes(Axes):
     name = 'triangular'
 
     def __init__(self, *args, **kwargs):
-        Axes.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.set_aspect(1, adjustable='box', anchor='SW')
         self.cla()
 
@@ -27,11 +43,13 @@ class TriangularAxes(Axes):
 
     def cla(self):
         """
-        Override to set up some reasonable defaults.
+        Hard-code axes limits to be on [0, 1] for both axes.
+
+        Warning: Limits not on [0, 1] may lead to clipping issues!
         """
         # Don't forget to call the base class
-        Axes.cla(self)
-        
+        super().cla()
+
         x_min = 0
         y_min = 0
         x_max = 1
@@ -42,8 +60,8 @@ class TriangularAxes(Axes):
         self.yaxis.set_minor_locator(NullLocator())
         self.xaxis.set_ticks_position('bottom')
         self.yaxis.set_ticks_position('left')
-        Axes.set_xlim(self, x_min, x_max)
-        Axes.set_ylim(self, y_min, y_max)
+        super().set_xlim(x_min, x_max)
+        super().set_ylim(y_min, y_max)
         self.xaxis.set_ticks(np.arange(x_min, x_max+x_spacing, x_spacing))
         self.yaxis.set_ticks(np.arange(y_min, y_max+y_spacing, y_spacing))
 
@@ -52,127 +70,80 @@ class TriangularAxes(Axes):
         This is called once when the plot is created to set up all the
         transforms for the data, text and grids.
         """
-        # There are three important coordinate spaces going on here:
-        #
-        #    1. Data space: The space of the data itself
-        #
-        #    2. Axes space: The unit rectangle (0, 0) to (1, 1)
-        #       covering the entire plot area.
-        #
-        #    3. Display space: The coordinates of the resulting image,
-        #       often in pixels or dpi/inch.
+        # This code is based off of matplotlib's example for a custom Hammer
+        # projection. See: https://matplotlib.org/gallery/misc/custom_projection.html#sphx-glr-gallery-misc-custom-projection-py
 
         # This function makes heavy use of the Transform classes in
         # ``lib/matplotlib/transforms.py.`` For more information, see
         # the inline documentation there.
 
-        # The goal of the first two transformations is to get from the
-        # data space (in this case longitude and latitude) to axes
-        # space.  It is separated into a non-affine and affine part so
-        # that the non-affine part does not have to be recomputed when
-        # a simple affine change to the figure has been made (such as
-        # resizing the window or changing the dpi).
+        # Affine2D.from_values(a, b, c, d, e, f) constructs an affine
+        # transformation matrix of
+        #    a c e
+        #    b d f
+        #    0 0 1
 
-        # 1) The core transformation from data space into
-        # rectilinear space defined in the HammerTransform class.
-        self.transProjection = IdentityTransform()
-        # 2) The above has an output range that is not in the unit
-        # rectangle, so scale and translate it so it fits correctly
-        # within the axes.  The peculiar calculations of xscale and
-        # yscale are specific to a Aitoff-Hammer projection, so don't
-        # worry about them too much.
-        self.transAffine = Affine2D.from_values(
-                1., 0, 0.5, np.sqrt(3)/2., 0, 0)
-        self.transAffinedep = Affine2D.from_values(
-                1., 0, -0.5, np.sqrt(3)/2., 0, 0)
-        #self.transAffine = IdentityTransform()
-        
-        # 3) This is the transformation from axes space to display
-        # space.
+        # A useful reference for the different coordinate systems can be found
+        # in a table in the matplotlib transforms tutorial:
+        # https://matplotlib.org/tutorials/advanced/transforms_tutorial.html#transformations-tutorial
+
+        # The goal of this transformation is to get from the data space to axes
+        # space. We perform an affine transformation on the y-axis, i.e.
+        # transforming the y-axis from (0, 1) to (0.5, sqrt(3)/2).
+        self.transAffine = Affine2D.from_values(1., 0, 0.5, np.sqrt(3)/2., 0, 0)
+        # Affine transformation along the dependent axis
+        self.transAffinedep = Affine2D.from_values(1., 0, -0.5, np.sqrt(3)/2., 0, 0)
+
+        # This is the transformation from axes space to display space.
         self.transAxes = BboxTransformTo(self.bbox)
 
-        # Now put these 3 transforms together -- from data all the way
-        # to display coordinates.  Using the '+' operator, these
-        # transforms will be applied "in order".  The transforms are
-        # automatically simplified, if possible, by the underlying
-        # transformation framework.
-        self.transData = \
-            self.transProjection + \
-            self.transAffine + \
-            self.transAxes
+        # The data transformation is the application of the affine
+        # transformation from data to axes space, then from axes to display
+        # space. The '+' operator applies these in order.
+        self.transData = self.transAffine + self.transAxes
 
-        # The main data transformation is set up.  Now deal with
-        # gridlines and tick labels.
-
-        # Longitude gridlines and ticklabels.  The input to these
-        # transforms are in display space in x and axes space in y.
-        # Therefore, the input values will be in range (-xmin, 0),
-        # (xmax, 1).  The goal of these transforms is to go from that
-        # space to display space.  The tick labels will be offset 4
-        # pixels from the equator.
-
-        self._xaxis_pretransform = IdentityTransform()
-        self._xaxis_transform = \
-            self._xaxis_pretransform + \
-            self.transData
-        self._xaxis_text1_transform = \
-            Affine2D().scale(1.0, 0.0) + \
-            self.transData + \
-            Affine2D().translate(0.0, -20.0)
-        self._xaxis_text2_transform = \
-            Affine2D().scale(1.0, 0.0) + \
-            self.transData + \
-            Affine2D().translate(0.0, -4.0)
-
-        # Now set up the transforms for the latitude ticks.  The input to
-        # these transforms are in axes space in x and display space in
-        # y.  Therefore, the input values will be in range (0, -ymin),
-        # (1, ymax).  The goal of these transforms is to go from that
-        # space to display space.  The tick labels will be offset 4
-        # pixels from the edge of the axes ellipse.
+        # The main data transformation is set up.  Now deal with gridlines and
+        # tick labels. For these, we want the same trasnform as the, so we
+        # apply transData directly.
+        self._xaxis_transform = self.transData
+        self._xaxis_text1_transform = self.transData
+        self._xaxis_text2_transform = self.transData
 
         self._yaxis_transform = self.transData
-        yaxis_text_base = \
-            self.transProjection + \
-            (self.transAffine + \
-             self.transAxes)
-        self._yaxis_text1_transform = \
-            yaxis_text_base + \
-            Affine2D().translate(-8.0, 0.0)
-        self._yaxis_text2_transform = \
-            yaxis_text_base + \
-            Affine2D().translate(8.0, 0.0)
+        self._yaxis_text1_transform = self.transData
+        self._yaxis_text2_transform = self.transData
 
-    def get_xaxis_transform(self,which='grid'):
-        assert which in ['tick1','tick2','grid']
+    def get_xaxis_transform(self, which='grid'):
+        assert which in ['tick1', 'tick2', 'grid']
         return self._xaxis_transform
 
     def get_xaxis_text1_transform(self, pad):
-        return self._xaxis_text1_transform, 'bottom', 'center'
+        return super().get_xaxis_text1_transform(pad)[0], 'top', 'center'
 
     def get_xaxis_text2_transform(self, pad):
-        return self._xaxis_text2_transform, 'top', 'center'
+        return super().get_xaxis_text2_transform(pad)[0], 'top', 'center'
 
-    def get_yaxis_transform(self,which='grid'):
-        assert which in ['tick1','tick2','grid']
+    def get_yaxis_transform(self, which='grid'):
+        assert which in ['tick1', 'tick2', 'grid']
         return self._yaxis_transform
 
     def get_yaxis_text1_transform(self, pad):
-        return self._yaxis_text1_transform, 'center', 'right'
+        return super().get_yaxis_text1_transform(pad)[0], 'center', 'right'
 
     def get_yaxis_text2_transform(self, pad):
-        return self._yaxis_text2_transform, 'center', 'left'
+        return super().get_yaxis_text2_transform(pad)[0], 'center', 'left'
 
     def _gen_axes_spines(self):
-        dep_spine = mspines.Spine.linear_spine(self,
-                                                   'right')
-        # Fix dependent axis to be transformed the correct way
+        # The dependent axis (right hand side) spine should be set to complete
+        # the triangle, i.e. the spine from (1, 0) to (1, 1) will be
+        # transformed to (1, 0) to (0.5, sqrt(3)/2).
+        dep_spine = mspines.Spine.linear_spine(self, 'right')
         dep_spine.set_transform(self.transAffinedep + self.transAxes)
-        return {'left':mspines.Spine.linear_spine(self,
-                                                   'left'),
-                'bottom':mspines.Spine.linear_spine(self,
-                                                   'bottom'),
-        'right':dep_spine}
+        return {
+            'left': mspines.Spine.linear_spine(self, 'left'),
+            'bottom': mspines.Spine.linear_spine(self, 'bottom'),
+            'right': dep_spine,
+        }
 
     def _gen_axes_patch(self):
         """
@@ -180,8 +151,7 @@ class TriangularAxes(Axes):
         background of the plot.  It should be a subclass of Patch.
         Any data and gridlines will be clipped to this shape.
         """
-
-        return Polygon([[0,0], [0.5,np.sqrt(3)/2], [1,0]], closed=True)
+        return Polygon([[0, 0], [0.5, np.sqrt(3)/2], [1, 0]], closed=True)
 
     # Interactive panning and zooming is not supported with this projection,
     # so we override all of the following methods to disable it.
@@ -190,12 +160,44 @@ class TriangularAxes(Axes):
         Return True if this axes support the zoom box
         """
         return False
+
     def start_pan(self, x, y, button):
         pass
+
     def end_pan(self):
         pass
+
     def drag_pan(self, button, key, x, y):
         pass
+
+    def set_ylabel(self, ylabel, fontdict=None, labelpad=None, *, loc=None, **kwargs):
+        """
+        Set the label for the y-axis. Default rotation=60 degrees.
+
+        Parameters
+        ----------
+        ylabel : str
+            The label text.
+
+        labelpad : float, default: None
+            Spacing in points from the axes bounding box including ticks
+            and tick labels.
+
+        loc : {'bottom', 'center', 'top'}, default: :rc:`yaxis.labellocation`
+            The label position. This is a high-level alternative for passing
+            parameters *y* and *horizontalalignment*.
+
+        Other Parameters
+        ----------------
+        **kwargs : `.Text` properties
+            `.Text` properties control the appearance of the label.
+
+        See Also
+        --------
+        text : Documents the properties supported by `.Text`.
+        """
+        kwargs.setdefault('rotation', 60)
+        return super().set_ylabel(ylabel, fontdict, labelpad, loc=loc, **kwargs)
 
 
 # Now register the projection with matplotlib so the user can select it.
