@@ -217,7 +217,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     # FUNCTION
     cmd_function = TCCommand('FUNCTION') + symbol_name + \
         func_expr.setParseAction(_make_piecewise_ast) + \
-        Optional(Suppress(Word(alphanums))('reference')) + LineEnd()
+        Optional(Suppress(Word(alphanums)('reference_key'))) + LineEnd()
     # ASSESSED_SYSTEMS
     cmd_ass_sys = TCCommand('ASSESSED_SYSTEMS') + SkipTo(LineEnd())
     # DEFINE_SYSTEM_DEFAULT
@@ -252,7 +252,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(',') + constituent_array + \
         Optional(Suppress(';') + int_number, default=0) + \
         Suppress(')') + func_expr.setParseAction(_make_piecewise_ast) + \
-        Optional(Suppress(Word(alphanums))('reference')) + LineEnd()
+        Optional(Suppress(Word(alphanums)('reference_key'))) + LineEnd()
     # Now combine the grammar together
     all_commands = cmd_element | \
                     cmd_species | \
