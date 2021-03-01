@@ -662,3 +662,19 @@ def test_database_applies_late_type_def():
     assert dbf.phases['BCC_A2'].model_hints['ihj_magnetic_afm_factor'] == -1.0
     assert 'ihj_magnetic_structure_factor' in dbf.phases['BCC_A2'].model_hints
     assert dbf.phases['BCC_A2'].model_hints['ihj_magnetic_structure_factor'] == 0.4
+
+
+def test_tdb_parser_raises_unterminated_parameters():
+    """A TDB FUNCTION or PARAMETER should give an error if the parsed
+    Piecewise expression does not end the line."""
+    # The PARAMETER G(BCC,FE:H;0) parameter is not terminated by an `!`.
+    # The parser merges all newlines until the `!`, meaning both parameters
+    # will be joined on one "line". The parser should raise an error.
+    UNTERMINATED_PARAM_STR = """     PARAMETER G(BCC,FE:H;0) 298.15  +GHSERFE+1.5*GHSERHH
+        +258000-3170*T+498*T*LN(T)-0.275*T**2; 1811.00  Y
+        +232264+82*T+1*GHSERFE+1.5*GHSERHH; 6000.00  N
+
+     PARAMETER G(BCC,FE:VA;0)      298.15 +GHSERFE; 6000 N ZIM !
+    """
+    with pytest.raises(ParseException):
+        Database(UNTERMINATED_PARAM_STR)
