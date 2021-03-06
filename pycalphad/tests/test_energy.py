@@ -471,7 +471,7 @@ def test_ionic_liquid_energy_anion_sublattice():
 
 
 def test_order_disorder_interstitial_sublattice():
-    TDB_OrderDisorder_VA_only = """
+    TDB_OrderDisorder_VA_VA = """
     ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
     ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
     ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
@@ -496,7 +496,8 @@ def test_order_disorder_interstitial_sublattice():
 
     """
 
-    TDB_OrderDisorder_VA_C = """$ Compared to TDB_OrderDisorder_VA_only, this database only
+    TDB_OrderDisorder_VA_VA_C = """
+    $ Compared to TDB_OrderDisorder_VA_VA, this database only
     $ differs in the fact that the VA sublattice contains C
 
     ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
@@ -523,13 +524,43 @@ def test_order_disorder_interstitial_sublattice():
 
     """
 
-    db_VA_only = Database(TDB_OrderDisorder_VA_only)
-    db_VA_C =    Database(TDB_OrderDisorder_VA_C)
+    TDB_OrderDisorder_VA_C = """
+    $ Compared to TDB_OrderDisorder_VA_VA_C, this database only
+    $ differs in the fact that the disorderd sublattices do not contain VA
 
-    mod_VA_only = Model(db_VA_only, ["A", "B", "VA"], "ORDERED")
-    mod_VA_C =    Model(db_VA_C,    ["A", "B", "VA"], "ORDERED")
+    ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT C    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
 
-    # Pure A
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+    TYPE_DEFINITION % SEQ *!
+    TYPE_DEFINITION & GES A_P_D DISORD MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ( GES A_P_D ORDERED MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ' GES A_P_D ORDERED DIS_PART DISORD ,,,!
+
+    PHASE DISORD  %&  2 1   3 !
+    PHASE ORDERED %('  3 0.5  0.5  3  !
+
+    CONSTITUENT DISORD  : A,B : C,VA :  !
+    CONSTITUENT ORDERED  : A,B : A,B : C,VA :  !
+
+    PARAMETER G(DISORD,A:VA;0)  298.15  -10000; 6000 N !
+    PARAMETER G(DISORD,B:VA;0)  298.15  -10000; 6000 N !
+
+    """
+
+    db_VA_VA = Database(TDB_OrderDisorder_VA_VA)
+    db_VA_C = Database(TDB_OrderDisorder_VA_C)
+    db_VA_VA_C = Database(TDB_OrderDisorder_VA_VA_C)
+
+    mod_VA_VA = Model(db_VA_VA, ["A", "B", "VA"], "ORDERED")
+    mod_VA_C = Model(db_VA_C, ["A", "B", "VA"], "ORDERED")
+    mod_VA_VA_C = Model(db_VA_VA_C, ["A", "B", "VA"], "ORDERED")
+
+    # Site fractions for pure A
     subs_dict = {
         v.Y('ORDERED', 0, v.Species('A')): 1.0,
         v.Y('ORDERED', 0, v.Species('B')): 0.0,
@@ -541,7 +572,6 @@ def test_order_disorder_interstitial_sublattice():
         v.T: 300.0,
     }
 
-    assert set(mod_VA_only.site_fractions) == set(mod_VA_C.site_fractions)
-
-    check_energy(mod_VA_only, subs_dict, -10000, mode='sympy')
+    check_energy(mod_VA_VA, subs_dict, -10000, mode='sympy')
     check_energy(mod_VA_C, subs_dict, -10000, mode='sympy')
+    check_energy(mod_VA_VA_C, subs_dict, -10000, mode='sympy')
