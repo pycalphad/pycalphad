@@ -114,7 +114,7 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     # Issues with this appear to be platform-dependent
     points = points[~np.isnan(points).any(axis=-1)]
     # Ensure that points has the correct dimensions and dtype
-    points = np.atleast_2d(np.asarray(points, dtype=np.float))
+    points = np.atleast_2d(np.asarray(points, dtype=float))
     return points
 
 
@@ -206,12 +206,12 @@ def _compute_phase_values(components, statevar_dict,
         phase_output = broadcast_to(phase_output, points.shape[:-1])
     if isinstance(phase_compositions, (float, int)):
         phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
-    phase_output = np.asarray(phase_output, dtype=np.float)
+    phase_output = np.asarray(phase_output, dtype=float)
     if parameter_array_length <= 1:
         phase_output.shape = points.shape[:-1]
     else:
         phase_output.shape = points.shape[:-1] + (parameter_array_length,)
-    phase_compositions = np.asarray(phase_compositions, dtype=np.float)
+    phase_compositions = np.asarray(phase_compositions, dtype=float)
     phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
     if fake_points:
         output_shape = points.shape[:-2] + (max_tieline_vertices,)

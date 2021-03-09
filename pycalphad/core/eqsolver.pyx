@@ -258,7 +258,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         converged = False
         changed_phases = False
         cur_conds = OrderedDict(zip(conds_keys,
-                                    [np.asarray(properties.coords[b][a], dtype=np.float)
+                                    [np.asarray(properties.coords[b][a], dtype=float)
                                      for a, b in zip(it.multi_index, conds_keys)]))
         # assume 'points' and other dimensions (internal dof, etc.) always follow
         curr_idx = [it.multi_index[i] for i, key in enumerate(conds_keys) if key in str_state_variables]

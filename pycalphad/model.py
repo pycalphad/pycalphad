@@ -1140,12 +1140,12 @@ class TestModel(Model):
         self.models = dict()
         variables = [v.SiteFraction(phase.upper(), 0, x) for x in sorted(self.components)]
         if solution is None:
-            solution = np.random.dirichlet(np.ones_like(variables, dtype=np.int))
+            solution = np.random.dirichlet(np.ones_like(variables, dtype=int))
         self.solution = dict(list(zip(variables, solution)))
         kmax = kmax if kmax is not None else 2
         scale_factor = 1e4 * len(self.components)
-        ampl_scale = 1e3 * np.ones(kmax, dtype=np.float)
-        freq_scale = 10 * np.ones(kmax, dtype=np.float)
+        ampl_scale = 1e3 * np.ones(kmax, dtype=float)
+        freq_scale = 10 * np.ones(kmax, dtype=float)
         polys = Add(*[ampl_scale[i] * sin(freq_scale[i] * Add(*[Add(*[(varname - sol)**(j+1)
                                                                       for varname, sol in self.solution.items()])
                                                                 for j in range(kmax)]))**2
