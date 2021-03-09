@@ -552,6 +552,38 @@ def test_order_disorder_interstitial_sublattice():
 
     """
 
+    TDB_OrderDisorder_VA_B = """
+    $ This database contains B in both substitutional and interstitial sublattices
+
+    ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT C    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+    TYPE_DEFINITION % SEQ *!
+    TYPE_DEFINITION & GES A_P_D DISORD MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ( GES A_P_D ORDERED MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ' GES A_P_D ORDERED DIS_PART DISORD ,,,!
+
+    PHASE DISORD  %&  2 1   3 !
+    PHASE ORDERED %('  3 0.5  0.5  3  !
+
+    CONSTITUENT DISORD  : A,B : B,VA :  !
+    CONSTITUENT ORDERED  : A,B : A,B : B,VA :  !
+
+    PARAMETER G(DISORD,A:VA;0)  298.15  -10000; 6000 N !
+    PARAMETER G(DISORD,B:VA;0)  298.15  -10000; 6000 N !
+    PARAMETER G(DISORD,A:B;0)  298.15  -20000; 6000 N !
+    PARAMETER G(DISORD,B:B;0)  298.15  -20000; 6000 N !
+
+    PARAMETER G(ORDERED,A:B:B;0)  298.15  -1000; 6000 N !
+    PARAMETER G(ORDERED,A:B:VA;0)  298.15  -2000; 6000 N !
+
+    """
+
     db_VA_VA = Database(TDB_OrderDisorder_VA_VA)
     db_VA_C = Database(TDB_OrderDisorder_VA_C)
     db_VA_VA_C = Database(TDB_OrderDisorder_VA_VA_C)
@@ -575,3 +607,35 @@ def test_order_disorder_interstitial_sublattice():
     check_energy(mod_VA_VA, subs_dict, -10000, mode='sympy')
     check_energy(mod_VA_C, subs_dict, -10000, mode='sympy')
     check_energy(mod_VA_VA_C, subs_dict, -10000, mode='sympy')
+
+    db_VA_B = Database(TDB_OrderDisorder_VA_B)
+    mod_VA_B = Model(db_VA_B, ["A", "B", "VA"], "ORDERED")
+
+    # A-B disordered substitutional
+    disord_subs_dict = {
+        v.Y('ORDERED', 0, v.Species('A')): 0.5,
+        v.Y('ORDERED', 0, v.Species('B')): 0.5,
+        v.Y('ORDERED', 1, v.Species('A')): 0.5,
+        v.Y('ORDERED', 1, v.Species('B')): 0.5,
+        v.Y('ORDERED', 2, v.Species('B')): 0.25,
+        v.Y('ORDERED', 2, v.Species('VA')): 0.75,
+        v.T: 300.0,
+    }
+    # Thermo-Calc energy via set-start-constitution
+    check_energy(mod_VA_B, disord_subs_dict, -10535.395, mode='sympy')
+
+    # A-B ordered substitutional
+    ord_subs_dict = {
+        v.Y('ORDERED', 0, v.Species('A')): 1.0,
+        v.Y('ORDERED', 0, v.Species('B')): 0.0,
+        v.Y('ORDERED', 1, v.Species('A')): 0.0,
+        v.Y('ORDERED', 1, v.Species('B')): 1.0,
+        v.Y('ORDERED', 2, v.Species('B')): 0.25,
+        v.Y('ORDERED', 2, v.Species('VA')): 0.75,
+        v.T: 300.0,
+    }
+    # Thermo-Calc energy via set-start-constitution
+    check_energy(mod_VA_B, ord_subs_dict, -10297.421, mode='sympy')
+
+
+
