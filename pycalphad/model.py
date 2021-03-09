@@ -960,7 +960,50 @@ class Model(object):
     def atomic_ordering_energy(self, dbe):
         """
         Return the atomic ordering contribution in symbolic form.
-        Description follows Servant and Ansara, Calphad, 2001.
+
+        If the current phase is anything other than the ordered phase in a
+        paritioned order/disorder Gibbs energy model, this method will return
+        zero. If the current phase is the ordered phase, ordering energy is
+        computed by equation (3) of Servant and Ansara [1]_:
+        :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i) - G^\mathrm{ord}(y_i = x_i)`
+
+        This method must be the last energy contribution called because it
+        plays two roles:
+
+           1. The current AST in self.models represents the ordered energy
+           :math:`G^\mathrm{ord}(y_i)`. To compute the ordering energy, all
+           contributions to the ordered energy must have already been counted.
+
+           2. The true energy of the phase should be the sum of the disordered
+           phase's energy and the ordering energy. That is,
+           :math:`G = G^\mathrm{dis} + \Delta G^\mathrm{ord}(y_i)`. This method
+           not only computes the ordering energy, but also replaces the other
+           model contributions by the disordered phase's energy.
+
+        Notes
+        -----
+        A peculiarity of this model is that the literature does not define how
+        to handle the energetic contributions from the sublattices that are
+        not participating in the disordering. There are no publications to our
+        knowledge that describe how to incorporate interstitial sublattices
+        into the model, whether to substitute their site fractions by mole
+        fractions like the substitutional phases or whether to leave the site
+        fractions as site fractions.
+
+        One could imagine how it might be of interest to model ordering on the
+        interstitial sublattices the same way that it is handled on the
+        substitional sublattices, but this has not been done as far as we are
+        aware. Therefore, we choose to treat only the first sublattice in the
+        disordered sublattice model as the substitional sublattice that may
+        disorder. All other sublattices are treated as interstitial sublattices
+        which are not substituted (i.e. they do not contribute to the ordering
+        energy). This formulation makes pycalphad conceptually consistent with
+        the implementation in OpenCalphad.
+
+        References
+        ----------
+        .. [1] Servant, C. & Ansara, I. Thermodynamic modelling of the order-disorder transformation of the orthorhombic phase of the Al-Nb-Ti system. Calphad 25, 509–525 (2001).
+
         """
         phase = dbe.phases[self.phase_name]
         ordered_phase_name = phase.model_hints.get('ordered_phase', None)
@@ -972,8 +1015,19 @@ class Model(object):
         constituents = [sorted(set(c).intersection(self.components)) \
                 for c in dbe.phases[ordered_phase_name].constituents]
 
+        # Disordered sublattices in the ordered phase are those that match the
+        # constituents in the first sublattice of the disordered phase.
+        # If an interstitial sublattice needs to have the same constituents as
+        # the disordered phase, users can add a dummy species to the
+        # sublattices to distinguish them. See the Notes section of this
+        # method's docstring for more details on this assumption.
+        disordered_subl_constituents = dbe.phases[disordered_phase_name].constituents[0]
+        ordered_constituents = dbe.phases[ordered_phase_name].constituents
+        disordered_sublattice_idxs = [idx for idx, subl_constituents in enumerate(ordered_constituents) if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0]
+
         # Fix variable names
         variable_rename_dict = {}
+        # TODO: change to disordered_model.site_fractions
         disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
         for atom in disordered_sitefracs:
             # Replace disordered phase site fractions with mole fractions of
