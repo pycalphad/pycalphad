@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.4+9.gbe404461 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.4+10.g50389503 documentation</title>
   
 
   
@@ -32,7 +32,6 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -65,7 +64,7 @@
             
             
               <div class="version">
-                0.8.4+9.gbe404461
+                0.8.4+10.g50389503
               </div>
             
           
@@ -380,7 +379,8 @@
         <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">CharsNotIn</span><span class="p">(</span><span class="s1">&#39; !&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
     <span class="c1"># FUNCTION</span>
     <span class="n">cmd_function</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;FUNCTION&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
-        <span class="n">func_expr</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">_make_piecewise_ast</span><span class="p">)</span>
+        <span class="n">func_expr</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">_make_piecewise_ast</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="p">)(</span><span class="s1">&#39;reference_key&#39;</span><span class="p">)))</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
     <span class="c1"># ASSESSED_SYSTEMS</span>
     <span class="n">cmd_ass_sys</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ASSESSED_SYSTEMS&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
     <span class="c1"># DEFINE_SYSTEM_DEFAULT</span>
@@ -414,7 +414,8 @@
         <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="o">+</span><span class="s1">&#39;/-&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">constituent_array</span> <span class="o">+</span> \
         <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">int_number</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
-        <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">func_expr</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">_make_piecewise_ast</span><span class="p">)</span>
+        <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">func_expr</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">_make_piecewise_ast</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="p">)(</span><span class="s1">&#39;reference_key&#39;</span><span class="p">)))</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
     <span class="c1"># Now combine the grammar together</span>
     <span class="n">all_commands</span> <span class="o">=</span> <span class="n">cmd_element</span> <span class="o">|</span> \
                     <span class="n">cmd_species</span> <span class="o">|</span> \
