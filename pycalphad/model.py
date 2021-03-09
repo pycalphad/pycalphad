@@ -1067,7 +1067,6 @@ class Model(object):
 
         # Fix variable names
         variable_rename_dict = {}
-        # TODO: change to disordered_model.site_fractions
         disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
         for atom in disordered_sitefracs:
             # Replace disordered phase site fractions with mole fractions of
