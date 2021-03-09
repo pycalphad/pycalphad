@@ -1033,19 +1033,16 @@ class Model(object):
         disordered_phase = dbe.phases[disordered_phase_name]
         constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
 
-        # 1: Compute the ordering energy
-
-        # Save all of the ordered energy contributions
-        # Needs to extract a copy of self.models.values because the values will
-        # be updated to the disordered energy contributions
-        ordered_energy = Add(*list(self.models.values()))
-
+        # Get substitutional sublattice indices (for the ordered phase) and
+        # validate that the number of interstitial sublattices is consistent
+        # with the disordered phase
         disordered_subl_constituents = disordered_phase.constituents[0]
         ordered_constituents = ordered_phase.constituents
         substitutional_sublattice_idxs = []
         for idx, subl_constituents in enumerate(ordered_constituents):
             if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0:
                 substitutional_sublattice_idxs.append(idx)
+        # validate
         num_substitutional_sublattice_idxs = len(substitutional_sublattice_idxs)
         num_ordered_interstitial_subls = len(ordered_phase.sublattices) - num_substitutional_sublattice_idxs
         num_disordered_interstitial_subls = len(disordered_phase.sublattices) - 1
@@ -1056,6 +1053,13 @@ class Model(object):
                 f'({num_ordered_interstitial_subls}) do not match. Got '
                 f'substitutional sublattice indices of {substitutional_sublattice_idxs}.'
                 )
+
+        # 1: Compute the ordering energy
+
+        # Save all of the ordered energy contributions
+        # Needs to extract a copy of self.models.values because the values will
+        # be updated to the disordered energy contributions
+        ordered_energy = Add(*list(self.models.values()))
 
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction in the disordered state
