@@ -1030,7 +1030,7 @@ class Model(object):
             return S.Zero
         ordered_phase = dbe.phases[ordered_phase_name]
         disordered_phase = dbe.phases[disordered_phase_name]
-        constituents = [sorted(set(c).intersection(self.components)) for c in dbe.phases[ordered_phase_name].constituents]
+        constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
 
         # 1: Compute the ordering energy
 
@@ -1040,7 +1040,7 @@ class Model(object):
         ordered_energy = Add(*list(self.models.values()))
 
         disordered_subl_constituents = disordered_phase.constituents[0]
-        ordered_constituents = dbe.phases[ordered_phase_name].constituents
+        ordered_constituents = ordered_phase.constituents
         substitutional_sublattice_idxs = []
         for idx, subl_constituents in enumerate(ordered_constituents):
             if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0:
@@ -1065,18 +1065,17 @@ class Model(object):
 
         disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
 
-        # Fix variable names
+        # Replace disordered phase site fractions with mole fractions of
+        # ordered phase site fractions.
         variable_rename_dict = {}
         disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
         for atom in disordered_sitefracs:
-            # Replace disordered phase site fractions with mole fractions of
-            # ordered phase site fractions.
             # Special case: Pure vacancy sublattices
             all_species_in_sublattice = disordered_phase.constituents[atom.sublattice_index]
             if atom.species.name == 'VA' and len(all_species_in_sublattice) == 1:
                 # Assume: Pure vacancy sublattices are always last
                 vacancy_subl_index = \
-                    len(dbe.phases[ordered_phase_name].constituents)-1
+                    len(ordered_phase.constituents)-1
                 variable_rename_dict[atom] = \
                     v.SiteFraction(
                         ordered_phase_name, vacancy_subl_index, atom.species)
@@ -1086,7 +1085,7 @@ class Model(object):
                     self.mole_fraction(atom.species,
                                        ordered_phase_name,
                                        constituents,
-                                       dbe.phases[ordered_phase_name].sublattices
+                                       ordered_phase.sublattices
                                        )
         self.models.clear()
         # Copy the disordered energy contributions into the correct bins
