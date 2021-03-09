@@ -636,6 +636,3 @@ def test_order_disorder_interstitial_sublattice():
     }
     # Thermo-Calc energy via set-start-constitution
     check_energy(mod_VA_B, ord_subs_dict, -10297.421, mode='sympy')
-
-
-
