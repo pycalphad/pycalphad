@@ -1039,23 +1039,25 @@ class Model(object):
         # be updated to the disordered energy contributions
         ordered_energy = Add(*list(self.models.values()))
 
+        disordered_subl_constituents = disordered_phase.constituents[0]
+        ordered_constituents = dbe.phases[ordered_phase_name].constituents
+        substitutional_sublattice_idxs = []
+        for idx, subl_constituents in enumerate(ordered_constituents):
+            if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0:
+                substitutional_sublattice_idxs.append(idx)
+
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction in the disordered state
         molefraction_dict = {}
         ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
         for sitefrac in ordered_sitefracs:
-            all_species_in_sublattice = ordered_phase.constituents[sitefrac.sublattice_index]
-            if sitefrac.species.name == 'VA' and len(all_species_in_sublattice) == 1:
-                # pure-vacancy sublattices should not be replaced
-                # this handles cases like AL,NI,VA:AL,NI,VA:VA and
-                # ensures the VA's don't get mixed up
-                continue
-            molefraction_dict[sitefrac] = \
-                self.mole_fraction(sitefrac.species,
-                                   ordered_phase_name,
-                                   constituents,
-                                   ordered_phase.sublattices,
-                                   )
+            if sitefrac.sublattice_index in substitutional_sublattice_idxs:
+                molefraction_dict[sitefrac] = \
+                    self.mole_fraction(sitefrac.species,
+                                       ordered_phase_name,
+                                       constituents,
+                                       ordered_phase.sublattices,
+                                       )
 
         ordering_energy = ordered_energy - ordered_energy.xreplace(molefraction_dict)
 
