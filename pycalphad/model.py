@@ -1045,6 +1045,15 @@ class Model(object):
         for idx, subl_constituents in enumerate(ordered_constituents):
             if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0:
                 substitutional_sublattice_idxs.append(idx)
+        num_ordered_interstitial_subls = len(ordered_phase.sublattices) - len(substitutional_sublattice_idxs)
+        num_disordered_interstitial_subls = len(disordered_phase.sublattices) - 1
+        if num_ordered_interstitial_subls != num_disordered_interstitial_subls:
+            raise ValueError(
+                f'Number of interstitial sublattices for the disordered phase '
+                f'({num_disordered_interstitial_subls}) and the ordered phase '
+                f'({num_ordered_interstitial_subls}) do not match. Got '
+                f'substitutional sublattice indices of {substitutional_sublattice_idxs}.'
+                )
 
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction in the disordered state
