@@ -997,29 +997,11 @@ class Model(object):
            This method overwrites the ``self.models`` dictionary with the model
            contributions for the disordered phase.
 
-        A peculiarity of this model is that the literature does not define how
-        to handle the energetic contributions from the sublattices that are
-        not participating in the disordering. There are no publications to our
-        knowledge that describe how to incorporate interstitial sublattices
-        into the model, whether to substitute their site fractions by mole
-        fractions like the substitutional phases or whether to leave the site
-        fractions as site fractions.
-
-        One could imagine how it might be of interest to model ordering on the
-        interstitial sublattices the same way that it is handled on the
-        substitional sublattices, but this has not been done as far as we are
-        aware. Therefore, we choose to treat only the first sublattice in the
-        disordered sublattice model as the substitional sublattice that may
-        disorder. All other sublattices are treated as interstitial sublattices
-        which are not substituted (i.e. they do not contribute to the ordering
-        energy). This formulation makes pycalphad conceptually consistent with
-        the implementation in OpenCalphad.
-
-        In practice, this method assumes that the first sublattice of the
-        disordered phase is the substitutional sublattice and all other
-        sublattices are interstitial. In the ordered phase, all sublattices
-        with constituents that match the disordered sublattice will be treated
-        as disordered (with site fractions replaced by mole fractions in the
+        This method assumes that the first sublattice of the disordered phase is
+        the substitutional sublattice and all other sublattices are
+        interstitial. In the ordered phase, all sublattices with constituents
+        that match the disordered substitutional sublattice will be treated as
+        disordered (with site fractions replaced by mole fractions in the
         ordered sublattices) and the interstitial sublattices will not have any
         site fractions substituted.
 
