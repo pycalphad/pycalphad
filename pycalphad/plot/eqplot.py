@@ -128,8 +128,8 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
     eq['Phase'].values = np.array(eq['Phase'].values, dtype='U')
 
     # Select all two- and three-phase regions
-    three_phase_idx = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int) == 3)
-    two_phase_idx = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int) == 2)
+    three_phase_idx = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int_) == 3)
+    two_phase_idx = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int_) == 2)
 
     legend_handles, colorlist = legend_generator(phases)
 
