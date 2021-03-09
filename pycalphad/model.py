@@ -941,6 +941,7 @@ class Model(object):
         ordering energy goes to zero when the substitutional sublattice is
         disordered, regardless of the occupancy of the interstitial sublattice.
         """
+        # TODO: Fix so interstitial sublattices are not included with test
 
         # Normalize site ratios
         site_ratio_normalization = 0
@@ -1045,7 +1046,8 @@ class Model(object):
         for idx, subl_constituents in enumerate(ordered_constituents):
             if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0:
                 substitutional_sublattice_idxs.append(idx)
-        num_ordered_interstitial_subls = len(ordered_phase.sublattices) - len(substitutional_sublattice_idxs)
+        num_substitutional_sublattice_idxs = len(substitutional_sublattice_idxs)
+        num_ordered_interstitial_subls = len(ordered_phase.sublattices) - num_substitutional_sublattice_idxs
         num_disordered_interstitial_subls = len(disordered_phase.sublattices) - 1
         if num_ordered_interstitial_subls != num_disordered_interstitial_subls:
             raise ValueError(
@@ -1074,28 +1076,25 @@ class Model(object):
 
         disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
 
-        # Replace disordered phase site fractions with mole fractions of
-        # ordered phase site fractions.
+        # Replace disordered phase site fractions with mole fractions of ordered
+        # phase site fractions. The interstitial sublattice indices need to be
+        # shifted to account for the ordered substitutional sublattices.
         variable_rename_dict = {}
         disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
         for atom in disordered_sitefracs:
-            # Special case: Pure vacancy sublattices
-            all_species_in_sublattice = disordered_phase.constituents[atom.sublattice_index]
-            if atom.species.name == 'VA' and len(all_species_in_sublattice) == 1:
-                # Assume: Pure vacancy sublattices are always last
-                vacancy_subl_index = \
-                    len(ordered_phase.constituents)-1
-                variable_rename_dict[atom] = \
-                    v.SiteFraction(
-                        ordered_phase_name, vacancy_subl_index, atom.species)
-            else:
-                # All other cases: replace site fraction with mole fraction
+            if atom.sublattice_index == 0:  # only the first sublattice is substitutional
                 variable_rename_dict[atom] = \
                     self.mole_fraction(atom.species,
                                        ordered_phase_name,
                                        constituents,
-                                       ordered_phase.sublattices
+                                       ordered_phase.sublattices,
                                        )
+
+            else:
+                shifted_subl_index = atom.sublattice_index + num_substitutional_sublattice_idxs - 1
+                variable_rename_dict[atom] = \
+                    v.SiteFraction(ordered_phase_name, shifted_subl_index, atom.species)
+
         self.models.clear()
         # Copy the disordered energy contributions into the correct bins
         for name, value in disordered_model.models.items():
