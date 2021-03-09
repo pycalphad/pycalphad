@@ -982,6 +982,10 @@ class Model(object):
 
         Notes
         -----
+        .. caution::
+           This method overwrites the ``self.models`` dictionary with the model
+           contributions for the disordered phase.
+
         A peculiarity of this model is that the literature does not define how
         to handle the energetic contributions from the sublattices that are
         not participating in the disordering. There are no publications to our
@@ -1014,6 +1018,35 @@ class Model(object):
                                           disordered_phase_name)
         constituents = [sorted(set(c).intersection(self.components)) \
                 for c in dbe.phases[ordered_phase_name].constituents]
+
+        # 1: Compute the ordering energy
+
+        # Save all of the ordered energy contributions
+        # Needs to extract a copy of self.models.values because the values will
+        # be updated to the disordered energy contributions
+        ordered_energy = Add(*list(self.models.values()))
+
+        # Construct a dictionary that replaces every site fraction with its
+        # corresponding mole fraction in the disordered state
+        molefraction_dict = {}
+        ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
+        for sitefrac in ordered_sitefracs:
+            all_species_in_sublattice = \
+                dbe.phases[ordered_phase_name].constituents[
+                    sitefrac.sublattice_index]
+            if sitefrac.species.name == 'VA' and len(all_species_in_sublattice) == 1:
+                # pure-vacancy sublattices should not be replaced
+                # this handles cases like AL,NI,VA:AL,NI,VA:VA and
+                # ensures the VA's don't get mixed up
+                continue
+            molefraction_dict[sitefrac] = \
+                self.mole_fraction(sitefrac.species,
+                                   ordered_phase_name, constituents,
+                                   dbe.phases[ordered_phase_name].sublattices)
+
+        ordering_energy = ordered_energy - ordered_energy.xreplace(molefraction_dict)
+
+        # 2: Replace the ordered energy contributions with the disordered contributions
 
         # Disordered sublattices in the ordered phase are those that match the
         # constituents in the first sublattice of the disordered phase.
@@ -1052,9 +1085,6 @@ class Model(object):
                         constituents,
                         dbe.phases[ordered_phase_name].sublattices
                         )
-        # Save all of the ordered energy contributions
-        # This step is why this routine must be called _last_ in build_phase
-        ordered_energy = Add(*list(self.models.values()))
         self.models.clear()
         # Copy the disordered energy contributions into the correct bins
         for name, value in disordered_model.models.items():
@@ -1063,26 +1093,7 @@ class Model(object):
         self.TC = self.curie_temperature = disordered_model.TC
         self.TC = self.curie_temperature = self.TC.xreplace(variable_rename_dict)
 
-        molefraction_dict = {}
-
-        # Construct a dictionary that replaces every site fraction with its
-        # corresponding mole fraction in the disordered state
-        ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
-        for sitefrac in ordered_sitefracs:
-            all_species_in_sublattice = \
-                dbe.phases[ordered_phase_name].constituents[
-                    sitefrac.sublattice_index]
-            if sitefrac.species.name == 'VA' and len(all_species_in_sublattice) == 1:
-                # pure-vacancy sublattices should not be replaced
-                # this handles cases like AL,NI,VA:AL,NI,VA:VA and
-                # ensures the VA's don't get mixed up
-                continue
-            molefraction_dict[sitefrac] = \
-                self.mole_fraction(sitefrac.species,
-                                   ordered_phase_name, constituents,
-                                   dbe.phases[ordered_phase_name].sublattices)
-
-        return ordered_energy - ordered_energy.xreplace(molefraction_dict)
+        return ordering_energy
 
 
     # TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters
