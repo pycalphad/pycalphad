@@ -934,6 +934,12 @@ class Model(object):
         order-disorder model to calculate the disordered site fractions from
         the ordered site fractions, so we need _all_ site fractions, including
         VA, to sum to unity.
+
+        Following the rationale of the ``atomic_ordering_energy`` method notes,
+        mole fractions are only contributed to by species on the substiutional
+        sublattices and not the interstitial sublattices. This ensures that the
+        ordering energy goes to zero when the substitutional sublattice is
+        disordered, regardless of the occupancy of the interstitial sublattice.
         """
 
         # Normalize site ratios
@@ -1004,6 +1010,14 @@ class Model(object):
         energy). This formulation makes pycalphad conceptually consistent with
         the implementation in OpenCalphad.
 
+        In practice, this method assumes that the first sublattice of the
+        disordered phase is the substitutional sublattice and all other
+        sublattices are interstitial. In the ordered phase, all sublattices
+        with constituents that match the disordered sublattice will be treated
+        as disordered (with site fractions replaced by mole fractions in the
+        ordered sublattices) and the interstitial sublattices will not have any
+        site fractions substituted.
+
         References
         ----------
         .. [1] Servant, C. & Ansara, I. Thermodynamic modelling of the order-disorder transformation of the orthorhombic phase of the Al-Nb-Ti system. Calphad 25, 509–525 (2001).
@@ -1046,16 +1060,6 @@ class Model(object):
         ordering_energy = ordered_energy - ordered_energy.xreplace(molefraction_dict)
 
         # 2: Replace the ordered energy contributions with the disordered contributions
-
-        # Disordered sublattices in the ordered phase are those that match the
-        # constituents in the first sublattice of the disordered phase.
-        # If an interstitial sublattice needs to have the same constituents as
-        # the disordered phase, users can add a dummy species to the
-        # sublattices to distinguish them. See the Notes section of this
-        # method's docstring for more details on this assumption.
-        disordered_subl_constituents = disordered_phase.constituents[0]
-        ordered_constituents = dbe.phases[ordered_phase_name].constituents
-        disordered_sublattice_idxs = [idx for idx, subl_constituents in enumerate(ordered_constituents) if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0]
 
         disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
 
