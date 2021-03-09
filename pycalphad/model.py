@@ -921,8 +921,10 @@ class Model(object):
         return result / self._site_ratio_normalization
 
     @staticmethod
-    def mole_fraction(species_name, phase_name, constituent_array,
-                      site_ratios):
+    def _mole_fraction(species_name, phase_name, constituent_array,
+                       site_ratios,
+                       substitutional_sublattice_idxs,
+                       ):
         """
         Return an abstract syntax tree of the mole fraction of the
         given species as a function of its constituent site fractions.
@@ -941,14 +943,13 @@ class Model(object):
         ordering energy goes to zero when the substitutional sublattice is
         disordered, regardless of the occupancy of the interstitial sublattice.
         """
-        # TODO: Fix so interstitial sublattices are not included with test
 
         # Normalize site ratios
         site_ratio_normalization = 0
         numerator = S.Zero
         for idx, sublattice in enumerate(constituent_array):
-            # sublattices with only vacancies don't count
-            if sum(spec.number_of_atoms for spec in list(sublattice)) == 0:
+            # only count species from substitutional sublattices
+            if idx not in substitutional_sublattice_idxs:
                 continue
             if species_name in list(sublattice):
                 site_ratio_normalization += site_ratios[idx]
@@ -959,8 +960,11 @@ class Model(object):
             return 1
 
         if site_ratio_normalization == 0:
-            raise ValueError('Couldn\'t find ' + species_name + ' in ' + \
-                str(constituent_array))
+            raise ValueError(
+                f'Couldn\'t find {species_name} in a substitutional sublattice '
+                f'(indices: {substitutional_sublattice_idxs}) '
+                f'of the constituents {constituent_array}'
+                )
 
         return numerator / site_ratio_normalization
 
@@ -1068,10 +1072,11 @@ class Model(object):
         for sitefrac in ordered_sitefracs:
             if sitefrac.sublattice_index in substitutional_sublattice_idxs:
                 molefraction_dict[sitefrac] = \
-                    self.mole_fraction(sitefrac.species,
+                    self._mole_fraction(sitefrac.species,
                                        ordered_phase_name,
                                        constituents,
                                        ordered_phase.sublattices,
+                                       substitutional_sublattice_idxs,
                                        )
 
         ordering_energy = ordered_energy - ordered_energy.xreplace(molefraction_dict)
@@ -1088,10 +1093,11 @@ class Model(object):
         for atom in disordered_sitefracs:
             if atom.sublattice_index == 0:  # only the first sublattice is substitutional
                 variable_rename_dict[atom] = \
-                    self.mole_fraction(atom.species,
+                    self._mole_fraction(atom.species,
                                        ordered_phase_name,
                                        constituents,
                                        ordered_phase.sublattices,
+                                       substitutional_sublattice_idxs,
                                        )
 
             else:
