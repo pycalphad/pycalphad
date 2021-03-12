@@ -473,6 +473,8 @@ def test_ionic_liquid_energy_anion_sublattice():
 
 
 def test_order_disorder_interstitial_sublattice():
+    """Test that non-vacancy elements are supported on interstitial sublattices"""
+
     TDB_OrderDisorder_VA_VA = """
     ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
     ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
