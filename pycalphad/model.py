@@ -921,27 +921,27 @@ class Model(object):
         return result / self._site_ratio_normalization
 
     @staticmethod
-    def _mole_fraction(species_name, phase_name, constituent_array,
+    def _quasi_mole_fraction(species_name, phase_name, constituent_array,
                        site_ratios,
                        substitutional_sublattice_idxs,
                        ):
         """
-        Return an abstract syntax tree of the mole fraction of the
+        Return an abstract syntax tree of the quasi mole fraction of the
         given species as a function of its constituent site fractions.
 
-        Note that this will treat vacancies the same as any other component,
-        i.e., this will not give the correct _overall_ composition for
-        sublattices containing vacancies with other components by normalizing
-        by a factor of 1 - y_{VA}. This is because we use this routine in the
-        order-disorder model to calculate the disordered site fractions from
-        the ordered site fractions, so we need _all_ site fractions, including
-        VA, to sum to unity.
+        These mole fractions are "quasi" mole fractions because
 
-        Following the rationale of the ``atomic_ordering_energy`` method notes,
-        mole fractions are only contributed to by species on the substiutional
-        sublattices and not the interstitial sublattices. This ensures that the
-        ordering energy goes to zero when the substitutional sublattice is
-        disordered, regardless of the occupancy of the interstitial sublattice.
+        1. Vacancies are treated as regular species - they have mole fractions
+           defined and the site fraction of vacancies are not used to normalize
+           the mole fractions of the real constituents by the 1 - y_{VA} factor.
+        2. The mole fractions are only computed over the sublattices that
+           participate in the ordering/disordering. Species in non-ordering
+           ("interstitial") sublattices do not contribute to the mole fractions
+           that replace the site fractions.
+
+        These constraints ensures that the ordering energy goes to zero when the
+        substitutional sublattice is disordered, regardless of the occupancy of
+        the interstitial sublattice.
         """
 
         # Normalize site ratios
@@ -975,7 +975,7 @@ class Model(object):
         If the current phase is anything other than the ordered phase in a
         paritioned order/disorder Gibbs energy model, this method will return
         zero. If the current phase is the ordered phase, ordering energy is
-        computed by equation (3) of Servant and Ansara [1]_:
+        computed by equation (18) of Connectable *et al.* [1]_:
         :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i) - G^\mathrm{ord}(y_i = x_i)`
 
         This method must be the last energy contribution called because it
@@ -1001,13 +1001,14 @@ class Model(object):
         the substitutional sublattice and all other sublattices are
         interstitial. In the ordered phase, all sublattices with constituents
         that match the disordered substitutional sublattice will be treated as
-        disordered (with site fractions replaced by mole fractions in the
+        disordered (with site fractions replaced by quasi mole fractions in the
         ordered sublattices) and the interstitial sublattices will not have any
         site fractions substituted.
 
         References
         ----------
-        .. [1] Servant, C. & Ansara, I. Thermodynamic modelling of the order-disorder transformation of the orthorhombic phase of the Al-Nb-Ti system. Calphad 25, 509–525 (2001).
+
+        .. [1] Connetable et al., Calphad 2008, 32 (2), 361–370. doi: 10.1016/j.calphad.2008.01.002
 
         """
         phase = dbe.phases[self.phase_name]
@@ -1054,7 +1055,7 @@ class Model(object):
         for sitefrac in ordered_sitefracs:
             if sitefrac.sublattice_index in substitutional_sublattice_idxs:
                 molefraction_dict[sitefrac] = \
-                    self._mole_fraction(sitefrac.species,
+                    self._quasi_mole_fraction(sitefrac.species,
                                        ordered_phase_name,
                                        constituents,
                                        ordered_phase.sublattices,
@@ -1075,7 +1076,7 @@ class Model(object):
         for atom in disordered_sitefracs:
             if atom.sublattice_index == 0:  # only the first sublattice is substitutional
                 variable_rename_dict[atom] = \
-                    self._mole_fraction(atom.species,
+                    self._quasi_mole_fraction(atom.species,
                                        ordered_phase_name,
                                        constituents,
                                        ordered_phase.sublattices,
