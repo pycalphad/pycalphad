@@ -8,7 +8,7 @@ from sympy import S
 from pycalphad import Database, Model, ReferenceState
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
-    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB
+    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
@@ -20,6 +20,8 @@ CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
 CUMG_DBF = Database(CUMG_TDB)
 FE_MN_S_DBF = Database(FE_MN_S_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
+AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
+
 
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
@@ -636,3 +638,20 @@ def test_order_disorder_interstitial_sublattice():
     }
     # Thermo-Calc energy via set-start-constitution
     check_energy(mod_VA_B, ord_subs_dict, -10297.421, mode='sympy')
+
+
+def test_order_disorder_magnetic_ordering():
+    """Test partitioned order-disorder models with magnetic ordering contributions"""
+    mod = Model(AL_C_FE_B2_DBF, ['AL', 'C', 'FE', 'VA'], 'B2_BCC')
+    subs_dict = {
+        v.Y('B2_BCC', 0, v.Species('AL')): 0.23632422,
+        v.Y('B2_BCC', 0, v.Species('FE')): 0.09387751,
+        v.Y('B2_BCC', 0, v.Species('VA')): 0.66979827,
+        v.Y('B2_BCC', 1, v.Species('AL')): 0.40269437,
+        v.Y('B2_BCC', 1, v.Species('FE')): 0.55906662,
+        v.Y('B2_BCC', 1, v.Species('VA')): 0.03823901,
+        v.Y('B2_BCC', 2, v.Species('C')): 0.12888967,
+        v.Y('B2_BCC', 2, v.Species('VA')): 0.87111033,
+        v.T: 300.0,
+    }
+    check_energy(mod, subs_dict, 34659.484, mode='sympy')
