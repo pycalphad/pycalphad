@@ -1017,16 +1017,25 @@ class Model(object):
         if phase.name != ordered_phase_name:
             return S.Zero
         ordered_phase = dbe.phases[ordered_phase_name]
-        disordered_phase = dbe.phases[disordered_phase_name]
         constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
+        disordered_phase = dbe.phases[disordered_phase_name]
+        disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
 
         # Get substitutional sublattice indices (for the ordered phase) and
         # validate that the number of interstitial sublattices is consistent
-        # with the disordered phase
+        # with the disordered phase.
+        # Assumes first sublattice of the disordered phase is the sublattice
+        # that can be come ordered:
         disordered_subl_constituents = disordered_phase.constituents[0]
         ordered_constituents = ordered_phase.constituents
         substitutional_sublattice_idxs = []
         for idx, subl_constituents in enumerate(ordered_constituents):
+            # Assumes that the ordered phase sublattice describes the ordering
+            # if it has exactly the same constituents. Could be a source of
+            # false positives if any interstitial sublattices have the same
+            # constituents as the disordered sublattice, but there's not an
+            # explicit way to specify which sublattices are ordering. We try to
+            # compensate for this assumption by validating (next).
             if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0:
                 substitutional_sublattice_idxs.append(idx)
         # validate
