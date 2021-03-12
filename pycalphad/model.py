@@ -922,9 +922,9 @@ class Model(object):
 
     @staticmethod
     def _quasi_mole_fraction(species_name, phase_name, constituent_array,
-                       site_ratios,
-                       substitutional_sublattice_idxs,
-                       ):
+                             site_ratios,
+                             substitutional_sublattice_idxs,
+                             ):
         """
         Return an abstract syntax tree of the quasi mole fraction of the
         given species as a function of its constituent site fractions.
