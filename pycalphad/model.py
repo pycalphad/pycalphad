@@ -760,7 +760,7 @@ class Model(object):
             (1., True),
             evaluate=False
             )
-        self.BMAG = self.beta = beta
+        self.BMAG = self.beta = beta.subs(self._symbols)
 
         curie_temp = \
             self.redlich_kister_sum(phase, param_search, tc_param_query)
@@ -769,7 +769,7 @@ class Model(object):
             (1., True),
             evaluate=False
             )
-        self.TC = self.curie_temperature = tc
+        self.TC = self.curie_temperature = tc.subs(self._symbols)
 
         # Used to prevent singularity
         tau_positive_tc = v.T / (curie_temp + 1e-9)
@@ -851,6 +851,7 @@ class Model(object):
 
         self.TC = self.curie_temperature = curie_temp.subs(self._symbols)
         self.NT = self.neel_temperature = neel_temp.subs(self._symbols)
+        self.BMAG = self.beta = beta.subs(self._symbols)
 
         tau_curie = v.T / curie_temp
         tau_curie = tau_curie.xreplace({zoo: 1.0e10})
@@ -1133,9 +1134,9 @@ class Model(object):
         # The disordered model's energetic contribution from physical
         # properties needs to use the partitioned property in the disordered
         # energy contribution. This is not possible at the time of writing.
-        self.TC = self.curie_temperature = self._partitioned_expr(disordered_model.TC, self.TC, molefraction_dict, variable_rename_dict)
-        self.BMAG = self.beta = self._partitioned_expr(disordered_model.BMAG, self.BMAG, molefraction_dict, variable_rename_dict)
-        self.NT = self.neel_temperature = self._partitioned_expr(disordered_model.NT, self.NT, molefraction_dict, variable_rename_dict)
+        self.TC = self.curie_temperature = self._partitioned_expr(disordered_model.TC, self.TC, variable_rename_dict, molefraction_dict)
+        self.BMAG = self.beta = self._partitioned_expr(disordered_model.BMAG, self.BMAG, variable_rename_dict, molefraction_dict)
+        self.NT = self.neel_temperature = self._partitioned_expr(disordered_model.NT, self.NT, variable_rename_dict, molefraction_dict)
 
         return ordering_energy
 

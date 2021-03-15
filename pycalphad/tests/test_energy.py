@@ -658,4 +658,6 @@ def test_order_disorder_magnetic_ordering():
         v.Y('B2_BCC', 2, v.Species('VA')): 0.87111033,
         v.T: 300.0,
     }
+    check_output(mod, subs_dict, 'TC', 318.65374, mode='sympy')
+    check_output(mod, subs_dict, 'BMAG', 0.81435207, mode='sympy')
     check_energy(mod, subs_dict, 34659.484, mode='sympy')
