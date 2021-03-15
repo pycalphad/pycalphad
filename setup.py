@@ -78,7 +78,7 @@ setup(
         'numpy>=1.13',
         'pyparsing',
         'scipy',
-        'symengine==0.7.0.post1',  # python-symengine on conda-forge
+        'symengine==0.7.0',  # python-symengine on conda-forge
         'sympy==1.7',
         'tinydb>=3.8',
         'xarray>=0.11.2',
