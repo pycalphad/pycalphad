@@ -309,6 +309,7 @@ class Model(object):
 
     # Note: In order-disorder phases, TC will always be the *disordered* value of TC
     curie_temperature = TC = S.Zero
+    beta = BMAG = S.Zero
     neel_temperature = NT = S.Zero
 
     #pylint: disable=C0103
@@ -927,7 +928,7 @@ class Model(object):
                              ):
         """
         Return an abstract syntax tree of the quasi mole fraction of the
-        given species as a function of its constituent site fractions.
+        given species as a function of this phases's constituent site fractions.
 
         These mole fractions are "quasi" mole fractions because
 
@@ -968,6 +969,26 @@ class Model(object):
 
         return numerator / site_ratio_normalization
 
+    @staticmethod
+    def _partitioned_expr(disord_expr, ord_expr, disordered_mole_fraction_dict, ordered_mole_fraction_dict):
+        """Return the expression from summing the disordered part ordering part
+
+        Given expressions E^{dis}(y^{dis}_i) and E^{ord}(y^{ord}_i), return:
+
+            E^{dis}(x^{ord}_i) + (E^{ord}(y^{ord}_i) - E^{ord}(y^{ord}_i = x^{ord}_i))
+
+        where:
+
+        * y^{dis}_i are the site fractions of the disordered phase
+        * y^{ord}_i are the site fractions of the ordered phase
+        * x^{ord}_i are the quasi mole fractions of the ordered phase (in terms
+             of the ordered phase site fractions)
+
+        """
+        disord_expr = disord_expr.xreplace(disordered_mole_fraction_dict)
+        ordering_expr = ord_expr - ord_expr.xreplace(ordered_mole_fraction_dict)
+        return disord_expr + ordering_expr
+
     def atomic_ordering_energy(self, dbe):
         """
         Return the atomic ordering contribution in symbolic form.
@@ -978,8 +999,8 @@ class Model(object):
         computed by equation (18) of Connectable *et al.* [1]_:
         :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i) - G^\mathrm{ord}(y_i = x_i)`
 
-        This method must be the last energy contribution called because it
-        plays two roles:
+        This method must be the last energy contribution called because it plays
+        several roles that require all other contributions to be defined:
 
            1. The current AST in self.models represents the ordered energy
            :math:`G^\mathrm{ord}(y_i)`. To compute the ordering energy, all
@@ -990,6 +1011,9 @@ class Model(object):
            :math:`G = G^\mathrm{dis} + \Delta G^\mathrm{ord}(y_i)`. This method
            not only computes the ordering energy, but also replaces the other
            model contributions by the disordered phase's energy.
+
+           3. Physical properties are partitioned in the same way as the
+           energy. See Section 5.8.6 of Lukas, Fries and Sundman [2]_.
 
         Notes
         -----
@@ -1009,6 +1033,7 @@ class Model(object):
         ----------
 
         .. [1] Connetable et al., Calphad 2008, 32 (2), 361–370. doi: 10.1016/j.calphad.2008.01.002
+        .. [2] Lukas, Fries, and Sundman, Computational Thermodynamics: the Calphad Method, Cambridge University Press (2007).
 
         """
         phase = dbe.phases[self.phase_name]
@@ -1050,63 +1075,69 @@ class Model(object):
                 f'substitutional sublattice indices of {substitutional_sublattice_idxs}.'
                 )
 
-        # 1: Compute the ordering energy
-
         # Save all of the ordered energy contributions
         # Needs to extract a copy of self.models.values because the values will
-        # be updated to the disordered energy contributions
+        # be updated to the disordered energy contributions later
         ordered_energy = Add(*list(self.models.values()))
 
-        # Construct a dictionary that replaces every site fraction with its
-        # corresponding mole fraction in the disordered state
+        # Compute the molefraction_dict, which will map ordered phase site
+        # fractions to the quasi mole fractions representing the disordered state
         molefraction_dict = {}
         ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
         for sitefrac in ordered_sitefracs:
             if sitefrac.sublattice_index in substitutional_sublattice_idxs:
                 molefraction_dict[sitefrac] = \
                     self._quasi_mole_fraction(sitefrac.species,
-                                       ordered_phase_name,
-                                       constituents,
-                                       ordered_phase.sublattices,
-                                       substitutional_sublattice_idxs,
-                                       )
+                                              ordered_phase_name,
+                                              constituents,
+                                              ordered_phase.sublattices,
+                                              substitutional_sublattice_idxs,
+                                              )
 
-        ordering_energy = ordered_energy - ordered_energy.xreplace(molefraction_dict)
-
-        # 2: Replace the ordered energy contributions with the disordered contributions
-
-        disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
-
-        # Replace disordered phase site fractions with mole fractions of ordered
-        # phase site fractions. The interstitial sublattice indices need to be
-        # shifted to account for the ordered substitutional sublattices.
+        # Compute the variable_rename_dict, which will map disordered phase site
+        # fractions to the quasi mole fractions representing the disordered state
         variable_rename_dict = {}
         disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
         for atom in disordered_sitefracs:
             if atom.sublattice_index == 0:  # only the first sublattice is substitutional
                 variable_rename_dict[atom] = \
                     self._quasi_mole_fraction(atom.species,
-                                       ordered_phase_name,
-                                       constituents,
-                                       ordered_phase.sublattices,
-                                       substitutional_sublattice_idxs,
-                                       )
+                                              ordered_phase_name,
+                                              constituents,
+                                              ordered_phase.sublattices,
+                                              substitutional_sublattice_idxs,
+                                              )
 
             else:
                 shifted_subl_index = atom.sublattice_index + num_substitutional_sublattice_idxs - 1
                 variable_rename_dict[atom] = \
                     v.SiteFraction(ordered_phase_name, shifted_subl_index, atom.species)
 
+        # 1: Compute the ordering energy
+        # Step 2 will put the disordered parts into the correct model
+        # contributions. There's no technical reason for doing it this way
+        # compared to setting the AST to the _partitioned_expr for the total
+        # energy - this is more for bookkeeping of the model contributions.
+        ordering_energy = self._partitioned_expr(S.Zero, ordered_energy, {}, molefraction_dict)
+
+        # 2: Replace the ordered energy contributions with the disordered contributions
         self.models.clear()
-        # Copy the disordered energy contributions into the correct bins
         for name, value in disordered_model.models.items():
             self.models[name] = value.xreplace(variable_rename_dict)
-        # All magnetic parameters will be defined in the disordered model
-        self.TC = self.curie_temperature = disordered_model.TC
-        self.TC = self.curie_temperature = self.TC.xreplace(variable_rename_dict)
+
+        # 3: Handle physical properties, these also are contributed to by the
+        # disordered phase *and* an "ordering" contribution. For now, we only
+        # handle the magnetic parameters, since the other parameters are not
+        # stored as properties (e.g. Einstein THETA).
+        # TODO: Note that these do not affect the Gibbs energy expression!
+        # The disordered model's energetic contribution from physical
+        # properties needs to use the partitioned property in the disordered
+        # energy contribution. This is not possible at the time of writing.
+        self.TC = self.curie_temperature = self._partitioned_expr(disordered_model.TC, self.TC, molefraction_dict, variable_rename_dict)
+        self.BMAG = self.beta = self._partitioned_expr(disordered_model.BMAG, self.BMAG, molefraction_dict, variable_rename_dict)
+        self.NT = self.neel_temperature = self._partitioned_expr(disordered_model.NT, self.NT, molefraction_dict, variable_rename_dict)
 
         return ordering_energy
-
 
     # TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters
     def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):

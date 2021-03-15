@@ -642,6 +642,8 @@ def test_order_disorder_interstitial_sublattice():
     check_energy(mod_VA_B, ord_subs_dict, -10297.421, mode='sympy')
 
 
+@pytest.mark.skip("Skip until partitioned physical properties are supported "
+                  "in the disordered energy contribution.")
 def test_order_disorder_magnetic_ordering():
     """Test partitioned order-disorder models with magnetic ordering contributions"""
     mod = Model(AL_C_FE_B2_DBF, ['AL', 'C', 'FE', 'VA'], 'B2_BCC')
