@@ -16,12 +16,12 @@ dependencies:
   - numpy>=1.13
   - pyparsing
   - python>=3.6
-  - python-symengine=0.6.1
+  - python-symengine=0.7.0
   - scipy
   # We don't import the C++ symengine library directly in pycalphad, but
   # phase_rec.FastFunction class implementation is coupled to SymEngine's
   # function pointer API, so we pin the version here.
-  - symengine=0.6.0
+  - symengine=0.7.0
   - sympy=1.7
   - tinydb>=3.8
   - xarray>=0.11.2
