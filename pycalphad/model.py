@@ -1085,16 +1085,16 @@ class Model(object):
         for contrib, value in self.models.items():
             # To handle ordering in user-defined subclasses, we assume that all properties
             # that are not reference, ideal, or excess are physical contributions.
-            if contrib in ('ref', 'idmix', 'xsmis'):
+            if contrib in ('ref', 'idmix', 'xsmix'):
                 continue
             if value != S.Zero:
                 warnings.warn(
-                    f"The order-disorder model for {self.phase_name} has a contribution from the "
-                    f"physical property model {dict(self.contributions)[contrib]}. Partitioned "
-                    f"physical properties are not correctly substituted into the disordered part of"
-                    f" the energy. THE GIBBS ENERGY CALCULATED FOR THIS PHASE MAY BE INCORRECT. "
-                    f"Please see the discussion in https://github.com/pycalphad/pycalphad/pull/311 "
-                    f"for more details."
+                    f"The order-disorder model for \"{self.phase_name}\" has a contribution from "
+                    f"the physical property model `{dict(self.contributions)[contrib]}`. "
+                    f"Partitioned physical properties are not correctly substituted into the "
+                    f"disordered part of the energy. THE GIBBS ENERGY CALCULATED FOR THIS PHASE "
+                    f"MAY BE INCORRECT. Please see the discussion in "
+                    f"https://github.com/pycalphad/pycalphad/pull/311 for more details."
                     )
 
         # Save all of the ordered energy contributions
