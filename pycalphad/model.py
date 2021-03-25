@@ -3,6 +3,7 @@ The model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 import copy
+import warnings
 from sympy import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
 from tinydb import where
 import pycalphad.variables as v
@@ -1075,6 +1076,26 @@ class Model(object):
                 f'({num_ordered_interstitial_subls}) do not match. Got '
                 f'substitutional sublattice indices of {substitutional_sublattice_idxs}.'
                 )
+        # We also validate that no physical properties have ordered
+        # contributions because the underlying physical property needs to
+        # paritioned and substituted for the physical property in the disordered
+        # expression. This can be safely removed when partitioned
+        # physical properties are correctly substituted into the disordered
+        # energy.
+        for contrib, value in self.models.items():
+            # To handle ordering in user-defined subclasses, we assume that all properties
+            # that are not reference, ideal, or excess are physical contributions.
+            if contrib in ('ref', 'idmix', 'xsmis'):
+                continue
+            if value != S.Zero:
+                warnings.warn(
+                    f"The order-disorder model for {self.phase_name} has a contribution from the "
+                    f"physical property model {dict(self.contributions)[contrib]}. Partitioned "
+                    f"physical properties are not correctly substituted into the disordered part of"
+                    f" the energy. THE GIBBS ENERGY CALCULATED FOR THIS PHASE MAY BE INCORRECT. "
+                    f"Please see the discussion in https://github.com/pycalphad/pycalphad/pull/311 "
+                    f"for more details."
+                    )
 
         # Save all of the ordered energy contributions
         # Needs to extract a copy of self.models.values because the values will
