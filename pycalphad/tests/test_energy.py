@@ -8,7 +8,7 @@ from sympy import S
 from pycalphad import Database, Model, ReferenceState
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
-    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB
+    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
@@ -20,6 +20,8 @@ CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
 CUMG_DBF = Database(CUMG_TDB)
 FE_MN_S_DBF = Database(FE_MN_S_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
+AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
+
 
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
@@ -468,3 +470,194 @@ def test_ionic_liquid_energy_anion_sublattice():
     }
     out = np.array(mod.ast.subs({**potentials, **eq_sf_2}), dtype=np.complex_)
     assert np.isclose(out, -104229.18, atol=0.1)
+
+
+def test_order_disorder_interstitial_sublattice():
+    """Test that non-vacancy elements are supported on interstitial sublattices"""
+
+    TDB_OrderDisorder_VA_VA = """
+    ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT C    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+    TYPE_DEFINITION % SEQ *!
+    TYPE_DEFINITION & GES A_P_D DISORD MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ( GES A_P_D ORDERED MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ' GES A_P_D ORDERED DIS_PART DISORD ,,,!
+
+    PHASE DISORD  %&  2 1   3 !
+    PHASE ORDERED %('  3 0.5  0.5  3  !
+
+    CONSTITUENT DISORD  : A,B,VA : VA :  !
+    CONSTITUENT ORDERED  : A,B,VA : A,B,VA : VA :  !
+
+    PARAMETER G(DISORD,A:VA;0)  298.15  -10000; 6000 N !
+    PARAMETER G(DISORD,B:VA;0)  298.15  -10000; 6000 N !
+
+    """
+
+    TDB_OrderDisorder_VA_VA_C = """
+    $ Compared to TDB_OrderDisorder_VA_VA, this database only
+    $ differs in the fact that the VA sublattice contains C
+
+    ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT C    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+    TYPE_DEFINITION % SEQ *!
+    TYPE_DEFINITION & GES A_P_D DISORD MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ( GES A_P_D ORDERED MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ' GES A_P_D ORDERED DIS_PART DISORD ,,,!
+
+    PHASE DISORD  %&  2 1   3 !
+    PHASE ORDERED %('  3 0.5  0.5  3  !
+
+    CONSTITUENT DISORD  : A,B,VA : C,VA :  !
+    CONSTITUENT ORDERED  : A,B,VA : A,B,VA : C,VA :  !
+
+    PARAMETER G(DISORD,A:VA;0)  298.15  -10000; 6000 N !
+    PARAMETER G(DISORD,B:VA;0)  298.15  -10000; 6000 N !
+
+    """
+
+    TDB_OrderDisorder_VA_C = """
+    $ Compared to TDB_OrderDisorder_VA_VA_C, this database only
+    $ differs in the fact that the disorderd sublattices do not contain VA
+
+    ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT C    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+    TYPE_DEFINITION % SEQ *!
+    TYPE_DEFINITION & GES A_P_D DISORD MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ( GES A_P_D ORDERED MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ' GES A_P_D ORDERED DIS_PART DISORD ,,,!
+
+    PHASE DISORD  %&  2 1   3 !
+    PHASE ORDERED %('  3 0.5  0.5  3  !
+
+    CONSTITUENT DISORD  : A,B : C,VA :  !
+    CONSTITUENT ORDERED  : A,B : A,B : C,VA :  !
+
+    PARAMETER G(DISORD,A:VA;0)  298.15  -10000; 6000 N !
+    PARAMETER G(DISORD,B:VA;0)  298.15  -10000; 6000 N !
+
+    """
+
+    TDB_OrderDisorder_VA_B = """
+    $ This database contains B in both substitutional and interstitial sublattices
+
+    ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT C    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+    TYPE_DEFINITION % SEQ *!
+    TYPE_DEFINITION & GES A_P_D DISORD MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ( GES A_P_D ORDERED MAGNETIC  -1.0    4.00000E-01 !
+    TYPE_DEFINITION ' GES A_P_D ORDERED DIS_PART DISORD ,,,!
+
+    PHASE DISORD  %&  2 1   3 !
+    PHASE ORDERED %('  3 0.5  0.5  3  !
+
+    CONSTITUENT DISORD  : A,B : B,VA :  !
+    CONSTITUENT ORDERED  : A,B : A,B : B,VA :  !
+
+    PARAMETER G(DISORD,A:VA;0)  298.15  -10000; 6000 N !
+    PARAMETER G(DISORD,B:VA;0)  298.15  -10000; 6000 N !
+    PARAMETER G(DISORD,A:B;0)  298.15  -20000; 6000 N !
+    PARAMETER G(DISORD,B:B;0)  298.15  -20000; 6000 N !
+
+    PARAMETER G(ORDERED,A:B:B;0)  298.15  -1000; 6000 N !
+    PARAMETER G(ORDERED,A:B:VA;0)  298.15  -2000; 6000 N !
+
+    """
+
+    db_VA_VA = Database(TDB_OrderDisorder_VA_VA)
+    db_VA_C = Database(TDB_OrderDisorder_VA_C)
+    db_VA_VA_C = Database(TDB_OrderDisorder_VA_VA_C)
+
+    mod_VA_VA = Model(db_VA_VA, ["A", "B", "VA"], "ORDERED")
+    mod_VA_C = Model(db_VA_C, ["A", "B", "VA"], "ORDERED")
+    mod_VA_VA_C = Model(db_VA_VA_C, ["A", "B", "VA"], "ORDERED")
+
+    # Site fractions for pure A
+    subs_dict = {
+        v.Y('ORDERED', 0, v.Species('A')): 1.0,
+        v.Y('ORDERED', 0, v.Species('B')): 0.0,
+        v.Y('ORDERED', 0, v.Species('VA')): 0.0,
+        v.Y('ORDERED', 1, v.Species('A')): 1.0,
+        v.Y('ORDERED', 1, v.Species('B')): 0.0,
+        v.Y('ORDERED', 1, v.Species('VA')): 0.0,
+        v.Y('ORDERED', 2, v.Species('VA')): 1.0,
+        v.T: 300.0,
+    }
+
+    check_energy(mod_VA_VA, subs_dict, -10000, mode='sympy')
+    check_energy(mod_VA_C, subs_dict, -10000, mode='sympy')
+    check_energy(mod_VA_VA_C, subs_dict, -10000, mode='sympy')
+
+    db_VA_B = Database(TDB_OrderDisorder_VA_B)
+    mod_VA_B = Model(db_VA_B, ["A", "B", "VA"], "ORDERED")
+
+    # A-B disordered substitutional
+    disord_subs_dict = {
+        v.Y('ORDERED', 0, v.Species('A')): 0.5,
+        v.Y('ORDERED', 0, v.Species('B')): 0.5,
+        v.Y('ORDERED', 1, v.Species('A')): 0.5,
+        v.Y('ORDERED', 1, v.Species('B')): 0.5,
+        v.Y('ORDERED', 2, v.Species('B')): 0.25,
+        v.Y('ORDERED', 2, v.Species('VA')): 0.75,
+        v.T: 300.0,
+    }
+    # Thermo-Calc energy via set-start-constitution
+    check_energy(mod_VA_B, disord_subs_dict, -10535.395, mode='sympy')
+
+    # A-B ordered substitutional
+    ord_subs_dict = {
+        v.Y('ORDERED', 0, v.Species('A')): 1.0,
+        v.Y('ORDERED', 0, v.Species('B')): 0.0,
+        v.Y('ORDERED', 1, v.Species('A')): 0.0,
+        v.Y('ORDERED', 1, v.Species('B')): 1.0,
+        v.Y('ORDERED', 2, v.Species('B')): 0.25,
+        v.Y('ORDERED', 2, v.Species('VA')): 0.75,
+        v.T: 300.0,
+    }
+    # Thermo-Calc energy via set-start-constitution
+    check_energy(mod_VA_B, ord_subs_dict, -10297.421, mode='sympy')
+
+
+@pytest.mark.skip("Skip until partitioned physical properties are supported "
+                  "in the disordered energy contribution.")
+def test_order_disorder_magnetic_ordering():
+    """Test partitioned order-disorder models with magnetic ordering contributions"""
+    mod = Model(AL_C_FE_B2_DBF, ['AL', 'C', 'FE', 'VA'], 'B2_BCC')
+    subs_dict = {
+        v.Y('B2_BCC', 0, v.Species('AL')): 0.23632422,
+        v.Y('B2_BCC', 0, v.Species('FE')): 0.09387751,
+        v.Y('B2_BCC', 0, v.Species('VA')): 0.66979827,
+        v.Y('B2_BCC', 1, v.Species('AL')): 0.40269437,
+        v.Y('B2_BCC', 1, v.Species('FE')): 0.55906662,
+        v.Y('B2_BCC', 1, v.Species('VA')): 0.03823901,
+        v.Y('B2_BCC', 2, v.Species('C')): 0.12888967,
+        v.Y('B2_BCC', 2, v.Species('VA')): 0.87111033,
+        v.T: 300.0,
+    }
+    check_output(mod, subs_dict, 'TC', 318.65374, mode='sympy')
+    check_output(mod, subs_dict, 'BMAG', 0.81435207, mode='sympy')
+    check_energy(mod, subs_dict, 34659.484, mode='sympy')
