@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad package &mdash; pycalphad 0.8.4+12.g5a32b8ef documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.8.4+13.ge425b7bd documentation</title>
   
 
   
@@ -32,6 +32,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -66,7 +67,7 @@
             
             
               <div class="version">
-                0.8.4+12.g5a32b8ef
+                0.8.4+13.ge425b7bd
               </div>
             
           
@@ -284,6 +285,11 @@ understanding the special cases used throughout this class, users are
 referred to:
 Sundman, “Modification of the two-sublattice model for liquids”,
 Calphad 15(2) (1991) 109-119 <a class="reference external" href="https://doi.org/d3jppb">https://doi.org/d3jppb</a></p>
+<dl class="py attribute">
+<dt id="pycalphad.model.Model.BMAG">
+<code class="sig-name descname"><span class="pre">BMAG</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pycalphad.model.Model.BMAG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="pycalphad.model.Model.CPM">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">CPM</span></code><a class="headerlink" href="#pycalphad.model.Model.CPM" title="Permalink to this definition">¶</a></dt>
@@ -348,9 +354,54 @@ Calphad 15(2) (1991) 109-119 <a class="reference external" href="https://doi.org
 <dl class="py method">
 <dt id="pycalphad.model.Model.atomic_ordering_energy">
 <code class="sig-name descname"><span class="pre">atomic_ordering_energy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.atomic_ordering_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.atomic_ordering_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the atomic ordering contribution in symbolic form.
-Description follows Servant and Ansara, Calphad, 2001.</p>
+<dd><p>Return the atomic ordering contribution in symbolic form.</p>
+<p>If the current phase is anything other than the ordered phase in a
+paritioned order/disorder Gibbs energy model, this method will return
+zero. If the current phase is the ordered phase, ordering energy is
+computed by equation (18) of Connetable <em>et al.</em> <a class="footnote-reference brackets" href="#id3" id="id1">1</a>:
+<span class="math notranslate nohighlight">\(\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i) - G^\mathrm{ord}(y_i = x_i)\)</span></p>
+<p>This method must be the last energy contribution called because it plays
+several roles that require all other contributions to be defined:</p>
+<blockquote>
+<div><p>1. The current AST in self.models represents the ordered energy
+<span class="math notranslate nohighlight">\(G^\mathrm{ord}(y_i)\)</span>. To compute the ordering energy, all
+contributions to the ordered energy must have already been counted.</p>
+<p>2. The true energy of the phase should be the sum of the disordered
+phase’s energy and the ordering energy. That is,
+<span class="math notranslate nohighlight">\(G = G^\mathrm{dis} + \Delta G^\mathrm{ord}(y_i)\)</span>. This method
+not only computes the ordering energy, but also replaces the other
+model contributions by the disordered phase’s energy.</p>
+<p>3. Physical properties are partitioned in the same way as the
+energy. See Section 5.8.6 of Lukas, Fries and Sundman <a class="footnote-reference brackets" href="#id4" id="id2">2</a>.</p>
+</div></blockquote>
+<p class="rubric">Notes</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>This method overwrites the <code class="docutils literal notranslate"><span class="pre">self.models</span></code> dictionary with the model
+contributions for the disordered phase.</p>
+</div>
+<p>This method assumes that the first sublattice of the disordered phase is
+the substitutional sublattice and all other sublattices are
+interstitial. In the ordered phase, all sublattices with constituents
+that match the disordered substitutional sublattice will be treated as
+disordered (with site fractions replaced by quasi mole fractions in the
+ordered sublattices) and the interstitial sublattices will not have any
+site fractions substituted.</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Connetable et al., Calphad 2008, 32 (2), 361–370. doi: 10.1016/j.calphad.2008.01.002</p>
+</dd>
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>Lukas, Fries, and Sundman, Computational Thermodynamics: the Calphad Method, Cambridge University Press (2007).</p>
+</dd>
+</dl>
 </dd></dl>
+
+<dl class="py attribute">
+<dt id="pycalphad.model.Model.beta">
+<code class="sig-name descname"><span class="pre">beta</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pycalphad.model.Model.beta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="pycalphad.model.Model.build_phase">
@@ -465,20 +516,6 @@ The approach follows from the background of W. Xiong et al, Calphad, 2012.</p>
 <dt id="pycalphad.model.Model.mixing_heat_capacity">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">mixing_heat_capacity</span></code><a class="headerlink" href="#pycalphad.model.Model.mixing_heat_capacity" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt id="pycalphad.model.Model.mole_fraction">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">mole_fraction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constituent_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_ratios</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.mole_fraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.mole_fraction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an abstract syntax tree of the mole fraction of the
-given species as a function of its constituent site fractions.</p>
-<p>Note that this will treat vacancies the same as any other component,
-i.e., this will not give the correct _overall_ composition for
-sublattices containing vacancies with other components by normalizing
-by a factor of 1 - y_{VA}. This is because we use this routine in the
-order-disorder model to calculate the disordered site fractions from
-the ordered site fractions, so we need _all_ site fractions, including
-VA, to sum to unity.</p>
-</dd></dl>
 
 <dl class="py method">
 <dt id="pycalphad.model.Model.moles">

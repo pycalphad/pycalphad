@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.model &mdash; pycalphad 0.8.4+12.g5a32b8ef documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.8.4+13.ge425b7bd documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8.4+12.g5a32b8ef
+                0.8.4+13.ge425b7bd
               </div>
             
           
@@ -166,6 +166,7 @@
 <span class="sd">calculations under specified conditions.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Abs</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span><span class="p">,</span> <span class="n">nan</span>
 <span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
@@ -472,6 +473,7 @@
 
     <span class="c1"># Note: In order-disorder phases, TC will always be the *disordered* value of TC</span>
     <span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">TC</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">BMAG</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
     <span class="n">neel_temperature</span> <span class="o">=</span> <span class="n">NT</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
 
     <span class="c1">#pylint: disable=C0103</span>
@@ -922,7 +924,7 @@
             <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
             <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
 
         <span class="n">curie_temp</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">tc_param_query</span><span class="p">)</span>
@@ -931,7 +933,7 @@
             <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
             <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">tc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">tc</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
 
         <span class="c1"># Used to prevent singularity</span>
         <span class="n">tau_positive_tc</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="p">(</span><span class="n">curie_temp</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">)</span>
@@ -1013,6 +1015,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">curie_temp</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">NT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neel_temperature</span> <span class="o">=</span> <span class="n">neel_temp</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
 
         <span class="n">tau_curie</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">curie_temp</span>
         <span class="n">tau_curie</span> <span class="o">=</span> <span class="n">tau_curie</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="mf">1.0e10</span><span class="p">})</span>
@@ -1083,28 +1086,36 @@
             <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">result</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
 
-<div class="viewcode-block" id="Model.mole_fraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.mole_fraction">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">mole_fraction</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span>
-                      <span class="n">site_ratios</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_quasi_mole_fraction</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span>
+                             <span class="n">site_ratios</span><span class="p">,</span>
+                             <span class="n">substitutional_sublattice_idxs</span><span class="p">,</span>
+                             <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return an abstract syntax tree of the mole fraction of the</span>
-<span class="sd">        given species as a function of its constituent site fractions.</span>
+<span class="sd">        Return an abstract syntax tree of the quasi mole fraction of the</span>
+<span class="sd">        given species as a function of this phases&#39;s constituent site fractions.</span>
 
-<span class="sd">        Note that this will treat vacancies the same as any other component,</span>
-<span class="sd">        i.e., this will not give the correct _overall_ composition for</span>
-<span class="sd">        sublattices containing vacancies with other components by normalizing</span>
-<span class="sd">        by a factor of 1 - y_{VA}. This is because we use this routine in the</span>
-<span class="sd">        order-disorder model to calculate the disordered site fractions from</span>
-<span class="sd">        the ordered site fractions, so we need _all_ site fractions, including</span>
-<span class="sd">        VA, to sum to unity.</span>
+<span class="sd">        These mole fractions are &quot;quasi&quot; mole fractions because</span>
+
+<span class="sd">        1. Vacancies are treated as regular species - they have mole fractions</span>
+<span class="sd">           defined and the site fraction of vacancies are not used to normalize</span>
+<span class="sd">           the mole fractions of the real constituents by the 1 - y_{VA} factor.</span>
+<span class="sd">        2. The mole fractions are only computed over the sublattices that</span>
+<span class="sd">           participate in the ordering/disordering. Species in non-ordering</span>
+<span class="sd">           (&quot;interstitial&quot;) sublattices do not contribute to the mole fractions</span>
+<span class="sd">           that replace the site fractions.</span>
+
+<span class="sd">        These constraints ensures that the ordering energy goes to zero when the</span>
+<span class="sd">        substitutional sublattice is disordered, regardless of the occupancy of</span>
+<span class="sd">        the interstitial sublattice.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Normalize site ratios</span>
         <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">numerator</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">):</span>
-            <span class="c1"># sublattices with only vacancies don&#39;t count</span>
-            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">number_of_atoms</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">sublattice</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># only count species from substitutional sublattices</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">substitutional_sublattice_idxs</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">species_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">sublattice</span><span class="p">):</span>
                 <span class="n">site_ratio_normalization</span> <span class="o">+=</span> <span class="n">site_ratios</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
@@ -1115,84 +1126,203 @@
             <span class="k">return</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">site_ratio_normalization</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Couldn</span><span class="se">\&#39;</span><span class="s1">t find &#39;</span> <span class="o">+</span> <span class="n">species_name</span> <span class="o">+</span> <span class="s1">&#39; in &#39;</span> <span class="o">+</span> \
-                <span class="nb">str</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Couldn</span><span class="se">\&#39;</span><span class="s1">t find </span><span class="si">{</span><span class="n">species_name</span><span class="si">}</span><span class="s1"> in a substitutional sublattice &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;(indices: </span><span class="si">{</span><span class="n">substitutional_sublattice_idxs</span><span class="si">}</span><span class="s1">) &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;of the constituents </span><span class="si">{</span><span class="n">constituent_array</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
+        <span class="k">return</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_partitioned_expr</span><span class="p">(</span><span class="n">disord_expr</span><span class="p">,</span> <span class="n">ord_expr</span><span class="p">,</span> <span class="n">disordered_mole_fraction_dict</span><span class="p">,</span> <span class="n">ordered_mole_fraction_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the expression from adding the disordered part and ordering part</span>
+
+<span class="sd">        Given expressions E^{dis}(y^{dis}_i) and E^{ord}(y^{ord}_i), return:</span>
+
+<span class="sd">            E^{dis}(x^{ord}_i) + (E^{ord}(y^{ord}_i) - E^{ord}(y^{ord}_i = x^{ord}_i))</span>
+
+<span class="sd">        where:</span>
+
+<span class="sd">        * y^{dis}_i are the site fractions of the disordered phase</span>
+<span class="sd">        * y^{ord}_i are the site fractions of the ordered phase</span>
+<span class="sd">        * x^{ord}_i are the quasi mole fractions of the ordered phase (in terms</span>
+<span class="sd">             of the ordered phase site fractions)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">disord_expr</span> <span class="o">=</span> <span class="n">disord_expr</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">disordered_mole_fraction_dict</span><span class="p">)</span>
+        <span class="n">ordering_expr</span> <span class="o">=</span> <span class="n">ord_expr</span> <span class="o">-</span> <span class="n">ord_expr</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">ordered_mole_fraction_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">disord_expr</span> <span class="o">+</span> <span class="n">ordering_expr</span>
 
 <div class="viewcode-block" id="Model.atomic_ordering_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.atomic_ordering_energy">[docs]</a>    <span class="k">def</span> <span class="nf">atomic_ordering_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the atomic ordering contribution in symbolic form.</span>
-<span class="sd">        Description follows Servant and Ansara, Calphad, 2001.</span>
+
+<span class="sd">        If the current phase is anything other than the ordered phase in a</span>
+<span class="sd">        paritioned order/disorder Gibbs energy model, this method will return</span>
+<span class="sd">        zero. If the current phase is the ordered phase, ordering energy is</span>
+<span class="sd">        computed by equation (18) of Connetable *et al.* [1]_:</span>
+<span class="sd">        :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i) - G^\mathrm{ord}(y_i = x_i)`</span>
+
+<span class="sd">        This method must be the last energy contribution called because it plays</span>
+<span class="sd">        several roles that require all other contributions to be defined:</span>
+
+<span class="sd">           1. The current AST in self.models represents the ordered energy</span>
+<span class="sd">           :math:`G^\mathrm{ord}(y_i)`. To compute the ordering energy, all</span>
+<span class="sd">           contributions to the ordered energy must have already been counted.</span>
+
+<span class="sd">           2. The true energy of the phase should be the sum of the disordered</span>
+<span class="sd">           phase&#39;s energy and the ordering energy. That is,</span>
+<span class="sd">           :math:`G = G^\mathrm{dis} + \Delta G^\mathrm{ord}(y_i)`. This method</span>
+<span class="sd">           not only computes the ordering energy, but also replaces the other</span>
+<span class="sd">           model contributions by the disordered phase&#39;s energy.</span>
+
+<span class="sd">           3. Physical properties are partitioned in the same way as the</span>
+<span class="sd">           energy. See Section 5.8.6 of Lukas, Fries and Sundman [2]_.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        .. caution::</span>
+<span class="sd">           This method overwrites the ``self.models`` dictionary with the model</span>
+<span class="sd">           contributions for the disordered phase.</span>
+
+<span class="sd">        This method assumes that the first sublattice of the disordered phase is</span>
+<span class="sd">        the substitutional sublattice and all other sublattices are</span>
+<span class="sd">        interstitial. In the ordered phase, all sublattices with constituents</span>
+<span class="sd">        that match the disordered substitutional sublattice will be treated as</span>
+<span class="sd">        disordered (with site fractions replaced by quasi mole fractions in the</span>
+<span class="sd">        ordered sublattices) and the interstitial sublattices will not have any</span>
+<span class="sd">        site fractions substituted.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        .. [1] Connetable et al., Calphad 2008, 32 (2), 361–370. doi: 10.1016/j.calphad.2008.01.002</span>
+<span class="sd">        .. [2] Lukas, Fries, and Sundman, Computational Thermodynamics: the Calphad Method, Cambridge University Press (2007).</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="n">ordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">disordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">ordered_phase_name</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
-        <span class="n">disordered_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">),</span>
-                                          <span class="n">disordered_phase_name</span><span class="p">)</span>
-        <span class="n">constituents</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span> \
-                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
+        <span class="n">ordered_phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span>
+        <span class="n">constituents</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
+        <span class="n">disordered_phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase_name</span><span class="p">]</span>
+        <span class="n">disordered_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">),</span> <span class="n">disordered_phase_name</span><span class="p">)</span>
 
-        <span class="c1"># Fix variable names</span>
+        <span class="c1"># Get substitutional sublattice indices (for the ordered phase) and</span>
+        <span class="c1"># validate that the number of interstitial sublattices is consistent</span>
+        <span class="c1"># with the disordered phase.</span>
+        <span class="c1"># Assumes first sublattice of the disordered phase is the sublattice</span>
+        <span class="c1"># that can be come ordered:</span>
+        <span class="n">disordered_subl_constituents</span> <span class="o">=</span> <span class="n">disordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ordered_constituents</span> <span class="o">=</span> <span class="n">ordered_phase</span><span class="o">.</span><span class="n">constituents</span>
+        <span class="n">substitutional_sublattice_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">subl_constituents</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ordered_constituents</span><span class="p">):</span>
+            <span class="c1"># Assumes that the ordered phase sublattice describes the ordering</span>
+            <span class="c1"># if it has exactly the same constituents. Could be a source of</span>
+            <span class="c1"># false positives if any interstitial sublattices have the same</span>
+            <span class="c1"># constituents as the disordered sublattice, but there&#39;s not an</span>
+            <span class="c1"># explicit way to specify which sublattices are ordering. We try to</span>
+            <span class="c1"># compensate for this assumption by validating (next).</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">disordered_subl_constituents</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="n">subl_constituents</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">substitutional_sublattice_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="c1"># validate</span>
+        <span class="n">num_substitutional_sublattice_idxs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">substitutional_sublattice_idxs</span><span class="p">)</span>
+        <span class="n">num_ordered_interstitial_subls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span> <span class="o">-</span> <span class="n">num_substitutional_sublattice_idxs</span>
+        <span class="n">num_disordered_interstitial_subls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">disordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">num_ordered_interstitial_subls</span> <span class="o">!=</span> <span class="n">num_disordered_interstitial_subls</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Number of interstitial sublattices for the disordered phase &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">num_disordered_interstitial_subls</span><span class="si">}</span><span class="s1">) and the ordered phase &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">num_ordered_interstitial_subls</span><span class="si">}</span><span class="s1">) do not match. Got &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;substitutional sublattice indices of </span><span class="si">{</span><span class="n">substitutional_sublattice_idxs</span><span class="si">}</span><span class="s1">.&#39;</span>
+                <span class="p">)</span>
+        <span class="c1"># We also validate that no physical properties have ordered</span>
+        <span class="c1"># contributions because the underlying physical property needs to</span>
+        <span class="c1"># paritioned and substituted for the physical property in the disordered</span>
+        <span class="c1"># expression. This can be safely removed when partitioned</span>
+        <span class="c1"># physical properties are correctly substituted into the disordered</span>
+        <span class="c1"># energy.</span>
+        <span class="k">for</span> <span class="n">contrib</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># To handle ordering in user-defined subclasses, we assume that all properties</span>
+            <span class="c1"># that are not reference, ideal, or excess are physical contributions.</span>
+            <span class="k">if</span> <span class="n">contrib</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ref&#39;</span><span class="p">,</span> <span class="s1">&#39;idmix&#39;</span><span class="p">,</span> <span class="s1">&#39;xsmix&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The order-disorder model for </span><span class="se">\&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> has a contribution from &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;the physical property model `</span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contributions</span><span class="p">)[</span><span class="n">contrib</span><span class="p">]</span><span class="si">}</span><span class="s2">`. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Partitioned physical properties are not correctly substituted into the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;disordered part of the energy. THE GIBBS ENERGY CALCULATED FOR THIS PHASE &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;MAY BE INCORRECT. Please see the discussion in &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;https://github.com/pycalphad/pycalphad/pull/311 for more details.&quot;</span>
+                    <span class="p">)</span>
+
+        <span class="c1"># Save all of the ordered energy contributions</span>
+        <span class="c1"># Needs to extract a copy of self.models.values because the values will</span>
+        <span class="c1"># be updated to the disordered energy contributions later</span>
+        <span class="n">ordered_energy</span> <span class="o">=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+        <span class="c1"># Compute the molefraction_dict, which will map ordered phase site</span>
+        <span class="c1"># fractions to the quasi mole fractions representing the disordered state</span>
+        <span class="n">molefraction_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">ordered_sitefracs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ordered_energy</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">sitefrac</span> <span class="ow">in</span> <span class="n">ordered_sitefracs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sitefrac</span><span class="o">.</span><span class="n">sublattice_index</span> <span class="ow">in</span> <span class="n">substitutional_sublattice_idxs</span><span class="p">:</span>
+                <span class="n">molefraction_dict</span><span class="p">[</span><span class="n">sitefrac</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_quasi_mole_fraction</span><span class="p">(</span><span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
+                                              <span class="n">ordered_phase_name</span><span class="p">,</span>
+                                              <span class="n">constituents</span><span class="p">,</span>
+                                              <span class="n">ordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">,</span>
+                                              <span class="n">substitutional_sublattice_idxs</span><span class="p">,</span>
+                                              <span class="p">)</span>
+
+        <span class="c1"># Compute the variable_rename_dict, which will map disordered phase site</span>
+        <span class="c1"># fractions to the quasi mole fractions representing the disordered state</span>
         <span class="n">variable_rename_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">disordered_sitefracs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">disordered_model</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)]</span>
         <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">disordered_sitefracs</span><span class="p">:</span>
-            <span class="c1"># Replace disordered phase site fractions with mole fractions of</span>
-            <span class="c1"># ordered phase site fractions.</span>
-            <span class="c1"># Special case: Pure vacancy sublattices</span>
-            <span class="n">all_species_in_sublattice</span> <span class="o">=</span> \
-                <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span>
-                    <span class="n">atom</span><span class="o">.</span><span class="n">sublattice_index</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;VA&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_species_in_sublattice</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="c1"># Assume: Pure vacancy sublattices are always last</span>
-                <span class="n">vacancy_subl_index</span> <span class="o">=</span> \
-                    <span class="nb">len</span><span class="p">(</span><span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">sublattice_index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># only the first sublattice is substitutional</span>
                 <span class="n">variable_rename_dict</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span> <span class="o">=</span> \
-                    <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span>
-                        <span class="n">ordered_phase_name</span><span class="p">,</span> <span class="n">vacancy_subl_index</span><span class="p">,</span> <span class="n">atom</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_quasi_mole_fraction</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
+                                              <span class="n">ordered_phase_name</span><span class="p">,</span>
+                                              <span class="n">constituents</span><span class="p">,</span>
+                                              <span class="n">ordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">,</span>
+                                              <span class="n">substitutional_sublattice_idxs</span><span class="p">,</span>
+                                              <span class="p">)</span>
+
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># All other cases: replace site fraction with mole fraction</span>
+                <span class="n">shifted_subl_index</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">sublattice_index</span> <span class="o">+</span> <span class="n">num_substitutional_sublattice_idxs</span> <span class="o">-</span> <span class="mi">1</span>
                 <span class="n">variable_rename_dict</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span> <span class="o">=</span> \
-                    <span class="bp">self</span><span class="o">.</span><span class="n">mole_fraction</span><span class="p">(</span>
-                        <span class="n">atom</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
-                        <span class="n">ordered_phase_name</span><span class="p">,</span>
-                        <span class="n">constituents</span><span class="p">,</span>
-                        <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span>
-                        <span class="p">)</span>
-        <span class="c1"># Save all of the ordered energy contributions</span>
-        <span class="c1"># This step is why this routine must be called _last_ in build_phase</span>
-        <span class="n">ordered_energy</span> <span class="o">=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">ordered_phase_name</span><span class="p">,</span> <span class="n">shifted_subl_index</span><span class="p">,</span> <span class="n">atom</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+
+        <span class="c1"># 1: Compute the ordering energy</span>
+        <span class="c1"># Step 2 will put the disordered parts into the correct model</span>
+        <span class="c1"># contributions. There&#39;s no technical reason for doing it this way</span>
+        <span class="c1"># compared to setting the AST to the _partitioned_expr for the total</span>
+        <span class="c1"># energy - this is more for bookkeeping of the model contributions.</span>
+        <span class="n">ordering_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned_expr</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">ordered_energy</span><span class="p">,</span> <span class="p">{},</span> <span class="n">molefraction_dict</span><span class="p">)</span>
+
+        <span class="c1"># 2: Replace the ordered energy contributions with the disordered contributions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="c1"># Copy the disordered energy contributions into the correct bins</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">disordered_model</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">variable_rename_dict</span><span class="p">)</span>
-        <span class="c1"># All magnetic parameters will be defined in the disordered model</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">disordered_model</span><span class="o">.</span><span class="n">TC</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TC</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">variable_rename_dict</span><span class="p">)</span>
 
-        <span class="n">molefraction_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># 3: Handle physical properties, these also are contributed to by the</span>
+        <span class="c1"># disordered phase *and* an &quot;ordering&quot; contribution. For now, we only</span>
+        <span class="c1"># handle the magnetic parameters, since the other parameters are not</span>
+        <span class="c1"># stored as properties (e.g. Einstein THETA).</span>
+        <span class="c1"># TODO: Note that these do not affect the Gibbs energy expression!</span>
+        <span class="c1"># The disordered model&#39;s energetic contribution from physical</span>
+        <span class="c1"># properties needs to use the partitioned property in the disordered</span>
+        <span class="c1"># energy contribution. This is not possible at the time of writing.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned_expr</span><span class="p">(</span><span class="n">disordered_model</span><span class="o">.</span><span class="n">TC</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">TC</span><span class="p">,</span> <span class="n">variable_rename_dict</span><span class="p">,</span> <span class="n">molefraction_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned_expr</span><span class="p">(</span><span class="n">disordered_model</span><span class="o">.</span><span class="n">BMAG</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span><span class="p">,</span> <span class="n">variable_rename_dict</span><span class="p">,</span> <span class="n">molefraction_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neel_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned_expr</span><span class="p">(</span><span class="n">disordered_model</span><span class="o">.</span><span class="n">NT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">NT</span><span class="p">,</span> <span class="n">variable_rename_dict</span><span class="p">,</span> <span class="n">molefraction_dict</span><span class="p">)</span>
 
-        <span class="c1"># Construct a dictionary that replaces every site fraction with its</span>
-        <span class="c1"># corresponding mole fraction in the disordered state</span>
-        <span class="n">ordered_sitefracs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ordered_energy</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)]</span>
-        <span class="k">for</span> <span class="n">sitefrac</span> <span class="ow">in</span> <span class="n">ordered_sitefracs</span><span class="p">:</span>
-            <span class="n">all_species_in_sublattice</span> <span class="o">=</span> \
-                <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span>
-                    <span class="n">sitefrac</span><span class="o">.</span><span class="n">sublattice_index</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;VA&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_species_in_sublattice</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="c1"># pure-vacancy sublattices should not be replaced</span>
-                <span class="c1"># this handles cases like AL,NI,VA:AL,NI,VA:VA and</span>
-                <span class="c1"># ensures the VA&#39;s don&#39;t get mixed up</span>
-                <span class="k">continue</span>
-            <span class="n">molefraction_dict</span><span class="p">[</span><span class="n">sitefrac</span><span class="p">]</span> <span class="o">=</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">mole_fraction</span><span class="p">(</span><span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
-                                   <span class="n">ordered_phase_name</span><span class="p">,</span> <span class="n">constituents</span><span class="p">,</span>
-                                   <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">ordered_energy</span> <span class="o">-</span> <span class="n">ordered_energy</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">molefraction_dict</span><span class="p">)</span></div>
-
+        <span class="k">return</span> <span class="n">ordering_energy</span></div>
 
     <span class="c1"># TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters</span>
 <div class="viewcode-block" id="Model.shift_reference_state"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.shift_reference_state">[docs]</a>    <span class="k">def</span> <span class="nf">shift_reference_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_states</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">contrib_mods</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="s1">&#39;HM&#39;</span><span class="p">,</span> <span class="s1">&#39;SM&#39;</span><span class="p">,</span> <span class="s1">&#39;CPM&#39;</span><span class="p">),</span> <span class="n">fmt_str</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">R&quot;</span><span class="p">):</span>
