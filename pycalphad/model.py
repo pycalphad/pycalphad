@@ -972,7 +972,7 @@ class Model(object):
 
     @staticmethod
     def _partitioned_expr(disord_expr, ord_expr, disordered_mole_fraction_dict, ordered_mole_fraction_dict):
-        """Return the expression from summing the disordered part ordering part
+        """Return the expression from adding the disordered part and ordering part
 
         Given expressions E^{dis}(y^{dis}_i) and E^{ord}(y^{ord}_i), return:
 
@@ -997,7 +997,7 @@ class Model(object):
         If the current phase is anything other than the ordered phase in a
         paritioned order/disorder Gibbs energy model, this method will return
         zero. If the current phase is the ordered phase, ordering energy is
-        computed by equation (18) of Connectable *et al.* [1]_:
+        computed by equation (18) of Connetable *et al.* [1]_:
         :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i) - G^\mathrm{ord}(y_i = x_i)`
 
         This method must be the last energy contribution called because it plays
