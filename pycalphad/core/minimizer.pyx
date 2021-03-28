@@ -148,7 +148,7 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
     cdef double[:, ::1] c_statevars = np.zeros((num_phase_dof, num_statevars))
     cdef double[:, ::1] c_component = np.zeros((num_components, num_phase_dof))
     cdef double moles_normalization = 0
-    cdef double[:, ::1] moles_normalization_grad = np.zeros((num_components, num_statevars+num_phase_dof)) # 'K_alpha' in Sundman et al 2015
+    cdef double[::1] moles_normalization_grad = np.zeros(num_statevars+num_phase_dof)
     for i in range(num_phase_dof):
         for j in range(num_phase_dof):
             c_G[i] -= full_e_matrix[i, j] * grad[num_statevars+j]
@@ -170,7 +170,7 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
     for comp_idx in range(num_components):
         moles_normalization += masses[comp_idx, 0]
         for i in range(num_phase_dof+num_statevars):
-            moles_normalization_grad[comp_idx, i] += mass_jac[comp_idx, i]
+            moles_normalization_grad[i] += mass_jac[comp_idx, i]
     #print('current_system_amount', current_system_amount)
     #print('moles_normalization', moles_normalization)
     #print('moles_normalization_grad', np.array(moles_normalization_grad))
@@ -211,7 +211,7 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
                     (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
             for j in range(c_component.shape[1]):
                 equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
-                    (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_component[chempot_idx, j]
+                    (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_component[chempot_idx, j]
         free_variable_column_offset += free_chemical_potential_indices.shape[0]
         # 2a. This component row: free stable composition sets
         for i in range(free_stable_compset_indices.shape[0]):
@@ -231,14 +231,14 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
                     (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_statevars[j, statevar_idx]
             for j in range(c_statevars.shape[0]):
                 equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
-                    (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_statevars[j, statevar_idx]
+                    (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_statevars[j, statevar_idx]
         # 3.
         for j in range(c_G.shape[0]):
             equilibrium_rhs[component_row_offset + fixed_component_idx] += -(phase_amt[idx]/current_system_amount) * \
                 mass_jac[component_idx, num_statevars+j] * c_G[j]
         for j in range(c_G.shape[0]):
             equilibrium_rhs[component_row_offset + fixed_component_idx] += -(phase_amt[idx]/current_system_amount) * \
-                (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_G[j]
+                (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_G[j]
 
     system_amount_index = component_row_offset + num_fixed_components
     # 2X. Also handle the N=1 row
@@ -281,7 +281,7 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
                     chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
             for j in range(c_component.shape[1]):
                 equilibrium_rhs[component_row_offset + fixed_component_idx] -= (phase_amt[idx]/current_system_amount) * chemical_potentials[
-                    chempot_idx] * (-system_mole_fractions[component_idx] * moles_normalization_grad[component_idx, num_statevars+j]) * c_component[chempot_idx, j]
+                    chempot_idx] * (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_component[chempot_idx, j]
         # 7. Subtract fixed chemical potentials from the N=1 row
         for component_idx in range(num_components):
             for j in range(c_component.shape[1]):
@@ -669,7 +669,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         # Internal degrees of freedom at MIN_SITE_FRACTION need to be fixed when computing chemical potentials.
         # This is to ensure that the gradients accurately reflect the boundary condition.
         # However, we do not want to fix dof during the optimization, so we only enable this when close to convergence.
-        finalize_chemical_potentials = (mass_residual < 1e-7)
+        finalize_chemical_potentials = (mass_residual < 1e-11)
 
         # XXX: Annoying hack which seems to be required for the ionic liquid.
         # Needs tuning to avoid being activated incorrectly.
