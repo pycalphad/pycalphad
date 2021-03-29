@@ -77,23 +77,30 @@ def starting_point(conditions, state_variables, phase_records, grid):
     dependent_comp = set(nonvacant_elements) - specified_elements
     if len(dependent_comp) != 1:
         raise ValueError('Number of dependent components different from one')
+
+    ds_vars = {'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
+               'GM':     (conds_as_strings, np.empty(grid_shape)),
+               'MU':     (conds_as_strings + ['component'], np.empty(grid_shape + (len(nonvacant_elements),))),
+               'X':      (conds_as_strings + ['vertex', 'component'],
+                          np.empty(grid_shape + (len(nonvacant_elements)+1, len(nonvacant_elements),))),
+               'Y':      (conds_as_strings + ['vertex', 'internal_dof'],
+                          np.empty(grid_shape + (len(nonvacant_elements)+1, maximum_internal_dof,))),
+               'Phase':  (conds_as_strings + ['vertex'],
+                          np.empty(grid_shape + (len(nonvacant_elements)+1,), dtype='U%s' % max_phase_name_len)),
+               'points': (conds_as_strings + ['vertex'],
+                          np.empty(grid_shape + (len(nonvacant_elements)+1,), dtype=np.int32))
+               }
+
+    # If we have free state variables, they will also be data variables / output variables
+    free_statevars = sorted(set(state_variables) - set(conditions.keys()))
+    for f_sv in free_statevars:
+        ds_vars.update({str(f_sv): (conds_as_strings, np.empty(grid_shape)),})
+
+    result = LightDataset(ds_vars, coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
     if global_min_enabled:
-        result = LightDataset(
-            {'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
-             'GM':     (conds_as_strings, np.empty(grid_shape)),
-             'MU':     (conds_as_strings + ['component'], np.empty(grid_shape + (len(nonvacant_elements),))),
-             'X':      (conds_as_strings + ['vertex', 'component'],
-                        np.empty(grid_shape + (len(nonvacant_elements)+1, len(nonvacant_elements),))),
-             'Y':      (conds_as_strings + ['vertex', 'internal_dof'],
-                        np.empty(grid_shape + (len(nonvacant_elements)+1, maximum_internal_dof,))),
-             'Phase':  (conds_as_strings + ['vertex'],
-                        np.empty(grid_shape + (len(nonvacant_elements)+1,), dtype='U%s' % max_phase_name_len)),
-             'points': (conds_as_strings + ['vertex'],
-                        np.empty(grid_shape + (len(nonvacant_elements)+1,), dtype=np.int32))
-             },
-             coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
         result = lower_convex_hull(grid, state_variables, result)
     else:
-        raise NotImplementedError('Conditions not yet supported')
+        # TODO: Needs support for when the overall composition is not fully specified
+        result = lower_convex_hull(grid, state_variables, result)
 
     return result

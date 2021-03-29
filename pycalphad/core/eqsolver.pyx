@@ -276,8 +276,15 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                      for a, b in zip(it.multi_index, conds_keys)]))
         # assume 'points' and other dimensions (internal dof, etc.) always follow
         curr_idx = [it.multi_index[i] for i, key in enumerate(conds_keys) if key in str_state_variables]
-        state_variable_values = np.array([value for key, value in sorted(cur_conds.items(), key=lambda x: str(x[0]))
-                                          if key in str_state_variables])
+        state_variable_values = []
+        for sv in state_variables:
+            if sv in cur_conds.keys():
+                state_variable_values.append(cur_conds[sv])
+            else:
+                # free state variable
+                # XXX: Do not merge this hack which assumes temperature is the only free state variable
+                state_variable_values.append(300.)
+        state_variable_values = np.array(state_variable_values)
         # sum of independently specified components
         indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
         if indep_sum > 1:
@@ -307,6 +314,28 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
+        # Add fixed phases
+        for cond in conds_keys:
+            if cond.startswith('NP_'):
+                fixed_phase_name = cond[3:]
+                phase_record = phase_records[fixed_phase_name]
+                # Need to choose a starting point here
+                fixed_phase_indices = np.nonzero(grid.Phase == fixed_phase_name)
+                print('fixed_phase_indices', fixed_phase_indices)
+                max_df = np.argmin((grid.GM - np.dot(grid.X, chemical_potentials))[fixed_phase_indices])
+                print(max_df)
+                phase_idx = fixed_phase_indices[-1][max_df]
+                print('phase_idx', phase_idx)
+                sfx = np.squeeze(grid.Y[..., phase_idx, :phase_record.phase_dof])
+                print('sfx', sfx)
+                phase_amt = float(cur_conds[cond])
+                print('phase_amt', phase_amt)
+                compset = CompositionSet(phase_record)
+                compset.update(sfx, phase_amt, state_variable_values, False)
+                compset.fixed = True
+                composition_sets.append(compset)
+        print('Composition Sets', composition_sets)
+
         # Remove duplicate phases -- we will add them back later
         #remove_degenerate_phases(composition_sets, [], 1e-2, 100, verbose)
         phase_amt_sum = 0.0

@@ -212,7 +212,6 @@ class SundmanSolver(SolverBase):
             el = prob.nonvacant_elements[fixed_chempot_index]
             chemical_potentials[fixed_chempot_index] = cur_conds.get('MU_' + str(el))
         free_stable_compset_indices = np.array(list(range(len(compsets))), dtype=np.int32)
-        fixed_stable_compset_indices = np.array([], dtype=np.int32)
         fixed_statevar_indices = []
         for statevar_idx, statevar in enumerate(state_variables):
             if str(statevar) in [str(k) for k in cur_conds.keys()]:
@@ -220,7 +219,7 @@ class SundmanSolver(SolverBase):
         free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)), dtype=np.int32)
         fixed_statevar_indices = np.array(fixed_statevar_indices, dtype=np.int32)
         converged, x, chemical_potentials = \
-            find_solution(compsets, free_stable_compset_indices, fixed_stable_compset_indices,
+            find_solution(compsets, free_stable_compset_indices,
                           num_statevars, num_components, prescribed_system_amount,
                           chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
                           prescribed_element_indices, prescribed_elemental_amounts,

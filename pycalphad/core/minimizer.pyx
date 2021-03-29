@@ -488,7 +488,6 @@ def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_i
     return converged, new_free_stable_compset_indices
 
 cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
-                    int[::1] fixed_stable_compset_indices,
                     int num_statevars, int num_components, double prescribed_system_amount,
                     double[::1] initial_chemical_potentials, int[::1] free_chemical_potential_indices,
                     int[::1] fixed_chemical_potential_indices,
@@ -500,6 +499,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef double mass_residual = 1e-30
     cdef double[::1] x, new_y, delta_y
     cdef double[::1] phase_amt = np.array([compset.NP for compset in compsets])
+    cdef int[::1] fixed_stable_compset_indices = np.array(np.nonzero([compset.fixed==True for compset in compsets])[0],
+                                                          dtype=np.int32)
     cdef list dof = [np.array(compset.dof) for compset in compsets]
     cdef list suspended_compsets = []
     cdef int[::1] ipiv = np.zeros(len(compsets) * max([compset.phase_record.phase_dof +
@@ -716,7 +717,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 x[sv_idx] += delta_statevars[sv_idx]
             # XXX: Do not merge this temporary hack for the temperature
             # We need real state variable bounds support
-            x[2] = max(300, x[sv_idx])
+            x[2] = max(300, x[2])
         # Force some chemical potentials to adopt their fixed values
         for cp_idx in range(fixed_chemical_potential_indices.shape[0]):
             comp_idx = fixed_chemical_potential_indices[cp_idx]

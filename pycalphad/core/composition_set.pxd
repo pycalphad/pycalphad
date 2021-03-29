@@ -6,6 +6,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     cdef readonly double[::1] dof, X
     cdef double[:,::1] _X_2d_view
     cdef public double NP
+    cdef public bint fixed
     cdef public int zero_seen
     cdef readonly double energy
     cdef double[::1] _energy_2d_view

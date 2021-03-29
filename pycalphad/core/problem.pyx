@@ -97,8 +97,8 @@ cdef class Problem:
         compset = comp_sets[0]
         # Fixed dof
         for var_idx in range(num_fixed_dof_cons):
-            self.cl[var_idx] = fixed_statevars[var_idx][1]
-            self.cu[var_idx] = fixed_statevars[var_idx][1]
+            self.cl[var_idx] = fixed_statevars[self.fixed_dof_indices[var_idx]][1]
+            self.cu[var_idx] = fixed_statevars[self.fixed_dof_indices[var_idx]][1]
         for var_idx in range(num_fixed_dof_cons, num_internal_cons + num_fixed_dof_cons):
             self.cl[var_idx] = 0
             self.cu[var_idx] = 0

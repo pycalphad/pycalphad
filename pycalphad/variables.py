@@ -149,22 +149,20 @@ class PhaseFraction(StateVariable):
     Phase fractions are symbols with built-in assumptions of being real
     and nonnegative. The constructor handles formatting of the name.
     """
-    def __new__(cls, phase_name, multiplicity): #pylint: disable=W0221
-        varname = phase_name + str(multiplicity)
+    def __new__(cls, phase_name): #pylint: disable=W0221
+        varname = 'NP_' + str(phase_name)
         #pylint: disable=E1121
         new_self = StateVariable.__new__(cls, varname, nonnegative=True)
         new_self.phase_name = phase_name.upper()
-        new_self.multiplicity = multiplicity
         return new_self
 
     def __getnewargs__(self):
-        return self.phase_name, self.multiplicity
+        return self.phase_name,
 
     def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
-        return 'f^{'+self.phase_name.replace('_', '-') + \
-            '}_{'+str(self.multiplicity)+'}'
+        return 'f^{'+self.phase_name.replace('_', '-')
 
 class MoleFraction(StateVariable):
     """
@@ -380,6 +378,7 @@ site_fraction = Y = SiteFraction
 X = MoleFraction
 W = MassFraction
 MU = ChemicalPotential
+NP = PhaseFraction
 si_gas_constant = R = Float(8.3145) # ideal gas constant
 
 CONDITIONS_REQUIRING_HESSIANS = {ChemicalPotential, PhaseFraction}
