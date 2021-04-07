@@ -1,5 +1,5 @@
 import cyipopt
-cyipopt.setLoggingLevel(50)
+cyipopt.set_logging_level(50)
 import numpy as np
 from collections import namedtuple
 from pycalphad.core.constants import MIN_SITE_FRACTION
