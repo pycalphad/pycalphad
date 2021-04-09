@@ -5,10 +5,8 @@ property surface of a system.
 
 import itertools
 from collections import OrderedDict
-
 import numpy as np
 from numpy import broadcast_to
-
 import pycalphad.variables as v
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad import ConditionError
