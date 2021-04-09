@@ -8,15 +8,14 @@ from collections import OrderedDict
 import numpy as np
 from numpy import broadcast_to
 import pycalphad.variables as v
-from pycalphad.codegen.callables import build_phase_records
 from pycalphad import ConditionError
-from pycalphad.core.utils import point_sample, generate_dof
-from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import filter_phases, unpack_condition,\
-    unpack_components, extract_parameters, instantiate_models
-from pycalphad.core.light_dataset import LightDataset
+from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.cache import cacheit
+from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.phase_rec import PhaseRecord
+from pycalphad.core.utils import endmember_matrix, extract_parameters, \
+    filter_phases, generate_dof, instantiate_models, point_sample, \
+    unpack_components, unpack_condition, unpack_kwarg
 
 
 @cacheit
