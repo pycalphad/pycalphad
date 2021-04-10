@@ -3,62 +3,19 @@ The calculate module contains a routine for calculating the
 property surface of a system.
 """
 
-from pycalphad.codegen.callables import build_phase_records
-from pycalphad import ConditionError
-from pycalphad.core.utils import point_sample, generate_dof
-from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import filter_phases, unpack_condition,\
-    unpack_components, extract_parameters, instantiate_models
-from pycalphad.core.light_dataset import LightDataset
-from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord
-import pycalphad.variables as v
+import itertools
+from collections import OrderedDict
 import numpy as np
 from numpy import broadcast_to
-import itertools
-import collections
-from xarray import Dataset, concat
-from collections import OrderedDict
-
-
-def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
-    """
-    Generate points for a fictitious hyperplane used as a starting point for energy minimization.
-    """
-    coordinate_dict = {'component': components}
-    largest_energy = float(energy_limit)
-    if largest_energy < 0:
-        largest_energy *= 0.01
-    else:
-        largest_energy *= 10
-    if broadcast:
-        output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
-        statevar_shape = tuple(len(np.atleast_1d(x)) for x in statevar_dict.values())
-        coordinate_dict.update({str(key): value for key, value in statevar_dict.items()})
-        # The internal dof for the fake points are all NaNs
-        expanded_points = np.full(statevar_shape + (len(components), maximum_internal_dof), np.nan)
-        data_arrays = {'X': (output_columns + ['component'],
-                             broadcast_to(np.eye(len(components)), statevar_shape + (len(components), len(components)))),
-                       'Y': (output_columns + ['internal_dof'], expanded_points),
-                       'Phase': (output_columns, np.full(statevar_shape + (len(components),), '_FAKE_', dtype='S6')),
-                       output: (output_columns, np.full(statevar_shape + (len(components),), largest_energy))
-                       }
-    else:
-        output_columns = ['points']
-        statevar_shape = (len(components) * max([len(np.atleast_1d(x)) for x in statevar_dict.values()]),)
-        # The internal dof for the fake points are all NaNs
-        expanded_points = np.full(statevar_shape + (maximum_internal_dof,), np.nan)
-        data_arrays = {'X': (output_columns + ['component'],
-                             broadcast_to(np.tile(np.eye(len(components)), (statevar_shape[0] / len(components), 1)),
-                                                  statevar_shape + (len(components),))),
-                       'Y': (output_columns + ['internal_dof'], expanded_points),
-                       'Phase': (output_columns, np.full(statevar_shape, '_FAKE_', dtype='S6')),
-                       output: (output_columns, np.full(statevar_shape, largest_energy))
-                       }
-        # Add state variables as data variables if broadcast=False
-        data_arrays.update({str(key): (output_columns, np.repeat(value, len(components)))
-                            for key, value in statevar_dict.items()})
-    return Dataset(data_arrays, coords=coordinate_dict)
+import pycalphad.variables as v
+from pycalphad import ConditionError
+from pycalphad.codegen.callables import build_phase_records
+from pycalphad.core.cache import cacheit
+from pycalphad.core.light_dataset import LightDataset
+from pycalphad.core.phase_rec import PhaseRecord
+from pycalphad.core.utils import endmember_matrix, extract_parameters, \
+    filter_phases, generate_dof, instantiate_models, point_sample, \
+    unpack_components, unpack_condition, unpack_kwarg
 
 
 @cacheit
@@ -370,13 +327,12 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # If we don't do this, sympy will get confused during substitution
     statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
     # Sort after default state variable check to fix gh-116
-    statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
+    statevar_dict = OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
                                    models=models, parameters=parameters,
                                    output=output, callables=callables, build_gradients=False, build_hessians=False,
                                    verbose=kwargs.pop('verbose', False))
-    str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
-                                                for (key, value) in statevar_dict.items())
+    str_statevar_dict = OrderedDict((str(key), unpack_condition(value)) for (key, value) in statevar_dict.items())
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
     for phase_name, phase_obj in sorted(active_phases.items()):
         mod = models[phase_name]
