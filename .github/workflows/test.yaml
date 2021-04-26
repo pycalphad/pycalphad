@@ -40,6 +40,9 @@ jobs:
       - name: Install pycalphad development version
         shell: bash -l {0}
         run: pip install --no-deps -e .
+      - name: pip check
+        shell: bash -l {0}
+        run: pip check
       - name: Test with pytest
         shell: bash -l {0}
         run: |
