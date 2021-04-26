@@ -60,7 +60,6 @@ setup(
     },
     # This include is for the compiler to find the *.h files during the build_ext phase
     # the include must contain a symengine directory with header files
-    # TODO: Brandon needed to add a CFLAGS='-std=c++11' before the setup.py build_ext command.
     include_dirs=[np.get_include()],
     license='MIT',
     long_description=read('README.rst'),
@@ -73,13 +72,13 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'Cython>=0.24',
-        'ipopt>=0.3',
+        'ipopt>=1.0',
         'matplotlib',
         'numpy>=1.13',
         'pyparsing',
         'scipy',
-        'symengine==0.7.0',  # python-symengine on conda-forge
-        'sympy==1.7',
+        'symengine==0.7.2',  # python-symengine on conda-forge
+        'sympy==1.8',
         'tinydb>=3.8',
         'xarray>=0.11.2',
     ],

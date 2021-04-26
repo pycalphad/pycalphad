@@ -1,5 +1,5 @@
-import ipopt
-ipopt.setLoggingLevel(50)
+import cyipopt
+cyipopt.set_logging_level(50)
 import numpy as np
 from collections import namedtuple
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -89,7 +89,7 @@ class InteriorPointSolver(SolverBase):
 
         Parameters
         ----------
-        problem : ipopt.problem
+        problem : cyipopt.Problem
             A problem object that will be solved
 
         Notes
@@ -98,9 +98,9 @@ class InteriorPointSolver(SolverBase):
         """
         for option, value in self.ipopt_options.items():
             if isinstance(value, str):
-                problem.addOption(option.encode(), value.encode())
+                problem.add_option(option.encode(), value.encode())
             else:
-                problem.addOption(option.encode(), value)
+                problem.add_option(option.encode(), value)
 
 
     def solve(self, prob):
@@ -118,7 +118,7 @@ class InteriorPointSolver(SolverBase):
         """
         cur_conds = prob.conditions
         comps = prob.pure_elements
-        nlp = ipopt.problem(
+        nlp = cyipopt.Problem(
             n=prob.num_vars,
             m=prob.num_constraints,
             problem_obj=prob,
@@ -130,7 +130,7 @@ class InteriorPointSolver(SolverBase):
         self.apply_options(nlp)
         # XXX: Hack until exact chemical potential Hessians are implemented
         if len(prob.fixed_chempot_indices) > 0:
-            nlp.addOption(b'hessian_approximation', b'limited-memory')
+            nlp.add_option(b'hessian_approximation', b'limited-memory')
             if self.verbose:
                 print('Turning off exact Hessians due to advanced condition')
         # Note: Using the ipopt derivative checker can be tricky at the edges of composition space
@@ -141,11 +141,11 @@ class InteriorPointSolver(SolverBase):
             if self.verbose:
                 print('Trying to improve poor solution')
             # Constraints are getting tiny; need to be strict about bounds
-            nlp.addOption(b'compl_inf_tol', 1e-3 * float(length_scale))
-            nlp.addOption(b'bound_relax_factor', MIN_SITE_FRACTION)
+            nlp.add_option(b'compl_inf_tol', 1e-3 * float(length_scale))
+            nlp.add_option(b'bound_relax_factor', MIN_SITE_FRACTION)
             # This option ensures any bounds failures will fail "loudly"
             # Otherwise we are liable to have subtle mass balance errors
-            nlp.addOption(b'honor_original_bounds', b'no')
+            nlp.add_option(b'honor_original_bounds', b'no')
             accurate_x, accurate_info = nlp.solve(x)
             if accurate_info['status'] >= 0:
                 x, info = accurate_x, accurate_info
