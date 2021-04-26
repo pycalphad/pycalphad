@@ -1,13 +1,8 @@
-from setuptools import setup, Extension
 import os
+from setuptools import setup, Extension
+from Cython.Build import cythonize
+import numpy as np
 import versioneer
-
-try:
-    from Cython.Build import cythonize
-    import numpy as np
-    import scipy
-except ImportError:
-     raise ImportError("Cython, numpy, and scipy must be installed before pycalphad can be installed.")
 
 
 # Utility function to read the README file.
