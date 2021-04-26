@@ -2,6 +2,13 @@ from setuptools import setup, Extension
 import os
 import versioneer
 
+try:
+    from Cython.Build import cythonize
+    import numpy as np
+    import scipy
+except ImportError:
+     raise ImportError("Cython, numpy, and scipy must be installed before pycalphad can be installed.")
+
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -57,11 +64,6 @@ setup(
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
-    setup_requires=[
-        'Cython>=0.24',
-        'numpy>=1.13',
-        'scipy',
-    ],
     install_requires=[
         # NOTE: please try to keep any depedencies in alphabetic order so they
         # may be easily compared with other dependency lists
