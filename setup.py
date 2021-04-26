@@ -68,7 +68,7 @@ setup(
         # provides the Python package called `symengine`.
         'Cython>=0.24',
         'ipopt>=1.0',
-        'matplotlib',
+        'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing',
         'scipy',
