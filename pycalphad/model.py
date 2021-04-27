@@ -358,7 +358,6 @@ class Model(object):
             # contribution of the endmember reference model to zero to preserve ideal
             # mixing in this model.
             mod_endmember_only.models['idmix'] = 0
-            self._endmember_reference_model = mod_endmember_only
             if self.models.get('ord', S.Zero) != S.Zero:
                 warnings.warn(
                     "The choice of endmembers for the endmember reference model used "
@@ -368,8 +367,9 @@ class Model(object):
                     "See https://pycalphad.org/docs/latest/examples/ReferenceStateExamples.html"
                     " for an example."
                 )
-                for k in self.reference_model.models.keys():
-                    self._endmember_reference_model.models[k] = nan
+                for k in mod_endmember_only.models.keys():
+                    mod_endmember_only.models[k] = nan
+            self._endmember_reference_model = mod_endmember_only
         return self._endmember_reference_model
 
     def get_internal_constraints(self):
