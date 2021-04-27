@@ -116,7 +116,7 @@ class Model(object):
                      ('ord', 'atomic_ordering_energy')]
     def __init__(self, dbe, comps, phase_name, parameters=None):
         self._dbe = dbe
-        self._reference_model = None
+        self._endmember_reference_model = None
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
@@ -320,13 +320,13 @@ class Model(object):
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
-    mixing_energy = GM_MIX = property(lambda self: self.GM - self.reference_model.GM)
+    mixing_energy = GM_MIX = property(lambda self: self.GM - self.endmember_reference_model.GM)
     mixing_enthalpy = HM_MIX = property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
     mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
     @property
-    def reference_model(self):
+    def endmember_reference_model(self):
         """
         Return a Model containing only energy contributions from endmembers.
 
@@ -336,64 +336,33 @@ class Model(object):
 
         Notes
         -----
-        The reference_model is defined such that subtracting it from the model
-        will set the energy of the endmembers for the _MIX properties of this
-        class to zero. The _MIX properties generated here allow users to see
-        mixing energies on the internal degrees of freedom of this phase.
+        The endmember_reference_model is used for ``_MIX`` properties of Model objects.
+        It is defined such that subtracting it from the model will set the energy of the
+        endmembers to zero. The endmember_reference_model AST can be modified in the
+        same way as any Model.
 
-        The reference_model AST can be modified in the same way as the current Model.
+        Partitioned models have energetic contributions from the ordered compound
+        energies/interactions and the disordered compound energies/interactions.
+        The endmembers to choose as the reference is ambiguous. If the current model has
+        an ordered energy as part of a partitioned model, then the model energy
+        contributions are set to ``nan``.
 
-        Ideal mixing is always added to the AST, we need to set it to zero here
-        so that it's not subtracted out of the reference. However, we have this
-        option so users can just see the mixing properties in terms of the
-        parameters.
-
-        If the current model has an ordering energy as part of a partitioned
-        model, then this special reference state is not well defined because
-        the endmembers in the model have energetic contributions from
-        the ordered endmember energies and the disordered mixing energies.
-        Therefore, this reference state cannot be used sensibly for partitioned
-        models and the energies of all reference_model.models are set to nan.
-
-        Since build_reference_model requires that Database instances are copied
-        and new instances of Model are created, it can be computationally
-        expensive to build the reference Model by default. This property delays
-        building the reference_model until it is used.
-
+        The endmember reference model is built lazily and stored for later re-use
+        because it needs to copy the Database and instantiate a new Model.
         """
-        if self._reference_model is None:
-            self._build_reference_model()
-        return self._reference_model
-
-    def _build_reference_model(self, preserve_ideal=True):
-        """
-        Build a reference_model for the current model, referenced to the endmembers.
-
-        Parameters
-        ----------
-        dbe : Database
-        preserve_ideal : bool, optional
-            If True, the default, the ideal mixing energy will not be subtracted out.
-
-
-        See Also
-        --------
-        Model.reference_model
-
-        Notes
-        -----
-        Requires that self.build_phase has already been called.
-
-        """
-        endmember_only_dbe = copy.deepcopy(self._dbe)
-        endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
-        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg)
-        if preserve_ideal:
+        if self._endmember_reference_model is None:
+            endmember_only_dbe = copy.deepcopy(self._dbe)
+            endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
+            mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg)
+            # Ideal mixing contributions are always generated, so we need to set the
+            # contribution of the endmember reference model to zero to preserve ideal
+            # mixing in this model.
             mod_endmember_only.models['idmix'] = 0
-        self._reference_model = mod_endmember_only
-        if self.models.get('ord', S.Zero) != S.Zero:
+            self._endmember_reference_model = mod_endmember_only
+            if self.models.get('ord', S.Zero) != S.Zero:
                 for k in self.reference_model.models.keys():
-                    self._reference_model.models[k] = nan
+                    self._endmember_reference_model.models[k] = nan
+        return self._endmember_reference_model
 
     def get_internal_constraints(self):
         constraints = []
