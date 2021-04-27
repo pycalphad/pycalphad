@@ -197,6 +197,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     ref_phase_name = symbol_name = Word(alphanums+'_-:()/', min=1)
     # species name, e.g., CO2, AL, FE3+
     species_name = Word(alphanums+'+-*/_.', min=1) + Optional(Suppress('%'))
+    reference_key = Word(alphanums+':_-')('reference_key')
     # constituent arrays are colon-delimited
     # each subarray can be comma- or space-delimited
     constituent_array = Group(delimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
@@ -217,7 +218,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     # FUNCTION
     cmd_function = TCCommand('FUNCTION') + symbol_name + \
         func_expr.setParseAction(_make_piecewise_ast) + \
-        Optional(Suppress(Word(alphanums)('reference_key'))) + LineEnd()
+        Optional(Suppress(reference_key)) + LineEnd()
     # ASSESSED_SYSTEMS
     cmd_ass_sys = TCCommand('ASSESSED_SYSTEMS') + SkipTo(LineEnd())
     # DEFINE_SYSTEM_DEFAULT
@@ -252,7 +253,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(',') + constituent_array + \
         Optional(Suppress(';') + int_number, default=0) + \
         Suppress(')') + func_expr.setParseAction(_make_piecewise_ast) + \
-        Optional(Suppress(Word(alphanums)('reference_key'))) + LineEnd()
+        Optional(Suppress(reference_key)) + LineEnd()
     # Now combine the grammar together
     all_commands = cmd_element | \
                     cmd_species | \
