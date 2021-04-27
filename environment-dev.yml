@@ -12,7 +12,7 @@ dependencies:
   # called `symengine`.
   - cyipopt>=1.0
   - cython>=0.24
-  - matplotlib-base >=3.3
+  - matplotlib-base>=3.3
   - numpy>=1.13
   - pyparsing
   - python>=3.6
