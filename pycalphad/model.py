@@ -360,6 +360,14 @@ class Model(object):
             mod_endmember_only.models['idmix'] = 0
             self._endmember_reference_model = mod_endmember_only
             if self.models.get('ord', S.Zero) != S.Zero:
+                warnings.warn(
+                    "The choice of endmembers for the endmember reference model used "
+                    "by `_MIX` properties is ambiguous for partitioned models. The "
+                    "`Model.set_reference_state` method is a better choice for "
+                    "computing mixing energy. "
+                    "See https://pycalphad.org/docs/latest/examples/ReferenceStateExamples.html"
+                    " for an example."
+                )
                 for k in self.reference_model.models.keys():
                     self._endmember_reference_model.models[k] = nan
         return self._endmember_reference_model
