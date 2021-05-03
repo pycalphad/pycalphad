@@ -527,7 +527,7 @@ cdef class SystemState:
     cdef object dof
     cdef int iteration
     cdef double mass_residual, largest_internal_cons_max_residual, largest_internal_dof_change
-    cdef double[::1] phase_amt, chemical_potentials
+    cdef double[::1] phase_amt, chemical_potentials, chempot_diff
     cdef double[:, ::1] phase_compositions, delta_ms
     cdef double[1] largest_statevar_change, largest_phase_amt_change
     cdef int[::1] free_stable_compset_indices
@@ -541,6 +541,8 @@ cdef class SystemState:
         self.largest_internal_dof_change = 0
         self.phase_amt = np.array([compset.NP for compset in compsets])
         self.chemical_potentials = np.zeros(spec.num_components)
+        self.chempot_diff = np.zeros(spec.num_components)
+        self.chempot_diff[:] = np.inf
         self.delta_ms = np.zeros((len(compsets), spec.num_components))
         self.phase_compositions = np.zeros((len(compsets), spec.num_components))
         self.free_stable_compset_indices = np.array(np.arange(len(compsets)), dtype=np.int32)
@@ -549,12 +551,13 @@ cdef class SystemState:
     def __getstate__(self):
         return (self.compsets, self.dof, self.iteration, self.mass_residual, self.largest_internal_cons_max_residual,
                 self.largest_internal_dof_change, np.array(self.phase_amt), np.array(self.chemical_potentials),
-                np.array(self.delta_ms), np.array(self.phase_compositions), self.largest_statevar_change[0],
-                self.largest_phase_amt_change[0], np.array(self.free_stable_compset_indices))
+                np.array(self.chempot_diff), np.array(self.delta_ms), np.array(self.phase_compositions),
+                self.largest_statevar_change[0], self.largest_phase_amt_change[0],
+                np.array(self.free_stable_compset_indices))
     def __setstate__(self, state):
         (self.compsets, self.dof, self.iteration, self.mass_residual, self.largest_internal_cons_max_residual,
             self.largest_internal_dof_change, self.phase_amt, self.chemical_potentials,
-            self.delta_ms, self.phase_compositions, self.largest_statevar_change[0],
+            self.chempot_diff, self.delta_ms, self.phase_compositions, self.largest_statevar_change[0],
             self.largest_phase_amt_change[0], self.free_stable_compset_indices) = state
 
 
@@ -567,7 +570,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double[:,::1] masses_tmp, mass_gradient, energy_tmp
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[:,::1] phase_matrix  # Fortran ordering required by call into lapack, but this is symmetric
-    cdef double[::1] equilibrium_rhs, equilibrium_soln, phase_rhs, soln, internal_cons_tmp
+    cdef double[::1] equilibrium_rhs, equilibrium_soln, phase_rhs, soln, internal_cons_tmp, old_chemical_potentials
     cdef CompositionSet compset
     cdef int[::1] ipiv = np.zeros(len(state.compsets) * max([compset.phase_record.phase_dof +
                                                        compset.phase_record.num_internal_cons
@@ -714,14 +717,14 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     print('equilibrium_matrix', np.array(equilibrium_matrix))
     print('equilibrium_rhs', np.array(equilibrium_soln))
     state.mass_residual = np.sum(np.abs(mass_residuals))
+    state.delta_ms = delta_ms
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
           &equilibrium_soln[0], -1)
-
+    old_chemical_potentials = np.array(state.chemical_potentials)
     extract_equilibrium_solution(state.chemical_potentials, state.phase_amt, delta_statevars,
                                  spec.free_chemical_potential_indices, spec.free_statevar_indices,
                                  state.free_stable_compset_indices, equilibrium_soln,
                                  state.largest_statevar_change, state.largest_phase_amt_change, state.dof)
-
     for idx in range(len(state.compsets)):
         x = state.dof[idx]
         for sv_idx in range(delta_statevars.shape[0]):
@@ -734,6 +737,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         comp_idx = spec.fixed_chemical_potential_indices[cp_idx]
         state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
     #print('delta_phase_amt', np.array(new_phase_amt) - np.array(phase_amt))
+    state.chempot_diff = np.array(state.chemical_potentials) - old_chemical_potentials
 
 cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                     int num_statevars, int num_components, double prescribed_system_amount,
@@ -770,22 +774,37 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
 
     state.mass_residual = 1e10
     phase_change_counter = 5
+    step_size = 1./10
     for iteration in range(1000):
         state.iteration = iteration
         if (state.mass_residual > 10) and (np.max(np.abs(state.chemical_potentials)) > 1.0e10):
             #print('Mass residual and chemical potentials too big; resetting chemical potentials')
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
-        old_state = deepcopy(state)
-        step_size = 1./10
-        for backtracking_iteration in range(5):
-            take_step(spec, state, step_size)
-            sufficient_step_taken = np.max(np.abs(np.dot(state.delta_ms.T, state.phase_amt))) < 0.1
-            if sufficient_step_taken:
-                break
-            else:
-                step_size /= 10
-                state = old_state
+        take_step(spec, state, step_size)
+        #old_state = deepcopy(state)
+        #old_delta_composition = np.dot(old_state.delta_ms.T, old_state.phase_amt)
+        #for backtracking_iteration in range(5):
+        #    take_step(spec, state, step_size)
+        #    delta_composition = np.dot(state.delta_ms.T, state.phase_amt)
+        #    print(f'delta_composition {delta_composition}')
+        #    print(f'chempot_diff {np.array(state.chempot_diff)}')
+        #    print(f'step_size {step_size}')
+        #    # Steps are allowed as long as we are seeing decay in at least one key set of variables
+        #    sufficient_step_taken = np.max(np.abs(delta_composition)) < 0.95 * np.max(np.abs(old_delta_composition))
+        #    sufficient_step_taken |= np.max(np.abs(state.chempot_diff)) < 0.95 * np.max(np.abs(old_state.chempot_diff))
+        #    # When steps get really small, we are near convergence, and there is little need for backtracking
+        #    tiny_step = (np.max(np.abs(state.chempot_diff)) < 1e-4)
+        #    if True:
+        #        step_size = min(2*step_size, 1./10)
+        #        break
+        #    elif tiny_step:
+        #        break
+        #    else:
+        #        step_size /= 10
+        #        state = old_state
+        #else:
+        #    raise ValueError('Backtracking line search failed')
 
         # Consolidate duplicate phases and remove unstable phases
         compsets_to_remove = set()
