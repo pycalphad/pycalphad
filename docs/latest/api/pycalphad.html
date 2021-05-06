@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad package &mdash; pycalphad 0.8.4+18.g71a82186 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.8.4+19.g268860e4 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.4+18.g71a82186
+                0.8.4+19.g268860e4
               </div>
             
           
@@ -439,6 +439,32 @@ then exp() is called on the result.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="pycalphad.model.Model.endmember_reference_model">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">endmember_reference_model</span></code><a class="headerlink" href="#pycalphad.model.Model.endmember_reference_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Model containing only energy contributions from endmembers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pycalphad.model.Model" title="pycalphad.model.Model">Model</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The endmember_reference_model is used for <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> properties of Model objects.
+It is defined such that subtracting it from the model will set the energy of the
+endmembers to zero. The endmember_reference_model AST can be modified in the
+same way as any Model.</p>
+<p>Partitioned models have energetic contributions from the ordered compound
+energies/interactions and the disordered compound energies/interactions.
+The endmembers to choose as the reference is ambiguous. If the current model has
+an ordered energy as part of a partitioned model, then the model energy
+contributions are set to <code class="docutils literal notranslate"><span class="pre">nan</span></code>.</p>
+<p>The endmember reference model is built lazily and stored for later re-use
+because it needs to copy the Database and instantiate a new Model.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="pycalphad.model.Model.energy">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">energy</span></code><a class="headerlink" href="#pycalphad.model.Model.energy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -540,40 +566,6 @@ the Muggianu ternary parameter extension.</p>
 <code class="sig-name descname"><span class="pre">reference_energy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.reference_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.reference_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the weighted average of the endmember energies
 in symbolic form.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pycalphad.model.Model.reference_model">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">reference_model</span></code><a class="headerlink" href="#pycalphad.model.Model.reference_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a Model containing only energy contributions from endmembers.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#pycalphad.model.Model" title="pycalphad.model.Model">Model</a></p>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p>The reference_model is defined such that subtracting it from the model
-will set the energy of the endmembers for the _MIX properties of this
-class to zero. The _MIX properties generated here allow users to see
-mixing energies on the internal degrees of freedom of this phase.</p>
-<p>The reference_model AST can be modified in the same way as the current Model.</p>
-<p>Ideal mixing is always added to the AST, we need to set it to zero here
-so that it’s not subtracted out of the reference. However, we have this
-option so users can just see the mixing properties in terms of the
-parameters.</p>
-<p>If the current model has an ordering energy as part of a partitioned
-model, then this special reference state is not well defined because
-the endmembers in the model have energetic contributions from
-the ordered endmember energies and the disordered mixing energies.
-Therefore, this reference state cannot be used sensibly for partitioned
-models and the energies of all reference_model.models are set to nan.</p>
-<p>Since build_reference_model requires that Database instances are copied
-and new instances of Model are created, it can be computationally
-expensive to build the reference Model by default. This property delays
-building the reference_model until it is used.</p>
 </dd></dl>
 
 <dl class="py method">
