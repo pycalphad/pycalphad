@@ -356,7 +356,7 @@ def test_changing_model_ast_also_changes_mixing_energy():
                 }
     check_output(m, statevars, 'GM_MIX', 1000)
 
-    m.reference_model.models['mag'] = 1000
+    m.endmember_reference_model.models['mag'] = 1000
     check_output(m, statevars, 'GM_MIX', 0)
 
 
