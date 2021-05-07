@@ -3,6 +3,7 @@ The model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 import copy
+import warnings
 from sympy import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
 from tinydb import where
 import pycalphad.variables as v
@@ -115,7 +116,7 @@ class Model(object):
                      ('ord', 'atomic_ordering_energy')]
     def __init__(self, dbe, comps, phase_name, parameters=None):
         self._dbe = dbe
-        self._reference_model = None
+        self._endmember_reference_model = None
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
@@ -312,6 +313,7 @@ class Model(object):
 
     # Note: In order-disorder phases, TC will always be the *disordered* value of TC
     curie_temperature = TC = S.Zero
+    beta = BMAG = S.Zero
     neel_temperature = NT = S.Zero
 
     #pylint: disable=C0103
@@ -322,13 +324,13 @@ class Model(object):
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
-    mixing_energy = GM_MIX = property(lambda self: self.GM - self.reference_model.GM)
+    mixing_energy = GM_MIX = property(lambda self: self.GM - self.endmember_reference_model.GM)
     mixing_enthalpy = HM_MIX = property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
     mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
     @property
-    def reference_model(self):
+    def endmember_reference_model(self):
         """
         Return a Model containing only energy contributions from endmembers.
 
@@ -338,64 +340,42 @@ class Model(object):
 
         Notes
         -----
-        The reference_model is defined such that subtracting it from the model
-        will set the energy of the endmembers for the _MIX properties of this
-        class to zero. The _MIX properties generated here allow users to see
-        mixing energies on the internal degrees of freedom of this phase.
+        The endmember_reference_model is used for ``_MIX`` properties of Model objects.
+        It is defined such that subtracting it from the model will set the energy of the
+        endmembers to zero. The endmember_reference_model AST can be modified in the
+        same way as any Model.
 
-        The reference_model AST can be modified in the same way as the current Model.
+        Partitioned models have energetic contributions from the ordered compound
+        energies/interactions and the disordered compound energies/interactions.
+        The endmembers to choose as the reference is ambiguous. If the current model has
+        an ordered energy as part of a partitioned model, then the model energy
+        contributions are set to ``nan``.
 
-        Ideal mixing is always added to the AST, we need to set it to zero here
-        so that it's not subtracted out of the reference. However, we have this
-        option so users can just see the mixing properties in terms of the
-        parameters.
-
-        If the current model has an ordering energy as part of a partitioned
-        model, then this special reference state is not well defined because
-        the endmembers in the model have energetic contributions from
-        the ordered endmember energies and the disordered mixing energies.
-        Therefore, this reference state cannot be used sensibly for partitioned
-        models and the energies of all reference_model.models are set to nan.
-
-        Since build_reference_model requires that Database instances are copied
-        and new instances of Model are created, it can be computationally
-        expensive to build the reference Model by default. This property delays
-        building the reference_model until it is used.
-
+        The endmember reference model is built lazily and stored for later re-use
+        because it needs to copy the Database and instantiate a new Model.
         """
-        if self._reference_model is None:
-            self._build_reference_model()
-        return self._reference_model
-
-    def _build_reference_model(self, preserve_ideal=True):
-        """
-        Build a reference_model for the current model, referenced to the endmembers.
-
-        Parameters
-        ----------
-        dbe : Database
-        preserve_ideal : bool, optional
-            If True, the default, the ideal mixing energy will not be subtracted out.
-
-
-        See Also
-        --------
-        Model.reference_model
-
-        Notes
-        -----
-        Requires that self.build_phase has already been called.
-
-        """
-        endmember_only_dbe = copy.deepcopy(self._dbe)
-        endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
-        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg)
-        if preserve_ideal:
+        if self._endmember_reference_model is None:
+            endmember_only_dbe = copy.deepcopy(self._dbe)
+            endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
+            mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg)
+            # Ideal mixing contributions are always generated, so we need to set the
+            # contribution of the endmember reference model to zero to preserve ideal
+            # mixing in this model.
             mod_endmember_only.models['idmix'] = 0
-        self._reference_model = mod_endmember_only
-        if self.models.get('ord', S.Zero) != S.Zero:
-                for k in self.reference_model.models.keys():
-                    self._reference_model.models[k] = nan
+            if self.models.get('ord', S.Zero) != S.Zero:
+                warnings.warn(
+                    f"{self.phase_name} is a partitioned model with an ordering energy "
+                    "contribution. The choice of endmembers for the endmember "
+                    "reference model used by `_MIX` properties is ambiguous for "
+                    "partitioned models. The `Model.set_reference_state` method is a "
+                    "better choice for computing mixing energy. See "
+                    "https://pycalphad.org/docs/latest/examples/ReferenceStateExamples.html "
+                    "for an example."
+                )
+                for k in mod_endmember_only.models.keys():
+                    mod_endmember_only.models[k] = nan
+            self._endmember_reference_model = mod_endmember_only
+        return self._endmember_reference_model
 
     def get_internal_constraints(self):
         constraints = []
@@ -437,70 +417,43 @@ class Model(object):
         for key, value in self.__class__.contributions:
             self.models[key] = S(getattr(self, value)(dbe))
 
-    def _purity_test(self, constituent_array):
+    def _array_validity(self, constituent_array):
         """
-        Check if constituent array only has one species in its array
-        This species must also be an active species
+        Return True if the constituent_array contains only active species of the current Model instance.
         """
         if len(constituent_array) != len(self.constituents):
             # Allow an exception for the ionic liquid model, where neutral
             # species can be specified in the anion sublattice without any
             # species in the cation sublattice.
-            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-                pass
-            else:
-                return False
-        for sublattice in constituent_array:
-            if len(sublattice) != 1:
-                return False
-            if (sublattice[0] not in self.components) and \
-                (sublattice[0] != v.Species('*')):
+            ionic_liquid_2SL = self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False)
+            if ionic_liquid_2SL and len(constituent_array) == 1:
+                param_sublattice = constituent_array[0]
+                model_anion_sublattice = self.constituents[1]
+                if (set(param_sublattice).issubset(model_anion_sublattice) or (param_sublattice[0] == v.Species('*'))):
+                    return True
+            return False
+        for param_sublattice, model_sublattice in zip(constituent_array, self.constituents):
+            if not (set(param_sublattice).issubset(model_sublattice) or (param_sublattice[0] == v.Species('*'))):
                 return False
         return True
 
-    def _array_validity(self, constituent_array):
+    def _purity_test(self, constituent_array):
         """
-        Check that the current array contains only active species.
+        Return True if the constituent_array is valid and has exactly one
+        species in every sublattice.
         """
-        if len(constituent_array) != len(self.constituents):
-            # Allow an exception for the ionic liquid model, where neutral
-            # species can be specified in the anion sublattice without any
-            # species in the cation sublattice.
-            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-                pass
-            else:
-                return False
-        for sublattice in constituent_array:
-            valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == v.Species('*')
-            if not valid:
-                return False
-        return True
+        if not self._array_validity(constituent_array):
+            return False
+        return not any(len(sublattice) != 1 for sublattice in constituent_array)
 
     def _interaction_test(self, constituent_array):
         """
-        Check if constituent array has more than one active species in
-        its array for at least one sublattice.
+        Return True if the constituent_array is valid and has more than one
+        species in at least one sublattice.
         """
-        result = False
-        if len(constituent_array) != len(self.constituents):
-            # Allow an exception for the ionic liquid model, where neutral
-            # species can be specified in the anion sublattice without any
-            # species in the cation sublattice.
-            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-                pass
-            else:
-                return False
-        for sublattice in constituent_array:
-            # check if all elements involved are also active
-            valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == v.Species('*')
-            if len(sublattice) > 1 and valid:
-                result = True
-            if not valid:
-                result = False
-                break
-        return result
+        if not self._array_validity(constituent_array):
+            return False
+        return any([len(sublattice) > 1 for sublattice in constituent_array])
 
     @property
     def _site_ratio_normalization(self):
@@ -787,7 +740,7 @@ class Model(object):
             (1., True),
             evaluate=False
             )
-        self.BMAG = self.beta = beta
+        self.BMAG = self.beta = beta.subs(self._symbols)
 
         curie_temp = \
             self.redlich_kister_sum(phase, param_search, tc_param_query)
@@ -796,7 +749,7 @@ class Model(object):
             (1., True),
             evaluate=False
             )
-        self.TC = self.curie_temperature = tc
+        self.TC = self.curie_temperature = tc.subs(self._symbols)
 
         # Used to prevent singularity
         tau_positive_tc = v.T / (curie_temp + 1e-9)
@@ -878,6 +831,7 @@ class Model(object):
 
         self.TC = self.curie_temperature = curie_temp.subs(self._symbols)
         self.NT = self.neel_temperature = neel_temp.subs(self._symbols)
+        self.BMAG = self.beta = beta.subs(self._symbols)
 
         tau_curie = v.T / curie_temp
         tau_curie = tau_curie.xreplace({zoo: 1.0e10})
@@ -949,27 +903,35 @@ class Model(object):
         return result / self._site_ratio_normalization
 
     @staticmethod
-    def mole_fraction(species_name, phase_name, constituent_array,
-                      site_ratios):
+    def _quasi_mole_fraction(species_name, phase_name, constituent_array,
+                             site_ratios,
+                             substitutional_sublattice_idxs,
+                             ):
         """
-        Return an abstract syntax tree of the mole fraction of the
-        given species as a function of its constituent site fractions.
+        Return an abstract syntax tree of the quasi mole fraction of the
+        given species as a function of this phases's constituent site fractions.
 
-        Note that this will treat vacancies the same as any other component,
-        i.e., this will not give the correct _overall_ composition for
-        sublattices containing vacancies with other components by normalizing
-        by a factor of 1 - y_{VA}. This is because we use this routine in the
-        order-disorder model to calculate the disordered site fractions from
-        the ordered site fractions, so we need _all_ site fractions, including
-        VA, to sum to unity.
+        These mole fractions are "quasi" mole fractions because
+
+        1. Vacancies are treated as regular species - they have mole fractions
+           defined and the site fraction of vacancies are not used to normalize
+           the mole fractions of the real constituents by the 1 - y_{VA} factor.
+        2. The mole fractions are only computed over the sublattices that
+           participate in the ordering/disordering. Species in non-ordering
+           ("interstitial") sublattices do not contribute to the mole fractions
+           that replace the site fractions.
+
+        These constraints ensures that the ordering energy goes to zero when the
+        substitutional sublattice is disordered, regardless of the occupancy of
+        the interstitial sublattice.
         """
 
         # Normalize site ratios
         site_ratio_normalization = 0
         numerator = S.Zero
         for idx, sublattice in enumerate(constituent_array):
-            # sublattices with only vacancies don't count
-            if sum(spec.number_of_atoms for spec in list(sublattice)) == 0:
+            # only count species from substitutional sublattices
+            if idx not in substitutional_sublattice_idxs:
                 continue
             if species_name in list(sublattice):
                 site_ratio_normalization += site_ratios[idx]
@@ -980,84 +942,203 @@ class Model(object):
             return 1
 
         if site_ratio_normalization == 0:
-            raise ValueError('Couldn\'t find ' + species_name + ' in ' + \
-                str(constituent_array))
+            raise ValueError(
+                f'Couldn\'t find {species_name} in a substitutional sublattice '
+                f'(indices: {substitutional_sublattice_idxs}) '
+                f'of the constituents {constituent_array}'
+                )
 
         return numerator / site_ratio_normalization
+
+    @staticmethod
+    def _partitioned_expr(disord_expr, ord_expr, disordered_mole_fraction_dict, ordered_mole_fraction_dict):
+        """Return the expression from adding the disordered part and ordering part
+
+        Given expressions E^{dis}(y^{dis}_i) and E^{ord}(y^{ord}_i), return:
+
+            E^{dis}(x^{ord}_i) + (E^{ord}(y^{ord}_i) - E^{ord}(y^{ord}_i = x^{ord}_i))
+
+        where:
+
+        * y^{dis}_i are the site fractions of the disordered phase
+        * y^{ord}_i are the site fractions of the ordered phase
+        * x^{ord}_i are the quasi mole fractions of the ordered phase (in terms
+             of the ordered phase site fractions)
+
+        """
+        disord_expr = disord_expr.xreplace(disordered_mole_fraction_dict)
+        ordering_expr = ord_expr - ord_expr.xreplace(ordered_mole_fraction_dict)
+        return disord_expr + ordering_expr
 
     def atomic_ordering_energy(self, dbe):
         """
         Return the atomic ordering contribution in symbolic form.
-        Description follows Servant and Ansara, Calphad, 2001.
+
+        If the current phase is anything other than the ordered phase in a
+        paritioned order/disorder Gibbs energy model, this method will return
+        zero. If the current phase is the ordered phase, ordering energy is
+        computed by equation (18) of Connetable *et al.* [1]_:
+        :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i) - G^\mathrm{ord}(y_i = x_i)`
+
+        This method must be the last energy contribution called because it plays
+        several roles that require all other contributions to be defined:
+
+           1. The current AST in self.models represents the ordered energy
+           :math:`G^\mathrm{ord}(y_i)`. To compute the ordering energy, all
+           contributions to the ordered energy must have already been counted.
+
+           2. The true energy of the phase should be the sum of the disordered
+           phase's energy and the ordering energy. That is,
+           :math:`G = G^\mathrm{dis} + \Delta G^\mathrm{ord}(y_i)`. This method
+           not only computes the ordering energy, but also replaces the other
+           model contributions by the disordered phase's energy.
+
+           3. Physical properties are partitioned in the same way as the
+           energy. See Section 5.8.6 of Lukas, Fries and Sundman [2]_.
+
+        Notes
+        -----
+        .. caution::
+           This method overwrites the ``self.models`` dictionary with the model
+           contributions for the disordered phase.
+
+        This method assumes that the first sublattice of the disordered phase is
+        the substitutional sublattice and all other sublattices are
+        interstitial. In the ordered phase, all sublattices with constituents
+        that match the disordered substitutional sublattice will be treated as
+        disordered (with site fractions replaced by quasi mole fractions in the
+        ordered sublattices) and the interstitial sublattices will not have any
+        site fractions substituted.
+
+        References
+        ----------
+
+        .. [1] Connetable et al., Calphad 2008, 32 (2), 361–370. doi: 10.1016/j.calphad.2008.01.002
+        .. [2] Lukas, Fries, and Sundman, Computational Thermodynamics: the Calphad Method, Cambridge University Press (2007).
+
         """
         phase = dbe.phases[self.phase_name]
         ordered_phase_name = phase.model_hints.get('ordered_phase', None)
         disordered_phase_name = phase.model_hints.get('disordered_phase', None)
         if phase.name != ordered_phase_name:
             return S.Zero
-        disordered_model = self.__class__(dbe, sorted(self.components),
-                                          disordered_phase_name)
-        constituents = [sorted(set(c).intersection(self.components)) \
-                for c in dbe.phases[ordered_phase_name].constituents]
+        ordered_phase = dbe.phases[ordered_phase_name]
+        constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
+        disordered_phase = dbe.phases[disordered_phase_name]
+        disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
 
-        # Fix variable names
+        # Get substitutional sublattice indices (for the ordered phase) and
+        # validate that the number of interstitial sublattices is consistent
+        # with the disordered phase.
+        # Assumes first sublattice of the disordered phase is the sublattice
+        # that can be come ordered:
+        disordered_subl_constituents = disordered_phase.constituents[0]
+        ordered_constituents = ordered_phase.constituents
+        substitutional_sublattice_idxs = []
+        for idx, subl_constituents in enumerate(ordered_constituents):
+            # Assumes that the ordered phase sublattice describes the ordering
+            # if it has exactly the same constituents. Could be a source of
+            # false positives if any interstitial sublattices have the same
+            # constituents as the disordered sublattice, but there's not an
+            # explicit way to specify which sublattices are ordering. We try to
+            # compensate for this assumption by validating (next).
+            if len(disordered_subl_constituents.symmetric_difference(subl_constituents)) == 0:
+                substitutional_sublattice_idxs.append(idx)
+        # validate
+        num_substitutional_sublattice_idxs = len(substitutional_sublattice_idxs)
+        num_ordered_interstitial_subls = len(ordered_phase.sublattices) - num_substitutional_sublattice_idxs
+        num_disordered_interstitial_subls = len(disordered_phase.sublattices) - 1
+        if num_ordered_interstitial_subls != num_disordered_interstitial_subls:
+            raise ValueError(
+                f'Number of interstitial sublattices for the disordered phase '
+                f'({num_disordered_interstitial_subls}) and the ordered phase '
+                f'({num_ordered_interstitial_subls}) do not match. Got '
+                f'substitutional sublattice indices of {substitutional_sublattice_idxs}.'
+                )
+        # We also validate that no physical properties have ordered
+        # contributions because the underlying physical property needs to
+        # paritioned and substituted for the physical property in the disordered
+        # expression. This can be safely removed when partitioned
+        # physical properties are correctly substituted into the disordered
+        # energy.
+        for contrib, value in self.models.items():
+            # To handle ordering in user-defined subclasses, we assume that all properties
+            # that are not reference, ideal, or excess are physical contributions.
+            if contrib in ('ref', 'idmix', 'xsmix'):
+                continue
+            if value != S.Zero:
+                warnings.warn(
+                    f"The order-disorder model for \"{self.phase_name}\" has a contribution from "
+                    f"the physical property model `{dict(self.contributions)[contrib]}`. "
+                    f"Partitioned physical properties are not correctly substituted into the "
+                    f"disordered part of the energy. THE GIBBS ENERGY CALCULATED FOR THIS PHASE "
+                    f"MAY BE INCORRECT. Please see the discussion in "
+                    f"https://github.com/pycalphad/pycalphad/pull/311 for more details."
+                    )
+
+        # Save all of the ordered energy contributions
+        # Needs to extract a copy of self.models.values because the values will
+        # be updated to the disordered energy contributions later
+        ordered_energy = Add(*list(self.models.values()))
+
+        # Compute the molefraction_dict, which will map ordered phase site
+        # fractions to the quasi mole fractions representing the disordered state
+        molefraction_dict = {}
+        ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
+        for sitefrac in ordered_sitefracs:
+            if sitefrac.sublattice_index in substitutional_sublattice_idxs:
+                molefraction_dict[sitefrac] = \
+                    self._quasi_mole_fraction(sitefrac.species,
+                                              ordered_phase_name,
+                                              constituents,
+                                              ordered_phase.sublattices,
+                                              substitutional_sublattice_idxs,
+                                              )
+
+        # Compute the variable_rename_dict, which will map disordered phase site
+        # fractions to the quasi mole fractions representing the disordered state
         variable_rename_dict = {}
         disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
         for atom in disordered_sitefracs:
-            # Replace disordered phase site fractions with mole fractions of
-            # ordered phase site fractions.
-            # Special case: Pure vacancy sublattices
-            all_species_in_sublattice = \
-                dbe.phases[disordered_phase_name].constituents[
-                    atom.sublattice_index]
-            if atom.species.name == 'VA' and len(all_species_in_sublattice) == 1:
-                # Assume: Pure vacancy sublattices are always last
-                vacancy_subl_index = \
-                    len(dbe.phases[ordered_phase_name].constituents)-1
+            if atom.sublattice_index == 0:  # only the first sublattice is substitutional
                 variable_rename_dict[atom] = \
-                    v.SiteFraction(
-                        ordered_phase_name, vacancy_subl_index, atom.species)
+                    self._quasi_mole_fraction(atom.species,
+                                              ordered_phase_name,
+                                              constituents,
+                                              ordered_phase.sublattices,
+                                              substitutional_sublattice_idxs,
+                                              )
+
             else:
-                # All other cases: replace site fraction with mole fraction
+                shifted_subl_index = atom.sublattice_index + num_substitutional_sublattice_idxs - 1
                 variable_rename_dict[atom] = \
-                    self.mole_fraction(
-                        atom.species,
-                        ordered_phase_name,
-                        constituents,
-                        dbe.phases[ordered_phase_name].sublattices
-                        )
-        # Save all of the ordered energy contributions
-        # This step is why this routine must be called _last_ in build_phase
-        ordered_energy = Add(*list(self.models.values()))
+                    v.SiteFraction(ordered_phase_name, shifted_subl_index, atom.species)
+
+        # 1: Compute the ordering energy
+        # Step 2 will put the disordered parts into the correct model
+        # contributions. There's no technical reason for doing it this way
+        # compared to setting the AST to the _partitioned_expr for the total
+        # energy - this is more for bookkeeping of the model contributions.
+        ordering_energy = self._partitioned_expr(S.Zero, ordered_energy, {}, molefraction_dict)
+
+        # 2: Replace the ordered energy contributions with the disordered contributions
         self.models.clear()
-        # Copy the disordered energy contributions into the correct bins
         for name, value in disordered_model.models.items():
             self.models[name] = value.xreplace(variable_rename_dict)
-        # All magnetic parameters will be defined in the disordered model
-        self.TC = self.curie_temperature = disordered_model.TC
-        self.TC = self.curie_temperature = self.TC.xreplace(variable_rename_dict)
 
-        molefraction_dict = {}
+        # 3: Handle physical properties, these also are contributed to by the
+        # disordered phase *and* an "ordering" contribution. For now, we only
+        # handle the magnetic parameters, since the other parameters are not
+        # stored as properties (e.g. Einstein THETA).
+        # TODO: Note that these do not affect the Gibbs energy expression!
+        # The disordered model's energetic contribution from physical
+        # properties needs to use the partitioned property in the disordered
+        # energy contribution. This is not possible at the time of writing.
+        self.TC = self.curie_temperature = self._partitioned_expr(disordered_model.TC, self.TC, variable_rename_dict, molefraction_dict)
+        self.BMAG = self.beta = self._partitioned_expr(disordered_model.BMAG, self.BMAG, variable_rename_dict, molefraction_dict)
+        self.NT = self.neel_temperature = self._partitioned_expr(disordered_model.NT, self.NT, variable_rename_dict, molefraction_dict)
 
-        # Construct a dictionary that replaces every site fraction with its
-        # corresponding mole fraction in the disordered state
-        ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
-        for sitefrac in ordered_sitefracs:
-            all_species_in_sublattice = \
-                dbe.phases[ordered_phase_name].constituents[
-                    sitefrac.sublattice_index]
-            if sitefrac.species.name == 'VA' and len(all_species_in_sublattice) == 1:
-                # pure-vacancy sublattices should not be replaced
-                # this handles cases like AL,NI,VA:AL,NI,VA:VA and
-                # ensures the VA's don't get mixed up
-                continue
-            molefraction_dict[sitefrac] = \
-                self.mole_fraction(sitefrac.species,
-                                   ordered_phase_name, constituents,
-                                   dbe.phases[ordered_phase_name].sublattices)
-
-        return ordered_energy - ordered_energy.xreplace(molefraction_dict)
-
+        return ordering_energy
 
     # TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters
     def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):
@@ -1168,12 +1249,12 @@ class TestModel(Model):
         self.models = dict()
         variables = [v.SiteFraction(phase.upper(), 0, x) for x in sorted(self.components)]
         if solution is None:
-            solution = np.random.dirichlet(np.ones_like(variables, dtype=np.int))
+            solution = np.random.dirichlet(np.ones_like(variables, dtype=np.int_))
         self.solution = dict(list(zip(variables, solution)))
         kmax = kmax if kmax is not None else 2
         scale_factor = 1e4 * len(self.components)
-        ampl_scale = 1e3 * np.ones(kmax, dtype=np.float)
-        freq_scale = 10 * np.ones(kmax, dtype=np.float)
+        ampl_scale = 1e3 * np.ones(kmax, dtype=np.float_)
+        freq_scale = 10 * np.ones(kmax, dtype=np.float_)
         polys = Add(*[ampl_scale[i] * sin(freq_scale[i] * Add(*[Add(*[(varname - sol)**(j+1)
                                                                       for varname, sol in self.solution.items()])
                                                                 for j in range(kmax)]))**2

@@ -2,7 +2,7 @@
 The test_model module contains unit tests for the Model object.
 """
 from pycalphad import Database, Model, variables as v, equilibrium
-from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
 from pycalphad.core.errors import DofError
 import numpy as np
 import pytest
@@ -68,3 +68,62 @@ def test_detect_pure_vacancy_phases():
     dbf = Database(ZRO2_CUBIC_BCC_TDB)
     with pytest.raises(DofError):
         Model(dbf,['AL','CU','VA'],'ZRO2_CUBIC')
+
+
+def test_constituents_not_in_model():
+    """Test that parameters with constituent arrays not matching the phase model are filtered out correctly"""
+    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    modA = Model(dbf, ['A', 'B'], 'ALPHA')
+    modB = Model(dbf, ['B', 'C'], 'BETA')
+    assert v.SiteFraction('ALPHA', 0, 'B') not in modA.ast.free_symbols
+    assert v.SiteFraction('BETA', 1, 'D') not in modB.ast.free_symbols
+    assert v.SiteFraction('BETA', 2, 'C') not in modB.ast.free_symbols
+
+
+def test_order_disorder_interstital_sublattice_validation():
+    # Check that substitutional/interstitial sublattices that break our
+    # assumptions raise errors
+    DBF_OrderDisorder_broken = Database("""
+    ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT C    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+    TYPE_DEFINITION % SEQ *!
+    TYPE_DEFINITION ' GES A_P_D ORD_MORE_INSTL DIS_PART DISORD ,,,!
+    TYPE_DEFINITION & GES A_P_D ORD_LESS_INSTL DIS_PART DISORD ,,,!
+    TYPE_DEFINITION ) GES A_P_D ORD_SUBS_INSTL DIS_PART DISORD ,,,!
+
+    PHASE DISORD  %  2 1   3 !
+    CONSTITUENT DISORD  : A,B,VA : VA :  !
+
+    $ Has one more interstitial sublattice than disordered:
+    PHASE ORD_MORE_INSTL %'  4 0.5  0.5  3 1 !
+    CONSTITUENT ORD_MORE_INSTL  : A,B,VA : A,B,VA : VA : A : !
+
+    $ Has one less interstitial sublattice than disordered:
+    PHASE ORD_LESS_INSTL %&  2 0.5  0.5 !
+    CONSTITUENT ORD_LESS_INSTL  : A,B,VA : A,B,VA : !
+
+    $ The interstitial sublattice has the same species as the substitutional
+    $ and cannot be distinguished:
+    PHASE ORD_SUBS_INSTL %)  3 0.5  0.5 3 !
+    CONSTITUENT ORD_SUBS_INSTL  : A,B,VA : A,B,VA : A,B,VA :  !
+
+    """)
+
+    # Case 1: Ordered phase has one more interstitial sublattice than disordered
+    with pytest.raises(ValueError):
+        Model(DBF_OrderDisorder_broken, ["A", "B", "VA"], "ORD_MORE_INSTL")
+
+    # Case 2: Ordered phase has one more interstitial sublattice than disordered
+    with pytest.raises(ValueError):
+        Model(DBF_OrderDisorder_broken, ["A", "B", "VA"], "ORD_LESS_INSTL")
+
+    # Case 3: The ordered phase has interstitial sublattice has the same species
+    # as the substitutional and cannot be distinguished
+    with pytest.raises(ValueError):
+        Model(DBF_OrderDisorder_broken, ["A", "B", "VA"], "ORD_SUBS_INSTL")

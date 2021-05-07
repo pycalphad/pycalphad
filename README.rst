@@ -5,8 +5,8 @@ pycalphad, a library for the CALculation of PHAse Diagrams
     :target: https://gitter.im/pycalphad/pycalphad
     :alt: Join the chat at https://gitter.im/pycalphad/pycalphad
 
-.. image:: https://coveralls.io/repos/pycalphad/pycalphad/badge.svg?branch=develop&service=github
-    :target: https://coveralls.io/github/pycalphad/pycalphad?branch=master
+.. image:: https://codecov.io/gh/pycalphad/pycalphad/branch/develop/graph/badge.svg?token=Fu7FJZeJu0
+    :target: https://codecov.io/gh/pycalphad/pycalphad
     :alt: Test Coverage
 
 .. image:: https://github.com/pycalphad/pycalphad/workflows/Tests/badge.svg

@@ -1,13 +1,8 @@
-from setuptools import setup, Extension
 import os
+from setuptools import setup, Extension
+from Cython.Build import cythonize
+import numpy as np
 import versioneer
-
-try:
-    from Cython.Build import cythonize
-    import numpy as np
-    import scipy
-except ImportError:
-     raise ImportError("Cython, numpy, and scipy must be installed before pycalphad can be installed.")
 
 
 # Utility function to read the README file.
@@ -66,7 +61,6 @@ setup(
     },
     # This include is for the compiler to find the *.h files during the build_ext phase
     # the include must contain a symengine directory with header files
-    # TODO: Brandon needed to add a CFLAGS='-std=c++11' before the setup.py build_ext command.
     include_dirs=[np.get_include()],
     license='MIT',
     long_description=read('README.rst'),
@@ -79,13 +73,13 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'Cython>=0.24',
-        'ipopt',
-        'matplotlib',
+        'ipopt>=1.0',
+        'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing',
         'scipy',
-        'symengine==0.6.1',
-        'sympy==1.5.1',
+        'symengine==0.7.2',  # python-symengine on conda-forge
+        'sympy==1.8',
         'tinydb>=3.8',
         'xarray>=0.11.2',
     ],
@@ -110,6 +104,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
 
 )
