@@ -264,7 +264,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     prop_X_values = properties.X
     prop_Y_values = properties.Y
     prop_GM_values = properties.GM
-    str_state_variables = [str(k) for k in state_variables if str(k) in grid.coords.keys()]
+    str_state_variables = [str(k) for k in state_variables if str(k) in sorted(grid.coords.keys())]
     it = np.nditer(prop_GM_values, flags=['multi_index'])
 
     while not it.finished:
