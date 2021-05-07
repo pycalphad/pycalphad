@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
 from pycalphad.codegen.callables import build_callables
-from pycalphad.core.solver import SolverBase, InteriorPointSolver
+from pycalphad.core.solver import SolverBase, SundmanSolver
 from pycalphad.core.utils import get_state_variables
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
@@ -449,13 +449,13 @@ def test_equilibrium_raises_with_invalid_solver():
 def test_equilibrium_no_opt_solver():
     """Passing in a solver with `ignore_convergence = True` gives a result."""
 
-    class NoOptSolver(InteriorPointSolver):
+    class NoOptSolver(SundmanSolver):
         ignore_convergence = True
 
     comps = ['PB', 'SN', 'VA']
     phases = list(PBSN_DBF.phases.keys())
     conds = {v.T: 300, v.P: 101325, v.X('SN'): 0.50}
-    ipopt_solver_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=InteriorPointSolver(), verbose=True)
+    ipopt_solver_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=SundmanSolver(), verbose=True)
     # NoOptSolver's results are pdens-dependent
     no_opt_eq_res = equilibrium(PBSN_DBF, comps, phases, conds,
                                 solver=NoOptSolver(), calc_opts={'pdens': 50}, verbose=True)
