@@ -73,7 +73,6 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'Cython>=0.24',
-        'ipopt>=1.0',
         'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing',

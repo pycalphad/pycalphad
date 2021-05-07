@@ -247,7 +247,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     for f_sv in free_statevars:
         grid_opts[f_sv] = 300  # K
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 500
+        grid_opts['pdens'] = 50
     grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
                      callables=callables, output='GM', parameters=parameters,
                      to_xarray=False, **grid_opts)

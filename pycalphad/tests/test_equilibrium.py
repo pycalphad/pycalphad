@@ -446,7 +446,7 @@ def test_equilibrium_raises_with_invalid_solver():
         equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())
 
 
-def test_equlibrium_no_opt_solver():
+def test_equilibrium_no_opt_solver():
     """Passing in a solver with `ignore_convergence = True` gives a result."""
 
     class NoOptSolver(InteriorPointSolver):
@@ -456,14 +456,16 @@ def test_equlibrium_no_opt_solver():
     phases = list(PBSN_DBF.phases.keys())
     conds = {v.T: 300, v.P: 101325, v.X('SN'): 0.50}
     ipopt_solver_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=InteriorPointSolver(), verbose=True)
-    no_opt_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=NoOptSolver(), verbose=True)
+    # NoOptSolver's results are pdens-dependent
+    no_opt_eq_res = equilibrium(PBSN_DBF, comps, phases, conds,
+                                solver=NoOptSolver(), calc_opts={'pdens': 50}, verbose=True)
 
     ipopt_GM = ipopt_solver_eq_res.GM.values.squeeze()
     no_opt_GM = no_opt_eq_res.GM.values.squeeze()
     no_opt_MU = no_opt_eq_res.MU.values.squeeze()
     assert ipopt_GM != no_opt_GM  # global min energy is different from lower convex hull
-    assert np.allclose([-17452.5115967], no_opt_GM)  # energy from lower convex hull
-    assert np.allclose([-19540.6522632, -15364.3709302], no_opt_MU)  # chempots from lower convex hull
+    assert np.allclose([-17449.81365585], no_opt_GM)  # energy from lower convex hull
+    assert np.allclose([-19540.85816392, -15358.76914778], no_opt_MU)  # chempots from lower convex hull
 
 
 def test_eq_ideal_chempot_cond():
