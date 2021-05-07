@@ -65,7 +65,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     phases = filter_phases(dbf, species, phases)
     parameters = eq_kwargs.get('parameters', {})
     models = eq_kwargs.get('model')
-    statevars = get_state_variables(models=models, conds=conds)
+    statevars = sorted(get_state_variables(models=models, conds=conds), key=str)
     if models is None:
         models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'),
                                     parameters=parameters, symbols_only=True)
