@@ -539,6 +539,7 @@ cdef class SystemState:
         self.mass_residual = 1e10
         self.largest_internal_cons_max_residual = 0
         self.largest_internal_dof_change = 0
+        # Phase fractions need to be converted to moles of formula
         self.phase_amt = np.array([compset.NP for compset in compsets])
         self.chemical_potentials = np.zeros(spec.num_components)
         self.chempot_diff = np.zeros(spec.num_components)
@@ -548,6 +549,17 @@ cdef class SystemState:
         self.free_stable_compset_indices = np.array(np.arange(len(compsets)), dtype=np.int32)
         self.largest_statevar_change[0] = 0
         self.largest_phase_amt_change[0] = 0
+
+        for idx in range(self.phase_amt.shape[0]):
+            compset = self.compsets[idx]
+            masses_tmp = np.zeros((spec.num_components, 1))
+            x = self.dof[idx]
+            for comp_idx in range(spec.num_components):
+                compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
+                self.phase_compositions[idx, comp_idx] = masses_tmp[comp_idx, 0]
+                masses_tmp[:,:] = 0
+            # Convert phase fractions to formula units
+            self.phase_amt[idx] /= np.sum(self.phase_compositions[idx])
     def __getstate__(self):
         return (self.compsets, self.dof, self.iteration, self.mass_residual, self.largest_internal_cons_max_residual,
                 self.largest_internal_dof_change, np.array(self.phase_amt), np.array(self.chemical_potentials),
@@ -696,7 +708,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     # However, we do not want to fix dof during the optimization, so we only enable this when close to convergence.
     finalize_chemical_potentials = (state.mass_residual < 1e-11)
 
-    print('finalize_chemical_potentials', finalize_chemical_potentials)
+    #print('finalize_chemical_potentials', finalize_chemical_potentials)
     equilibrium_matrix[:,:] = 0
     equilibrium_soln[:] = 0
     mass_residuals, delta_ms = fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, state.compsets, state.chemical_potentials,
