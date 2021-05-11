@@ -661,7 +661,8 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
                     if (MIN_SITE_FRACTION - new_y[i]) > 1e-11:
                         # Allow some tolerance in the name of progress
                         exceeded_bounds = True
-                    new_y[i] = MIN_SITE_FRACTION
+                    # Reduce by two orders of magnitude, or MIN_SITE_FRACTION, whichever is larger
+                    new_y[i] = max(x[i]/100, MIN_SITE_FRACTION)
                     if delta_y[i-spec.num_statevars] < 0:
                         current_phase_gradient[i-spec.num_statevars] = 0
             if exceeded_bounds:
@@ -761,7 +762,9 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef int num_stable_phases, num_fixed_components, num_free_variables
     cdef CompositionSet compset, compset2
     cdef double mass_residual = 1e-30
+    cdef double max_delta_m, delta_energy
     cdef double[::1] x, new_y, delta_y
+    cdef double[::1] delta_m = np.zeros(num_components)
     cdef double[::1] chemical_potentials = np.zeros(num_components)
     cdef int[::1] fixed_stable_compset_indices = np.array(np.nonzero([compset.fixed==True for compset in compsets])[0],
                                                           dtype=np.int32)
@@ -793,15 +796,36 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #print('Mass residual and chemical potentials too big; resetting chemical potentials')
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
-        take_step(spec, state, step_size)
-        #old_state = deepcopy(state)
-        #old_delta_composition = np.dot(old_state.delta_ms.T, old_state.phase_amt)
-        #for backtracking_iteration in range(5):
-        #    take_step(spec, state, step_size)
-        #    delta_composition = np.dot(state.delta_ms.T, state.phase_amt)
-        #    print(f'delta_composition {delta_composition}')
-        #    print(f'chempot_diff {np.array(state.chempot_diff)}')
-        #    print(f'step_size {step_size}')
+        #take_step(spec, state, step_size)
+        old_state = deepcopy(state)
+        for backtracking_iteration in range(5):
+            take_step(spec, state, step_size)
+            delta_m[:] = 0
+            max_delta_m = 0
+            for idx in range(state.phase_compositions.shape[0]):
+                for j in range(state.phase_compositions.shape[1]):
+                    delta_m[j] += state.phase_amt[idx] * state.phase_compositions[idx, j] - old_state.phase_amt[idx] * old_state.phase_compositions[idx, j]
+            delta_energy = np.abs(np.dot(old_state.chemical_potentials, np.abs(delta_m)))
+            print('delta_m', np.array(delta_m))
+            print('delta_energy', delta_energy)
+            if delta_energy == 0:
+                    delta_energy = 1e-10
+            step_size = min(1, 1./delta_energy)
+            break
+            #if (np.max(np.abs(delta_m)) > 0.1) and (iteration > 0):
+            #    state = deepcopy(old_state)
+            #    step_size = min(step_size/10, 1./delta_energy)
+            #    print('backtracking')
+            #    continue
+            #else:
+            #    step_size = max(min(1./10, 1./delta_energy), 1./1000)
+            #    break
+        else:
+            raise ValueError('Backtracking line search failed')
+        #    #delta_composition = np.dot(state.delta_ms.T, state.phase_amt)
+        #    #print(f'delta_composition {delta_composition}')
+        #    #print(f'chempot_diff {np.array(state.chempot_diff)}')
+        #    #print(f'step_size {step_size}')
         #    # Steps are allowed as long as we are seeing decay in at least one key set of variables
         #    sufficient_step_taken = np.max(np.abs(delta_composition)) < 0.95 * np.max(np.abs(old_delta_composition))
         #    sufficient_step_taken |= np.max(np.abs(state.chempot_diff)) < 0.95 * np.max(np.abs(old_state.chempot_diff))
