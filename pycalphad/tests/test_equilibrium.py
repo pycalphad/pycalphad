@@ -350,7 +350,7 @@ def test_eq_unary_issue78():
     np.testing.assert_allclose(eq.SM, 68.143273)
     eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
     np.testing.assert_allclose(eq.GM, 1000)
-    np.testing.assert_allclose(eq.SM, 0, atol=1e-15)
+    np.testing.assert_allclose(eq.SM, 0, atol=1e-14)
 
 @pytest.mark.solver
 def test_eq_gas_phase():
