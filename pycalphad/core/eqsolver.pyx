@@ -334,7 +334,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 compset.update(sfx, phase_amt, state_variable_values, False)
                 compset.fixed = True
                 composition_sets.append(compset)
-        print('Composition Sets', composition_sets)
+        #print('Composition Sets', composition_sets)
         # Remove duplicate phases -- we will add them back later
         #remove_degenerate_phases(composition_sets, [], 1e-2, 100, verbose)
         phase_amt_sum = 0.0
