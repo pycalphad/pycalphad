@@ -357,7 +357,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
                                             grid, curr_idx, chemical_potentials, state_variable_values,
                                             1e-4, verbose)
-            changed_phases = False
+            #changed_phases = False
             iterations += 1
             if not changed_phases:
                 break
