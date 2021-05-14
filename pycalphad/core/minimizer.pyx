@@ -898,7 +898,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
         else:
             state.free_stable_compset_indices = new_free_stable_compset_indices
-        print('new_chemical_potentials', np.array(state.chemical_potentials))
+        #print('new_chemical_potentials', np.array(state.chemical_potentials))
         for dof_idx in range(state.phase_amt.shape[0]):
             if state.phase_amt[dof_idx] < 0.0:
                 state.phase_amt[dof_idx] = 0
@@ -924,7 +924,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         #print(f'mass_residual {state.mass_residual} largest_internal_cons_max_residual {state.largest_internal_cons_max_residual}')
         #print(f'largest_internal_dof_change {state.largest_internal_dof_change}')
         system_is_feasible = (state.mass_residual < 1e-8) and (state.largest_internal_cons_max_residual < 1e-9) and \
-                             (chempot_diff < 1e-12) and (state.iteration > 5) and (largest_moles_change < 1e-11) and (phase_change_counter == 0)
+                             (chempot_diff < 1e-12) and (state.iteration > 5) and (largest_moles_change < 1e-9) and (phase_change_counter == 0)
+        #print(f'system_is_feasible={system_is_feasible}  state.mass_residual={state.mass_residual}  state.largest_internal_cons_max_residual={state.largest_internal_cons_max_residual}  chempot_diff={chempot_diff}  state.iteration={state.iteration}  largest_moles_change={largest_moles_change}  phase_change_counter={phase_change_counter}')
         if system_is_feasible:
             converged = True
             new_free_stable_compset_indices = np.array([i for i in range(state.phase_amt.shape[0])
