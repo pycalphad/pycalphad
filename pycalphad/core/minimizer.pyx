@@ -475,7 +475,7 @@ def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_i
         compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
     else:
         compsets_to_add = set()
-    print('compsets_to_add', compsets_to_add)
+    #print('compsets_to_add', compsets_to_add)
     compsets_to_remove = set(np.nonzero(np.array(phase_amt) < 1e-9)[0])
     new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
                                                       | compsets_to_add
@@ -488,7 +488,7 @@ def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_i
     if set(current_free_stable_compset_indices) == set(new_free_stable_compset_indices):
         # feasible system, and no phases to add or remove
         converged = True
-    print('converged, new_free_stable_compset_indices', converged, new_free_stable_compset_indices)
+    #print('converged, new_free_stable_compset_indices', converged, new_free_stable_compset_indices)
     return converged, new_free_stable_compset_indices
 
 cdef class SystemSpecification:
@@ -627,7 +627,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         compset.phase_record.formulaobj(energy_tmp[0, :], x)
         delta_m = np.dot(mass_gradient[:, spec.num_statevars:], delta_y)
         rel_delta_m = np.array(delta_m) / np.squeeze(masses_tmp)
-        print(idx, 'delta_m', np.array(delta_m))
+        #print(idx, 'delta_m', np.array(delta_m))
         #print('rel_delta_m', np.array(rel_delta_m))
         largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
         new_y = np.array(x)
@@ -636,7 +636,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         candidate_internal_cons = np.zeros(compset.phase_record.num_internal_cons)
         current_phase_gradient = np.array(phase_gradient)
         grad_delta_dot = np.dot(current_phase_gradient, delta_y)
-        print(idx, 'grad_delta_dot', grad_delta_dot)
+        #print(idx, 'grad_delta_dot', grad_delta_dot)
         #print('delta_y', np.array(delta_y))
         #print('grad_delta_over_dm', grad_delta_dot/delta_m)
         #if np.dot(current_phase_gradient, delta_y) > 0:
@@ -675,7 +675,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         for i in range(spec.num_statevars, new_y.shape[0]):
             largest_internal_dof_change = max(largest_internal_dof_change, abs(new_y[i] - x[i]))
         x[:] = new_y
-        print(idx, 'step_size', step_size)
+        #print(idx, 'step_size', step_size)
         #print(idx, 'new_y', np.array(new_y))
 
     state.largest_internal_cons_max_residual = largest_internal_cons_max_residual
@@ -808,10 +808,11 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             print('state.phase_compositions', np.array(state.phase_compositions))
             print('state.chempot_diff', np.array(state.chempot_diff))
             delta_phase_amt = np.array(state.phase_amt) - np.array(old_state.phase_amt)
-            if state.mass_residual > 1e-2:
+            if (state.mass_residual > 1e-2) and (not np.all(np.array(state.chempot_diff) < 1e-4)) and (iteration > 0):
                 #if np.max(np.abs(delta_phase_amt)) > 0.1:
                 #    state.phase_amt = np.array(old_state.phase_amt) + 1e-6 * delta_phase_amt
                 # When mass residual is not satisfied, do not allow phases to leave the system
+                # However, if the chemical potentials are changing very little, phases may leave the system
                 for j in range(state.phase_amt.shape[0]):
                     if state.phase_amt[j] < 0:
                         state.phase_amt[j] = 1e-6
@@ -974,8 +975,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 stable_phase_iterations[idx] = 0
         if phase_change_counter > 0:
             phase_change_counter -= 1
-    if not converged:
-        raise ValueError('Not converged')
+    #if not converged:
+    #    raise ValueError('Not converged')
     # Convert moles of formula units to phase fractions
     phase_amt = np.array(state.phase_amt) * np.sum(state.phase_compositions, axis=1)
 
