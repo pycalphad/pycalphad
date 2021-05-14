@@ -447,7 +447,7 @@ cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[:
         compset_idx = free_stable_compset_indices[i]
         phase_amt_change = float(phase_amt[compset_idx])
         phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
-        phase_amt[compset_idx] = np.maximum(0.0, phase_amt[compset_idx])
+        #phase_amt[compset_idx] = np.maximum(0.0, phase_amt[compset_idx])
         phase_amt_change = phase_amt[compset_idx] - phase_amt_change
         largest_phase_amt_change[0] = max(largest_phase_amt_change[0], phase_amt_change)
 
@@ -475,6 +475,7 @@ def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_i
         compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
     else:
         compsets_to_add = set()
+    print('compsets_to_add', compsets_to_add)
     compsets_to_remove = set(np.nonzero(np.array(phase_amt) < 1e-9)[0])
     new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
                                                       | compsets_to_add
@@ -487,6 +488,7 @@ def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_i
     if set(current_free_stable_compset_indices) == set(new_free_stable_compset_indices):
         # feasible system, and no phases to add or remove
         converged = True
+    print('converged, new_free_stable_compset_indices', converged, new_free_stable_compset_indices)
     return converged, new_free_stable_compset_indices
 
 cdef class SystemSpecification:
@@ -594,7 +596,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
             break
         # TODO: Use better dof storage
         x = state.dof[idx]
-        print('x', np.array(x))
+        #print('x', np.array(x))
         masses_tmp = np.zeros((spec.num_components, 1))
         energy_tmp = np.zeros((1,1))
         internal_cons_tmp = np.zeros(compset.phase_record.num_internal_cons)
@@ -608,8 +610,8 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         internal_cons_max_residual = \
             compute_phase_system(phase_matrix, soln, compset, delta_statevars, state.chemical_potentials, x)
         #print('chemical_potentials', np.array(chemical_potentials))
-        print('phase_matrix', np.array(phase_matrix))
-        print('phase_rhs', np.array(soln))
+        #print('phase_matrix', np.array(phase_matrix))
+        #print('phase_rhs', np.array(soln))
         phase_gradient = -np.array(soln[:compset.phase_record.phase_dof])
         # phase_matrix is symmetric by construction, so we can pass in a C-ordered array
         solve(&phase_matrix[0,0], phase_matrix.shape[0], &soln[0], &ipiv[0])
@@ -727,8 +729,8 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         if np.all(np.array(equilibrium_matrix[num_stable_phases + num_fixed_phases + i, :]) == 0):
             equilibrium_matrix[num_stable_phases + num_fixed_phases + i, i] = 1
             equilibrium_soln[i] = state.chemical_potentials[spec.prescribed_element_indices[i]]
-    print('equilibrium_matrix', np.array(equilibrium_matrix))
-    print('equilibrium_rhs', np.array(equilibrium_soln))
+    #print('equilibrium_matrix', np.array(equilibrium_matrix))
+    #print('equilibrium_rhs', np.array(equilibrium_soln))
     state.mass_residual = np.sum(np.abs(mass_residuals))
     state.delta_ms = delta_ms
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
@@ -800,6 +802,19 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         old_state = deepcopy(state)
         for backtracking_iteration in range(5):
             take_step(spec, state, step_size)
+            print('old_state.phase_amt', np.array(old_state.phase_amt))
+            print('state.phase_amt', np.array(state.phase_amt))
+            print('old_state.phase_compositions', np.array(old_state.phase_compositions))
+            print('state.phase_compositions', np.array(state.phase_compositions))
+            print('state.chempot_diff', np.array(state.chempot_diff))
+            delta_phase_amt = np.array(state.phase_amt) - np.array(old_state.phase_amt)
+            if state.mass_residual > 1e-2:
+                #if np.max(np.abs(delta_phase_amt)) > 0.1:
+                #    state.phase_amt = np.array(old_state.phase_amt) + 1e-6 * delta_phase_amt
+                # When mass residual is not satisfied, do not allow phases to leave the system
+                for j in range(state.phase_amt.shape[0]):
+                    if state.phase_amt[j] < 0:
+                        state.phase_amt[j] = 1e-6
             delta_m[:] = 0
             max_delta_m = 0
             for idx in range(state.phase_compositions.shape[0]):
@@ -810,7 +825,10 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             print('delta_energy', delta_energy)
             if delta_energy == 0:
                     delta_energy = 1e-10
-            step_size = min(1, 1./delta_energy)
+            if state.mass_residual < 1e-2:
+                step_size = min(1, 1./delta_energy)
+            else:
+                step_size = 1./10
             break
             #if (np.max(np.abs(delta_m)) > 0.1) and (iteration > 0):
             #    state = deepcopy(old_state)
@@ -820,8 +838,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #else:
             #    step_size = max(min(1./10, 1./delta_energy), 1./1000)
             #    break
-        else:
-            raise ValueError('Backtracking line search failed')
+        #else:
+        #    raise ValueError('Backtracking line search failed')
         #    #delta_composition = np.dot(state.delta_ms.T, state.phase_amt)
         #    #print(f'delta_composition {delta_composition}')
         #    #print(f'chempot_diff {np.array(state.chempot_diff)}')
