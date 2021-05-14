@@ -31,7 +31,7 @@ AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
 
 
-# ROSE DIAGRAM TEST
+@pytest.mark.solver
 def test_rose_nine():
     "Nine-component rose diagram point equilibrium calculation."
     my_phases_rose = ['TEST']
@@ -42,7 +42,8 @@ def test_rose_nine():
     eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -5.8351e3, atol=0.1)
 
-# OTHER TESTS
+
+@pytest.mark.solver
 def test_eq_binary():
     "Binary phase diagram point equilibrium calculation with magnetism."
     my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2',
@@ -52,6 +53,7 @@ def test_eq_binary():
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
+@pytest.mark.solver
 def test_eq_single_phase():
     "Equilibrium energy should be the same as for a single phase with no miscibility gaps."
     res = calculate(ALFE_DBF, ['AL', 'FE'], 'LIQUID', T=[1400, 2500], P=101325,
@@ -90,6 +92,7 @@ def test_eq_overdetermined_comps():
         equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
                                                    v.X('FE'): 0.2, v.X('AL'): 0.8})
 
+@pytest.mark.solver
 def test_dilute_condition():
     """
     'Zero' and dilute composition conditions are correctly handled.
@@ -102,6 +105,7 @@ def test_dilute_condition():
     # We loosen the tolerance a bit here because our convergence tolerance is too low for the last digit
     assert_allclose(np.squeeze(eq.MU.values), [-335723.28,  -64415.838], atol=1.0)
 
+@pytest.mark.solver
 def test_eq_illcond_hessian():
     """
     Check equilibrium of a system with an ill-conditioned Hessian.
@@ -116,6 +120,7 @@ def test_eq_illcond_hessian():
     # once again, py33 converges to a slightly different value versus every other python
     assert_allclose(np.squeeze(eq.MU.values), [-55611.954141,  -2767.72322], atol=0.1)
 
+@pytest.mark.solver
 def test_eq_illcond_magnetic_hessian():
     """
     Check equilibrium of a system with an ill-conditioned Hessian due to magnetism (Tc->0).
@@ -161,6 +166,7 @@ def test_eq_on_endmember():
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
                 {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, verbose=True)
 
+@pytest.mark.solver
 def test_eq_four_sublattice():
     """
     Balancing mass in a multi-sublattice phase in a single-phase configuration.
@@ -191,6 +197,7 @@ def test_eq_missing_component():
                     {v.T: 1523, v.X('AL'): 0.88811111111111107,
                      v.X('CO'): 0.11188888888888888, v.P: 101325})
 
+@pytest.mark.solver
 def test_eq_ternary_edge_case_mass():
     """
     Equilibrium along an edge of composition space will still balance mass.
@@ -206,6 +213,7 @@ def test_eq_ternary_edge_case_mass():
     assert result_chempots[2] < -300000  # Estimated
     assert np.all(np.abs(mass_error) < 1e-10)
 
+@pytest.mark.solver
 def test_eq_ternary_inside_mass():
     """
     Equilibrium in interior of composition space will still balance mass.
@@ -218,6 +226,7 @@ def test_eq_ternary_inside_mass():
     assert_allclose(eq.MU.values.flatten(), [-104653.83, -142595.49, -82905.784], atol=0.1)
 
 
+@pytest.mark.solver
 def test_eq_ternary_edge_misc_gap():
     """
     Equilibrium at edge of miscibility gap will still balance mass.
@@ -229,6 +238,7 @@ def test_eq_ternary_edge_misc_gap():
                  [0.33366666666666667, 0.44455555555555554, 0.22177777777777785]
     assert np.all(np.abs(mass_error) < 0.001)
 
+@pytest.mark.solver
 def test_eq_issue43_chempots_misc_gap():
     """
     Equilibrium for complex ternary miscibility gap (gh-43).
@@ -243,6 +253,7 @@ def test_eq_issue43_chempots_misc_gap():
     assert_allclose(np.squeeze(eq.MU.values), chempots, rtol=1e-5)
     assert_allclose(np.squeeze(eq.GM.values), -81933.259)
 
+@pytest.mark.solver
 def test_eq_issue43_chempots_tricky_potentials():
     """
     Ternary equilibrium with difficult convergence for chemical potentials (gh-43).
@@ -254,6 +265,7 @@ def test_eq_issue43_chempots_tricky_potentials():
     assert_allclose(eq.GM.values, -70680.53695)
     assert_allclose(np.squeeze(eq.MU.values), chempots)
 
+@pytest.mark.solver
 def test_eq_large_vacancy_hessian():
     """
     Vacancy contribution to phase matrix must be included to get the correct answer.
@@ -266,6 +278,7 @@ def test_eq_large_vacancy_hessian():
     assert_allclose(eq.MU.values.flatten(), [-167636.23822714, -142072.78317111])
     assert_allclose(eq.X.sel(vertex=0).values.flatten(), [0.4798, 0.5202])
 
+@pytest.mark.solver
 def test_eq_stepsize_reduction():
     """
     Step size reduction required for convergence.
@@ -300,6 +313,7 @@ def test_eq_avoid_phase_cycling():
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], my_phases_alfe, {v.X('AL'): 0.44,
                                                                v.T: 1600, v.P: 101325}, verbose=True)
 
+@pytest.mark.solver
 def test_eq_issue76_dilute_potentials():
     """
     Convergence for two-phase mixtures at dilute composition (gh-76).
@@ -338,12 +352,14 @@ def test_eq_unary_issue78():
     np.testing.assert_allclose(eq.GM, 1000)
     np.testing.assert_allclose(eq.SM, 0, atol=1e-15)
 
+@pytest.mark.solver
 def test_eq_gas_phase():
     eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, verbose=True)
     np.testing.assert_allclose(eq.GM, -110380.61071, atol=0.1)
     eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e9}, verbose=True)
     np.testing.assert_allclose(eq.GM, -7.20909E+04, atol=0.1)
 
+@pytest.mark.solver
 def test_eq_ionic_liquid():
     eq = equilibrium(CUO_DBF, ['CU', 'O', 'VA'], 'IONIC_LIQ', {v.T: 1000, v.P: 1e5, v.X('CU'): 0.6618}, verbose=True)
     np.testing.assert_allclose(eq.GM, -9.25057E+04, atol=0.1)
@@ -468,6 +484,7 @@ def test_equilibrium_no_opt_solver():
     assert np.allclose([-19540.85816392, -15358.76914778], no_opt_MU)  # chempots from lower convex hull
 
 
+@pytest.mark.solver
 def test_eq_ideal_chempot_cond():
     TDB = """
      ELEMENT A    GRAPHITE                   12.011     1054.0      5.7423 !
@@ -489,6 +506,7 @@ def test_eq_ideal_chempot_cond():
     np.testing.assert_allclose(eq.X.isel(vertex=0).values.squeeze(), [0.01,  0.103321,  0.886679], atol=1e-4)
 
 
+@pytest.mark.solver
 def test_eq_tricky_chempot_cond():
     """
     Chemical potential condition with difficult convergence for chemical potentials.
@@ -502,6 +520,7 @@ def test_eq_tricky_chempot_cond():
     assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.19624727,  0.38996739,  0.41378534])
     assert_allclose(np.squeeze(eq.MU.values), chempots)
 
+@pytest.mark.solver
 def test_eq_magnetic_chempot_cond():
     """
     Chemical potential condition with an ill-conditioned Hessian due to magnetism (Tc->0).
