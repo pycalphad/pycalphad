@@ -880,7 +880,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 if idx2 in compsets_to_remove:
                     continue
                 compset_distance = np.max(np.abs(np.array(state.phase_compositions[idx]) - np.array(state.phase_compositions[idx2])))
-                if compset_distance < 1e-10:
+                if compset_distance < 1e-4:
                     compsets_to_remove.add(idx2)
                     if idx not in spec.fixed_stable_compset_indices:
                         state.phase_amt[idx] += state.phase_amt[idx2]
