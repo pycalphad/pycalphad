@@ -543,3 +543,20 @@ def test_eq_calculation_with_parameters():
                      {v.X('CU'): 0.0001052, v.P: 101325.0, v.T: 743.15, v.N: 1},
                      parameters=parameters, verbose=True)
     assert_allclose(eq.GM.values, -30374.196034, atol=0.1)
+
+
+@pytest.mark.solver
+def test_eq_alni_low_temp():
+    """
+    Low temperature Al-Ni keeps correct stable set at equilibrium.
+    """
+    dbf = NI_AL_DUPIN_2001_DBF
+    comps = ['AL', 'NI', 'VA']
+    phases = sorted(dbf.phases.keys())
+    eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 300, v.N: 1, v.X('AL'): 0.4})
+    # These values have NOT been verified in third-party software yet
+    assert_allclose(eq.GM.values, -63736.3048)
+    assert_allclose(eq.MU.values.flatten(), [-116098.937755,  -28827.882809])
+    # Order of phases has no physical meaning, but if the order changes here, it may indicate an issue
+    assert list(np.squeeze(eq.Phase.values)) == ['BCC_B2', 'AL3NI5', '']
+    assert_allclose(np.squeeze(eq.X.values), [[0.488104, 0.511896], [0.375, 0.625], [np.nan, np.nan]], atol=1e-6)
