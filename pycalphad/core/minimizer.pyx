@@ -798,68 +798,36 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #print('Mass residual and chemical potentials too big; resetting chemical potentials')
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
-        #take_step(spec, state, step_size)
         old_state = deepcopy(state)
-        for backtracking_iteration in range(5):
-            take_step(spec, state, step_size)
-            #print('old_state.phase_amt', np.array(old_state.phase_amt))
-            #print('state.phase_amt', np.array(state.phase_amt))
-            #print('old_state.phase_compositions', np.array(old_state.phase_compositions))
-            #print('state.phase_compositions', np.array(state.phase_compositions))
-            #print('state.chempot_diff', np.array(state.chempot_diff))
-            delta_phase_amt = np.array(state.phase_amt) - np.array(old_state.phase_amt)
-            if ((state.mass_residual > 1e-2) and (not np.all(np.array(state.chempot_diff) < 1.0))) or (iteration == 0):
-                #if np.max(np.abs(delta_phase_amt)) > 0.1:
-                #    state.phase_amt = np.array(old_state.phase_amt) + 1e-6 * delta_phase_amt
-                # When mass residual is not satisfied, do not allow phases to leave the system
-                # However, if the chemical potentials are changing very little, phases may leave the system
-                for j in range(state.phase_amt.shape[0]):
-                    if state.phase_amt[j] < 0:
-                        state.phase_amt[j] = 1e-8
-            delta_m[:] = 0
-            max_delta_m = 0
-            for idx in range(state.phase_compositions.shape[0]):
-                for j in range(state.phase_compositions.shape[1]):
-                    delta_m[j] += state.phase_amt[idx] * state.phase_compositions[idx, j] - old_state.phase_amt[idx] * old_state.phase_compositions[idx, j]
-            delta_energy = np.abs(np.dot(old_state.chemical_potentials, np.abs(delta_m)))
-            #print('delta_m', np.array(delta_m))
-            #print('delta_energy', delta_energy)
-            if delta_energy == 0:
-                    delta_energy = 1e-10
-            if state.mass_residual < 1e-2:
-                step_size = min(1, 1./delta_energy)
-            else:
-                step_size = 1./10
-            break
-            #if (np.max(np.abs(delta_m)) > 0.1) and (iteration > 0):
-            #    state = deepcopy(old_state)
-            #    step_size = min(step_size/10, 1./delta_energy)
-            #    print('backtracking')
-            #    continue
-            #else:
-            #    step_size = max(min(1./10, 1./delta_energy), 1./1000)
-            #    break
-        #else:
-        #    raise ValueError('Backtracking line search failed')
-        #    #delta_composition = np.dot(state.delta_ms.T, state.phase_amt)
-        #    #print(f'delta_composition {delta_composition}')
-        #    #print(f'chempot_diff {np.array(state.chempot_diff)}')
-        #    #print(f'step_size {step_size}')
-        #    # Steps are allowed as long as we are seeing decay in at least one key set of variables
-        #    sufficient_step_taken = np.max(np.abs(delta_composition)) < 0.95 * np.max(np.abs(old_delta_composition))
-        #    sufficient_step_taken |= np.max(np.abs(state.chempot_diff)) < 0.95 * np.max(np.abs(old_state.chempot_diff))
-        #    # When steps get really small, we are near convergence, and there is little need for backtracking
-        #    tiny_step = (np.max(np.abs(state.chempot_diff)) < 1e-4)
-        #    if True:
-        #        step_size = min(2*step_size, 1./10)
-        #        break
-        #    elif tiny_step:
-        #        break
-        #    else:
-        #        step_size /= 10
-        #        state = old_state
-        #else:
-        #    raise ValueError('Backtracking line search failed')
+        take_step(spec, state, step_size)
+        #print('old_state.phase_amt', np.array(old_state.phase_amt))
+        #print('state.phase_amt', np.array(state.phase_amt))
+        #print('old_state.phase_compositions', np.array(old_state.phase_compositions))
+        #print('state.phase_compositions', np.array(state.phase_compositions))
+        #print('state.chempot_diff', np.array(state.chempot_diff))
+        delta_phase_amt = np.array(state.phase_amt) - np.array(old_state.phase_amt)
+        if ((state.mass_residual > 1e-2) and (not np.all(np.array(state.chempot_diff) < 1.0))) or (iteration == 0):
+            #if np.max(np.abs(delta_phase_amt)) > 0.1:
+            #    state.phase_amt = np.array(old_state.phase_amt) + 1e-6 * delta_phase_amt
+            # When mass residual is not satisfied, do not allow phases to leave the system
+            # However, if the chemical potentials are changing very little, phases may leave the system
+            for j in range(state.phase_amt.shape[0]):
+                if state.phase_amt[j] < 0:
+                    state.phase_amt[j] = 1e-8
+        delta_m[:] = 0
+        max_delta_m = 0
+        for idx in range(state.phase_compositions.shape[0]):
+            for j in range(state.phase_compositions.shape[1]):
+                delta_m[j] += state.phase_amt[idx] * state.phase_compositions[idx, j] - old_state.phase_amt[idx] * old_state.phase_compositions[idx, j]
+        delta_energy = np.abs(np.dot(old_state.chemical_potentials, np.abs(delta_m)))
+        #print('delta_m', np.array(delta_m))
+        #print('delta_energy', delta_energy)
+        if delta_energy == 0:
+                delta_energy = 1e-10
+        if state.mass_residual < 1e-2:
+            step_size = min(1, 1./delta_energy)
+        else:
+            step_size = 1./10
 
         # Consolidate duplicate phases and remove unstable phases
         compsets_to_remove = set()
