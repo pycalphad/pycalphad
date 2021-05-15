@@ -1,4 +1,4 @@
-#cython: unraisable_tracebacks=True
+# cython: linetrace=True
 cimport cython
 import numpy as np
 cimport numpy as np

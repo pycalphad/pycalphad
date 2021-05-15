@@ -557,6 +557,8 @@ def test_eq_alni_low_temp():
     # These values have NOT been verified in third-party software yet
     assert_allclose(eq.GM.values, -63736.3048)
     assert_allclose(eq.MU.values.flatten(), [-116098.937755,  -28827.882809])
-    # Order of phases has no physical meaning, but if the order changes here, it may indicate an issue
-    assert list(np.squeeze(eq.Phase.values)) == ['BCC_B2', 'AL3NI5', '']
-    assert_allclose(np.squeeze(eq.X.values), [[0.488104, 0.511896], [0.375, 0.625], [np.nan, np.nan]], atol=1e-6)
+    assert set(np.squeeze(eq.Phase.values)) == {'BCC_B2', 'AL3NI5', ''}
+    bcc_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'BCC_B2')[0][0]
+    al3ni5_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'AL3NI5')[0][0]
+    assert_allclose(np.squeeze(eq.X.sel(vertex=bcc_idx).values), [0.488104, 0.511896], atol=1e-6)
+    assert_allclose(np.squeeze(eq.X.sel(vertex=al3ni5_idx).values), [0.375, 0.625], atol=1e-6)
