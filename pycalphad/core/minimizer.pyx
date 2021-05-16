@@ -208,6 +208,41 @@ cdef void write_row_fixed_mole_fraction(double[:] out_row, double* out_rhs, int 
             out_rhs[0] -= (phase_amt[idx]/current_system_amount) * chemical_potentials[
                 chempot_idx] * (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_component[chempot_idx, j]
 
+cdef void write_row_fixed_mole_amount(double[:] out_row, double* out_rhs, int component_idx,
+                                      int[::1] free_chemical_potential_indices, int[::1] free_stable_compset_indices,
+                                      int[::1] free_statevar_indices, int[::1] fixed_chemical_potential_indices,
+                                      double[::1] chemical_potentials,
+                                      double [::1] system_mole_fractions, double current_system_amount,
+                                      double[:, ::1] mass_jac, double[:, ::1] c_component,
+                                      double[:, ::1] c_statevars, double[::1] c_G, double[:, ::1] masses,
+                                      double moles_normalization, double[::1] moles_normalization_grad,
+                                      double[::1] phase_amt, int idx):
+    cdef int free_variable_column_offset = 0
+    cdef int num_statevars = c_statevars.shape[1]
+    cdef int i, j, chempot_idx, compset_idx, statevar_idx
+    # 2a. This component row: free chemical potentials
+    for i in range(free_chemical_potential_indices.shape[0]):
+        chempot_idx = free_chemical_potential_indices[i]
+        for j in range(c_component.shape[1]):
+            out_row[free_variable_column_offset + i] += \
+                phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
+    free_variable_column_offset += free_chemical_potential_indices.shape[0]
+    # 2a. This component row: free stable composition sets
+    for i in range(free_stable_compset_indices.shape[0]):
+        compset_idx = free_stable_compset_indices[i]
+        # Only fill this out if the current idx is equal to a free composition set
+        if compset_idx == idx:
+            out_row[free_variable_column_offset + i] += masses[component_idx, 0]
+    free_variable_column_offset += free_stable_compset_indices.shape[0]
+    # 2a. This component row: free state variables
+    for i in range(free_statevar_indices.shape[0]):
+        statevar_idx = free_statevar_indices[i]
+        for j in range(c_statevars.shape[0]):
+            out_row[free_variable_column_offset + i] += \
+                phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_statevars[j, statevar_idx]
+    # 3.
+    for j in range(c_G.shape[0]):
+        out_rhs[0] += -phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_G[j]
 
 cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
                                             double energy, double[::1] grad, double[:, ::1] hess,
@@ -291,30 +326,14 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
     system_amount_index = component_row_offset + num_fixed_components
     # 2X. Also handle the N=1 row
     for component_idx in range(num_components):
-        free_variable_column_offset = 0
-        # 2a. This component row: free chemical potentials
-        for i in range(free_chemical_potential_indices.shape[0]):
-            chempot_idx = free_chemical_potential_indices[i]
-            for j in range(c_component.shape[1]):
-                equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += \
-                    phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
-        free_variable_column_offset += free_chemical_potential_indices.shape[0]
-        # 2a. This component row: free stable composition sets
-        for i in range(free_stable_compset_indices.shape[0]):
-            compset_idx = free_stable_compset_indices[i]
-            # Only fill this out if the current idx is equal to a free composition set
-            if compset_idx == idx:
-                equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += masses[component_idx, 0]
-        free_variable_column_offset += free_stable_compset_indices.shape[0]
-        # 2a. This component row: free state variables
-        for i in range(free_statevar_indices.shape[0]):
-            statevar_idx = free_statevar_indices[i]
-            for j in range(c_statevars.shape[0]):
-                equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += \
-                    phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_statevars[j, statevar_idx]
-        # 3.
-        for j in range(c_G.shape[0]):
-            equilibrium_rhs[system_amount_index] += -phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_G[j]
+        write_row_fixed_mole_amount(equilibrium_matrix[system_amount_index, :],
+                                    &equilibrium_rhs[system_amount_index], component_idx,
+                                    free_chemical_potential_indices, free_stable_compset_indices,
+                                    free_statevar_indices, fixed_chemical_potential_indices,
+                                    chemical_potentials, system_mole_fractions, current_system_amount,
+                                    mass_jac, c_component, c_statevars, c_G, masses,
+                                    moles_normalization, moles_normalization_grad,
+                                    phase_amt, idx)
 
     # 4. Subtract fixed chemical potentials from each phase RHS
     for i in range(fixed_chemical_potential_indices.shape[0]):
@@ -337,7 +356,8 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
                                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                                     int num_statevars, double prescribed_system_amount, object dof,
                                     bint flip_residual_sign, bint finalize_chempots) except +:
-    cdef int stable_idx, idx, component_row_offset, component_idx, fixed_component_idx, comp_idx, system_amount_index
+    cdef int stable_idx, idx, component_row_offset, component_idx, fixed_idx, free_idx
+    cdef int fixed_component_idx, comp_idx, system_amount_index, sv_idx
     cdef CompositionSet compset
     cdef int num_components = chemical_potentials.shape[0]
     cdef int num_stable_phases = free_stable_compset_indices.shape[0]
