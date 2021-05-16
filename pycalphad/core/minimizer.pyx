@@ -251,100 +251,6 @@ cdef void write_row_fixed_mole_amount(double[:] out_row, double* out_rhs, int co
             out_rhs[0] -= phase_amt[idx] * chemical_potentials[
                 chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
 
-cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
-                                            double energy, double[::1] grad, double[:, ::1] hess,
-                                            double[:, ::1] masses, double[:, ::1] mass_jac,
-                                            double [::1] system_mole_fractions, double current_system_amount, int num_phase_dof,
-                                            double[:, ::1] full_e_matrix, double[::1] chemical_potentials,
-                                            double[::1] phase_amt, int[::1] free_chemical_potential_indices,
-                                            int[::1] free_statevar_indices, int[::1] free_stable_compset_indices,
-                                            int[::1] fixed_stable_compset_indices,
-                                            int[::1] fixed_chemical_potential_indices,
-                                            int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
-                                            int idx, int stable_idx, int num_statevars) except +:
-    cdef int comp_idx, component_idx, chempot_idx, compset_idx, statevar_idx, fixed_component_idx, component_row_offset, i, j
-    cdef int system_amount_index
-    cdef int num_components = chemical_potentials.shape[0]
-    cdef int num_stable_phases = free_stable_compset_indices.shape[0]
-    cdef int num_fixed_phases = fixed_stable_compset_indices.shape[0]
-    cdef int num_fixed_components = prescribed_elemental_amounts.shape[0]
-    # Eq. 44
-    cdef double[::1] c_G = np.zeros(num_phase_dof)
-    cdef double[::1] delta_m = np.zeros(num_components)
-    cdef double[:, ::1] c_statevars = np.zeros((num_phase_dof, num_statevars))
-    cdef double[:, ::1] c_component = np.zeros((num_components, num_phase_dof))
-    cdef double moles_normalization = 0
-    cdef double mu_c_sum = 0
-    cdef double[::1] moles_normalization_grad = np.zeros(num_statevars+num_phase_dof)
-    for i in range(num_phase_dof):
-        for j in range(num_phase_dof):
-            c_G[i] -= full_e_matrix[i, j] * grad[num_statevars+j]
-    #print('c_G', np.array(c_G))
-    for i in range(num_phase_dof):
-        for j in range(num_phase_dof):
-            for statevar_idx in range(num_statevars):
-                c_statevars[i, statevar_idx] -= full_e_matrix[i, j] * hess[num_statevars + j, statevar_idx]
-    for comp_idx in range(num_components):
-        for i in range(num_phase_dof):
-            for j in range(num_phase_dof):
-                c_component[comp_idx, i] += mass_jac[comp_idx, num_statevars + j] * full_e_matrix[i, j]
-    #print('c_component', np.array(c_component))
-    for comp_idx in range(num_components):
-        for i in range(num_phase_dof):
-            mu_c_sum = 0
-            for j in range(chemical_potentials.shape[0]):
-                mu_c_sum += c_component[j, i] * chemical_potentials[j]
-            delta_m[comp_idx] += mass_jac[comp_idx, num_statevars + i] * (mu_c_sum + c_G[i])
-    #print('delta_m', np.array(delta_m), np.sum(delta_m))
-    for comp_idx in range(num_components):
-        moles_normalization += masses[comp_idx, 0]
-        for i in range(num_phase_dof+num_statevars):
-            moles_normalization_grad[i] += mass_jac[comp_idx, i]
-    #print('current_system_amount', current_system_amount)
-    #print('moles_normalization', moles_normalization)
-    #print('moles_normalization_grad', np.array(moles_normalization_grad))
-    # KEY STEPS for filling equilibrium matrix
-    # 1. Contribute to the row corresponding to this composition set
-    # 1a. Loop through potential conditions to fill out each column
-    # 2. Contribute to the rows of all fixed components
-    # 2a. Loop through potential conditions to fill out each column
-    # 3. Contribute to RHS of each component row
-    # 4. Subtract contribution from RHS due to any fixed chemical potentials
-    # 5. Subtract fixed chemical potentials from each fixed component RHS
-    # 6. Subtract fixed chemical potentials from the N=1 row
-
-    write_row_stable_phase(equilibrium_matrix[stable_idx, :], &equilibrium_rhs[stable_idx], free_chemical_potential_indices,
-                           free_stable_compset_indices, free_statevar_indices, fixed_chemical_potential_indices,
-                           chemical_potentials, masses, grad, energy)
-    # 2. Contribute to the row of all fixed components (fixed mole fraction)
-    component_row_offset = num_stable_phases + num_fixed_phases
-    for fixed_component_idx in range(num_fixed_components):
-        component_idx = prescribed_element_indices[fixed_component_idx]
-        write_row_fixed_mole_fraction(equilibrium_matrix[component_row_offset + fixed_component_idx, :],
-                                      &equilibrium_rhs[component_row_offset + fixed_component_idx],
-                                      component_idx, free_chemical_potential_indices,
-                                      free_stable_compset_indices,
-                                      free_statevar_indices, fixed_chemical_potential_indices,
-                                      chemical_potentials,
-                                      system_mole_fractions, current_system_amount, mass_jac,
-                                      c_component, c_statevars, c_G, masses, moles_normalization,
-                                      moles_normalization_grad, phase_amt, idx)
-
-    system_amount_index = component_row_offset + num_fixed_components
-    # 2X. Also handle the N=1 row
-    for component_idx in range(num_components):
-        write_row_fixed_mole_amount(equilibrium_matrix[system_amount_index, :],
-                                    &equilibrium_rhs[system_amount_index], component_idx,
-                                    free_chemical_potential_indices, free_stable_compset_indices,
-                                    free_statevar_indices, fixed_chemical_potential_indices,
-                                    chemical_potentials, system_mole_fractions, current_system_amount,
-                                    mass_jac, c_component, c_statevars, c_G, masses,
-                                    moles_normalization, moles_normalization_grad,
-                                    phase_amt, idx)
-
-
-    return np.array(delta_m)
-
 
 cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
                                     object compsets, double[::1] chemical_potentials,
@@ -369,13 +275,20 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     cdef double step_size = 1.0
     cdef double current_system_amount = 0
     cdef double[::1] x
-    cdef double[::1,:] energy_tmp
-    cdef double[::1] grad_tmp
-    cdef double[:,::1] hess_tmp
-    cdef double[:,::1] masses_tmp
-    cdef double[:,::1] mass_jac_tmp
+    cdef double[::1,:] energy
+    cdef double[::1] grad
+    cdef double[:,::1] hess
+    cdef double[:,::1] masses
+    cdef double[:,::1] mass_jac
     cdef double[:,::1] phase_matrix
     cdef double[:,::1] e_matrix, full_e_matrix
+    cdef double[::1] c_G
+    cdef double[::1] delta_m
+    cdef double[:, ::1] c_statevars
+    cdef double[:, ::1] c_component
+    cdef double moles_normalization
+    cdef double mu_c_sum
+    cdef double[::1] moles_normalization_grad
     cdef double[::1] mole_fractions = np.zeros(num_components)
     cdef np.ndarray[ndim=2,dtype=np.float64_t] all_delta_m = np.zeros((len(compsets), num_components))
 
@@ -400,9 +313,9 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         # TODO: Use better dof storage
         # Calculate key phase quantities starting here
         x = dof[idx]
-        energy_tmp = np.zeros((1, 1))
-        masses_tmp = np.zeros((num_components, 1))
-        mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
+        energy = np.zeros((1, 1))
+        masses = np.zeros((num_components, 1))
+        mass_jac = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
         if finalize_chempots:
             fixed_phase_dof_indices = np.array(np.nonzero(np.array(x)[num_statevars:] <= 1.1*MIN_SITE_FRACTION)[0], dtype=np.int32)
         else:
@@ -412,30 +325,82 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
             (compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + fixed_phase_dof_indices.shape[0],
              compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + fixed_phase_dof_indices.shape[0]))
         full_e_matrix = np.eye(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + fixed_phase_dof_indices.shape[0])
-        hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
+        hess = np.zeros((num_statevars + compset.phase_record.phase_dof,
                              num_statevars + compset.phase_record.phase_dof))
-        grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
+        grad = np.zeros(num_statevars + compset.phase_record.phase_dof)
 
-        compset.phase_record.formulaobj(energy_tmp[:, 0], x)
+        compset.phase_record.formulaobj(energy[:, 0], x)
         for comp_idx in range(num_components):
-            compset.phase_record.formulamole_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
-            compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
-        compset.phase_record.formulahess(hess_tmp, x)
-        compset.phase_record.formulagrad(grad_tmp, x)
+            compset.phase_record.formulamole_grad(mass_jac[comp_idx, :], x, comp_idx)
+            compset.phase_record.formulamole_obj(masses[comp_idx, :], x, comp_idx)
+        compset.phase_record.formulahess(hess, x)
+        compset.phase_record.formulagrad(grad, x)
 
-        compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, chemical_potentials, x, fixed_phase_dof_indices)
+        compute_phase_matrix(phase_matrix, hess, compset, num_statevars, chemical_potentials, x, fixed_phase_dof_indices)
 
         invert_matrix(&phase_matrix[0,0], phase_matrix.shape[0], &full_e_matrix[0,0], &ipiv[0])
 
-        delta_m = fill_equilibrium_system_for_phase(equilibrium_matrix, equilibrium_rhs, energy_tmp[0, 0], grad_tmp, hess_tmp,
-                                                    masses_tmp, mass_jac_tmp, mole_fractions, current_system_amount,
-                                                    compset.phase_record.phase_dof, full_e_matrix, chemical_potentials,
-                                                    phase_amt, free_chemical_potential_indices, free_statevar_indices,
-                                                    free_stable_compset_indices, fixed_stable_compset_indices,
-                                                    fixed_chemical_potential_indices,
-                                                    prescribed_element_indices, prescribed_elemental_amounts,
-                                                    idx, stable_idx, num_statevars)
-        all_delta_m[idx, :] = delta_m
+        num_phase_dof = compset.phase_record.phase_dof
+        c_G = np.zeros(num_phase_dof)
+        delta_m = np.zeros(num_components)
+        c_statevars = np.zeros((num_phase_dof, num_statevars))
+        c_component = np.zeros((num_components, num_phase_dof))
+        moles_normalization = 0
+        mu_c_sum = 0
+        moles_normalization_grad = np.zeros(num_statevars+num_phase_dof)
+        for i in range(num_phase_dof):
+            for j in range(num_phase_dof):
+                c_G[i] -= full_e_matrix[i, j] * grad[num_statevars+j]
+        #print('c_G', np.array(c_G))
+        for i in range(num_phase_dof):
+            for j in range(num_phase_dof):
+                for statevar_idx in range(num_statevars):
+                    c_statevars[i, statevar_idx] -= full_e_matrix[i, j] * hess[num_statevars + j, statevar_idx]
+        for comp_idx in range(num_components):
+            for i in range(num_phase_dof):
+                for j in range(num_phase_dof):
+                    c_component[comp_idx, i] += mass_jac[comp_idx, num_statevars + j] * full_e_matrix[i, j]
+        #print('c_component', np.array(c_component))
+        for comp_idx in range(num_components):
+            for i in range(num_phase_dof):
+                mu_c_sum = 0
+                for j in range(chemical_potentials.shape[0]):
+                    mu_c_sum += c_component[j, i] * chemical_potentials[j]
+                all_delta_m[idx, comp_idx] += mass_jac[comp_idx, num_statevars + i] * (mu_c_sum + c_G[i])
+        #print('delta_m', np.array(delta_m), np.sum(delta_m))
+        for comp_idx in range(num_components):
+            moles_normalization += masses[comp_idx, 0]
+            for i in range(num_phase_dof+num_statevars):
+                moles_normalization_grad[i] += mass_jac[comp_idx, i]
+
+        write_row_stable_phase(equilibrium_matrix[stable_idx, :], &equilibrium_rhs[stable_idx], free_chemical_potential_indices,
+                       free_stable_compset_indices, free_statevar_indices, fixed_chemical_potential_indices,
+                       chemical_potentials, masses, grad, energy[0,0])
+        # 2. Contribute to the row of all fixed components (fixed mole fraction)
+        component_row_offset = num_stable_phases + num_fixed_phases
+        for fixed_component_idx in range(num_fixed_components):
+            component_idx = prescribed_element_indices[fixed_component_idx]
+            write_row_fixed_mole_fraction(equilibrium_matrix[component_row_offset + fixed_component_idx, :],
+                                          &equilibrium_rhs[component_row_offset + fixed_component_idx],
+                                          component_idx, free_chemical_potential_indices,
+                                          free_stable_compset_indices,
+                                          free_statevar_indices, fixed_chemical_potential_indices,
+                                          chemical_potentials,
+                                          mole_fractions, current_system_amount, mass_jac,
+                                          c_component, c_statevars, c_G, masses, moles_normalization,
+                                          moles_normalization_grad, phase_amt, idx)
+
+        system_amount_index = component_row_offset + num_fixed_components
+        # 2X. Also handle the N=1 row
+        for component_idx in range(num_components):
+            write_row_fixed_mole_amount(equilibrium_matrix[system_amount_index, :],
+                                        &equilibrium_rhs[system_amount_index], component_idx,
+                                        free_chemical_potential_indices, free_stable_compset_indices,
+                                        free_statevar_indices, fixed_chemical_potential_indices,
+                                        chemical_potentials, mole_fractions, current_system_amount,
+                                        mass_jac, c_component, c_statevars, c_G, masses,
+                                        moles_normalization, moles_normalization_grad,
+                                        phase_amt, idx)
 
     # Handle phases which are fixed to be stable at some amount
     # Example shown in Eq. 60, Sundman et al 2015
@@ -445,24 +410,23 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         # TODO: Use better dof storage
         # Calculate key phase quantities starting here
         x = dof[idx]
-        energy_tmp = np.zeros((1, 1))
-        masses_tmp = np.zeros((num_components, 1))
-        grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
+        energy = np.zeros((1, 1))
+        masses = np.zeros((num_components, 1))
+        grad = np.zeros(num_statevars + compset.phase_record.phase_dof)
 
-        compset.phase_record.formulaobj(energy_tmp[:, 0], x)
-        equilibrium_rhs[num_stable_phases + fixed_idx] = energy_tmp[0, 0]
+        compset.phase_record.formulaobj(energy[:, 0], x)
+        equilibrium_rhs[num_stable_phases + fixed_idx] = energy[0, 0]
         for fcp_idx in range(free_chemical_potential_indices.shape[0]):
             comp_idx = free_chemical_potential_indices[fcp_idx]
-            compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
-            equilibrium_matrix[num_stable_phases + fixed_idx, fcp_idx] = masses_tmp[comp_idx, 0]
-        compset.phase_record.formulagrad(grad_tmp, x)
+            compset.phase_record.formulamole_obj(masses[comp_idx, :], x, comp_idx)
+            equilibrium_matrix[num_stable_phases + fixed_idx, fcp_idx] = masses[comp_idx, 0]
+        compset.phase_record.formulagrad(grad, x)
         for free_idx in range(free_statevar_indices.shape[0]):
             sv_idx = free_statevar_indices[free_idx]
             equilibrium_matrix[num_stable_phases + fixed_idx,
-                               free_chemical_potential_indices.shape[0] + num_stable_phases + free_idx] = -grad_tmp[sv_idx]
+                               free_chemical_potential_indices.shape[0] + num_stable_phases + free_idx] = -grad[sv_idx]
         # TODO: Compute actual delta_m for fixed phase
-        delta_m = np.zeros(num_components)
-        all_delta_m[idx, :] = delta_m
+        all_delta_m[idx, :] = np.zeros(num_components)
 
     # Add mass residual to fixed component row RHS, plus N=1 row
     mass_residual = 0.0
