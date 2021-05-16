@@ -144,6 +144,45 @@ cdef void write_row_free_chemical_potentials(double[:] out_row, int[::1] free_ch
         statevar_idx = free_statevar_indices[i]
         out_row[free_variable_column_offset + i] = -grad[statevar_idx]
 
+cdef void write_row_fixed_mole_fraction(double[:] out_row, int component_idx, int[::1] free_chemical_potential_indices,
+                                        int[::1] free_stable_compset_indices,
+                                        int[::1] free_statevar_indices, double [::1] system_mole_fractions,
+                                        double current_system_amount, double[:, ::1] mass_jac, double[:, ::1] c_component,
+                                        double[:, ::1] c_statevars, double[:, ::1] masses, double moles_normalization,
+                                        double[::1] moles_normalization_grad, double[::1] phase_amt, int idx):
+    cdef int free_variable_column_offset = 0
+    cdef int num_statevars = c_statevars.shape[1]
+    cdef int chempot_idx, compset_idx, statevar_idx, i, j
+    # 2a. This component row: free chemical potentials
+    for i in range(free_chemical_potential_indices.shape[0]):
+        chempot_idx = free_chemical_potential_indices[i]
+        for j in range(c_component.shape[1]):
+            out_row[free_variable_column_offset + i] += \
+                (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
+        for j in range(c_component.shape[1]):
+            out_row[free_variable_column_offset + i] += \
+                (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_component[chempot_idx, j]
+    free_variable_column_offset += free_chemical_potential_indices.shape[0]
+    # 2a. This component row: free stable composition sets
+    for i in range(free_stable_compset_indices.shape[0]):
+        compset_idx = free_stable_compset_indices[i]
+        # Only fill this out if the current idx is equal to a free composition set
+        if compset_idx == idx:
+            out_row[free_variable_column_offset + i] = \
+                (1./current_system_amount)*(masses[component_idx, 0] - system_mole_fractions[component_idx] * moles_normalization)
+    free_variable_column_offset += free_stable_compset_indices.shape[0]
+    # 2a. This component row: free state variables
+    for i in range(free_statevar_indices.shape[0]):
+        statevar_idx = free_statevar_indices[i]
+        # XXX: Isn't this missing a dZ/dT term? Only relevant for T-dependent mass calculations...
+        for j in range(c_statevars.shape[0]):
+            out_row[free_variable_column_offset + i] += \
+                (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_statevars[j, statevar_idx]
+        for j in range(c_statevars.shape[0]):
+            out_row[free_variable_column_offset + i] += \
+                (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_statevars[j, statevar_idx]
+
+
 cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
                                             double energy, double[::1] grad, double[:, ::1] hess,
                                             double[:, ::1] masses, double[:, ::1] mass_jac,
@@ -213,36 +252,13 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
     component_row_offset = num_stable_phases + num_fixed_phases
     for fixed_component_idx in range(num_fixed_components):
         component_idx = prescribed_element_indices[fixed_component_idx]
-        free_variable_column_offset = 0
-        # 2a. This component row: free chemical potentials
-        for i in range(free_chemical_potential_indices.shape[0]):
-            chempot_idx = free_chemical_potential_indices[i]
-            for j in range(c_component.shape[1]):
-                equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
-                    (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
-            for j in range(c_component.shape[1]):
-                equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
-                    (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_component[chempot_idx, j]
-        free_variable_column_offset += free_chemical_potential_indices.shape[0]
-        # 2a. This component row: free stable composition sets
-        for i in range(free_stable_compset_indices.shape[0]):
-            compset_idx = free_stable_compset_indices[i]
-            # Only fill this out if the current idx is equal to a free composition set
-            if compset_idx == idx:
-                equilibrium_matrix[
-                    component_row_offset + fixed_component_idx, free_variable_column_offset + i] = \
-                    (1./current_system_amount)*(masses[component_idx, 0] - system_mole_fractions[component_idx] * moles_normalization)
-        free_variable_column_offset += free_stable_compset_indices.shape[0]
-        # 2a. This component row: free state variables
-        for i in range(free_statevar_indices.shape[0]):
-            statevar_idx = free_statevar_indices[i]
-            # XXX: Isn't this missing a dZ/dT term? Only relevant for T-dependent mass calculations...
-            for j in range(c_statevars.shape[0]):
-                equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
-                    (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_statevars[j, statevar_idx]
-            for j in range(c_statevars.shape[0]):
-                equilibrium_matrix[component_row_offset + fixed_component_idx, free_variable_column_offset + i] += \
-                    (phase_amt[idx]/current_system_amount) * (-system_mole_fractions[component_idx] * moles_normalization_grad[num_statevars+j]) * c_statevars[j, statevar_idx]
+        write_row_fixed_mole_fraction(equilibrium_matrix[component_row_offset + fixed_component_idx, :],
+                                      component_idx, free_chemical_potential_indices,
+                                      free_stable_compset_indices,
+                                      free_statevar_indices, system_mole_fractions,
+                                      current_system_amount, mass_jac, c_component,
+                                      c_statevars, masses, moles_normalization,
+                                      moles_normalization_grad, phase_amt, idx)
         # 3.
         for j in range(c_G.shape[0]):
             equilibrium_rhs[component_row_offset + fixed_component_idx] += -(phase_amt[idx]/current_system_amount) * \
