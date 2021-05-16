@@ -243,6 +243,13 @@ cdef void write_row_fixed_mole_amount(double[:] out_row, double* out_rhs, int co
     # 3.
     for j in range(c_G.shape[0]):
         out_rhs[0] += -phase_amt[idx] * mass_jac[component_idx, num_statevars+j] * c_G[j]
+    # 4. Subtract fixed chemical potentials from each phase RHS
+    for i in range(fixed_chemical_potential_indices.shape[0]):
+        chempot_idx = fixed_chemical_potential_indices[i]
+        # 6. Subtract fixed chemical potentials from the N=1 row
+        for j in range(c_component.shape[1]):
+            out_rhs[0] -= phase_amt[idx] * chemical_potentials[
+                chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
 
 cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
                                             double energy, double[::1] grad, double[:, ::1] hess,
@@ -335,14 +342,7 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
                                     moles_normalization, moles_normalization_grad,
                                     phase_amt, idx)
 
-    # 4. Subtract fixed chemical potentials from each phase RHS
-    for i in range(fixed_chemical_potential_indices.shape[0]):
-        chempot_idx = fixed_chemical_potential_indices[i]
-        # 6. Subtract fixed chemical potentials from the N=1 row
-        for component_idx in range(num_components):
-            for j in range(c_component.shape[1]):
-                equilibrium_rhs[system_amount_index] -= phase_amt[idx] * chemical_potentials[
-                    chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
+
     return np.array(delta_m)
 
 
