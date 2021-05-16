@@ -348,14 +348,14 @@ cdef np.ndarray fill_equilibrium_system_for_phase(double[::1,:] equilibrium_matr
 
 cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
                                     object compsets, double[::1] chemical_potentials,
-                                    double[::1] current_elemental_amounts, double[::1] phase_amt,
+                                    double[::1] phase_amt,
                                     int[::1] free_chemical_potential_indices,
                                     int[::1] free_statevar_indices, int[::1] free_stable_compset_indices,
                                     int[::1] fixed_stable_compset_indices,
                                     int[::1] fixed_chemical_potential_indices,
                                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                                     int num_statevars, double prescribed_system_amount, object dof,
-                                    bint flip_residual_sign, bint finalize_chempots) except +:
+                                    bint finalize_chempots) except +:
     cdef int stable_idx, idx, component_row_offset, component_idx, fixed_idx, free_idx
     cdef int fixed_component_idx, comp_idx, system_amount_index, sv_idx
     cdef CompositionSet compset
@@ -473,10 +473,7 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         mass_residuals[fixed_component_idx] = (mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
         mass_residual += abs(
             mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx]) #/ abs(prescribed_elemental_amounts[fixed_component_idx])
-        if not flip_residual_sign:
-            component_residual = mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx]
-        else:
-            component_residual = prescribed_elemental_amounts[fixed_component_idx] - mole_fractions[component_idx]
+        component_residual = mole_fractions[component_idx] - prescribed_elemental_amounts[fixed_component_idx]
         equilibrium_rhs[component_row_offset + fixed_component_idx] -= component_residual
     mass_residual += abs(current_system_amount - prescribed_system_amount)
     system_residual = current_system_amount - prescribed_system_amount
@@ -770,12 +767,12 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     equilibrium_matrix[:,:] = 0
     equilibrium_soln[:] = 0
     mass_residuals, delta_ms = fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, state.compsets, state.chemical_potentials,
-                                            current_elemental_amounts, state.phase_amt, spec.free_chemical_potential_indices,
+                                            state.phase_amt, spec.free_chemical_potential_indices,
                                             spec.free_statevar_indices, state.free_stable_compset_indices,
                                             spec.fixed_stable_compset_indices, spec.fixed_chemical_potential_indices,
                                             spec.prescribed_element_indices,
                                             spec.prescribed_elemental_amounts, spec.num_statevars, spec.prescribed_system_amount,
-                                            state.dof, False, finalize_chemical_potentials)
+                                            state.dof, finalize_chemical_potentials)
     # In some cases we may have only one stoichiometric phase stable in the system.
     # This will cause the equilibrium matrix to become singular, and the chemical potentials will be nonsensical.
     # This case can be identified by the presence of a row of all zeros in a fixed-mole-fraction row.
