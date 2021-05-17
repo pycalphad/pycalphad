@@ -267,8 +267,6 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     cdef double mass_residual
     cdef double step_size = 1.0
     cdef double current_system_amount = 0
-    cdef double[:,::1] phase_matrix
-    cdef double[:,::1] e_matrix, full_e_matrix
     cdef double mu_c_sum
     cdef double[::1] mole_fractions = np.zeros(num_components)
     cdef np.ndarray[ndim=2,dtype=np.float64_t] all_delta_m = np.zeros((len(state.compsets), num_components))
@@ -300,10 +298,10 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         csst.energy = 0
         csst.mass_jac[:,:] = 0
         # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
-        phase_matrix = np.zeros(
-            (compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
-             compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
-        full_e_matrix = np.eye(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
+        csst.phase_matrix[:,:] = 0
+        csst.full_e_matrix[:,:] = 0
+        for i in range(csst.full_e_matrix.shape[0]):
+            csst.full_e_matrix[i,i] = 1
         csst.hess[:,:] = 0
         csst.grad[:] = 0
 
@@ -313,9 +311,9 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         compset.phase_record.formulahess(csst.hess, x)
         compset.phase_record.formulagrad(csst.grad, x)
 
-        compute_phase_matrix(phase_matrix, csst.hess, compset, spec.num_statevars, state.chemical_potentials, x, fixed_phase_dof_indices)
+        compute_phase_matrix(csst.phase_matrix, csst.hess, compset, spec.num_statevars, state.chemical_potentials, x, fixed_phase_dof_indices)
 
-        invert_matrix(&phase_matrix[0,0], phase_matrix.shape[0], &full_e_matrix[0,0], &ipiv[0])
+        invert_matrix(&csst.phase_matrix[0,0], csst.phase_matrix.shape[0], &csst.full_e_matrix[0,0], &ipiv[0])
 
         num_phase_dof = compset.phase_record.phase_dof
         csst.c_G[:] = 0
@@ -327,16 +325,16 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         csst.moles_normalization_grad[:] = 0
         for i in range(num_phase_dof):
             for j in range(num_phase_dof):
-                csst.c_G[i] -= full_e_matrix[i, j] * csst.grad[spec.num_statevars+j]
+                csst.c_G[i] -= csst.full_e_matrix[i, j] * csst.grad[spec.num_statevars+j]
         #print('c_G', np.array(c_G))
         for i in range(num_phase_dof):
             for j in range(num_phase_dof):
                 for statevar_idx in range(spec.num_statevars):
-                    csst.c_statevars[i, statevar_idx] -= full_e_matrix[i, j] * csst.hess[spec.num_statevars + j, statevar_idx]
+                    csst.c_statevars[i, statevar_idx] -= csst.full_e_matrix[i, j] * csst.hess[spec.num_statevars + j, statevar_idx]
         for comp_idx in range(num_components):
             for i in range(num_phase_dof):
                 for j in range(num_phase_dof):
-                    csst.c_component[comp_idx, i] += csst.mass_jac[comp_idx, spec.num_statevars + j] * full_e_matrix[i, j]
+                    csst.c_component[comp_idx, i] += csst.mass_jac[comp_idx, spec.num_statevars + j] * csst.full_e_matrix[i, j]
         #print('c_component', np.array(c_component))
         for comp_idx in range(num_components):
             for i in range(num_phase_dof):
@@ -526,8 +524,8 @@ cdef class CompsetState:
     cdef double[:,::1] hess
     cdef double[:,::1] masses
     cdef double[:,::1] mass_jac
-    #cdef double[:,::1] phase_matrix
-    #cdef double[:,::1] e_matrix, full_e_matrix
+    cdef double[:,::1] phase_matrix
+    cdef double[:,::1] full_e_matrix
     cdef double[::1] c_G
     cdef double[:, ::1] c_statevars
     cdef double[:, ::1] c_component
@@ -542,9 +540,10 @@ cdef class CompsetState:
         self.masses = np.zeros((spec.num_components, 1))
         self.mass_jac = np.zeros((spec.num_components,
                                   spec.num_statevars + compset.phase_record.phase_dof))
-        #self.phase_matrix = None
-        #self.e_matrix = None
-        #self.full_e_matrix = None
+        self.phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
+                                      compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
+        self.full_e_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
+                                       compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
         self.c_G = np.zeros(compset.phase_record.phase_dof)
         self.c_statevars = np.zeros((compset.phase_record.phase_dof, spec.num_statevars))
         self.c_component = np.zeros((spec.num_components, compset.phase_record.phase_dof))
@@ -552,10 +551,12 @@ cdef class CompsetState:
         self.moles_normalization_grad = np.zeros(spec.num_statevars+compset.phase_record.phase_dof)
     def __getstate__(self):
         return (np.array(self.x), self.energy, np.array(self.grad), np.array(self.hess),
+                np.array(self.phase_matrix), np.array(self.full_e_matrix),
                 np.array(self.masses), np.array(self.mass_jac), np.array(self.c_G), np.array(self.c_statevars),
                 np.array(self.c_component), self.moles_normalization, np.array(self.moles_normalization_grad))
     def __setstate__(self, state):
-        (self.x, self.energy, self.grad, self.hess, self.masses, self.mass_jac, self.c_G, self.c_statevars,
+        (self.x, self.energy, self.grad, self.hess, self.phase_matrix, self.full_e_matrix,
+         self.masses, self.mass_jac, self.c_G, self.c_statevars,
          self.c_component, self.moles_normalization, self.moles_normalization_grad) = state
 
 
