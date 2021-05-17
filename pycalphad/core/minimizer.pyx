@@ -318,13 +318,10 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
                                spec.free_chemical_potential_indices.shape[0] + num_stable_phases + free_idx] = -csst.grad[sv_idx]
 
     # Add mass residual to fixed component row RHS, plus N=1 row
-    state.mass_residual = 0.0
     component_row_offset = num_stable_phases + num_fixed_phases
     system_amount_index = component_row_offset + num_fixed_components
     for fixed_component_idx in range(num_fixed_components):
         component_idx = spec.prescribed_element_indices[fixed_component_idx]
-        state.mass_residual += abs(
-            state.mole_fractions[component_idx] - spec.prescribed_elemental_amounts[fixed_component_idx])
         component_residual = state.mole_fractions[component_idx] - spec.prescribed_elemental_amounts[fixed_component_idx]
         equilibrium_rhs[component_row_offset + fixed_component_idx] -= component_residual
     system_residual = state.system_amount - spec.prescribed_system_amount
@@ -536,7 +533,7 @@ cdef class SystemState:
         cdef CompositionSet compset
         cdef CompsetState csst
         cdef double[::1] x
-        cdef int idx, comp_idx, i, j, stable_idx
+        cdef int idx, comp_idx, i, j, stable_idx, fixed_idx, fixed_component_idx
         self.mole_fractions[:] = 0
         self.delta_ms[:, :] = 0
         self.system_amount = 0
@@ -554,6 +551,11 @@ cdef class SystemState:
                 self.system_amount += self.phase_amt[idx] * csst.masses[comp_idx, 0]
         for comp_idx in range(self.mole_fractions.shape[0]):
             self.mole_fractions[comp_idx] /= self.system_amount
+
+        self.mass_residual = 0.0
+        for fixed_component_idx in range(spec.prescribed_elemental_amounts.shape[0]):
+            component_idx = spec.prescribed_element_indices[fixed_component_idx]
+            self.mass_residual += abs(self.mole_fractions[component_idx] - spec.prescribed_elemental_amounts[fixed_component_idx])
 
         for stable_idx in range(self.free_stable_compset_indices.shape[0]):
             idx = self.free_stable_compset_indices[stable_idx]
