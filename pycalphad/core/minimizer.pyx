@@ -264,7 +264,7 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
     cdef int num_fixed_components = spec.prescribed_elemental_amounts.shape[0]
     cdef double mu_c_sum
 
-    state.recompute()
+    state.recompute(spec)
 
     for stable_idx in range(state.free_stable_compset_indices.shape[0]):
         idx = state.free_stable_compset_indices[stable_idx]
@@ -307,26 +307,15 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
     for fixed_idx in range(spec.fixed_stable_compset_indices.shape[0]):
         idx = spec.fixed_stable_compset_indices[fixed_idx]
         compset = state.compsets[idx]
-        # TODO: Use better dof storage
-        # Calculate key phase quantities starting here
-        x = state.dof[idx]
-        energy = np.zeros((1, 1))
-        masses = np.zeros((num_components, 1))
-        grad = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
-
-        compset.phase_record.formulaobj(energy[:, 0], x)
-        equilibrium_rhs[num_stable_phases + fixed_idx] = energy[0, 0]
+        csst = state.cs_states[idx]
+        equilibrium_rhs[num_stable_phases + fixed_idx] = csst.energy
         for fcp_idx in range(spec.free_chemical_potential_indices.shape[0]):
             comp_idx = spec.free_chemical_potential_indices[fcp_idx]
-            compset.phase_record.formulamole_obj(masses[comp_idx, :], x, comp_idx)
-            equilibrium_matrix[num_stable_phases + fixed_idx, fcp_idx] = masses[comp_idx, 0]
-        compset.phase_record.formulagrad(grad, x)
+            equilibrium_matrix[num_stable_phases + fixed_idx, fcp_idx] = csst.masses[comp_idx, 0]
         for free_idx in range(spec.free_statevar_indices.shape[0]):
             sv_idx = spec.free_statevar_indices[free_idx]
             equilibrium_matrix[num_stable_phases + fixed_idx,
-                               spec.free_chemical_potential_indices.shape[0] + num_stable_phases + free_idx] = -grad[sv_idx]
-        # TODO: Compute actual delta_m for fixed phase
-        state.delta_ms[idx, :] = 0
+                               spec.free_chemical_potential_indices.shape[0] + num_stable_phases + free_idx] = -csst.grad[sv_idx]
 
     # Add mass residual to fixed component row RHS, plus N=1 row
     state.mass_residual = 0.0
@@ -519,8 +508,6 @@ cdef class SystemState:
         self.largest_phase_amt_change[0] = 0
         self.system_amount = 0
         self.mole_fractions = np.zeros(spec.num_components)
-        # It doesn't change between iterations, but we need the value inside SystemState.recompute()
-        self.num_statevars = spec.num_statevars
 
         for idx in range(self.phase_amt.shape[0]):
             compset = self.compsets[idx]
@@ -537,17 +524,15 @@ cdef class SystemState:
                 self.largest_internal_dof_change, np.array(self.phase_amt), np.array(self.chemical_potentials),
                 np.array(self.chempot_diff), np.array(self.delta_ms), np.array(self.phase_compositions),
                 self.largest_statevar_change[0], self.largest_phase_amt_change[0],
-                np.array(self.free_stable_compset_indices), self.system_amount, np.array(self.mole_fractions),
-                self.num_statevars)
+                np.array(self.free_stable_compset_indices), self.system_amount, np.array(self.mole_fractions))
     def __setstate__(self, state):
         (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual, self.largest_internal_cons_max_residual,
          self.largest_internal_dof_change, self.phase_amt, self.chemical_potentials,
          self.chempot_diff, self.delta_ms, self.phase_compositions, self.largest_statevar_change[0],
-         self.largest_phase_amt_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions,
-         self.num_statevars) = state
+         self.largest_phase_amt_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
 
-    cdef void recompute(self):
-        cdef int num_components = self.chemical_potentials.shape[0]
+    cdef void recompute(self, SystemSpecification spec):
+        cdef int num_components = spec.num_components
         cdef CompositionSet compset
         cdef CompsetState csst
         cdef double[::1] x
@@ -593,7 +578,7 @@ cdef class SystemState:
             compset.phase_record.formulahess(csst.hess, x)
             compset.phase_record.formulagrad(csst.grad, x)
 
-            compute_phase_matrix(csst.phase_matrix, csst.hess, compset, self.num_statevars, self.chemical_potentials, x,
+            compute_phase_matrix(csst.phase_matrix, csst.hess, compset, spec.num_statevars, self.chemical_potentials, x,
                                  csst.fixed_phase_dof_indices)
 
             invert_matrix(&csst.phase_matrix[0,0], csst.phase_matrix.shape[0], &csst.full_e_matrix[0,0], &csst.ipiv[0])
@@ -606,27 +591,54 @@ cdef class SystemState:
             csst.moles_normalization_grad[:] = 0
             for i in range(num_phase_dof):
                 for j in range(num_phase_dof):
-                    csst.c_G[i] -= csst.full_e_matrix[i, j] * csst.grad[self.num_statevars+j]
+                    csst.c_G[i] -= csst.full_e_matrix[i, j] * csst.grad[spec.num_statevars+j]
             #print('c_G', np.array(c_G))
             for i in range(num_phase_dof):
                 for j in range(num_phase_dof):
-                    for statevar_idx in range(self.num_statevars):
-                        csst.c_statevars[i, statevar_idx] -= csst.full_e_matrix[i, j] * csst.hess[self.num_statevars + j, statevar_idx]
+                    for statevar_idx in range(spec.num_statevars):
+                        csst.c_statevars[i, statevar_idx] -= csst.full_e_matrix[i, j] * csst.hess[spec.num_statevars + j, statevar_idx]
             for comp_idx in range(num_components):
                 for i in range(num_phase_dof):
                     for j in range(num_phase_dof):
-                        csst.c_component[comp_idx, i] += csst.mass_jac[comp_idx, self.num_statevars + j] * csst.full_e_matrix[i, j]
+                        csst.c_component[comp_idx, i] += csst.mass_jac[comp_idx, spec.num_statevars + j] * csst.full_e_matrix[i, j]
             #print('c_component', np.array(c_component))
             for comp_idx in range(num_components):
                 for i in range(num_phase_dof):
                     mu_c_sum = 0
                     for j in range(self.chemical_potentials.shape[0]):
                         mu_c_sum += csst.c_component[j, i] * self.chemical_potentials[j]
-                    self.delta_ms[idx, comp_idx] += csst.mass_jac[comp_idx, self.num_statevars + i] * (mu_c_sum + csst.c_G[i])
+                    self.delta_ms[idx, comp_idx] += csst.mass_jac[comp_idx, spec.num_statevars + i] * (mu_c_sum + csst.c_G[i])
             for comp_idx in range(num_components):
                 csst.moles_normalization += csst.masses[comp_idx, 0]
-                for i in range(num_phase_dof+self.num_statevars):
+                for i in range(num_phase_dof+spec.num_statevars):
                     csst.moles_normalization_grad[i] += csst.mass_jac[comp_idx, i]
+
+        for fixed_idx in range(spec.fixed_stable_compset_indices.shape[0]):
+            idx = spec.fixed_stable_compset_indices[fixed_idx]
+            compset = self.compsets[idx]
+            csst = self.cs_states[idx]
+            # TODO: Use better dof storage
+            # Calculate key phase quantities starting here
+            x = self.dof[idx]
+            csst.energy = 0
+            csst.mass_jac[:,:] = 0
+            csst.phase_matrix[:,:] = 0
+            csst.full_e_matrix[:,:] = 0
+            for i in range(csst.full_e_matrix.shape[0]):
+                csst.full_e_matrix[i,i] = 1
+            csst.hess[:,:] = 0
+            csst.grad[:] = 0
+            # Mass should already have been computed above
+            compset.phase_record.formulaobj(<double[:1]>&csst.energy, x)
+            for comp_idx in range(num_components):
+                compset.phase_record.formulamole_grad(csst.mass_jac[comp_idx, :], x, comp_idx)
+            compset.phase_record.formulagrad(csst.grad, x)
+
+            csst.c_G[:] = 0
+            csst.c_statevars[:,:] = 0
+            csst.c_component[:,:] = 0
+            csst.moles_normalization = 0
+            csst.moles_normalization_grad[:] = 0
 
 
 cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
