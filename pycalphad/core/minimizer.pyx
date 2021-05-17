@@ -253,8 +253,7 @@ cdef void write_row_fixed_mole_amount(double[:] out_row, double* out_rhs, int co
 
 
 cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
-                                    SystemSpecification spec, SystemState state,
-                                    bint finalize_chempots) except +:
+                                    SystemSpecification spec, SystemState state) except +:
     cdef int stable_idx, idx, component_row_offset, component_idx, fixed_idx, free_idx
     cdef int fixed_component_idx, comp_idx, system_amount_index, sv_idx
     cdef CompositionSet compset
@@ -273,6 +272,7 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
     cdef double mu_c_sum
     cdef double[::1] mole_fractions = np.zeros(num_components)
     cdef np.ndarray[ndim=2,dtype=np.float64_t] all_delta_m = np.zeros((len(state.compsets), num_components))
+    cdef int[::1] fixed_phase_dof_indices = np.array([], dtype=np.int32)
 
     mass_residuals = np.zeros(num_components)
     # Compute normalized global quantities
@@ -299,15 +299,11 @@ cdef object fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1
         x = state.dof[idx]
         csst.energy = 0
         csst.mass_jac[:,:] = 0
-        if finalize_chempots:
-            fixed_phase_dof_indices = np.array(np.nonzero(np.array(x)[spec.num_statevars:] <= 1.1*MIN_SITE_FRACTION)[0], dtype=np.int32)
-        else:
-            fixed_phase_dof_indices = np.array([], dtype=np.int32)
         # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
         phase_matrix = np.zeros(
-            (compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + fixed_phase_dof_indices.shape[0],
-             compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + fixed_phase_dof_indices.shape[0]))
-        full_e_matrix = np.eye(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + fixed_phase_dof_indices.shape[0])
+            (compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
+             compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
+        full_e_matrix = np.eye(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
         csst.hess[:,:] = 0
         csst.grad[:] = 0
 
@@ -747,16 +743,10 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     if (num_stable_phases + num_fixed_phases + num_fixed_components + 1) != num_free_variables:
         raise ValueError('Conditions do not obey Gibbs Phase Rule')
 
-    # Internal degrees of freedom at MIN_SITE_FRACTION need to be fixed when computing chemical potentials.
-    # This is to ensure that the gradients accurately reflect the boundary condition.
-    # However, we do not want to fix dof during the optimization, so we only enable this when close to convergence.
-    finalize_chemical_potentials = (state.mass_residual < 1e-11)
-
     #print('finalize_chemical_potentials', finalize_chemical_potentials)
     equilibrium_matrix[:,:] = 0
     equilibrium_soln[:] = 0
-    mass_residuals, delta_ms = fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, spec, state,
-                                                       finalize_chemical_potentials)
+    mass_residuals, delta_ms = fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, spec, state)
     # In some cases we may have only one stoichiometric phase stable in the system.
     # This will cause the equilibrium matrix to become singular, and the chemical potentials will be nonsensical.
     # This case can be identified by the presence of a row of all zeros in a fixed-mole-fraction row.
