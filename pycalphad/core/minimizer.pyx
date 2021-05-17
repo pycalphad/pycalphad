@@ -262,7 +262,6 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
     cdef int num_stable_phases = state.free_stable_compset_indices.shape[0]
     cdef int num_fixed_phases = spec.fixed_stable_compset_indices.shape[0]
     cdef int num_fixed_components = spec.prescribed_elemental_amounts.shape[0]
-    cdef double mu_c_sum
 
     state.recompute(spec)
 
@@ -272,8 +271,24 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
         csst = state.cs_states[idx]
 
         write_row_stable_phase(equilibrium_matrix[stable_idx, :], &equilibrium_rhs[stable_idx], spec.free_chemical_potential_indices,
-                       state.free_stable_compset_indices, spec.free_statevar_indices, spec.fixed_chemical_potential_indices,
-                       state.chemical_potentials, csst.masses, csst.grad, csst.energy)
+                               state.free_stable_compset_indices, spec.free_statevar_indices, spec.fixed_chemical_potential_indices,
+                               state.chemical_potentials, csst.masses, csst.grad, csst.energy)
+
+    # Handle phases which are fixed to be stable at some amount
+    # Example shown in Eq. 60, Sundman et al 2015
+    for fixed_idx in range(spec.fixed_stable_compset_indices.shape[0]):
+        idx = spec.fixed_stable_compset_indices[fixed_idx]
+        compset = state.compsets[idx]
+        csst = state.cs_states[idx]
+        write_row_stable_phase(equilibrium_matrix[num_stable_phases + fixed_idx, :],
+                               &equilibrium_rhs[num_stable_phases + fixed_idx], spec.free_chemical_potential_indices,
+                               state.free_stable_compset_indices, spec.free_statevar_indices, spec.fixed_chemical_potential_indices,
+                               state.chemical_potentials, csst.masses, csst.grad, csst.energy)
+
+    for stable_idx in range(state.free_stable_compset_indices.shape[0]):
+        idx = state.free_stable_compset_indices[stable_idx]
+        compset = state.compsets[idx]
+        csst = state.cs_states[idx]
         # 2. Contribute to the row of all fixed components (fixed mole fraction)
         component_row_offset = num_stable_phases + num_fixed_phases
         for fixed_component_idx in range(num_fixed_components):
@@ -301,21 +316,6 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
                                         csst.c_statevars, csst.c_G, csst.masses,
                                         csst.moles_normalization, csst.moles_normalization_grad,
                                         state.phase_amt, idx)
-
-    # Handle phases which are fixed to be stable at some amount
-    # Example shown in Eq. 60, Sundman et al 2015
-    for fixed_idx in range(spec.fixed_stable_compset_indices.shape[0]):
-        idx = spec.fixed_stable_compset_indices[fixed_idx]
-        compset = state.compsets[idx]
-        csst = state.cs_states[idx]
-        equilibrium_rhs[num_stable_phases + fixed_idx] = csst.energy
-        for fcp_idx in range(spec.free_chemical_potential_indices.shape[0]):
-            comp_idx = spec.free_chemical_potential_indices[fcp_idx]
-            equilibrium_matrix[num_stable_phases + fixed_idx, fcp_idx] = csst.masses[comp_idx, 0]
-        for free_idx in range(spec.free_statevar_indices.shape[0]):
-            sv_idx = spec.free_statevar_indices[free_idx]
-            equilibrium_matrix[num_stable_phases + fixed_idx,
-                               spec.free_chemical_potential_indices.shape[0] + num_stable_phases + free_idx] = -csst.grad[sv_idx]
 
     # Add mass residual to fixed component row RHS, plus N=1 row
     component_row_offset = num_stable_phases + num_fixed_phases
