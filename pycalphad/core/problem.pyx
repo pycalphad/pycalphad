@@ -2,8 +2,6 @@
 from pycalphad.core.composition_set cimport CompositionSet
 cimport numpy as np
 import numpy as np
-from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION
-from pycalphad.core.constraints import get_multiphase_constraint_rhs
 
 
 cdef class Problem:
@@ -17,7 +15,6 @@ cdef class Problem:
         cdef int var_idx = 0
         cdef int phase_idx = 0
         cdef double indep_sum = sum([float(val) for i, val in conditions.items() if i.startswith('X_')])
-        cdef object multiphase_rhs = get_multiphase_constraint_rhs(conditions)
         cdef object dependent_comp
         if len(comp_sets) == 0:
             raise ValueError('Number of phases is zero')
@@ -33,8 +30,6 @@ cdef class Problem:
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
         self.fixed_chempot_indices = np.array([self.nonvacant_elements.index(key[3:]) for key in conditions.keys() if key.startswith('MU_')], dtype=np.int32)
         self.fixed_chempot_values = np.array([float(value) for key, value in conditions.items() if key.startswith('MU_')])
-        num_constraints = num_fixed_dof_cons + num_internal_cons + \
-                          len(get_multiphase_constraint_rhs(conditions)) + len(self.fixed_chempot_indices)
         self.num_phases = len(self.composition_sets)
         self.num_vars = sum(compset.phase_record.phase_dof for compset in comp_sets) + self.num_phases + len(state_variables)
         self.num_internal_constraints = num_internal_cons
@@ -46,4 +41,3 @@ cdef class Problem:
         for i, s in enumerate(fixed_statevars):
             k, v = s
             self.fixed_dof_indices[i] = all_dof.index(k)
-        self.num_constraints = num_constraints

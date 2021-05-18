@@ -10,7 +10,6 @@ import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
-from pycalphad.core.constraints import is_multiphase_constraint
 import numpy as np
 from collections import OrderedDict
 
@@ -382,22 +381,6 @@ class Model(object):
         for idx, sublattice in enumerate(self.constituents):
             constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
         return constraints
-
-    def get_multiphase_constraints(self, conds):
-        fixed_chempots = [cond for cond in conds.keys() if isinstance(cond, v.ChemicalPotential)]
-        multiphase_constraints = []
-        for statevar in sorted(conds.keys(), key=str):
-            if not is_multiphase_constraint(statevar):
-                continue
-            if isinstance(statevar, v.MoleFraction):
-                multiphase_constraints.append(Symbol('NP') * self.moles(statevar.species))
-            elif statevar == v.N:
-                multiphase_constraints.append(Symbol('NP') * (sum(self.moles(spec) for spec in self.nonvacant_elements)))
-            elif statevar in [v.T, v.P]:
-                return multiphase_constraints.append(S.Zero)
-            else:
-                raise NotImplementedError
-        return multiphase_constraints
 
     def build_phase(self, dbe):
         """

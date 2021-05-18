@@ -228,7 +228,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         mod = models[name]
         site_fracs = mod.site_fractions
         # build constraint functions
-        cfuncs = build_constraints(mod, state_variables + site_fracs, conds, parameters=param_symbols)
+        cfuncs = build_constraints(mod, state_variables + site_fracs, parameters=param_symbols)
         _constraints['internal_cons_func'][name] = cfuncs.internal_cons_func
         _constraints['internal_cons_jac'][name] = cfuncs.internal_cons_jac
         _constraints['internal_cons_hess'][name] = cfuncs.internal_cons_hess

@@ -1,6 +1,5 @@
 # distutils: language = c++
 cdef class Problem:
-    cdef public int num_constraints
     cdef public int num_fixed_dof_constraints
     cdef public int num_internal_constraints
     cdef public int[::1] fixed_dof_indices
