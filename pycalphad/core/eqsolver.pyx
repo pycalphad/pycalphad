@@ -241,14 +241,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
     iter_solver = solver if solver is not None else SundmanSolver(verbose=verbose)
-    for key, value in phase_records.items():
-        if not isinstance(phase_records[key], PhaseRecord):
-            phase_records[key] = PhaseRecord(comps, value.state_variables, value.variables,
-                                             value.parameters, value.obj, value.grad,
-                                             value.mass_obj, value.mass_grad,
-                                             value.internal_cons_func, value.internal_jac,
-                                             value.multiphase_cons, value.multiphase_jac,
-                                             value.num_internal_cons, value.num_multiphase_cons)
 
     pure_elements = set(v.Species(list(spec.constituents.keys())[0])
                                   for spec in comps

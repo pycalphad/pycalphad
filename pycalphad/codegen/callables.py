@@ -86,9 +86,6 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         'internal_cons_func': {},
         'internal_cons_jac': {},
         'internal_cons_hess': {},
-        'multiphase_cons_func': {},
-        'multiphase_cons_jac': {},
-        'multiphase_cons_hess': {}
     }
 
     state_variables = get_state_variables(models=models)
@@ -204,9 +201,6 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         'internal_cons_func': {},
         'internal_cons_jac': {},
         'internal_cons_hess': {},
-        'multiphase_cons_func': {},
-        'multiphase_cons_jac': {},
-        'multiphase_cons_hess': {}
     }
     phase_records = {}
     state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
@@ -216,8 +210,8 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         callables = build_callables(dbf, comps, phases, models,
                                     parameter_symbols=parameters.keys(), output=output,
                                     additional_statevars=state_variables,
-                                    build_gradients=build_gradients,
-                                    build_hessians=build_hessians)
+                                    build_gradients=False,
+                                    build_hessians=False)
     # XXX: Temporary; do not merge
     formulacallables = build_callables(dbf, comps, phases, models,
                                        parameter_symbols=parameters.keys(), output='G',
@@ -238,33 +232,21 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         _constraints['internal_cons_func'][name] = cfuncs.internal_cons_func
         _constraints['internal_cons_jac'][name] = cfuncs.internal_cons_jac
         _constraints['internal_cons_hess'][name] = cfuncs.internal_cons_hess
-        _constraints['multiphase_cons_func'][name] = cfuncs.multiphase_cons_func
-        _constraints['multiphase_cons_jac'][name] = cfuncs.multiphase_cons_jac
-        _constraints['multiphase_cons_hess'][name] = cfuncs.multiphase_cons_hess
         num_internal_cons = cfuncs.num_internal_cons
-        num_multiphase_cons = cfuncs.num_multiphase_cons
 
         phase_records[name.upper()] = PhaseRecord(comps, state_variables, site_fracs, param_values,
                                                   callables[output]['callables'][name],
-                                                  callables[output]['grad_callables'][name],
-                                                  callables[output]['hess_callables'][name],
                                                   formulacallables['G']['callables'][name],
                                                   formulacallables['G']['grad_callables'][name],
                                                   formulacallables['G']['hess_callables'][name],
                                                   callables[output]['massfuncs'][name],
-                                                  callables[output]['massgradfuncs'][name],
-                                                  callables[output]['masshessfuncs'][name],
-                                                  callables[output]['formulamolefuncs'][name],
-                                                  callables[output]['formulamolegradfuncs'][name],
-                                                  callables[output]['formulamolehessfuncs'][name],
+                                                  formulacallables['G']['formulamolefuncs'][name],
+                                                  formulacallables['G']['formulamolegradfuncs'][name],
+                                                  formulacallables['G']['formulamolehessfuncs'][name],
                                                   _constraints['internal_cons_func'][name],
                                                   _constraints['internal_cons_jac'][name],
                                                   _constraints['internal_cons_hess'][name],
-                                                  _constraints['multiphase_cons_func'][name],
-                                                  _constraints['multiphase_cons_jac'][name],
-                                                  _constraints['multiphase_cons_hess'][name],
-                                                  num_internal_cons,
-                                                  num_multiphase_cons)
+                                                  num_internal_cons)
 
         if verbose:
             print(name + ' ')
