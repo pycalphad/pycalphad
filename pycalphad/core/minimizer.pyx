@@ -536,7 +536,7 @@ cdef class SystemState:
         cdef CompositionSet compset
         cdef CompsetState csst
         cdef double[::1] x
-        cdef int idx, comp_idx, i, j, stable_idx, fixed_idx, fixed_component_idx
+        cdef int idx, comp_idx, i, j, stable_idx, fixed_idx, component_idx, fixed_component_idx
         self.mole_fractions[:] = 0
         self.delta_ms[:, :] = 0
         self.system_amount = 0
@@ -636,15 +636,11 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double largest_internal_cons_max_residual = 0
     cdef double largest_internal_dof_change = 0
     cdef double[::1] delta_statevars = np.zeros(spec.num_statevars)
-    cdef double[::1] current_elemental_amounts = np.zeros(spec.num_components)
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
-    cdef double[:,::1] phase_matrix  # Fortran ordering required by call into lapack, but this is symmetric
-    cdef double[::1] equilibrium_rhs, equilibrium_soln, phase_rhs, soln, old_chemical_potentials
+    cdef double[::1] equilibrium_rhs, equilibrium_soln, old_chemical_potentials
     cdef CompositionSet compset
     cdef CompsetState csst
-    cdef int[::1] ipiv = np.zeros(len(state.compsets) * max([compset.phase_record.phase_dof +
-                                                       compset.phase_record.num_internal_cons
-                                                       for compset in state.compsets]), dtype=np.int32)
+
     # FIRST STEP: Update phase internal degrees of freedom
     large_internal_cons = False
     for idx, compset in enumerate(state.compsets):
@@ -652,17 +648,16 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
             break
         # TODO: Use better dof storage
         x = state.dof[idx]
+        csst = state.cs_states[idx]
         # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
-        phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
-                                 compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
-        soln = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
+        csst.phase_matrix[:,:] = 0
+        csst.phase_rhs[:] = 0
         # RHS copied into soln, then overwritten by solve()
         internal_cons_max_residual = \
-            compute_phase_system(phase_matrix, soln, compset, delta_statevars, state.chemical_potentials, x)
+            compute_phase_system(csst.phase_matrix, csst.phase_rhs, compset, delta_statevars, state.chemical_potentials, x)
         # phase_matrix is symmetric by construction, so we can pass in a C-ordered array
-        solve(&phase_matrix[0,0], phase_matrix.shape[0], &soln[0], &ipiv[0])
+        solve(&csst.phase_matrix[0,0], csst.phase_matrix.shape[0], &csst.phase_rhs[0], &csst.ipiv[0])
 
-        delta_y = soln[:compset.phase_record.phase_dof]
         largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
         new_y = np.array(x)
         minimum_step_size = 1e-20 * step_size
@@ -670,7 +665,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         while step_size >= minimum_step_size:
             exceeded_bounds = False
             for i in range(spec.num_statevars, new_y.shape[0]):
-                new_y[i] = x[i] + step_size * delta_y[i-spec.num_statevars]
+                new_y[i] = x[i] + step_size * csst.phase_rhs[i-spec.num_statevars]
                 if new_y[i] > 1:
                     if (new_y[i] - 1) > 1e-11:
                         # Allow some tolerance in the name of progress
