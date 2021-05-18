@@ -635,14 +635,16 @@ cdef class SystemState:
 cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double largest_internal_cons_max_residual = 0
     cdef double largest_internal_dof_change = 0
+    cdef double internal_cons_max_residual, minimum_step_size
     cdef double[::1] delta_statevars = np.zeros(spec.num_statevars)
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
-    cdef double[::1] equilibrium_rhs, equilibrium_soln, old_chemical_potentials
+    cdef double[::1] equilibrium_rhs, equilibrium_soln, old_chemical_potentials, new_y, x
     cdef CompositionSet compset
     cdef CompsetState csst
+    cdef bint wolfe_passed, exceeded_bounds
+    cdef int i, comp_idx, cp_idx, idx, num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
 
     # FIRST STEP: Update phase internal degrees of freedom
-    large_internal_cons = False
     for idx, compset in enumerate(state.compsets):
         if state.iteration == 0:
             break
@@ -704,7 +706,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     if (num_stable_phases + num_fixed_phases + num_fixed_components + 1) != num_free_variables:
         raise ValueError('Conditions do not obey Gibbs Phase Rule')
 
-    #print('finalize_chemical_potentials', finalize_chemical_potentials)
     equilibrium_matrix[:,:] = 0
     equilibrium_soln[:] = 0
     fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, spec, state)
