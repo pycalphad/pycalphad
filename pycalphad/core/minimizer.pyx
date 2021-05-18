@@ -263,8 +263,6 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
     cdef int num_fixed_phases = spec.fixed_stable_compset_indices.shape[0]
     cdef int num_fixed_components = spec.prescribed_elemental_amounts.shape[0]
 
-    state.recompute(spec)
-
     for stable_idx in range(state.free_stable_compset_indices.shape[0]):
         idx = state.free_stable_compset_indices[stable_idx]
         compset = state.compsets[idx]
@@ -431,11 +429,13 @@ cdef class CompsetState:
     cdef double[:,::1] masses
     cdef double[:,::1] mass_jac
     cdef double[:,::1] phase_matrix
+    cdef double[::1] phase_rhs
     cdef double[:,::1] full_e_matrix
     cdef double[::1] c_G
     cdef double[:, ::1] c_statevars
     cdef double[:, ::1] c_component
     cdef double moles_normalization
+    cdef double[::1] internal_cons
     cdef double[::1] moles_normalization_grad
     cdef int[::1] fixed_phase_dof_indices
     cdef int[::1] ipiv
@@ -450,25 +450,27 @@ cdef class CompsetState:
                                   spec.num_statevars + compset.phase_record.phase_dof))
         self.phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
                                       compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
+        self.phase_rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
         self.full_e_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
                                        compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
         self.c_G = np.zeros(compset.phase_record.phase_dof)
         self.c_statevars = np.zeros((compset.phase_record.phase_dof, spec.num_statevars))
         self.c_component = np.zeros((spec.num_components, compset.phase_record.phase_dof))
         self.moles_normalization = 0.0
+        self.internal_cons = np.zeros(compset.phase_record.num_internal_cons)
         self.moles_normalization_grad = np.zeros(spec.num_statevars+compset.phase_record.phase_dof)
         self.fixed_phase_dof_indices = np.array([], dtype=np.int32)
         self.ipiv = np.empty(10*spec.num_components*compset.phase_record.phase_dof, dtype=np.int32)
     def __getstate__(self):
         return (np.array(self.x), self.energy, np.array(self.grad), np.array(self.hess),
-                np.array(self.phase_matrix), np.array(self.full_e_matrix),
+                np.array(self.phase_matrix), np.array(self.phase_rhs), np.array(self.full_e_matrix),
                 np.array(self.masses), np.array(self.mass_jac), np.array(self.c_G), np.array(self.c_statevars),
-                np.array(self.c_component), self.moles_normalization, np.array(self.moles_normalization_grad),
+                np.array(self.c_component), self.moles_normalization, np.array(self.internal_cons), np.array(self.moles_normalization_grad),
                 np.array(self.fixed_phase_dof_indices, dtype=np.int32), np.array(self.ipiv, dtype=np.int32))
     def __setstate__(self, state):
-        (self.x, self.energy, self.grad, self.hess, self.phase_matrix, self.full_e_matrix,
+        (self.x, self.energy, self.grad, self.hess, self.phase_matrix, self.phase_rhs, self.full_e_matrix,
          self.masses, self.mass_jac, self.c_G, self.c_statevars,
-         self.c_component, self.moles_normalization, self.moles_normalization_grad, self.fixed_phase_dof_indices,
+         self.c_component, self.moles_normalization, self.internal_cons, self.moles_normalization_grad, self.fixed_phase_dof_indices,
          self.ipiv) = state
 
 
@@ -478,7 +480,7 @@ cdef class SystemState:
     cdef object dof
     cdef int iteration, num_statevars
     cdef double mass_residual, largest_internal_cons_max_residual, largest_internal_dof_change
-    cdef double[::1] phase_amt, chemical_potentials, chempot_diff
+    cdef double[::1] phase_amt, chemical_potentials, chempot_diff, delta_statevars
     cdef double[:, ::1] phase_compositions, delta_ms
     cdef double[1] largest_statevar_change, largest_phase_amt_change
     cdef int[::1] free_stable_compset_indices
@@ -499,6 +501,7 @@ cdef class SystemState:
         self.chempot_diff = np.zeros(spec.num_components)
         self.chempot_diff[:] = np.inf
         self.delta_ms = np.zeros((len(compsets), spec.num_components))
+        self.delta_statevars = np.zeros(spec.num_statevars)
         self.phase_compositions = np.zeros((len(compsets), spec.num_components))
         self.free_stable_compset_indices = np.array(np.arange(len(compsets)), dtype=np.int32)
         self.largest_statevar_change[0] = 0
@@ -539,16 +542,16 @@ cdef class SystemState:
         self.system_amount = 0
         # Compute normalized global quantities
         for idx in range(len(self.compsets)):
-            if self.phase_amt[idx] <= 0:
-                continue
             x = self.dof[idx]
             compset = self.compsets[idx]
             csst = self.cs_states[idx]
             csst.masses[:,:] = 0
             for comp_idx in range(num_components):
                 compset.phase_record.formulamole_obj(csst.masses[comp_idx, :], x, comp_idx)
-                self.mole_fractions[comp_idx] += self.phase_amt[idx] * csst.masses[comp_idx, 0]
-                self.system_amount += self.phase_amt[idx] * csst.masses[comp_idx, 0]
+                if self.phase_amt[idx] > 0:
+                    self.mole_fractions[comp_idx] += self.phase_amt[idx] * csst.masses[comp_idx, 0]
+                    self.system_amount += self.phase_amt[idx] * csst.masses[comp_idx, 0]
+                self.phase_compositions[idx, comp_idx] = csst.masses[comp_idx, 0]
         for comp_idx in range(self.mole_fractions.shape[0]):
             self.mole_fractions[comp_idx] /= self.system_amount
 
@@ -557,8 +560,7 @@ cdef class SystemState:
             component_idx = spec.prescribed_element_indices[fixed_component_idx]
             self.mass_residual += abs(self.mole_fractions[component_idx] - spec.prescribed_elemental_amounts[fixed_component_idx])
 
-        for stable_idx in range(self.free_stable_compset_indices.shape[0]):
-            idx = self.free_stable_compset_indices[stable_idx]
+        for idx in range(len(self.compsets)):
             compset = self.compsets[idx]
             csst = self.cs_states[idx]
             # TODO: Use better dof storage
@@ -568,6 +570,8 @@ cdef class SystemState:
             csst.mass_jac[:,:] = 0
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
             csst.phase_matrix[:,:] = 0
+            csst.phase_rhs[:] = 0
+            csst.internal_cons[:] = 0
             csst.full_e_matrix[:,:] = 0
             for i in range(csst.full_e_matrix.shape[0]):
                 csst.full_e_matrix[i,i] = 1
@@ -579,9 +583,21 @@ cdef class SystemState:
                 compset.phase_record.formulamole_grad(csst.mass_jac[comp_idx, :], x, comp_idx)
             compset.phase_record.formulahess(csst.hess, x)
             compset.phase_record.formulagrad(csst.grad, x)
+            compset.phase_record.internal_cons_func(csst.internal_cons, x)
 
             compute_phase_matrix(csst.phase_matrix, csst.hess, compset, spec.num_statevars, self.chemical_potentials, x,
                                  csst.fixed_phase_dof_indices)
+
+            # Compute right-hand side of Eq. 41, Sundman 2015
+            for i in range(compset.phase_record.phase_dof):
+                csst.phase_rhs[i] = -csst.grad[spec.num_statevars+i]
+                for sv_idx in range(spec.num_statevars):
+                    csst.phase_rhs[i] -= csst.hess[spec.num_statevars + i, sv_idx] * self.delta_statevars[sv_idx]
+                for comp_idx in range(num_components):
+                    csst.phase_rhs[i] += self.chemical_potentials[comp_idx] * csst.mass_jac[comp_idx, spec.num_statevars + i]
+
+            for cons_idx in range(compset.phase_record.num_internal_cons):
+                csst.phase_rhs[compset.phase_record.phase_dof + cons_idx] = -csst.internal_cons[cons_idx]
 
             invert_matrix(&csst.phase_matrix[0,0], csst.phase_matrix.shape[0], &csst.full_e_matrix[0,0], &csst.ipiv[0])
 
@@ -615,33 +631,6 @@ cdef class SystemState:
                 for i in range(num_phase_dof+spec.num_statevars):
                     csst.moles_normalization_grad[i] += csst.mass_jac[comp_idx, i]
 
-        for fixed_idx in range(spec.fixed_stable_compset_indices.shape[0]):
-            idx = spec.fixed_stable_compset_indices[fixed_idx]
-            compset = self.compsets[idx]
-            csst = self.cs_states[idx]
-            # TODO: Use better dof storage
-            # Calculate key phase quantities starting here
-            x = self.dof[idx]
-            csst.energy = 0
-            csst.mass_jac[:,:] = 0
-            csst.phase_matrix[:,:] = 0
-            csst.full_e_matrix[:,:] = 0
-            for i in range(csst.full_e_matrix.shape[0]):
-                csst.full_e_matrix[i,i] = 1
-            csst.hess[:,:] = 0
-            csst.grad[:] = 0
-            # Mass should already have been computed above
-            compset.phase_record.formulaobj(<double[:1]>&csst.energy, x)
-            for comp_idx in range(num_components):
-                compset.phase_record.formulamole_grad(csst.mass_jac[comp_idx, :], x, comp_idx)
-            compset.phase_record.formulagrad(csst.grad, x)
-
-            csst.c_G[:] = 0
-            csst.c_statevars[:,:] = 0
-            csst.c_component[:,:] = 0
-            csst.moles_normalization = 0
-            csst.moles_normalization_grad[:] = 0
-
 
 cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double largest_internal_cons_max_residual = 0
@@ -654,6 +643,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double[:,::1] phase_matrix  # Fortran ordering required by call into lapack, but this is symmetric
     cdef double[::1] equilibrium_rhs, equilibrium_soln, phase_rhs, soln, internal_cons_tmp, old_chemical_potentials
     cdef CompositionSet compset
+    cdef CompsetState csst
     cdef int[::1] ipiv = np.zeros(len(state.compsets) * max([compset.phase_record.phase_dof +
                                                        compset.phase_record.num_internal_cons
                                                        for compset in state.compsets]), dtype=np.int32)
@@ -725,16 +715,12 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
                         # Allow some tolerance in the name of progress
                         exceeded_bounds = True
                     new_y[i] = 1
-                    if delta_y[i-spec.num_statevars] > 0:
-                        current_phase_gradient[i-spec.num_statevars] = 0
                 elif new_y[i] < MIN_SITE_FRACTION:
                     if (MIN_SITE_FRACTION - new_y[i]) > 1e-11:
                         # Allow some tolerance in the name of progress
                         exceeded_bounds = True
                     # Reduce by two orders of magnitude, or MIN_SITE_FRACTION, whichever is larger
                     new_y[i] = max(x[i]/100, MIN_SITE_FRACTION)
-                    if delta_y[i-spec.num_statevars] < 0:
-                        current_phase_gradient[i-spec.num_statevars] = 0
             if exceeded_bounds:
                 step_size *= 0.5
                 continue
@@ -748,20 +734,17 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
 
     state.largest_internal_cons_max_residual = largest_internal_cons_max_residual
     state.largest_internal_dof_change = largest_internal_dof_change
+    state.recompute(spec)
 
     # SECOND STEP: Update potentials and phase amounts, according to conditions
     current_elemental_amounts[:] = 0
 
     for idx in range(state.phase_amt.shape[0]):
         compset = state.compsets[idx]
-        masses_tmp = np.zeros((spec.num_components, 1))
-        x = state.dof[idx]
+        csst = state.cs_states[idx]
         for comp_idx in range(spec.num_components):
-            compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
-            state.phase_compositions[idx, comp_idx] = masses_tmp[comp_idx, 0]
             if state.phase_amt[idx] > 0:
-                current_elemental_amounts[comp_idx] += state.phase_amt[idx] * masses_tmp[comp_idx, 0]
-            masses_tmp[:,:] = 0
+                current_elemental_amounts[comp_idx] += state.phase_amt[idx] * csst.masses[comp_idx, 0]
 
     num_stable_phases = state.free_stable_compset_indices.shape[0]
     num_fixed_phases = spec.fixed_stable_compset_indices.shape[0]
