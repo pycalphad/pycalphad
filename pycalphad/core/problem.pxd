@@ -12,8 +12,3 @@ cdef class Problem:
     cdef public object nonvacant_elements
     cdef public int num_phases
     cdef public int num_vars
-    cdef public double[::1] xl
-    cdef public double[::1] xu
-    cdef public double[::1] x0
-    cdef public double[::1] cl
-    cdef public double[::1] cu

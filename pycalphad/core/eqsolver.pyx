@@ -162,7 +162,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 return False
         compset = CompositionSet(phase_records[df_phase_name])
         compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1e-6,
-                       state_variables, False)
+                       state_variables)
         composition_sets.append(compset)
         if verbose:
             print('Adding ' + repr(compset) + ' Driving force: ' + str(largest_df))
@@ -187,7 +187,7 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
         if phase_amt == 0.0:
             compsets_to_remove.append(int(phase_idx))
         compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                       phase_amt, x[:len(compset.phase_record.state_variables)], True)
+                       phase_amt, x[:len(compset.phase_record.state_variables)])
         var_offset += compset.phase_record.phase_dof
         phase_idx += 1
     # Watch removal order here, as the indices of composition_sets are changing!
@@ -310,7 +310,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
             phase_amt = max(phase_amt, MIN_PHASE_FRACTION)
             compset = CompositionSet(phase_record)
-            compset.update(sfx, phase_amt, state_variable_values, False)
+            compset.update(sfx, phase_amt, state_variable_values)
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
@@ -331,7 +331,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 phase_amt = float(cur_conds[cond])
                 print('phase_amt', phase_amt)
                 compset = CompositionSet(phase_record)
-                compset.update(sfx, phase_amt, state_variable_values, False)
+                compset.update(sfx, phase_amt, state_variable_values)
                 compset.fixed = True
                 composition_sets.append(compset)
         #print('Composition Sets', composition_sets)
