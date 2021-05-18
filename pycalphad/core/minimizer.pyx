@@ -709,16 +709,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     equilibrium_matrix[:,:] = 0
     equilibrium_soln[:] = 0
     fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, spec, state)
-    # In some cases we may have only one stoichiometric phase stable in the system.
-    # This will cause the equilibrium matrix to become singular, and the chemical potentials will be nonsensical.
-    # This case can be identified by the presence of a row of all zeros in a fixed-mole-fraction row.
-    # For this case, we freeze some of the chemical potentials in place.
-    for i in range(num_fixed_components):
-        if np.all(np.array(equilibrium_matrix[num_stable_phases + num_fixed_phases + i, :]) == 0):
-            equilibrium_matrix[num_stable_phases + num_fixed_phases + i, i] = 1
-            equilibrium_soln[i] = state.chemical_potentials[spec.prescribed_element_indices[i]]
-    #print('equilibrium_matrix', np.array(equilibrium_matrix))
-    #print('equilibrium_rhs', np.array(equilibrium_soln))
+
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
           &equilibrium_soln[0], -1)
     old_chemical_potentials = np.array(state.chemical_potentials)
