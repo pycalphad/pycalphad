@@ -4,7 +4,7 @@ import numpy as np
 cimport numpy as np
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from copy import deepcopy
+from copy import deepcopy, copy
 cimport scipy.linalg.cython_lapack as cython_lapack
 from libc.stdlib cimport malloc, free
 
@@ -836,7 +836,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
             #print('Mass residual and chemical potentials too big; resetting chemical potentials')
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
-        old_state = deepcopy(state)
+        old_state = copy(state)
         take_step(spec, state, step_size)
         #print('old_state.phase_amt', np.array(old_state.phase_amt))
         #print('state.phase_amt', np.array(state.phase_amt))
