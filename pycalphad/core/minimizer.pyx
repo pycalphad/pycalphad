@@ -388,9 +388,6 @@ cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[:
     for i in range(delta_statevars.shape[0]):
         psc = abs(delta_statevars[i] / dof[0][i])
         largest_statevar_change[0] = max(largest_statevar_change[0], psc)
-    for idx in range(len(dof)):
-        for i in range(delta_statevars.shape[0]):
-            dof[idx][i] += delta_statevars[i]
 
 
 def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_indices, metastable_phase_iterations,
