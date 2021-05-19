@@ -314,6 +314,39 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
                                         csst.moles_normalization, csst.moles_normalization_grad,
                                         state.phase_amt, idx)
 
+    for fixed_idx in range(spec.fixed_stable_compset_indices.shape[0]):
+        idx = spec.fixed_stable_compset_indices[fixed_idx]
+        compset = state.compsets[idx]
+        csst = state.cs_states[idx]
+        # 2. Contribute to the row of all fixed components (fixed mole fraction)
+        component_row_offset = num_stable_phases + num_fixed_phases
+        for fixed_component_idx in range(num_fixed_components):
+            component_idx = spec.prescribed_element_indices[fixed_component_idx]
+            write_row_fixed_mole_fraction(equilibrium_matrix[component_row_offset + fixed_component_idx, :],
+                                          &equilibrium_rhs[component_row_offset + fixed_component_idx],
+                                          component_idx, spec.free_chemical_potential_indices,
+                                          state.free_stable_compset_indices,
+                                          spec.free_statevar_indices, spec.fixed_chemical_potential_indices,
+                                          state.chemical_potentials,
+                                          state.mole_fractions, state.system_amount, csst.mass_jac,
+                                          csst.c_component, csst.c_statevars,
+                                          csst.c_G, csst.masses, csst.moles_normalization,
+                                          csst.moles_normalization_grad, state.phase_amt, idx)
+
+        system_amount_index = component_row_offset + num_fixed_components
+        # 2X. Also handle the N=1 row
+        for component_idx in range(num_components):
+            write_row_fixed_mole_amount(equilibrium_matrix[system_amount_index, :],
+                                        &equilibrium_rhs[system_amount_index], component_idx,
+                                        spec.free_chemical_potential_indices, state.free_stable_compset_indices,
+                                        spec.free_statevar_indices, spec.fixed_chemical_potential_indices,
+                                        state.chemical_potentials, state.mole_fractions, state.system_amount,
+                                        csst.mass_jac, csst.c_component,
+                                        csst.c_statevars, csst.c_G, csst.masses,
+                                        csst.moles_normalization, csst.moles_normalization_grad,
+                                        state.phase_amt, idx)
+
+
     # Add mass residual to fixed component row RHS, plus N=1 row
     component_row_offset = num_stable_phases + num_fixed_phases
     system_amount_index = component_row_offset + num_fixed_components
