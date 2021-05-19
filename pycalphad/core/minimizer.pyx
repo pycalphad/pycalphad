@@ -809,6 +809,8 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
         compsets_to_remove = set()
         for idx in range(len(state.compsets)):
             compset = state.compsets[idx]
+            if compset.fixed:
+                continue
             if idx in compsets_to_remove:
                 continue
             if state.phase_amt[idx] < 1e-10:

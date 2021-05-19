@@ -184,7 +184,7 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
     for compset in composition_sets:
         phase_amt = x[prob.num_vars - prob.num_phases + phase_idx]
         # Mark unstable phases for removal
-        if phase_amt == 0.0:
+        if phase_amt == 0.0 and not compset.fixed:
             compsets_to_remove.append(int(phase_idx))
         compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
                        phase_amt, x[:len(compset.phase_record.state_variables)])
