@@ -29,16 +29,6 @@ cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
             x[i] = -1e19
 
 @cython.boundscheck(False)
-cdef void solve(double* A, int N, double* x, int* ipiv) nogil:
-    cdef int i
-    cdef int info = 0
-    cdef int NRHS = 1
-    cython_lapack.dgesv(&N, &NRHS, A, &N, ipiv, x, &N, &info)
-    if info != 0:
-        for i in range(N):
-            x[i] = -1e19
-
-@cython.boundscheck(False)
 cdef void invert_matrix(double *A, int N, double *A_inv_out, int* ipiv) nogil:
     "A_inv_out should be the identity matrix; it will be overwritten."
     cdef int info = 0
@@ -87,44 +77,6 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess, C
         phase_matrix[compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + cons_idx, fixed_dof_idx] = 1
         phase_matrix[fixed_dof_idx, compset.phase_record.phase_dof + compset.phase_record.num_internal_cons] = 1
 
-
-cdef double compute_phase_system(double[:,::1] phase_matrix, double[::1] phase_rhs, CompositionSet compset,
-                                 double[::1] delta_statevars, double[::1] chemical_potentials, double[::1] phase_dof):
-    "Compute the system of equations in Eq. 41, Sundman 2015."
-    cdef int i, cons_idx, comp_idx, sv_idx
-    cdef int num_statevars = delta_statevars.shape[0]
-    cdef int num_components = chemical_potentials.shape[0]
-    cdef int num_internal_cons = compset.phase_record.num_internal_cons
-    cdef double[::1] cons_tmp = np.zeros(num_internal_cons)
-    cdef double[::1] grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
-    cdef double[:, ::1] mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
-    cdef double[:, ::1] hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
-                                             num_statevars + compset.phase_record.phase_dof))
-    cdef double max_cons = 0
-
-    compset.phase_record.internal_cons_func(cons_tmp, phase_dof)
-    compset.phase_record.formulahess(hess_tmp, phase_dof)
-    compset.phase_record.formulagrad(grad_tmp, phase_dof)
-
-    for comp_idx in range(num_components):
-        compset.phase_record.formulamole_grad(mass_jac_tmp[comp_idx, :], phase_dof, comp_idx)
-
-    compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, chemical_potentials, phase_dof,
-                         np.array([], dtype=np.int32))
-
-    # Compute right-hand side of Eq. 41, Sundman 2015
-    for i in range(compset.phase_record.phase_dof):
-        phase_rhs[i] = -grad_tmp[num_statevars+i]
-        for sv_idx in range(num_statevars):
-            phase_rhs[i] -= hess_tmp[num_statevars + i, sv_idx] * delta_statevars[sv_idx]
-        for comp_idx in range(num_components):
-            phase_rhs[i] += chemical_potentials[comp_idx] * mass_jac_tmp[comp_idx, num_statevars + i]
-
-    for cons_idx in range(num_internal_cons):
-        phase_rhs[compset.phase_record.phase_dof + cons_idx] = -cons_tmp[cons_idx]
-        if abs(cons_tmp[cons_idx]) > max_cons:
-            max_cons = abs(cons_tmp[cons_idx])
-    return max_cons
 
 cdef void write_row_stable_phase(double[:] out_row, double* out_rhs, int[::1] free_chemical_potential_indices,
                                  int[::1] free_stable_compset_indices, int[::1] free_statevar_indices,
