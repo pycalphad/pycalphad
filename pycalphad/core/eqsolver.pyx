@@ -169,6 +169,13 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
+# composition_sets: List[CompositionSet]
+# comps: List[v.Species]
+# cur_conds: OrderedDict[str, float]
+# iter_solver: SolverBase instance
+cpdef pointsolve(composition_sets, comps, cur_conds, iter_solver):
+    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
+    return _solve_and_update_if_converged(composition_sets, comps, cur_conds, Problem, iter_solver)
 
 cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
