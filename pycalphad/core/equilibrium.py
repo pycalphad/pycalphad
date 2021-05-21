@@ -242,10 +242,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts = calc_opts.copy()
     statevar_strings = [str(x) for x in state_variables]
     grid_opts.update({key: value for key, value in str_conds.items() if key in statevar_strings})
-    free_statevars = sorted({str(x) for x in get_state_variables(models=models)} - set(str_conds.keys()))
-    # XXX: Do not merge this hack which assumes only temperature can be a free state variable
-    for f_sv in free_statevars:
-        grid_opts[f_sv] = 300  # K
+
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 50
     grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
