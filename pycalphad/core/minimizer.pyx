@@ -600,7 +600,6 @@ cdef class SystemState:
                 for i in range(num_phase_dof):
                     for j in range(num_phase_dof):
                         csst.c_component[comp_idx, i] += csst.mass_jac[comp_idx, spec.num_statevars + j] * csst.full_e_matrix[i, j]
-            #print('c_component', np.array(c_component))
             for comp_idx in range(num_components):
                 for i in range(num_phase_dof):
                     mu_c_sum = 0
@@ -662,7 +661,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     for cp_idx in range(spec.fixed_chemical_potential_indices.shape[0]):
         comp_idx = spec.fixed_chemical_potential_indices[cp_idx]
         state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
-    #print('delta_phase_amt', np.array(new_phase_amt) - np.array(phase_amt))
     state.chempot_diff = np.array(state.chemical_potentials) - old_chemical_potentials
 
     # Update phase internal degrees of freedom
@@ -718,9 +716,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         x = state.dof[idx]
         for sv_idx in range(delta_statevars.shape[0]):
             x[sv_idx] += delta_statevars[sv_idx]
-        # XXX: Do not merge this temporary hack for the temperature
         # We need real state variable bounds support
-        #x[2] = max(300, x[2])
 
 
 cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
@@ -755,16 +751,12 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef SystemState state = SystemState(spec, compsets)
     cdef SystemState old_state
 
-    #print('prescribed_element_indices', np.array(prescribed_element_indices))
-    #print('prescribed_elemental_amounts', np.array(prescribed_elemental_amounts))
-
     state.mass_residual = 1e10
     phase_change_counter = 5
     step_size = 1./10
     for iteration in range(1000):
         state.iteration = iteration
         if (state.mass_residual > 10) and (np.max(np.abs(state.chemical_potentials)) > 1.0e10):
-            #print('Mass residual and chemical potentials too big; resetting chemical potentials')
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
         old_state = copy(state)
