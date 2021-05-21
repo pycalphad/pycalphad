@@ -552,7 +552,7 @@ def test_eq_alni_low_temp():
     comps = ['AL', 'NI', 'VA']
     phases = sorted(dbf.phases.keys())
     eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 300, v.N: 1, v.X('AL'): 0.4})
-    # These values have NOT been verified in third-party software yet
+    # Verified in TC: https://github.com/pycalphad/pycalphad/pull/329#discussion_r637241358
     assert_allclose(eq.GM.values, -63736.3048)
     assert_allclose(eq.MU.values.flatten(), [-116098.937755,  -28827.882809])
     assert set(np.squeeze(eq.Phase.values)) == {'BCC_B2', 'AL3NI5', ''}
