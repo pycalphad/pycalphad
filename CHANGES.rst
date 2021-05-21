@@ -1,6 +1,29 @@
 What's New
 ==========
 
+0.8.5 (2021-05-20)
+------------------
+
+* MAINT: Introduce a warning when partitioned phase models incorrectly use ``_MIX`` properties ( :issue:`328` )
+* FIX: Generalize assumptions for the species that can be in substitutional and interstitial sublattices of partitioned phase models ( :issue:`311` )
+* FIX: Improve strictness when parsing TDB FUNCTION and PARAMETER lines ( :issue:`308` )
+* FIX: Fix Triangular axes projections to allow padding for text labels ( :issue:`295` )
+* ENH: Phase diagram plotting: enable tie-line/triangle and legend customization ( :issue:`292` )
+* FIX: Fix a bug where ``Model._array_validity`` could include species that are not in the phase constituents ( :issue:`258` )
+* FIX: Fix but where ``eqplot`` could attempt to plot tie-triangles for T-X diagrams ( :issue:`288` )
+
+* MAINT: Dependency and build system changes:
+  * Support Python 3.9 ( :issue:`298` )
+  * Bump cyipopt to support new package name and v1.0 API ( :issue:`289` )
+  * Bump SymPy pin to v1.8 ( :issue:`289` )
+  * Bump SymEngine pin to v0.7.0 ( :issue:`316` )
+  * Bump SymEngine.py pin to v0.7.2 ( :issue:`289` )
+  * Switch to matplotlib-base; bump to v3.3 ( :issue:`327` )
+  * Fix NumPy deprecation warnings introduced in v1.20 ( :issue:`312` )
+  * Use `setup_requires` for build Python build dependences ( :issue:`325` )
+  * The pycalphad conda channel is no longer required for installation ( :issue:`297` )
+
+
 0.8.4 (2020-10-28)
 ------------------
 
