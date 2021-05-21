@@ -600,7 +600,6 @@ cdef class SystemState:
                 for i in range(num_phase_dof):
                     for j in range(num_phase_dof):
                         csst.c_component[comp_idx, i] += csst.mass_jac[comp_idx, spec.num_statevars + j] * csst.full_e_matrix[i, j]
-            #print('c_component', np.array(c_component))
             for comp_idx in range(num_components):
                 for i in range(num_phase_dof):
                     mu_c_sum = 0
