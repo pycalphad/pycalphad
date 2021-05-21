@@ -100,7 +100,6 @@ def starting_point(conditions, state_variables, phase_records, grid):
     if global_min_enabled:
         result = lower_convex_hull(grid, state_variables, result)
     else:
-        # TODO: Needs support for when the overall composition is not fully specified
-        result = lower_convex_hull(grid, state_variables, result)
+        raise NotImplementedError('Conditions not yet supported')
 
     return result
