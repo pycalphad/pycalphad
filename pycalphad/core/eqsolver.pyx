@@ -220,26 +220,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
-        # Add fixed phases
-        for cond in conds_keys:
-            if cond.startswith('NP_'):
-                fixed_phase_name = cond[3:]
-                phase_record = phase_records[fixed_phase_name]
-                # Need to choose a starting point here
-                fixed_phase_indices = np.nonzero(grid.Phase == fixed_phase_name)
-                print('fixed_phase_indices', fixed_phase_indices)
-                max_df = np.argmin((grid.GM - np.dot(grid.X, chemical_potentials))[fixed_phase_indices])
-                print(max_df)
-                phase_idx = fixed_phase_indices[-1][max_df]
-                print('phase_idx', phase_idx)
-                sfx = np.squeeze(grid.Y[..., phase_idx, :phase_record.phase_dof])
-                print('sfx', sfx)
-                phase_amt = float(cur_conds[cond])
-                print('phase_amt', phase_amt)
-                compset = CompositionSet(phase_record)
-                compset.update(sfx, phase_amt, state_variable_values)
-                compset.fixed = True
-                composition_sets.append(compset)
         #print('Composition Sets', composition_sets)
         phase_amt_sum = 0.0
         for compset in composition_sets:
