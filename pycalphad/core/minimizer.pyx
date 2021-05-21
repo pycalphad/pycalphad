@@ -162,10 +162,8 @@ cdef void write_row_fixed_mole_amount(double[:] out_row, double* out_rhs, int co
                                       int[::1] free_chemical_potential_indices, int[::1] free_stable_compset_indices,
                                       int[::1] free_statevar_indices, int[::1] fixed_chemical_potential_indices,
                                       double[::1] chemical_potentials,
-                                      double [::1] system_mole_fractions, double current_system_amount,
                                       double[:, ::1] mass_jac, double[:, ::1] c_component,
                                       double[:, ::1] c_statevars, double[::1] c_G, double[:, ::1] masses,
-                                      double moles_normalization, double[::1] moles_normalization_grad,
                                       double[::1] phase_amt, int idx):
     cdef int free_variable_column_offset = 0
     cdef int num_statevars = c_statevars.shape[1]
@@ -259,10 +257,8 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
                                         &equilibrium_rhs[system_amount_index], component_idx,
                                         spec.free_chemical_potential_indices, state.free_stable_compset_indices,
                                         spec.free_statevar_indices, spec.fixed_chemical_potential_indices,
-                                        state.chemical_potentials, state.mole_fractions, state.system_amount,
-                                        csst.mass_jac, csst.c_component,
+                                        state.chemical_potentials, csst.mass_jac, csst.c_component,
                                         csst.c_statevars, csst.c_G, csst.masses,
-                                        csst.moles_normalization, csst.moles_normalization_grad,
                                         state.phase_amt, idx)
 
     for fixed_idx in range(spec.fixed_stable_compset_indices.shape[0]):
@@ -291,10 +287,8 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
                                         &equilibrium_rhs[system_amount_index], component_idx,
                                         spec.free_chemical_potential_indices, state.free_stable_compset_indices,
                                         spec.free_statevar_indices, spec.fixed_chemical_potential_indices,
-                                        state.chemical_potentials, state.mole_fractions, state.system_amount,
-                                        csst.mass_jac, csst.c_component,
+                                        state.chemical_potentials, csst.mass_jac, csst.c_component,
                                         csst.c_statevars, csst.c_G, csst.masses,
-                                        csst.moles_normalization, csst.moles_normalization_grad,
                                         state.phase_amt, idx)
 
 
@@ -341,8 +335,7 @@ cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[:
 
 
 def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_indices, metastable_phase_iterations,
-                                        times_compset_removed, driving_forces,
-                                        largest_internal_dof_change, largest_phase_amt_change, largest_statevar_change, can_add_phases):
+                                        times_compset_removed, driving_forces, can_add_phases):
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
     if can_add_phases:
         newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - \
@@ -854,9 +847,7 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
                 driving_forces[idx] =  np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0]) - phase_energies_per_mole_atoms[idx, 0]
             converged, new_free_stable_compset_indices = \
                 check_convergence_and_change_phases(state.phase_amt, state.free_stable_compset_indices, metastable_phase_iterations,
-                                                    times_compset_removed, driving_forces,
-                                                    state.largest_internal_dof_change, state.largest_phase_amt_change,
-                                                    state.largest_statevar_change, iteration > 3)
+                                                    times_compset_removed, driving_forces, iteration > 3)
             # Force some amount of newly stable phases
             for idx in new_free_stable_compset_indices:
                 if state.phase_amt[idx] < 1e-10:
