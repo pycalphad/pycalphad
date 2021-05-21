@@ -14,92 +14,6 @@ from pycalphad.core.constants import *
 import pycalphad.variables as v
 
 
-cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets,
-                                   double comp_diff_tol, int allowed_zero_seen, bint verbose):
-    """
-    For each phase pair with composition difference below tolerance,
-    eliminate phase with largest index.
-    Also remove phases with phase fractions close to zero.
-    """
-    cdef double[:,:] comp_matrix
-    cdef double[:,:] comp_distances
-    cdef double phfsum = 0
-    cdef object redundant_phases, kept_phase, removed_phases, saved_indices
-    cdef int num_phases = len(composition_sets)
-    cdef int phase_idx, sidx, idx
-    cdef int[:] indices
-    cdef CompositionSet compset
-    # Group phases into multiple composition sets
-    cdef object phase_indices = defaultdict(list)
-    for phase_idx in range(num_phases):
-        name = <unicode>composition_sets[phase_idx].phase_record.phase_name
-        if name == "":
-            continue
-        phase_indices[name].append(phase_idx)
-    # Compute pairwise distances between compositions of like phases
-    for name, idxs in phase_indices.items():
-        indices = np.array(idxs, dtype=np.int32)
-        if indices.shape[0] == 1:
-            # Phase is unique
-            continue
-        # All composition sets should have the same X shape (same number of possible components)
-        comp_matrix = np.full((len(composition_sets), composition_sets[0].X.shape[0]), np.inf)
-        # The reason we don't do this based on Y fractions is because
-        # of sublattice symmetry. It's very easy to detect a "miscibility gap" which is actually
-        # symmetry equivalent, i.e., D([A, B] - [B, A]) > tol, but they are the same configuration.
-        for idx in range(num_phases):
-            compset = composition_sets[idx]
-            comp_matrix[idx, :] = compset.X
-        comp_distances = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(comp_matrix, metric='chebyshev'))
-        for idx in range(comp_distances.shape[0]):
-            if idx not in indices:
-                comp_distances[idx,:] = np.inf
-                comp_distances[:,idx] = np.inf
-        redundant_phases = set()
-        for i in range(comp_distances.shape[0]):
-            for j in range(i, comp_distances.shape[0]):
-                if i == j:
-                    continue
-                if comp_distances[i, j] < comp_diff_tol:
-                    redundant_phases |= {i, j}
-        redundant_phases = sorted(redundant_phases)
-        if len(redundant_phases) > 1:
-            kept_phase = redundant_phases[0]
-            removed_phases = redundant_phases[1:]
-        else:
-            removed_phases = []
-        # Their NP values will be added to the kept phase
-        # and they will be nulled out
-        for redundant in removed_phases:
-            compset = composition_sets[kept_phase]
-            composition_sets[kept_phase].NP += composition_sets[redundant].NP
-            for dof_idx in range(compset.dof.shape[0]):
-                compset.dof[dof_idx] = (compset.NP * compset.dof[dof_idx] + composition_sets[redundant].NP * composition_sets[redundant].dof[dof_idx]) / (compset.NP + composition_sets[redundant].NP)
-            if verbose:
-                print('Redundant phase:', composition_sets[redundant])
-            composition_sets[redundant].NP = np.nan
-    for phase_idx in range(num_phases):
-        if abs(composition_sets[phase_idx].NP) <= 1.1*MIN_PHASE_FRACTION:
-            composition_sets[phase_idx].NP = MIN_PHASE_FRACTION
-            composition_sets[phase_idx].zero_seen += 1
-            if composition_sets[phase_idx].zero_seen > allowed_zero_seen:
-                if verbose:
-                    print('Exceeded zero seen:', composition_sets[phase_idx])
-                composition_sets[phase_idx].NP = np.nan
-
-    entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
-                               reverse=True)
-    for idx in entries_to_delete:
-        if verbose:
-            print('Removing ' + repr(composition_sets[idx]))
-        removed_compsets.append(composition_sets[idx])
-        del composition_sets[idx]
-    if len(entries_to_delete) > 0:
-        return True
-    else:
-        return False
-
-
 cdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
                          object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
                          double[::1] state_variables, double minimum_df, bint verbose) except *:
@@ -334,8 +248,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 compset.fixed = True
                 composition_sets.append(compset)
         #print('Composition Sets', composition_sets)
-        # Remove duplicate phases -- we will add them back later
-        #remove_degenerate_phases(composition_sets, [], 1e-2, 100, verbose)
         phase_amt_sum = 0.0
         for compset in composition_sets:
             phase_amt_sum += compset.NP
@@ -350,13 +262,9 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
 
             chemical_potentials[:] = result.chemical_potentials
-            #changed_phases = remove_degenerate_phases(composition_sets, removed_compsets, 1e-3, 0, verbose)
-            # XXX: Need to rethink global minimization approach for fixed-phase case
-            # Do not merge this hack, which disables checking if this solution is a global minimum
             changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
                                             grid, curr_idx, chemical_potentials, state_variable_values,
                                             1e-4, verbose)
-            #changed_phases = False
             iterations += 1
             if not changed_phases:
                 break
@@ -365,7 +273,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             chemical_potentials[:] = result.chemical_potentials
         if not iter_solver.ignore_convergence:
             converged = result.converged
-            #remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
         else:
             converged = True
         if converged:
