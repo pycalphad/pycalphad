@@ -661,7 +661,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     for cp_idx in range(spec.fixed_chemical_potential_indices.shape[0]):
         comp_idx = spec.fixed_chemical_potential_indices[cp_idx]
         state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
-    #print('delta_phase_amt', np.array(new_phase_amt) - np.array(phase_amt))
     state.chempot_diff = np.array(state.chemical_potentials) - old_chemical_potentials
 
     # Update phase internal degrees of freedom
