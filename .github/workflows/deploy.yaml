@@ -1,12 +1,10 @@
 # Deploy tagged versions
 name: Deploy
 
-# on:
-#   push:
-#     tags:
-#       - '*'
-
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   PyPI-sdist:
@@ -22,8 +20,8 @@ jobs:
       - run: pip install twine build
       - run: python -m build --sdist
       - run: twine check --strict dist/*
-      # - name: "Upload to PyPI"
-      #   run: twine upload -r pypi dist/pycalphad-*.tar.gz
-      #   env:
-      #     TWINE_USERNAME: "__token__"
-      #     TWINE_PASSWORD: ${{ secrets.PYPI_PYCALPHAD_TOKEN }}
+      - name: "Upload to PyPI"
+        run: twine upload -r pypi dist/pycalphad-*.tar.gz
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.PYPI_PYCALPHAD_TOKEN }}
