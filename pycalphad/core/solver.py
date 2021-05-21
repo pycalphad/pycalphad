@@ -80,5 +80,5 @@ class SundmanSolver(SolverBase):
 
         if self.verbose:
             print('Chemical Potentials', chemical_potentials)
-            print(x)
+            print(np.asarray(x))
         return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)
