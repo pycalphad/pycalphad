@@ -13,6 +13,7 @@ What's New
 * FIX: Fix but where ``eqplot`` could attempt to plot tie-triangles for T-X diagrams ( :issue:`288` )
 
 * MAINT: Dependency and build system changes:
+
   * Support Python 3.9 ( :issue:`298` )
   * Bump cyipopt to support new package name and v1.0 API ( :issue:`289` )
   * Bump SymPy pin to v1.8 ( :issue:`289` )
