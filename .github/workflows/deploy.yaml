@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+      # Install locally to trigger installing build requirements for setup.py
+      - run: pip install .
       - run: python setup.py sdist
       - run: pip install twine
       - run: twine upload -r pypi dist/*
