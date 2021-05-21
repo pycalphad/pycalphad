@@ -21,6 +21,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install build
       - run: python -m build --wheel
+      - run: ls *
+        shell: bash
       - run: pip install dist/*.whl
       - run: pip check
       - run: pip list
