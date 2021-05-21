@@ -758,7 +758,6 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     for iteration in range(1000):
         state.iteration = iteration
         if (state.mass_residual > 10) and (np.max(np.abs(state.chemical_potentials)) > 1.0e10):
-            #print('Mass residual and chemical potentials too big; resetting chemical potentials')
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
         old_state = copy(state)
