@@ -708,10 +708,9 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         # We need real state variable bounds support
 
 
-cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
-                    int num_statevars, int num_components, double prescribed_system_amount,
-                    double[::1] initial_chemical_potentials, int[::1] free_chemical_potential_indices,
-                    int[::1] fixed_chemical_potential_indices,
+cpdef find_solution(list compsets, int num_statevars, int num_components,
+                    double prescribed_system_amount, double[::1] initial_chemical_potentials,
+                    int[::1] free_chemical_potential_indices, int[::1] fixed_chemical_potential_indices,
                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                     int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
     cdef int iteration, idx, idx2, comp_idx, phase_idx, i
