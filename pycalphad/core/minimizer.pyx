@@ -134,7 +134,6 @@ cdef void write_row_fixed_mole_fraction(double[:] out_row, double* out_rhs, int 
     # 2a. This component row: free state variables
     for i in range(free_statevar_indices.shape[0]):
         statevar_idx = free_statevar_indices[i]
-        # XXX: Isn't this missing a dZ/dT term? Only relevant for T-dependent mass calculations...
         for j in range(c_statevars.shape[0]):
             out_row[free_variable_column_offset + i] += \
                 (phase_amt[idx]/current_system_amount) * mass_jac[component_idx, num_statevars+j] * c_statevars[j, statevar_idx]
