@@ -6,4 +6,5 @@ requires = [
     "setuptools",
     "wheel",
 ]
-
+# Use the legacy backend because we have a local `versioneer.py` dependency
+build-backend = "setuptools.build_meta:__legacy__"
