@@ -25,7 +25,7 @@ jobs:
       - name: "Build source distribution"
         run: python -m build --sdist
       - name: "Check build"
-        run: twine check dist/*
+        run: twine check --strict dist/*
       # - name: "Upload to PyPI"
       #   run: twine upload -r pypi dist/pycalphad-*.tar.gz
       #   env:
