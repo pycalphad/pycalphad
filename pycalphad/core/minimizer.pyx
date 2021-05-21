@@ -717,9 +717,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         x = state.dof[idx]
         for sv_idx in range(delta_statevars.shape[0]):
             x[sv_idx] += delta_statevars[sv_idx]
-        # XXX: Do not merge this temporary hack for the temperature
         # We need real state variable bounds support
-        #x[2] = max(300, x[2])
 
 
 cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
