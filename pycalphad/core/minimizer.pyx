@@ -624,7 +624,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double[::1] equilibrium_rhs, equilibrium_soln, old_chemical_potentials, new_y, x
     cdef CompositionSet compset
     cdef CompsetState csst
-    cdef bint wolfe_passed, exceeded_bounds
+    cdef bint exceeded_bounds
     cdef int i, comp_idx, cp_idx, idx, num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
 
     # STEP 1: Solve the equilibrium matrix (chemical potentials, corrections to phase amounts and state variables)
@@ -689,7 +689,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
         new_y = np.array(x)
         minimum_step_size = 1e-20 * step_size
-        wolfe_passed = False
         while step_size >= minimum_step_size:
             exceeded_bounds = False
             for i in range(spec.num_statevars, new_y.shape[0]):
