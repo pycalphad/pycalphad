@@ -190,13 +190,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         # assume 'points' and other dimensions (internal dof, etc.) always follow
         curr_idx = [it.multi_index[i] for i, key in enumerate(conds_keys) if key in str_state_variables]
         state_variable_values = [cur_conds[key] for key in str_state_variables]
-        #for sv in state_variables:
-        #    if sv in cur_conds.keys():
-        #        state_variable_values.append(cur_conds[sv])
-        #    else:
-        #        # free state variable
-        #        # XXX: Do not merge this hack which assumes temperature is the only free state variable
-        #        state_variable_values.append(300.)
         state_variable_values = np.array(state_variable_values)
         # sum of independently specified components
         indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
