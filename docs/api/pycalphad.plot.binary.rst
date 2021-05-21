@@ -36,7 +36,6 @@ pycalphad.plot.binary.zpf\_boundary\_sets module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 
