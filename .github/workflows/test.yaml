@@ -21,9 +21,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install build
       - run: python -m build --wheel
-      - run: ls *
-        shell: bash
       - run: pip install dist/*.whl
+        # Use bash so that the file path works cross-platform
+        shell: bash
       - run: pip check
       - run: pip list
       - run: pip install pytest pytest-cov
