@@ -756,9 +756,6 @@ cpdef find_solution(list compsets, int[::1] free_stable_compset_indices,
     cdef SystemState state = SystemState(spec, compsets)
     cdef SystemState old_state
 
-    #print('prescribed_element_indices', np.array(prescribed_element_indices))
-    #print('prescribed_elemental_amounts', np.array(prescribed_elemental_amounts))
-
     state.mass_residual = 1e10
     phase_change_counter = 5
     step_size = 1./10
