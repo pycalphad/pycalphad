@@ -473,7 +473,8 @@ cdef class SystemState:
         self.delta_ms = np.zeros((len(compsets), spec.num_components))
         self.delta_statevars = np.zeros(spec.num_statevars)
         self.phase_compositions = np.zeros((len(compsets), spec.num_components))
-        self.free_stable_compset_indices = np.array(np.nonzero([compset.fixed==False for compset in compsets])[0], dtype=np.int32)
+        self.free_stable_compset_indices = np.array(np.nonzero([((compset.fixed==False) and (compset.NP>0))
+                                                                for compset in compsets])[0], dtype=np.int32)
         self.largest_statevar_change[0] = 0
         self.largest_phase_amt_change[0] = 0
         self.system_amount = 0
