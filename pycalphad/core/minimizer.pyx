@@ -430,7 +430,7 @@ cdef class CompsetState:
         self.internal_cons = np.zeros(compset.phase_record.num_internal_cons)
         self.moles_normalization_grad = np.zeros(spec.num_statevars+compset.phase_record.phase_dof)
         self.fixed_phase_dof_indices = np.array([], dtype=np.int32)
-        self.ipiv = np.empty(10*spec.num_components*compset.phase_record.phase_dof, dtype=np.int32)
+        self.ipiv = np.empty(self.phase_matrix.shape[0], dtype=np.int32)
     def __getstate__(self):
         return (np.array(self.x), self.energy, np.array(self.grad), np.array(self.hess),
                 np.array(self.phase_matrix), np.array(self.phase_rhs), np.array(self.full_e_matrix),
