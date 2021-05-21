@@ -19,13 +19,9 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-      # Install locally to trigger installing build requirements for setup.py
-      - name: "Install build system dependencies"
-        run: pip install twine build
-      - name: "Build source distribution"
-        run: python -m build --sdist
-      - name: "Check build"
-        run: twine check --strict dist/*
+      - run: pip install twine build
+      - run: python -m build --sdist
+      - run: twine check --strict dist/*
       # - name: "Upload to PyPI"
       #   run: twine upload -r pypi dist/pycalphad-*.tar.gz
       #   env:
