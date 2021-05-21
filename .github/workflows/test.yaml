@@ -24,7 +24,7 @@ jobs:
       - run: python -m build --wheel
       - run: pip install dist/*.whl
       - run: pip check
-      - run: pip install pytest
+      - run: pip install pytest pytest-cov
       # append import mode to test the installed package over the local one
       # see here: https://docs.pytest.org/en/6.2.x/pythonpath.html#import-modes
       - run: pytest -v --import-mode=append --cov=pycalphad --pyargs pycalphad
