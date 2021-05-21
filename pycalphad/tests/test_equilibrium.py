@@ -247,8 +247,6 @@ def test_eq_issue43_chempots_misc_gap():
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
                      verbose=True)
     chempots = np.array([-206144.57, -272150.79, -64253.652])
-    # TODO: This change needs discussion
-    # Do we care if the absolute mass error in the Ni amount is 2e-9, instead of 1e-9?
     assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.1246, 1e-9, 1-(.1246+1e-9)], rtol=2e-5)
     assert_allclose(np.squeeze(eq.MU.values), chempots, rtol=1e-5)
     assert_allclose(np.squeeze(eq.GM.values), -81933.259)
