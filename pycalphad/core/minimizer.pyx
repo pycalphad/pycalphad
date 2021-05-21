@@ -203,7 +203,7 @@ cdef void write_row_fixed_mole_amount(double[:] out_row, double* out_rhs, int co
 
 
 cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] equilibrium_rhs,
-                                    SystemSpecification spec, SystemState state) except +:
+                                  SystemSpecification spec, SystemState state):
     cdef int stable_idx, idx, component_row_offset, component_idx, fixed_idx, free_idx
     cdef int fixed_component_idx, comp_idx, system_amount_index, sv_idx
     cdef CompositionSet compset
