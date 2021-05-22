@@ -19,8 +19,8 @@ from pycalphad.core.utils import endmember_matrix, extract_parameters, \
 
 
 @cacheit
-def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, comps,
-                               variables, sampler, fixed_grid, pdens):
+def _sample_phase_constitution(phase_constituents, sublattice_dof, comps,
+                               sampler, fixed_grid, pdens):
     """
     Sample the internal degrees of freedom of a phase.
 
@@ -30,7 +30,6 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     phase_constituents
     sublattice_dof
     comps
-    variables
     sampler
     fixed_grid
     pdens
@@ -340,8 +339,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         points = points_dict[phase_name]
         variables, sublattice_dof = generate_dof(phase_obj, mod.components)
         if points is None:
-            points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
-                                                tuple(variables), sampler_dict[phase_name] or point_sample,
+            points = _sample_phase_constitution(phase_obj.constituents, sublattice_dof, comps,
+                                                sampler_dict[phase_name] or point_sample,
                                                 fixedgrid_dict[phase_name], pdens_dict[phase_name])
         points = np.atleast_2d(points)
 
