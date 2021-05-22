@@ -20,7 +20,7 @@ setup(
     author='Richard Otis',
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
-    packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary'],
+    packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests'],
     # "error: '::hypot' has not been declared when compiling with MingGW64"
     # https://github.com/Theano/Theano/issues/4926
     ext_modules=cythonize([Extension('pycalphad.core.hyperplane',
@@ -77,6 +77,8 @@ setup(
         'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing',
+        'pytest',
+        'pytest-cov',
         'scipy',
         'symengine==0.7.2',  # python-symengine on conda-forge
         'sympy==1.8',
