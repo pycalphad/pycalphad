@@ -32,7 +32,7 @@ jobs:
         run: pip install dist/*.whl
         if: ${{ runner.os != 'Windows' }}
       - name: "Windows: pip install pycalphad wheel"
-        run: pip install dist\*.whl
+        run: pip install "dist\*.whl"
         if: ${{ runner.os == 'Windows' }}
       - run: pip check
       - run: pip list
