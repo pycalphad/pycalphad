@@ -20,7 +20,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m venv pycalphad-dev
-      - run: source ./pycalphad-dev/bin/activate
+      - run: source pycalphad-dev/bin/activate
+        # Use bash so that the file path works cross-platform
         shell: bash
       - run: pip install build
       - run: python -m build --wheel
@@ -30,8 +31,9 @@ jobs:
       - run: pip check
       - run: pip list
       - run: pip install pytest pytest-cov
-      # append import mode to test the installed package over the local one
-      # see here: https://docs.pytest.org/en/6.2.x/pythonpath.html#import-modes
+      # pytest:
+      # - The `--import-mode=append` and `--pyargs pycalphad` flags test the installed package over the local one
+      # - The `--cov` flag is required to turn on coverage
       - run: pytest -v --import-mode=append --cov --cov-config=pyproject.toml --pyargs pycalphad
       - run: coverage xml
       - name: Upload coverage to Codecov
