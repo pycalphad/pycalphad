@@ -1,6 +1,4 @@
 # distutils: language = c++
-# Some places are still using negative indices, so override this for now
-# cython: wraparound=True
 from collections import defaultdict, OrderedDict
 import numpy as np
 cimport numpy as np
