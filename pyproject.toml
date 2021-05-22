@@ -9,6 +9,11 @@ requires = [
 # Use the legacy backend because the local `versioneer.py` dependency that prevents isolated builds
 build-backend = "setuptools.build_meta:__legacy__"
 
+[tool.pytest.ini_options]
+markers = [
+    "solver: mark for tests that verify the correctness of the solver",
+]
+
 [tool.coverage.paths]
 # the first path is the path to the modules to report coverage against
 # all following paths are patterns to match against the collected data
