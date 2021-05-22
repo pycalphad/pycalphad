@@ -32,7 +32,6 @@ jobs:
         shell: bash  # support cross-platform paths
       - run: pip check
       - run: pip list
-      - run: pip install pytest pytest-cov
       # pytest:
       # - The `--import-mode=append` and `--pyargs pycalphad` flags test the installed package over the local one
       # - The `--cov` flag is required to turn on coverage

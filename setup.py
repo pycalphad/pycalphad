@@ -77,6 +77,8 @@ setup(
         'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing',
+        'pytest',
+        'pytest-cov',
         'scipy',
         'symengine==0.7.2',  # python-symengine on conda-forge
         'sympy==1.8',
