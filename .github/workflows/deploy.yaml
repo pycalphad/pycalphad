@@ -7,12 +7,9 @@ on:
       - '*'
 
 jobs:
-  PyPI:
-    name: Deploy to PyPI
+  PyPI-sdist:
+    name: Deploy source distribution to PyPI
     runs-on: ubuntu-latest
-    env:
-      TWINE_USERNAME: "__token__"
-      TWINE_PASSWORD: ${{ secrets.PYPI_PYCALPHAD_TOKEN }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -20,8 +17,11 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-      # Install locally to trigger installing build requirements for setup.py
-      - run: pip install .
-      - run: python setup.py sdist
-      - run: pip install twine
-      - run: twine upload -r pypi dist/*
+      - run: pip install twine build
+      - run: python -m build --sdist
+      - run: twine check --strict dist/*
+      - name: "Upload to PyPI"
+        run: twine upload -r pypi dist/pycalphad-*.tar.gz
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.PYPI_PYCALPHAD_TOKEN }}

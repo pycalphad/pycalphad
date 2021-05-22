@@ -64,6 +64,7 @@ setup(
     include_dirs=[np.get_include()],
     license='MIT',
     long_description=read('README.rst'),
+    long_description_content_type='text/x-rst',
     url='https://pycalphad.org/',
     install_requires=[
         # NOTE: please try to keep any depedencies in alphabetic order so they
