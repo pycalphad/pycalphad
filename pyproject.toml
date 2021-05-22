@@ -8,3 +8,18 @@ requires = [
 ]
 # Use the legacy backend because the local `versioneer.py` dependency that prevents isolated builds
 build-backend = "setuptools.build_meta:__legacy__"
+
+[tool.coverage.paths]
+# the first path is the path to the modules to report coverage against
+# all following paths are patterns to match against the collected data
+# matches will be combined with the first path for coverage
+source = [
+    "./pycalphad",
+    "*/lib/*/site-packages/pycalphad",  # allows testing against site-packages for a local virtual environment
+]
+
+[tool.coverage.run]
+# Packages to consider coverage for
+source_pkgs = [
+    "pycalphad"
+]

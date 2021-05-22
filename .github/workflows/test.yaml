@@ -32,7 +32,7 @@ jobs:
       - run: pip install pytest pytest-cov
       # append import mode to test the installed package over the local one
       # see here: https://docs.pytest.org/en/6.2.x/pythonpath.html#import-modes
-      - run: pytest -v --import-mode=append --cov=pycalphad --pyargs pycalphad
+      - run: pytest -v --import-mode=append --cov --cov-config=pyproject.toml --pyargs pycalphad
       - run: coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
