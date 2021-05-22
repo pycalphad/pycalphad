@@ -1,0 +1,27 @@
+# Deploy tagged versions
+name: Deploy
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  PyPI:
+    name: Deploy to PyPI
+    runs-on: ubuntu-latest
+    env:
+      TWINE_USERNAME: "__token__"
+      TWINE_PASSWORD: ${{ secrets.PYPI_PYCALPHAD_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      # Install locally to trigger installing build requirements for setup.py
+      - run: pip install .
+      - run: python setup.py sdist
+      - run: pip install twine
+      - run: twine upload -r pypi dist/*

@@ -8,23 +8,22 @@ pycalphad.codegen.callables module
 ----------------------------------
 
 .. automodule:: pycalphad.codegen.callables
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-pycalphad.codegen.sympydiff_utils module
+pycalphad.codegen.sympydiff\_utils module
 -----------------------------------------
 
 .. automodule:: pycalphad.codegen.sympydiff_utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------
 
 .. automodule:: pycalphad.codegen
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

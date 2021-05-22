@@ -8,7 +8,7 @@ When releasing a new version of pycalphad:
    A minor release can be done later if something important is missed.
 3. Ensure that all tests pass locally on develop. Feature tests which are deferred to a future
    milestone should be marked with the ``SkipTest`` decorator.
-4. Regenerate the API documentation with ``sphinx-apidoc -o docs/api/ pycalphad/``
+4. Regenerate the API documentation with ``sphinx-apidoc -f -H 'API Documentation' -o docs/api/ pycalphad/ pycalphad/tests 'pycalphad/core/*.pxd' 'pycalphad/core/*.so'``
 5. Resolve differences and commit the updated API documentation to the develop branch of the repository.
 6. ``git push`` and verify all tests pass on all CI services.
 7. Generate a list of commits since the last version with ``git log --oneline --decorate --color 0.1^..origin/develop``
