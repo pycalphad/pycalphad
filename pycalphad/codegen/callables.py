@@ -212,7 +212,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                     additional_statevars=state_variables,
                                     build_gradients=False,
                                     build_hessians=False)
-    # XXX: Temporary; do not merge
+    # Temporary solution. PhaseRecord needs rework: https://github.com/pycalphad/pycalphad/pull/329#discussion_r634579356
     formulacallables = build_callables(dbf, comps, phases, models,
                                        parameter_symbols=parameters.keys(), output='G',
                                        additional_statevars=state_variables,
