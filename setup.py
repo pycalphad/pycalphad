@@ -17,44 +17,31 @@ CYTHON_COMPILER_DIRECTIVES = {
 }
 
 EXTENSION_INCLUDES = ['.', np.get_include()]
-EXTENSION_COMPILE_ARGS = []
-EXTENSION_LINK_ARGS = []
 
 CYTHON_EXTENSION_MODULES = [
     Extension('pycalphad.core.hyperplane',
         sources=['pycalphad/core/hyperplane.pyx'],
         include_dirs=EXTENSION_INCLUDES,
-        extra_compile_args=EXTENSION_LINK_ARGS,
-        extra_link_args=EXTENSION_LINK_ARGS,
     ),
     Extension('pycalphad.core.eqsolver',
         sources=['pycalphad/core/eqsolver.pyx'],
         include_dirs=EXTENSION_INCLUDES,
-        extra_compile_args=EXTENSION_LINK_ARGS,
-        extra_link_args=EXTENSION_LINK_ARGS,
     ),
     Extension('pycalphad.core.phase_rec',
         sources=['pycalphad/core/phase_rec.pyx'],
         include_dirs=EXTENSION_INCLUDES,
-        extra_compile_args=EXTENSION_LINK_ARGS,
     ),
     Extension('pycalphad.core.composition_set',
         sources=['pycalphad/core/composition_set.pyx'],
         include_dirs=EXTENSION_INCLUDES,
-        extra_compile_args=EXTENSION_LINK_ARGS,
-        extra_link_args=EXTENSION_LINK_ARGS,
     ),
     Extension('pycalphad.core.problem',
         sources=['pycalphad/core/problem.pyx'],
         include_dirs=EXTENSION_INCLUDES,
-        extra_compile_args=EXTENSION_LINK_ARGS,
-        extra_link_args=EXTENSION_LINK_ARGS,
     ),
     Extension('pycalphad.core.minimizer',
         sources=['pycalphad/core/minimizer.pyx'],
         include_dirs=EXTENSION_INCLUDES,
-        extra_compile_args=EXTENSION_LINK_ARGS,
-        extra_link_args=EXTENSION_LINK_ARGS,
     ),
 ]
 
