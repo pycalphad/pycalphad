@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.core package &mdash; pycalphad 0.8.5+2.g14193347 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.8.5+3.gdb5086c3 documentation</title>
   
 
   
@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                0.8.5+2.g14193347
+                0.8.5+3.gdb5086c3
               </div>
             
           
@@ -350,8 +350,8 @@ not pickleable. They are used in miscibility gap deteciton.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.composition_set.CompositionSet.grad">
-<span class="sig-name descname"><span class="pre">grad</span></span><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.grad" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pycalphad.core.composition_set.CompositionSet.fixed">
+<span class="sig-name descname"><span class="pre">fixed</span></span><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.fixed" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -359,9 +359,9 @@ not pickleable. They are used in miscibility gap deteciton.</p>
 <span class="sig-name descname"><span class="pre">phase_record</span></span><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.phase_record" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.composition_set.CompositionSet.zero_seen">
-<span class="sig-name descname"><span class="pre">zero_seen</span></span><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.zero_seen" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.composition_set.CompositionSet.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.update" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -377,7 +377,7 @@ Note that modifying these may yield unpredictable results.</p>
 <span id="pycalphad-core-constraints-module"></span><h2>pycalphad.core.constraints module<a class="headerlink" href="#module-pycalphad.core.constraints" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.constraints.ConstraintTuple">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.constraints.</span></span><span class="sig-name descname"><span class="pre">ConstraintTuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">internal_cons_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_cons_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_cons_hess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiphase_cons_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiphase_cons_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiphase_cons_hess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_internal_cons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_multiphase_cons</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.constraints.</span></span><span class="sig-name descname"><span class="pre">ConstraintTuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">internal_cons_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_cons_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_cons_hess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_internal_cons</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.constraints.ConstraintTuple.internal_cons_func">
@@ -398,55 +398,27 @@ Note that modifying these may yield unpredictable results.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.constraints.ConstraintTuple.multiphase_cons_func">
-<span class="sig-name descname"><span class="pre">multiphase_cons_func</span></span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_cons_func" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 3</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.constraints.ConstraintTuple.multiphase_cons_hess">
-<span class="sig-name descname"><span class="pre">multiphase_cons_hess</span></span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_cons_hess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 5</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.constraints.ConstraintTuple.multiphase_cons_jac">
-<span class="sig-name descname"><span class="pre">multiphase_cons_jac</span></span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_cons_jac" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 4</p>
-</dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.constraints.ConstraintTuple.num_internal_cons">
 <span class="sig-name descname"><span class="pre">num_internal_cons</span></span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.num_internal_cons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 6</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.constraints.ConstraintTuple.num_multiphase_cons">
-<span class="sig-name descname"><span class="pre">num_multiphase_cons</span></span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.num_multiphase_cons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 7</p>
+<dd><p>Alias for field number 3</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.constraints.build_constraints">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.constraints.</span></span><span class="sig-name descname"><span class="pre">build_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/constraints.html#build_constraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.constraints.build_constraints" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.constraints.get_multiphase_constraint_rhs">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.constraints.</span></span><span class="sig-name descname"><span class="pre">get_multiphase_constraint_rhs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/constraints.html#get_multiphase_constraint_rhs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.constraints.get_multiphase_constraint_rhs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.constraints.is_multiphase_constraint">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.constraints.</span></span><span class="sig-name descname"><span class="pre">is_multiphase_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cond</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/constraints.html#is_multiphase_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.constraints.is_multiphase_constraint" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.constraints.</span></span><span class="sig-name descname"><span class="pre">build_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/constraints.html#build_constraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.constraints.build_constraints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-pycalphad.core.eqsolver">
 <span id="pycalphad-core-eqsolver-module"></span><h2>pycalphad.core.eqsolver module<a class="headerlink" href="#module-pycalphad.core.eqsolver" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.core.eqsolver.pointsolve">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.eqsolver.</span></span><span class="sig-name descname"><span class="pre">pointsolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.eqsolver.pointsolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mutates composititon_sets with updated values if it converges. Returns SolverResult.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-pycalphad.core.equilibrium">
 <span id="pycalphad-core-equilibrium-module"></span><h2>pycalphad.core.equilibrium module<a class="headerlink" href="#module-pycalphad.core.equilibrium" title="Permalink to this headline">¶</a></h2>
@@ -764,23 +736,63 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.gfunc_">
-<span class="sig-name descname"><span class="pre">gfunc_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.gfunc_" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulagfunc_">
+<span class="sig-name descname"><span class="pre">formulagfunc_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulagfunc_" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.grad">
-<span class="sig-name descname"><span class="pre">grad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.grad" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulagrad">
+<span class="sig-name descname"><span class="pre">formulagrad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulagrad" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.hess">
-<span class="sig-name descname"><span class="pre">hess</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.hess" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulahess">
+<span class="sig-name descname"><span class="pre">formulahess</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulahess" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.hfunc_">
-<span class="sig-name descname"><span class="pre">hfunc_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.hfunc_" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulahfunc_">
+<span class="sig-name descname"><span class="pre">formulahfunc_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulahfunc_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulamole_grad">
+<span class="sig-name descname"><span class="pre">formulamole_grad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulamole_grad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulamole_hess">
+<span class="sig-name descname"><span class="pre">formulamole_hess</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulamole_hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulamole_obj">
+<span class="sig-name descname"><span class="pre">formulamole_obj</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulamole_obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulamolefuncs_">
+<span class="sig-name descname"><span class="pre">formulamolefuncs_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulamolefuncs_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulamolegradfuncs_">
+<span class="sig-name descname"><span class="pre">formulamolegradfuncs_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulamolegradfuncs_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulamolehessianfuncs_">
+<span class="sig-name descname"><span class="pre">formulamolehessianfuncs_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulamolehessianfuncs_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulaobj">
+<span class="sig-name descname"><span class="pre">formulaobj</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulaobj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.formulaofunc_">
+<span class="sig-name descname"><span class="pre">formulaofunc_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.formulaofunc_" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -814,16 +826,6 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.mass_grad">
-<span class="sig-name descname"><span class="pre">mass_grad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_grad" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.mass_hess">
-<span class="sig-name descname"><span class="pre">mass_hess</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_hess" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.mass_obj">
 <span class="sig-name descname"><span class="pre">mass_obj</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_obj" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -839,46 +841,6 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.massgradfuncs_">
-<span class="sig-name descname"><span class="pre">massgradfuncs_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.massgradfuncs_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.masshessianfuncs_">
-<span class="sig-name descname"><span class="pre">masshessianfuncs_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.masshessianfuncs_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_func">
-<span class="sig-name descname"><span class="pre">multiphase_cons_func</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_func" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_func_">
-<span class="sig-name descname"><span class="pre">multiphase_cons_func_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_func_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_hess">
-<span class="sig-name descname"><span class="pre">multiphase_cons_hess</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_hess" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_hess_">
-<span class="sig-name descname"><span class="pre">multiphase_cons_hess_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_hess_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_jac">
-<span class="sig-name descname"><span class="pre">multiphase_cons_jac</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_jac" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_jac_">
-<span class="sig-name descname"><span class="pre">multiphase_cons_jac_</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_jac_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.nonvacant_elements">
 <span class="sig-name descname"><span class="pre">nonvacant_elements</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.nonvacant_elements" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -886,11 +848,6 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.num_internal_cons">
 <span class="sig-name descname"><span class="pre">num_internal_cons</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_internal_cons" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.phase_rec.PhaseRecord.num_multiphase_cons">
-<span class="sig-name descname"><span class="pre">num_multiphase_cons</span></span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_multiphase_cons" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -961,23 +918,6 @@ Then outp.shape = (M,N)</p>
 <dt class="sig sig-object py" id="pycalphad.core.problem.Problem">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.problem.</span></span><span class="sig-name descname"><span class="pre">Problem</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.chemical_potential_gradient">
-<span class="sig-name descname"><span class="pre">chemical_potential_gradient</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.chemical_potential_gradient" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assuming the input is a feasible solution.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.chemical_potentials">
-<span class="sig-name descname"><span class="pre">chemical_potentials</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.chemical_potentials" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assuming the input is a feasible solution.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.cl">
-<span class="sig-name descname"><span class="pre">cl</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.cl" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.problem.Problem.composition_sets">
 <span class="sig-name descname"><span class="pre">composition_sets</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.composition_sets" title="Permalink to this definition">¶</a></dt>
@@ -986,16 +926,6 @@ Then outp.shape = (M,N)</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.problem.Problem.conditions">
 <span class="sig-name descname"><span class="pre">conditions</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.conditions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.constraints">
-<span class="sig-name descname"><span class="pre">constraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.constraints" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.cu">
-<span class="sig-name descname"><span class="pre">cu</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.cu" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1013,45 +943,9 @@ Then outp.shape = (M,N)</p>
 <span class="sig-name descname"><span class="pre">fixed_dof_indices</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.fixed_dof_indices" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.gradient">
-<span class="sig-name descname"><span class="pre">gradient</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.gradient" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.hessian">
-<span class="sig-name descname"><span class="pre">hessian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.hessian" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.jacobian">
-<span class="sig-name descname"><span class="pre">jacobian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.jacobian" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.mass_cons_hessian">
-<span class="sig-name descname"><span class="pre">mass_cons_hessian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.mass_cons_hessian" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.mass_gradient">
-<span class="sig-name descname"><span class="pre">mass_gradient</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.mass_gradient" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.mass_jacobian">
-<span class="sig-name descname"><span class="pre">mass_jacobian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.mass_jacobian" title="Permalink to this definition">¶</a></dt>
-<dd><p>For chemical potential calculation.</p>
-</dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.problem.Problem.nonvacant_elements">
 <span class="sig-name descname"><span class="pre">nonvacant_elements</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.nonvacant_elements" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.num_constraints">
-<span class="sig-name descname"><span class="pre">num_constraints</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.num_constraints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1074,34 +968,9 @@ Then outp.shape = (M,N)</p>
 <span class="sig-name descname"><span class="pre">num_vars</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.num_vars" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.obj_hessian">
-<span class="sig-name descname"><span class="pre">obj_hessian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.obj_hessian" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.objective">
-<span class="sig-name descname"><span class="pre">objective</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.objective" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.problem.Problem.pure_elements">
 <span class="sig-name descname"><span class="pre">pure_elements</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.pure_elements" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.x0">
-<span class="sig-name descname"><span class="pre">x0</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.x0" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.xl">
-<span class="sig-name descname"><span class="pre">xl</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.xl" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.problem.Problem.xu">
-<span class="sig-name descname"><span class="pre">xu</span></span><a class="headerlink" href="#pycalphad.core.problem.Problem.xu" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1109,89 +978,6 @@ Then outp.shape = (M,N)</p>
 </div>
 <div class="section" id="module-pycalphad.core.solver">
 <span id="pycalphad-core-solver-module"></span><h2>pycalphad.core.solver module<a class="headerlink" href="#module-pycalphad.core.solver" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="pycalphad.core.solver.InteriorPointSolver">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.solver.</span></span><span class="sig-name descname"><span class="pre">InteriorPointSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infeasibility_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">ipopt_options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.solver.SolverBase</span></code></a></p>
-<p>Standard solver class that uses IPOPT.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.solver.InteriorPointSolver.verbose">
-<span class="sig-name descname"><span class="pre">verbose</span></span><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.verbose" title="Permalink to this definition">¶</a></dt>
-<dd><p>If True, will print solver diagonstics. Defaults to False.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.solver.InteriorPointSolver.infeasibility_threshold">
-<span class="sig-name descname"><span class="pre">infeasibility_threshold</span></span><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.infeasibility_threshold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dual infeasibility threshold used to tighten constraints and
-attempt a second solve, if necessary. Defaults to 1e-4.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.core.solver.InteriorPointSolver.ipopt_options">
-<span class="sig-name descname"><span class="pre">ipopt_options</span></span><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.ipopt_options" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dictionary of options to pass to IPOPT.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.solver.InteriorPointSolver.solve">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.solve" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solve a pycalphad.core.problem.Problem</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.solver.InteriorPointSolver.apply_options">
-<span class="sig-name descname"><span class="pre">apply_options</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.apply_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.apply_options" title="Permalink to this definition">¶</a></dt>
-<dd><p>Encodes ipopt_options and applies them to problem</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">apply_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.apply_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply global options to the solver</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<em>cyipopt.Problem</em>) – A problem object that will be solved</p>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p>Strings are encoded to byte strings.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="id17">
-<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prob</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solve a non-linear problem</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.solver.SolverBase">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.solver.</span></span><span class="sig-name descname"><span class="pre">SolverBase</span></span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SolverBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.SolverBase" title="Permalink to this definition">¶</a></dt>
@@ -1242,6 +1028,29 @@ Solve a non-linear problem</p>
 <dt class="sig sig-object py" id="pycalphad.core.solver.SolverResult.x">
 <span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#pycalphad.core.solver.SolverResult.x" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.core.solver.SundmanSolver">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.solver.</span></span><span class="sig-name descname"><span class="pre">SundmanSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SundmanSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.SundmanSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.solver.SolverBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.solver.SundmanSolver.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prob</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SundmanSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.SundmanSolver.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve a non-linear problem</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

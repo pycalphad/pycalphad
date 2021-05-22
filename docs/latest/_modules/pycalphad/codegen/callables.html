@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.codegen.callables &mdash; pycalphad 0.8.5+2.g14193347 documentation</title>
+  <title>pycalphad.codegen.callables &mdash; pycalphad 0.8.5+3.gdb5086c3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+2.g14193347
+                0.8.5+3.gdb5086c3
               </div>
             
           
@@ -243,15 +243,15 @@
         <span class="s1">&#39;massfuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;massgradfuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;masshessfuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;formulamolefuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;formulamolegradfuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;formulamolehessfuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;grad_callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;hess_callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;internal_cons_func&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">:</span> <span class="p">{}</span>
     <span class="p">}</span>
 
     <span class="n">state_variables</span> <span class="o">=</span> <span class="n">get_state_variables</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">)</span>
@@ -296,6 +296,19 @@
         <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mcf</span>
         <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mgf</span>
         <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;masshessfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mhf</span>
+
+        <span class="c1"># Build the callables for moles per formula unit</span>
+        <span class="c1"># TODO: In principle, we should also check for undefs in mod.moles()</span>
+        <span class="n">fmcf</span><span class="p">,</span> <span class="n">fmgf</span><span class="p">,</span> <span class="n">fmhf</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">build_functions</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">per_formula_unit</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">state_variables</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">,</span>
+                                                 <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                 <span class="n">include_grad</span><span class="o">=</span><span class="n">build_gradients</span><span class="p">,</span>
+                                                 <span class="n">include_hess</span><span class="o">=</span><span class="n">build_hessians</span><span class="p">,</span>
+                                                 <span class="n">parameters</span><span class="o">=</span><span class="n">parameter_symbols</span><span class="p">)</span>
+                                 <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">pure_elements</span><span class="p">])</span>
+
+        <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;formulamolefuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fmcf</span>
+        <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;formulamolegradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fmgf</span>
+        <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;formulamolehessfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fmhf</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">output</span><span class="p">:</span> <span class="n">_callables</span><span class="p">}</span></div>
 
 
@@ -354,9 +367,6 @@
         <span class="s1">&#39;internal_cons_func&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">:</span> <span class="p">{}</span>
     <span class="p">}</span>
     <span class="n">phase_records</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">state_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">get_state_variables</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">conds</span><span class="o">=</span><span class="n">conds</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
@@ -366,8 +376,14 @@
         <span class="n">callables</span> <span class="o">=</span> <span class="n">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span>
                                     <span class="n">parameter_symbols</span><span class="o">=</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span>
                                     <span class="n">additional_statevars</span><span class="o">=</span><span class="n">state_variables</span><span class="p">,</span>
-                                    <span class="n">build_gradients</span><span class="o">=</span><span class="n">build_gradients</span><span class="p">,</span>
-                                    <span class="n">build_hessians</span><span class="o">=</span><span class="n">build_hessians</span><span class="p">)</span>
+                                    <span class="n">build_gradients</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                    <span class="n">build_hessians</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># Temporary solution. PhaseRecord needs rework: https://github.com/pycalphad/pycalphad/pull/329#discussion_r634579356</span>
+    <span class="n">formulacallables</span> <span class="o">=</span> <span class="n">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span>
+                                       <span class="n">parameter_symbols</span><span class="o">=</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;G&#39;</span><span class="p">,</span>
+                                       <span class="n">additional_statevars</span><span class="o">=</span><span class="n">state_variables</span><span class="p">,</span>
+                                       <span class="n">build_gradients</span><span class="o">=</span><span class="n">build_gradients</span><span class="p">,</span>
+                                       <span class="n">build_hessians</span><span class="o">=</span><span class="n">build_hessians</span><span class="p">)</span>
 
     <span class="c1"># If a vector of parameters is specified, only pass the first row to the PhaseRecord</span>
     <span class="c1"># Future callers of PhaseRecord.obj_parameters_2d() can pass the full param_values array as an argument</span>
@@ -378,31 +394,25 @@
         <span class="n">mod</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="n">site_fracs</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">site_fractions</span>
         <span class="c1"># build constraint functions</span>
-        <span class="n">cfuncs</span> <span class="o">=</span> <span class="n">build_constraints</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">state_variables</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
+        <span class="n">cfuncs</span> <span class="o">=</span> <span class="n">build_constraints</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">state_variables</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
         <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_func&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons_func</span>
         <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons_jac</span>
         <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons_hess</span>
-        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_cons_func</span>
-        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_cons_jac</span>
-        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_cons_hess</span>
         <span class="n">num_internal_cons</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">num_internal_cons</span>
-        <span class="n">num_multiphase_cons</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">num_multiphase_cons</span>
 
         <span class="n">phase_records</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">PhaseRecord</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">site_fracs</span><span class="p">,</span> <span class="n">param_values</span><span class="p">,</span>
                                                   <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;hess_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">formulacallables</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">][</span><span class="s1">&#39;callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">formulacallables</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">][</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">formulacallables</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">][</span><span class="s1">&#39;hess_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
                                                   <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;masshessfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">formulacallables</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">][</span><span class="s1">&#39;formulamolefuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">formulacallables</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">][</span><span class="s1">&#39;formulamolegradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">formulacallables</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">][</span><span class="s1">&#39;formulamolehessfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
                                                   <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_func&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
                                                   <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
                                                   <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">num_internal_cons</span><span class="p">,</span>
-                                                  <span class="n">num_multiphase_cons</span><span class="p">)</span>
+                                                  <span class="n">num_internal_cons</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
