@@ -17,11 +17,9 @@ CYTHON_COMPILER_DIRECTIVES = {
 }
 
 EXTENSION_INCLUDES = ['.', np.get_include()]
-EXTENSION_COMPILE_ARGS = ["-std=c++11", "-D_hypot=hypot"]
+EXTENSION_COMPILE_ARGS = ["-std=c++11"]
 EXTENSION_LINK_ARGS = ["-std=c++11"]
 
-# "error: '::hypot' has not been declared when compiling with MingGW64"
-# https://github.com/Theano/Theano/issues/4926
 CYTHON_EXTENSION_MODULES = [
     Extension('pycalphad.core.hyperplane',
         sources=['pycalphad/core/hyperplane.pyx'],
