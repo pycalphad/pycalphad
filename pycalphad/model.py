@@ -10,7 +10,6 @@ import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
-from pycalphad.core.constraints import is_multiphase_constraint
 import numpy as np
 from collections import OrderedDict
 
@@ -244,7 +243,7 @@ class Model(object):
     def __hash__(self):
         return hash(repr(self))
 
-    def moles(self, species):
+    def moles(self, species, per_formula_unit=False):
         "Number of moles of species or elements."
         species = v.Species(species)
         is_pure_element = (len(species.constituents.keys()) == 1 and
@@ -270,7 +269,10 @@ class Model(object):
                 normalization += self.site_ratios[idx] * \
                     sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec)
                         for spec in active)
-        return result / normalization
+        if not per_formula_unit:
+            return result / normalization
+        else:
+            return result
 
     @property
     def ast(self):
@@ -316,6 +318,7 @@ class Model(object):
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
     energy = GM = property(lambda self: self.ast)
+    formulaenergy = G = property(lambda self: self.ast * self._site_ratio_normalization)
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
@@ -378,22 +381,6 @@ class Model(object):
         for idx, sublattice in enumerate(self.constituents):
             constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
         return constraints
-
-    def get_multiphase_constraints(self, conds):
-        fixed_chempots = [cond for cond in conds.keys() if isinstance(cond, v.ChemicalPotential)]
-        multiphase_constraints = []
-        for statevar in sorted(conds.keys(), key=str):
-            if not is_multiphase_constraint(statevar):
-                continue
-            if isinstance(statevar, v.MoleFraction):
-                multiphase_constraints.append(Symbol('NP') * self.moles(statevar.species))
-            elif statevar == v.N:
-                multiphase_constraints.append(Symbol('NP') * (sum(self.moles(spec) for spec in self.nonvacant_elements)))
-            elif statevar in [v.T, v.P]:
-                return multiphase_constraints.append(S.Zero)
-            else:
-                raise NotImplementedError
-        return multiphase_constraints
 
     def build_phase(self, dbe):
         """
@@ -657,10 +644,7 @@ class Model(object):
         Returns the ideal mixing energy in symbolic form.
         """
         phase = dbe.phases[self.phase_name]
-        # Normalize site ratios
-        site_ratio_normalization = self._site_ratio_normalization
         site_ratios = self.site_ratios
-        site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
         sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
         for subl_index, sublattice in enumerate(phase.constituents):
@@ -676,7 +660,7 @@ class Model(object):
                                         evaluate=False)
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
-        return ideal_mixing_term
+        return ideal_mixing_term / self._site_ratio_normalization
 
     def excess_mixing_energy(self, dbe):
         """

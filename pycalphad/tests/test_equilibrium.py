@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
 from pycalphad.codegen.callables import build_callables
-from pycalphad.core.solver import SolverBase, InteriorPointSolver
+from pycalphad.core.solver import SolverBase, SundmanSolver
 from pycalphad.core.utils import get_state_variables
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
@@ -24,13 +24,14 @@ ALNIFCC4SL_DBF = Database(ALNIFCC4SL_TDB)
 ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
 ISSUE43_DBF = Database(ISSUE43_TDB)
 TOUGH_CHEMPOT_DBF = Database(ALNI_TOUGH_CHEMPOT_TDB)
+NI_AL_DUPIN_2001_DBF = Database(NI_AL_DUPIN_2001_TDB)
 CUO_DBF = Database(CUO_TDB)
 PBSN_DBF = Database(PBSN_TDB)
 AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
 
 
-# ROSE DIAGRAM TEST
+@pytest.mark.solver
 def test_rose_nine():
     "Nine-component rose diagram point equilibrium calculation."
     my_phases_rose = ['TEST']
@@ -41,7 +42,8 @@ def test_rose_nine():
     eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -5.8351e3, atol=0.1)
 
-# OTHER TESTS
+
+@pytest.mark.solver
 def test_eq_binary():
     "Binary phase diagram point equilibrium calculation with magnetism."
     my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2',
@@ -51,6 +53,7 @@ def test_eq_binary():
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
+@pytest.mark.solver
 def test_eq_single_phase():
     "Equilibrium energy should be the same as for a single phase with no miscibility gaps."
     res = calculate(ALFE_DBF, ['AL', 'FE'], 'LIQUID', T=[1400, 2500], P=101325,
@@ -89,6 +92,7 @@ def test_eq_overdetermined_comps():
         equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
                                                    v.X('FE'): 0.2, v.X('AL'): 0.8})
 
+@pytest.mark.solver
 def test_dilute_condition():
     """
     'Zero' and dilute composition conditions are correctly handled.
@@ -101,6 +105,7 @@ def test_dilute_condition():
     # We loosen the tolerance a bit here because our convergence tolerance is too low for the last digit
     assert_allclose(np.squeeze(eq.MU.values), [-335723.28,  -64415.838], atol=1.0)
 
+@pytest.mark.solver
 def test_eq_illcond_hessian():
     """
     Check equilibrium of a system with an ill-conditioned Hessian.
@@ -115,6 +120,7 @@ def test_eq_illcond_hessian():
     # once again, py33 converges to a slightly different value versus every other python
     assert_allclose(np.squeeze(eq.MU.values), [-55611.954141,  -2767.72322], atol=0.1)
 
+@pytest.mark.solver
 def test_eq_illcond_magnetic_hessian():
     """
     Check equilibrium of a system with an ill-conditioned Hessian due to magnetism (Tc->0).
@@ -160,6 +166,7 @@ def test_eq_on_endmember():
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
                 {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, verbose=True)
 
+@pytest.mark.solver
 def test_eq_four_sublattice():
     """
     Balancing mass in a multi-sublattice phase in a single-phase configuration.
@@ -190,17 +197,23 @@ def test_eq_missing_component():
                     {v.T: 1523, v.X('AL'): 0.88811111111111107,
                      v.X('CO'): 0.11188888888888888, v.P: 101325})
 
+@pytest.mark.solver
 def test_eq_ternary_edge_case_mass():
     """
     Equilibrium along an edge of composition space will still balance mass.
     """
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
-                     {v.T: 1523, v.X('AL'): 0.88811111111111107,
-                      v.X('CO'): 0.11188888888888888, v.P: 101325}, verbose=True)
+                     {v.T: 1523, v.X('AL'): 0.8881111111,
+                      v.X('CO'): 0.1118888888, v.P: 101325}, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
-                 [0.88811111111111107, 0.11188888888888888, 0]
-    assert np.all(np.abs(mass_error) < 0.01)
+                 [0.8881111111, 0.1118888888, 1e-10]
+    assert_allclose(eq.GM.values, -97913.542)  # from Thermo-Calc 2017b
+    result_chempots = eq.MU.values.flatten()
+    assert_allclose(result_chempots[:2], [-86994.575, -184582.17], atol=0.1)  # from Thermo-Calc 2017b
+    assert result_chempots[2] < -300000  # Estimated
+    assert np.all(np.abs(mass_error) < 1e-10)
 
+@pytest.mark.solver
 def test_eq_ternary_inside_mass():
     """
     Equilibrium in interior of composition space will still balance mass.
@@ -213,6 +226,7 @@ def test_eq_ternary_inside_mass():
     assert_allclose(eq.MU.values.flatten(), [-104653.83, -142595.49, -82905.784], atol=0.1)
 
 
+@pytest.mark.solver
 def test_eq_ternary_edge_misc_gap():
     """
     Equilibrium at edge of miscibility gap will still balance mass.
@@ -224,6 +238,7 @@ def test_eq_ternary_edge_misc_gap():
                  [0.33366666666666667, 0.44455555555555554, 0.22177777777777785]
     assert np.all(np.abs(mass_error) < 0.001)
 
+@pytest.mark.solver
 def test_eq_issue43_chempots_misc_gap():
     """
     Equilibrium for complex ternary miscibility gap (gh-43).
@@ -231,13 +246,12 @@ def test_eq_issue43_chempots_misc_gap():
     eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], 'GAMMA_PRIME',
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
                      verbose=True)
-    chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([-19.47631644, -25.71249032,  -6.0706158])
-    mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
-                 [0.1246, 1e-9, 1-(.1246+1e-9)]
-    assert np.max(np.fabs(mass_error)) < 1e-9
+    chempots = np.array([-206144.57, -272150.79, -64253.652])
+    assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.1246, 1e-9, 1-(.1246+1e-9)], rtol=2e-5)
+    assert_allclose(np.squeeze(eq.MU.values), chempots, rtol=1e-5)
     assert_allclose(np.squeeze(eq.GM.values), -81933.259)
-    assert_allclose(np.squeeze(eq.MU.values), chempots, atol=1)
 
+@pytest.mark.solver
 def test_eq_issue43_chempots_tricky_potentials():
     """
     Ternary equilibrium with difficult convergence for chemical potentials (gh-43).
@@ -249,6 +263,20 @@ def test_eq_issue43_chempots_tricky_potentials():
     assert_allclose(eq.GM.values, -70680.53695)
     assert_allclose(np.squeeze(eq.MU.values), chempots)
 
+@pytest.mark.solver
+def test_eq_large_vacancy_hessian():
+    """
+    Vacancy contribution to phase matrix must be included to get the correct answer.
+    """
+    dbf = NI_AL_DUPIN_2001_DBF
+    comps = ['AL', 'NI', 'VA']
+    phases = ['BCC_B2']
+    eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 1804, v.N: 1, v.X('AL'): 0.4798})
+    assert_allclose(eq.GM.values, -154338.129)
+    assert_allclose(eq.MU.values.flatten(), [-167636.23822714, -142072.78317111])
+    assert_allclose(eq.X.sel(vertex=0).values.flatten(), [0.4798, 0.5202])
+
+@pytest.mark.solver
 def test_eq_stepsize_reduction():
     """
     Step size reduction required for convergence.
@@ -283,6 +311,7 @@ def test_eq_avoid_phase_cycling():
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], my_phases_alfe, {v.X('AL'): 0.44,
                                                                v.T: 1600, v.P: 101325}, verbose=True)
 
+@pytest.mark.solver
 def test_eq_issue76_dilute_potentials():
     """
     Convergence for two-phase mixtures at dilute composition (gh-76).
@@ -319,14 +348,16 @@ def test_eq_unary_issue78():
     np.testing.assert_allclose(eq.SM, 68.143273)
     eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
     np.testing.assert_allclose(eq.GM, 1000)
-    np.testing.assert_allclose(eq.SM, 0)
+    np.testing.assert_allclose(eq.SM, 0, atol=1e-14)
 
+@pytest.mark.solver
 def test_eq_gas_phase():
     eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, verbose=True)
     np.testing.assert_allclose(eq.GM, -110380.61071, atol=0.1)
     eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e9}, verbose=True)
     np.testing.assert_allclose(eq.GM, -7.20909E+04, atol=0.1)
 
+@pytest.mark.solver
 def test_eq_ionic_liquid():
     eq = equilibrium(CUO_DBF, ['CU', 'O', 'VA'], 'IONIC_LIQ', {v.T: 1000, v.P: 1e5, v.X('CU'): 0.6618}, verbose=True)
     np.testing.assert_allclose(eq.GM, -9.25057E+04, atol=0.1)
@@ -361,7 +392,9 @@ def test_eq_build_callables_with_parameters():
     conds_statevars = get_state_variables(conds=conds)
     models = {'FCC_A1': Model(dbf, comps, 'FCC_A1', parameters=['VV0000'])}
     # build callables with a parameter of 20000.0
-    callables = build_callables(dbf, comps, phases, models=models, parameter_symbols=['VV0000'], additional_statevars=conds_statevars)
+    callables = build_callables(dbf, comps, phases,
+                                models=models, parameter_symbols=['VV0000'], additional_statevars=conds_statevars,
+                                build_gradients=True, build_hessians=True)
 
     # Check that passing callables should skip the build phase, but use the values from 'VV0000' as passed in parameters
     eq_res = equilibrium(dbf, comps, phases, conds, callables=callables, parameters={'VV0000': 10000})
@@ -427,26 +460,29 @@ def test_equilibrium_raises_with_invalid_solver():
         equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())
 
 
-def test_equlibrium_no_opt_solver():
+def test_equilibrium_no_opt_solver():
     """Passing in a solver with `ignore_convergence = True` gives a result."""
 
-    class NoOptSolver(InteriorPointSolver):
+    class NoOptSolver(SundmanSolver):
         ignore_convergence = True
 
     comps = ['PB', 'SN', 'VA']
     phases = list(PBSN_DBF.phases.keys())
     conds = {v.T: 300, v.P: 101325, v.X('SN'): 0.50}
-    ipopt_solver_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=InteriorPointSolver(), verbose=True)
-    no_opt_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=NoOptSolver(), verbose=True)
+    ipopt_solver_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=SundmanSolver(), verbose=True)
+    # NoOptSolver's results are pdens-dependent
+    no_opt_eq_res = equilibrium(PBSN_DBF, comps, phases, conds,
+                                solver=NoOptSolver(), calc_opts={'pdens': 50}, verbose=True)
 
     ipopt_GM = ipopt_solver_eq_res.GM.values.squeeze()
     no_opt_GM = no_opt_eq_res.GM.values.squeeze()
     no_opt_MU = no_opt_eq_res.MU.values.squeeze()
     assert ipopt_GM != no_opt_GM  # global min energy is different from lower convex hull
-    assert np.allclose([-17452.5115967], no_opt_GM)  # energy from lower convex hull
-    assert np.allclose([-19540.6522632, -15364.3709302], no_opt_MU)  # chempots from lower convex hull
+    assert np.allclose([-17449.81365585], no_opt_GM)  # energy from lower convex hull
+    assert np.allclose([-19540.85816392, -15358.76914778], no_opt_MU)  # chempots from lower convex hull
 
 
+@pytest.mark.solver
 def test_eq_ideal_chempot_cond():
     TDB = """
      ELEMENT A    GRAPHITE                   12.011     1054.0      5.7423 !
@@ -468,6 +504,7 @@ def test_eq_ideal_chempot_cond():
     np.testing.assert_allclose(eq.X.isel(vertex=0).values.squeeze(), [0.01,  0.103321,  0.886679], atol=1e-4)
 
 
+@pytest.mark.solver
 def test_eq_tricky_chempot_cond():
     """
     Chemical potential condition with difficult convergence for chemical potentials.
@@ -481,6 +518,7 @@ def test_eq_tricky_chempot_cond():
     assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.19624727,  0.38996739,  0.41378534])
     assert_allclose(np.squeeze(eq.MU.values), chempots)
 
+@pytest.mark.solver
 def test_eq_magnetic_chempot_cond():
     """
     Chemical potential condition with an ill-conditioned Hessian due to magnetism (Tc->0).
@@ -489,8 +527,9 @@ def test_eq_magnetic_chempot_cond():
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
                      {v.MU('FE'): -123110, v.T: 300, v.P: 1e5}, verbose=True)
-    assert_allclose(np.squeeze(eq.GM.values), -35427.1, atol=0.1)
-    assert_allclose(np.squeeze(eq.MU.values), [-8490.7, -123110], atol=0.1)
+    # Checked in Thermo-Calc 2017b
+    assert_allclose(np.squeeze(eq.GM.values), -35427.064, atol=0.1)
+    assert_allclose(np.squeeze(eq.MU.values), [-8490.6849, -123110], atol=0.1)
 
 def test_eq_calculation_with_parameters():
     parameters = {'VV0000': -33134.699474175846, 'VV0001': 7734.114029426941, 'VV0002': -13498.542175596054,
@@ -502,3 +541,22 @@ def test_eq_calculation_with_parameters():
                      {v.X('CU'): 0.0001052, v.P: 101325.0, v.T: 743.15, v.N: 1},
                      parameters=parameters, verbose=True)
     assert_allclose(eq.GM.values, -30374.196034, atol=0.1)
+
+
+@pytest.mark.solver
+def test_eq_alni_low_temp():
+    """
+    Low temperature Al-Ni keeps correct stable set at equilibrium.
+    """
+    dbf = NI_AL_DUPIN_2001_DBF
+    comps = ['AL', 'NI', 'VA']
+    phases = sorted(dbf.phases.keys())
+    eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 300, v.N: 1, v.X('AL'): 0.4})
+    # Verified in TC: https://github.com/pycalphad/pycalphad/pull/329#discussion_r637241358
+    assert_allclose(eq.GM.values, -63736.3048)
+    assert_allclose(eq.MU.values.flatten(), [-116098.937755,  -28827.882809])
+    assert set(np.squeeze(eq.Phase.values)) == {'BCC_B2', 'AL3NI5', ''}
+    bcc_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'BCC_B2')[0][0]
+    al3ni5_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'AL3NI5')[0][0]
+    assert_allclose(np.squeeze(eq.X.sel(vertex=bcc_idx).values), [0.488104, 0.511896], atol=1e-6)
+    assert_allclose(np.squeeze(eq.X.sel(vertex=al3ni5_idx).values), [0.375, 0.625], atol=1e-6)

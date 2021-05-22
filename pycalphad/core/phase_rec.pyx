@@ -15,6 +15,8 @@ cdef class FastFunction:
             self.f_ptr = NULL
             self.func_data = NULL
             return
+        if isinstance(func, FastFunction):
+            func = func._objref
         # Preserve reference to object to prevent garbage collection
         self._objref = func
         addr1, addr2 = func.as_ctypes()
@@ -71,18 +73,20 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     """
     def __reduce__(self):
             return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
-                                 self.ofunc_, self.gfunc_, self.hfunc_,
-                                 self.massfuncs_, self.massgradfuncs_, self.masshessianfuncs_,
+                                 self.ofunc_,
+                                 self.formulaofunc_, self.formulagfunc_, self.formulahfunc_,
+                                 self.massfuncs_,
+                                 self.formulamolefuncs_, self.formulamolegradfuncs_, self.formulamolehessianfuncs_,
                                  self.internal_cons_func_, self.internal_cons_jac_, self.internal_cons_hess_,
-                                 self.multiphase_cons_func_, self.multiphase_cons_jac_, self.multiphase_cons_hess_,
-                                 self.num_internal_cons, self.num_multiphase_cons)
+                                 self.num_internal_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,
-                  double[::1] parameters, object ofunc, object gfunc, object hfunc,
-                  object massfuncs, object massgradfuncs, object masshessianfuncs,
+                  double[::1] parameters, object ofunc,
+                  object formulaofunc, object formulagfunc, object formulahfunc,
+                  object massfuncs,
+                  object formulamolefuncs, object formulamolegradfuncs, object formulamolehessianfuncs,
                   object internal_cons_func, object internal_cons_jac, object internal_cons_hess,
-                  object multiphase_cons_func, object multiphase_cons_jac, object multiphase_cons_hess,
-                  size_t num_internal_cons, size_t num_multiphase_cons):
+                  size_t num_internal_cons):
         cdef:
             int var_idx, el_idx
         self.components = comps
@@ -99,7 +103,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         self.phase_dof = 0
         self.parameters = parameters
         self.num_internal_cons = num_internal_cons
-        self.num_multiphase_cons = num_multiphase_cons
 
         for variable in variables:
             if not isinstance(variable, v.SiteFraction):
@@ -109,51 +112,51 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
         # Used only to reconstitute if pickled (i.e. via __reduce__)
         self.ofunc_ = ofunc
-        self.gfunc_ = gfunc
-        self.hfunc_ = hfunc
+        self.formulaofunc_ = formulaofunc
+        self.formulagfunc_ = formulagfunc
+        self.formulahfunc_ = formulahfunc
         self.internal_cons_func_ = internal_cons_func
         self.internal_cons_jac_ = internal_cons_jac
         self.internal_cons_hess_ = internal_cons_hess
-        self.multiphase_cons_func_ = multiphase_cons_func
-        self.multiphase_cons_jac_ = multiphase_cons_jac
-        self.multiphase_cons_hess_ = multiphase_cons_hess
         self.massfuncs_ = massfuncs
-        self.massgradfuncs_ = massgradfuncs
-        self.masshessianfuncs_ = masshessianfuncs
+        self.formulamolefuncs_ = formulamolefuncs
+        self.formulamolegradfuncs_ = formulamolegradfuncs
+        self.formulamolehessianfuncs_ = formulamolehessianfuncs
 
         if ofunc is not None:
             self._obj = FastFunction(ofunc)
-        if gfunc is not None:
-            self._grad = FastFunction(gfunc)
-        if hfunc is not None:
-            self._hess = FastFunction(hfunc)
+        if formulaofunc is not None:
+            self._formulaobj = FastFunction(formulaofunc)
+        if formulagfunc is not None:
+            self._formulagrad = FastFunction(formulagfunc)
+        if formulahfunc is not None:
+            self._formulahess = FastFunction(formulahfunc)
         if internal_cons_func is not None:
             self._internal_cons_func = FastFunction(internal_cons_func)
         if internal_cons_jac is not None:
             self._internal_cons_jac = FastFunction(internal_cons_jac)
         if internal_cons_hess is not None:
             self._internal_cons_hess = FastFunction(internal_cons_hess)
-        if multiphase_cons_func is not None:
-            self._multiphase_cons_func = FastFunction(multiphase_cons_func)
-        if multiphase_cons_jac is not None:
-            self._multiphase_cons_jac = FastFunction(multiphase_cons_jac)
-        if multiphase_cons_hess is not None:
-            self._multiphase_cons_hess = FastFunction(multiphase_cons_hess)
         if massfuncs is not None:
             self._masses = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
                 self._masses[el_idx] = FastFunction(massfuncs[el_idx])
             self._masses_ptr = <void**> self._masses.data
-        if massgradfuncs is not None:
-            self._massgrads = np.empty(len(nonvacant_elements), dtype='object')
+        if formulamolefuncs is not None:
+            self._formulamoles = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
-                self._massgrads[el_idx] = FastFunction(massgradfuncs[el_idx])
-            self._massgrads_ptr = <void**> self._massgrads.data
-        if masshessianfuncs is not None:
-            self._masshessians = np.empty(len(nonvacant_elements), dtype='object')
+                self._formulamoles[el_idx] = FastFunction(formulamolefuncs[el_idx])
+            self._formulamoles_ptr = <void**> self._formulamoles.data
+        if formulamolegradfuncs is not None:
+            self._formulamolegrads = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
-                self._masshessians[el_idx] = FastFunction(masshessianfuncs[el_idx])
-            self._masshessians_ptr = <void**> self._masshessians.data
+                self._formulamolegrads[el_idx] = FastFunction(formulamolegradfuncs[el_idx])
+            self._formulamolegrads_ptr = <void**> self._formulamolegrads.data
+        if formulamolehessianfuncs is not None:
+            self._formulamolehessians = np.empty(len(nonvacant_elements), dtype='object')
+            for el_idx in range(len(nonvacant_elements)):
+                self._formulamolehessians[el_idx] = FastFunction(formulamolehessianfuncs[el_idx])
+            self._formulamolehessians_ptr = <void**> self._formulamolehessians.data
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -162,6 +165,16 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
         self._obj.call(&outp[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void formulaobj(self, double[::1] outp, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
+        self._formulaobj.call(&outp[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
@@ -209,19 +222,20 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
+    cpdef void formulagrad(self, double[::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        self._grad.call(&out[0], &dof_concat[0])
+        self._formulagrad.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void hess(self, double[:, ::1] out, double[::1] dof) nogil:
+    cpdef void formulahess(self, double[:, ::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        self._hess.call(&out[0,0], &dof_concat[0])
+        self._formulahess.call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
@@ -255,33 +269,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void multiphase_cons_func(self, double[::1] out, double[::1] dof) nogil:
-        # dof.shape[0] may be oversized by the caller; do not trust it
-        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
-        self._multiphase_cons_func.call(&out[0], &dof_concat[0])
-        if self.parameters.shape[0] > 0:
-            free(dof_concat)
-
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    cpdef void multiphase_cons_jac(self, double[:, ::1] out, double[::1] dof) nogil:
-        # dof.shape[0] may be oversized by the caller; do not trust it
-        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
-        self._multiphase_cons_jac.call(&out[0, 0], &dof_concat[0])
-        if self.parameters.shape[0] > 0:
-            free(dof_concat)
-
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    cpdef void multiphase_cons_hess(self, double[:, :, ::1] out, double[::1] dof) nogil:
-        # dof.shape[0] may be oversized by the caller; do not trust it
-        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
-        self._multiphase_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
-        if self.parameters.shape[0] > 0:
-            free(dof_concat)
-
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
     cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
@@ -304,18 +291,28 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
+    cpdef void formulamole_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        (<FastFunction>self._massgrads_ptr[comp_idx]).call(&out[0], &dof_concat[0])
+        (<FastFunction>self._formulamoles_ptr[comp_idx]).call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil:
+    cpdef void formulamole_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        (<FastFunction>self._masshessians_ptr[comp_idx]).call(&out[0,0], &dof_concat[0])
+        (<FastFunction>self._formulamolegrads_ptr[comp_idx]).call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void formulamole_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        (<FastFunction>self._formulamolehessians_ptr[comp_idx]).call(&out[0,0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+

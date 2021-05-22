@@ -11,7 +11,7 @@ from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
-from pycalphad.core.solver import InteriorPointSolver
+from pycalphad.core.solver import SundmanSolver
 from pycalphad.core.light_dataset import LightDataset
 import numpy as np
 from collections import OrderedDict
@@ -200,7 +200,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
     calc_opts = calc_opts if calc_opts is not None else dict()
-    solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
+    solver = solver if solver is not None else SundmanSolver(verbose=verbose)
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
@@ -242,8 +242,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts = calc_opts.copy()
     statevar_strings = [str(x) for x in state_variables]
     grid_opts.update({key: value for key, value in str_conds.items() if key in statevar_strings})
+
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 500
+        grid_opts['pdens'] = 50
     grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
                      callables=callables, output='GM', parameters=parameters,
                      to_xarray=False, **grid_opts)

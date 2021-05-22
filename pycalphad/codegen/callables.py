@@ -77,15 +77,15 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         'massfuncs': {},
         'massgradfuncs': {},
         'masshessfuncs': {},
+        'formulamolefuncs': {},
+        'formulamolegradfuncs': {},
+        'formulamolehessfuncs': {},
         'callables': {},
         'grad_callables': {},
         'hess_callables': {},
         'internal_cons_func': {},
         'internal_cons_jac': {},
         'internal_cons_hess': {},
-        'multiphase_cons_func': {},
-        'multiphase_cons_jac': {},
-        'multiphase_cons_hess': {}
     }
 
     state_variables = get_state_variables(models=models)
@@ -130,6 +130,19 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         _callables['massfuncs'][name] = mcf
         _callables['massgradfuncs'][name] = mgf
         _callables['masshessfuncs'][name] = mhf
+
+        # Build the callables for moles per formula unit
+        # TODO: In principle, we should also check for undefs in mod.moles()
+        fmcf, fmgf, fmhf = zip(*[build_functions(mod.moles(el, per_formula_unit=True), state_variables + site_fracs,
+                                                 include_obj=True,
+                                                 include_grad=build_gradients,
+                                                 include_hess=build_hessians,
+                                                 parameters=parameter_symbols)
+                                 for el in pure_elements])
+
+        _callables['formulamolefuncs'][name] = fmcf
+        _callables['formulamolegradfuncs'][name] = fmgf
+        _callables['formulamolehessfuncs'][name] = fmhf
     return {output: _callables}
 
 
@@ -188,9 +201,6 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         'internal_cons_func': {},
         'internal_cons_jac': {},
         'internal_cons_hess': {},
-        'multiphase_cons_func': {},
-        'multiphase_cons_jac': {},
-        'multiphase_cons_hess': {}
     }
     phase_records = {}
     state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
@@ -200,8 +210,14 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         callables = build_callables(dbf, comps, phases, models,
                                     parameter_symbols=parameters.keys(), output=output,
                                     additional_statevars=state_variables,
-                                    build_gradients=build_gradients,
-                                    build_hessians=build_hessians)
+                                    build_gradients=False,
+                                    build_hessians=False)
+    # Temporary solution. PhaseRecord needs rework: https://github.com/pycalphad/pycalphad/pull/329#discussion_r634579356
+    formulacallables = build_callables(dbf, comps, phases, models,
+                                       parameter_symbols=parameters.keys(), output='G',
+                                       additional_statevars=state_variables,
+                                       build_gradients=build_gradients,
+                                       build_hessians=build_hessians)
 
     # If a vector of parameters is specified, only pass the first row to the PhaseRecord
     # Future callers of PhaseRecord.obj_parameters_2d() can pass the full param_values array as an argument
@@ -212,31 +228,25 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         mod = models[name]
         site_fracs = mod.site_fractions
         # build constraint functions
-        cfuncs = build_constraints(mod, state_variables + site_fracs, conds, parameters=param_symbols)
+        cfuncs = build_constraints(mod, state_variables + site_fracs, parameters=param_symbols)
         _constraints['internal_cons_func'][name] = cfuncs.internal_cons_func
         _constraints['internal_cons_jac'][name] = cfuncs.internal_cons_jac
         _constraints['internal_cons_hess'][name] = cfuncs.internal_cons_hess
-        _constraints['multiphase_cons_func'][name] = cfuncs.multiphase_cons_func
-        _constraints['multiphase_cons_jac'][name] = cfuncs.multiphase_cons_jac
-        _constraints['multiphase_cons_hess'][name] = cfuncs.multiphase_cons_hess
         num_internal_cons = cfuncs.num_internal_cons
-        num_multiphase_cons = cfuncs.num_multiphase_cons
 
         phase_records[name.upper()] = PhaseRecord(comps, state_variables, site_fracs, param_values,
                                                   callables[output]['callables'][name],
-                                                  callables[output]['grad_callables'][name],
-                                                  callables[output]['hess_callables'][name],
+                                                  formulacallables['G']['callables'][name],
+                                                  formulacallables['G']['grad_callables'][name],
+                                                  formulacallables['G']['hess_callables'][name],
                                                   callables[output]['massfuncs'][name],
-                                                  callables[output]['massgradfuncs'][name],
-                                                  callables[output]['masshessfuncs'][name],
+                                                  formulacallables['G']['formulamolefuncs'][name],
+                                                  formulacallables['G']['formulamolegradfuncs'][name],
+                                                  formulacallables['G']['formulamolehessfuncs'][name],
                                                   _constraints['internal_cons_func'][name],
                                                   _constraints['internal_cons_jac'][name],
                                                   _constraints['internal_cons_hess'][name],
-                                                  _constraints['multiphase_cons_func'][name],
-                                                  _constraints['multiphase_cons_jac'][name],
-                                                  _constraints['multiphase_cons_hess'][name],
-                                                  num_internal_cons,
-                                                  num_multiphase_cons)
+                                                  num_internal_cons)
 
         if verbose:
             print(name + ' ')
