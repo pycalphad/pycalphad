@@ -101,7 +101,7 @@ def test_dilute_condition():
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-12}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.841)
-    assert_allclose(np.squeeze(eq.MU.values), [-385499.682936,  -64415.837878], atol=0.1)
+    assert_allclose(np.squeeze(eq.MU.values), [-385499.682936,  -64415.837878], atol=1.0)
 
 @pytest.mark.solver
 def test_eq_illcond_hessian():
