@@ -20,20 +20,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m venv pycalphad-dev
-      - name: "Linux/Mac: activate virtual environment"
+      - name: "Activate virtual environment (Linux/Mac)"
         run: source pycalphad-dev/bin/activate
         if: ${{ runner.os != 'Windows' }}
-      - name: "Windows activate virtual environment"
+      - name: "Activate virtual environment (Windows)"
         run: pycalphad-dev\Scripts\Activate.ps1
         if: ${{ runner.os == 'Windows' }}
       - run: pip install build
       - run: python -m build --wheel
-      - name: "Linux/Mac: pip install pycalphad wheel"
-        run: pip install dist/*.whl
-        if: ${{ runner.os != 'Windows' }}
-      - name: "Windows: pip install pycalphad wheel"
-        run: pip install "dist\*.whl"
-        if: ${{ runner.os == 'Windows' }}
+      - run: pip install dist/*.whl
+        shell: bash  # support cross-platform paths
       - run: pip check
       - run: pip list
       - run: pip install pytest pytest-cov
