@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.8.5+5.gc1509651 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.8.5+6.g5c1d07b8 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+5.gc1509651
+                0.8.5+6.g5c1d07b8
               </div>
             
           
@@ -175,7 +175,6 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="kn">import</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">ConditionError</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.starting_point</span> <span class="kn">import</span> <span class="n">starting_point</span>
 <span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="kn">import</span> <span class="n">build_phase_records</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="kn">import</span> <span class="n">_solve_eq_at_conditions</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.solver</span> <span class="kn">import</span> <span class="n">SundmanSolver</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.light_dataset</span> <span class="kn">import</span> <span class="n">LightDataset</span>
@@ -187,11 +186,17 @@
 <span class="k">def</span> <span class="nf">_adjust_conditions</span><span class="p">(</span><span class="n">conds</span><span class="p">):</span>
     <span class="s2">&quot;Adjust conditions values to be within the numerical limit of the solver.&quot;</span>
     <span class="n">new_conds</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">minimum_composition</span> <span class="o">=</span> <span class="mf">1e-10</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
             <span class="n">key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">):</span>
-            <span class="n">new_conds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">MIN_SITE_FRACTION</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">)]</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="c1"># &quot;Zero&quot; composition is a common pattern. Do not warn for that case.</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">minimum_composition</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)):</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Some specified compositions are below the minimum allowed composition of </span><span class="si">{</span><span class="n">minimum_composition</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="n">new_conds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">minimum_composition</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">new_conds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">new_conds</span>
