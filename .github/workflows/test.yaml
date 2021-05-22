@@ -22,16 +22,16 @@ jobs:
       - run: python -m venv pycalphad-dev
       # Platform dependent: environment activation script
       - run: source pycalphad-dev/bin/activate
-        if: ${{ runner.os }} != "Windows"
+        if: ${{ runner.os != "Windows" }}
       - run: pycalphad-dev\Scripts\Activate.ps1
-        if: ${{ runner.os }} == "Windows"
+        if: ${{ runner.os == "Windows" }}
       - run: pip install build
       - run: python -m build --wheel
       # Platform dependent: install path
       - run: pip install dist/*.whl
-        if: ${{ runner.os }} != "Windows"
+        if: ${{ runner.os != "Windows" }}
       - run: pip install dist\*.whl
-        if: ${{ runner.os }} == "Windows"
+        if: ${{ runner.os == "Windows" }}
       - run: pip check
       - run: pip list
       - run: pip install pytest pytest-cov
