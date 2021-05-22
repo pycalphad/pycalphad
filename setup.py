@@ -16,6 +16,8 @@ CYTHON_COMPILER_DIRECTIVES = {
     "language_level": 3,
 }
 
+# "error: '::hypot' has not been declared when compiling with MingGW64"
+# https://github.com/Theano/Theano/issues/4926
 CYTHON_EXTENSION_MODULES = [
     Extension('pycalphad.core.hyperplane',
         sources=['pycalphad/core/hyperplane.pyx'],
@@ -62,8 +64,6 @@ setup(
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests'],
-    # "error: '::hypot' has not been declared when compiling with MingGW64"
-    # https://github.com/Theano/Theano/issues/4926
     ext_modules=cythonize(
         CYTHON_EXTENSION_MODULES,
         include_path=['.', np.get_include()],
