@@ -16,33 +16,14 @@ CYTHON_COMPILER_DIRECTIVES = {
     "language_level": 3,
 }
 
-EXTENSION_INCLUDES = ['.', np.get_include()]
-
+CYTHON_EXTENSION_INCLUDES = ['.', np.get_include()]
 CYTHON_EXTENSION_MODULES = [
-    Extension('pycalphad.core.hyperplane',
-        sources=['pycalphad/core/hyperplane.pyx'],
-        include_dirs=EXTENSION_INCLUDES,
-    ),
-    Extension('pycalphad.core.eqsolver',
-        sources=['pycalphad/core/eqsolver.pyx'],
-        include_dirs=EXTENSION_INCLUDES,
-    ),
-    Extension('pycalphad.core.phase_rec',
-        sources=['pycalphad/core/phase_rec.pyx'],
-        include_dirs=EXTENSION_INCLUDES,
-    ),
-    Extension('pycalphad.core.composition_set',
-        sources=['pycalphad/core/composition_set.pyx'],
-        include_dirs=EXTENSION_INCLUDES,
-    ),
-    Extension('pycalphad.core.problem',
-        sources=['pycalphad/core/problem.pyx'],
-        include_dirs=EXTENSION_INCLUDES,
-    ),
-    Extension('pycalphad.core.minimizer',
-        sources=['pycalphad/core/minimizer.pyx'],
-        include_dirs=EXTENSION_INCLUDES,
-    ),
+    Extension('pycalphad.core.hyperplane', sources=['pycalphad/core/hyperplane.pyx']),
+    Extension('pycalphad.core.eqsolver', sources=['pycalphad/core/eqsolver.pyx']),
+    Extension('pycalphad.core.phase_rec', sources=['pycalphad/core/phase_rec.pyx']),
+    Extension('pycalphad.core.composition_set', sources=['pycalphad/core/composition_set.pyx']),
+    Extension('pycalphad.core.problem', sources=['pycalphad/core/problem.pyx']),
+    Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx']),
 ]
 
 setup(
@@ -55,7 +36,7 @@ setup(
     packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests'],
     ext_modules=cythonize(
         CYTHON_EXTENSION_MODULES,
-        include_path=['.', np.get_include()],
+        include_path=CYTHON_EXTENSION_INCLUDES,
         compiler_directives=CYTHON_COMPILER_DIRECTIVES,
     ),
     package_data={
