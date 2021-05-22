@@ -20,7 +20,7 @@ from datetime import datetime
 def _adjust_conditions(conds):
     "Adjust conditions values to be within the numerical limit of the solver."
     new_conds = OrderedDict()
-    minimum_composition = 1e-12
+    minimum_composition = 1e-10
     for key, value in sorted(conds.items(), key=str):
         if key == str(key):
             key = getattr(v, key, key)

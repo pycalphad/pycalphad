@@ -99,11 +99,9 @@ def test_dilute_condition():
     """
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8}, verbose=True)
-    # Checked in TC
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-12}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.841)
-    # We loosen the tolerance a bit here because our convergence tolerance is too low for the last digit
-    assert_allclose(np.squeeze(eq.MU.values), [-335723.28,  -64415.838], atol=1.0)
+    assert_allclose(np.squeeze(eq.MU.values), [-385499.682936,  -64415.837878])
 
 @pytest.mark.solver
 def test_eq_illcond_hessian():
