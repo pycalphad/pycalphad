@@ -1,4 +1,6 @@
 # distutils: language = c++
+# Some places are still using negative indices, so override this for now
+# cython: wraparound=True
 from collections import defaultdict, OrderedDict
 import numpy as np
 cimport numpy as np
@@ -23,6 +25,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     whether it modified composition_sets.
     """
     cdef double[:] driving_forces
+    cdef int comp_idx
     cdef int df_idx = 0
     cdef double largest_df = -np.inf
     cdef double[:] df_comp
