@@ -9,7 +9,6 @@ from pycalphad import calculate
 from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import build_phase_records
-from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import SundmanSolver
 from pycalphad.core.light_dataset import LightDataset
@@ -21,11 +20,17 @@ from datetime import datetime
 def _adjust_conditions(conds):
     "Adjust conditions values to be within the numerical limit of the solver."
     new_conds = OrderedDict()
+    minimum_composition = 1e-12
     for key, value in sorted(conds.items(), key=str):
         if key == str(key):
             key = getattr(v, key, key)
         if isinstance(key, v.MoleFraction):
-            new_conds[key] = [max(val, 1e-12) for val in unpack_condition(value)]
+            vals = unpack_condition(value)
+            # "Zero" composition is a common pattern. Do not warn for that case.
+            if np.any(np.logical_and(np.asarray(vals) < minimum_composition, np.asarray(vals) > 0)):
+                warnings.warn(
+                    f"Some specified compositions are below the minimum allowed composition of {minimum_composition}.")
+            new_conds[key] = [max(val, minimum_composition) for val in vals]
         else:
             new_conds[key] = unpack_condition(value)
     return new_conds
