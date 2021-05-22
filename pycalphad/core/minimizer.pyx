@@ -831,7 +831,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         system_is_feasible = (state.mass_residual < allowed_mass_residual) and (state.largest_internal_cons_max_residual < 1e-9) and \
                              (chempot_diff < 1e-12) and (state.iteration > 5) and (largest_moles_change < 1e-9) and (phase_change_counter == 0)
-        print(f'system_is_feasible={system_is_feasible}  step_size={step_size} state.mass_residual={state.mass_residual}  state.largest_internal_cons_max_residual={state.largest_internal_cons_max_residual}')
         if system_is_feasible:
             converged = True
             new_free_stable_compset_indices = np.array([i for i in range(state.phase_amt.shape[0])
