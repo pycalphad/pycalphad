@@ -20,6 +20,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m venv pycalphad-dev
+      - run: ls * pycalphad-dev/bin/activate
+        # Use bash so that the file path works cross-platform
+        shell: bash
+      - run: ls pycalphad-dev/bin/*
+        # Use bash so that the file path works cross-platform
+        shell: bash
       - run: source pycalphad-dev/bin/activate
         # Use bash so that the file path works cross-platform
         shell: bash
