@@ -25,10 +25,14 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
 
     Parameters
     ----------
-    model
-    sampler
-    fixed_grid
-    pdens
+    model : Model
+        Instance of a pycalphad Model
+    sampler : Callable
+        Callable returning an ArrayLike of points
+    fixed_grid : bool
+        If True, sample pdens points between each pair of endmembers
+    pdens : int
+        Number of points to sample in each sampled dimension
 
     Returns
     -------
