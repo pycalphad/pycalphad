@@ -19,6 +19,9 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - run: python -m venv pycalphad-dev
+      - run: source ./pycalphad-dev/bin/activate
+        shell: bash
       - run: pip install build
       - run: python -m build --wheel
       - run: pip install dist/*.whl
