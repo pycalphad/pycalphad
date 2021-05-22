@@ -25,7 +25,7 @@ def _adjust_conditions(conds):
         if key == str(key):
             key = getattr(v, key, key)
         if isinstance(key, v.MoleFraction):
-            new_conds[key] = [max(val, MIN_SITE_FRACTION*1000) for val in unpack_condition(value)]
+            new_conds[key] = [max(val, 1e-12) for val in unpack_condition(value)]
         else:
             new_conds[key] = unpack_condition(value)
     return new_conds

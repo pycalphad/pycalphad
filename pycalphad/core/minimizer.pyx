@@ -717,7 +717,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef int num_stable_phases, num_fixed_components, num_free_variables
     cdef CompositionSet compset, compset2
     cdef double mass_residual = 1e-30
-    cdef double max_delta_m, delta_energy
+    cdef double max_delta_m, delta_energy, allowed_mass_residual
     cdef double[::1] x, new_y, delta_y
     cdef double[::1] delta_m = np.zeros(num_components)
     cdef double[::1] chemical_potentials = np.zeros(num_components)
@@ -739,6 +739,12 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef SystemState state = SystemState(spec, compsets)
     cdef SystemState old_state
 
+    if spec.prescribed_elemental_amounts.shape[0] > 0:
+        allowed_mass_residual = min(1e-8, np.min(spec.prescribed_elemental_amounts)/10)
+        # Also adjust mass residual if we are near the edge of composition space
+        allowed_mass_residual = min(allowed_mass_residual, (1-np.sum(spec.prescribed_elemental_amounts))/10)
+    else:
+        allowed_mass_residual = 1e-8
     state.mass_residual = 1e10
     phase_change_counter = 5
     step_size = 1./10
@@ -823,8 +829,9 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         chemical_potentials = state.chemical_potentials
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
-        system_is_feasible = (state.mass_residual < 1e-8) and (state.largest_internal_cons_max_residual < 1e-9) and \
+        system_is_feasible = (state.mass_residual < allowed_mass_residual) and (state.largest_internal_cons_max_residual < 1e-9) and \
                              (chempot_diff < 1e-12) and (state.iteration > 5) and (largest_moles_change < 1e-9) and (phase_change_counter == 0)
+        print(f'system_is_feasible={system_is_feasible}  step_size={step_size} state.mass_residual={state.mass_residual}  state.largest_internal_cons_max_residual={state.largest_internal_cons_max_residual}')
         if system_is_feasible:
             converged = True
             new_free_stable_compset_indices = np.array([i for i in range(state.phase_amt.shape[0])

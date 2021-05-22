@@ -61,7 +61,7 @@ def test_degree_of_ordering():
     conds = {v.T: 300, v.P: 101325, v.X('AL'): 0.25}
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, output='degree_of_ordering', verbose=True)
     print('Degree of ordering: {}'.format(eqx.degree_of_ordering.sel(vertex=0).values.flatten()))
-    assert np.isclose(eqx.degree_of_ordering.sel(vertex=0).values.flatten(), np.array([0.66663873]))
+    assert np.isclose(eqx.degree_of_ordering.sel(vertex=0).values.flatten(), np.array([0.66666666]))
 
 def test_detect_pure_vacancy_phases():
     "Detecting a pure vacancy phase"
