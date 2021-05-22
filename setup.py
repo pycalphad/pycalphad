@@ -17,8 +17,8 @@ CYTHON_COMPILER_DIRECTIVES = {
 }
 
 EXTENSION_INCLUDES = ['.', np.get_include()]
-EXTENSION_COMPILE_ARGS = ["-std=c++11"]
-EXTENSION_LINK_ARGS = ["-std=c++11"]
+EXTENSION_COMPILE_ARGS = []
+EXTENSION_LINK_ARGS = []
 
 CYTHON_EXTENSION_MODULES = [
     Extension('pycalphad.core.hyperplane',
