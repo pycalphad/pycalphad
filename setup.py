@@ -48,6 +48,12 @@ setup(
                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include()],
                                      ),
+                           Extension('pycalphad.core.minimizer',
+                                     sources=['pycalphad/core/minimizer.pyx'],
+                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],
+                                     extra_link_args=["-std=c++11"],
+                                     include_dirs=['.', np.get_include()],
+                                     ),
 
                           ], include_path=['.', np.get_include()]),
     package_data={
@@ -67,7 +73,6 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'Cython>=0.24',
-        'ipopt>=1.0',
         'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing',
