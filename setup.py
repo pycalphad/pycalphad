@@ -12,6 +12,19 @@ import versioneer
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+CYTHON_COMPILER_DIRECTIVES = {
+    "language_level": 3,
+}
+
+CYTHON_EXTENSION_INCLUDES = ['.', np.get_include()]
+CYTHON_EXTENSION_MODULES = [
+    Extension('pycalphad.core.hyperplane', sources=['pycalphad/core/hyperplane.pyx']),
+    Extension('pycalphad.core.eqsolver', sources=['pycalphad/core/eqsolver.pyx']),
+    Extension('pycalphad.core.phase_rec', sources=['pycalphad/core/phase_rec.pyx']),
+    Extension('pycalphad.core.composition_set', sources=['pycalphad/core/composition_set.pyx']),
+    Extension('pycalphad.core.problem', sources=['pycalphad/core/problem.pyx']),
+    Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx']),
+]
 
 setup(
     name='pycalphad',
@@ -21,41 +34,11 @@ setup(
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests'],
-    # "error: '::hypot' has not been declared when compiling with MingGW64"
-    # https://github.com/Theano/Theano/issues/4926
-    ext_modules=cythonize([Extension('pycalphad.core.hyperplane',
-                                    sources=['pycalphad/core/hyperplane.pyx'],
-                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
-                                    include_dirs=['.', np.get_include()],
-                                     ),
-                           Extension('pycalphad.core.eqsolver',
-                                    sources=['pycalphad/core/eqsolver.pyx'],
-                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
-                                    include_dirs=['.', np.get_include()],
-                                    ),
-                           Extension('pycalphad.core.phase_rec',
-                                    sources=['pycalphad/core/phase_rec.pyx'],
-                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],
-                                    include_dirs=['.', np.get_include()],
-                                     ),
-                           Extension('pycalphad.core.composition_set',
-                                    sources=['pycalphad/core/composition_set.pyx'],
-                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
-                                    include_dirs=['.', np.get_include()],
-                                     ),
-                           Extension('pycalphad.core.problem',
-                                    sources=['pycalphad/core/problem.pyx'],
-                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
-                                    include_dirs=['.', np.get_include()],
-                                     ),
-                           Extension('pycalphad.core.minimizer',
-                                     sources=['pycalphad/core/minimizer.pyx'],
-                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],
-                                     extra_link_args=["-std=c++11"],
-                                     include_dirs=['.', np.get_include()],
-                                     ),
-
-                          ], include_path=['.', np.get_include()]),
+    ext_modules=cythonize(
+        CYTHON_EXTENSION_MODULES,
+        include_path=CYTHON_EXTENSION_INCLUDES,
+        compiler_directives=CYTHON_COMPILER_DIRECTIVES,
+    ),
     package_data={
         'pycalphad/core': ['*.pxd'],
     },
