@@ -9,7 +9,7 @@ cdef class Problem:
         cdef CompositionSet compset
         cdef int num_internal_cons = sum(compset.phase_record.num_internal_cons for compset in comp_sets)
         cdef object state_variables
-        cdef int num_fixed_dof_cons
+        cdef int num_fixed_dof_cons, idx
         cdef int num_constraints
         cdef int constraint_idx = 0
         cdef int var_idx = 0
@@ -38,6 +38,6 @@ cdef class Problem:
         all_dof = list(str(k) for k in state_variables)
         for compset in comp_sets:
             all_dof.extend(compset.phase_record.variables)
-        for i, s in enumerate(fixed_statevars):
-            k, v = s
-            self.fixed_dof_indices[i] = all_dof.index(k)
+        for idx in range(len(fixed_statevars)):
+            k = fixed_statevars[idx][0]
+            self.fixed_dof_indices[idx] = all_dof.index(k)
