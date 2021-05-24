@@ -79,7 +79,10 @@ TDB_PARAM_TYPES = sorted([
     'NT',
     'THETA',
     'V0',
-    'VS'
+    'VS',
+    'Z',
+    'EXMQ',
+    'EXMG'
 ])
 
 def expand_keyword(possible, candidate):
