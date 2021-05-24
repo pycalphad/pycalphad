@@ -18,7 +18,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     ----------
     global_grid : Dataset
         A sample of the energy surface of the system.
-    state_variables : list
+    state_variables : List[v.StateVariable]
         A list of the state variables (e.g., P, T) used in this calculation.
     result_array : Dataset
         This object will be modified!
@@ -37,7 +37,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     --------
     None yet.
     """
-
+    state_variables = sorted(state_variables, key=str)
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
     comp_conds_indices = sorted([idx for idx, x in enumerate(sorted(result_array.coords['component']))
                                  if 'X_'+x in comp_conds])
