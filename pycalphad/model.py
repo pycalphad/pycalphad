@@ -728,7 +728,7 @@ class Model(object):
             (1., True),
             evaluate=False
             )
-        self.BMAG = self.beta = beta.subs(self._symbols)
+        self.BMAG = self.beta = self.symbol_replace(beta, self._symbols)
 
         curie_temp = \
             self.redlich_kister_sum(phase, param_search, tc_param_query)
@@ -737,7 +737,7 @@ class Model(object):
             (1., True),
             evaluate=False
             )
-        self.TC = self.curie_temperature = tc.subs(self._symbols)
+        self.TC = self.curie_temperature = self.symbol_replace(tc, self._symbols)
 
         # Used to prevent singularity
         tau_positive_tc = v.T / (curie_temp + 1e-9)
@@ -817,9 +817,9 @@ class Model(object):
         neel_temp = \
             self.redlich_kister_sum(phase, param_search, nt_param_query)
 
-        self.TC = self.curie_temperature = curie_temp.subs(self._symbols)
-        self.NT = self.neel_temperature = neel_temp.subs(self._symbols)
-        self.BMAG = self.beta = beta.subs(self._symbols)
+        self.TC = self.curie_temperature = self.symbol_replace(curie_temp, self._symbols)
+        self.NT = self.neel_temperature = self.symbol_replace(neel_temp, self._symbols)
+        self.BMAG = self.beta = self.symbol_replace(beta, self._symbols)
 
         tau_curie = v.T / curie_temp
         tau_curie = tau_curie.xreplace({zoo: 1.0e10})
@@ -1187,12 +1187,12 @@ class Model(object):
             # set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix
             site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
             for mod_key, mod_val in mod_pure.models.items():
-                mod_pure.models[mod_key] = mod_val.subs(site_frac_subs)
+                mod_pure.models[mod_key] = self.symbol_replace(mod_val, site_frac_subs)
             moles = self.moles(ref_state.species)
             # get the output property of interest, substitute the fixed state variables (e.g. T=298.15) and add the pure element moles weighted term to the list of terms
             # substitution of fixed state variables has to happen after getting the attribute in case there are any derivatives involving that state variable
             for out in reference_dict.keys():
-                mod_out = getattr(mod_pure, out).subs(ref_state.fixed_statevars)
+                mod_out = self.symbol_replace(getattr(mod_pure, out), ref_state.fixed_statevars)
                 reference_dict[out].append(mod_out*moles)
 
         # set the attribute on the class
