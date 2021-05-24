@@ -14,43 +14,40 @@ from pycalphad.core.cache import cacheit
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
-    filter_phases, generate_dof, instantiate_models, point_sample, \
+    filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
 
 
 @cacheit
-def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, comps,
-                               variables, sampler, fixed_grid, pdens):
+def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     """
     Sample the internal degrees of freedom of a phase.
 
     Parameters
     ----------
-    phase_name
-    phase_constituents
-    sublattice_dof
-    comps
-    variables
-    sampler
-    fixed_grid
-    pdens
+    model : Model
+        Instance of a pycalphad Model
+    sampler : Callable
+        Callable returning an ArrayLike of points
+    fixed_grid : bool
+        If True, sample pdens points between each pair of endmembers
+    pdens : int
+        Number of points to sample in each sampled dimension
 
     Returns
     -------
     ndarray of points
     """
     # Eliminate pure vacancy endmembers from the calculation
-    vacancy_indices = list()
-    for idx, sublattice in enumerate(phase_constituents):
-        active_in_subl = sorted(set(phase_constituents[idx]).intersection(comps))
-        is_vacancy = [spec.number_of_atoms == 0 for spec in active_in_subl]
-        subl_va_indices = list(idx for idx, x in enumerate(is_vacancy) if x == True)
+    vacancy_indices = []
+    for sublattice in model.constituents:
+        subl_va_indices = [idx for idx, spec in enumerate(sorted(set(sublattice))) if spec.number_of_atoms == 0]
         vacancy_indices.append(subl_va_indices)
-    if len(vacancy_indices) != len(phase_constituents):
+    if len(vacancy_indices) != len(model.constituents):
         vacancy_indices = None
+    sublattice_dof = [len(subl) for subl in model.constituents]
     # Add all endmembers to guarantee their presence
-    points = endmember_matrix(sublattice_dof,
-                              vacancy_indices=vacancy_indices)
+    points = endmember_matrix(sublattice_dof, vacancy_indices=vacancy_indices)
     if fixed_grid is True:
         # Sample along the edges of the endmembers
         # These constitution space edges are often the equilibrium points!
@@ -63,10 +60,8 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
 
     # Sample composition space for more points
     if sum(sublattice_dof) > len(sublattice_dof):
-        points = np.concatenate((points,
-                                 sampler(sublattice_dof,
-                                         pdof=pdens)
-                                 ))
+        points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
+
     # Filter out nan's that may have slipped in if we sampled too high a vacancy concentration
     # Issues with this appear to be platform-dependent
     points = points[~np.isnan(points).any(axis=-1)]
@@ -306,11 +301,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     list_of_possible_phases = filter_phases(dbf, comps)
     if len(list_of_possible_phases) == 0:
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
-    active_phases = {name: dbf.phases[name] for name in filter_phases(dbf, comps, phases)}
+    active_phases = filter_phases(dbf, comps, phases)
     if len(active_phases) == 0:
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
 
-    models = instantiate_models(dbf, comps, list(active_phases.keys()), model=kwargs.pop('model', None), parameters=parameters)
+    models = instantiate_models(dbf, comps, active_phases, model=kwargs.pop('model', None), parameters=parameters)
 
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
@@ -334,18 +329,16 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                    verbose=kwargs.pop('verbose', False))
     str_statevar_dict = OrderedDict((str(key), unpack_condition(value)) for (key, value) in statevar_dict.items())
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
-    for phase_name, phase_obj in sorted(active_phases.items()):
+    for phase_name in sorted(active_phases):
         mod = models[phase_name]
         phase_record = phase_records[phase_name]
         points = points_dict[phase_name]
-        variables, sublattice_dof = generate_dof(phase_obj, mod.components)
         if points is None:
-            points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
-                                                tuple(variables), sampler_dict[phase_name] or point_sample,
+            points = _sample_phase_constitution(mod, sampler_dict[phase_name] or point_sample,
                                                 fixedgrid_dict[phase_name], pdens_dict[phase_name])
         points = np.atleast_2d(points)
 
-        fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
+        fp = fake_points and (phase_name == sorted(active_phases)[0])
         phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast, parameters=parameters,

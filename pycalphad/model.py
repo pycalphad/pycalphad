@@ -81,6 +81,11 @@ class Model(object):
         A list of parameters will cause those symbols to remain symbolic.
         This will overwrite parameters specified in the database
 
+    Attributes
+    ----------
+    constituents : List[Set[Species]]
+        A list of sublattices containing the sets of species on each sublattice.
+
     Methods
     -------
     None yet.
