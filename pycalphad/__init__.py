@@ -14,6 +14,7 @@ from pycalphad.io.database import Database
 
 # Trigger format extension hooks
 import pycalphad.io.tdb
+import pycalphad.io.cs_dat
 
 from pycalphad.core.calculate import calculate
 from pycalphad.core.equilibrium import equilibrium

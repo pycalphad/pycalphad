@@ -393,13 +393,17 @@ class Database(object): #pylint: disable=R0902
         None yet.
         """
         species_dict = {s.name: s for s in self.species}
+        if diffusing_species is not None:
+            diffusing_species = species_dict.get(diffusing_species.upper(), Species(diffusing_species))
+        else:
+            diffusing_species = Species(None)
         new_parameter = {
             'phase_name': phase_name,
             'constituent_array': tuple(tuple(species_dict.get(s.upper(), Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
             'parameter_type': param_type,
             'parameter_order': param_order,
             'parameter': param,
-            'diffusing_species': Species(diffusing_species),
+            'diffusing_species': diffusing_species,
             'reference': ref
         }
         if force_insert:
