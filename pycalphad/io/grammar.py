@@ -1,7 +1,7 @@
 """"Common pyparsing grammar patterns."""
 
-from pyparsing import alphas, nums
-from pyparsing import Group, OneOrMore, Optional, Regex, Suppress, Word
+from cPyparsing import alphas, nums
+from cPyparsing import Group, OneOrMore, Optional, Regex, Suppress, Word
 import re
 
 pos_neg_int_number = Word('+-' + nums).setParseAction(lambda t: [int(t[0])])  # '+3' or '-2' are examples

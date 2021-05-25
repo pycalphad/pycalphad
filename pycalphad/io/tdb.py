@@ -3,10 +3,10 @@ The tdb module provides support for reading and writing databases in
 Thermo-Calc TDB format.
 """
 
-from pyparsing import CaselessKeyword, CharsNotIn, Group
-from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
-from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
-from pyparsing import delimitedList, ParseException
+from cPyparsing import CaselessKeyword, CharsNotIn, Group
+from cPyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
+from cPyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
+from cPyparsing import delimitedList, ParseException
 import re
 from sympy import sympify, And, Or, Not, Intersection, Union, EmptySet, Interval, Piecewise
 from sympy import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, Complement, S
@@ -32,6 +32,7 @@ import datetime
 import warnings
 import hashlib
 from copy import deepcopy
+from .fourfn import BNF, evaluate_stack, exprStack as stack
 
 # ast.Num is deprecated in Python 3.8 in favor of as ast.Constant
 # Both are whitelisted for compatability across versions
@@ -47,13 +48,14 @@ clashing_namespace['FF'] = Symbol('FF')
 clashing_namespace['T'] = v.T
 clashing_namespace['P'] = v.P
 clashing_namespace['R'] = v.R
+clashing_namespace = {Symbol(key): value for key, value in clashing_namespace.items()}
 
 
 def _sympify_string(math_string):
     "Convert math string into SymPy object."
     # drop pound symbols ('#') since they denote function names
     # we detect those automatically
-    expr_string = math_string.replace('#', '')
+    expr_string = math_string.replace('#', '').replace('(+', '(')
     # sympify doesn't recognize LN as ln()
     expr_string = \
         re.sub(r'(?<!\w)LN(?!\w)', 'ln', expr_string, flags=re.IGNORECASE)
@@ -71,8 +73,12 @@ def _sympify_string(math_string):
         if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
-
-    return sympify(expr_string, locals=clashing_namespace)
+    if expr_string[0] == '+':
+        expr_string = expr_string[1:]
+    stack[:] = []
+    results = BNF().parseString(expr_string, parseAll=True)
+    val = evaluate_stack(stack[:])
+    return val.xreplace(clashing_namespace)
 
 def _parse_action(func):
     """

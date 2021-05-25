@@ -6,7 +6,7 @@ import pytest
 import hashlib
 import os
 from copy import deepcopy
-from pyparsing import ParseException
+from cPyparsing import ParseException
 from sympy import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
