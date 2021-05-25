@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.model &mdash; pycalphad 0.8.5+10.g4e399bb7 documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+10.g4e399bb7
+                0.8.5+12.g9593ab59
               </div>
             
           
@@ -894,7 +894,7 @@
             <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
             <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
 
         <span class="n">curie_temp</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">tc_param_query</span><span class="p">)</span>
@@ -903,7 +903,7 @@
             <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
             <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">tc</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">tc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
 
         <span class="c1"># Used to prevent singularity</span>
         <span class="n">tau_positive_tc</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="p">(</span><span class="n">curie_temp</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">)</span>
@@ -983,9 +983,9 @@
         <span class="n">neel_temp</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">nt_param_query</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">curie_temp</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">NT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neel_temperature</span> <span class="o">=</span> <span class="n">neel_temp</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">curie_temp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neel_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">neel_temp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
 
         <span class="n">tau_curie</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">curie_temp</span>
         <span class="n">tau_curie</span> <span class="o">=</span> <span class="n">tau_curie</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="mf">1.0e10</span><span class="p">})</span>
@@ -1353,12 +1353,12 @@
             <span class="c1"># set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix</span>
             <span class="n">site_frac_subs</span> <span class="o">=</span> <span class="p">{</span><span class="n">sf</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">sf</span> <span class="ow">in</span> <span class="n">mod_pure</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)}</span>
             <span class="k">for</span> <span class="n">mod_key</span><span class="p">,</span> <span class="n">mod_val</span> <span class="ow">in</span> <span class="n">mod_pure</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">mod_pure</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">mod_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod_val</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">site_frac_subs</span><span class="p">)</span>
+                <span class="n">mod_pure</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">mod_key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">mod_val</span><span class="p">,</span> <span class="n">site_frac_subs</span><span class="p">)</span>
             <span class="n">moles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">ref_state</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
             <span class="c1"># get the output property of interest, substitute the fixed state variables (e.g. T=298.15) and add the pure element moles weighted term to the list of terms</span>
             <span class="c1"># substitution of fixed state variables has to happen after getting the attribute in case there are any derivatives involving that state variable</span>
             <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">reference_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">mod_out</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod_pure</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">ref_state</span><span class="o">.</span><span class="n">fixed_statevars</span><span class="p">)</span>
+                <span class="n">mod_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod_pure</span><span class="p">,</span> <span class="n">out</span><span class="p">),</span> <span class="n">ref_state</span><span class="o">.</span><span class="n">fixed_statevars</span><span class="p">)</span>
                 <span class="n">reference_dict</span><span class="p">[</span><span class="n">out</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mod_out</span><span class="o">*</span><span class="n">moles</span><span class="p">)</span>
 
         <span class="c1"># set the attribute on the class</span>

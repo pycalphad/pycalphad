@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.8.5+10.g4e399bb7 documentation</title>
+  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+10.g4e399bb7
+                0.8.5+12.g9593ab59
               </div>
             
           
@@ -184,7 +184,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    global_grid : Dataset</span>
 <span class="sd">        A sample of the energy surface of the system.</span>
-<span class="sd">    state_variables : list</span>
+<span class="sd">    state_variables : List[v.StateVariable]</span>
 <span class="sd">        A list of the state variables (e.g., P, T) used in this calculation.</span>
 <span class="sd">    result_array : Dataset</span>
 <span class="sd">        This object will be modified!</span>
@@ -203,7 +203,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">indep_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">sv</span><span class="p">)</span> <span class="k">for</span> <span class="n">sv</span> <span class="ow">in</span> <span class="n">state_variables</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">sv</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+    <span class="n">state_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">state_variables</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
     <span class="n">comp_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;X_&#39;</span><span class="p">)])</span>
     <span class="n">comp_conds_indices</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]))</span>
                                  <span class="k">if</span> <span class="s1">&#39;X_&#39;</span><span class="o">+</span><span class="n">x</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">])</span>
@@ -257,7 +257,7 @@
     <span class="n">comp_coord_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">cond</span><span class="p">])</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">)</span>
     <span class="n">pot_coord_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">cond</span><span class="p">])</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">pot_conds</span><span class="p">)</span>
     <span class="k">while</span> <span class="ow">not</span> <span class="n">it</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
-        <span class="n">indep_idx</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># tuple(idx for idx, key in zip(it.multi_index, result_array_GM_dims) if key in indep_conds)</span>
+        <span class="n">indep_idx</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Relies on being ordered</span>
         <span class="k">for</span> <span class="n">sv</span> <span class="ow">in</span> <span class="n">state_variables</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">sv</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
