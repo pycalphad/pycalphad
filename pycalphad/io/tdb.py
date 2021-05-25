@@ -49,6 +49,37 @@ clashing_namespace['P'] = v.P
 clashing_namespace['R'] = v.R
 
 
+class LazyArithmetic(object):
+    def __init__(self, expr_string):
+        self.expr_string = expr_string
+
+    def _sympy_(self):
+        return sympify(self.expr_string, locals=clashing_namespace)
+
+
+class LazyInterval(object):
+    def __init__(self, low_temp, high_temp):
+        self.low_temp = low_temp
+        self.high_temp = high_temp
+
+    def _sympy_(self):
+        if self.high_temp is None:
+            return And(float(self.low_temp) <= v.T)
+        else:
+            return And(float(self.low_temp) <= v.T, v.T < float(self.high_temp))
+
+    def __repr__(self):
+        return repr(self._sympy_())
+
+
+class LazyPiecewise(object):
+    def __init__(self, exprcondpairs):
+        self.exprcondpairs = exprcondpairs
+
+    def _sympy_(self):
+        return Piecewise(*[(expr, sympify(cond)) for expr, cond in self.exprcondpairs], evaluate=False)
+
+
 def _sympify_string(math_string):
     "Convert math string into SymPy object."
     # drop pound symbols ('#') since they denote function names
@@ -72,7 +103,7 @@ def _sympify_string(math_string):
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
 
-    return sympify(expr_string, locals=clashing_namespace)
+    return LazyArithmetic(expr_string)
 
 def _parse_action(func):
     """
@@ -135,24 +166,15 @@ def _make_piecewise_ast(toks):
         except IndexError:
             # No temperature limit specified
             high_temp = None
-
-        if high_temp is None:
-            expr_cond_pairs.append(
-                (
-                    _sympify_string(toks[cur_tok+1]),
-                    And(low_temp <= v.T)
-                )
+        expr_cond_pairs.append(
+            (
+                _sympify_string(toks[cur_tok + 1]),
+                LazyInterval(low_temp, high_temp)
             )
-        else:
-            expr_cond_pairs.append(
-                (
-                    _sympify_string(toks[cur_tok+1]),
-                    And(low_temp <= v.T, v.T < high_temp)
-                )
-            )
+        )
         cur_tok = cur_tok + 2
     expr_cond_pairs.append((0, True))
-    return Piecewise(*expr_cond_pairs, evaluate=False)
+    return LazyPiecewise(expr_cond_pairs)
 
 class TCCommand(CaselessKeyword): #pylint: disable=R0903
     """

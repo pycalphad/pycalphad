@@ -470,7 +470,11 @@ class Database(object): #pylint: disable=R0902
         >>>> eid = db.add_parameter(...) #TODO
         >>>> db.search(where('eid') == eid)
         """
-        return self._parameters.search(query)
+        import sympy
+        results = self._parameters.search(query)
+        for result in results:
+            result['parameter'] = sympy.sympify(result['parameter'])
+        return results
 
     def process_parameter_queue(self):
         """
