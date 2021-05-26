@@ -7,7 +7,6 @@ requires = [
     "setuptools_scm[toml]>=6.0",
     "wheel",
 ]
-# Use the legacy backend because the local `versioneer.py` dependency that prevents isolated builds
 build-backend = "setuptools.build_meta:__legacy__"
 
 [tool.pytest.ini_options]
