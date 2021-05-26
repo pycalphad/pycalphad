@@ -32,4 +32,3 @@ source_pkgs = [
 
 [tool.setuptools_scm]
 write_to = "pycalphad/_version.py"
-
