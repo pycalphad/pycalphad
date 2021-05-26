@@ -23,7 +23,7 @@ from pycalphad.plot.eqplot import eqplot
 
 # Set the version of pycalphad
 try:
-    from ._editable import get_version
+    from ._dev import get_version
     # We have a local (editable) installation and can get the version based on the
     # source control management system at the project root.
     __version__ = get_version(root='..', relative_to=__file__)

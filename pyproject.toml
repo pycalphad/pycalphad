@@ -13,6 +13,7 @@ build-backend = "setuptools.build_meta"
 markers = [
     "solver: mark for tests that verify the correctness of the solver",
 ]
+norecursedirs = ["pycalphad/_dev"]
 
 [tool.coverage.paths]
 # The first path is the path to the modules to report coverage against.

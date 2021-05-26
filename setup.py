@@ -30,6 +30,7 @@ setup(
     author='Richard Otis',
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
+    # Do NOT include pycalphad._dev here. It is for local development and should not be distributed.
     packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests'],
     ext_modules=cythonize(
         CYTHON_EXTENSION_MODULES,
