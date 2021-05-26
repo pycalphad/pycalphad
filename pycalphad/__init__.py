@@ -21,9 +21,5 @@ from pycalphad.plot.binary import binplot
 from pycalphad.plot.ternary import ternplot
 from pycalphad.plot.eqplot import eqplot
 
-# Try to get version dynamically for editable installs
-try:
-    from setuptools_scm import get_version
-    __version__ = get_version(root='..', relative_to=__file__)
-except:
-    from ._version import version as __version__
+from setuptools_scm import get_version
+__version__ = get_version()
