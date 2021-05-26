@@ -21,5 +21,19 @@ from pycalphad.plot.binary import binplot
 from pycalphad.plot.ternary import ternplot
 from pycalphad.plot.eqplot import eqplot
 
-from setuptools_scm import get_version
-__version__ = get_version(root='..', relative_to=__file__)
+# Set the version of pycalphad
+try:
+    from ._editable import get_version
+    # We have a local (editable) installation and can get the version based on the
+    # source control management system at the project root.
+    __version__ = get_version(root='..', relative_to=__file__)
+    del get_version
+except ImportError:
+    # Fall back on the metadata of the installed package
+    try:
+        from importlib.metadata import version
+    except ImportError:
+        # backport for Python<3.8
+        from importlib_metadata import version
+    __version__ = version("pycalphad")
+    del version

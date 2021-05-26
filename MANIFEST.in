@@ -2,3 +2,4 @@ include pycalphad/core/_isnan.h
 include README.rst
 include LICENSE.txt
 recursive-include pycalphad *.pyx *.px[di]
+exclude pycalphad/_editable.py

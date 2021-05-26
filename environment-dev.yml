@@ -11,6 +11,7 @@ dependencies:
   # library, while conda-forge/python-symengine provides the Python package
   # called `symengine`.
   - cython>=0.24
+  - importlib_metadata
   - matplotlib-base>=3.3
   - numpy>=1.13
   - pyparsing
