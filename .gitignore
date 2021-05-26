@@ -53,3 +53,4 @@ env/
 *.sublime-project
 *.sublime-workspace
 *.cpp
+pycalphad/_version.py

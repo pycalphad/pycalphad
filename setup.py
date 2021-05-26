@@ -2,7 +2,6 @@ import os
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 import numpy as np
-import versioneer
 
 
 # Utility function to read the README file.
@@ -28,8 +27,6 @@ CYTHON_EXTENSION_MODULES = [
 
 setup(
     name='pycalphad',
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
     author='Richard Otis',
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',

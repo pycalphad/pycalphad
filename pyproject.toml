@@ -4,6 +4,7 @@ requires = [
     "numpy>=1.13",
     "scipy",
     "setuptools",
+    "setuptools_scm[toml]>=6.0",
     "wheel",
 ]
 # Use the legacy backend because the local `versioneer.py` dependency that prevents isolated builds
@@ -28,3 +29,7 @@ source = [
 source_pkgs = [
     "pycalphad"
 ]
+
+[tool.setuptools_scm]
+write_to = "pycalphad/_version.py"
+
