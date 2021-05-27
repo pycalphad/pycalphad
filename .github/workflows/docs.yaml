@@ -32,7 +32,6 @@ jobs:
       - run: pip install dist/*.whl
         shell: bash  # support cross-platform paths
       - run: pip list
-      - run: pip check
       # Build documentation
       - run: pip install ipython sphinx sphinx-rtd-theme
       - run: sphinx-build -b html docs docs/_build/html
