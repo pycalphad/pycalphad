@@ -1,28 +1,6 @@
-import sys
-import os
-
-# Single-source versioning
-ver_loader = None
-ver_module = None
-try:
-    # Python 3
-    import importlib.machinery
-    ver_loader = importlib.machinery.SourceFileLoader('_version',
-                                                      '../pycalphad/_version.py')
-    ver_module = ver_loader.load_module()
-except ImportError:
-    # Python 2
-    import imp
-    ver_module = imp.load_source('_version',
-                                 '../pycalphad/_version.py')
-
-__version__ = ver_module.get_versions()['version']
-del ver_loader, ver_module
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../pycalphad'))
+# Single-source versioning, assumes pycalphad is installed
+# pycalphad must be on the import path for API documentation to work
+from pycalphad import __version__
 
 # -- General configuration ------------------------------------------------
 
