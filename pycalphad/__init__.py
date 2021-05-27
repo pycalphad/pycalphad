@@ -20,6 +20,20 @@ from pycalphad.core.equilibrium import equilibrium
 from pycalphad.plot.binary import binplot
 from pycalphad.plot.ternary import ternplot
 from pycalphad.plot.eqplot import eqplot
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+
+# Set the version of pycalphad
+try:
+    from ._dev import get_version
+    # We have a local (editable) installation and can get the version based on the
+    # source control management system at the project root.
+    __version__ = get_version(root='..', relative_to=__file__)
+    del get_version
+except ImportError:
+    # Fall back on the metadata of the installed package
+    try:
+        from importlib.metadata import version
+    except ImportError:
+        # backport for Python<3.8
+        from importlib_metadata import version
+    __version__ = version("pycalphad")
+    del version

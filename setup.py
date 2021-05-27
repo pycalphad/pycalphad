@@ -2,7 +2,6 @@ import os
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 import numpy as np
-import versioneer
 
 
 # Utility function to read the README file.
@@ -28,11 +27,10 @@ CYTHON_EXTENSION_MODULES = [
 
 setup(
     name='pycalphad',
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
     author='Richard Otis',
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
+    # Do NOT include pycalphad._dev here. It is for local development and should not be distributed.
     packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests'],
     ext_modules=cythonize(
         CYTHON_EXTENSION_MODULES,
@@ -57,12 +55,14 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'Cython>=0.24',
+        'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
         'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing',
         'pytest',
         'pytest-cov',
         'scipy',
+        'setuptools_scm[toml]>=6.0',
         'symengine==0.7.2',  # python-symengine on conda-forge
         'sympy==1.8',
         'tinydb>=3.8',

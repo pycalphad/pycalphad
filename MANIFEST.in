@@ -1,6 +1,8 @@
-include versioneer.py
 include pycalphad/core/_isnan.h
-include pycalphad/_version.py
 include README.rst
 include LICENSE.txt
 recursive-include pycalphad *.pyx *.px[di]
+
+# This subpckage is only used in development checkouts and should not be
+# included in source distributions
+prune pycalphad/_dev

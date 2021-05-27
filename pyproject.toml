@@ -1,18 +1,20 @@
 [build-system]
 requires = [
     "Cython",
-    "numpy>=1.13",
+    # pin to ensure ABI compatibility
+    "numpy<1.20",
     "scipy",
     "setuptools",
+    "setuptools_scm[toml]>=6.0",
     "wheel",
 ]
-# Use the legacy backend because the local `versioneer.py` dependency that prevents isolated builds
-build-backend = "setuptools.build_meta:__legacy__"
+build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 markers = [
     "solver: mark for tests that verify the correctness of the solver",
 ]
+norecursedirs = ["pycalphad/_dev"]
 
 [tool.coverage.paths]
 # The first path is the path to the modules to report coverage against.
@@ -28,3 +30,5 @@ source = [
 source_pkgs = [
     "pycalphad"
 ]
+
+[tool.setuptools_scm]
