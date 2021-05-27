@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - develop
+  pull:  # all pull requests
 
 jobs:
   Latest-Docs:
@@ -15,26 +16,30 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/setup-python@v2
         with:
-          auto-update-conda: true
-          python-version: "3.8"
-          environment-file: environment-dev.yml
-      - name: Conda Info
-        # login shell should be used so conda activate runs
-        shell: bash -l {0}
-        run: conda info
-      - name: Conda list
-        shell: bash -l {0}
-        run: conda list
-      - name: Install pycalphad development version
-        shell: bash -l {0}
-        run: pip install --no-deps -e .
-      - name: Sphinx Build
-        shell: bash -l {0}
-        run: sphinx-build -b html docs docs/_build/html
+          python-version: ${{ matrix.python-version }}
+      - run: python -m venv pycalphad-dev
+      - name: "Activate virtual environment (Linux/Mac)"
+        run: source pycalphad-dev/bin/activate
+        if: ${{ runner.os != 'Windows' }}
+      - name: "Activate virtual environment (Windows)"
+        run: pycalphad-dev\Scripts\Activate.ps1
+        if: ${{ runner.os == 'Windows' }}
+      - run: pip install build
+      - run: python -m build --wheel
+      - run: pip install dist/*.whl
+        shell: bash  # support cross-platform paths
+      - run: pip check
+      - run: pip list
+      # Build
+      - run: sphinx-build -b html docs docs/_build/html
+      # Deploy _only_ if a push event triggered the build
+      # Workaround since GitHub Actions does not support exiting early succesfully
       - run: git checkout $TARGET_BRANCH
+        if: ${{ github.event_name == 'push' }}
       - name: Copy Documentation to destination
+        if: ${{ github.event_name == 'push' }}
         run: |
           mkdir -p docs/$DEPLOY_NAME
           # clean any existing contents
@@ -42,6 +47,7 @@ jobs:
           # copy the output
           cp -Rf docs/_build/html/* docs/$DEPLOY_NAME
       - name: Commit and push changes
+        if: ${{ github.event_name == 'push' }}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
