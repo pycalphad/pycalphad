@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - develop
-  pull:  # all pull requests
+  pull_request:  # all pull requests
 
 jobs:
   Latest-Docs:
