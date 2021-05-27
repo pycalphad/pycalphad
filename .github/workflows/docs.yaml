@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - develop
+      - BLD-fix-sphinx-builds
   pull_request:  # all pull requests
 
 jobs:
@@ -10,7 +11,7 @@ jobs:
     name: Build and deploy latest documentation
     runs-on: ubuntu-latest
     env:
-      TARGET_BRANCH: website
+      TARGET_BRANCH: FAKEBRANCH
       DEPLOY_NAME: latest
     steps:
       - uses: actions/checkout@v2
