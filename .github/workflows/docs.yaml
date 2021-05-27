@@ -31,9 +31,10 @@ jobs:
       - run: python -m build --wheel
       - run: pip install dist/*.whl
         shell: bash  # support cross-platform paths
-      - run: pip check
       - run: pip list
-      # Build
+      - run: pip check
+      # Build documentation
+      - run: pip install ipython sphinx sphinx-rtd-theme
       - run: sphinx-build -b html docs docs/_build/html
       # Deploy _only_ if a push event triggered the build
       # Workaround since GitHub Actions does not support exiting early succesfully
