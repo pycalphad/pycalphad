@@ -1,9 +1,8 @@
 [build-system]
 requires = [
     "Cython",
-    # use oldest-supported-numpy to ensure ABI compatibility:
-    # https://numpy.org/devdocs/user/depending_on_numpy.html
-    "oldest-supported-numpy",
+    # pin to ensure ABI compatibility
+    "numpy<1.20",
     "scipy",
     "setuptools",
     "setuptools_scm[toml]>=6.0",
