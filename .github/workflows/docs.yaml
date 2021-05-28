@@ -1,4 +1,6 @@
 name: Documentation
+# Builds on pushes to develop and all pull requests
+# Deploys only on push events
 on:
   push:
     branches:
