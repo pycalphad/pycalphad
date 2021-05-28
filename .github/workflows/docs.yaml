@@ -27,10 +27,7 @@ jobs:
       - name: "Activate virtual environment (Windows)"
         run: pycalphad-dev\Scripts\Activate.ps1
         if: ${{ runner.os == 'Windows' }}
-      - run: pip install build
-      - run: python -m build --wheel
-      - run: pip install dist/*.whl
-        shell: bash  # support cross-platform paths
+      - run: pip install -e .
       - run: pip list
       # Build documentation
       - run: pip install ipython sphinx sphinx-rtd-theme

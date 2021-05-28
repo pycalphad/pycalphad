@@ -1,5 +1,8 @@
-# Single-source versioning, assumes pycalphad is installed
-# pycalphad must be on the import path for API documentation to work
+import sys
+import os
+
+# pycalphad must be importable to build API documentation and for version retreival
+sys.path.insert(0, os.path.abspath('../pycalphad'))
 from pycalphad import __version__
 
 # -- General configuration ------------------------------------------------
