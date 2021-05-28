@@ -27,7 +27,7 @@ jobs:
       - name: "Activate virtual environment (Windows)"
         run: pycalphad-dev\Scripts\Activate.ps1
         if: ${{ runner.os == 'Windows' }}
-      - run: pip install -e .
+      - run: python -m pip install -e .
       - run: pip list
       # Build documentation
       - run: pip install ipython sphinx sphinx-rtd-theme
