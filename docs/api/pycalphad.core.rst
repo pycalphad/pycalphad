@@ -108,6 +108,14 @@ pycalphad.core.lower\_convex\_hull module
    :undoc-members:
    :show-inheritance:
 
+pycalphad.core.minimizer module
+-------------------------------
+
+.. automodule:: pycalphad.core.minimizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pycalphad.core.patched\_piecewise module
 ----------------------------------------
 

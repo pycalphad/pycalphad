@@ -23,14 +23,6 @@ pycalphad.model module
    :undoc-members:
    :show-inheritance:
 
-pycalphad.refdata module
-------------------------
-
-.. automodule:: pycalphad.refdata
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pycalphad.variables module
 --------------------------
 
