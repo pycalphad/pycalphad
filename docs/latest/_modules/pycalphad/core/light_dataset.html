@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.core.light_dataset &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.core.light_dataset &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -167,7 +167,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;Defines a class for internally representing arrays used in equilibrium calculations&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">xarray</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span> <span class="nn">xarray</span> <span class="k">import</span> <span class="n">Dataset</span>
 
 
 <div class="viewcode-block" id="LightDataset"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.light_dataset.LightDataset">[docs]</a><span class="k">class</span> <span class="nc">LightDataset</span><span class="p">:</span>
@@ -193,7 +193,7 @@
 <span class="sd">    to an xarray Dataset by the getdataset method.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Parameters</span>
@@ -225,7 +225,7 @@
         <span class="sd">&quot;&quot;&quot;Build an xarray Dataset&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>

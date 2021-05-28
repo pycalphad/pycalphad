@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni) &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni) &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -69,7 +70,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -190,7 +191,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="equilibrium-properties-and-partial-ordering-al-fe-and-al-ni">
+  <section id="equilibrium-properties-and-partial-ordering-al-fe-and-al-ni">
 <h1>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)<a class="headerlink" href="#equilibrium-properties-and-partial-ordering-al-fe-and-al-ni" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only needed in a Jupyter Notebook</span>
 <span class="o">%</span><span class="k">matplotlib</span> inline
@@ -200,13 +201,13 @@
 </pre></div>
 </div>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">equilibrium</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">equilibrium</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">Model</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </pre></div>
 </div>
-<div class="section" id="al-fe-heat-capacity-and-degree-of-ordering">
+<section id="al-fe-heat-capacity-and-degree-of-ordering">
 <h2>Al-Fe (Heat Capacity and Degree of Ordering)<a class="headerlink" href="#al-fe-heat-capacity-and-degree-of-ordering" title="Permalink to this headline">¶</a></h2>
 <p>Here we compute equilibrium thermodynamic properties in the Al-Fe
 system. We know that only B2 and liquid are stable in the temperature
@@ -277,11 +278,11 @@ composition.</p>
     <span class="n">Phase</span>               <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U6</span> <span class="s1">&#39;B2_BCC&#39;</span> <span class="s1">&#39;&#39;</span> <span class="s1">&#39;&#39;</span> <span class="o">...</span> <span class="s1">&#39;&#39;</span> <span class="s1">&#39;&#39;</span>
     <span class="n">degree_of_ordering</span>  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">3.029e-16</span> <span class="n">nan</span> <span class="o">...</span> <span class="n">nan</span>
 <span class="n">Attributes</span><span class="p">:</span>
-    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.8.3</span><span class="o">+</span><span class="mf">10.</span><span class="n">gfd19517e</span><span class="o">.</span><span class="n">dirty</span>
+    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.8</span><span class="o">.</span><span class="mi">3</span><span class="o">+</span><span class="mf">10.</span><span class="n">gfd19517e</span><span class="o">.</span><span class="n">dirty</span>
     <span class="n">created</span><span class="p">:</span>  <span class="mi">2020</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">27</span><span class="n">T14</span><span class="p">:</span><span class="mi">48</span><span class="p">:</span><span class="mf">18.391819</span>
 </pre></div>
 </div>
-<div class="section" id="plots">
+<section id="plots">
 <h3>Plots<a class="headerlink" href="#plots" title="Permalink to this headline">¶</a></h3>
 <p>Next we plot the degree of ordering versus temperature. We can see that
 the decrease in the degree of ordering is relatively steady and
@@ -332,9 +333,9 @@ bcc (A2) until around 13% Al or Fe, when the phase begins to order.</p>
 </pre></div>
 </div>
 <img alt="../_images/EquilibriumWithOrdering_12_0.png" src="../_images/EquilibriumWithOrdering_12_0.png" />
-</div>
-</div>
-<div class="section" id="al-ni-degree-of-ordering">
+</section>
+</section>
+<section id="al-ni-degree-of-ordering">
 <h2>Al-Ni (Degree of Ordering)<a class="headerlink" href="#al-ni-degree-of-ordering" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">db_alni</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;NI_AL_DUPIN_2001.TDB&#39;</span><span class="p">)</span>
 <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_L12&#39;</span><span class="p">]</span>
@@ -362,17 +363,17 @@ bcc (A2) until around 13% Al or Fe, when the phase begins to order.</p>
     <span class="n">Phase</span>               <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U7</span> <span class="s1">&#39;FCC_L12&#39;</span> <span class="s1">&#39;FCC_L12&#39;</span> <span class="o">...</span> <span class="s1">&#39;&#39;</span>
     <span class="n">degree_of_ordering</span>  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">2.396e-15</span> <span class="mf">1.0</span> <span class="o">...</span> <span class="n">nan</span>
 <span class="n">Attributes</span><span class="p">:</span>
-    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.8.3</span><span class="o">+</span><span class="mf">10.</span><span class="n">gfd19517e</span><span class="o">.</span><span class="n">dirty</span>
+    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.8</span><span class="o">.</span><span class="mi">3</span><span class="o">+</span><span class="mf">10.</span><span class="n">gfd19517e</span><span class="o">.</span><span class="n">dirty</span>
     <span class="n">created</span><span class="p">:</span>  <span class="mi">2020</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">27</span><span class="n">T14</span><span class="p">:</span><span class="mi">48</span><span class="p">:</span><span class="mf">26.640842</span>
 </pre></div>
 </div>
-<div class="section" id="id1">
+<section id="id1">
 <h3>Plots<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>In the plot below we observe two phases designated <code class="docutils literal notranslate"><span class="pre">FCC_L12</span></code>. This is
 indicative of a miscibility gap. The ordered gamma-prime phase steadily
 decreases in amount with increasing temperature until it completely
 disappears around 750 K, leaving only the disordered gamma phase.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="k">import</span> <span class="n">phase_legend</span>
 <span class="n">phase_handles</span><span class="p">,</span> <span class="n">phasemap</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Al-Ni: Phase fractions vs T [X(AL)=0.1]&#39;</span><span class="p">)</span>
@@ -416,9 +417,9 @@ gamma phase. This is a first-order phase transition.</p>
 </pre></div>
 </div>
 <img alt="../_images/EquilibriumWithOrdering_18_0.png" src="../_images/EquilibriumWithOrdering_18_0.png" />
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

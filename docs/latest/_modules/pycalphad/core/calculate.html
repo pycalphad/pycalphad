@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -170,16 +170,16 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">broadcast_to</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">broadcast_to</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">ConditionError</span>
-<span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="kn">import</span> <span class="n">build_phase_records</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="kn">import</span> <span class="n">cacheit</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.light_dataset</span> <span class="kn">import</span> <span class="n">LightDataset</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="kn">import</span> <span class="n">PhaseRecord</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">extract_parameters</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">ConditionError</span>
+<span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="k">import</span> <span class="n">build_phase_records</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.light_dataset</span> <span class="k">import</span> <span class="n">LightDataset</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">extract_parameters</span><span class="p">,</span> \
     <span class="n">filter_phases</span><span class="p">,</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">point_sample</span><span class="p">,</span> \
     <span class="n">unpack_components</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_kwarg</span>
 

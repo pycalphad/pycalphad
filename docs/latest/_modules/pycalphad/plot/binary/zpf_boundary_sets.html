@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.plot.binary.zpf_boundary_sets &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.plot.binary.zpf_boundary_sets &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -164,10 +164,10 @@
            <div itemprop="articleBody">
             
   <h1>Source code for pycalphad.plot.binary.zpf_boundary_sets</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
-<span class="kn">from</span> <span class="nn">pycalphad.plot.binary.compsets</span> <span class="kn">import</span> <span class="n">CompsetPair</span>
-<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">LineCollection</span>
-<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">to_rgba</span>
+<span></span><span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="k">import</span> <span class="n">phase_legend</span>
+<span class="kn">from</span> <span class="nn">pycalphad.plot.binary.compsets</span> <span class="k">import</span> <span class="n">CompsetPair</span>
+<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="k">import</span> <span class="n">LineCollection</span>
+<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="k">import</span> <span class="n">to_rgba</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
@@ -181,11 +181,11 @@
 <span class="sd">        Unique phases in this two phase region</span>
 <span class="sd">    compsets : list of CompsetPair</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_compsets</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_compsets</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="n">initial_compsets</span><span class="o">.</span><span class="n">unique_phases</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">compsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_compsets</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">phases_pprint</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&lt;TwoPhaseRegion(Phases=(</span><span class="si">{}</span><span class="s2">), Points=</span><span class="si">{}</span><span class="s2">)&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phases_pprint</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compsets</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">s</span>
@@ -257,7 +257,7 @@
 <span class="sd">    two_phase_regions : list of TwoPhaseRegion</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">indep_composition_condition</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">indep_composition_condition</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="n">comps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indep_comp_cond</span> <span class="o">=</span> <span class="n">indep_composition_condition</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_compsets</span> <span class="o">=</span> <span class="p">[]</span>
@@ -290,7 +290,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">two_phase_regions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TwoPhaseRegion</span><span class="p">(</span><span class="n">compsets</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
         <span class="n">phase_string</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
         <span class="k">return</span> <span class="s2">&quot;ZPFBoundarySets&lt;</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phase_string</span><span class="p">)</span>

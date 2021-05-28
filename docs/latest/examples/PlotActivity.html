@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Calculate and Plot Activity &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>Calculate and Plot Activity &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -69,7 +70,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -188,11 +189,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="calculate-and-plot-activity">
+  <section id="calculate-and-plot-activity">
 <h1>Calculate and Plot Activity<a class="headerlink" href="#calculate-and-plot-activity" title="Permalink to this headline">¶</a></h1>
 <p>Given an existing database for Al-Zn, we would like to calculate the
 activity of the liquid.</p>
-<div class="section" id="experimental-activity-results">
+<section id="experimental-activity-results">
 <h2>Experimental activity results<a class="headerlink" href="#experimental-activity-results" title="Permalink to this headline">¶</a></h2>
 <p>In order to make sure we are correct, we’ll compare the values with
 experimental results. Experimental activities are digtized from Fig 18
@@ -205,12 +206,12 @@ pure Zn at that temperature.</p>
 <span class="n">exp_acr_zn</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1154</span><span class="p">,</span> <span class="mf">0.3765</span><span class="p">,</span> <span class="mf">0.5411</span><span class="p">,</span> <span class="mf">0.6433</span><span class="p">,</span> <span class="mf">0.7352</span><span class="p">,</span> <span class="mf">0.8384</span><span class="p">,</span> <span class="mf">0.9531</span><span class="p">]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="set-up-the-database">
+</section>
+<section id="set-up-the-database">
 <h2>Set up the database<a class="headerlink" href="#set-up-the-database" title="Permalink to this headline">¶</a></h2>
 <p>Al-Zn database is taken from S. Mey, Reevaluation of the Al-Zn system,
 Zeitschrift F{ü}r Met. 84 (1993) 451–455.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
@@ -219,8 +220,8 @@ Zeitschrift F{ü}r Met. 84 (1993) 451–455.</p>
 <span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="calculate-the-reference-state">
+</section>
+<section id="calculate-the-reference-state">
 <h2>Calculate the reference state<a class="headerlink" href="#calculate-the-reference-state" title="Permalink to this headline">¶</a></h2>
 <p>Because all chemical activities must be specified with a reference
 state, we’re going to choose a reference state as the pure element at
@@ -228,15 +229,15 @@ the same temperature, consistent with the experimental data.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ref_eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1023</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">})</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="calculate-the-equilibria">
+</section>
+<section id="calculate-the-equilibria">
 <h2>Calculate the equilibria<a class="headerlink" href="#calculate-the-equilibria" title="Permalink to this headline">¶</a></h2>
 <p>Do the calculation over the composition range</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">1013325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1023</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">)})</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="get-the-chemical-potentials-and-calculate-activity">
+</section>
+<section id="get-the-chemical-potentials-and-calculate-activity">
 <h2>Get the chemical potentials and calculate activity<a class="headerlink" href="#get-the-chemical-potentials-and-calculate-activity" title="Permalink to this headline">¶</a></h2>
 <p>We need to select the chemical potentials from the xarray Dataset and
 calculate the activity.</p>
@@ -246,8 +247,8 @@ calculate the activity.</p>
 <span class="n">acr_zn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">chempot</span> <span class="o">-</span> <span class="n">chempot_ref</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">8.315</span><span class="o">*</span><span class="mi">1023</span><span class="p">))</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="plot-the-result">
+</section>
+<section id="plot-the-result">
 <h2>Plot the result<a class="headerlink" href="#plot-the-result" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -269,8 +270,8 @@ calculate the activity.</p>
 </pre></div>
 </div>
 <img alt="../_images/PlotActivity_11_1.png" src="../_images/PlotActivity_11_1.png" />
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

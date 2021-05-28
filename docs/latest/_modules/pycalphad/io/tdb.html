@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -169,25 +169,25 @@
 <span class="sd">Thermo-Calc TDB format.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">CaselessKeyword</span><span class="p">,</span> <span class="n">CharsNotIn</span><span class="p">,</span> <span class="n">Group</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">LineEnd</span><span class="p">,</span> <span class="n">MatchFirst</span><span class="p">,</span> <span class="n">OneOrMore</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Regex</span><span class="p">,</span> <span class="n">SkipTo</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">ZeroOrMore</span><span class="p">,</span> <span class="n">Suppress</span><span class="p">,</span> <span class="n">White</span><span class="p">,</span> <span class="n">Word</span><span class="p">,</span> <span class="n">alphanums</span><span class="p">,</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">nums</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">delimitedList</span><span class="p">,</span> <span class="n">ParseException</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">CaselessKeyword</span><span class="p">,</span> <span class="n">CharsNotIn</span><span class="p">,</span> <span class="n">Group</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">LineEnd</span><span class="p">,</span> <span class="n">MatchFirst</span><span class="p">,</span> <span class="n">OneOrMore</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Regex</span><span class="p">,</span> <span class="n">SkipTo</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">ZeroOrMore</span><span class="p">,</span> <span class="n">Suppress</span><span class="p">,</span> <span class="n">White</span><span class="p">,</span> <span class="n">Word</span><span class="p">,</span> <span class="n">alphanums</span><span class="p">,</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">nums</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">delimitedList</span><span class="p">,</span> <span class="n">ParseException</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Not</span><span class="p">,</span> <span class="n">Intersection</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">Piecewise</span>
-<span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">GreaterThan</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">Complement</span><span class="p">,</span> <span class="n">S</span>
-<span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">Rational</span>
-<span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="kn">import</span> <span class="n">_clash</span>
-<span class="kn">from</span> <span class="nn">sympy.printing.str</span> <span class="kn">import</span> <span class="n">StrPrinter</span>
-<span class="kn">from</span> <span class="nn">sympy.core.mul</span> <span class="kn">import</span> <span class="n">_keep_coeff</span>
-<span class="kn">from</span> <span class="nn">sympy.printing.precedence</span> <span class="kn">import</span> <span class="n">precedence</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="kn">import</span> <span class="n">DatabaseExportError</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.grammar</span> <span class="kn">import</span> <span class="n">float_number</span><span class="p">,</span> <span class="n">chemical_formula</span>
-<span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="kn">import</span> <span class="n">Species</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Not</span><span class="p">,</span> <span class="n">Intersection</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">Piecewise</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">GreaterThan</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">Complement</span><span class="p">,</span> <span class="n">S</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">Rational</span>
+<span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">_clash</span>
+<span class="kn">from</span> <span class="nn">sympy.printing.str</span> <span class="k">import</span> <span class="n">StrPrinter</span>
+<span class="kn">from</span> <span class="nn">sympy.core.mul</span> <span class="k">import</span> <span class="n">_keep_coeff</span>
+<span class="kn">from</span> <span class="nn">sympy.printing.precedence</span> <span class="k">import</span> <span class="n">precedence</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="k">import</span> <span class="n">DatabaseExportError</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.grammar</span> <span class="k">import</span> <span class="n">float_number</span><span class="p">,</span> <span class="n">chemical_formula</span>
+<span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="k">import</span> <span class="n">Species</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.tdb_keywords</span> <span class="kn">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.tdb_keywords</span> <span class="k">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">ast</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
@@ -197,7 +197,7 @@
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 
 <span class="c1"># ast.Num is deprecated in Python 3.8 in favor of as ast.Constant</span>
 <span class="c1"># Both are whitelisted for compatability across versions</span>
@@ -460,7 +460,7 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyword</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown type definition keyword: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matching_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The type definition character `</span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2">` in `TYPE_DEFINITION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">` is not used by any phase.&quot;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;The type definition character `</span><span class="si">{typechar}</span><span class="s2">` in `TYPE_DEFINITION </span><span class="si">{typechar}</span><span class="s2"> </span><span class="si">{line}</span><span class="s2">` is not used by any phase.&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">&#39;MAGNETIC&#39;</span><span class="p">:</span>
         <span class="c1"># Magnetic model, both IHJ and Xiong models use these model hints when</span>
         <span class="c1"># constructing Model instances, despite being prefixed `ihj_magnetic_`</span>
@@ -486,11 +486,11 @@
         <span class="k">if</span> <span class="n">ordered_phase</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
             <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">ordered_phase</span><span class="si">}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;The </span><span class="si">{ordered_phase}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{typechar}</span><span class="s2"> </span><span class="si">{line}</span><span class="s2">`&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">disordered_phase</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
             <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">disordered_phase</span><span class="si">}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;The </span><span class="si">{disordered_phase}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{typechar}</span><span class="s2"> </span><span class="si">{line}</span><span class="s2">`&quot;</span><span class="p">)</span>
 
 
 <span class="n">phase_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
@@ -889,7 +889,7 @@
     <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="c1"># Comment header block</span>
     <span class="c1"># Import here to prevent circular imports</span>
-    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">__version__</span>
+    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">__version__</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># getuser() will raise on Windows if it can&#39;t find a username: https://bugs.python.org/issue32731</span>
         <span class="n">username</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
@@ -1137,8 +1137,8 @@
     <span class="c1"># Raise warnings if there are any remaining type characters that one or more</span>
     <span class="c1"># phases expected to be defined</span>
     <span class="k">for</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">phases_expecting_typechar</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typechar_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The type definition character `</span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2">` was defined in the following phases: &quot;</span>
-                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phases_expecting_typechar</span><span class="si">}</span><span class="s2">, but no corresponding TYPE_DEFINITION line was found in the TDB.&quot;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;The type definition character `</span><span class="si">{typechar}</span><span class="s2">` was defined in the following phases: &quot;</span>
+                      <span class="n">f</span><span class="s2">&quot;</span><span class="si">{phases_expecting_typechar}</span><span class="s2">, but no corresponding TYPE_DEFINITION line was found in the TDB.&quot;</span><span class="p">)</span>
     <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typechar_map</span>
     <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typedefs_queue</span>
 

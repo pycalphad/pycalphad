@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.codegen package &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.codegen package &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -70,7 +71,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -110,7 +111,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.model">pycalphad.model module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#pycalphad-refdata-module">pycalphad.refdata module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.variables">pycalphad.variables module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad">Module contents</a></li>
 </ul>
@@ -189,12 +189,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="pycalphad-codegen-package">
+  <section id="pycalphad-codegen-package">
 <h1>pycalphad.codegen package<a class="headerlink" href="#pycalphad-codegen-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
+<section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-pycalphad.codegen.callables">
+</section>
+<section id="module-pycalphad.codegen.callables">
 <span id="pycalphad-codegen-callables-module"></span><h2>pycalphad.codegen.callables module<a class="headerlink" href="#module-pycalphad.codegen.callables" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.codegen.callables.build_callables">
@@ -229,9 +229,9 @@ If these are not specified as state variables of the models (e.g. often the
 case for v.N), then it must be supplied by the additional_statevars keyword
 argument.</p>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="kn">import</span> <span class="n">build_callables</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">instantiate_models</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="k">import</span> <span class="n">build_callables</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">instantiate_models</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;AL-NI.tdb&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI5&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI&#39;</span><span class="p">]</span>
@@ -285,8 +285,8 @@ used to construct the callables are compatible with the ones used to
 build the constraints and phase records.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.codegen.sympydiff_utils">
+</section>
+<section id="module-pycalphad.codegen.sympydiff_utils">
 <span id="pycalphad-codegen-sympydiff-utils-module"></span><h2>pycalphad.codegen.sympydiff_utils module<a class="headerlink" href="#module-pycalphad.codegen.sympydiff_utils" title="Permalink to this headline">¶</a></h2>
 <p>This module defines functions for compiling symbolic SymPy or SymEngine
 expressions into fast callable functions.</p>
@@ -426,11 +426,11 @@ Hessian callables. If None, will fall back to <code class="docutils literal notr
 <p>Default options for compiling the function, gradient and Hessian are defined by <code class="docutils literal notranslate"><span class="pre">_get_lambdify_options</span></code>.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.codegen">
+</section>
+<section id="module-pycalphad.codegen">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.codegen" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.core package &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -69,7 +70,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -109,7 +110,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.model">pycalphad.model module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#pycalphad-refdata-module">pycalphad.refdata module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.variables">pycalphad.variables module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad">Module contents</a></li>
 </ul>
@@ -188,12 +188,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="pycalphad-core-package">
+  <section id="pycalphad-core-package">
 <h1>pycalphad.core package<a class="headerlink" href="#pycalphad-core-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
+<section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-pycalphad.core.cache">
+</section>
+<section id="module-pycalphad.core.cache">
 <span id="pycalphad-core-cache-module"></span><h2>pycalphad.core.cache module<a class="headerlink" href="#module-pycalphad.core.cache" title="Permalink to this headline">¶</a></h2>
 <p>The cache module handles caching of expensive function calls.</p>
 <p>Based on Raymond Hettinger’s backport of lru_cache
@@ -226,8 +226,8 @@ Access the underlying function with f.__wrapped__.</p>
 <p>See:  <a class="reference external" href="http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used">http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used</a></p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.calculate">
+</section>
+<section id="module-pycalphad.core.calculate">
 <span id="pycalphad-core-calculate-module"></span><h2>pycalphad.core.calculate module<a class="headerlink" href="#module-pycalphad.core.calculate" title="Permalink to this headline">¶</a></h2>
 <p>The calculate module contains a routine for calculating the
 property surface of a system.</p>
@@ -273,8 +273,8 @@ The density of points is determined by ‘pdens’</p></li>
 <p>None yet.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.cartesian">
+</section>
+<section id="module-pycalphad.core.cartesian">
 <span id="pycalphad-core-cartesian-module"></span><h2>pycalphad.core.cartesian module<a class="headerlink" href="#module-pycalphad.core.cartesian" title="Permalink to this headline">¶</a></h2>
 <p>The cartesian module contains a routine for computing the Cartesian product
 of N arrays.</p>
@@ -316,8 +316,8 @@ formed of input arrays.</p>
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.composition_set">
+</section>
+<section id="module-pycalphad.core.composition_set">
 <span id="pycalphad-core-composition-set-module"></span><h2>pycalphad.core.composition_set module<a class="headerlink" href="#module-pycalphad.core.composition_set" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.composition_set.CompositionSet">
@@ -366,14 +366,14 @@ not pickleable. They are used in miscibility gap deteciton.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.constants">
+</section>
+<section id="module-pycalphad.core.constants">
 <span id="pycalphad-core-constants-module"></span><h2>pycalphad.core.constants module<a class="headerlink" href="#module-pycalphad.core.constants" title="Permalink to this headline">¶</a></h2>
 <p>The constants module contains some numerical constants for use
 in the module.
 Note that modifying these may yield unpredictable results.</p>
-</div>
-<div class="section" id="module-pycalphad.core.constraints">
+</section>
+<section id="module-pycalphad.core.constraints">
 <span id="pycalphad-core-constraints-module"></span><h2>pycalphad.core.constraints module<a class="headerlink" href="#module-pycalphad.core.constraints" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.constraints.ConstraintTuple">
@@ -410,8 +410,8 @@ Note that modifying these may yield unpredictable results.</p>
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.constraints.</span></span><span class="sig-name descname"><span class="pre">build_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/constraints.html#build_constraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.constraints.build_constraints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.eqsolver">
+</section>
+<section id="module-pycalphad.core.eqsolver">
 <span id="pycalphad-core-eqsolver-module"></span><h2>pycalphad.core.eqsolver module<a class="headerlink" href="#module-pycalphad.core.eqsolver" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.eqsolver.pointsolve">
@@ -419,8 +419,8 @@ Note that modifying these may yield unpredictable results.</p>
 <dd><p>Mutates composititon_sets with updated values if it converges. Returns SolverResult.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.equilibrium">
+</section>
+<section id="module-pycalphad.core.equilibrium">
 <span id="pycalphad-core-equilibrium-module"></span><h2>pycalphad.core.equilibrium module<a class="headerlink" href="#module-pycalphad.core.equilibrium" title="Permalink to this headline">¶</a></h2>
 <p>The equilibrium module defines routines for interacting with
 calculated phase equilibria.</p>
@@ -465,8 +465,8 @@ Defaults to a pycalphad.core.solver.InteriorPointSolver.</p></li>
 <p>None yet.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.errors">
+</section>
+<section id="module-pycalphad.core.errors">
 <span id="pycalphad-core-errors-module"></span><h2>pycalphad.core.errors module<a class="headerlink" href="#module-pycalphad.core.errors" title="Permalink to this headline">¶</a></h2>
 <dl class="py exception">
 <dt class="sig sig-object py" id="pycalphad.core.errors.CalculateError">
@@ -496,8 +496,8 @@ Defaults to a pycalphad.core.solver.InteriorPointSolver.</p></li>
 <p>Exception related to calculation of equilibrium.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.halton">
+</section>
+<section id="module-pycalphad.core.halton">
 <span id="pycalphad-core-halton-module"></span><h2>pycalphad.core.halton module<a class="headerlink" href="#module-pycalphad.core.halton" title="Permalink to this headline">¶</a></h2>
 <p>The halton module allows the construction of multi-dimensional
 scrambled Halton sequences.</p>
@@ -523,8 +523,8 @@ scrambled Halton sequences.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.hyperplane">
+</section>
+<section id="module-pycalphad.core.hyperplane">
 <span id="pycalphad-core-hyperplane-module"></span><h2>pycalphad.core.hyperplane module<a class="headerlink" href="#module-pycalphad.core.hyperplane" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.hyperplane.hyperplane">
@@ -570,8 +570,8 @@ N: number of components
 P: N+1, max phases by gibbs phase rule that we can find in a point calculations</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.light_dataset">
+</section>
+<section id="module-pycalphad.core.light_dataset">
 <span id="pycalphad-core-light-dataset-module"></span><h2>pycalphad.core.light_dataset module<a class="headerlink" href="#module-pycalphad.core.light_dataset" title="Permalink to this headline">¶</a></h2>
 <p>Defines a class for internally representing arrays used in equilibrium calculations</p>
 <dl class="py class">
@@ -641,8 +641,8 @@ to an xarray Dataset by the getdataset method.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.lower_convex_hull">
+</section>
+<section id="module-pycalphad.core.lower_convex_hull">
 <span id="pycalphad-core-lower-convex-hull-module"></span><h2>pycalphad.core.lower_convex_hull module<a class="headerlink" href="#module-pycalphad.core.lower_convex_hull" title="Permalink to this headline">¶</a></h2>
 <p>The lower_convex_hull module handles geometric calculations associated with
 equilibrium calculation.</p>
@@ -674,8 +674,44 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <p>None yet.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.patched_piecewise">
+</section>
+<section id="module-pycalphad.core.minimizer">
+<span id="pycalphad-core-minimizer-module"></span><h2>pycalphad.core.minimizer module<a class="headerlink" href="#module-pycalphad.core.minimizer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.CompsetState">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">CompsetState</span></span><a class="headerlink" href="#pycalphad.core.minimizer.CompsetState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemSpecification">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">SystemSpecification</span></span><a class="headerlink" href="#pycalphad.core.minimizer.SystemSpecification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemState">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">SystemState</span></span><a class="headerlink" href="#pycalphad.core.minimizer.SystemState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.check_convergence_and_change_phases">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">check_convergence_and_change_phases</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.check_convergence_and_change_phases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.find_solution">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">find_solution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.find_solution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.take_step">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">take_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.take_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-pycalphad.core.patched_piecewise">
 <span id="pycalphad-core-patched-piecewise-module"></span><h2>pycalphad.core.patched_piecewise module<a class="headerlink" href="#module-pycalphad.core.patched_piecewise" title="Permalink to this headline">¶</a></h2>
 <p>Copied from Piecewise SymPy. The only modification is in <cite>piecewise_eval</cite> where</p>
 <dl class="simple">
@@ -714,8 +750,8 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.patched_piecewise.</span></span><span class="sig-name descname"><span class="pre">piecewise_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/patched_piecewise.html#piecewise_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.patched_piecewise.piecewise_eval" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.phase_rec">
+</section>
+<section id="module-pycalphad.core.phase_rec">
 <span id="pycalphad-core-phase-rec-module"></span><h2>pycalphad.core.phase_rec module<a class="headerlink" href="#module-pycalphad.core.phase_rec" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.phase_rec.FastFunction">
@@ -911,8 +947,8 @@ Then outp.shape = (M,N)</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.problem">
+</section>
+<section id="module-pycalphad.core.problem">
 <span id="pycalphad-core-problem-module"></span><h2>pycalphad.core.problem module<a class="headerlink" href="#module-pycalphad.core.problem" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.problem.Problem">
@@ -975,8 +1011,8 @@ Then outp.shape = (M,N)</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.solver">
+</section>
+<section id="module-pycalphad.core.solver">
 <span id="pycalphad-core-solver-module"></span><h2>pycalphad.core.solver module<a class="headerlink" href="#module-pycalphad.core.solver" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.solver.SolverBase">
@@ -1055,8 +1091,8 @@ Solve a non-linear problem</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.starting_point">
+</section>
+<section id="module-pycalphad.core.starting_point">
 <span id="pycalphad-core-starting-point-module"></span><h2>pycalphad.core.starting_point module<a class="headerlink" href="#module-pycalphad.core.starting_point" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.starting_point.global_min_is_possible">
@@ -1106,8 +1142,8 @@ cover the same state variable space as specified in the conditions.</p></li>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core.utils">
+</section>
+<section id="module-pycalphad.core.utils">
 <span id="pycalphad-core-utils-module"></span><h2>pycalphad.core.utils module<a class="headerlink" href="#module-pycalphad.core.utils" title="Permalink to this headline">¶</a></h2>
 <p>The utils module handles helper routines for equilibrium calculation.</p>
 <dl class="py function">
@@ -1220,8 +1256,8 @@ Return a tuple of variable names and the sublattice degrees of freedom.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">get_state_variables</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">get_state_variables</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">get_state_variables</span><span class="p">(</span><span class="n">conds</span><span class="o">=</span><span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">0.2</span><span class="p">})</span> <span class="o">==</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">}</span>
 <span class="go">True</span>
 </pre></div>
@@ -1419,11 +1455,11 @@ there, then the constant value is used.</p>
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">wrap_symbol_symengine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#wrap_symbol_symengine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.wrap_symbol_symengine" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-pycalphad.core">
+</section>
+<section id="module-pycalphad.core">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.core" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

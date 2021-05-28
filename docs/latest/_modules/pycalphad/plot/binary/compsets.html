@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.plot.binary.compsets &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.plot.binary.compsets &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -193,20 +193,20 @@
     <span class="n">SITE_FRAC_ATOL</span> <span class="o">=</span> <span class="mf">0.001</span>
     <span class="n">TEMPERATURE_ATOL</span> <span class="o">=</span> <span class="mf">0.1</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">site_fracs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">site_fracs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">temperature</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indep_comp</span> <span class="o">=</span> <span class="n">indep_comp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">composition</span> <span class="o">=</span> <span class="n">composition</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">site_fracs</span> <span class="o">=</span> <span class="n">site_fracs</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;BinaryCompset(</span><span class="si">{0}</span><span class="s2">, T=</span><span class="si">{1:0.3f}</span><span class="s2">, X(</span><span class="si">{2}</span><span class="s2">)=</span><span class="si">{3:0.3f}</span><span class="s2">)&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indep_comp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;site_fracs&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;temperature&#39;</span><span class="p">):</span>
             <span class="n">same_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">phase_name</span>
             <span class="n">site_frac_close</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_fracs</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">site_fracs</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">SITE_FRAC_ATOL</span><span class="p">))</span>
@@ -267,7 +267,7 @@
 <span class="sd">    min_composition : float</span>
 <span class="sd">        Min composition of the CompSets</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">):</span>
         <span class="n">_composition_key_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">composition</span>
         <span class="n">sorted_compsets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_composition_key_func</span><span class="p">)</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sorted_compsets</span><span class="p">]</span>
@@ -364,11 +364,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
         <span class="n">compset_strs</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">:&lt;X(</span><span class="si">{1}</span><span class="s2">)=</span><span class="si">{2:0.3f}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">indep_comp</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">compsets</span><span class="p">])</span>
         <span class="k">return</span> <span class="s2">&quot;CompSet2D(T=</span><span class="si">{0:0.3f}</span><span class="s2">: (</span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="n">compset_strs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 
 <div class="viewcode-block" id="CompsetPair.pairwise_xdiscrepancy"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.pairwise_xdiscrepancy">[docs]</a>    <span class="k">def</span> <span class="nf">pairwise_xdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>

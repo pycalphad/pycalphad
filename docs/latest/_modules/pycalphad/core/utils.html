@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.core.utils &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.core.utils &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -170,16 +170,16 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.halton</span> <span class="kn">import</span> <span class="n">halton</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span>
-<span class="kn">from</span> <span class="nn">sympy.utilities.lambdify</span> <span class="kn">import</span> <span class="n">lambdify</span>
-<span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Symbol</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.halton</span> <span class="k">import</span> <span class="n">halton</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
+<span class="kn">from</span> <span class="nn">sympy.utilities.lambdify</span> <span class="k">import</span> <span class="n">lambdify</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">operator</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">collections</span>
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="k">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 
 
 <div class="viewcode-block" id="point_sample"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.point_sample">[docs]</a><span class="k">def</span> <span class="nf">point_sample</span><span class="p">(</span><span class="n">comp_count</span><span class="p">,</span> <span class="n">pdof</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
@@ -568,7 +568,7 @@
 <span class="sd">    dict</span>
 <span class="sd">        Dictionary of Model instances corresponding to the passed phases.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Model</span>  <span class="c1"># avoid cyclic imports</span>
+    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Model</span>  <span class="c1"># avoid cyclic imports</span>
     <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">symbols_only</span><span class="p">:</span>
         <span class="n">parameters</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">extract_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
@@ -633,8 +633,8 @@
 
 
 <div class="viewcode-block" id="wrap_symbol_symengine"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.wrap_symbol_symengine">[docs]</a><span class="k">def</span> <span class="nf">wrap_symbol_symengine</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">sympify</span>
-    <span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Symbol</span> <span class="k">as</span> <span class="n">Symbol_sympy</span>
+    <span class="kn">from</span> <span class="nn">symengine</span> <span class="k">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">sympify</span>
+    <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span> <span class="k">as</span> <span class="n">Symbol_sympy</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">obj</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Symbol_sympy</span><span class="p">):</span>

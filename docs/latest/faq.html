@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>FAQ &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>FAQ &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -69,7 +70,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -175,23 +176,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="faq">
+  <section id="faq">
 <h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="what-units-does-pycalphad-use">
+<section id="what-units-does-pycalphad-use">
 <h2>What units does pycalphad use?<a class="headerlink" href="#what-units-does-pycalphad-use" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>All units are SI units.</p></li>
 <li><p>Molar quantities are used for state variables, e.g. energy has units <code class="docutils literal notranslate"><span class="pre">J/mol</span></code>.</p></li>
 <li><p>Composition and site occupancies are mole fractions.</p></li>
 </ul>
-</div>
-<div class="section" id="is-any-parallelism-supported-in-pycalphad">
+</section>
+<section id="is-any-parallelism-supported-in-pycalphad">
 <h2>Is any parallelism supported in pycalphad?<a class="headerlink" href="#is-any-parallelism-supported-in-pycalphad" title="Permalink to this headline">¶</a></h2>
 <p>pycalphad does not support parallelization out of the box since version 0.8,
 however it is possible to use pycalphad in parallel via packages such as
 <a class="reference external" href="http://dask.pydata.org/en/latest/">dask</a>.</p>
-</div>
-<div class="section" id="how-long-should-equilibrium-calculations-take">
+</section>
+<section id="how-long-should-equilibrium-calculations-take">
 <h2>How long should equilibrium calculations take?<a class="headerlink" href="#how-long-should-equilibrium-calculations-take" title="Permalink to this headline">¶</a></h2>
 <p>Roughly speaking, single point equilibrium calculations should take on the order
 of 200ms.</p>
@@ -200,16 +201,16 @@ a dense grid of point calculations over the conditions passed. The phase diagram
 are mapped by the tieline points of the two phase regions, so unless there are
 two phase regions in a very small composition range, only coarse composition
 grids are required for phase diagram calculations.</p>
-</div>
-<div class="section" id="typeerror-argument-is-not-an-mpz-during-a-calculation">
+</section>
+<section id="typeerror-argument-is-not-an-mpz-during-a-calculation">
 <h2><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation<a class="headerlink" href="#typeerror-argument-is-not-an-mpz-during-a-calculation" title="Permalink to this headline">¶</a></h2>
 <p>This bug should now be fixed. Please update to pycalphad 0.7.1 or later.</p>
-</div>
-<div class="section" id="recursionerror-during-a-calculation">
+</section>
+<section id="recursionerror-during-a-calculation">
 <h2><code class="docutils literal notranslate"><span class="pre">RecursionError</span></code> during a calculation<a class="headerlink" href="#recursionerror-during-a-calculation" title="Permalink to this headline">¶</a></h2>
 <p>This bug should now be fixed. Please update to pycalphad 0.7.1 or later.</p>
-</div>
-<div class="section" id="text-is-sometimes-cut-off-when-saving-figures">
+</section>
+<section id="text-is-sometimes-cut-off-when-saving-figures">
 <h2>Text is sometimes cut off when saving figures<a class="headerlink" href="#text-is-sometimes-cut-off-when-saving-figures" title="Permalink to this headline">¶</a></h2>
 <p>Occasionally when saving images with the matplotlib function <code class="docutils literal notranslate"><span class="pre">plt.savefig</span></code>, axis titles and legends are cut off.</p>
 <p>This can be fixed:</p>
@@ -218,8 +219,8 @@ grids are required for phase diagram calculations.</p>
 <li><p>Locally by running <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">matplotlib</span> <span class="pre">as</span> <span class="pre">mpl;</span> <span class="pre">mpl.rcParams['savefig.bbox']</span> <span class="pre">=</span> <span class="pre">'tight'</span></code></p></li>
 <li><p>Permanently by adding <code class="docutils literal notranslate"><span class="pre">savefig.bbox</span> <span class="pre">:</span> <span class="pre">tight</span></code> to your <a class="reference external" href="https://matplotlib.org/users/customizing.html">matplotlibrc file</a>.</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

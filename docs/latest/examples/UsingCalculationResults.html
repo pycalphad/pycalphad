@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -69,7 +70,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -186,9 +187,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="exploring-calculate-and-equilibrium-xarray-datasets">
+  <section id="exploring-calculate-and-equilibrium-xarray-datasets">
 <h1>Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets<a class="headerlink" href="#exploring-calculate-and-equilibrium-xarray-datasets" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="xarray-datasets">
+<section id="xarray-datasets">
 <h2>xarray Datasets<a class="headerlink" href="#xarray-datasets" title="Permalink to this headline">¶</a></h2>
 <p>Results returned from calling <code class="docutils literal notranslate"><span class="pre">calculate</span></code> or <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> in
 pycalphad are <a class="reference external" href="http://xarray.pydata.org/en/stable/">xarray</a> Datasets.
@@ -199,8 +200,8 @@ pycalphad and some basics of using them. For more in-depth tutorials and
 documentation on using xarray Datasets and DataArray’s fully, see the
 <a class="reference external" href="http://xarray.pydata.org/en/stable/index.html">xarray
 documentation</a>.</p>
-</div>
-<div class="section" id="dataset-structure">
+</section>
+<section id="dataset-structure">
 <h2>Dataset structure<a class="headerlink" href="#dataset-structure" title="Permalink to this headline">¶</a></h2>
 <p>Each Dataset stores the conditions that properties are calculated at and
 the values of the properties as a function of the different conditions.
@@ -213,8 +214,8 @@ the dimensions.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">variables</span></code>: these are the properties calculated by pycalphad,
 such as the Gibbs energy, mixing energy, composition, etc.</p></li>
 </ul>
-</div>
-<div class="section" id="calculate-results">
+</section>
+<section id="calculate-results">
 <h2><code class="docutils literal notranslate"><span class="pre">calculate()</span></code> results<a class="headerlink" href="#calculate-results" title="Permalink to this headline">¶</a></h2>
 <p>Calculate is used to sample properties of a single phase. There are five
 dimensions/coordinates:</p>
@@ -247,7 +248,7 @@ output keyword passed to <code class="docutils literal notranslate"><span class=
 Gibbs energy, GM.</p></li>
 </ul>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
 <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
@@ -312,8 +313,8 @@ multidimensional NumPy array</p>
     <span class="p">[</span><span class="mf">7.43933641e-01</span> <span class="mf">2.56066359e-01</span><span class="p">]]]]]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="equilibrium-results">
+</section>
+<section id="equilibrium-results">
 <h2><code class="docutils literal notranslate"><span class="pre">equilibrium()</span></code> results<a class="headerlink" href="#equilibrium-results" title="Permalink to this headline">¶</a></h2>
 <p>The Datasets returned by equilibrium are very similar to calculate,
 however there are several key differences worth discussing. In
@@ -388,7 +389,7 @@ the <code class="docutils literal notranslate"><span class="pre">GM</span></code
     <span class="n">Phase</span>      <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U6</span> <span class="s1">&#39;FCC_A1&#39;</span> <span class="s1">&#39;&#39;</span> <span class="s1">&#39;&#39;</span> <span class="o">...</span> <span class="s1">&#39;LIQUID&#39;</span> <span class="s1">&#39;&#39;</span> <span class="s1">&#39;&#39;</span>
     <span class="n">HM</span>         <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">5.194e+03</span> <span class="mf">5.859e+03</span> <span class="o">...</span> <span class="mf">2.528e+04</span>
 <span class="n">Attributes</span><span class="p">:</span>
-    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.8.3</span><span class="o">+</span><span class="mf">10.</span><span class="n">gfd19517e</span>
+    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.8</span><span class="o">.</span><span class="mi">3</span><span class="o">+</span><span class="mf">10.</span><span class="n">gfd19517e</span>
     <span class="n">created</span><span class="p">:</span>  <span class="mi">2020</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">27</span><span class="n">T14</span><span class="p">:</span><span class="mi">30</span><span class="p">:</span><span class="mf">03.243487</span>
 </pre></div>
 </div>
@@ -433,8 +434,8 @@ to find the data values that match a condition (the Phase is FCC_A1):</p>
   <span class="o">*</span> <span class="n">vertex</span>   <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int64</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

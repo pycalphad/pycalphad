@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -69,7 +70,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -184,7 +185,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="plotting-ternary-phase-diagrams-and-using-triangular-axes">
+  <section id="plotting-ternary-phase-diagrams-and-using-triangular-axes">
 <h1>Plotting Ternary Phase Diagrams and Using Triangular Axes<a class="headerlink" href="#plotting-ternary-phase-diagrams-and-using-triangular-axes" title="Permalink to this headline">¶</a></h1>
 <p>Often in thermodynamics, it is useful to use a two dimensional plot to
 express equilibria in a three component system with fixed potentials.
@@ -192,7 +193,7 @@ The <code class="docutils literal notranslate"><span class="pre">ternplot</span>
 equilibria and generate ternary phase diagrams. Alternatively, if you
 already have an equilibrium calculation, you can directly import and use
 <code class="docutils literal notranslate"><span class="pre">eqplot</span></code>.</p>
-<div class="section" id="ternplot">
+<section id="ternplot">
 <h2>ternplot<a class="headerlink" href="#ternplot" title="Permalink to this headline">¶</a></h2>
 <p>Here we well use the ternplot API to plot an isothermal section of the
 Al-Cu-Y system from the thermodynamic database found at the <a class="reference external" href="http://hdl.handle.net/11115/101">NIST
@@ -202,8 +203,8 @@ Zhang et al. <a class="reference external" href="https://doi.org/10.1016/j.calp
 have commented out the Cu6Y phase in the TDB because it utilized the Cu2
 species. Species are not currently supported in pycalphad.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="n">db_al_cu_y</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;Al-Cu-Y.tdb&#39;</span><span class="p">)</span>
 <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
@@ -217,8 +218,8 @@ species. Species are not currently supported in pycalphad.</p>
 </pre></div>
 </div>
 <img alt="../_images/TernaryExamples_2_1.png" src="../_images/TernaryExamples_2_1.png" />
-</div>
-<div class="section" id="triangular-projection">
+</section>
+<section id="triangular-projection">
 <h2>triangular projection<a class="headerlink" href="#triangular-projection" title="Permalink to this headline">¶</a></h2>
 <p>Importing the <code class="docutils literal notranslate"><span class="pre">pycalphad.plot.triangular</span></code> module automatically
 registers a <code class="docutils literal notranslate"><span class="pre">'triangular'</span></code> projection in matplotlib for you to use in
@@ -229,8 +230,8 @@ phase in our Al-Cu-Y system. Then we will the triangular projection to
 plot the calculated points as a colored scatterplot on the triangular
 axes.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad.plot</span> <span class="kn">import</span> <span class="n">triangular</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span>
+<span class="kn">from</span> <span class="nn">pycalphad.plot</span> <span class="k">import</span> <span class="n">triangular</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span>
 
 <span class="c1"># some sample data, these could be from an equilibrium calculation or a property model.</span>
 <span class="c1"># here we are calculating the mixing enthlapy of the FCC_A1 phase at 830K.</span>
@@ -265,8 +266,8 @@ axes.</p>
 </pre></div>
 </div>
 <img alt="../_images/TernaryExamples_4_1.png" src="../_images/TernaryExamples_4_1.png" />
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

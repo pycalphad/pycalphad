@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.plot.binary.map &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.plot.binary.map &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -166,17 +166,17 @@
   <h1>Source code for pycalphad.plot.binary.map</h1><div class="highlight"><pre>
 <span></span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="kn">import</span> <span class="n">build_phase_records</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="kn">import</span> <span class="n">_solve_eq_at_conditions</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.equilibrium</span> <span class="kn">import</span> <span class="n">_adjust_conditions</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.starting_point</span> <span class="kn">import</span> <span class="n">starting_point</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">get_state_variables</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="k">import</span> <span class="n">build_phase_records</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="k">import</span> <span class="n">_solve_eq_at_conditions</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.equilibrium</span> <span class="k">import</span> <span class="n">_adjust_conditions</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.starting_point</span> <span class="k">import</span> <span class="n">starting_point</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">get_state_variables</span><span class="p">,</span> \
     <span class="n">unpack_components</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">get_pure_elements</span>
-<span class="kn">from</span> <span class="nn">.compsets</span> <span class="kn">import</span> <span class="n">get_compsets</span><span class="p">,</span> <span class="n">find_two_phase_region_compsets</span>
-<span class="kn">from</span> <span class="nn">.zpf_boundary_sets</span> <span class="kn">import</span> <span class="n">ZPFBoundarySets</span>
+<span class="kn">from</span> <span class="nn">.compsets</span> <span class="k">import</span> <span class="n">get_compsets</span><span class="p">,</span> <span class="n">find_two_phase_region_compsets</span>
+<span class="kn">from</span> <span class="nn">.zpf_boundary_sets</span> <span class="k">import</span> <span class="n">ZPFBoundarySets</span>
 
 <div class="viewcode-block" id="map_binary"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.map.map_binary">[docs]</a><span class="k">def</span> <span class="nf">map_binary</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">eq_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calc_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">boundary_sets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="kc">False</span><span class="p">,):</span>

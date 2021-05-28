@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.plot.triangular &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>pycalphad.plot.triangular &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -179,11 +179,11 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
-<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Polygon</span>
-<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">NullLocator</span>
-<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="kn">import</span> <span class="n">Affine2D</span><span class="p">,</span> <span class="n">BboxTransformTo</span>
-<span class="kn">from</span> <span class="nn">matplotlib.projections</span> <span class="kn">import</span> <span class="n">register_projection</span>
+<span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="k">import</span> <span class="n">Axes</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">Polygon</span>
+<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="k">import</span> <span class="n">NullLocator</span>
+<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="k">import</span> <span class="n">Affine2D</span><span class="p">,</span> <span class="n">BboxTransformTo</span>
+<span class="kn">from</span> <span class="nn">matplotlib.projections</span> <span class="k">import</span> <span class="n">register_projection</span>
 <span class="kn">import</span> <span class="nn">matplotlib.spines</span> <span class="k">as</span> <span class="nn">mspines</span>
 <span class="kn">import</span> <span class="nn">matplotlib.axis</span> <span class="k">as</span> <span class="nn">maxis</span>
 
@@ -197,7 +197,7 @@
 
     <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;triangular&#39;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;SW&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>

@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Installation Instructions &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>Installation Instructions &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -69,7 +70,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -186,7 +187,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="installation-instructions">
+  <section id="installation-instructions">
 <h1>Installation Instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
 <p>Pycalphad is best installed by using <a class="reference external" href="https://anaconda.com/download">Anaconda</a>. Release versions of pycalphad
 are available on PyPI, however pycalphad depends on the externally developed
@@ -194,7 +195,7 @@ are available on PyPI, however pycalphad depends on the externally developed
 calculations and must be installed separately in order to install pycalphad
 from PyPI. For this reason, it is <em>strongly</em> recommended to use the Anaconda
 Python distribution to install pycalphad, rather than using <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
-<div class="section" id="anaconda">
+<section id="anaconda">
 <h2>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h2>
 <p>For all Windows, macOS and Linux platforms, it is recommended to use <a class="reference external" href="https://anaconda.com/download">Anaconda</a>
 to install the latest release of pycalphad. Anaconda is a scientific Python
@@ -205,8 +206,8 @@ packages and otherwise challenging to install packages.</p>
 <li><p>Download and install <a class="reference external" href="https://anaconda.com/download">Anaconda</a></p></li>
 <li><p>From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">pycalphad</span></code></p></li>
 </ol>
-</div>
-<div class="section" id="development-versions-advanced-users">
+</section>
+<section id="development-versions-advanced-users">
 <h2>Development Versions (Advanced Users)<a class="headerlink" href="#development-versions-advanced-users" title="Permalink to this headline">¶</a></h2>
 <p>Installing a development version of pycalphad will allow the latest changes and
 features in pycalphad to be used by running the bleeding edge version of the
@@ -215,7 +216,7 @@ or Anaconda.</p>
 <p>Running the development versions allows pycalphad to be run directly from the
 modifiable source code, so you can add new features and contribute them back to
 the project.</p>
-<div class="section" id="installing">
+<section id="installing">
 <h3>Installing<a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h3>
 <p>To install the latest development version of pycalphad, run from the Anaconda
 Prompt (Windows) or a terminal emulator (macOS or Linux):</p>
@@ -226,8 +227,8 @@ Prompt (Windows) or a terminal emulator (macOS or Linux):</p>
 <li><p>Go to the top level directory of the package <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">pycalphad</span></code></p></li>
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code></p></li>
 </ol>
-</div>
-<div class="section" id="updating">
+</section>
+<section id="updating">
 <h3>Updating<a class="headerlink" href="#updating" title="Permalink to this headline">¶</a></h3>
 <p>By default, the development version installed will track the latest changes in
 the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch of pycalphad, tracked on
@@ -243,13 +244,13 @@ where <code class="docutils literal notranslate"><span class="pre">&lt;branch&gt
 (without the brackets <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>).</p>
 <p>The Cython files can be recompiled by running <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">build_ext</span> <span class="pre">--inplace</span></code>
 from the top level <code class="docutils literal notranslate"><span class="pre">pycalphad</span></code> directory which contains the <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file.</p>
-</div>
-</div>
-<div class="section" id="troubleshooting">
+</section>
+</section>
+<section id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="during-installation">
+<section id="during-installation">
 <h3>During installation<a class="headerlink" href="#during-installation" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="ipstdcinterface-h-no-such-file-or-directory">
+<section id="ipstdcinterface-h-no-such-file-or-directory">
 <h4><code class="docutils literal notranslate"><span class="pre">IpStdCInterface.h:</span> <span class="pre">No</span> <span class="pre">such</span> <span class="pre">file</span> <span class="pre">or</span> <span class="pre">directory</span></code><a class="headerlink" href="#ipstdcinterface-h-no-such-file-or-directory" title="Permalink to this headline">¶</a></h4>
 <p>During installation via pip, the error
 <code class="docutils literal notranslate"><span class="pre">src/cyipopt.c:239:29:</span> <span class="pre">fatal</span> <span class="pre">error:</span> <span class="pre">IpStdCInterface.h:</span> <span class="pre">No</span> <span class="pre">such</span> <span class="pre">file</span> <span class="pre">or</span> <span class="pre">directory</span></code>
@@ -270,21 +271,21 @@ containing Ipopt header files and libraries as <code class="docutils literal not
 <p>However, users (especially users on Windows) are strongly encouraged to use the
 Anaconda installation instructions for pycalphad instead. <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code>
 and <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">update</span> <span class="pre">pycalphad</span></code> will automatically install Ipopt on all platforms.</p>
-</div>
-</div>
-<div class="section" id="after-installation">
+</section>
+</section>
+<section id="after-installation">
 <h3>After installation<a class="headerlink" href="#after-installation" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="typeerror-argument-is-not-an-mpz-during-a-calculation">
+<section id="typeerror-argument-is-not-an-mpz-during-a-calculation">
 <h4><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation<a class="headerlink" href="#typeerror-argument-is-not-an-mpz-during-a-calculation" title="Permalink to this headline">¶</a></h4>
 <p>This is an upstream bug in sympy, where floats are unable to be pickled.
 The fix has been completed, but not yet released. While the fix is not released,
 removing the gmpy2 package from their Python environment (e.g.
 <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">gmpy2</span></code>) will fix the error. Alternatively, setting the
 environment variable <code class="docutils literal notranslate"><span class="pre">MPMATH_NOGMPY</span></code> to a non-zero value will fix the error.</p>
-</div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
+</section>
 
 
            </div>

@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Plotting Isobaric Binary Phase Diagrams with binplot &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>Plotting Isobaric Binary Phase Diagrams with binplot &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -69,7 +70,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -191,13 +192,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="plotting-isobaric-binary-phase-diagrams-with-binplot">
+  <section id="plotting-isobaric-binary-phase-diagrams-with-binplot">
 <h1>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code><a class="headerlink" href="#plotting-isobaric-binary-phase-diagrams-with-binplot" title="Permalink to this headline">¶</a></h1>
 <p>These are a few examples of how to use Thermo-Calc TDB files to
 calculate isobaric binary phase diagrams. As long as the TDB file is
 present, each cell in these examples is self contained and can
 completely reproduce the figure shown.</p>
-<div class="section" id="binplot">
+<section id="binplot">
 <h2>binplot<a class="headerlink" href="#binplot" title="Permalink to this headline">¶</a></h2>
 <p>The phase diagrams are computed with <code class="docutils literal notranslate"><span class="pre">binplot</span></code>, which has four
 required arguments: 1. The Database object 2. A list of active
@@ -212,22 +213,22 @@ are not drawn on the diagram.</p>
 <p>Also note that the <a class="reference external" href="https://ipython.readthedocs.io/en/stable/interactive/magics.html">magic
 variable</a>
 <code class="docutils literal notranslate"><span class="pre">%matplotlib</span> <span class="pre">inline</span></code> should only be used in Jupyter notebooks.</p>
-</div>
-<div class="section" id="tdb-files">
+</section>
+<section id="tdb-files">
 <h2>TDB files<a class="headerlink" href="#tdb-files" title="Permalink to this headline">¶</a></h2>
 <p>The TDB files should be located in the current working directory of the
 notebook. If you are running using a Jupyter notebook, the default
 working directory is the directory that that notebook is saved in.</p>
 <p>To check the working directory, run:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>TDB files can be found in the literature. The <a class="reference external" href="https://avdwgroup.engin.brown.edu">Thermodynamic DataBase
 DataBase</a> (TDBDB) has indexed many
 available databases and links to the original papers and/or TDB files
 where possible.</p>
-<div class="section" id="al-zn-s-mey-1993">
+<section id="al-zn-s-mey-1993">
 <h3>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#al-zn-s-mey-1993" title="Permalink to this headline">¶</a></h3>
 <p>The miscibility gap in the fcc phase is included in the Al-Zn diagram,
 shown below.</p>
@@ -238,7 +239,7 @@ shown below.</p>
 </ol>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 
 <span class="c1"># Load database and choose the phases that will be considered</span>
@@ -256,14 +257,14 @@ shown below.</p>
 </pre></div>
 </div>
 <img alt="../_images/BinaryExamples_4_0.png" src="../_images/BinaryExamples_4_0.png" />
-</div>
-<div class="section" id="al-mg-y-zhong-2005">
+</section>
+<section id="al-mg-y-zhong-2005">
 <h3>Al-Mg (Y. Zhong, 2005)<a class="headerlink" href="#al-mg-y-zhong-2005" title="Permalink to this headline">¶</a></h3>
 <p>Y. Zhong, M. Yang, Z.-K. Liu, CALPHAD 29 (2005) 303-311
 doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.08.004">10.1016/j.calphad.2005.08.004</a></p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 
 <span class="c1"># Load database</span>
@@ -280,8 +281,8 @@ doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.0
 </pre></div>
 </div>
 <img alt="../_images/BinaryExamples_6_0.png" src="../_images/BinaryExamples_6_0.png" />
-</div>
-<div class="section" id="al-ni-dupin-2001">
+</section>
+<section id="al-ni-dupin-2001">
 <h3>Al-Ni (Dupin, 2001)<a class="headerlink" href="#al-ni-dupin-2001" title="Permalink to this headline">¶</a></h3>
 <p>Components and conditions can also be stored as variables and passed to
 binplot.</p>
@@ -289,7 +290,7 @@ binplot.</p>
 doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00049-9">10.1016/S0364-5916(01)00049-9</a></p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 
 <span class="c1"># Load database</span>
@@ -316,13 +317,13 @@ doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00
 </pre></div>
 </div>
 <img alt="../_images/BinaryExamples_8_0.png" src="../_images/BinaryExamples_8_0.png" />
-</div>
-<div class="section" id="al-fe-m-seiersten-1991">
+</section>
+<section id="al-fe-m-seiersten-1991">
 <h3>Al-Fe (M. Seiersten, 1991)<a class="headerlink" href="#al-fe-m-seiersten-1991" title="Permalink to this headline">¶</a></h3>
 <p>Removing tielines</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 
 <span class="c1"># Load database and choose the phases that will be considered</span>
@@ -341,14 +342,14 @@ doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00
 </pre></div>
 </div>
 <img alt="../_images/BinaryExamples_10_0.png" src="../_images/BinaryExamples_10_0.png" />
-</div>
-<div class="section" id="nb-re-liu-2013">
+</section>
+<section id="nb-re-liu-2013">
 <h3>Nb-Re (Liu, 2013)<a class="headerlink" href="#nb-re-liu-2013" title="Permalink to this headline">¶</a></h3>
 <p>X.L. Liu, C.Z. Hargather, Z.-K. Liu, CALPHAD 41 (2013) 119-127
 doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.02.006">10.1016/j.calphad.2013.02.006</a></p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="c1"># Load database and choose the phases that will be plotted</span>
 <span class="n">db_nbre</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;nbre_liu.tdb&#39;</span><span class="p">)</span>
@@ -366,10 +367,10 @@ doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.0
 </pre></div>
 </div>
 <img alt="../_images/BinaryExamples_12_0.png" src="../_images/BinaryExamples_12_0.png" />
-</div>
-</div>
-</div>
-<div class="section" id="calculating-energy-surfaces-of-binary-systems">
+</section>
+</section>
+</section>
+<section id="calculating-energy-surfaces-of-binary-systems">
 <h1>Calculating Energy Surfaces of Binary Systems<a class="headerlink" href="#calculating-energy-surfaces-of-binary-systems" title="Permalink to this headline">¶</a></h1>
 <p>It is very common in CALPHAD modeling to directly examine the Gibbs
 energy surface of all the constituent phases in a system.</p>
@@ -381,8 +382,8 @@ composition. Only the low-energy states are relevant to calculating the
 equilibrium phase diagram.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="k">import</span> <span class="n">phase_legend</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Load database and choose the phases that will be plotted</span>
@@ -409,7 +410,7 @@ equilibrium phase diagram.</p>
 </pre></div>
 </div>
 <img alt="../_images/BinaryExamples_14_0.png" src="../_images/BinaryExamples_14_0.png" />
-</div>
+</section>
 
 
            </div>

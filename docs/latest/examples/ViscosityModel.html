@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Custom Models in pycalphad: Viscosity &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>Custom Models in pycalphad: Viscosity &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -70,7 +71,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -190,9 +191,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="custom-models-in-pycalphad-viscosity">
+  <section id="custom-models-in-pycalphad-viscosity">
 <h1>Custom Models in pycalphad: Viscosity<a class="headerlink" href="#custom-models-in-pycalphad-viscosity" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="viscosity-model-background">
+<section id="viscosity-model-background">
 <h2>Viscosity Model Background<a class="headerlink" href="#viscosity-model-background" title="Permalink to this headline">¶</a></h2>
 <p>We are going to take a CALPHAD-based property model from the literature
 and use it to predict the viscosity of Al-Cu-Zr liquids.</p>
@@ -218,11 +219,11 @@ ability of the Al–Cu–Zr system</em>, Journal of Non-Crystalline Solids
 461 (2017) 47-60,
 <a class="reference external" href="https://doi.org/10.1016/j.jnoncrysol.2016.09.031">doi:10.1016/j.jnoncrysol.2016.09.031</a>.</p></li>
 </ol>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="tdb-parameters">
+</section>
+<section id="tdb-parameters">
 <h2>TDB Parameters<a class="headerlink" href="#tdb-parameters" title="Permalink to this headline">¶</a></h2>
 <p>We can calculate the excess entropy of the liquid using the Al-Cu-Zr
 thermodynamic database from Zhou et al.</p>
@@ -411,7 +412,7 @@ ParseException                            Traceback (most recent call last)
 ParseException: Expected {{&quot;ELEMENT&quot; W:(ABCD...) W:(ABCD...) Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) LineEnd} | {&quot;SPECIES&quot; W:(ABCD...) [Suppress:(&quot;%&quot;)] Group:({{W:(ABCD...) [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)]}}...) [{Suppress:(&quot;/&quot;) W:(+-01...)}] LineEnd} | {&quot;TYPE_DEFINITION&quot; Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {&quot;FUNCTION&quot; W:(ABCD...) {{Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) | [&quot;,&quot;]...} {{SkipTo:(&quot;;&quot;) Suppress:(&quot;;&quot;) [Suppress:(&quot;,&quot;)]... [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}} | {&quot;ASSESSED_SYSTEMS&quot; SkipTo:(LineEnd)} | {&quot;DEFINE_SYSTEM_DEFAULT&quot; SkipTo:(LineEnd)} | {&quot;DEFAULT_COMMAND&quot; SkipTo:(LineEnd)} | {&quot;DATABASE_INFO&quot; SkipTo:(LineEnd)} | {&quot;VERSION_DATE&quot; SkipTo:(LineEnd)} | {&quot;REFERENCE_FILE&quot; SkipTo:(LineEnd)} | {&quot;ADD_REFERENCES&quot; SkipTo:(LineEnd)} | {&quot;LIST_OF_REFERENCES&quot; SkipTo:(LineEnd)} | {&quot;TEMPERATURE_LIMITS&quot; SkipTo:(LineEnd)} | {&quot;PHASE&quot; W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0123...)) Group:({Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)}...) Suppress:(SkipTo:(LineEnd))} | {&quot;CONSTITUENT&quot; W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(&quot;:&quot;) Group:(Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...) [: Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...)]...) Suppress:(&quot;:&quot;) LineEnd} | {&quot;PARAMETER&quot; {&quot;BMAGN&quot; | &quot;DF&quot; | &quot;DQ&quot; | &quot;G&quot; | &quot;GD&quot; | &quot;L&quot; | &quot;MF&quot; | &quot;MQ&quot; | &quot;NT&quot; | &quot;TC&quot; | &quot;THETA&quot; | &quot;V0&quot; | &quot;VS&quot;} Suppress:(&quot;(&quot;) W:(ABCD...) [{Suppress:(&quot;&amp;&quot;) W:(ABCD...)}] Suppress:(&quot;,&quot;) Group:(Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...) [: Group:({{[Suppress:(&quot;,&quot;)] {W:(ABCD...) [Suppress:(&quot;%&quot;)]}}}...)]...) [{Suppress:(&quot;;&quot;) W:(0123...)}] Suppress:(&quot;)&quot;) {{Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) | [&quot;,&quot;]...} {{SkipTo:(&quot;;&quot;) Suppress:(&quot;;&quot;) [Suppress:(&quot;,&quot;)]... [Re:(&#39;[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}}}, found &#39;(&#39;  (at char 17), (line:1, col:18)
 </pre></div>
 </div>
-<div class="section" id="adding-the-eta-parameter-to-the-tdb-parser">
+<section id="adding-the-eta-parameter-to-the-tdb-parser">
 <h3>Adding the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameter to the TDB parser<a class="headerlink" href="#adding-the-eta-parameter-to-the-tdb-parser" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pycalphad.io.tdb_keywords</span>
 <span class="n">pycalphad</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">tdb_keywords</span><span class="o">.</span><span class="n">TDB_PARAM_TYPES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;ETA&#39;</span><span class="p">)</span>
@@ -421,9 +422,9 @@ ParseException: Expected {{&quot;ELEMENT&quot; W:(ABCD...) W:(ABCD...) Re:(&#39;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alcuzr-viscosity.tdb&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="writing-the-custom-viscosity-model">
+</section>
+</section>
+<section id="writing-the-custom-viscosity-model">
 <h2>Writing the Custom Viscosity Model<a class="headerlink" href="#writing-the-custom-viscosity-model" title="Permalink to this headline">¶</a></h2>
 <p>Now that we have our <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters in the database, we need to
 write a <code class="docutils literal notranslate"><span class="pre">Model</span></code> class to tell pycalphad how to compute viscosity. All
@@ -438,9 +439,9 @@ into the Gąsior equation and return the result</p>
 <p>Since the <code class="docutils literal notranslate"><span class="pre">build_phase</span></code> method sets the attribute <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> to the
 <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code>, we can access the property using <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> as
 the output in pycalphad caluclations.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tinydb</span> <span class="k">import</span> <span class="n">where</span>
 <span class="kn">import</span> <span class="nn">sympy</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="k">class</span> <span class="nc">ViscosityModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">build_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
@@ -474,8 +475,8 @@ the output in pycalphad caluclations.</p>
         <span class="k">return</span> <span class="n">result</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="performing-calculations">
+</section>
+<section id="performing-calculations">
 <h2>Performing Calculations<a class="headerlink" href="#performing-calculations" title="Permalink to this headline">¶</a></h2>
 <p>Now we can create an instance of <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code> for the liquid phase
 using the <code class="docutils literal notranslate"><span class="pre">Database</span></code> object we created earlier. We can verify this
@@ -492,7 +493,7 @@ the viscosity.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span>
 
 <span class="n">mod</span> <span class="o">=</span> <span class="n">ViscosityModel</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;ZR&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">)</span>
 
@@ -515,7 +516,7 @@ the viscosity.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span>
 
 <span class="n">temp</span> <span class="o">=</span> <span class="mi">1300</span>
 <span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">:</span> <span class="n">ViscosityModel</span><span class="p">}</span>  <span class="c1"># we can also use Model class</span>
@@ -531,8 +532,8 @@ the viscosity.</p>
 </pre></div>
 </div>
 <img alt="../_images/ViscosityModel_16_0.png" src="../_images/ViscosityModel_16_0.png" />
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

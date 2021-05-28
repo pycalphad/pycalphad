@@ -4,10 +4,11 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Calculations with Reference States &mdash; pycalphad 0.8.5+12.g9593ab59 documentation</title>
+  <title>Calculations with Reference States &mdash; pycalphad 0.8.6.dev14+g657f5ba3 documentation</title>
   
 
   
@@ -70,7 +71,7 @@
             
             
               <div class="version">
-                0.8.5+12.g9593ab59
+                0.8.6.dev14+g657f5ba3
               </div>
             
           
@@ -190,9 +191,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="calculations-with-reference-states">
+  <section id="calculations-with-reference-states">
 <h1>Calculations with Reference States<a class="headerlink" href="#calculations-with-reference-states" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="experimental-reference-states-formation-and-mixing-energy">
+<section id="experimental-reference-states-formation-and-mixing-energy">
 <h2>Experimental Reference States: Formation and Mixing Energy<a class="headerlink" href="#experimental-reference-states-formation-and-mixing-energy" title="Permalink to this headline">¶</a></h2>
 <p>By default, energies calculated with pycalphad (e.g. <code class="docutils literal notranslate"><span class="pre">GM</span></code>, <code class="docutils literal notranslate"><span class="pre">HM</span></code>,
 etc.) are the absolute energies as defined in the database and are not
@@ -202,7 +203,7 @@ to be set to arbitrary phases and temperature/pressure conditions
 through the <code class="docutils literal notranslate"><span class="pre">shift_reference_state</span></code> method, which creates new
 properties for the energies that are referenced to the new reference
 state, <code class="docutils literal notranslate"><span class="pre">GMR</span></code>, <code class="docutils literal notranslate"><span class="pre">HMR</span></code>, <code class="docutils literal notranslate"><span class="pre">SMR</span></code>, and <code class="docutils literal notranslate"><span class="pre">CPMR</span></code>.</p>
-<div class="section" id="enthalpy-of-mixing">
+<section id="enthalpy-of-mixing">
 <h3>Enthalpy of mixing<a class="headerlink" href="#enthalpy-of-mixing" title="Permalink to this headline">¶</a></h3>
 <p>The enthalpy of mixing in the liquid, analogous to what would be
 measured experimentally, is calculated and plotted below with the
@@ -212,7 +213,7 @@ state to be calculated with respect to the calculation temperature.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ReferenceState</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ReferenceState</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s2">&quot;nbre_liu.tdb&quot;</span><span class="p">)</span>
@@ -245,8 +246,8 @@ state to be calculated with respect to the calculation temperature.</p>
 </pre></div>
 </div>
 <img alt="../_images/ReferenceStateExamples_2_0.png" src="../_images/ReferenceStateExamples_2_0.png" />
-</div>
-<div class="section" id="enthalpy-of-formation-convex-hull">
+</section>
+<section id="enthalpy-of-formation-convex-hull">
 <h3>Enthalpy of formation - convex hull<a class="headerlink" href="#enthalpy-of-formation-convex-hull" title="Permalink to this headline">¶</a></h3>
 <p>Formation enthalpies are often reported in the literature with respect
 to the pure elements in their stable phase at 298.15 K. The enthalpy of
@@ -254,7 +255,7 @@ formation of the phases in equilibrium, analogous to what would be
 measured experimentally, is calculated and plotted below for T=2800 K,
 with the reference states of the pure elements both set to the stable
 phases and fixed at 298.15 K and 1 atm.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ReferenceState</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ReferenceState</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -298,9 +299,9 @@ phases and fixed at 298.15 K and 1 atm.</p>
 </pre></div>
 </div>
 <img alt="../_images/ReferenceStateExamples_4_0.png" src="../_images/ReferenceStateExamples_4_0.png" />
-</div>
-</div>
-<div class="section" id="special-mix-reference-state">
+</section>
+</section>
+<section id="special-mix-reference-state">
 <h2>Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State<a class="headerlink" href="#special-mix-reference-state" title="Permalink to this headline">¶</a></h2>
 <p>pycalphad also includes special mixing reference state that is
 referenced to the endmembers for that phase with the <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> suffix
@@ -312,7 +313,7 @@ no instantiation of <code class="docutils literal notranslate"><span class="pre"
 <p>Below is an example for calculating this endmember-referenced mixing
 enthalpy for the <span class="math notranslate nohighlight">\(\chi\)</span> phase in Nb-Re. Notice that the four
 endmembers have a mixing enthalpy of zero.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s2">&quot;nbre_liu.tdb&quot;</span><span class="p">)</span>
@@ -334,8 +335,8 @@ endmembers have a mixing enthalpy of zero.</p>
 </pre></div>
 </div>
 <img alt="../_images/ReferenceStateExamples_6_0.png" src="../_images/ReferenceStateExamples_6_0.png" />
-</div>
-<div class="section" id="calculations-at-specific-site-fractions">
+</section>
+<section id="calculations-at-specific-site-fractions">
 <h2>Calculations at specific site fractions<a class="headerlink" href="#calculations-at-specific-site-fractions" title="Permalink to this headline">¶</a></h2>
 <p>In the previous example, the mixing energy for the CHI phase in Nb-Re is
 sampled by sampling site fractions linearly between endmembers and then
@@ -358,7 +359,7 @@ the first sublattice to 1 and the site fractions of NB and RE in the
 third sublattice to 1 and 0, respectively. Note that the site fraction
 array is sorted first in sublattice order, then in alphabetic order
 within each sublattice (e.g. NB is always before RE within a sublattice)</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
@@ -409,8 +410,8 @@ within each sublattice (e.g. NB is always before RE within a sublattice)</p>
 </pre></div>
 </div>
 <img alt="../_images/ReferenceStateExamples_8_1.png" src="../_images/ReferenceStateExamples_8_1.png" />
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
