@@ -832,13 +832,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         system_is_feasible = (state.mass_residual < allowed_mass_residual) and (state.largest_internal_cons_max_residual < 1e-9) and \
                              (chempot_diff < 1e-12) and (state.iteration > 5) and (largest_moles_change < 1e-9) and (phase_change_counter == 0)
         if system_is_feasible:
-            converged = True
-            new_free_stable_compset_indices = np.array([i for i in range(state.phase_amt.shape[0])
-                                                        if (state.phase_amt[i] > MIN_SITE_FRACTION) and \
-                                                        (i not in suspended_compsets)], dtype=np.int32)
-            if set(state.free_stable_compset_indices) == set(new_free_stable_compset_indices):
-                converged = True
-            state.free_stable_compset_indices = new_free_stable_compset_indices
             # Check driving forces for metastable phases
             # This needs to be done per mole of atoms, not per formula unit, since we compare phases to each other
             driving_forces = np.zeros(len(state.compsets))
