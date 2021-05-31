@@ -576,8 +576,8 @@ def test_eq_alni_high_temp():
     assert set(np.squeeze(eq.Phase.values)) == {'BCC_B2', 'LIQUID', ''}
     bcc_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'BCC_B2')[0][0]
     liq_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'LIQUID')[0][0]
-    assert_allclose(np.squeeze(eq.X.sel(vertex=bcc_idx).values), [0.562336, 0.437664], atol=1e-6)
-    assert_allclose(np.squeeze(eq.X.sel(vertex=liq_idx).values), [0.693173, 0.306827], atol=1e-6)
+    assert_allclose(np.squeeze(eq.X.sel(vertex=bcc_idx).values), [0.563528, 0.436472], atol=1e-6)
+    assert_allclose(np.squeeze(eq.X.sel(vertex=liq_idx).values), [0.695314, 0.304686], atol=1e-6)
 
 
 @pytest.mark.solver
