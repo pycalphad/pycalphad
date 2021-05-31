@@ -50,6 +50,7 @@ env/
 *.c
 *.h
 *.so
+*.pyd
 *.sublime-project
 *.sublime-workspace
 *.cpp

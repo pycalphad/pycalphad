@@ -558,3 +558,35 @@ def test_eq_alni_low_temp():
     al3ni5_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'AL3NI5')[0][0]
     assert_allclose(np.squeeze(eq.X.sel(vertex=bcc_idx).values), [0.488104, 0.511896], atol=1e-6)
     assert_allclose(np.squeeze(eq.X.sel(vertex=al3ni5_idx).values), [0.375, 0.625], atol=1e-6)
+
+
+@pytest.mark.solver
+def test_eq_alni_high_temp():
+    """
+    Avoid 'jitter' in high-temperature phase equilibria with dilute site fractions.
+    """
+    dbf = NI_AL_DUPIN_2001_DBF
+    comps = ['AL', 'NI', 'VA']
+    phases = sorted(dbf.phases.keys())
+    eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 1600, v.N: 1, v.X('AL'): 0.65})
+    # if MIN_SITE_FRACTION is set to 1e-16: -131048.695
+    assert_allclose(eq.GM.values, -131081.998)
+    # if MIN_SITE_FRACTION is set to 1e-16: [-106515.007322, -176611.259853]
+    assert_allclose(eq.MU.values.flatten(), [-106284.8589, -177133.82819])
+    assert set(np.squeeze(eq.Phase.values)) == {'BCC_B2', 'LIQUID', ''}
+    bcc_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'BCC_B2')[0][0]
+    liq_idx = np.nonzero(np.squeeze(eq.Phase.values) == 'LIQUID')[0][0]
+    assert_allclose(np.squeeze(eq.X.sel(vertex=bcc_idx).values), [0.562336, 0.437664], atol=1e-6)
+    assert_allclose(np.squeeze(eq.X.sel(vertex=liq_idx).values), [0.693173, 0.306827], atol=1e-6)
+
+
+@pytest.mark.solver
+def test_eq_issue259():
+    """
+    Chemical potential condition for phase with internal degrees of freedom.
+    """
+    dbf = ALFE_DBF
+    comps = ['AL', 'FE', 'VA']
+    eq = equilibrium(dbf, comps, ['B2_BCC'], {v.P: 101325, v.N: 1, v.T: 1013, v.MU('AL'): -95906})
+    assert_allclose(eq.GM.values, -65786.260)
+    assert_allclose(eq.MU.values.flatten(), [-95906., -52877.592122])
