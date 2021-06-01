@@ -23,8 +23,8 @@ CUMG_DBF = Database(CUMG_TDB)
 FE_MN_S_DBF = Database(FE_MN_S_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
-Viitala = Database.from_string(VIITALA_DAT, fmt='dat')
-Ocadizflores= Database.from_string(OCADIZ_FLORES_DAT, fmt='dat')
+VIITALA_DBF = Database.from_string(VIITALA_DAT, fmt='dat')
+OCADIZ_FLORES_DBF = Database.from_string(OCADIZ_FLORES_DAT, fmt='dat')
 
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
@@ -675,43 +675,46 @@ def test_MQMQA_site_fraction_energy():
     CU2 = v.Species('CU+2.0', constituents={'CU': 1.0}, charge=2)
     CL =  v.Species('CL-1.0', constituents={'CL': 1.0}, charge=-1)
 
-    mod = ModelMQMQA(Viitala,['CU','ZN','FE','CL'], 'LIQUIDSOLN')
+    mod = ModelMQMQA(VIITALA_DBF,['CU','ZN','FE','CL'], 'LIQUIDSOLN')
 
-    subs_dict ={mod._p(CU1,CU1,CL,CL):   0.11658 ,
-                mod._p(FE3,FE3,CL,CL):  1.2866E-29 ,
+    subs_dict ={mod._p(CU1,CU1,CL,CL): 0.11658 ,
+                mod._p(FE3,FE3,CL,CL): 1.2866E-29 ,
                 mod._p(FE2,FE2,CL,CL): 0.11134 ,
                 mod._p(CU2,CU2,CL,CL): 9.4530E-35 ,
                 mod._p(ZN,ZN,CL,CL):  0.12170 ,
                 mod._p(CU1,FE3,CL,CL): 2.0667E-15 ,
                 mod._p(CU1,CU2,CL,CL): 5.9018E-18 ,
-                mod._p(CU2,FE3,CL,CL):  6.9749E-32 ,
+                mod._p(CU2,FE3,CL,CL): 6.9749E-32 ,
                 mod._p(CU1,FE2,CL,CL): 0.22711 ,
-                mod._p(FE2,FE3,CL,CL):  2.6993E-15 ,
+                mod._p(FE2,FE3,CL,CL): 2.6993E-15 ,
                 mod._p(CU1,ZN,CL,CL): 0.20640 ,
-                mod._p(CU2,FE2,CL,CL):   7.2080E-18 ,
-                mod._p(FE3,ZN,CL,CL):  5.4157E-15 ,
-                mod._p(CU2,ZN,CL,CL):  5.6356E-18 ,
-                mod._p(FE2,ZN,CL,CL):  0.21687 ,
+                mod._p(CU2,FE2,CL,CL): 7.2080E-18 ,
+                mod._p(FE3,ZN,CL,CL): 5.4157E-15 ,
+                mod._p(CU2,ZN,CL,CL): 5.6356E-18 ,
+                mod._p(FE2,ZN,CL,CL): 0.21687 ,
                 v.T: 600
                 }
 
     check_energy(mod, subs_dict, -138473.75, mode='sympy')
-    assert np.isclose(float(mod.moles('CU').subs(subs_dict)),0.125,1e-5)
-    assert np.isclose(float(mod.moles('CL').subs(subs_dict)),0.625,1e-5)
-    assert np.isclose(float(mod.moles('ZN').subs(subs_dict)),0.125,1e-5)
-    assert np.isclose(float(mod.moles('FE').subs(subs_dict)),0.125,1e-5)
+    assert np.isclose(float(mod.moles('CU').subs(subs_dict)), 0.125,1e-5)
+    assert np.isclose(float(mod.moles('CL').subs(subs_dict)), 0.625,1e-5)
+    assert np.isclose(float(mod.moles('ZN').subs(subs_dict)), 0.125,1e-5)
+    assert np.isclose(float(mod.moles('FE').subs(subs_dict)), 0.125,1e-5)
+
 
 def test_MQMQA_equilibrium_energy_only_liquid():
 
-    comps = ['K', 'F','NI']  # other pure element component names that you want
-    phases = ['F2(G)','KF_S1(S)','NIF2_S1(S)','NIK2F4_S1(S)','LIQUID2','NIKF3_S1(S)']  # only liquid phase for now, don't consider other phases
+    comps = ['K', 'F', 'NI']  # other pure element component names that you want
+    phases = ['F2(G)', 'KF_S1(S)', 'NIF2_S1(S)', 'NIK2F4_S1(S)', 'LIQUID2', 'NIKF3_S1(S)']  # only liquid phase for now, don't consider other phases
 
     conds = {v.N: 1, v.P: 101325, v.T: 1450, v.X('NI'):0.16667, v.X('F'):0.58334}  # make sure to add more composition conditions if you add more components
     model = {'LIQUID2': ModelMQMQA}
-    eq = equilibrium(Ocadizflores, comps, phases, conds, calc_opts={'pdens': 2000}, model=model)
+    eq = equilibrium(OCADIZ_FLORES_DBF , comps, phases, conds, model=model)
+    print(eq.Phase.values.squeeze())
+    print(eq.NP.values.squeeze())
 
-    assert np.isclose(round(float(eq.GM)),round(-332679.167),1e-5)
+    assert np.isclose(eq.GM, -332679.167, 1e-5)  # value from Thermochimica
     Y_quad_KKFF=eq.Y.values[0][0][0][0][0][1][0]
     Y_quad_KNIFF=eq.Y.values[0][0][0][0][0][1][1]
-    assert np.isclose(Y_quad_KKFF,0.160136063,1e-4)
-    assert np.isclose(Y_quad_KNIFF,0.628377052,1e-4)
+    assert np.isclose(Y_quad_KKFF, 0.160136063, atol=1e-4)
+    assert np.isclose(Y_quad_KNIFF, 0.628377052, atol=1e-4)

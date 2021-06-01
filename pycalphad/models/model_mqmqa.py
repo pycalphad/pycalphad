@@ -374,7 +374,7 @@ class ModelMQMQA:
         constraints.append(total_quad)
         return constraints
 
-    def moles(self, species):
+    def moles(self, species, per_formula_unit=False):
         "Number of moles of species or elements."
         species = v.Species(species)
         result = S.Zero
@@ -385,9 +385,11 @@ class ModelMQMQA:
         # The correct solution is to make the changes where pycalphad assumes n=1. But I think it would be easier to change how we implement the model so that the model has n=1 and the energies are normalized to per-mole-atoms.
         # Since normalizing to moles of quadruplets is allowing us to easily compare with thermochimica, I'm thinking that we might be able to fake pycalphad into thinking we have N=1 by normalizing "moles" to n=1
         # The energies will not be normalized to moles of atoms (and so you cannot yet use this Model to compare to other phases), but internally it should be correct and in agreement with thermochimica
-
-        normalization = sum(self.M(self._dbe, c) for c in self.components)
-        return result/normalization
+        if per_formula_unit:
+            return result
+        else:
+            normalization = sum(self.M(self._dbe, c) for c in self.components)
+            return result/normalization
 
     def moles_(self, species):
         "Number of moles of species or elements."
@@ -441,6 +443,7 @@ class ModelMQMQA:
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
     GM = property(lambda self: self.ast)
+    G = property(lambda self: self.ast*self.normalization)
     energy = GM
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
