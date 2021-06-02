@@ -13,6 +13,7 @@ from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError,
 from pycalphad.codegen.callables import build_callables
 from pycalphad.core.solver import SolverBase, Solver
 from pycalphad.core.utils import get_state_variables
+from pycalphad.models.model_mqmqa import ModelMQMQA
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -29,6 +30,7 @@ CUO_DBF = Database(CUO_TDB)
 PBSN_DBF = Database(PBSN_TDB)
 AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
+OCADIZ_FLORES_DBF = Database.from_string(OCADIZ_FLORES_DAT, fmt='dat')
 
 
 @pytest.mark.solver
@@ -590,3 +592,22 @@ def test_eq_issue259():
     eq = equilibrium(dbf, comps, ['B2_BCC'], {v.P: 101325, v.N: 1, v.T: 1013, v.MU('AL'): -95906})
     assert_allclose(eq.GM.values, -65786.260)
     assert_allclose(eq.MU.values.flatten(), [-95906., -52877.592122])
+
+
+def test_MQMQA_equilibrium():
+
+    comps = ['K', 'F', 'NI']  # other pure element component names that you want
+    phases = ['F2(G)', 'KF_S1(S)', 'NIF2_S1(S)', 'NIK2F4_S1(S)', 'LIQUID2', 'NIKF3_S1(S)']
+    conds = {v.N: 1, v.P: 101325, v.T: 1450, v.X('NI'): 0.16667, v.X('F'): 0.58334}
+
+    model = {'LIQUID2': ModelMQMQA}
+    eq = equilibrium(OCADIZ_FLORES_DBF , comps, phases, conds, model=model)
+
+    print(eq.Phase.values.squeeze())
+    print(eq.NP.values.squeeze())
+
+    assert np.isclose(eq.GM, -332679.167, 1e-5)  # value from Thermochimica
+    Y_quad_KKFF=eq.Y.values[0][0][0][0][0][1][0]
+    Y_quad_KNIFF=eq.Y.values[0][0][0][0][0][1][1]
+    assert np.isclose(Y_quad_KKFF, 0.160136063, atol=1e-4)
+    assert np.isclose(Y_quad_KNIFF, 0.628377052, atol=1e-4)

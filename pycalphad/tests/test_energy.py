@@ -8,7 +8,7 @@ from sympy import S
 from pycalphad import Database, Model, ReferenceState, equilibrium
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
-    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB,VIITALA_DAT, OCADIZ_FLORES_DAT
+    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB,VIITALA_DAT
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
@@ -24,7 +24,6 @@ FE_MN_S_DBF = Database(FE_MN_S_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
 VIITALA_DBF = Database.from_string(VIITALA_DAT, fmt='dat')
-OCADIZ_FLORES_DBF = Database.from_string(OCADIZ_FLORES_DAT, fmt='dat')
 
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
@@ -700,21 +699,3 @@ def test_MQMQA_site_fraction_energy():
     assert np.isclose(float(mod.moles('CL').subs(subs_dict)), 0.625,1e-5)
     assert np.isclose(float(mod.moles('ZN').subs(subs_dict)), 0.125,1e-5)
     assert np.isclose(float(mod.moles('FE').subs(subs_dict)), 0.125,1e-5)
-
-
-def test_MQMQA_equilibrium_energy_only_liquid():
-
-    comps = ['K', 'F', 'NI']  # other pure element component names that you want
-    phases = ['F2(G)', 'KF_S1(S)', 'NIF2_S1(S)', 'NIK2F4_S1(S)', 'LIQUID2', 'NIKF3_S1(S)']  # only liquid phase for now, don't consider other phases
-
-    conds = {v.N: 1, v.P: 101325, v.T: 1450, v.X('NI'):0.16667, v.X('F'):0.58334}  # make sure to add more composition conditions if you add more components
-    model = {'LIQUID2': ModelMQMQA}
-    eq = equilibrium(OCADIZ_FLORES_DBF , comps, phases, conds, model=model)
-    print(eq.Phase.values.squeeze())
-    print(eq.NP.values.squeeze())
-
-    assert np.isclose(eq.GM, -332679.167, 1e-5)  # value from Thermochimica
-    Y_quad_KKFF=eq.Y.values[0][0][0][0][0][1][0]
-    Y_quad_KNIFF=eq.Y.values[0][0][0][0][0][1][1]
-    assert np.isclose(Y_quad_KKFF, 0.160136063, atol=1e-4)
-    assert np.isclose(Y_quad_KNIFF, 0.628377052, atol=1e-4)
