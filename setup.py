@@ -58,7 +58,7 @@ setup(
         'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
         'matplotlib>=3.3',
         'numpy>=1.13',
-        'pyparsing',
+        'pyparsing>=2.0,<3',
         'pytest',
         'pytest-cov',
         'scipy',
@@ -83,10 +83,8 @@ setup(
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
 
-        # Specify the Python versions you support here. In particular, ensure
-        # that you indicate whether you support Python 2, Python 3 or both.
+        # Supported Python versions
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',

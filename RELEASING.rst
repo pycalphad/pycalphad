@@ -1,47 +1,63 @@
 Releasing pycalphad
 ===================
 
-When releasing a new version of pycalphad:
+Create a release of pycalphad
+-----------------------------
 
-1. All pull requests / issues tagged with the upcoming version milestone should be resolved or deferred.
-2. ``git pull`` to make sure you haven't missed any last-minute commits. **After this point, nothing else is making it into this version.**
-   A minor release can be done later if something important is missed.
-3. Ensure that all tests pass locally on develop. Feature tests which are deferred to a future
-   milestone should be marked with the ``SkipTest`` decorator.
-4. Regenerate the API documentation with ``sphinx-apidoc -f -H 'API Documentation' -o docs/api/ pycalphad/ pycalphad/tests 'pycalphad/core/*.pxd' 'pycalphad/core/*.so'``
-5. Resolve differences and commit the updated API documentation to the develop branch of the repository.
-6. ``git push`` and verify all tests pass on all CI services.
-7. Generate a list of commits since the last version with ``git log --oneline --decorate --color 0.1^..origin/develop``
-   Replace ``0.1`` with the tag of the last public version.
-8. Condense the change list into something user-readable. Update and commit CHANGES.rst with the release date.
-9. ``git checkout master``
+These steps assume that ``0.1`` is the most recently tagged version number and ``0.2`` is the next version number to be released.
+Replace their values with the last public release's version number and the new version number as appropriate.
 
-   ``git merge develop`` (merge commits unnecessary for now)
-10. ``git stash``
+#. Determine what the next version number should be using `semantic versioning <https://semver.org/>`_.
+#. Resolve or defer all pull requests and issues tagged with the upcoming version milestone.
+#. ``git stash`` to save any uncommitted work.
+#. ``git checkout develop``
+#. ``git pull`` to make sure you haven't missed any last-minute commits. **After this point, nothing else is making it into this version.**
+#. ``python setup.py build_ext --inplace`` (assuming an editable development version is already installed).
+#. ``pytest pycalphad`` to ensure that all tests pass locally.
+#. ``sphinx-apidoc -f -H 'API Documentation' -o docs/api/ pycalphad/ pycalphad/tests 'pycalphad/core/*.pxd' 'pycalphad/core/*.so'`` to regenerate the API documentation.
+#. Update ``CHANGES.rst`` with a human-readable list of changes since the last commit.
+   ``git log --oneline --no-decorate --color 0.1^..develop`` can be used to list the changes since the last version.
+#. ``git add docs/api CHANGES.rst`` to stage the updated documentation.
+#. ``git commit -m "REL: 0.2"`` to commit the changes.
+#. ``git push origin develop``
+#. ``git checkout master``
+#. ``git merge develop`` (do not create a merge commit)
+#. ``git push origin master``
+#. **Verify that all continuous integration test and build workflows pass.**
+#. Create a release on GitHub
 
-   ``git tag 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version.
+   #. Go to https://github.com/pycalphad/pycalphad/releases/new
+   #. Set the "Tag version" field to ``0.2``.
+   #. Set the branch target to ``master``.
+   #. Set the "Release title" to ``pycalphad 0.2``.
+   #. Leave the description box blank.
+   #. If this version is a pre-release, check the "This is a pre-release" box.
+   #. Click "Publish release".
+#. The new version will be available on PyPI when the ``Build and deploy to PyPI`` workflow on GitHub Actions finishes successfully.
 
-   ``git show 0.2`` to ensure the correct commit was tagged.
+Deploy to PyPI (manually)
+-------------------------
 
-   ``git push origin master --tags``
+.. warning::
 
-   ``git stash pop``
-11. The new version is tagged in the repository. Now the public package must be built and distributed.
+   DO NOT FOLLOW THESE STEPS unless the GitHub Actions deployment workflow is broken.
+   Creating a GitHub release should trigger the ``Build and deploy to PyPI`` workflow on GitHub Actions that will upload source and platform-dependent wheel distributions automatically.
 
-Uploading to PyPI
------------------
-1. ``rm -R dist/*`` on Linux/OSX or ``del dist/*`` on Windows
-2. With the commit checked out which was tagged with the new version:
-   ``python setup.py sdist``
+To release a source distribution to PyPI:
 
-   **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
+#. If deploying for the first time: ``pip install twine build``
+#. ``rm -R dist/*`` on Linux/OSX or ``del dist/*`` on Windows
+#. ``git checkout master`` to checkout the latest version
+#. ``git pull``
+#. ``git log`` to verify the repository state matches the newly created tag
 
-   Assuming a correctly configured .pypirc:
+#. ``python -m build --sdist``
+#. **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
+#. ``twine upload dist/*`` to upload (assumes a `correctly configured <https://packaging.python.org/specifications/pypirc/>`_ ``~/.pypirc`` file)
 
-   ``twine upload -r pypi -u rotis dist/*``
 
-Uploading to conda-forge
-------------------------
+Deploy to conda-forge
+---------------------
 Start with the commit checked out which was tagged with the new version.
 
 1. Generate the SHA256 hash of the build artifact (tarball) submitted to PyPI.
