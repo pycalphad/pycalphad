@@ -14,7 +14,7 @@ dependencies:
   - importlib_metadata  # drop when pycalphad drops support for Python<3.8
   - matplotlib-base>=3.3
   - numpy>=1.13
-  - pyparsing
+  - pyparsing>=2,<3
   - python>=3.6
   - python-symengine=0.7.2
   - scipy
