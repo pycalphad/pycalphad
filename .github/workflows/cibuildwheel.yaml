@@ -28,7 +28,9 @@ jobs:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.0.0a2
-
+        env:
+          # Disable building PyPy wheels on all platforms because SciPy (build requirement) is not available
+          CIBW_SKIP: pp*
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
