@@ -75,6 +75,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
           user: __token__
-          password: ${{ secrets.TEST_PYPI_PYCALPHAD_TOKEN }}
+          password: ${{ secrets.PYPI_PYCALPHAD_TOKEN }}
           # To test, uncomment the following:
-          repository_url: https://test.pypi.org/legacy/
+          # password: ${{ secrets.TEST_PYPI_PYCALPHAD_TOKEN }}
+          # repository_url: https://test.pypi.org/legacy/
