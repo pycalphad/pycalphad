@@ -33,7 +33,7 @@ Replace their values with the last public release's version number and the new v
    #. Leave the description box blank.
    #. If this version is a pre-release, check the "This is a pre-release" box.
    #. Click "Publish release".
-#. The new version will be available on PyPI automatically when the ``Build and deploy to PyPI`` workflow on GitHub Actions finishes successfully.
+#. The new version will be available on PyPI when the ``Build and deploy to PyPI`` workflow on GitHub Actions finishes successfully.
 
 Deploy to PyPI (manually)
 -------------------------
