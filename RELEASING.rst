@@ -53,7 +53,7 @@ To release a source distribution to PyPI:
 
 #. ``python -m build --sdist``
 #. **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
-#. ``twine upload dist/*`` to upload (assumes a correctly configured ```.pypirc`` <https://packaging.python.org/specifications/pypirc/>`_)
+#. ``twine upload dist/*`` to upload (assumes a `correctly configured <https://packaging.python.org/specifications/pypirc/>`_ ``~/.pypirc`` file)
 
 
 Deploy to conda-forge
