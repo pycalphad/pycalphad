@@ -36,6 +36,14 @@ The newest stable version can be found on `PyPI`_.
    api/modules
    CHANGES
 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Developer
+
+   releasing
+
+
 Getting Help
 ============
 
@@ -67,4 +75,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
-
