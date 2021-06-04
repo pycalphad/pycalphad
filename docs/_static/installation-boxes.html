@@ -27,14 +27,10 @@ function find_value(element_name) {
 }
 
  function update_instruction_state(el){
-//   console.log("in")
     var pkg = find_value("package-manager")
     var plt = find_value("platform")
     var jup = document.getElementById("jupyter_flag")
     var env = document.getElementById("environment_flag")
-
-//    console.log("pkg")
-//    console.log(el.name)
 
     // Loop over all code samples and set their state to hidden
     var code_samples = document.getElementById("install-samples").children
@@ -46,21 +42,18 @@ function find_value(element_name) {
    var id_to_show = ""
    id_to_show += pkg + "_"
    id_to_show += plt + "_"
-//   console.log("env checked")
-//   console.log(env.checked)
    if (env.checked) {
        id_to_show += "env_"
    } else {
        id_to_show += "noenv_"
    }
-//   console.log("jup checked")
-//   console.log(jup.checked)
    if (jup.checked) {
        id_to_show += "jupyter"
    } else {
        id_to_show += "nojupyter"
    }
-//   console.log(id_to_show)
+
+   // Unhide the desired element
    document.getElementById(id_to_show).hidden = false;
 }
 
@@ -83,12 +76,6 @@ function find_value(element_name) {
   flex-direction: column;
   min-width: 0;
 }
-/*
-.install-toggle {
-  display: flex;
-  flex-direction: row;
-}
-*/
 
 .install-toggle {
   margin: 0 0 1.5rem;
@@ -114,16 +101,8 @@ function find_value(element_name) {
   border: solid 1px #DDD;
   background-color: #FFF;
   font-size: 1rem;
-/*  line-height: 100%;*/
   font-weight: 600;
   text-align: center;
-/*  box-shadow: 0 0 0 rgba(255, 255, 255, 0);*/
-  /*
-  transition: border-color 0.15s ease-out, color 0.25s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
-  */
-  /* ADD THESE PROPERTIES TO SWITCH FROM AUTO WIDTH TO FULL WIDTH */
-  /*flex: 0 0 50%; display: flex; justify-content: center; align-items: center;*/
-  /* ----- */
 }
 .install-toggle input + label:first-of-type {
   border-radius: 6px 0 0 6px;
@@ -133,11 +112,6 @@ function find_value(element_name) {
   border-radius: 0 6px 6px 0;
   border-left: none;
 }
-/*
-.install-toggle input:hover + label {
-  border-color: #213140;
-}
-*/
 .install-toggle input:checked + label {
   background-color: #4B9DEA;
   color: #FFF;
@@ -145,12 +119,6 @@ function find_value(element_name) {
   border-color: #4B9DEA;
   z-index: 1;
 }
-/*
-.install-toggle input:focus + label {
-  outline: dotted 1px #CCC;
-  outline-offset: 0.45rem;
-}
-*/
 </style>
 </head>
 <body>
