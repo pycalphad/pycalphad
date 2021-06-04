@@ -65,18 +65,113 @@ function find_value(element_name) {
 }
 
 </script>
+<style>
+  /*
+@media (max-width: 800px) {
+  .install-toggle input + label {
+    padding: 0.75rem 0.25rem;
+    flex: 0 0 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+*/
+
+.install-configurator {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+/*
+.install-toggle {
+  display: flex;
+  flex-direction: row;
+}
+*/
+
+.install-toggle {
+  margin: 0 0 1.5rem;
+  box-sizing: border-box;
+  font-size: 0;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+.install-toggle input {
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: -9999px;
+}
+.install-toggle input + label {
+  margin: 0;
+  padding: 0.75rem 2rem;
+  box-sizing: border-box;
+  position: relative;
+  display: inline-block;
+  border: solid 1px #DDD;
+  background-color: #FFF;
+  font-size: 1rem;
+/*  line-height: 100%;*/
+  font-weight: 600;
+  text-align: center;
+/*  box-shadow: 0 0 0 rgba(255, 255, 255, 0);*/
+  /*
+  transition: border-color 0.15s ease-out, color 0.25s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
+  */
+  /* ADD THESE PROPERTIES TO SWITCH FROM AUTO WIDTH TO FULL WIDTH */
+  /*flex: 0 0 50%; display: flex; justify-content: center; align-items: center;*/
+  /* ----- */
+}
+.install-toggle input + label:first-of-type {
+  border-radius: 6px 0 0 6px;
+  border-right: none;
+}
+.install-toggle input + label:last-of-type {
+  border-radius: 0 6px 6px 0;
+  border-left: none;
+}
+/*
+.install-toggle input:hover + label {
+  border-color: #213140;
+}
+*/
+.install-toggle input:checked + label {
+  background-color: #4B9DEA;
+  color: #FFF;
+  box-shadow: 0 0 10px rgba(102, 179, 251, 0.5);
+  border-color: #4B9DEA;
+  z-index: 1;
+}
+/*
+.install-toggle input:focus + label {
+  outline: dotted 1px #CCC;
+  outline-offset: 0.45rem;
+}
+*/
+</style>
 </head>
 <body>
-  <fieldset>
+  <fieldset class="install-configurator">
   <div>
-    <input onclick="update_instruction_state(this)" type="radio" value="pip" name="package-manager" checked>pip</input>
-    <input onclick="update_instruction_state(this)" type="radio" value="conda" name="package-manager">conda</input>
-    <input onclick="update_instruction_state(this)" type="radio" value="source" name="package-manager">source</input>
+    <div class="install-toggle">
+    <input onclick="update_instruction_state(this)" type="radio" value="pip" id="pkgpip" name="package-manager" checked />
+      <label for="pkgpip">pip</label>
+    <input onclick="update_instruction_state(this)" type="radio" value="conda" id="pkgconda" name="package-manager"/>
+    <label for="pkgconda">conda</label>
+    <input onclick="update_instruction_state(this)" type="radio" value="source" id="pkgsource" name="package-manager"/>
+    <label for="pkgsource">source</label>
+    </div>
   </div>
-  <div>
-    <input onclick="update_instruction_state(this)" type="radio" value="linux" name="platform" checked>Linux</input>
-    <input onclick="update_instruction_state(this)" type="radio" value="windows" name="platform">Windows</input>
-    <input onclick="update_instruction_state(this)" type="radio" value="linux" name="platform">macOS/OSX</input>
+  <div class="install-toggle">
+    <input onclick="update_instruction_state(this)" type="radio" value="linux" id="pltlinux" name="platform" checked/>
+    <label for="pltlinux">Linux</label>
+    <input onclick="update_instruction_state(this)" type="radio" value="windows" id="pltwindows" name="platform"/>
+    <label for="pltwindows">Windows</label>
+    <input onclick="update_instruction_state(this)" type="radio" value="linux" id="pltmacos" name="platform"/>
+    <label for="pltmacos">macOS/OSX</label>
   </div>
   <div>
     <input onclick="update_instruction_state(this)" type="checkbox" id="jupyter_flag">Jupyter</input>
