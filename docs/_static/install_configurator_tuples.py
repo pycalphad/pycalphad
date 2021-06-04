@@ -53,7 +53,10 @@ for config_tuple in itertools.product(package_managers, platform, env_flag, jupy
         install_lines.append(install_line)
 
     # prepend "$ " to lines
-    install_lines = ["$ " + line for line in install_lines]
+    if plt == 'windows':
+        install_lines = ["> " + line for line in install_lines]
+    else:
+        install_lines = ["$ " + line for line in install_lines]
 
     preformatted_string = "\n".join(install_lines)
     s = f'<pre id={name} hidden>{preformatted_string}</pre>'
