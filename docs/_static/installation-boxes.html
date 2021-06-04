@@ -1,0 +1,181 @@
+ <html>
+<head>
+<script language="JavaScript">
+
+virtualenv_linux = `python -m venv .pycalphad-env
+source .env/bin/activate
+`;
+
+condaenv_linux = `conda create -n pycalphad-env python
+conda activate pycalphad-env`;
+
+virtualenv_windows = `python -m venv .pycalphad-env
+.env\Scripts\activate
+`;
+
+install_pip = "pip install pycalphad"
+install_conda = "conda install pycalphad"
+install_source = "pip install "
+
+function find_value(element_name) {
+    const elements = document.getElementsByName(element_name)
+    for (var i = 0; i < elements.length; i++) {
+        if (elements[i].checked) {
+            return elements[i].value
+        }
+    }
+}
+
+ function update_instruction_state(el){
+//   console.log("in")
+    var pkg = find_value("package-manager")
+    var plt = find_value("platform")
+    var jup = document.getElementById("jupyter_flag")
+    var env = document.getElementById("environment_flag")
+
+//    console.log("pkg")
+//    console.log(el.name)
+
+    // Loop over all code samples and set their state to hidden
+    var code_samples = document.getElementById("install-samples").children
+    for (var i = 0; i < code_samples.length; i++) {
+      code_samples[i].hidden = true;
+    }
+
+   // Construct id of the preformatted text to show
+   var id_to_show = ""
+   id_to_show += pkg + "_"
+   id_to_show += plt + "_"
+//   console.log("env checked")
+//   console.log(env.checked)
+   if (env.checked) {
+       id_to_show += "env_"
+   } else {
+       id_to_show += "noenv_"
+   }
+//   console.log("jup checked")
+//   console.log(jup.checked)
+   if (jup.checked) {
+       id_to_show += "jupyter"
+   } else {
+       id_to_show += "nojupyter"
+   }
+//   console.log(id_to_show)
+   document.getElementById(id_to_show).hidden = false;
+}
+
+</script>
+</head>
+<body>
+  <fieldset>
+  <div>
+    <input onclick="update_instruction_state(this)" type="radio" value="pip" name="package-manager" checked>pip</input>
+    <input onclick="update_instruction_state(this)" type="radio" value="conda" name="package-manager">conda</input>
+    <input onclick="update_instruction_state(this)" type="radio" value="source" name="package-manager">source</input>
+  </div>
+  <div>
+    <input onclick="update_instruction_state(this)" type="radio" value="linux" name="platform" checked>Linux</input>
+    <input onclick="update_instruction_state(this)" type="radio" value="windows" name="platform">Windows</input>
+    <input onclick="update_instruction_state(this)" type="radio" value="linux" name="platform">macOS/OSX</input>
+  </div>
+  <div>
+    <input onclick="update_instruction_state(this)" type="checkbox" id="jupyter_flag">Jupyter</input>
+    <input onclick="update_instruction_state(this)" type="checkbox" value="env" id="environment_flag">Virtual environment</input>
+  </div>
+</fieldset>
+
+<div id="install-samples">
+<pre id=pip_linux_noenv_nojupyter>$ pip install pycalphad</pre>
+
+<pre id=pip_linux_noenv_jupyter hidden>$ pip install pycalphad jupyterlab</pre>
+
+<pre id=pip_linux_env_nojupyter hidden>$ python -m venv pycalphad-env
+$ source pycalphad-env/bin/activate
+$ pip install pycalphad</pre>
+
+<pre id=pip_linux_env_jupyter hidden>$ python -m venv pycalphad-env
+$ source pycalphad-env/bin/activate
+$ pip install pycalphad jupyterlab</pre>
+
+<pre id=pip_windows_noenv_nojupyter hidden>$ pip install pycalphad</pre>
+
+<pre id=pip_windows_noenv_jupyter hidden>$ pip install pycalphad jupyterlab</pre>
+
+<pre id=pip_windows_env_nojupyter hidden>$ python -m venv pycalphad-env
+$ pycalphad-env\Scripts\activate
+$ pip install pycalphad</pre>
+
+<pre id=pip_windows_env_jupyter hidden>$ python -m venv pycalphad-env
+$ pycalphad-env\Scripts\activate
+$ pip install pycalphad jupyterlab</pre>
+
+<pre id=conda_linux_noenv_nojupyter hidden>$ conda install pycalphad</pre>
+
+<pre id=conda_linux_noenv_jupyter hidden>$ conda install pycalphad jupyterlab</pre>
+
+<pre id=conda_linux_env_nojupyter hidden>$ conda create -n pycalphad-env
+$ conda activate pycalphad-env
+$ conda install pycalphad</pre>
+
+<pre id=conda_linux_env_jupyter hidden>$ conda create -n pycalphad-env
+$ conda activate pycalphad-env
+$ conda install pycalphad jupyterlab</pre>
+
+<pre id=conda_windows_noenv_nojupyter hidden>$ conda install pycalphad</pre>
+
+<pre id=conda_windows_noenv_jupyter hidden>$ conda install pycalphad jupyterlab</pre>
+
+<pre id=conda_windows_env_nojupyter hidden>$ conda create -n pycalphad-env
+$ conda activate pycalphad-env
+$ conda install pycalphad</pre>
+
+<pre id=conda_windows_env_jupyter hidden>$ conda create -n pycalphad-env
+$ conda activate pycalphad-env
+$ conda install pycalphad jupyterlab</pre>
+
+<pre id=source_linux_noenv_nojupyter hidden>$ git clone https://github.com/pycalphad/pycalphad
+$ cd pycalphad
+$ pip install -e .</pre>
+
+<pre id=source_linux_noenv_jupyter hidden>$ git clone https://github.com/pycalphad/pycalphad
+$ cd pycalphad
+$ pip install -e .
+$ pip install jupyterlab</pre>
+
+<pre id=source_linux_env_nojupyter hidden>$ python -m venv pycalphad-env
+$ source pycalphad-env/bin/activate
+$ git clone https://github.com/pycalphad/pycalphad
+$ cd pycalphad
+$ pip install -e .</pre>
+
+<pre id=source_linux_env_jupyter hidden>$ python -m venv pycalphad-env
+$ source pycalphad-env/bin/activate
+$ git clone https://github.com/pycalphad/pycalphad
+$ cd pycalphad
+$ pip install -e .
+$ pip install jupyterlab</pre>
+
+<pre id=source_windows_noenv_nojupyter hidden>$ git clone https://github.com/pycalphad/pycalphad
+$ cd pycalphad
+$ pip install -e .</pre>
+
+<pre id=source_windows_noenv_jupyter hidden>$ git clone https://github.com/pycalphad/pycalphad
+$ cd pycalphad
+$ pip install -e .
+$ pip install jupyterlab</pre>
+
+<pre id=source_windows_env_nojupyter hidden>$ python -m venv pycalphad-env
+$ pycalphad-env\Scripts\activate
+$ git clone https://github.com/pycalphad/pycalphad
+$ cd pycalphad
+$ pip install -e .</pre>
+
+<pre id=source_windows_env_jupyter hidden>$ python -m venv pycalphad-env
+$ pycalphad-env\Scripts\activate
+$ git clone https://github.com/pycalphad/pycalphad
+$ cd pycalphad
+$ pip install -e .
+$ pip install jupyterlab</pre>
+</div>
+</body>
+</html>
