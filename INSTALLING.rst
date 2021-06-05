@@ -38,12 +38,12 @@ Development version
 Installing
 ----------
 
-The source code for the latest development version of pycalphad is available on `GitHub <GitHub pycalphad>`_.
+The source code for the latest development version of pycalphad is available on `GitHub <https://github.com/pycalphad/pycalphad>`_.
 You will need a working version of  `git`_ to download the source code.
 Installing development versions of pycalphad also requires a working C++ compiler.
 
 * **Windows:** Install `git`_ and `Microsoft Visual C++ Build Tools version 14.X <https://visualstudio.microsoft.com/downloads/>`_.
-  If you are unfamiliar with the process, you can find a `tutorial here <Windows development tools install tutorial>`_.
+  If you are unfamiliar with the process, you can find a `tutorial here <https://beenje.github.io/blog/posts/how-to-setup-a-windows-vm-to-build-conda-packages/#developer-tools-installation>`_.
 
 To install an editable version the latest development branch of pycalphad, run:
 
@@ -73,7 +73,7 @@ The Cython files can be recompiled by running (from the root directory [#f1]_ of
 
 By default, the development version installed will track the latest changes in
 the ``develop`` branch of pycalphad
-`on GitHub <GitHub pycalphad>`_.
+`on GitHub <https://github.com/pycalphad/pycalphad>`_.
 
 To update the code in the current branch to the latest changes on GitHub, the
 changes are pulled from GitHub by running ``git pull``.
@@ -87,9 +87,7 @@ where ``<branch>`` is the name of the branch to checkout, such as ``master``
 .. _Anaconda: https://anaconda.com/download
 .. _Cython: https://cython.org/
 .. _git: https://git-scm.com/
-.. _`GitHub pycalphad`: https://github.com/pycalphad/pycalphad
 .. _`Jupyter Notebook`: http://jupyter.readthedocs.io/en/latest/index.html
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
-.. _`Windows development tools install tutorial`: https://beenje.github.io/blog/posts/how-to-setup-a-windows-vm-to-build-conda-packages/#developer-tools-installation
 
 .. [#f1] The "root directory" is the the top level project directory containing the ``pyproject.toml`` file, the ``pycalphad/`` package directory, etc.
