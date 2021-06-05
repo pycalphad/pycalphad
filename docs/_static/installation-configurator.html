@@ -189,17 +189,6 @@ input[type=checkbox]:checked + label {
   <fieldset class="install-configurator">
   <div class="install-configurator-container">
   <div class="install-field-row">
-    <p>Package manager</p>
-    <div class="install-toggle">
-    <input onclick="update_instruction_state()" type="radio" value="pip" id="pkgpip" name="package-manager" checked />
-      <label for="pkgpip">pip</label>
-    <input onclick="update_instruction_state()" type="radio" value="conda" id="pkgconda" name="package-manager"/>
-    <label for="pkgconda">conda</label>
-    <input onclick="update_instruction_state()" type="radio" value="source" id="pkgsource" name="package-manager"/>
-    <label for="pkgsource">source</label>
-    </div>
-  </div>
-  <div class="install-field-row">
       <p>Operating System</p>
   <div class="install-toggle">
     <input onclick="update_instruction_state()" type="radio" value="linux" id="pltlinux" name="platform" checked/>
@@ -209,6 +198,17 @@ input[type=checkbox]:checked + label {
     <input onclick="update_instruction_state()" type="radio" value="linux" id="pltmacos" name="platform"/>
     <label for="pltmacos">macOS/OSX</label>
   </div>
+  </div>
+  <div class="install-field-row">
+    <p>Package manager</p>
+    <div class="install-toggle">
+    <input onclick="update_instruction_state()" type="radio" value="pip" id="pkgpip" name="package-manager" checked />
+      <label for="pkgpip">pip</label>
+    <input onclick="update_instruction_state()" type="radio" value="conda" id="pkgconda" name="package-manager"/>
+    <label for="pkgconda">conda</label>
+    <input onclick="update_instruction_state()" type="radio" value="source" id="pkgsource" name="package-manager"/>
+    <label for="pkgsource">source</label>
+    </div>
   </div>
   <div class="install-field-row">
       <p style="padding-right:4rem;">Configuration</p>
