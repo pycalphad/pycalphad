@@ -6,7 +6,6 @@ requires = [
     "scipy",
     "setuptools",
     "setuptools_scm[toml]>=6.0",
-    "toml",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
