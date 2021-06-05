@@ -15,6 +15,7 @@ dependencies:
   - matplotlib-base>=3.3
   - numpy>=1.13
   - pyparsing>=2,<3
+  - pytest
   - python>=3.7
   - python-symengine=0.7.2
   - scipy
@@ -26,10 +27,8 @@ dependencies:
   - sympy=1.8
   - tinydb>=3.8
   - xarray>=0.11.2
-  # Dependences for tests only below
-  - pytest
-  - pytest-cov
-  # Documentation dependences
+  # Development dependences
   - ipython  # for pygments syntax highlighting
+  - pytest-cov
   - sphinx
   - sphinx_rtd_theme
