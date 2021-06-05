@@ -76,10 +76,13 @@ def get_config_html(package_manager, platform, env_flag, jupyter_flag, prepend_s
     generated_config_html = HTML_TEMPLATE.format(config_id, formatted_string)
     return generated_config_html
 
-def get_matrix_html(package_managers, platform, env_flags, jupyter_flags):
+def get_matrix_html(package_managers, platform, env_flags, jupyter_flags, wrap=True):
     html_entries = []
     for config_tuple in itertools.product(package_managers, platform, env_flags, jupyter_flags):
         html_entries.append(get_config_html(*config_tuple))
+    if wrap:
+        html_entries.insert(0, '<div id="install-samples">')
+        html_entries.append('</div>')
     return ENTRIES_JOIN_STR.join(html_entries)
 
 if __name__ == '__main__':
