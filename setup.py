@@ -58,7 +58,7 @@ setup(
         'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
         'matplotlib>=3.3',
         'numpy>=1.13',
-        'pyparsing>=2.0,<3',
+        'pyparsing>=2.4',
         'pytest',
         'pytest-cov',
         'scipy',
