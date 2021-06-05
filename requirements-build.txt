@@ -1,0 +1,6 @@
+Cython
+numpy<1.20
+scipy
+setuptools
+setuptools_scm[toml]>=6.0
+wheel
