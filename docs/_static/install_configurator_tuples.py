@@ -72,7 +72,7 @@ def get_config_html(package_manager, platform, env_flag, jupyter_flag, prepend_s
 
     # Build the HTML
     config_id = '_'.join((package_manager, platform, env_flag, jupyter_flag))
-    formatted_string = "\n".join(install_lines)
+    formatted_string = "<br>".join(install_lines)
     generated_config_html = HTML_TEMPLATE.format(config_id, formatted_string)
     return generated_config_html
 
