@@ -60,7 +60,7 @@ def get_config_install_lines(pkg, plt, env, jup) -> List[str]:
     return install_lines
 
 
-def get_config_html(package_manager, platform, env_flag, jupyter_flag, prepend_shell_prompt=True):
+def get_config_html(package_manager, platform, env_flag, jupyter_flag, prepend_shell_prompt=False):
     """Get HTML for a single configuration"""
     install_lines = get_config_install_lines(package_manager, platform, env_flag, jupyter_flag)
 
