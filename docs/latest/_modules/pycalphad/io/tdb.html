@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.6.dev18+gd662d5c7 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.6.dev19+g4c265a0f documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.8.6.dev18+gd662d5c7
+                0.8.6.dev19+g4c265a0f
               </div>
             
           
@@ -376,7 +376,7 @@
     <span class="c1"># a convenience function will handle the piecewise details</span>
     <span class="n">func_expr</span> <span class="o">=</span> <span class="p">(</span><span class="n">float_number</span> <span class="o">|</span> <span class="n">ZeroOrMore</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">))</span> <span class="o">+</span> <span class="n">OneOrMore</span><span class="p">(</span><span class="n">SkipTo</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> \
         <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ZeroOrMore</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">float_number</span><span class="p">)</span> <span class="o">+</span> \
-        <span class="n">Suppress</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="s1">&#39;YNyn&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">White</span><span class="p">()))</span>
+        <span class="n">Suppress</span><span class="p">(</span><span class="n">Optional</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="s1">&#39;Yy&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">))),</span> <span class="n">stopOn</span><span class="o">=</span><span class="n">Word</span><span class="p">(</span><span class="s1">&#39;Nn&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="n">Optional</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="s1">&#39;Nn&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)))</span>
     <span class="c1"># ELEMENT</span>
     <span class="n">cmd_element</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ELEMENT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="o">+</span><span class="s1">&#39;/-&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">ref_phase_name</span> <span class="o">+</span> \
         <span class="n">float_number</span> <span class="o">+</span> <span class="n">float_number</span> <span class="o">+</span> <span class="n">float_number</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
