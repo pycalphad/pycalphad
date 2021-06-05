@@ -2,21 +2,6 @@
 <head>
 <script language="JavaScript">
 
-virtualenv_linux = `python -m venv .pycalphad-env
-source .env/bin/activate
-`;
-
-condaenv_linux = `conda create -n pycalphad-env python
-conda activate pycalphad-env`;
-
-virtualenv_windows = `python -m venv .pycalphad-env
-.env\Scripts\activate
-`;
-
-install_pip = "pip install pycalphad"
-install_conda = "conda install pycalphad"
-install_source = "pip install "
-
 function find_value(element_name) {
     const elements = document.getElementsByName(element_name)
     for (var i = 0; i < elements.length; i++) {
