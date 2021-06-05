@@ -6,9 +6,70 @@ requires = [
     "scipy",
     "setuptools",
     "setuptools_scm[toml]>=6.0",
+    "toml",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "pycalphad"
+dynamic = ["version"]
+description = "CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria."
+readme = "README.rst"
+requires-python = ">=3.7"
+license = "MIT"
+authors = [
+  {name = "Richard Otis", email = "richard.otis@outlook.com"},
+]
+classifiers = [
+    # How mature is this project? Common values are
+    #   3 - Alpha
+    #   4 - Beta
+    #   5 - Production/Stable
+    'Development Status :: 4 - Beta',
+
+    # Indicate who your project is intended for
+    'Intended Audience :: Science/Research',
+    'Topic :: Scientific/Engineering :: Physics',
+    'Topic :: Scientific/Engineering :: Chemistry',
+
+    # Pick your license as you wish (should match "license" above)
+    'License :: OSI Approved :: MIT License',
+
+    # Supported Python versions
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+]
+
+dependencies = [
+    # NOTE: please try to keep any depedencies in alphabetic order so they
+    # may be easily compared with other dependency lists
+    # NOTE: these dependencies may differ in name from those in the
+    # conda-forge Anaconda channel. For example, conda-forge/symengine
+    # gives the C++ SymEngine library, while conda-forge/python-symengine
+    # provides the Python package called `symengine`.
+    'Cython>=0.24',
+    'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
+    'matplotlib>=3.3',
+    'numpy>=1.13',
+    'pyparsing>=2.0,<3',
+    'pytest',
+    'pytest-cov',
+    'scipy',
+    'setuptools_scm[toml]>=6.0',
+    'symengine==0.7.2',  # python-symengine on conda-forge
+    'sympy==1.8',
+    'tinydb>=3.8',
+    'xarray>=0.11.2',
+]
+
+[project.urls]
+homepage = "pycalphad.org"
+documentation = "pycalphad.org"
+repository = "github.com/pycalphad/pycalphad"
+changelog = "github.com/pycalphad/pycalphad/blob/develop/CHANGES.rst"
 
 [tool.pytest.ini_options]
 markers = [
