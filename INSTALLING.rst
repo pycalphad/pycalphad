@@ -1,4 +1,4 @@
-pip (reccomended)
+pip (recommended)
 =================
 
 To install pycalphad from `PyPI <https://pypi.org/project/pycalphad/>`_ using pip:
@@ -7,7 +7,7 @@ To install pycalphad from `PyPI <https://pypi.org/project/pycalphad/>`_ using pi
 
    pip install pycalphad
 
-A reccomended best practice is to install pycalphad into a virtual environment.
+A recommended best practice is to install pycalphad into a virtual environment.
 To create an environment called ``pycalphad-env`` on Linux and macOS/OSX:
 
 .. code-block:: bash
