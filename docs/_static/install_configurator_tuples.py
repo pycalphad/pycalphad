@@ -41,14 +41,15 @@ def get_config_install_lines(pkg, plt, env, jup) -> List[str]:
     # Install pycalphad with optional JupyterLab
     # Should not end with newline
     if pkg == 'conda':
-        install_line = "conda install pycalphad"
+        install_line = "conda install -c conda-forge pycalphad"
         if jup == "jupyter":
             install_line += " jupyterlab"
         install_lines.append(install_line)
     elif pkg == 'source':
         install_lines.append("git clone https://github.com/pycalphad/pycalphad")
         install_lines.append("cd pycalphad")
-        install_lines.append("pip install -e .")  # TODO: setup.py build_ext --inplace ?
+        install_lines.append("pip install -r requirements-dev.txt")
+        install_lines.append("pip install --no-build-isolation --editable .")
         if jup == "jupyter":
             install_lines.append("pip install jupyterlab")
     else:  # assume pip
