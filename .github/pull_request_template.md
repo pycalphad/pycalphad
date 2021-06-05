@@ -12,5 +12,5 @@ Checklist
 * [ ] If any dependencies have changed, the changes are reflected in the
   * [ ] `setup.py` (runtime requirements)
   * [ ] `pyproject.toml` (build requirements)
-  * [ ] `requirements-dev.yml` (build and development requirements)
+  * [ ] `requirements-dev.txt` (build and development requirements)
   * [ ] `environment-dev.yml` (runtime, build and development requirements)
