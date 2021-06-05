@@ -11,7 +11,7 @@ function find_value(element_name) {
     }
 }
 
- function update_instruction_state(el){
+ function update_instruction_state(){
     var pkg = find_value("package-manager")
     var plt = find_value("platform")
     var jup = document.getElementById("jupyter_flag")
@@ -42,6 +42,10 @@ function find_value(element_name) {
    document.getElementById(id_to_show).hidden = false;
 }
 
+/*Update the state on page load*/
+document.addEventListener("DOMContentLoaded", function() {
+  update_instruction_state();
+});
 </script>
 <style>
   /*
@@ -166,31 +170,31 @@ input[type=checkbox]:checked + label {
   <div class="install-field-row">
     <p>Package manager</p>
     <div class="install-toggle">
-    <input onclick="update_instruction_state(this)" type="radio" value="pip" id="pkgpip" name="package-manager" checked />
+    <input onclick="update_instruction_state()" type="radio" value="pip" id="pkgpip" name="package-manager" checked />
       <label for="pkgpip">pip</label>
-    <input onclick="update_instruction_state(this)" type="radio" value="conda" id="pkgconda" name="package-manager"/>
+    <input onclick="update_instruction_state()" type="radio" value="conda" id="pkgconda" name="package-manager"/>
     <label for="pkgconda">conda</label>
-    <input onclick="update_instruction_state(this)" type="radio" value="source" id="pkgsource" name="package-manager"/>
+    <input onclick="update_instruction_state()" type="radio" value="source" id="pkgsource" name="package-manager"/>
     <label for="pkgsource">source</label>
     </div>
   </div>
   <div class="install-field-row">
       <p>Operating System</p>
   <div class="install-toggle">
-    <input onclick="update_instruction_state(this)" type="radio" value="linux" id="pltlinux" name="platform" checked/>
+    <input onclick="update_instruction_state()" type="radio" value="linux" id="pltlinux" name="platform" checked/>
     <label for="pltlinux">Linux</label>
-    <input onclick="update_instruction_state(this)" type="radio" value="windows" id="pltwindows" name="platform"/>
+    <input onclick="update_instruction_state()" type="radio" value="windows" id="pltwindows" name="platform"/>
     <label for="pltwindows">Windows</label>
-    <input onclick="update_instruction_state(this)" type="radio" value="linux" id="pltmacos" name="platform"/>
+    <input onclick="update_instruction_state()" type="radio" value="linux" id="pltmacos" name="platform"/>
     <label for="pltmacos">macOS/OSX</label>
   </div>
   </div>
   <div class="install-field-row">
       <p style="padding-right:4rem;">Configuration</p>
   <div class="install-checkbox">
-    <input onclick="update_instruction_state(this)" type="checkbox" id="jupyter_flag"/><label for="jupyter_flag"></label>
+    <input onclick="update_instruction_state()" type="checkbox" id="jupyter_flag"/><label for="jupyter_flag"></label>
     <label for="jupyter_flag">Jupyter Lab</label>
-    <input onclick="update_instruction_state(this)" type="checkbox" value="env" id="environment_flag"/><label for="environment_flag"></label>
+    <input onclick="update_instruction_state()" type="checkbox" value="env" id="environment_flag"/><label for="environment_flag"></label>
     <label for="environment_flag">Virtual environment</label>
   </div>
   </div>
