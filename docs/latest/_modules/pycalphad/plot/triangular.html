@@ -1,102 +1,145 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8" />
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>pycalphad.plot.triangular &mdash; pycalphad 0.8.6.dev19+g4c265a0f documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.04.11.beta34"/>
+        <title>pycalphad.plot.triangular - pycalphad 0.8.6.dev21+gf240057f documentation</title>
+      <link rel="stylesheet" href="../../../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
+    <link rel="stylesheet" href="../../../_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../../../_static/pygments_dark.css">
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css" />
+    <link rel="stylesheet" href="../../../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
     
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
 
-    
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
-</head>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
 
-<body class="wy-body-for-nav">
 
-   
-  <div class="wy-grid-for-nav">
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-          
 
-          
-            <a href="../../../index.html" class="icon icon-home"> pycalphad
-          
-
-          
-            
-            <img src="../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.8.6.dev19+g4c265a0f
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">pycalphad 0.8.6.dev21+gf240057f documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="../../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev21+gf240057f documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Install pycalphad</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/modules.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pycalphad.html">pycalphad package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.codegen.html">pycalphad.codegen package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label for="toctree-checkbox-4"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer</span></p>
@@ -104,72 +147,21 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../releasing.html">Releasing pycalphad</a></li>
 </ul>
 
-            
-          
-        </div>
-        
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">pycalphad</a>
-        
-      </nav>
-
-
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
-  <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-        
-      <li>pycalphad.plot.triangular</li>
-    
-    
-      <li class="wy-breadcrumbs-aside">
-        
-      </li>
-    
-  </ul>
-
-  
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <h1>Source code for pycalphad.plot.triangular</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Register a ``&#39;triangular&#39;`` projection with matplotlib to plot diagrams on</span>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <h1>Source code for pycalphad.plot.triangular</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Register a ``'triangular'`` projection with matplotlib to plot diagrams on</span>
 <span class="sd">triangular axes.</span>
 
 <span class="sd">Users should not have to instantiate the TriangularAxes class directly.</span>
@@ -178,10 +170,10 @@
 
 <span class="sd">&gt;&gt;&gt; import matplotlib.pyplot as plt</span>
 <span class="sd">&gt;&gt;&gt; import numpy as np</span>
-<span class="sd">&gt;&gt;&gt; plt.gca(projection=&#39;triangular&#39;)</span>
+<span class="sd">&gt;&gt;&gt; plt.gca(projection='triangular')</span>
 <span class="sd">&gt;&gt;&gt; plt.scatter(np.random.random(10), np.random.random(10))</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="k">import</span> <span class="n">Axes</span>
 <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">Polygon</span>
@@ -195,15 +187,15 @@
 
 
 <div class="viewcode-block" id="TriangularAxes"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes">[docs]</a><span class="k">class</span> <span class="nc">TriangularAxes</span><span class="p">(</span><span class="n">Axes</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">"""</span>
 <span class="sd">    A custom class for triangular projections.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;triangular&#39;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">'triangular'</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;SW&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">'box'</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s1">'SW'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_init_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -212,12 +204,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_transScale</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TriangularAxes.cla"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.cla">[docs]</a>    <span class="k">def</span> <span class="nf">cla</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">"""</span>
 <span class="sd">        Hard-code axes limits to be on [0, 1] for both axes.</span>
 
 <span class="sd">        Warning: Limits not on [0, 1] may lead to clipping issues!</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Don&#39;t forget to call the base class</span>
+<span class="sd">        """</span>
+        <span class="c1"># Don't forget to call the base class</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
 
         <span class="n">x_min</span> <span class="o">=</span> <span class="mi">0</span>
@@ -228,19 +220,19 @@
         <span class="n">y_spacing</span> <span class="o">=</span> <span class="mf">0.1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_minor_locator</span><span class="p">(</span><span class="n">NullLocator</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_minor_locator</span><span class="p">(</span><span class="n">NullLocator</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">'bottom'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">'left'</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="o">+</span><span class="n">x_spacing</span><span class="p">,</span> <span class="n">x_spacing</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="o">+</span><span class="n">y_spacing</span><span class="p">,</span> <span class="n">y_spacing</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_set_lim_and_transforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">"""</span>
 <span class="sd">        This is called once when the plot is created to set up all the</span>
 <span class="sd">        transforms for the data, text and grids.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># This code is based off of matplotlib&#39;s example for a custom Hammer</span>
+<span class="sd">        """</span>
+        <span class="c1"># This code is based off of matplotlib's example for a custom Hammer</span>
         <span class="c1"># projection. See: https://matplotlib.org/gallery/misc/custom_projection.html#sphx-glr-gallery-misc-custom-projection-py</span>
 
         <span class="c1"># This function makes heavy use of the Transform classes in</span>
@@ -269,7 +261,7 @@
 
         <span class="c1"># The data transformation is the application of the affine</span>
         <span class="c1"># transformation from data to axes space, then from axes to display</span>
-        <span class="c1"># space. The &#39;+&#39; operator applies these in order.</span>
+        <span class="c1"># space. The '+' operator applies these in order.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transAffine</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">transAxes</span>
 
         <span class="c1"># The main data transformation is set up.  Now deal with gridlines and</span>
@@ -283,52 +275,52 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_text1_transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_text2_transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transData</span>
 
-<div class="viewcode-block" id="TriangularAxes.get_xaxis_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_xaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tick1&#39;</span><span class="p">,</span> <span class="s1">&#39;tick2&#39;</span><span class="p">,</span> <span class="s1">&#39;grid&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="TriangularAxes.get_xaxis_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_xaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">'grid'</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'tick1'</span><span class="p">,</span> <span class="s1">'tick2'</span><span class="p">,</span> <span class="s1">'grid'</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_transform</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.get_xaxis_text1_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_xaxis_text1_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_xaxis_text1_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_xaxis_text1_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'top'</span><span class="p">,</span> <span class="s1">'center'</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.get_xaxis_text2_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_xaxis_text2_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_xaxis_text2_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_xaxis_text2_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'top'</span><span class="p">,</span> <span class="s1">'center'</span></div>
 
-<div class="viewcode-block" id="TriangularAxes.get_yaxis_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_yaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tick1&#39;</span><span class="p">,</span> <span class="s1">&#39;tick2&#39;</span><span class="p">,</span> <span class="s1">&#39;grid&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="TriangularAxes.get_yaxis_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_yaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">'grid'</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'tick1'</span><span class="p">,</span> <span class="s1">'tick2'</span><span class="p">,</span> <span class="s1">'grid'</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_transform</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.get_yaxis_text1_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_yaxis_text1_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_yaxis_text1_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_yaxis_text1_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'center'</span><span class="p">,</span> <span class="s1">'right'</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.get_yaxis_text2_transform"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_yaxis_text2_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_yaxis_text2_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_yaxis_text2_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'center'</span><span class="p">,</span> <span class="s1">'left'</span></div>
 
     <span class="k">def</span> <span class="nf">_gen_axes_spines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># The dependent axis (right hand side) spine should be set to complete</span>
         <span class="c1"># the triangle, i.e. the spine from (1, 0) to (1, 1) will be</span>
         <span class="c1"># transformed to (1, 0) to (0.5, sqrt(3)/2).</span>
-        <span class="n">dep_spine</span> <span class="o">=</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">)</span>
+        <span class="n">dep_spine</span> <span class="o">=</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">'right'</span><span class="p">)</span>
         <span class="n">dep_spine</span><span class="o">.</span><span class="n">set_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transAffinedep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">),</span>
-            <span class="s1">&#39;bottom&#39;</span><span class="p">:</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;bottom&#39;</span><span class="p">),</span>
-            <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="n">dep_spine</span><span class="p">,</span>
+            <span class="s1">'left'</span><span class="p">:</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">'left'</span><span class="p">),</span>
+            <span class="s1">'bottom'</span><span class="p">:</span> <span class="n">mspines</span><span class="o">.</span><span class="n">Spine</span><span class="o">.</span><span class="n">linear_spine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">'bottom'</span><span class="p">),</span>
+            <span class="s1">'right'</span><span class="p">:</span> <span class="n">dep_spine</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_gen_axes_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">"""</span>
 <span class="sd">        Override this method to define the shape that is used for the</span>
 <span class="sd">        background of the plot.  It should be a subclass of Patch.</span>
 <span class="sd">        Any data and gridlines will be clipped to this shape.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">Polygon</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">closed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Interactive panning and zooming is not supported with this projection,</span>
     <span class="c1"># so we override all of the following methods to disable it.</span>
 <div class="viewcode-block" id="TriangularAxes.can_zoom"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.can_zoom">[docs]</a>    <span class="k">def</span> <span class="nf">can_zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">"""</span>
 <span class="sd">        Return True if this axes support the zoom box</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.start_pan"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.start_pan">[docs]</a>    <span class="k">def</span> <span class="nf">start_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">button</span><span class="p">):</span>
@@ -341,7 +333,7 @@
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="TriangularAxes.set_ylabel"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.set_ylabel">[docs]</a>    <span class="k">def</span> <span class="nf">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">"""</span>
 <span class="sd">        Set the label for the y-axis. Default rotation=60 degrees.</span>
 
 <span class="sd">        Parameters</span>
@@ -353,7 +345,7 @@
 <span class="sd">            Spacing in points from the axes bounding box including ticks</span>
 <span class="sd">            and tick labels.</span>
 
-<span class="sd">        loc : {&#39;bottom&#39;, &#39;center&#39;, &#39;top&#39;}, default: :rc:`yaxis.labellocation`</span>
+<span class="sd">        loc : {'bottom', 'center', 'top'}, default: :rc:`yaxis.labellocation`</span>
 <span class="sd">            The label position. This is a high-level alternative for passing</span>
 <span class="sd">            parameters *y* and *horizontalalignment*.</span>
 
@@ -365,56 +357,44 @@
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        text : Documents the properties supported by `.Text`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;rotation&#39;</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'rotation'</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="n">fontdict</span><span class="p">,</span> <span class="n">labelpad</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
 
 <span class="c1"># Now register the projection with matplotlib so the user can select it.</span>
 <span class="n">register_projection</span><span class="p">(</span><span class="n">TriangularAxes</span><span class="p">)</span>
 </pre></div>
-
-           </div>
-           
-          </div>
-          <footer>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &#169; Copyright 2015, pycalphad Development Team.
-
-    </p>
-  </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
         </div>
-      </div>
 
-    </section>
-
-  </div>
-  
-
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
-
-  
-  
-    
-   
-
-</body>
+        <div class="related-information">
+              Copyright &#169; 2015, pycalphad Development Team
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </main>
+</div>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
 </html>

@@ -1,102 +1,145 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8" />
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>pycalphad.plot.eqplot &mdash; pycalphad 0.8.6.dev19+g4c265a0f documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.04.11.beta34"/>
+        <title>pycalphad.plot.eqplot - pycalphad 0.8.6.dev21+gf240057f documentation</title>
+      <link rel="stylesheet" href="../../../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
+    <link rel="stylesheet" href="../../../_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../../../_static/pygments_dark.css">
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css" />
+    <link rel="stylesheet" href="../../../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
     
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
 
-    
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
-</head>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
 
-<body class="wy-body-for-nav">
 
-   
-  <div class="wy-grid-for-nav">
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-          
 
-          
-            <a href="../../../index.html" class="icon icon-home"> pycalphad
-          
-
-          
-            
-            <img src="../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.8.6.dev19+g4c265a0f
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">pycalphad 0.8.6.dev21+gf240057f documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="../../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev21+gf240057f documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Install pycalphad</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/modules.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pycalphad.html">pycalphad package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.codegen.html">pycalphad.codegen package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label for="toctree-checkbox-4"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer</span></p>
@@ -104,74 +147,23 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../releasing.html">Releasing pycalphad</a></li>
 </ul>
 
-            
-          
-        </div>
-        
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">pycalphad</a>
-        
-      </nav>
-
-
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
-  <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-        
-      <li>pycalphad.plot.eqplot</li>
-    
-    
-      <li class="wy-breadcrumbs-aside">
-        
-      </li>
-    
-  </ul>
-
-  
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <h1>Source code for pycalphad.plot.eqplot</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <h1>Source code for pycalphad.plot.eqplot</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
 <span class="sd">The eqplot module contains functions for general plotting of</span>
 <span class="sd">the results of equilibrium calculations.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_condition</span>
 <span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="k">import</span> <span class="n">phase_legend</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
@@ -181,19 +173,19 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
 <span class="c1"># TODO: support other state variables here or make isinstance elif == v.T or v.P</span>
-<span class="n">_plot_labels</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="s1">&#39;Temperature (K)&#39;</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="s1">&#39;Pressure (Pa)&#39;</span><span class="p">}</span>
+<span class="n">_plot_labels</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="s1">'Temperature (K)'</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="s1">'Pressure (Pa)'</span><span class="p">}</span>
 
 
 <span class="k">def</span> <span class="nf">_axis_label</span><span class="p">(</span><span class="n">ax_var</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax_var</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;X(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ax_var</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">'X(</span><span class="si">{}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ax_var</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax_var</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_plot_labels</span><span class="p">[</span><span class="n">ax_var</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ax_var</span>
 
 <span class="k">def</span> <span class="nf">_map_coord_to_variable</span><span class="p">(</span><span class="n">coord</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">"""</span>
 <span class="sd">    Map a coordinate to a StateVariable object.</span>
 
 <span class="sd">    Parameters</span>
@@ -204,9 +196,9 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    pycalphad StateVariable</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">vals</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">}</span>
-    <span class="k">if</span> <span class="n">coord</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;X_&#39;</span><span class="p">):</span>
+<span class="sd">    """</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'T'</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="s1">'P'</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">coord</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'X_'</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
     <span class="k">elif</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">vals</span><span class="p">[</span><span class="n">coord</span><span class="p">]</span>
@@ -215,7 +207,7 @@
 
 
 <div class="viewcode-block" id="eqplot"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.eqplot.eqplot">[docs]</a><span class="k">def</span> <span class="nf">eqplot</span><span class="p">(</span><span class="n">eq</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tielines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tie_triangle_color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">legend_generator</span><span class="o">=</span><span class="n">phase_legend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">"""</span>
 <span class="sd">    Plot the result of an equilibrium calculation.</span>
 
 <span class="sd">    The type of plot is controlled by the degrees of freedom in the equilibrium calculation.</span>
@@ -251,10 +243,10 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    matplotlib AxesSubplot</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">conds</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">_map_coord_to_variable</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
                          <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
-                         <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;X_&#39;</span><span class="p">))])</span>
+                         <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'T'</span><span class="p">,</span> <span class="s1">'P'</span><span class="p">,</span> <span class="s1">'N'</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'X_'</span><span class="p">))])</span>
     <span class="n">indep_comps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
     <span class="n">indep_pots</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
 
@@ -262,11 +254,11 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indep_comps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">indep_pots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">projection</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">indep_comps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">indep_pots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">projection</span> <span class="o">=</span> <span class="s1">&#39;triangular&#39;</span>
+        <span class="n">projection</span> <span class="o">=</span> <span class="s1">'triangular'</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The eqplot projection is not defined and cannot be autodetected. There are </span><span class="si">{}</span><span class="s1"> independent compositions and </span><span class="si">{}</span><span class="s1"> indepedent potentials.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_comps</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">indep_pots</span><span class="p">)))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The eqplot projection is not defined and cannot be autodetected. There are </span><span class="si">{}</span><span class="s1"> independent compositions and </span><span class="si">{}</span><span class="s1"> indepedent potentials.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_comps</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">indep_pots</span><span class="p">)))</span>
     <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;3D plotting is not yet implemented&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">'3D plotting is not yet implemented'</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="n">projection</span><span class="p">)</span>
@@ -279,27 +271,27 @@
         <span class="c1"># plot settings</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">conds</span><span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="o">-</span> <span class="mf">1e-2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">conds</span><span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1e-2</span><span class="p">])</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">conds</span><span class="p">[</span><span class="n">y</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">conds</span><span class="p">[</span><span class="n">y</span><span class="p">])])</span>
-    <span class="k">elif</span> <span class="n">projection</span> <span class="o">==</span> <span class="s1">&#39;triangular&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">projection</span> <span class="o">==</span> <span class="s1">'triangular'</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">indep_comps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">x</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">indep_comps</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">y</span>
         <span class="c1"># Here we adjust the x coordinate of the ylabel.</span>
         <span class="c1"># We make it reasonably comparable to the position of the xlabel from the xaxis</span>
         <span class="c1"># As the figure size gets very large, the label approaches ~0.55 on the yaxis</span>
         <span class="c1"># 0.55*cos(60 deg)=0.275, so that is the xcoord we are approaching.</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_va</span><span class="p">(</span><span class="s1">&#39;baseline&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_va</span><span class="p">(</span><span class="s1">'baseline'</span><span class="p">)</span>
         <span class="n">fig_x_size</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">get_size_inches</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">y_label_offset</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">fig_x_size</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_coords</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="mf">0.275</span> <span class="o">-</span> <span class="n">y_label_offset</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 
     <span class="c1"># get the active phases and support loading netcdf files from disk</span>
-    <span class="n">phases</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;&#39;</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
-    <span class="n">comps</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
-    <span class="n">eq</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
-    <span class="n">eq</span><span class="p">[</span><span class="s1">&#39;Phase&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="p">[</span><span class="s1">&#39;Phase&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
+    <span class="n">phases</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'U'</span><span class="p">))</span> <span class="o">-</span> <span class="p">{</span><span class="s1">''</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
+    <span class="n">comps</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'U'</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
+    <span class="n">eq</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="p">[</span><span class="s1">'component'</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'U'</span><span class="p">)</span>
+    <span class="n">eq</span><span class="p">[</span><span class="s1">'Phase'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="p">[</span><span class="s1">'Phase'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'U'</span><span class="p">)</span>
 
     <span class="c1"># Select all two- and three-phase regions</span>
-    <span class="n">three_phase_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span>
-    <span class="n">two_phase_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">three_phase_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span> <span class="o">!=</span> <span class="s1">''</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">two_phase_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span> <span class="o">!=</span> <span class="s1">''</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colorlist</span> <span class="o">=</span> <span class="n">legend_generator</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
 
@@ -313,15 +305,15 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">):</span>
             <span class="n">two_phase_y</span> <span class="o">=</span> <span class="n">eq</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">two_phase_idx</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># it&#39;s a StateVariable. This must be True</span>
+            <span class="c1"># it's a StateVariable. This must be True</span>
             <span class="n">two_phase_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">eq</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">two_phase_idx</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">))])</span>
             <span class="c1"># because the above gave us a shape of (n,) instead of (n,2) we are going to create it ourselves</span>
             <span class="n">two_phase_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">two_phase_y</span><span class="p">,</span> <span class="n">two_phase_y</span><span class="p">])</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># plot two phase points</span>
-        <span class="n">two_phase_plotcolors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]]],</span> <span class="n">found_two_phase</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">two_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">two_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">two_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">two_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">two_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">two_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">two_phase_plotcolors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]]],</span> <span class="n">found_two_phase</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'U'</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">two_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">two_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">two_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">'None'</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">two_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">two_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">two_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">'None'</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">tielines</span><span class="p">:</span>
             <span class="c1"># construct and plot tielines</span>
@@ -344,67 +336,55 @@
         <span class="n">three_phase_tielines</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">three_phase_tielines</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">three_lc</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">LineCollection</span><span class="p">(</span><span class="n">three_phase_tielines</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">tie_triangle_color</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
         <span class="c1"># plot three phase points and tielines</span>
-        <span class="n">three_phase_plotcolors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]]],</span> <span class="n">found_three_phase</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">three_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">three_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">three_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">three_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">three_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">three_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">three_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">three_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">three_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">three_phase_plotcolors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">colorlist</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]]],</span> <span class="n">found_three_phase</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'U'</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">three_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">three_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">three_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">'None'</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">three_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">three_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">three_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">'None'</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">three_phase_x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">three_phase_y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">three_phase_plotcolors</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">'None'</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">three_lc</span><span class="p">)</span>
 
     <span class="c1"># position the phase legend and configure plot</span>
     <span class="n">box</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_position</span><span class="p">([</span><span class="n">box</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="n">box</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="n">box</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">box</span><span class="o">.</span><span class="n">height</span><span class="p">])</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legend_handles</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legend_handles</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">'center left'</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'both'</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">'major'</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">plot_title</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">component</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="k">if</span> <span class="n">component</span> <span class="o">!=</span> <span class="s1">&#39;VA&#39;</span><span class="p">])</span>
+    <span class="n">plot_title</span> <span class="o">=</span> <span class="s1">'-'</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">component</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="k">if</span> <span class="n">component</span> <span class="o">!=</span> <span class="s1">'VA'</span><span class="p">])</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">plot_title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">_axis_label</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">_axis_label</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">ax</span></div>
 </pre></div>
-
-           </div>
-           
-          </div>
-          <footer>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &#169; Copyright 2015, pycalphad Development Team.
-
-    </p>
-  </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
         </div>
-      </div>
 
-    </section>
-
-  </div>
-  
-
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
-
-  
-  
-    
-   
-
-</body>
+        <div class="related-information">
+              Copyright &#169; 2015, pycalphad Development Team
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </main>
+</div>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
 </html>

@@ -1,118 +1,142 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.core package" href="pycalphad.core.html" /><link rel="prev" title="pycalphad package" href="pycalphad.html" />
 
-
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>pycalphad.codegen package &mdash; pycalphad 0.8.6.dev19+g4c265a0f documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.04.11.beta34"/>
+        <title>pycalphad.codegen package - pycalphad 0.8.6.dev21+gf240057f documentation</title>
+      <link rel="stylesheet" href="../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
+    <link rel="stylesheet" href="../_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
+    <link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
     
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
 
-    
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="pycalphad.core package" href="pycalphad.core.html" />
-    <link rel="prev" title="pycalphad package" href="pycalphad.html" /> 
-</head>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
 
-<body class="wy-body-for-nav">
 
-   
-  <div class="wy-grid-for-nav">
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-          
 
-          
-            <a href="../index.html" class="icon icon-home"> pycalphad
-          
-
-          
-            
-            <img src="../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.8.6.dev19+g4c265a0f
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="pycalphad.html">pycalphad package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="pycalphad.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">pycalphad.codegen package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">pycalphad 0.8.6.dev21+gf240057f documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev21+gf240057f documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.model">pycalphad.model module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.variables">pycalphad.variables module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="pycalphad.html">pycalphad package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">pycalphad.codegen package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label for="toctree-checkbox-4"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -124,76 +148,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing pycalphad</a></li>
 </ul>
 
-            
-          
-        </div>
-        
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">pycalphad</a>
-        
-      </nav>
-
-
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
-  <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="modules.html">API Documentation</a> &raquo;</li>
-        
-          <li><a href="pycalphad.html">pycalphad package</a> &raquo;</li>
-        
-      <li>pycalphad.codegen package</li>
-    
-    
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="../_sources/api/pycalphad.codegen.rst.txt" rel="nofollow"> View page source</a>
-          
-        
-      </li>
-    
-  </ul>
-
-  
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <section id="pycalphad-codegen-package">
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <section id="pycalphad-codegen-package">
 <h1>pycalphad.codegen package<a class="headerlink" href="#pycalphad-codegen-package" title="Permalink to this headline">¶</a></h1>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
@@ -236,21 +203,20 @@ argument.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="k">import</span> <span class="n">build_callables</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">instantiate_models</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;AL-NI.tdb&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI5&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'AL-NI.tdb'</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'AL'</span><span class="p">,</span> <span class="s1">'NI'</span><span class="p">,</span> <span class="s1">'VA'</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'LIQUID'</span><span class="p">,</span> <span class="s1">'AL3NI5'</span><span class="p">,</span> <span class="s1">'AL3NI2'</span><span class="p">,</span> <span class="s1">'AL3NI'</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">models</span> <span class="o">=</span> <span class="n">instantiate_models</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">callables</span> <span class="o">=</span> <span class="n">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">additional_statevars</span><span class="o">=</span><span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;GM&#39;</span> <span class="ow">in</span> <span class="n">callables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">'GM'</span> <span class="ow">in</span> <span class="n">callables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;massfuncs&#39;</span> <span class="ow">in</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">'massfuncs'</span> <span class="ow">in</span> <span class="n">callables</span><span class="p">[</span><span class="s1">'GM'</span><span class="p">]</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">2500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">0.2</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">2500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'AL'</span><span class="p">):</span> <span class="mf">0.2</span><span class="p">}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">callables</span><span class="o">=</span><span class="n">callables</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.codegen.callables.build_phase_records">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.callables.</span></span><span class="sig-name descname"><span class="pre">build_phase_records</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_gradients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_hessians</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_phase_records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_phase_records" title="Permalink to this definition">¶</a></dt>
@@ -288,7 +254,6 @@ responsible for ensuring that the state variables, parameters and models
 used to construct the callables are compatible with the ones used to
 build the constraints and phase records.</p>
 </dd></dl>
-
 </section>
 <section id="module-pycalphad.codegen.sympydiff_utils">
 <span id="pycalphad-codegen-sympydiff-utils-module"></span><h2>pycalphad.codegen.sympydiff_utils module<a class="headerlink" href="#module-pycalphad.codegen.sympydiff_utils" title="Permalink to this headline">¶</a></h2>
@@ -298,7 +263,7 @@ expressions into fast callable functions.</p>
 particular backend, with or without common subexpression elimination (CSE).</p>
 <p>By default, the LLVM backend is used with the <code class="docutils literal notranslate"><span class="pre">opt_level=0</span></code> option and common
 subexpression elimination is on, as defined by the module constants:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LAMBDIFY_DEFAULT_BACKEND</span> <span class="o">=</span> <span class="s1">&#39;llvm&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LAMBDIFY_DEFAULT_BACKEND</span> <span class="o">=</span> <span class="s1">'llvm'</span>
 <span class="n">LAMBDIFY_DEFAULT_CSE</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="n">LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
@@ -325,21 +290,17 @@ functions or PhaseRecords. The following issues track this behavior:</p>
 <span class="sig-name descname"><span class="pre">func</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.grad">
 <span class="sig-name descname"><span class="pre">grad</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.grad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.hess">
 <span class="sig-name descname"><span class="pre">hess</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.hess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
-
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">ConstraintFunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cons_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cons_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cons_hess</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions" title="Permalink to this definition">¶</a></dt>
@@ -349,21 +310,17 @@ functions or PhaseRecords. The following issues track this behavior:</p>
 <span class="sig-name descname"><span class="pre">cons_func</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_hess">
 <span class="sig-name descname"><span class="pre">cons_hess</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_hess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_jac">
 <span class="sig-name descname"><span class="pre">cons_jac</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_jac" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
-
 </dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.build_constraint_functions">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">build_constraint_functions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_constraint_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_constraint_functions" title="Permalink to this definition">¶</a></dt>
@@ -391,7 +348,6 @@ parameters that are controlled by the user.</p></li>
 <p class="rubric">Notes</p>
 <p>Default options for compiling the function, gradient and Hessian are defined by <code class="docutils literal notranslate"><span class="pre">_get_lambdify_options</span></code>.</p>
 </dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.build_functions">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">build_functions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sympy_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_hess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
@@ -429,59 +385,88 @@ Hessian callables. If None, will fall back to <code class="docutils literal notr
 <p class="rubric">Notes</p>
 <p>Default options for compiling the function, gradient and Hessian are defined by <code class="docutils literal notranslate"><span class="pre">_get_lambdify_options</span></code>.</p>
 </dd></dl>
-
 </section>
 <section id="module-pycalphad.codegen">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.codegen" title="Permalink to this headline">¶</a></h2>
 </section>
 </section>
 
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="pycalphad.core.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">pycalphad.core package</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="pycalphad.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">pycalphad package</div>
+                
+              </div>
+            </a>
+        </div>
 
-           </div>
-           
-          </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="pycalphad.core.html" class="btn btn-neutral float-right" title="pycalphad.core package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="pycalphad.html" class="btn btn-neutral float-left" title="pycalphad package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <div class="related-information">
+              Copyright &#169; 2015, pycalphad Development Team
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="../_sources/api/pycalphad.codegen.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
     </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">pycalphad.codegen package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pycalphad.codegen.callables">pycalphad.codegen.callables module</a></li>
+<li><a class="reference internal" href="#module-pycalphad.codegen.sympydiff_utils">pycalphad.codegen.sympydiff_utils module</a></li>
+<li><a class="reference internal" href="#module-pycalphad.codegen">Module contents</a></li>
+</ul>
+</li>
+</ul>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &#169; Copyright 2015, pycalphad Development Team.
-
-    </p>
-  </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
+          </div>
         </div>
       </div>
-
-    </section>
-
-  </div>
-  
-
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
-
-  
-  
-    
-   
-
-</body>
+      
+      
+    </aside>
+  </main>
+</div>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
 </html>

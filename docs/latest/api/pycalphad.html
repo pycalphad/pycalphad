@@ -1,118 +1,142 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html" /><link rel="prev" title="API Documentation" href="modules.html" />
 
-
-<!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>pycalphad package &mdash; pycalphad 0.8.6.dev19+g4c265a0f documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.04.11.beta34"/>
+        <title>pycalphad package - pycalphad 0.8.6.dev21+gf240057f documentation</title>
+      <link rel="stylesheet" href="../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
+    <link rel="stylesheet" href="../_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
+    <link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
     
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
 
-    
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
-    <link rel="prev" title="API Documentation" href="modules.html" /> 
-</head>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
 
-<body class="wy-body-for-nav">
 
-   
-  <div class="wy-grid-for-nav">
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-          
 
-          
-            <a href="../index.html" class="icon icon-home"> pycalphad
-          
-
-          
-            
-            <img src="../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.8.6.dev19+g4c265a0f
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">pycalphad package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pycalphad.codegen.html">pycalphad.codegen package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">pycalphad 0.8.6.dev21+gf240057f documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev21+gf240057f documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.model">pycalphad.model module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.variables">pycalphad.variables module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">pycalphad package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.codegen.html">pycalphad.codegen package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label for="toctree-checkbox-4"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -124,74 +148,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing pycalphad</a></li>
 </ul>
 
-            
-          
-        </div>
-        
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">pycalphad</a>
-        
-      </nav>
-
-
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
-  <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="modules.html">API Documentation</a> &raquo;</li>
-        
-      <li>pycalphad package</li>
-    
-    
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="../_sources/api/pycalphad.rst.txt" rel="nofollow"> View page source</a>
-          
-        
-      </li>
-    
-  </ul>
-
-  
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-            
-  <section id="pycalphad-package">
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <section id="pycalphad-package">
 <h1>pycalphad package<a class="headerlink" href="#pycalphad-package" title="Permalink to this headline">¶</a></h1>
 <section id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
@@ -297,12 +266,10 @@ This will overwrite parameters specified in the database</p></li>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">None</span> <span class="pre">yet.</span></span></dt>
 <dd></dd></dl>
-
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 <p class="rubric">Notes</p>
@@ -320,73 +287,59 @@ Calphad 15(2) (1991) 109-119 <a class="reference external" href="https://doi.org
 <dt class="sig sig-object py" id="pycalphad.model.Model.BMAG">
 <span class="sig-name descname"><span class="pre">BMAG</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pycalphad.model.Model.BMAG" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.CPM">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">CPM</span></span><a class="headerlink" href="#pycalphad.model.Model.CPM" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.CPM_MIX">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">CPM_MIX</span></span><a class="headerlink" href="#pycalphad.model.Model.CPM_MIX" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.DOO">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">DOO</span></span><a class="headerlink" href="#pycalphad.model.Model.DOO" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.G">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">G</span></span><a class="headerlink" href="#pycalphad.model.Model.G" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.GM">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">GM</span></span><a class="headerlink" href="#pycalphad.model.Model.GM" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.GM_MIX">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">GM_MIX</span></span><a class="headerlink" href="#pycalphad.model.Model.GM_MIX" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.HM">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">HM</span></span><a class="headerlink" href="#pycalphad.model.Model.HM" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.HM_MIX">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">HM_MIX</span></span><a class="headerlink" href="#pycalphad.model.Model.HM_MIX" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.NT">
 <span class="sig-name descname"><span class="pre">NT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pycalphad.model.Model.NT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.SM">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">SM</span></span><a class="headerlink" href="#pycalphad.model.Model.SM" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.SM_MIX">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">SM_MIX</span></span><a class="headerlink" href="#pycalphad.model.Model.SM_MIX" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.TC">
 <span class="sig-name descname"><span class="pre">TC</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pycalphad.model.Model.TC" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.ast">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ast</span></span><a class="headerlink" href="#pycalphad.model.Model.ast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the full abstract syntax tree of the model.</p>
 </dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.atomic_ordering_energy">
 <span class="sig-name descname"><span class="pre">atomic_ordering_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.atomic_ordering_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.atomic_ordering_energy" title="Permalink to this definition">¶</a></dt>
@@ -433,12 +386,10 @@ site fractions substituted.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.beta">
 <span class="sig-name descname"><span class="pre">beta</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pycalphad.model.Model.beta" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.build_phase">
 <span class="sig-name descname"><span class="pre">build_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.build_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.build_phase" title="Permalink to this definition">¶</a></dt>
@@ -449,22 +400,18 @@ site fractions substituted.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.contributions">
 <span class="sig-name descname"><span class="pre">contributions</span></span><em class="property"> <span class="pre">=</span> <span class="pre">[('ref',</span> <span class="pre">'reference_energy'),</span> <span class="pre">('idmix',</span> <span class="pre">'ideal_mixing_energy'),</span> <span class="pre">('xsmix',</span> <span class="pre">'excess_mixing_energy'),</span> <span class="pre">('mag',</span> <span class="pre">'magnetic_energy'),</span> <span class="pre">('2st',</span> <span class="pre">'twostate_energy'),</span> <span class="pre">('ein',</span> <span class="pre">'einstein_energy'),</span> <span class="pre">('ord',</span> <span class="pre">'atomic_ordering_energy')]</span></em><a class="headerlink" href="#pycalphad.model.Model.contributions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.curie_temperature">
 <span class="sig-name descname"><span class="pre">curie_temperature</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pycalphad.model.Model.curie_temperature" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.degree_of_ordering">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">degree_of_ordering</span></span><a class="headerlink" href="#pycalphad.model.Model.degree_of_ordering" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.einstein_energy">
 <span class="sig-name descname"><span class="pre">einstein_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.einstein_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.einstein_energy" title="Permalink to this definition">¶</a></dt>
@@ -473,7 +420,6 @@ Note that THETA parameters are actually LN(THETA).
 All Redlich-Kister summation is done in log-space,
 then exp() is called on the result.</p>
 </dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.endmember_reference_model">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">endmember_reference_model</span></span><a class="headerlink" href="#pycalphad.model.Model.endmember_reference_model" title="Permalink to this definition">¶</a></dt>
@@ -499,22 +445,18 @@ contributions are set to <code class="docutils literal notranslate"><span class=
 <p>The endmember reference model is built lazily and stored for later re-use
 because it needs to copy the Database and instantiate a new Model.</p>
 </dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.energy">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">energy</span></span><a class="headerlink" href="#pycalphad.model.Model.energy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.enthalpy">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">enthalpy</span></span><a class="headerlink" href="#pycalphad.model.Model.enthalpy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.entropy">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">entropy</span></span><a class="headerlink" href="#pycalphad.model.Model.entropy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.excess_mixing_energy">
 <span class="sig-name descname"><span class="pre">excess_mixing_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.excess_mixing_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.excess_mixing_energy" title="Permalink to this definition">¶</a></dt>
@@ -524,33 +466,27 @@ Here we use the Muggianu ternary extension by default
 Replace y_i -&gt; y_i + (1 - sum(y involved in parameter)) / m,
 where m is the arity of the interaction parameter</p>
 </dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.formulaenergy">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">formulaenergy</span></span><a class="headerlink" href="#pycalphad.model.Model.formulaenergy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.get_internal_constraints">
 <span class="sig-name descname"><span class="pre">get_internal_constraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.get_internal_constraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.get_internal_constraints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.gradient">
 <span class="sig-name descname"><span class="pre">gradient</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pycalphad.model.Model.gradient" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.heat_capacity">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">heat_capacity</span></span><a class="headerlink" href="#pycalphad.model.Model.heat_capacity" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.ideal_mixing_energy">
 <span class="sig-name descname"><span class="pre">ideal_mixing_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.ideal_mixing_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.ideal_mixing_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the ideal mixing energy in symbolic form.</p>
 </dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.magnetic_energy">
 <span class="sig-name descname"><span class="pre">magnetic_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.magnetic_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.magnetic_energy" title="Permalink to this definition">¶</a></dt>
@@ -558,52 +494,43 @@ where m is the arity of the interaction parameter</p>
 The implemented model is the Inden-Hillert-Jarl formulation.
 The approach follows from the background of W. Xiong et al, Calphad, 2012.</p>
 </dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.mixing_energy">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mixing_energy</span></span><a class="headerlink" href="#pycalphad.model.Model.mixing_energy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.mixing_enthalpy">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mixing_enthalpy</span></span><a class="headerlink" href="#pycalphad.model.Model.mixing_enthalpy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.mixing_entropy">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mixing_entropy</span></span><a class="headerlink" href="#pycalphad.model.Model.mixing_entropy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.mixing_heat_capacity">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mixing_heat_capacity</span></span><a class="headerlink" href="#pycalphad.model.Model.mixing_heat_capacity" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.moles">
 <span class="sig-name descname"><span class="pre">moles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_formula_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.moles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.moles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of moles of species or elements.</p>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.neel_temperature">
 <span class="sig-name descname"><span class="pre">neel_temperature</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pycalphad.model.Model.neel_temperature" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.redlich_kister_sum">
 <span class="sig-name descname"><span class="pre">redlich_kister_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_search</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_query</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.redlich_kister_sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.redlich_kister_sum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct parameter in Redlich-Kister polynomial basis, using
 the Muggianu ternary parameter extension.</p>
 </dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.reference_energy">
 <span class="sig-name descname"><span class="pre">reference_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.reference_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.reference_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the weighted average of the endmember energies
 in symbolic form.</p>
 </dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.shift_reference_state">
 <span class="sig-name descname"><span class="pre">shift_reference_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference_states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contrib_mods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('GM',</span> <span class="pre">'HM',</span> <span class="pre">'SM',</span> <span class="pre">'CPM')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{}R'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.shift_reference_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.shift_reference_state" title="Permalink to this definition">¶</a></dt>
@@ -625,7 +552,6 @@ Defaults to “{}R”, e.g. the transformation of ‘GM’ -&gt; ‘GMR’</p></
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.symbol_replace">
 <em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">symbol_replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.symbol_replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.symbol_replace" title="Permalink to this definition">¶</a></dt>
@@ -645,28 +571,23 @@ Defaults to “{}R”, e.g. the transformation of ‘GM’ -&gt; ‘GMR’</p></
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.twostate_energy">
 <span class="sig-name descname"><span class="pre">twostate_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.twostate_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.twostate_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the energy from liquid-amorphous two-state model.</p>
 </dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.model.Model.variables">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">variables</span></span><a class="headerlink" href="#pycalphad.model.Model.variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return state variables in the model.</p>
 </dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.xiong_magnetic_energy">
 <span class="sig-name descname"><span class="pre">xiong_magnetic_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.xiong_magnetic_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.xiong_magnetic_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the energy from magnetic ordering in symbolic form.
 The approach follows W. Xiong et al, Calphad, 2012.</p>
 </dd></dl>
-
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.model.ReferenceState">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.model.</span></span><span class="sig-name descname"><span class="pre">ReferenceState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_statevars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#ReferenceState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.ReferenceState" title="Permalink to this definition">¶</a></dt>
@@ -682,7 +603,6 @@ The approach follows W. Xiong et al, Calphad, 2012.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.ReferenceState.phase_name">
 <span class="sig-name descname"><span class="pre">phase_name</span></span><a class="headerlink" href="#pycalphad.model.ReferenceState.phase_name" title="Permalink to this definition">¶</a></dt>
@@ -693,7 +613,6 @@ The approach follows W. Xiong et al, Calphad, 2012.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.ReferenceState.species">
 <span class="sig-name descname"><span class="pre">species</span></span><a class="headerlink" href="#pycalphad.model.ReferenceState.species" title="Permalink to this definition">¶</a></dt>
@@ -704,9 +623,7 @@ The approach follows W. Xiong et al, Calphad, 2012.</p>
 </dd>
 </dl>
 </dd></dl>
-
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.model.TestModel">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.model.</span></span><span class="sig-name descname"><span class="pre">TestModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#TestModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.TestModel" title="Permalink to this definition">¶</a></dt>
@@ -730,11 +647,9 @@ If not specified, randomly generated and saved to self.solution</p></li>
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">None</span> <span class="pre">yet.</span></span></dt>
 <dd></dd></dl>
-
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
-
 </section>
 <section id="module-pycalphad.variables">
 <span id="pycalphad-variables-module"></span><h2>pycalphad.variables module<a class="headerlink" href="#module-pycalphad.variables" title="Permalink to this headline">¶</a></h2>
@@ -748,20 +663,16 @@ If not specified, randomly generated and saved to self.solution</p></li>
 <dt class="sig sig-object py" id="pycalphad.variables.ChemicalPotential.default_assumptions">
 <span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.ChemicalPotential.default_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.ChemicalPotential.name">
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.ChemicalPotential.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.MU">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">MU</span></span><a class="headerlink" href="#pycalphad.variables.MU" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.ChemicalPotential" title="pycalphad.variables.ChemicalPotential"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.ChemicalPotential</span></code></a></p>
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.MassFraction">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">MassFraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#MassFraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.MassFraction" title="Permalink to this definition">¶</a></dt>
@@ -771,14 +682,11 @@ If not specified, randomly generated and saved to self.solution</p></li>
 <dt class="sig sig-object py" id="pycalphad.variables.MassFraction.default_assumptions">
 <span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.MassFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.MassFraction.name">
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.MassFraction.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.MoleFraction">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">MoleFraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#MoleFraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.MoleFraction" title="Permalink to this definition">¶</a></dt>
@@ -789,20 +697,16 @@ and nonnegative.</p>
 <dt class="sig sig-object py" id="pycalphad.variables.MoleFraction.default_assumptions">
 <span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.MoleFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.MoleFraction.name">
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.MoleFraction.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.NP">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">NP</span></span><a class="headerlink" href="#pycalphad.variables.NP" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.PhaseFraction" title="pycalphad.variables.PhaseFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.PhaseFraction</span></code></a></p>
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.PhaseFraction">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">PhaseFraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#PhaseFraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.PhaseFraction" title="Permalink to this definition">¶</a></dt>
@@ -813,14 +717,11 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dt class="sig sig-object py" id="pycalphad.variables.PhaseFraction.default_assumptions">
 <span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.PhaseFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.PhaseFraction.name">
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.PhaseFraction.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.SiteFraction">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">SiteFraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subl_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#SiteFraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.SiteFraction" title="Permalink to this definition">¶</a></dt>
@@ -831,14 +732,11 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dt class="sig sig-object py" id="pycalphad.variables.SiteFraction.default_assumptions">
 <span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.SiteFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.SiteFraction.name">
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.SiteFraction.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.Species">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">Species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constituents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#Species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.Species" title="Permalink to this definition">¶</a></dt>
@@ -854,7 +752,6 @@ and nonnegative. The constructor handles formatting of the name.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.Species.constituents">
 <span class="sig-name descname"><span class="pre">constituents</span></span><a class="headerlink" href="#pycalphad.variables.Species.constituents" title="Permalink to this definition">¶</a></dt>
@@ -865,7 +762,6 @@ and nonnegative. The constructor handles formatting of the name.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.Species.charge">
 <span class="sig-name descname"><span class="pre">charge</span></span><a class="headerlink" href="#pycalphad.variables.Species.charge" title="Permalink to this definition">¶</a></dt>
@@ -876,27 +772,22 @@ and nonnegative. The constructor handles formatting of the name.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.variables.Species.escaped_name">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">escaped_name</span></span><a class="headerlink" href="#pycalphad.variables.Species.escaped_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Name safe to embed in the variable name of complex arithmetic expressions.</p>
 </dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.variables.Species.number_of_atoms">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">number_of_atoms</span></span><a class="headerlink" href="#pycalphad.variables.Species.number_of_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of atoms per formula unit. Vacancies do not count as atoms.</p>
 </dd></dl>
-
 <dl class="py property">
 <dt class="sig sig-object py" id="pycalphad.variables.Species.weight">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">weight</span></span><a class="headerlink" href="#pycalphad.variables.Species.weight" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of grams per formula unit.</p>
 </dd></dl>
-
 </dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.StateVariable">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">StateVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">assumptions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#StateVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.StateVariable" title="Permalink to this definition">¶</a></dt>
@@ -906,32 +797,26 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dt class="sig sig-object py" id="pycalphad.variables.StateVariable.default_assumptions">
 <span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.StateVariable.default_assumptions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.StateVariable.name">
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.StateVariable.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.W">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">W</span></span><a class="headerlink" href="#pycalphad.variables.W" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.MassFraction" title="pycalphad.variables.MassFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.MassFraction</span></code></a></p>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.X">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">X</span></span><a class="headerlink" href="#pycalphad.variables.X" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.MoleFraction" title="pycalphad.variables.MoleFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.MoleFraction</span></code></a></p>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.Y">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">Y</span></span><a class="headerlink" href="#pycalphad.variables.Y" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.SiteFraction" title="pycalphad.variables.SiteFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.SiteFraction</span></code></a></p>
 </dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.variables.get_mass_fractions">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">get_mass_fractions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mole_fractions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependent_species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pure_element_mass_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#get_mass_fractions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.get_mass_fractions" title="Permalink to this definition">¶</a></dt>
@@ -953,7 +838,6 @@ which they can be retrieved.</p></li>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.variables.get_mole_fractions">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">get_mole_fractions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mass_fractions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependent_species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pure_element_mass_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#get_mole_fractions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.get_mole_fractions" title="Permalink to this definition">¶</a></dt>
@@ -975,65 +859,94 @@ which they can be retrieved.</p></li>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.site_fraction">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">site_fraction</span></span><a class="headerlink" href="#pycalphad.variables.site_fraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.SiteFraction" title="pycalphad.variables.SiteFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.SiteFraction</span></code></a></p>
 </dd></dl>
-
 </section>
 <section id="module-pycalphad">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad" title="Permalink to this headline">¶</a></h2>
 </section>
 </section>
 
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="pycalphad.codegen.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">pycalphad.codegen package</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="modules.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">API Documentation</div>
+                
+              </div>
+            </a>
+        </div>
 
-           </div>
-           
-          </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="pycalphad.codegen.html" class="btn btn-neutral float-right" title="pycalphad.codegen package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="modules.html" class="btn btn-neutral float-left" title="API Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <div class="related-information">
+              Copyright &#169; 2015, pycalphad Development Team
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="../_sources/api/pycalphad.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
     </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">pycalphad package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pycalphad.model">pycalphad.model module</a></li>
+<li><a class="reference internal" href="#module-pycalphad.variables">pycalphad.variables module</a></li>
+<li><a class="reference internal" href="#module-pycalphad">Module contents</a></li>
+</ul>
+</li>
+</ul>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &#169; Copyright 2015, pycalphad Development Team.
-
-    </p>
-  </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
+          </div>
         </div>
       </div>
-
-    </section>
-
-  </div>
-  
-
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
-
-  
-  
-    
-   
-
-</body>
+      
+      
+    </aside>
+  </main>
+</div>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
 </html>
