@@ -11,9 +11,6 @@ jobs:
   Docs-Build:
     name: Build and deploy latest documentation
     runs-on: ubuntu-latest
-    env:
-      TARGET_BRANCH: website
-      DEPLOY_NAME: latest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -32,26 +29,6 @@ jobs:
         with:
           path: ./docs/_build/html
           name: pycalphad-documentation
-      # Deploy _only_ if a push event triggered the build
-      # Workaround since GitHub Actions does not support exiting early succesfully
-      - run: git checkout $TARGET_BRANCH
-        if: ${{ github.event_name == 'push' }}
-      - name: Copy Documentation to destination
-        if: ${{ github.event_name == 'push' }}
-        run: |
-          mkdir -p docs/$DEPLOY_NAME
-          # clean any existing contents
-          rm -rf docs/$DEPLOY_NAME/*
-          # copy the output
-          cp -Rf docs/_build/html/* docs/$DEPLOY_NAME
-      - name: Commit and push changes
-        if: ${{ github.event_name == 'push' }}
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add docs/$DEPLOY_NAME
-          git commit -m 'DOC: Deploy ${{ env.DEPLOY_NAME }} docs to website: ${{ github.sha }}'
-          git push
 
   Docs-Deploy-Netlify:
     needs: [Docs-Build]
@@ -77,3 +54,34 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 1
+
+  Docs-Deploy-latest-Website-Branch:
+    needs: [Docs-Build]
+    runs-on: ubuntu-latest
+    # Deploy to "latest" docs on the website branch on pushes
+    # Pushes are limited to only run on the `develop` branch (at the top)
+    if: ${{ github.event_name == 'push' }}
+    env:
+      TARGET_BRANCH: website
+      DEPLOY_NAME: latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: pycalphad-documentation
+          path: pycalphad-docs-html
+      - run: git checkout $TARGET_BRANCH
+      - name: Copy Documentation to destination
+        run: |
+          mkdir -p docs/$DEPLOY_NAME
+          # clean any existing contents
+          rm -rf docs/$DEPLOY_NAME/*
+          # copy the output
+          cp -Rf pycalphad-docs-html/* docs/$DEPLOY_NAME
+      - name: Commit and push changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add docs/$DEPLOY_NAME
+          git commit -m 'DOC: Deploy ${{ env.DEPLOY_NAME }} docs to website: ${{ github.sha }}'
+          git push
