@@ -91,7 +91,10 @@ extlinks = {'issue': ('https://github.com/pycalphad/pycalphad/issues/%s',
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'colorful'
+# WARNING: the dark style is added on top of the light style.
+# The dark style CSS may not override all the light style, leading to strange behavior.
+pygments_style = 'default'
+pygments_dark_style = "native"
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
