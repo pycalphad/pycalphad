@@ -46,6 +46,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [Tests]
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
       - name: Download artifacts
         uses: actions/download-artifact@v2
       - name: Upload to Codecov
