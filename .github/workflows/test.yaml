@@ -37,7 +37,18 @@ jobs:
       # - The `--cov` flag is required to turn on coverage
       - run: pytest -v --import-mode=append --cov --cov-config=pyproject.toml --pyargs pycalphad
       - run: coverage xml
-      - name: Upload coverage to Codecov
+      - uses: actions/upload-artifact@v2
+        with:
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
+          path: coverage.xml
+
+  Upload-Coverage:
+    runs-on: ubuntu-latest
+    needs: [Tests]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+      - name: Upload to Codecov
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
