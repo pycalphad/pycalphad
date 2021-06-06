@@ -37,6 +37,10 @@ jobs:
           pip install --no-build-isolation --editable .
       # Build documentation
       - run: sphinx-build -b html docs docs/_build/html
+      # Upload documentation html directory
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./docs/_build/html
       # Deploy _only_ if a push event triggered the build
       # Workaround since GitHub Actions does not support exiting early succesfully
       - run: git checkout $TARGET_BRANCH
