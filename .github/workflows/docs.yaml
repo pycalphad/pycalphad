@@ -31,6 +31,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           path: ./docs/_build/html
+          name: pycalphad-documentation
       # Deploy _only_ if a push event triggered the build
       # Workaround since GitHub Actions does not support exiting early succesfully
       - run: git checkout $TARGET_BRANCH
