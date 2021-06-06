@@ -5,7 +5,8 @@ To install pycalphad from `PyPI <https://pypi.org/project/pycalphad/>`_ using pi
 
 .. code-block:: bash
 
-   pip install pycalphad
+   pip install -U pip setuptools
+   pip install -U pycalphad
 
 A recommended best practice is to install pycalphad into a virtual environment.
 To create an environment called ``pycalphad-env`` on Linux and macOS/OSX:
@@ -14,7 +15,8 @@ To create an environment called ``pycalphad-env`` on Linux and macOS/OSX:
 
    python -m venv pycalphad-env
    source pycalphad-env/bin/activate
-   pip install pycalphad
+   pip install -U pip setuptools
+   pip install -U pycalphad
 
 This environment must be activated every time you use pycalphad.
 
@@ -51,6 +53,7 @@ To install an editable version the latest development branch of pycalphad, run:
 
    git clone https://github.com/pycalphad/pycalphad.git
    cd pycalphad
+   pip install -U pip setuptools
    pip install -U -r requirements-dev.txt
    pip install -U --no-build-isolation --editable .
 

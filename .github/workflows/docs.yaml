@@ -19,6 +19,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: python -m venv pycalphad-env
       - run: source pycalphad-env/bin/activate
+      - run: pip install -U pip setuptools
       - run: pip install -U -r requirements-dev.txt
       - run: pip install -U --no-build-isolation --editable .
       # Build documentation
@@ -49,7 +50,6 @@ jobs:
           enable-pull-request-comment: true
           enable-commit-comment: true
           overwrites-pull-request-comment: true
-          alias: deploy-preview-${{ github.event.number }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
