@@ -1,9 +1,11 @@
 import sys
 import os
+import re
 
 # pycalphad must be importable to build API documentation and for version retreival
 sys.path.insert(0, os.path.abspath('../pycalphad'))
-from pycalphad import __version__
+from pycalphad import __version__ as pycalphad_version
+pycalphad_version = re.sub('\.d[0-9]{8}', '', pycalphad_version)  # remove .d<date>
 
 # -- General configuration ------------------------------------------------
 
@@ -51,7 +53,7 @@ author = 'pycalphad Developers'
 # built documents.
 #
 # The short X.Y version.
-version = __version__
+version = pycalphad_version
 # The full version, including alpha/beta/rc tags.
 release = version
 
