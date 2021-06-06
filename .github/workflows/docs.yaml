@@ -67,11 +67,12 @@ jobs:
       DEPLOY_NAME: latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
       - uses: actions/download-artifact@v2
         with:
           name: pycalphad-documentation
           path: pycalphad-docs-html
-      - run: git checkout $TARGET_BRANCH
       - name: Copy Documentation to destination
         run: |
           mkdir -p docs/$DEPLOY_NAME
