@@ -51,8 +51,8 @@ To install an editable version the latest development branch of pycalphad, run:
 
    git clone https://github.com/pycalphad/pycalphad.git
    cd pycalphad
-   pip install -r requirements-dev.txt
-   pip install --no-build-isolation --editable .
+   pip install -U -r requirements-dev.txt
+   pip install -U --no-build-isolation --editable .
 
 Then run the automated tests to ensure everything installed correctly:
 
