@@ -26,8 +26,6 @@ jobs:
         run: |
           python -m venv pycalphad-env
           source pycalphad-env/bin/activate
-          git clone https://github.com/pycalphad/pycalphad
-          cd pycalphad
           pip install -r requirements-dev.txt
           pip install --no-build-isolation --editable .
       - name: Install (Windows)
@@ -35,8 +33,6 @@ jobs:
         run: |
           python -m venv pycalphad-env
           pycalphad-env\Scripts\Activate.ps1
-          git clone https://github.com/pycalphad/pycalphad
-          cd pycalphad
           pip install -r requirements-dev.txt
           pip install --no-build-isolation --editable .
       # Build documentation
