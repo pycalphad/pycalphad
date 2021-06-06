@@ -57,7 +57,7 @@ jobs:
 
   Deploy-latest:
     name: Deploy to `latest` on `website` branch
-    needs: [Docs-Build]
+    needs: [Build]
     runs-on: ubuntu-latest
     # Deploy to "latest" docs on the website branch on pushes
     # Pushes are limited to only run on the `develop` branch (at the top)
