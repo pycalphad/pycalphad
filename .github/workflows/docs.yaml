@@ -67,6 +67,8 @@ jobs:
       DEPLOY_NAME: latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # fetch the entire repo history, required to guarantee the TARGET_BRANCH exists
       - uses: actions/download-artifact@v2
         with:
           name: pycalphad-documentation
