@@ -21,12 +21,12 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip list
       - name: Install (Linux/Mac)
         if: ${{ runner.os != 'Windows' }}
         run: |
           python -m venv pycalphad-env
           source pycalphad-env/bin/activate
+          pip list
           pip install -r requirements-dev.txt
           pip install --no-build-isolation --editable .
       - name: Install (Windows)
