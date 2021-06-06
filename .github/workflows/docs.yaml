@@ -27,15 +27,15 @@ jobs:
           python -m venv pycalphad-env
           source pycalphad-env/bin/activate
           pip list
-          pip install -r requirements-dev.txt
-          pip install --no-build-isolation --editable .
+          pip install -U -r requirements-dev.txt
+          pip install -U --no-build-isolation --editable .
       - name: Install (Windows)
         if: ${{ runner.os == 'Windows' }}
         run: |
           python -m venv pycalphad-env
           pycalphad-env\Scripts\Activate.ps1
-          pip install -r requirements-dev.txt
-          pip install --no-build-isolation --editable .
+          pip install -U  -r requirements-dev.txt
+          pip install -U  --no-build-isolation --editable .
       # Build documentation
       - run: sphinx-build -b html docs docs/_build/html
       # Upload documentation html directory
