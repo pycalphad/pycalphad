@@ -1,0 +1,12 @@
+# Build requirements, matching pyproject.toml[build-system][requires]
+Cython
+numpy<1.20
+scipy
+setuptools
+setuptools_scm[toml]>=6.0
+wheel
+# Development dependencies
+furo
+ipython  # for pygments syntax highlighting
+pytest-cov
+sphinx

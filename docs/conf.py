@@ -1,9 +1,11 @@
 import sys
 import os
+import re
 
 # pycalphad must be importable to build API documentation and for version retreival
 sys.path.insert(0, os.path.abspath('../pycalphad'))
-from pycalphad import __version__
+from pycalphad import __version__ as pycalphad_version
+pycalphad_version = re.sub('\.d[0-9]{8}', '', pycalphad_version)  # remove .d<date>
 
 # -- General configuration ------------------------------------------------
 
@@ -51,7 +53,7 @@ author = 'pycalphad Developers'
 # built documents.
 #
 # The short X.Y version.
-version = __version__
+version = pycalphad_version
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -91,7 +93,10 @@ extlinks = {'issue': ('https://github.com/pycalphad/pycalphad/issues/%s',
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'colorful'
+# WARNING: the dark style is added on top of the light style.
+# The dark style CSS may not override all the light style, leading to strange behavior.
+pygments_style = 'default'
+pygments_dark_style = "native"
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -107,7 +112,7 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'furo'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

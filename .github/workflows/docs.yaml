@@ -8,12 +8,8 @@ on:
   pull_request:  # all pull requests
 
 jobs:
-  Latest-Docs:
-    name: Build and deploy latest documentation
+  Build:
     runs-on: ubuntu-latest
-    env:
-      TARGET_BRANCH: website
-      DEPLOY_NAME: latest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -21,32 +17,69 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python -m venv pycalphad-dev
-      - name: "Activate virtual environment (Linux/Mac)"
-        run: source pycalphad-dev/bin/activate
-        if: ${{ runner.os != 'Windows' }}
-      - name: "Activate virtual environment (Windows)"
-        run: pycalphad-dev\Scripts\Activate.ps1
-        if: ${{ runner.os == 'Windows' }}
-      - run: pip install .
-      - run: pip list
+      - run: python -m venv pycalphad-env
+      - run: source pycalphad-env/bin/activate
+      - run: pip install -U -r requirements-dev.txt
+      - run: pip install -U --no-build-isolation --editable .
       # Build documentation
-      - run: pip install ipython sphinx sphinx-rtd-theme
       - run: sphinx-build -b html docs docs/_build/html
-      # Deploy _only_ if a push event triggered the build
-      # Workaround since GitHub Actions does not support exiting early succesfully
+      # Upload documentation html directory
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./docs/_build/html
+          name: pycalphad-documentation
+
+  Deploy-Netlify:
+    name: Deploy to Netlify
+    needs: [Build]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: pycalphad-documentation
+          path: pycalphad-docs-html
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v1.2
+        with:
+          publish-dir: 'pycalphad-docs-html'
+          production-branch: develop
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: true
+          enable-commit-comment: true
+          overwrites-pull-request-comment: true
+          alias: deploy-preview-${{ github.event.number }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
+
+  Deploy-latest:
+    name: Deploy to `latest` on `website` branch
+    needs: [Build]
+    runs-on: ubuntu-latest
+    # Deploy to "latest" docs on the website branch on pushes
+    # Pushes are limited to only run on the `develop` branch (at the top)
+    if: ${{ github.event_name == 'push' }}
+    env:
+      TARGET_BRANCH: website
+      DEPLOY_NAME: latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: pycalphad-documentation
+          path: pycalphad-docs-html
       - run: git checkout $TARGET_BRANCH
-        if: ${{ github.event_name == 'push' }}
       - name: Copy Documentation to destination
-        if: ${{ github.event_name == 'push' }}
         run: |
           mkdir -p docs/$DEPLOY_NAME
           # clean any existing contents
           rm -rf docs/$DEPLOY_NAME/*
           # copy the output
-          cp -Rf docs/_build/html/* docs/$DEPLOY_NAME
+          cp -Rf pycalphad-docs-html/* docs/$DEPLOY_NAME
       - name: Commit and push changes
-        if: ${{ github.event_name == 'push' }}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
