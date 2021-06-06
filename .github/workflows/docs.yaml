@@ -8,8 +8,7 @@ on:
   pull_request:  # all pull requests
 
 jobs:
-  Docs-Build:
-    name: Build and deploy latest documentation
+  Build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -30,8 +29,9 @@ jobs:
           path: ./docs/_build/html
           name: pycalphad-documentation
 
-  Docs-Deploy-Netlify:
-    needs: [Docs-Build]
+  Deploy-Netlify:
+    name: Deploy to Netlify
+    needs: [Build]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     steps:
@@ -55,7 +55,8 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 1
 
-  Docs-Deploy-latest-Website-Branch:
+  Deploy-latest:
+    name: Deploy to `latest` on `website` branch
     needs: [Docs-Build]
     runs-on: ubuntu-latest
     # Deploy to "latest" docs on the website branch on pushes
