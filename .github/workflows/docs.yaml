@@ -8,7 +8,7 @@ on:
   pull_request:  # all pull requests
 
 jobs:
-  Latest-Docs:
+  Docs-Build:
     name: Build and deploy latest documentation
     runs-on: ubuntu-latest
     env:
@@ -52,3 +52,28 @@ jobs:
           git add docs/$DEPLOY_NAME
           git commit -m 'DOC: Deploy ${{ env.DEPLOY_NAME }} docs to website: ${{ github.sha }}'
           git push
+
+  Docs-Deploy-Netlify:
+    needs: [Docs-Build]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: pycalphad-documentation
+          path: pycalphad-docs-html
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v1.2
+        with:
+          publish-dir: 'pycalphad-docs-html'
+          production-branch: develop
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: true
+          enable-commit-comment: true
+          overwrites-pull-request-comment: true
+          alias: deploy-preview-${{ github.event.number }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
