@@ -52,7 +52,7 @@ def get_config_install_lines(pkg, plt, env, jup) -> List[str]:
         install_lines.append("pip install -U -r requirements-dev.txt")
         install_lines.append("pip install -U --no-build-isolation --editable .")
         if jup == "jupyter":
-            install_lines.append("pip -U install jupyterlab")
+            install_lines.append("pip install -U jupyterlab")
     else:  # assume pip
         install_line = "pip install -U pycalphad"
         if jup == "jupyter":
