@@ -6,7 +6,7 @@ setuptools
 setuptools_scm[toml]>=6.0
 wheel
 # Development dependencies
+furo
 ipython  # for pygments syntax highlighting
 pytest-cov
 sphinx
-sphinx_rtd_theme
