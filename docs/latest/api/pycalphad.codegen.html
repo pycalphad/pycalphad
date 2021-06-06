@@ -2,11 +2,10 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.core package" href="pycalphad.core.html" /><link rel="prev" title="pycalphad package" href="pycalphad.html" />
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.core package" href="pycalphad.core.html" /><link rel="prev" title="pycalphad package" href="pycalphad.html" />
 
-    <meta name="generator" content="sphinx-4.0.2, furo 2021.04.11.beta34"/>
-        <title>pycalphad.codegen package - pycalphad 0.8.6.dev21+gf240057f documentation</title>
+    <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
+        <title>pycalphad.codegen package - pycalphad 0.8.6.dev22+gc4cea55e documentation</title>
       <link rel="stylesheet" href="../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
     <link rel="stylesheet" href="../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
@@ -38,9 +37,7 @@
   --color-code-foreground: #d0d0d0;
   
   }
-</style><link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
-    <link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+</style><link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
   <body dir="">
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -89,7 +86,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.8.6.dev21+gf240057f documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.8.6.dev22+gc4cea55e documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -106,7 +103,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.8.6.dev21+gf240057f documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev22+gc4cea55e documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -160,16 +157,16 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <section id="pycalphad-codegen-package">
+        <div class="section" id="pycalphad-codegen-package">
 <h1>pycalphad.codegen package<a class="headerlink" href="#pycalphad-codegen-package" title="Permalink to this headline">¶</a></h1>
-<section id="submodules">
+<div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</section>
-<section id="module-pycalphad.codegen.callables">
+</div>
+<div class="section" id="module-pycalphad.codegen.callables">
 <span id="pycalphad-codegen-callables-module"></span><h2>pycalphad.codegen.callables module<a class="headerlink" href="#module-pycalphad.codegen.callables" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.codegen.callables.build_callables">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.callables.</span></span><span class="sig-name descname"><span class="pre">build_callables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter_symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_gradients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_hessians</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_statevars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_callables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_callables" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.callables.build_callables">
+<code class="sig-prename descclassname"><span class="pre">pycalphad.codegen.callables.</span></code><code class="sig-name descname"><span class="pre">build_callables</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter_symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_gradients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_hessians</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_statevars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_callables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_callables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a compiled callables dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -218,8 +215,8 @@ argument.</p>
 </div>
 </dd></dl>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.codegen.callables.build_phase_records">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.callables.</span></span><span class="sig-name descname"><span class="pre">build_phase_records</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_gradients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_hessians</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_phase_records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_phase_records" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.callables.build_phase_records">
+<code class="sig-prename descclassname"><span class="pre">pycalphad.codegen.callables.</span></code><code class="sig-name descname"><span class="pre">build_phase_records</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_gradients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_hessians</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_phase_records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_phase_records" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine compiled callables and callables from conditions into PhaseRecords.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -254,8 +251,8 @@ responsible for ensuring that the state variables, parameters and models
 used to construct the callables are compatible with the ones used to
 build the constraints and phase records.</p>
 </dd></dl>
-</section>
-<section id="module-pycalphad.codegen.sympydiff_utils">
+</div>
+<div class="section" id="module-pycalphad.codegen.sympydiff_utils">
 <span id="pycalphad-codegen-sympydiff-utils-module"></span><h2>pycalphad.codegen.sympydiff_utils module<a class="headerlink" href="#module-pycalphad.codegen.sympydiff_utils" title="Permalink to this headline">¶</a></h2>
 <p>This module defines functions for compiling symbolic SymPy or SymEngine
 expressions into fast callable functions.</p>
@@ -282,48 +279,48 @@ functions or PhaseRecords. The following issues track this behavior:</p>
 <li><p>SymEngine.py: <a class="reference external" href="https://github.com/symengine/symengine.py/issues/294">https://github.com/symengine/symengine.py/issues/294</a></p></li>
 </ul>
 <dl class="py class">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">BuildFunctionsResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></code><code class="sig-name descname"><span class="pre">BuildFunctionsResult</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.func">
-<span class="sig-name descname"><span class="pre">func</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.func" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.func">
+<code class="sig-name descname"><span class="pre">func</span></code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.grad">
-<span class="sig-name descname"><span class="pre">grad</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.grad" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.grad">
+<code class="sig-name descname"><span class="pre">grad</span></code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.grad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.hess">
-<span class="sig-name descname"><span class="pre">hess</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.hess" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.hess">
+<code class="sig-name descname"><span class="pre">hess</span></code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.hess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 </dd></dl>
 <dl class="py class">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">ConstraintFunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cons_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cons_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cons_hess</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></code><code class="sig-name descname"><span class="pre">ConstraintFunctions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cons_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cons_jac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cons_hess</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_func">
-<span class="sig-name descname"><span class="pre">cons_func</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_func" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_func">
+<code class="sig-name descname"><span class="pre">cons_func</span></code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_hess">
-<span class="sig-name descname"><span class="pre">cons_hess</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_hess" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_hess">
+<code class="sig-name descname"><span class="pre">cons_hess</span></code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_hess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_jac">
-<span class="sig-name descname"><span class="pre">cons_jac</span></span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_jac" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_jac">
+<code class="sig-name descname"><span class="pre">cons_jac</span></code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.ConstraintFunctions.cons_jac" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 </dd></dl>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.build_constraint_functions">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">build_constraint_functions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_constraint_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_constraint_functions" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.build_constraint_functions">
+<code class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></code><code class="sig-name descname"><span class="pre">build_constraint_functions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jac_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_constraint_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_constraint_functions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build callables functions for the constraints, constraint Jacobian, and constraint Hessian.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -349,8 +346,8 @@ parameters that are controlled by the user.</p></li>
 <p>Default options for compiling the function, gradient and Hessian are defined by <code class="docutils literal notranslate"><span class="pre">_get_lambdify_options</span></code>.</p>
 </dd></dl>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.build_functions">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">build_functions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sympy_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_hess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.codegen.sympydiff_utils.build_functions">
+<code class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></code><code class="sig-name descname"><span class="pre">build_functions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sympy_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_hess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build function, gradient, and Hessian callables of the sympy_graph.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -385,11 +382,11 @@ Hessian callables. If None, will fall back to <code class="docutils literal notr
 <p class="rubric">Notes</p>
 <p>Default options for compiling the function, gradient and Hessian are defined by <code class="docutils literal notranslate"><span class="pre">_get_lambdify_options</span></code>.</p>
 </dd></dl>
-</section>
-<section id="module-pycalphad.codegen">
+</div>
+<div class="section" id="module-pycalphad.codegen">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.codegen" title="Permalink to this headline">¶</a></h2>
-</section>
-</section>
+</div>
+</div>
 
       </article>
       <footer>
@@ -463,10 +460,9 @@ Hessian callables. If None, will fall back to <code class="docutils literal notr
   </main>
 </div>
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
 </html>

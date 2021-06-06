@@ -2,11 +2,10 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.plot.binary package" href="pycalphad.plot.binary.html" /><link rel="prev" title="pycalphad.io package" href="pycalphad.io.html" />
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.plot.binary package" href="pycalphad.plot.binary.html" /><link rel="prev" title="pycalphad.io package" href="pycalphad.io.html" />
 
-    <meta name="generator" content="sphinx-4.0.2, furo 2021.04.11.beta34"/>
-        <title>pycalphad.plot package - pycalphad 0.8.6.dev21+gf240057f documentation</title>
+    <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
+        <title>pycalphad.plot package - pycalphad 0.8.6.dev22+gc4cea55e documentation</title>
       <link rel="stylesheet" href="../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
     <link rel="stylesheet" href="../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
@@ -38,9 +37,7 @@
   --color-code-foreground: #d0d0d0;
   
   }
-</style><link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
-    <link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+</style><link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
   <body dir="">
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -89,7 +86,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.8.6.dev21+gf240057f documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.8.6.dev22+gc4cea55e documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -106,7 +103,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.8.6.dev21+gf240057f documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev22+gc4cea55e documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -160,9 +157,9 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <section id="pycalphad-plot-package">
+        <div class="section" id="pycalphad-plot-package">
 <h1>pycalphad.plot package<a class="headerlink" href="#pycalphad-plot-package" title="Permalink to this headline">¶</a></h1>
-<section id="subpackages">
+<div class="section" id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
@@ -177,17 +174,17 @@
 </li>
 </ul>
 </div>
-</section>
-<section id="submodules">
+</div>
+<div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</section>
-<section id="module-pycalphad.plot.eqplot">
+</div>
+<div class="section" id="module-pycalphad.plot.eqplot">
 <span id="pycalphad-plot-eqplot-module"></span><h2>pycalphad.plot.eqplot module<a class="headerlink" href="#module-pycalphad.plot.eqplot" title="Permalink to this headline">¶</a></h2>
 <p>The eqplot module contains functions for general plotting of
 the results of equilibrium calculations.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.plot.eqplot.eqplot">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.eqplot.</span></span><span class="sig-name descname"><span class="pre">eqplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">eq</span></em>, <em class="sig-param"><span class="pre">ax=None</span></em>, <em class="sig-param"><span class="pre">x=None</span></em>, <em class="sig-param"><span class="pre">y=None</span></em>, <em class="sig-param"><span class="pre">z=None</span></em>, <em class="sig-param"><span class="pre">tielines=True</span></em>, <em class="sig-param"><span class="pre">tieline_color=(0</span></em>, <em class="sig-param"><span class="pre">1</span></em>, <em class="sig-param"><span class="pre">0</span></em>, <em class="sig-param"><span class="pre">1)</span></em>, <em class="sig-param"><span class="pre">tie_triangle_color=(1</span></em>, <em class="sig-param"><span class="pre">0</span></em>, <em class="sig-param"><span class="pre">0</span></em>, <em class="sig-param"><span class="pre">1)</span></em>, <em class="sig-param"><span class="pre">legend_generator=&lt;function</span> <span class="pre">phase_legend&gt;</span></em>, <em class="sig-param"><span class="pre">**kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/eqplot.html#eqplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.eqplot.eqplot" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.eqplot.eqplot">
+<code class="sig-prename descclassname"><span class="pre">pycalphad.plot.eqplot.</span></code><code class="sig-name descname"><span class="pre">eqplot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">eq</span></em>, <em class="sig-param"><span class="pre">ax=None</span></em>, <em class="sig-param"><span class="pre">x=None</span></em>, <em class="sig-param"><span class="pre">y=None</span></em>, <em class="sig-param"><span class="pre">z=None</span></em>, <em class="sig-param"><span class="pre">tielines=True</span></em>, <em class="sig-param"><span class="pre">tieline_color=(0</span></em>, <em class="sig-param"><span class="pre">1</span></em>, <em class="sig-param"><span class="pre">0</span></em>, <em class="sig-param"><span class="pre">1)</span></em>, <em class="sig-param"><span class="pre">tie_triangle_color=(1</span></em>, <em class="sig-param"><span class="pre">0</span></em>, <em class="sig-param"><span class="pre">0</span></em>, <em class="sig-param"><span class="pre">1)</span></em>, <em class="sig-param"><span class="pre">legend_generator=&lt;function</span> <span class="pre">phase_legend&gt;</span></em>, <em class="sig-param"><span class="pre">**kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/eqplot.html#eqplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.eqplot.eqplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the result of an equilibrium calculation.</p>
 <p>The type of plot is controlled by the degrees of freedom in the equilibrium calculation.</p>
 <dl class="field-list simple">
@@ -221,13 +218,13 @@ pycalphad.plot.utils.phase_legend is used</p></li>
 </dd>
 </dl>
 </dd></dl>
-</section>
-<section id="module-pycalphad.plot.ternary">
+</div>
+<div class="section" id="module-pycalphad.plot.ternary">
 <span id="pycalphad-plot-ternary-module"></span><h2>pycalphad.plot.ternary module<a class="headerlink" href="#module-pycalphad.plot.ternary" title="Permalink to this headline">¶</a></h2>
 <p>The ternary module enables plotting of ternary isobaric phase diagrams.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.plot.ternary.ternplot">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.ternary.</span></span><span class="sig-name descname"><span class="pre">ternplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eq_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">plot_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/ternary.html#ternplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.ternary.ternplot" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.ternary.ternplot">
+<code class="sig-prename descclassname"><span class="pre">pycalphad.plot.ternary.</span></code><code class="sig-name descname"><span class="pre">ternplot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eq_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">plot_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/ternary.html#ternplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.ternary.ternplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the ternary isothermal, isobaric phase diagram.
 This function is a convenience wrapper around equilibrium() and eqplot().</p>
 <dl class="field-list simple">
@@ -256,8 +253,8 @@ Must correspond to an independent condition.</p></li>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
-</section>
-<section id="module-pycalphad.plot.triangular">
+</div>
+<div class="section" id="module-pycalphad.plot.triangular">
 <span id="pycalphad-plot-triangular-module"></span><h2>pycalphad.plot.triangular module<a class="headerlink" href="#module-pycalphad.plot.triangular" title="Permalink to this headline">¶</a></h2>
 <p>Register a <code class="docutils literal notranslate"><span class="pre">'triangular'</span></code> projection with matplotlib to plot diagrams on
 triangular axes.</p>
@@ -271,24 +268,24 @@ matplotlib.</p>
 </pre></div>
 </div>
 <dl class="py class">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.triangular.</span></span><span class="sig-name descname"><span class="pre">TriangularAxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pycalphad.plot.triangular.</span></code><code class="sig-name descname"><span class="pre">TriangularAxes</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes._axes.Axes</span></code></p>
 <p>A custom class for triangular projections.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.can_zoom">
-<span class="sig-name descname"><span class="pre">can_zoom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.can_zoom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.can_zoom" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.can_zoom">
+<code class="sig-name descname"><span class="pre">can_zoom</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.can_zoom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.can_zoom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if this axes support the zoom box</p>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.cla">
-<span class="sig-name descname"><span class="pre">cla</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.cla"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.cla" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.cla">
+<code class="sig-name descname"><span class="pre">cla</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.cla"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.cla" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hard-code axes limits to be on [0, 1] for both axes.</p>
 <p>Warning: Limits not on [0, 1] may lead to clipping issues!</p>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.drag_pan">
-<span class="sig-name descname"><span class="pre">drag_pan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">button</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.drag_pan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.drag_pan" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.drag_pan">
+<code class="sig-name descname"><span class="pre">drag_pan</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">button</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.drag_pan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.drag_pan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when the mouse moves during a pan operation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -304,15 +301,15 @@ matplotlib.</p>
 <p>This is intended to be overridden by new projection types.</p>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.end_pan">
-<span class="sig-name descname"><span class="pre">end_pan</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.end_pan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.end_pan" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.end_pan">
+<code class="sig-name descname"><span class="pre">end_pan</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.end_pan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.end_pan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when a pan operation completes (when the mouse button is up.)</p>
 <p class="rubric">Notes</p>
 <p>This is intended to be overridden by new projection types.</p>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform">
-<span class="sig-name descname"><span class="pre">get_xaxis_text1_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_text1_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform">
+<code class="sig-name descname"><span class="pre">get_xaxis_text1_transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_text1_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
@@ -332,8 +329,8 @@ class, and is meant to be overridden by new kinds of projections that
 may need to place axis elements in different locations.</p>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform">
-<span class="sig-name descname"><span class="pre">get_xaxis_text2_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_text2_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform">
+<code class="sig-name descname"><span class="pre">get_xaxis_text2_transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_text2_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
@@ -353,8 +350,8 @@ class, and is meant to be overridden by new kinds of projections that
 may need to place axis elements in different locations.</p>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform">
-<span class="sig-name descname"><span class="pre">get_xaxis_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grid'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform">
+<code class="sig-name descname"><span class="pre">get_xaxis_transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grid'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the transformation used for drawing x-axis labels, ticks
 and gridlines.  The x-direction is in data coordinates and the
 y-direction is in axis coordinates.</p>
@@ -367,8 +364,8 @@ place axis elements in different locations.</p>
 </div>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform">
-<span class="sig-name descname"><span class="pre">get_yaxis_text1_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_text1_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform">
+<code class="sig-name descname"><span class="pre">get_yaxis_text1_transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_text1_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
@@ -388,8 +385,8 @@ class, and is meant to be overridden by new kinds of projections that
 may need to place axis elements in different locations.</p>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform">
-<span class="sig-name descname"><span class="pre">get_yaxis_text2_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_text2_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform">
+<code class="sig-name descname"><span class="pre">get_yaxis_text2_transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_text2_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
@@ -409,8 +406,8 @@ class, and is meant to be overridden by new kinds of projections that
 may need to place axis elements in different locations.</p>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform">
-<span class="sig-name descname"><span class="pre">get_yaxis_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grid'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform">
+<code class="sig-name descname"><span class="pre">get_yaxis_transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grid'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the transformation used for drawing y-axis labels, ticks
 and gridlines.  The x-direction is in axis coordinates and the
 y-direction is in data coordinates.</p>
@@ -423,12 +420,12 @@ place axis elements in different locations.</p>
 </div>
 </dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'triangular'</span></em><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.name" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'triangular'</span></em><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.set_ylabel">
-<span class="sig-name descname"><span class="pre">set_ylabel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ylabel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontdict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labelpad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.set_ylabel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.set_ylabel" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.set_ylabel">
+<code class="sig-name descname"><span class="pre">set_ylabel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ylabel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontdict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labelpad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.set_ylabel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.set_ylabel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the label for the y-axis. Default rotation=60 degrees.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -438,8 +435,10 @@ place axis elements in different locations.</p>
 and tick labels.</p></li>
 <li><p><strong>loc</strong> ({‘bottom’, ‘center’, ‘top’}, default: <a href="#id1"><span class="problematic" id="id2">:rc:`yaxis.labellocation`</span></a>) – The label position. This is a high-level alternative for passing
 parameters <em>y</em> and <em>horizontalalignment</em>.</p></li>
-<li><p><strong>**kwargs</strong> (<cite>.Text</cite> properties) – <cite>.Text</cite> properties control the appearance of the label.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Other Parameters</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> (<cite>.Text</cite> properties) – <cite>.Text</cite> properties control the appearance of the label.</p>
 </dd>
 </dl>
 <div class="admonition seealso">
@@ -451,8 +450,8 @@ parameters <em>y</em> and <em>horizontalalignment</em>.</p></li>
 </div>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.start_pan">
-<span class="sig-name descname"><span class="pre">start_pan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.start_pan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.start_pan" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.triangular.TriangularAxes.start_pan">
+<code class="sig-name descname"><span class="pre">start_pan</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.start_pan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.start_pan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when a pan operation has started.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -467,13 +466,13 @@ parameters <em>y</em> and <em>horizontalalignment</em>.</p></li>
 <p>This is intended to be overridden by new projection types.</p>
 </dd></dl>
 </dd></dl>
-</section>
-<section id="module-pycalphad.plot.utils">
+</div>
+<div class="section" id="module-pycalphad.plot.utils">
 <span id="pycalphad-plot-utils-module"></span><h2>pycalphad.plot.utils module<a class="headerlink" href="#module-pycalphad.plot.utils" title="Permalink to this headline">¶</a></h2>
 <p>The plot utils module contains some useful routines related to plotting.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.plot.utils.phase_legend">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.utils.</span></span><span class="sig-name descname"><span class="pre">phase_legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phases</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/utils.html#phase_legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.utils.phase_legend" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.plot.utils.phase_legend">
+<code class="sig-prename descclassname"><span class="pre">pycalphad.plot.utils.</span></code><code class="sig-name descname"><span class="pre">phase_legend</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phases</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/utils.html#phase_legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.utils.phase_legend" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build matplotlib handles for the plot legend.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -493,11 +492,11 @@ parameters <em>y</em> and <em>horizontalalignment</em>.</p></li>
 </pre></div>
 </div>
 </dd></dl>
-</section>
-<section id="module-pycalphad.plot">
+</div>
+<div class="section" id="module-pycalphad.plot">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.plot" title="Permalink to this headline">¶</a></h2>
-</section>
-</section>
+</div>
+</div>
 
       </article>
       <footer>
@@ -574,7 +573,6 @@ parameters <em>y</em> and <em>horizontalalignment</em>.</p></li>
   </main>
 </div>
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>

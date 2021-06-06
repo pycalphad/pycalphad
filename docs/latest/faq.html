@@ -2,11 +2,10 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API Documentation" href="api/modules.html" /><link rel="prev" title="Exploring calculate and equilibrium xarray Datasets" href="examples/UsingCalculationResults.html" />
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API Documentation" href="api/modules.html" /><link rel="prev" title="Exploring calculate and equilibrium xarray Datasets" href="examples/UsingCalculationResults.html" />
 
-    <meta name="generator" content="sphinx-4.0.2, furo 2021.04.11.beta34"/>
-        <title>FAQ - pycalphad 0.8.6.dev21+gf240057f documentation</title>
+    <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
+        <title>FAQ - pycalphad 0.8.6.dev22+gc4cea55e documentation</title>
       <link rel="stylesheet" href="_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
     <link rel="stylesheet" href="_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css">
@@ -38,9 +37,7 @@
   --color-code-foreground: #d0d0d0;
   
   }
-</style><link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css" />
-    <link rel="stylesheet" href="_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+</style><link rel="stylesheet" href="_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
   <body dir="">
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -89,7 +86,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pycalphad 0.8.6.dev21+gf240057f documentation</div></a>
+      <a href="index.html"><div class="brand">pycalphad 0.8.6.dev22+gc4cea55e documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -106,7 +103,7 @@
     <img class="sidebar-logo" src="_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.8.6.dev21+gf240057f documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev22+gc4cea55e documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -160,23 +157,23 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <section id="faq">
+        <div class="section" id="faq">
 <h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
-<section id="what-units-does-pycalphad-use">
+<div class="section" id="what-units-does-pycalphad-use">
 <h2>What units does pycalphad use?<a class="headerlink" href="#what-units-does-pycalphad-use" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>All units are SI units.</p></li>
 <li><p>Molar quantities are used for state variables, e.g. energy has units <code class="docutils literal notranslate"><span class="pre">J/mol</span></code>.</p></li>
 <li><p>Composition and site occupancies are mole fractions.</p></li>
 </ul>
-</section>
-<section id="is-any-parallelism-supported-in-pycalphad">
+</div>
+<div class="section" id="is-any-parallelism-supported-in-pycalphad">
 <h2>Is any parallelism supported in pycalphad?<a class="headerlink" href="#is-any-parallelism-supported-in-pycalphad" title="Permalink to this headline">¶</a></h2>
 <p>pycalphad does not support parallelization out of the box since version 0.8,
 however it is possible to use pycalphad in parallel via packages such as
 <a class="reference external" href="http://dask.pydata.org/en/latest/">dask</a>.</p>
-</section>
-<section id="how-long-should-equilibrium-calculations-take">
+</div>
+<div class="section" id="how-long-should-equilibrium-calculations-take">
 <h2>How long should equilibrium calculations take?<a class="headerlink" href="#how-long-should-equilibrium-calculations-take" title="Permalink to this headline">¶</a></h2>
 <p>Roughly speaking, single point equilibrium calculations should take on the order
 of 200ms.</p>
@@ -185,16 +182,16 @@ a dense grid of point calculations over the conditions passed. The phase diagram
 are mapped by the tieline points of the two phase regions, so unless there are
 two phase regions in a very small composition range, only coarse composition
 grids are required for phase diagram calculations.</p>
-</section>
-<section id="typeerror-argument-is-not-an-mpz-during-a-calculation">
+</div>
+<div class="section" id="typeerror-argument-is-not-an-mpz-during-a-calculation">
 <h2><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation<a class="headerlink" href="#typeerror-argument-is-not-an-mpz-during-a-calculation" title="Permalink to this headline">¶</a></h2>
 <p>This bug should now be fixed. Please update to pycalphad 0.7.1 or later.</p>
-</section>
-<section id="recursionerror-during-a-calculation">
+</div>
+<div class="section" id="recursionerror-during-a-calculation">
 <h2><code class="docutils literal notranslate"><span class="pre">RecursionError</span></code> during a calculation<a class="headerlink" href="#recursionerror-during-a-calculation" title="Permalink to this headline">¶</a></h2>
 <p>This bug should now be fixed. Please update to pycalphad 0.7.1 or later.</p>
-</section>
-<section id="text-is-sometimes-cut-off-when-saving-figures">
+</div>
+<div class="section" id="text-is-sometimes-cut-off-when-saving-figures">
 <h2>Text is sometimes cut off when saving figures<a class="headerlink" href="#text-is-sometimes-cut-off-when-saving-figures" title="Permalink to this headline">¶</a></h2>
 <p>Occasionally when saving images with the matplotlib function <code class="docutils literal notranslate"><span class="pre">plt.savefig</span></code>, axis titles and legends are cut off.</p>
 <p>This can be fixed:</p>
@@ -203,8 +200,8 @@ grids are required for phase diagram calculations.</p>
 <li><p>Locally by running <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">matplotlib</span> <span class="pre">as</span> <span class="pre">mpl;</span> <span class="pre">mpl.rcParams['savefig.bbox']</span> <span class="pre">=</span> <span class="pre">'tight'</span></code></p></li>
 <li><p>Permanently by adding <code class="docutils literal notranslate"><span class="pre">savefig.bbox</span> <span class="pre">:</span> <span class="pre">tight</span></code> to your <a class="reference external" href="https://matplotlib.org/users/customizing.html">matplotlibrc file</a>.</p></li>
 </ul>
-</section>
-</section>
+</div>
+</div>
 
       </article>
       <footer>
@@ -280,7 +277,6 @@ grids are required for phase diagram calculations.</p>
   </main>
 </div>
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
