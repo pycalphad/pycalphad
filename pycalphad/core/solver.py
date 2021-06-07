@@ -24,7 +24,7 @@ class SolverBase(object):
         raise NotImplementedError("A subclass of Solver must be implemented.")
 
 
-class SundmanSolver(SolverBase):
+class Solver(SolverBase):
     def __init__(self, verbose=False, **options):
         self.verbose = verbose
 

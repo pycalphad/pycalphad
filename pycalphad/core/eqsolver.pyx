@@ -7,7 +7,7 @@ cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
 from pycalphad.core.problem cimport Problem
-from pycalphad.core.solver import SundmanSolver
+from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord
 from pycalphad.core.constants import *
@@ -143,7 +143,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         Problem instance
     solver : pycalphad.core.solver.SolverBase
         Instance of a SolverBase subclass. If None is supplied, defaults to a
-        pycalphad.core.solver.InteriorPointSolver
+        pycalphad.core.solver.Solver
 
     Returns
     -------
@@ -162,7 +162,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
-    iter_solver = solver if solver is not None else SundmanSolver(verbose=verbose)
+    iter_solver = solver if solver is not None else Solver(verbose=verbose)
 
     pure_elements = set(v.Species(list(spec.constituents.keys())[0])
                                   for spec in comps
