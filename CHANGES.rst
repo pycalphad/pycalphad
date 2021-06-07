@@ -1,6 +1,29 @@
 What's New
 ==========
 
+0.9.0 (2021-06-06)
+------------------
+
+This is a major relase including a new minimizer, support for installing from PyPI using pip, performance improvements, documentation improvements, and bug fixes.
+
+* ENH: Introduce a new energy minimizer based on the method described by [Sundman2015]_.
+  The new minimizer improves performance, convergence for dilute and pseudo-binary systems,
+  and reduces the point grid density (memory) required for convergence.
+  ( :issue:`329`, :issue:`332`, :issue:`336`, :issue:`339`, :issue:`343`, :issue:`344` )
+* BLD: Improve the build system to support PEP 517 and PEP 518 isolated builds and
+  the ``pyproject.toml`` standard. ( :issue:`330`, :issue:`331`, :issue:`334` )
+* BLD: Distributed pycalphad wheels on PyPI in addition to the conda-forge package.
+  Using pip to install pycalphad is now supported and recommended. ( :issue:`346` )
+* ENH: Improve performance of ``Model`` instantiation ( :issue:`340` )
+* MAINT: Add support for pyparsing 3.0 ( :issue:`348` )
+* DOC: Improve installation documentation with the newly supported pip/PyPI packages.
+  An installation configuration tool is provided in the installation guide. ( :issue:`351` )
+* MAINT: Refactor _sample_phase_constitution ( :issue:`335` )
+* MAINT: Remove ``refdata.py`` that was deprecated in pycalphad 0.6 ( :issue:`333` )
+* MAINT: Using setuptools_scm instead of versioneer to version pycalphad.
+  The version scheme for development versions has changed. ( :issue:`341` )
+
+
 0.8.5 (2021-05-20)
 ------------------
 
@@ -446,3 +469,5 @@ This was necessary for the move to the new equilibrium engine.
 ----------------
 
 * Initial public release
+
+.. [Sundman2015] Sundman, Lu, and Ohtani, *Computational Materials Science* 101 (2015) 127-137 `doi: 10.1016/j.commatsci.2015.01.029 <http://doi.org/10.1016/j.commatsci.2015.01.029>`_
