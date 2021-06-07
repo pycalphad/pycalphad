@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.io package" href="pycalphad.io.html" /><link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
 
     <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>pycalphad.core package - pycalphad 0.8.6.dev23+g8e3587b8 documentation</title>
+        <title>pycalphad.core package - pycalphad 0.8.6.dev24+g505e2702 documentation</title>
       <link rel="stylesheet" href="../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
     <link rel="stylesheet" href="../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
@@ -86,7 +86,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.8.6.dev23+g8e3587b8 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.8.6.dev24+g505e2702 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -103,7 +103,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.8.6.dev23+g8e3587b8 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev24+g505e2702 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -399,7 +399,7 @@ when those conditions don’t comprise a grid.</p></li>
 If None, return a Dask graph of the computation instead of actually doing it.</p></li>
 <li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
 <li><p><strong>solver</strong> (<a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><em>pycalphad.core.solver.SolverBase</em></a>) – Instance of a solver that is used to calculate local equilibria.
-Defaults to a pycalphad.core.solver.InteriorPointSolver.</p></li>
+Defaults to a pycalphad.core.solver.Solver.</p></li>
 <li><p><strong>callables</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pre-computed callable functions for equilibrium calculation.</p></li>
 </ul>
 </dd>
@@ -891,6 +891,27 @@ Then outp.shape = (M,N)</p>
 <div class="section" id="module-pycalphad.core.solver">
 <span id="pycalphad-core-solver-module"></span><h2>pycalphad.core.solver module<a class="headerlink" href="#module-pycalphad.core.solver" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
+<dt id="pycalphad.core.solver.Solver">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pycalphad.core.solver.</span></code><code class="sig-name descname"><span class="pre">Solver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#Solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.Solver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.solver.SolverBase</span></code></a></p>
+<dl class="py method">
+<dt id="pycalphad.core.solver.Solver.solve">
+<code class="sig-name descname"><span class="pre">solve</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prob</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#Solver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.Solver.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve a non-linear problem</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
 <dt id="pycalphad.core.solver.SolverBase">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pycalphad.core.solver.</span></code><code class="sig-name descname"><span class="pre">SolverBase</span></code><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SolverBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.SolverBase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -935,27 +956,6 @@ Solve a non-linear problem</p>
 <dt id="pycalphad.core.solver.SolverResult.x">
 <code class="sig-name descname"><span class="pre">x</span></code><a class="headerlink" href="#pycalphad.core.solver.SolverResult.x" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
-</dd></dl>
-</dd></dl>
-<dl class="py class">
-<dt id="pycalphad.core.solver.SundmanSolver">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">pycalphad.core.solver.</span></code><code class="sig-name descname"><span class="pre">SundmanSolver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SundmanSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.SundmanSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.solver.SolverBase</span></code></a></p>
-<dl class="py method">
-<dt id="pycalphad.core.solver.SundmanSolver.solve">
-<code class="sig-name descname"><span class="pre">solve</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prob</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SundmanSolver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.SundmanSolver.solve" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solve a non-linear problem</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></p>
-</dd>
-</dl>
 </dd></dl>
 </dd></dl>
 </div>

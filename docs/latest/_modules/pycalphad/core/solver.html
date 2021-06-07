@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>pycalphad.core.solver - pycalphad 0.8.6.dev23+g8e3587b8 documentation</title>
+        <title>pycalphad.core.solver - pycalphad 0.8.6.dev24+g505e2702 documentation</title>
       <link rel="stylesheet" href="../../../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
     <link rel="stylesheet" href="../../../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../../../_static/pygments_dark.css">
@@ -86,7 +86,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.8.6.dev23+g8e3587b8 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.8.6.dev24+g505e2702 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
@@ -103,7 +103,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.8.6.dev23+g8e3587b8 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev24+g505e2702 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -184,11 +184,11 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"A subclass of Solver must be implemented."</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="SundmanSolver"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SundmanSolver">[docs]</a><span class="k">class</span> <span class="nc">SundmanSolver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
+<div class="viewcode-block" id="Solver"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver">[docs]</a><span class="k">class</span> <span class="nc">Solver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
 
-<div class="viewcode-block" id="SundmanSolver.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SundmanSolver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob</span><span class="p">):</span>
+<div class="viewcode-block" id="Solver.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob</span><span class="p">):</span>
         <span class="sd">"""</span>
 <span class="sd">        Solve a non-linear problem</span>
 

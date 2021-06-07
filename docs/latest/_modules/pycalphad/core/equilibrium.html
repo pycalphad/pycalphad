@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>pycalphad.core.equilibrium - pycalphad 0.8.6.dev23+g8e3587b8 documentation</title>
+        <title>pycalphad.core.equilibrium - pycalphad 0.8.6.dev24+g505e2702 documentation</title>
       <link rel="stylesheet" href="../../../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
     <link rel="stylesheet" href="../../../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../../../_static/pygments_dark.css">
@@ -86,7 +86,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.8.6.dev23+g8e3587b8 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.8.6.dev24+g505e2702 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
@@ -103,7 +103,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.8.6.dev23+g8e3587b8 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.8.6.dev24+g505e2702 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -170,7 +170,7 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.starting_point</span> <span class="k">import</span> <span class="n">starting_point</span>
 <span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="k">import</span> <span class="n">build_phase_records</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="k">import</span> <span class="n">_solve_eq_at_conditions</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.solver</span> <span class="k">import</span> <span class="n">SundmanSolver</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.solver</span> <span class="k">import</span> <span class="n">Solver</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.light_dataset</span> <span class="k">import</span> <span class="n">LightDataset</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
@@ -337,7 +337,7 @@
 <span class="sd">        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</span>
 <span class="sd">    solver : pycalphad.core.solver.SolverBase</span>
 <span class="sd">        Instance of a solver that is used to calculate local equilibria.</span>
-<span class="sd">        Defaults to a pycalphad.core.solver.InteriorPointSolver.</span>
+<span class="sd">        Defaults to a pycalphad.core.solver.Solver.</span>
 <span class="sd">    callables : dict, optional</span>
 <span class="sd">        Pre-computed callable functions for equilibrium calculation.</span>
 
@@ -365,7 +365,7 @@
         <span class="k">raise</span> <span class="n">EquilibriumError</span><span class="p">(</span><span class="s1">'Components not found in database: </span><span class="si">{}</span><span class="s1">'</span>
                                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">','</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">))])))</span>
     <span class="n">calc_opts</span> <span class="o">=</span> <span class="n">calc_opts</span> <span class="k">if</span> <span class="n">calc_opts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
-    <span class="n">solver</span> <span class="o">=</span> <span class="n">solver</span> <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">SundmanSolver</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">solver</span> <span class="o">=</span> <span class="n">solver</span> <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Solver</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="n">parameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
