@@ -10,7 +10,7 @@ from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
-from pycalphad.core.solver import SundmanSolver
+from pycalphad.core.solver import Solver
 from pycalphad.core.light_dataset import LightDataset
 import numpy as np
 from collections import OrderedDict
@@ -177,7 +177,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
     solver : pycalphad.core.solver.SolverBase
         Instance of a solver that is used to calculate local equilibria.
-        Defaults to a pycalphad.core.solver.InteriorPointSolver.
+        Defaults to a pycalphad.core.solver.Solver.
     callables : dict, optional
         Pre-computed callable functions for equilibrium calculation.
 
@@ -205,7 +205,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
     calc_opts = calc_opts if calc_opts is not None else dict()
-    solver = solver if solver is not None else SundmanSolver(verbose=verbose)
+    solver = solver if solver is not None else Solver(verbose=verbose)
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
