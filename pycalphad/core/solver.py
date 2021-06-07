@@ -69,6 +69,8 @@ class Solver(SolverBase):
                 fixed_statevar_indices.append(statevar_idx)
         free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)), dtype=np.int32)
         fixed_statevar_indices = np.array(fixed_statevar_indices, dtype=np.int32)
+        if self.verbose:
+            print('Starting point', compsets)
         converged, x, chemical_potentials = \
             find_solution(compsets, num_statevars, num_components, prescribed_system_amount,
                           chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
