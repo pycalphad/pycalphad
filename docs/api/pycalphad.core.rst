@@ -132,14 +132,6 @@ pycalphad.core.phase\_rec module
    :undoc-members:
    :show-inheritance:
 
-pycalphad.core.problem module
------------------------------
-
-.. automodule:: pycalphad.core.problem
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pycalphad.core.solver module
 ----------------------------
 
