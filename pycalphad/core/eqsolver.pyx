@@ -82,19 +82,10 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
-# composition_sets: List[CompositionSet]
-# comps: List[v.Species]
-# cur_conds: OrderedDict[str, float]
-# iter_solver: SolverBase instance
-cpdef pointsolve(composition_sets, comps, cur_conds, iter_solver):
-    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
-    return _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_solver)
 
-cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_solver):
-    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
+cpdef update_composition_sets(composition_sets, solver_result, remove=True):
     cdef CompositionSet compset
-    result = iter_solver.solve(composition_sets, comps, cur_conds)
-    x = result.x
+    x = solver_result.x
     compset = composition_sets[0]
     num_compsets = len(composition_sets)
     num_state_variables = len(compset.phase_record.state_variables)
@@ -111,10 +102,22 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_sol
                        phase_amt, x[:num_state_variables])
         var_offset += compset.phase_record.phase_dof
         phase_idx += 1
-    # Watch removal order here, as the indices of composition_sets are changing!
-    for idx in reversed(compsets_to_remove):
-        del composition_sets[idx]
+    if remove:
+        # Watch removal order here, as the indices of composition_sets are changing!
+        for idx in reversed(compsets_to_remove):
+            del composition_sets[idx]
+
+
+# composition_sets: List[CompositionSet]
+# comps: List[v.Species]
+# cur_conds: OrderedDict[str, float]
+# iter_solver: SolverBase instance
+cpdef pointsolve(composition_sets, comps, cur_conds, iter_solver, remove=True):
+    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
+    result = iter_solver.solve(composition_sets, comps, cur_conds)
+    update_composition_sets(composition_sets, result, remove=remove)
     return result
+
 
 def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
     """
@@ -229,7 +232,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if len(composition_sets) == 0:
                 changed_phases = False
                 break
-            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_solver)
+            result = pointsolve(composition_sets, comps, cur_conds, iter_solver)
 
             chemical_potentials[:] = result.chemical_potentials
             changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
@@ -239,7 +242,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if not changed_phases:
                 break
         if changed_phases:
-            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_solver)
+            result = pointsolve(composition_sets, comps, cur_conds, iter_solver)
             chemical_potentials[:] = result.chemical_potentials
         if not iter_solver.ignore_convergence:
             converged = result.converged
