@@ -5,8 +5,6 @@ cimport numpy as np
 cimport cython
 cdef extern from "_isnan.h":
     bint isnan (double) nogil
-import scipy.spatial
-from pycalphad.core.problem cimport Problem
 from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord
@@ -84,42 +82,68 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
-# composition_sets: List[CompositionSet]
-# comps: List[v.Species]
-# cur_conds: OrderedDict[str, float]
-# iter_solver: SolverBase instance
-cpdef pointsolve(composition_sets, comps, cur_conds, iter_solver):
-    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
-    return _solve_and_update_if_converged(composition_sets, comps, cur_conds, Problem, iter_solver)
 
-cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
-    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
+cpdef update_composition_sets(composition_sets, solver_result, remove_metastable=True):
+    """
+        update_composition_sets(composition_sets, solver_result, remove_metastable=True)
+
+    Parameters
+    ----------
+    composition_sets : List[CompositionSet]
+    solver_result : pycalphad.core.solver.SolverResult
+    remove_metastable : Optional[bool]
+        If True (the default), remove metastable compsets from the compositions_sets.
+
+    """
     cdef CompositionSet compset
-    prob = problem(composition_sets, comps, cur_conds)
-    result = iter_solver.solve(prob)
-    composition_sets = prob.composition_sets
-    x = result.x
+    x = solver_result.x
     compset = composition_sets[0]
-    var_offset = len(compset.phase_record.state_variables)
+    num_compsets = len(composition_sets)
+    num_state_variables = len(compset.phase_record.state_variables)
+    var_offset = num_state_variables
+    num_vars = sum([compset.phase_record.phase_dof for compset in composition_sets]) + num_compsets + num_state_variables
     phase_idx = 0
     compsets_to_remove = []
     for compset in composition_sets:
-        phase_amt = x[prob.num_vars - prob.num_phases + phase_idx]
+        phase_amt = x[num_vars - num_compsets + phase_idx]
         # Mark unstable phases for removal
         if phase_amt == 0.0 and not compset.fixed:
             compsets_to_remove.append(int(phase_idx))
         compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                       phase_amt, x[:len(compset.phase_record.state_variables)])
+                       phase_amt, x[:num_state_variables])
         var_offset += compset.phase_record.phase_dof
         phase_idx += 1
-    # Watch removal order here, as the indices of composition_sets are changing!
-    for idx in reversed(compsets_to_remove):
-        del composition_sets[idx]
+    if remove_metastable:
+        # Watch removal order here, as the indices of composition_sets are changing!
+        for idx in reversed(compsets_to_remove):
+            del composition_sets[idx]
+
+
+cpdef solve_and_update(composition_sets, conditions, solver, remove_metastable=True):
+    """
+        solve_and_update(composition_sets, conditions, solver, remove_metastable=True)
+
+    Use the solver to find a solution satisfying the conditions from the starting point
+    given by the composition sets.
+
+    Parameters
+    ----------
+    composition_sets : List[CompositionSet]
+    conditions : OrderedDict[str, float]
+    solver : pycalphad.core.solver.SolverBase
+    remove_metastable : Optional[bool]
+        If True (the default), remove metastable compsets from the compositions_sets.
+
+    """
+    result = solver.solve(composition_sets, conditions)
+    update_composition_sets(composition_sets, result, remove_metastable=remove_metastable)
     return result
 
-def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose,
-                            problem=Problem, solver=None):
+
+def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
     """
+        _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None)
+
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
     For that case, usually only a small slice of the master 'properties' is provided.
@@ -127,23 +151,20 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
 
     Parameters
     ----------
-    comps : list
-        Names of components to consider in the calculation.
     properties : Dataset
         Will be modified! Thermodynamic properties and conditions.
     phase_records : dict of PhaseRecord
         Details on phase callables.
     grid : Dataset
         Sample of energy landscape of the system.
-    conds_keys : list of str
-        List of conditions axes in dimension order.
+    conds_keys : List[str]
+        List of conditions sorted in dimension order.
+    state_variables : List[v.StateVariable]
+        List of state variables sorted in dimension order.
     verbose : bool
         Print details.
-    problem : pycalphad.core.problem.Problem
-        Problem instance
     solver : pycalphad.core.solver.SolverBase
-        Instance of a SolverBase subclass. If None is supplied, defaults to a
-        pycalphad.core.solver.Solver
+        Instance of a SolverBase subclass. If None is supplied, defaults to a Solver.
 
     Returns
     -------
@@ -163,13 +184,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
     iter_solver = solver if solver is not None else Solver(verbose=verbose)
-
-    pure_elements = set(v.Species(list(spec.constituents.keys())[0])
-                                  for spec in comps
-                                    if (len(spec.constituents.keys()) == 1 and
-                                    list(spec.constituents.keys())[0] == spec.name)
-                       )
-    pure_elements = sorted(pure_elements)
 
     # Factored out via profiling
     prop_MU_values = properties.MU
@@ -233,7 +247,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if len(composition_sets) == 0:
                 changed_phases = False
                 break
-            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
+            result = solve_and_update(composition_sets, cur_conds, iter_solver)
 
             chemical_potentials[:] = result.chemical_potentials
             changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
@@ -243,7 +257,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if not changed_phases:
                 break
         if changed_phases:
-            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
+            result = solve_and_update(composition_sets, cur_conds, iter_solver)
             chemical_potentials[:] = result.chemical_potentials
         if not iter_solver.ignore_convergence:
             converged = result.converged
