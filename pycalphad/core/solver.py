@@ -8,7 +8,7 @@ SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potential
 class SolverBase(object):
     """"Base class for solvers."""
     ignore_convergence = False
-    def solve(self, composition_sets, species, conditions):
+    def solve(self, composition_sets, conditions):
         """
         *Implement this method.*
         Minimize the energy under the specified conditions using the given candidate composition sets.
@@ -17,8 +17,6 @@ class SolverBase(object):
         ----------
         composition_sets : List[pycalphad.core.composition_set.CompositionSet]
             List of CompositionSet objects in the starting point. Modified in place.
-        species : List[pycalphad.variables.Species]
-            List of active species.
         conditions : OrderedDict[str, float]
             Conditions to satisfy.
 
@@ -33,7 +31,7 @@ class Solver(SolverBase):
     def __init__(self, verbose=False, **options):
         self.verbose = verbose
 
-    def solve(self, composition_sets, species, conditions):
+    def solve(self, composition_sets, conditions):
         """
         Minimize the energy under the specified conditions using the given candidate composition sets.
 
@@ -41,8 +39,6 @@ class Solver(SolverBase):
         ----------
         composition_sets : List[pycalphad.core.composition_set.CompositionSet]
             List of CompositionSet objects in the starting point. Modified in place.
-        species : List[pycalphad.variables.Species]
-            List of active species.
         conditions : OrderedDict[str, float]
             Conditions
 
@@ -53,8 +49,8 @@ class Solver(SolverBase):
         """
         compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
+        nonvacant_elements = compsets[0].phase_record.nonvacant_elements
         num_statevars = len(state_variables)
-        nonvacant_elements = sorted({el for sp in species for el in map(str.upper, sp.constituents.keys())} - {'VA'})
         num_components = len(nonvacant_elements)
         chemical_potentials = np.zeros(num_components)
         prescribed_elemental_amounts = []

@@ -157,8 +157,8 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
     ----------
     dbf : Database
         A Database object
-    comps : list
-        List of component names
+    comps : List[v.Species]
+        List of active species
     phases : list
         List of phase names
     conds : dict or None

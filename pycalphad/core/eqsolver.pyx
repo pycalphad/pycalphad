@@ -90,7 +90,7 @@ cpdef update_composition_sets(composition_sets, solver_result, remove=True):
     num_compsets = len(composition_sets)
     num_state_variables = len(compset.phase_record.state_variables)
     var_offset = num_state_variables
-    num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_compsets + num_state_variables
+    num_vars = sum([compset.phase_record.phase_dof for compset in composition_sets]) + num_compsets + num_state_variables
     phase_idx = 0
     compsets_to_remove = []
     for compset in composition_sets:
@@ -109,17 +109,16 @@ cpdef update_composition_sets(composition_sets, solver_result, remove=True):
 
 
 # composition_sets: List[CompositionSet]
-# comps: List[v.Species]
 # cur_conds: OrderedDict[str, float]
 # iter_solver: SolverBase instance
-cpdef pointsolve(composition_sets, comps, cur_conds, iter_solver, remove=True):
+cpdef solve_and_update(composition_sets, cur_conds, iter_solver, remove=True):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
-    result = iter_solver.solve(composition_sets, comps, cur_conds)
+    result = iter_solver.solve(composition_sets, cur_conds)
     update_composition_sets(composition_sets, result, remove=remove)
     return result
 
 
-def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
+def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -128,8 +127,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
 
     Parameters
     ----------
-    comps : list
-        Names of components to consider in the calculation.
     properties : Dataset
         Will be modified! Thermodynamic properties and conditions.
     phase_records : dict of PhaseRecord
@@ -162,13 +159,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
     iter_solver = solver if solver is not None else Solver(verbose=verbose)
-
-    pure_elements = set(v.Species(list(spec.constituents.keys())[0])
-                                  for spec in comps
-                                    if (len(spec.constituents.keys()) == 1 and
-                                    list(spec.constituents.keys())[0] == spec.name)
-                       )
-    pure_elements = sorted(pure_elements)
 
     # Factored out via profiling
     prop_MU_values = properties.MU
@@ -232,7 +222,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if len(composition_sets) == 0:
                 changed_phases = False
                 break
-            result = pointsolve(composition_sets, comps, cur_conds, iter_solver)
+            result = solve_and_update(composition_sets, cur_conds, iter_solver)
 
             chemical_potentials[:] = result.chemical_potentials
             changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
@@ -242,7 +232,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if not changed_phases:
                 break
         if changed_phases:
-            result = pointsolve(composition_sets, comps, cur_conds, iter_solver)
+            result = solve_and_update(composition_sets, cur_conds, iter_solver)
             chemical_potentials[:] = result.chemical_potentials
         if not iter_solver.ignore_convergence:
             converged = result.converged
