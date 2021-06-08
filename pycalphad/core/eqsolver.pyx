@@ -83,7 +83,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     return False
 
 
-cpdef update_composition_sets(composition_sets, solver_result, remove=True):
+cpdef update_composition_sets(composition_sets, solver_result, remove_metastable=True):
     cdef CompositionSet compset
     x = solver_result.x
     compset = composition_sets[0]
@@ -102,7 +102,7 @@ cpdef update_composition_sets(composition_sets, solver_result, remove=True):
                        phase_amt, x[:num_state_variables])
         var_offset += compset.phase_record.phase_dof
         phase_idx += 1
-    if remove:
+    if remove_metastable:
         # Watch removal order here, as the indices of composition_sets are changing!
         for idx in reversed(compsets_to_remove):
             del composition_sets[idx]
@@ -111,10 +111,10 @@ cpdef update_composition_sets(composition_sets, solver_result, remove=True):
 # composition_sets: List[CompositionSet]
 # cur_conds: OrderedDict[str, float]
 # iter_solver: SolverBase instance
-cpdef solve_and_update(composition_sets, cur_conds, iter_solver, remove=True):
+cpdef solve_and_update(composition_sets, cur_conds, iter_solver, remove_metastable=True):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
     result = iter_solver.solve(composition_sets, cur_conds)
-    update_composition_sets(composition_sets, result, remove=remove)
+    update_composition_sets(composition_sets, result, remove_metastable=remove_metastable)
     return result
 
 
