@@ -5,8 +5,6 @@ cimport numpy as np
 cimport cython
 cdef extern from "_isnan.h":
     bint isnan (double) nogil
-import scipy.spatial
-from pycalphad.core.problem cimport Problem
 from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord
@@ -90,26 +88,27 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
 # iter_solver: SolverBase instance
 cpdef pointsolve(composition_sets, comps, cur_conds, iter_solver):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
-    return _solve_and_update_if_converged(composition_sets, comps, cur_conds, Problem, iter_solver)
+    return _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_solver)
 
-cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
+cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_solver):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
     cdef CompositionSet compset
-    prob = problem(composition_sets, comps, cur_conds)
-    result = iter_solver.solve(prob)
-    composition_sets = prob.composition_sets
+    result = iter_solver.solve(composition_sets, comps, cur_conds)
     x = result.x
     compset = composition_sets[0]
-    var_offset = len(compset.phase_record.state_variables)
+    num_compsets = len(composition_sets)
+    num_state_variables = len(compset.phase_record.state_variables)
+    var_offset = num_state_variables
+    num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_compsets + num_state_variables
     phase_idx = 0
     compsets_to_remove = []
     for compset in composition_sets:
-        phase_amt = x[prob.num_vars - prob.num_phases + phase_idx]
+        phase_amt = x[num_vars - num_compsets + phase_idx]
         # Mark unstable phases for removal
         if phase_amt == 0.0 and not compset.fixed:
             compsets_to_remove.append(int(phase_idx))
         compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                       phase_amt, x[:len(compset.phase_record.state_variables)])
+                       phase_amt, x[:num_state_variables])
         var_offset += compset.phase_record.phase_dof
         phase_idx += 1
     # Watch removal order here, as the indices of composition_sets are changing!
@@ -117,8 +116,7 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
         del composition_sets[idx]
     return result
 
-def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose,
-                            problem=Problem, solver=None):
+def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -139,8 +137,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         List of conditions axes in dimension order.
     verbose : bool
         Print details.
-    problem : pycalphad.core.problem.Problem
-        Problem instance
     solver : pycalphad.core.solver.SolverBase
         Instance of a SolverBase subclass. If None is supplied, defaults to a
         pycalphad.core.solver.Solver
@@ -233,7 +229,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if len(composition_sets) == 0:
                 changed_phases = False
                 break
-            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
+            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_solver)
 
             chemical_potentials[:] = result.chemical_potentials
             changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
@@ -243,7 +239,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if not changed_phases:
                 break
         if changed_phases:
-            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
+            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, iter_solver)
             chemical_potentials[:] = result.chemical_potentials
         if not iter_solver.ignore_convergence:
             converged = result.converged

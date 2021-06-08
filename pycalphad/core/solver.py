@@ -8,14 +8,19 @@ SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potential
 class SolverBase(object):
     """"Base class for solvers."""
     ignore_convergence = False
-    def solve(self, prob):
+    def solve(self, composition_sets, species, conditions):
         """
         *Implement this method.*
-        Solve a non-linear problem
+        Minimize the energy under the specified conditions using the given candidate composition sets.
 
         Parameters
         ----------
-        prob : pycalphad.core.problem.Problem
+        composition_sets : List[pycalphad.core.composition_set.CompositionSet]
+            List of CompositionSet objects in the starting point. Modified in place.
+        species : List[pycalphad.variables.Species]
+            List of active species.
+        conditions : OrderedDict[str, float]
+            Conditions to satisfy.
 
         Returns
         -------
@@ -28,44 +33,49 @@ class Solver(SolverBase):
     def __init__(self, verbose=False, **options):
         self.verbose = verbose
 
-    def solve(self, prob):
+    def solve(self, composition_sets, species, conditions):
         """
-        Solve a non-linear problem
+        Minimize the energy under the specified conditions using the given candidate composition sets.
 
         Parameters
         ----------
-        prob : pycalphad.core.problem.Problem
+        composition_sets : List[pycalphad.core.composition_set.CompositionSet]
+            List of CompositionSet objects in the starting point. Modified in place.
+        species : List[pycalphad.variables.Species]
+            List of active species.
+        conditions : OrderedDict[str, float]
+            Conditions
 
         Returns
         -------
         SolverResult
 
         """
-        cur_conds = prob.conditions
-        compsets = prob.composition_sets
+        compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
         num_statevars = len(state_variables)
-        num_components = len(prob.nonvacant_elements)
+        nonvacant_elements = sorted({el for sp in species for el in map(str.upper, sp.constituents.keys())} - {'VA'})
+        num_components = len(nonvacant_elements)
         chemical_potentials = np.zeros(num_components)
         prescribed_elemental_amounts = []
         prescribed_element_indices = []
-        for cond, value in cur_conds.items():
+        for cond, value in conditions.items():
             if str(cond).startswith('X_'):
                 el = str(cond)[2:]
-                el_idx = list(prob.nonvacant_elements).index(el)
+                el_idx = list(nonvacant_elements).index(el)
                 prescribed_elemental_amounts.append(float(value))
                 prescribed_element_indices.append(el_idx)
         prescribed_element_indices = np.array(prescribed_element_indices, dtype=np.int32)
         prescribed_elemental_amounts = np.array(prescribed_elemental_amounts)
-        prescribed_system_amount = cur_conds.get('N', 1.0)
-        free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(prob.fixed_chempot_indices)), dtype=np.int32)
-        fixed_chemical_potential_indices = np.array(prob.fixed_chempot_indices, dtype=np.int32)
+        prescribed_system_amount = conditions.get('N', 1.0)
+        fixed_chemical_potential_indices = np.array([nonvacant_elements.index(key[3:]) for key in conditions.keys() if key.startswith('MU_')], dtype=np.int32)
+        free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(fixed_chemical_potential_indices)), dtype=np.int32)
         for fixed_chempot_index in fixed_chemical_potential_indices:
-            el = prob.nonvacant_elements[fixed_chempot_index]
-            chemical_potentials[fixed_chempot_index] = cur_conds.get('MU_' + str(el))
+            el = nonvacant_elements[fixed_chempot_index]
+            chemical_potentials[fixed_chempot_index] = conditions.get('MU_' + str(el))
         fixed_statevar_indices = []
         for statevar_idx, statevar in enumerate(state_variables):
-            if str(statevar) in [str(k) for k in cur_conds.keys()]:
+            if str(statevar) in [str(k) for k in conditions.keys()]:
                 fixed_statevar_indices.append(statevar_idx)
         free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)), dtype=np.int32)
         fixed_statevar_indices = np.array(fixed_statevar_indices, dtype=np.int32)

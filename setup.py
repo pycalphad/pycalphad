@@ -21,7 +21,6 @@ CYTHON_EXTENSION_MODULES = [
     Extension('pycalphad.core.eqsolver', sources=['pycalphad/core/eqsolver.pyx']),
     Extension('pycalphad.core.phase_rec', sources=['pycalphad/core/phase_rec.pyx']),
     Extension('pycalphad.core.composition_set', sources=['pycalphad/core/composition_set.pyx']),
-    Extension('pycalphad.core.problem', sources=['pycalphad/core/problem.pyx']),
     Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx']),
 ]
 
