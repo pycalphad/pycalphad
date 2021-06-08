@@ -84,6 +84,17 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
 
 
 cpdef update_composition_sets(composition_sets, solver_result, remove_metastable=True):
+    """
+        update_composition_sets(composition_sets, solver_result, remove_metastable=True)
+
+    Parameters
+    ----------
+    composition_sets : List[CompositionSet]
+    solver_result : pycalphad.core.solver.SolverResult
+    remove_metastable : Optional[bool]
+        If True (the default), remove metastable compsets from the compositions_sets.
+
+    """
     cdef CompositionSet compset
     x = solver_result.x
     compset = composition_sets[0]
@@ -108,18 +119,31 @@ cpdef update_composition_sets(composition_sets, solver_result, remove_metastable
             del composition_sets[idx]
 
 
-# composition_sets: List[CompositionSet]
-# cur_conds: OrderedDict[str, float]
-# iter_solver: SolverBase instance
-cpdef solve_and_update(composition_sets, cur_conds, iter_solver, remove_metastable=True):
-    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
-    result = iter_solver.solve(composition_sets, cur_conds)
+cpdef solve_and_update(composition_sets, conditions, solver, remove_metastable=True):
+    """
+        solve_and_update(composition_sets, conditions, solver, remove_metastable=True)
+
+    Use the solver to find a solution satisfying the conditions from the starting point
+    given by the composition sets.
+
+    Parameters
+    ----------
+    composition_sets : List[CompositionSet]
+    conditions : OrderedDict[str, float]
+    solver : pycalphad.core.solver.SolverBase
+    remove_metastable : Optional[bool]
+        If True (the default), remove metastable compsets from the compositions_sets.
+
+    """
+    result = solver.solve(composition_sets, conditions)
     update_composition_sets(composition_sets, result, remove_metastable=remove_metastable)
     return result
 
 
 def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
     """
+        _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None)
+
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
     For that case, usually only a small slice of the master 'properties' is provided.
@@ -133,13 +157,14 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
         Details on phase callables.
     grid : Dataset
         Sample of energy landscape of the system.
-    conds_keys : list of str
-        List of conditions axes in dimension order.
+    conds_keys : List[str]
+        List of conditions sorted in dimension order.
+    state_variables : List[v.StateVariable]
+        List of state variables sorted in dimension order.
     verbose : bool
         Print details.
     solver : pycalphad.core.solver.SolverBase
-        Instance of a SolverBase subclass. If None is supplied, defaults to a
-        pycalphad.core.solver.Solver
+        Instance of a SolverBase subclass. If None is supplied, defaults to a Solver.
 
     Returns
     -------

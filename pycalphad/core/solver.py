@@ -40,7 +40,7 @@ class Solver(SolverBase):
         composition_sets : List[pycalphad.core.composition_set.CompositionSet]
             List of CompositionSet objects in the starting point. Modified in place.
         conditions : OrderedDict[str, float]
-            Conditions
+            Conditions to satisfy.
 
         Returns
         -------
