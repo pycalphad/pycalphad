@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
     <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>pycalphad.plot.binary.map - pycalphad 0.9.1.dev1+gb2cf3c7d documentation</title>
+        <title>pycalphad.plot.binary.map - pycalphad 0.9.1.dev2+gf5bd0329 documentation</title>
       <link rel="stylesheet" href="../../../../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
     <link rel="stylesheet" href="../../../../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../../../../_static/pygments_dark.css">
@@ -86,7 +86,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.9.1.dev1+gb2cf3c7d documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.9.1.dev2+gf5bd0329 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
@@ -103,7 +103,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev1+gb2cf3c7d documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev2+gf5bd0329 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -283,7 +283,7 @@
             <span class="n">eq_conds</span><span class="p">[</span><span class="n">comp_cond</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">Xeq</span><span class="p">)]</span>
             <span class="n">eq_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
             <span class="n">start_point</span> <span class="o">=</span> <span class="n">starting_point</span><span class="p">(</span><span class="n">eq_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
-            <span class="n">eq_ds</span> <span class="o">=</span> <span class="n">_solve_eq_at_conditions</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">start_point</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">str_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">eq_ds</span> <span class="o">=</span> <span class="n">_solve_eq_at_conditions</span><span class="p">(</span><span class="n">start_point</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">str_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
             <span class="n">equilibrium_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">eq_time</span>
             <span class="n">equilibria_calculated</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">iter_equilibria</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -308,7 +308,7 @@
                 <span class="n">eq_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
                 <span class="c1"># TODO: starting point could be improved by basing it off the previous calculation</span>
                 <span class="n">start_point</span> <span class="o">=</span> <span class="n">starting_point</span><span class="p">(</span><span class="n">eq_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
-                <span class="n">eq_ds</span> <span class="o">=</span> <span class="n">_solve_eq_at_conditions</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">start_point</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">str_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">eq_ds</span> <span class="o">=</span> <span class="n">_solve_eq_at_conditions</span><span class="p">(</span><span class="n">start_point</span><span class="p">,</span> <span class="n">prxs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">str_conds</span><span class="p">,</span> <span class="n">statevars</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
                 <span class="n">equilibrium_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">eq_time</span>
                 <span class="n">equilibria_calculated</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">compsets</span> <span class="o">=</span> <span class="n">get_compsets</span><span class="p">(</span><span class="n">eq_ds</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">)</span>

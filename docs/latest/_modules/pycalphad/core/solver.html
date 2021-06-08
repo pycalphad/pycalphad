@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>pycalphad.core.solver - pycalphad 0.9.1.dev1+gb2cf3c7d documentation</title>
+        <title>pycalphad.core.solver - pycalphad 0.9.1.dev2+gf5bd0329 documentation</title>
       <link rel="stylesheet" href="../../../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
     <link rel="stylesheet" href="../../../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../../../_static/pygments_dark.css">
@@ -86,7 +86,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.9.1.dev1+gb2cf3c7d documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.9.1.dev2+gf5bd0329 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
@@ -103,7 +103,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev1+gb2cf3c7d documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev2+gf5bd0329 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -168,14 +168,17 @@
 <div class="viewcode-block" id="SolverBase"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SolverBase">[docs]</a><span class="k">class</span> <span class="nc">SolverBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">""""Base class for solvers."""</span>
     <span class="n">ignore_convergence</span> <span class="o">=</span> <span class="kc">False</span>
-<div class="viewcode-block" id="SolverBase.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SolverBase.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob</span><span class="p">):</span>
+<div class="viewcode-block" id="SolverBase.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SolverBase.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
         <span class="sd">"""</span>
 <span class="sd">        *Implement this method.*</span>
-<span class="sd">        Solve a non-linear problem</span>
+<span class="sd">        Minimize the energy under the specified conditions using the given candidate composition sets.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        prob : pycalphad.core.problem.Problem</span>
+<span class="sd">        composition_sets : List[pycalphad.core.composition_set.CompositionSet]</span>
+<span class="sd">            List of CompositionSet objects in the starting point. Modified in place.</span>
+<span class="sd">        conditions : OrderedDict[str, float]</span>
+<span class="sd">            Conditions to satisfy.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -188,44 +191,47 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
 
-<div class="viewcode-block" id="Solver.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob</span><span class="p">):</span>
+<div class="viewcode-block" id="Solver.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
         <span class="sd">"""</span>
-<span class="sd">        Solve a non-linear problem</span>
+<span class="sd">        Minimize the energy under the specified conditions using the given candidate composition sets.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        prob : pycalphad.core.problem.Problem</span>
+<span class="sd">        composition_sets : List[pycalphad.core.composition_set.CompositionSet]</span>
+<span class="sd">            List of CompositionSet objects in the starting point. Modified in place.</span>
+<span class="sd">        conditions : OrderedDict[str, float]</span>
+<span class="sd">            Conditions to satisfy.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        SolverResult</span>
 
 <span class="sd">        """</span>
-        <span class="n">cur_conds</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">conditions</span>
-        <span class="n">compsets</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">composition_sets</span>
+        <span class="n">compsets</span> <span class="o">=</span> <span class="n">composition_sets</span>
         <span class="n">state_variables</span> <span class="o">=</span> <span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">state_variables</span>
+        <span class="n">nonvacant_elements</span> <span class="o">=</span> <span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">nonvacant_elements</span>
         <span class="n">num_statevars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">state_variables</span><span class="p">)</span>
-        <span class="n">num_components</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">nonvacant_elements</span><span class="p">)</span>
+        <span class="n">num_components</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span>
         <span class="n">chemical_potentials</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_components</span><span class="p">)</span>
         <span class="n">prescribed_elemental_amounts</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">prescribed_element_indices</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">cond</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">cur_conds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">cond</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'X_'</span><span class="p">):</span>
                 <span class="n">el</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cond</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span>
-                <span class="n">el_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                <span class="n">el_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
                 <span class="n">prescribed_elemental_amounts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
                 <span class="n">prescribed_element_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el_idx</span><span class="p">)</span>
         <span class="n">prescribed_element_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prescribed_element_indices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="n">prescribed_elemental_amounts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prescribed_elemental_amounts</span><span class="p">)</span>
-        <span class="n">prescribed_system_amount</span> <span class="o">=</span> <span class="n">cur_conds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'N'</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-        <span class="n">free_chemical_potential_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_components</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">fixed_chempot_indices</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-        <span class="n">fixed_chemical_potential_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">fixed_chempot_indices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">prescribed_system_amount</span> <span class="o">=</span> <span class="n">conditions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'N'</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">fixed_chemical_potential_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nonvacant_elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">3</span><span class="p">:])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'MU_'</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">free_chemical_potential_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_components</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">fixed_chemical_potential_indices</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">fixed_chempot_index</span> <span class="ow">in</span> <span class="n">fixed_chemical_potential_indices</span><span class="p">:</span>
-            <span class="n">el</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">nonvacant_elements</span><span class="p">[</span><span class="n">fixed_chempot_index</span><span class="p">]</span>
-            <span class="n">chemical_potentials</span><span class="p">[</span><span class="n">fixed_chempot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_conds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'MU_'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+            <span class="n">el</span> <span class="o">=</span> <span class="n">nonvacant_elements</span><span class="p">[</span><span class="n">fixed_chempot_index</span><span class="p">]</span>
+            <span class="n">chemical_potentials</span><span class="p">[</span><span class="n">fixed_chempot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">conditions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'MU_'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
         <span class="n">fixed_statevar_indices</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">statevar_idx</span><span class="p">,</span> <span class="n">statevar</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">state_variables</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">statevar</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cur_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()]:</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">statevar</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">()]:</span>
                 <span class="n">fixed_statevar_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">statevar_idx</span><span class="p">)</span>
         <span class="n">free_statevar_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_statevars</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">fixed_statevar_indices</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="n">fixed_statevar_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fixed_statevar_indices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
