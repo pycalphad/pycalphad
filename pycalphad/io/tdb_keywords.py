@@ -67,19 +67,32 @@ TDB_PHASE_DESCRIPTIONS = sorted([
 ])
 
 TDB_PARAM_TYPES = sorted([
-    'G',
-    'GD',
-    'L',
-    'TC',
-    'BMAGN',
-    'MQ',
-    'MF',
-    'DQ',
-    'DF',
-    'NT',
-    'THETA',
-    'V0',
-    'VS'
+    # Gibbs energy parameters
+    'G',      # Gibbs energy
+    'L',      # Excess Gibbs energy
+    # Physical model parameters
+    'TC',     # Curie temperature
+    'NT',     # Neel temperature
+    'BMAGN',  # Bohr magneton number
+    'GD',     # Gibbs energy difference between liquid and amorphous states
+    'THETA',  # Einstein temperature (log)
+    # Molar volume parameters
+    'V0',     # Molar volume at STP
+    'VA',     # Integrated thermal expansivity
+    'VC',     # High-pressure fitting parameter
+    'VK',     # Isothermal compressibility
+    # Property model parameters
+    'VISC',   # Viscosity, RT*log(viscosity)
+    'ELRS',   # Electric resistivity
+    'THCD',   # Thermal Conductivity
+    'SIGM',   # Surface tension of a liquid endmember
+    'XI',     # Surface tension dampening factor for a constituent
+    # Mobility parameters
+    'MQ',     # Activation enthalpy for mobility
+    'MF',     # Pre-exponential factor for mobility
+    'DQ',     # Activation enthalpy for diffusivity
+    'DF',     # Pre-expontential factor for diffusivity
+    'VS',     # Volume per mole of volume-carrying species
 ])
 
 def expand_keyword(possible, candidate):
