@@ -639,7 +639,7 @@ class ModelMQMQA:
         if len(chem_lis)==1:
             symm_check=chem_lis[0]
         elif len(chem_lis)>1:
-            symm_check_2=set(in_lis)-set(chem_lis)
+            symm_check_2=list(set(in_lis)-set(chem_lis))
             symm_check=symm_check_2[0]
         else:
             symm_check=0
@@ -664,6 +664,7 @@ class ModelMQMQA:
         return num_res
 
     def excess_mixing_energy(self,dbe):
+
         w = self.w
         ξ = self.ξ
         cations=self.cations
@@ -715,23 +716,23 @@ class ModelMQMQA:
 #                    X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**exp
 
 
-####Maybe make X_1_2 its own functions and make a different one for X12 ternary
-###Or maybe switch it up here?
+####IMPORTANT!!!! MIGHT NEED TO ADD SOMETHING HERE TO MAKE SURE ORDER OF ELEMENTS IN QUAD IS NOT AFFECTING
+
 
                 elif diff_spe in cations and diff_spe not in cons_cat \
                 and 0<(parse['parameter_order']-index)<=4 \
-                and self.id_symm(dbe,A,B,diff_spe)==diff_spe and exp!=0:
+                and self.id_symm(dbe,A,B,diff_spe)==diff_spe:
                     if 0<(parse['parameter_order']-index)<=2:
                         X_tern_diff_spe=parse['parameter_order']-index
-                        print('made it here',X_tern_diff_spe)
                         X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**exp
-                    X_ex+=self.excess_mixing_t1(dbe,cons_arr)\
-                    *X_a_Xb_tern*coeff*(ξ(diff_spe,X)/w(X))\
-                    *(1-self.K_1_2(dbe,A,B)-self.K_1_2(dbe,B,A))**(exp-1)
 
+#IMPORTANT! exp is not the best way to fix this for parameteres higher than 1                        
+                    X_ex_2+=exp*(X_a_Xb_tern*(ξ(diff_spe,X)/w(X))\
+                    *((1-self.K_1_2(dbe,A,B)-self.K_1_2(dbe,B,A))**(exp-1)))
                 elif diff_spe in cations and diff_spe not in cons_cat \
                 and 0<(parse['parameter_order']-index)<=4 \
                 and self.id_symm(dbe,A,B,diff_spe)==0:
+                 #This is for when they're all in the same species group
                     if 0<(parse['parameter_order']-index)<=2:
                         X_tern_diff_spe=parse['parameter_order']-index
                         X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**exp
@@ -739,44 +740,75 @@ class ModelMQMQA:
                     X_ex_2+=exp*(X_a_Xb_tern*(ξ(diff_spe,X)/w(X))\
                     *((1-self.K_1_2(dbe,A,B)-self.K_1_2(dbe,B,A))**(exp-1)))
 #                    print(X_ex_2,coeff,self.excess_mixing_t1(dbe,param['constituent_array']))
+
                 elif diff_spe in cations and diff_spe not in cons_cat \
                 and 2<(parse['parameter_order']-index)<=4 \
-                and self.id_symm(dbe,A,B,diff_spe)==B and exp!=0:
-                    print('made it here')
-                    X_ex+=self.excess_mixing_t1(dbe,cons_arr)\
-                    *X_a_Xb_tern*coeff*(ξ(diff_spe,X)/(w(X)*self.K_1_2(dbe,A,B)))\
-                    *(1-(ξ(A,X)/(w(X)*self.K_1_2(dbe,A,B))))**(exp-1)
+                and self.id_symm(dbe,A,B,diff_spe)==B:
+                    if 0<(parse['parameter_order']-index)<=2:
+                        X_tern_diff_spe=parse['parameter_order']-index
+                        X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**exp        
+                    X_ex_2+=exp*(X_a_Xb_tern*(ξ(diff_spe,X)/(w(X)*self.K_1_2(dbe,A,B)))\
+                    *(1-(ξ(A,X)/(w(X)*self.K_1_2(dbe,A,B))))**(exp-1))
 
+                elif diff_spe in cations and diff_spe not in cons_cat \
+                and 2<(parse['parameter_order']-index)<=4 \
+                and self.id_symm(dbe,A,B,diff_spe)==A:
+                    if 0<(parse['parameter_order']-index)<=2:
+                        X_tern_diff_spe=parse['parameter_order']-index
+                        X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**exp        
+                    X_ex_2+=exp*(X_a_Xb_tern*(ξ(diff_spe,X)/(w(X)*self.K_1_2(dbe,B,A)))\
+                    *(1-(ξ(B,X)/(w(X)*self.K_1_2(dbe,B,A))))**(exp-1))
 
+                elif diff_spe in anions and diff_spe not in cons_an \
+                and 2<(parse['parameter_order']-index)<=4 \
+                and self.id_symm(dbe,X,Y,diff_spe)==diff_spe:
+                    if 0<(parse['parameter_order']-index)<=2:
+                        X_tern_diff_spe=parse['parameter_order']-index
+                        X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_an[X_tern_diff_spe-1])**exp
+                        
+                    X_ex_2+=exp*(X_a_Xb_tern*(ξ(A,diff_spe)/w(A))\
+                    *((1-self.K_1_2(dbe,X,Y)-self.K_1_2(dbe,Y,X))**(exp-1)))                    
+
+                elif diff_spe in anions and diff_spe not in cons_an \
+                and 2<(parse['parameter_order']-index)<=4 \
+                and self.id_symm(dbe,X,Y,diff_spe)==0:
+                    if 0<(parse['parameter_order']-index)<=2:
+                        X_tern_diff_spe=parse['parameter_order']-index
+                        X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_an[X_tern_diff_spe-1])**exp
+                        
+                    X_ex_2+=exp*(X_a_Xb_tern*(ξ(A,diff_spe)/w(A))\
+                    *((1-self.K_1_2(dbe,X,Y)-self.K_1_2(dbe,Y,X))**(exp-1)))  
 
 
                 elif diff_spe in anions and diff_spe not in cons_an \
                 and 2<(parse['parameter_order']-index)<=4 \
-                and self.id_symm(dbe,A,B,diff_spe)==diff_spe and exp!=0:
-                    X_ex+=self.excess_mixing_t1(dbe,cons_arr)\
-                    *X_a_Xb_tern*coeff*(ξ(diff_spe,X)/w(X))\
-                    *(1-self.K_1_2(dbe,A,B)-self.K_1_2(dbe,B,A))**(exp-1)
-
+                and self.id_symm(dbe,X,Y,diff_spe)==X:
+                    if 0<(parse['parameter_order']-index)<=2:
+                        X_tern_diff_spe=parse['parameter_order']-index
+                        X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_an[X_tern_diff_spe-1])**exp
+                        
+                    X_ex_2+=exp*(X_a_Xb_tern*(ξ(A,diff_spe)/(w(A)*self.K_1_2(dbe,X,Y)))\
+                    *(1-(ξ(A,Y)/(w(A)*self.K_1_2(dbe,X,Y))))**(exp-1))
+                    
                 elif diff_spe in anions and diff_spe not in cons_an \
                 and 2<(parse['parameter_order']-index)<=4 \
-                and self.id_symm(dbe,A,B,diff_spe)==0 and exp!=0:
-                    X_ex+=self.excess_mixing_t1(dbe,cons_arr)\
-                    *X_a_Xb_tern*coeff*(ξ(diff_spe,X)/w(X))\
-                    *(1-self.K_1_2(dbe,A,B)-self.K_1_2(dbe,B,A))**(exp-1)
-
-
-                elif diff_spe in anions and diff_spe not in cons_an \
-                and 2<(parse['parameter_order']-index)<=4 \
-                and self.id_symm(dbe,A,B,diff_spe)==X and exp!=0:
-                    X_ex+=self.excess_mixing_t1(dbe,cons_arr)\
-                    *X_a_Xb_tern*coeff*(ξ(diff_spe,X)/(w(X)*self.K_1_2(dbe,A,B)))\
-                    *(1-(ξ(A,X)/(w(X)*self.K_1_2(dbe,A,B))))**(exp-1)
-#            print(X_ex_2,coeff,X_ex_0,X_ex_1)
+                and self.id_symm(dbe,X,Y,diff_spe)==Y:
+                    if 0<(parse['parameter_order']-index)<=2:
+                        X_tern_diff_spe=parse['parameter_order']-index
+                        X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_an[X_tern_diff_spe-1])**exp
+                        
+                    X_ex_2+=exp*(X_a_Xb_tern*(ξ(A,diff_spe)/(w(A)*self.K_1_2(dbe,X,Y)))\
+                    *(1-(ξ(A,X)/(w(A)*self.K_1_2(dbe,X,Y))))**(exp-1))                    
+#This is assuming that one wouldn't have both interaction parameters for anions and cations at the same time                                                      
+            if X_ex_2!=0 and exp==0:
+                exp+=1     
+            
             if X_ex_2==0:
                 X_ex_2+=1
-
-            X_ex+=self.excess_mixing_t1(dbe,param['constituent_array'])*coeff*X_ex_0*X_ex_1*X_ex_2
-
+                exp+=1     
+              
+            X_ex+=self.excess_mixing_t1(dbe,param['constituent_array'])*coeff*X_ex_1*(X_ex_2/exp)
+#used to multiplt X_ex_0 paramter. But I don't think it does anything anymore
         return X_ex/self.normalization
 
     def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):
