@@ -3,7 +3,6 @@ import numpy as np
 cimport numpy as np
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from copy import copy
 cimport scipy.linalg.cython_lapack as cython_lapack
 from libc.stdlib cimport malloc, free
 
@@ -721,6 +720,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef double[::1] x, new_y, delta_y
     cdef double[::1] delta_m = np.zeros(num_components)
     cdef double[::1] chemical_potentials = np.zeros(num_components)
+    cdef double[::1] previous_chemical_potentials = np.empty(num_components)
     cdef int[::1] fixed_stable_compset_indices = np.array(np.nonzero([compset.fixed==True for compset in compsets])[0],
                                                           dtype=np.int32)
     cdef list dof = [np.array(compset.dof) for compset in compsets]
@@ -737,7 +737,9 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                                                         fixed_chemical_potential_indices, fixed_statevar_indices,
                                                         fixed_stable_compset_indices)
     cdef SystemState state = SystemState(spec, compsets)
-    cdef SystemState old_state
+    cdef double[::1] previous_phase_amt = np.empty((state.phase_amt.shape[0],))
+    cdef double[:, ::1] previous_phase_compositions = np.empty((state.phase_compositions.shape[0], state.phase_compositions.shape[1]))
+
 
     if spec.prescribed_elemental_amounts.shape[0] > 0:
         allowed_mass_residual = min(1e-8, np.min(spec.prescribed_elemental_amounts)/10)
@@ -753,10 +755,13 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         if (state.mass_residual > 10) and (np.max(np.abs(state.chemical_potentials)) > 1.0e10):
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
-        old_state = copy(state)
+        previous_chemical_potentials[:] = state.chemical_potentials[:]
+        previous_phase_amt[:] = state.phase_amt[:]
+        previous_phase_compositions[:, :] = state.phase_compositions[:, :]
+
         take_step(spec, state, step_size)
-        delta_phase_amt = np.array(state.phase_amt) - np.array(old_state.phase_amt)
-        if ((state.mass_residual > 1e-2) and (not np.all(np.array(state.chempot_diff) < 1.0))) or (iteration == 0):
+        delta_phase_amt = np.asarray(state.phase_amt) - np.asarray(previous_phase_amt)
+        if ((state.mass_residual > 1e-2) and (not np.all(np.asarray(state.chempot_diff) < 1.0))) or (iteration == 0):
             # When mass residual is not satisfied, do not allow phases to leave the system
             # However, if the chemical potentials are changing very little, phases may leave the system
             for j in range(state.phase_amt.shape[0]):
@@ -766,8 +771,8 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         max_delta_m = 0
         for idx in range(state.phase_compositions.shape[0]):
             for j in range(state.phase_compositions.shape[1]):
-                delta_m[j] += state.phase_amt[idx] * state.phase_compositions[idx, j] - old_state.phase_amt[idx] * old_state.phase_compositions[idx, j]
-        delta_energy = np.abs(np.dot(old_state.chemical_potentials, np.abs(delta_m)))
+                delta_m[j] += state.phase_amt[idx] * state.phase_compositions[idx, j] - previous_phase_amt[idx] * previous_phase_compositions[idx, j]
+        delta_energy = np.abs(np.dot(previous_chemical_potentials, np.abs(delta_m)))
         if delta_energy == 0:
                 delta_energy = 1e-10
         if state.mass_residual < 1e-2:
