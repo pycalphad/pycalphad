@@ -2,13 +2,14 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="FAQ" href="../faq.html" /><link rel="prev" title="Custom Models in pycalphad: Viscosity" href="ViscosityModel.html" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="FAQ" href="../faq.html" /><link rel="prev" title="Custom Models in pycalphad: Viscosity" href="ViscosityModel.html" />
 
-    <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.9.1.dev2+gf5bd0329 documentation</title>
-      <link rel="stylesheet" href="../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
-    <link rel="stylesheet" href="../_static/pygments.css">
-    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.06.24.beta37"/>
+        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.9.1.dev3+g669815c4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css" />
     
 
 
@@ -37,7 +38,7 @@
   --color-code-foreground: #d0d0d0;
   
   }
-</style><link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+</style><link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css"></head>
   <body dir="">
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -86,7 +87,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.1.dev2+gf5bd0329 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.1.dev3+g669815c4 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -103,7 +104,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev2+gf5bd0329 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev3+g669815c4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -157,9 +158,9 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <div class="section" id="exploring-calculate-and-equilibrium-xarray-datasets">
+        <section id="exploring-calculate-and-equilibrium-xarray-datasets">
 <h1>Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets<a class="headerlink" href="#exploring-calculate-and-equilibrium-xarray-datasets" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="xarray-datasets">
+<section id="xarray-datasets">
 <h2>xarray Datasets<a class="headerlink" href="#xarray-datasets" title="Permalink to this headline">¶</a></h2>
 <p>Results returned from calling <code class="docutils literal notranslate"><span class="pre">calculate</span></code> or <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> in
 pycalphad are <a class="reference external" href="http://xarray.pydata.org/en/stable/">xarray</a> Datasets.
@@ -170,8 +171,8 @@ pycalphad and some basics of using them. For more in-depth tutorials and
 documentation on using xarray Datasets and DataArray’s fully, see the
 <a class="reference external" href="http://xarray.pydata.org/en/stable/index.html">xarray
 documentation</a>.</p>
-</div>
-<div class="section" id="dataset-structure">
+</section>
+<section id="dataset-structure">
 <h2>Dataset structure<a class="headerlink" href="#dataset-structure" title="Permalink to this headline">¶</a></h2>
 <p>Each Dataset stores the conditions that properties are calculated at and
 the values of the properties as a function of the different conditions.
@@ -184,8 +185,8 @@ the dimensions.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">variables</span></code>: these are the properties calculated by pycalphad,
 such as the Gibbs energy, mixing energy, composition, etc.</p></li>
 </ul>
-</div>
-<div class="section" id="calculate-results">
+</section>
+<section id="calculate-results">
 <h2><code class="docutils literal notranslate"><span class="pre">calculate()</span></code> results<a class="headerlink" href="#calculate-results" title="Permalink to this headline">¶</a></h2>
 <p>Calculate is used to sample properties of a single phase. There are five
 dimensions/coordinates:</p>
@@ -283,8 +284,8 @@ multidimensional NumPy array</p>
     <span class="p">[</span><span class="mf">7.43933641e-01</span> <span class="mf">2.56066359e-01</span><span class="p">]]]]]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="equilibrium-results">
+</section>
+<section id="equilibrium-results">
 <h2><code class="docutils literal notranslate"><span class="pre">equilibrium()</span></code> results<a class="headerlink" href="#equilibrium-results" title="Permalink to this headline">¶</a></h2>
 <p>The Datasets returned by equilibrium are very similar to calculate,
 however there are several key differences worth discussing. In
@@ -404,8 +405,8 @@ to find the data values that match a condition (the Phase is FCC_A1):</p>
   <span class="o">*</span> <span class="n">vertex</span>   <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int64</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
       </article>
       <footer>
@@ -477,10 +478,10 @@ to find the data values that match a condition (the Phase is FCC_A1):</p>
       
     </aside>
   </main>
-</div>
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+    <script src="../_static/scripts/main.js"></script>
+    </body>
 </html>

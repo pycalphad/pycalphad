@@ -2,13 +2,14 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Releasing pycalphad" href="releasing.html" /><link rel="prev" title="pycalphad.plot.binary package" href="api/pycalphad.plot.binary.html" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Releasing pycalphad" href="releasing.html" /><link rel="prev" title="pycalphad.plot.binary package" href="api/pycalphad.plot.binary.html" />
 
-    <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>What’s New - pycalphad 0.9.1.dev2+gf5bd0329 documentation</title>
-      <link rel="stylesheet" href="_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
-    <link rel="stylesheet" href="_static/pygments.css">
-    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css">
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.06.24.beta37"/>
+        <title>What’s New - pycalphad 0.9.1.dev3+g669815c4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css" />
     
 
 
@@ -37,7 +38,7 @@
   --color-code-foreground: #d0d0d0;
   
   }
-</style><link rel="stylesheet" href="_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+</style><link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css"></head>
   <body dir="">
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -86,7 +87,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pycalphad 0.9.1.dev2+gf5bd0329 documentation</div></a>
+      <a href="index.html"><div class="brand">pycalphad 0.9.1.dev3+g669815c4 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -103,7 +104,7 @@
     <img class="sidebar-logo" src="_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev2+gf5bd0329 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev3+g669815c4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -157,9 +158,9 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <div class="section" id="what-s-new">
+        <section id="what-s-new">
 <h1>What’s New<a class="headerlink" href="#what-s-new" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>0.9.0 (2021-06-06)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>This is a major relase including a new minimizer, support for installing from PyPI using pip, performance improvements, documentation improvements, and bug fixes.</p>
 <ul class="simple">
@@ -180,8 +181,8 @@ An installation configuration tool is provided in the installation guide. ( <a c
 <li><p>MAINT: Using setuptools_scm instead of versioneer to version pycalphad.
 The version scheme for development versions has changed. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/341">issue 341</a> )</p></li>
 </ul>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>0.8.5 (2021-05-20)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>MAINT: Introduce a warning when partitioned phase models incorrectly use <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> properties ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/328">issue 328</a> )</p></li>
@@ -205,8 +206,8 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>0.8.4 (2020-10-28)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release containing performance improvements and bug fixes.</p>
 <ul class="simple">
@@ -217,16 +218,16 @@ The version scheme for development versions has changed. ( <a class="reference e
 <li><p>MAINT: Fixes an internal API regression in <code class="docutils literal notranslate"><span class="pre">_eqcalculate</span></code>, the <code class="docutils literal notranslate"><span class="pre">models</span></code> aregument is now <code class="docutils literal notranslate"><span class="pre">model</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/272">issue 272</a> )</p></li>
 <li><p>FIX: Fixes a bug where databases with many components would raise an error because <code class="docutils literal notranslate"><span class="pre">_eqcalculate</span></code> computed the degrees of freedom based on  all components instead of the active components defined in the current <code class="docutils literal notranslate"><span class="pre">Model</span></code> instance ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/270">issue 270</a> )</p></li>
 </ul>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h2>0.8.3 (2020-03-31)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p>FIX: Improved <code class="docutils literal notranslate"><span class="pre">model_hints</span></code> construction when reading databases with out of order type definitions, fixes detecting disordered phases with <code class="docutils literal notranslate"><span class="pre">filter_phases</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/269">issue 269</a> )</p></li>
 <li><p>FIX: Complex infinity in <code class="docutils literal notranslate"><span class="pre">Model</span></code> expressions are converted to real infinity so SymEngine can <code class="docutils literal notranslate"><span class="pre">lambdify</span></code> the expressions ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/267">issue 267</a> )</p></li>
 </ul>
-</div>
-<div class="section" id="id6">
+</section>
+<section id="id6">
 <h2>0.8.2 (2020-03-07)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements. Python 2.7 support is dropped as well as Python 3.5 and below. Python 3.6-3.8 are explictly supported.</p>
 <ul class="simple">
@@ -238,8 +239,8 @@ The version scheme for development versions has changed. ( <a class="reference e
 <li><p>MAINT: Update and pin to SymPy 1.5 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/251">issue 251</a> )</p></li>
 <li><p>MAINT: Support Python 3.8, drop Python 2, &lt;3.6 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/257">issue 257</a> )</p></li>
 </ul>
-</div>
-<div class="section" id="id7">
+</section>
+<section id="id7">
 <h2>0.8.1 (2019-11-28)<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -254,8 +255,8 @@ The version scheme for development versions has changed. ( <a class="reference e
 <li><p>DOC: Update installation instructions ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/241">issue 241</a> )</p></li>
 <li><p>MNT: Relax dask requirements to the minimum required for <cite>scheduler=</cite> syntax ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/223">issue 223</a> )</p></li>
 </ul>
-</div>
-<div class="section" id="id8">
+</section>
+<section id="id8">
 <h2>0.8 (2019-05-31)<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -266,8 +267,8 @@ The version scheme for development versions has changed. ( <a class="reference e
 <li><p>DOC: A new example for computing properties of custom models has been added.</p></li>
 <li><p>MAINT: Windows Python 2.7 support has been dropped. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/220">issue 220</a> )</p></li>
 </ul>
-</div>
-<div class="section" id="id9">
+</section>
+<section id="id9">
 <h2>0.7.1 (2018-11-14)<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -284,8 +285,8 @@ The version scheme for development versions has changed. ( <a class="reference e
 <li><p>ENH: Add magnetic moment as default Model property BMAG</p></li>
 <li><p>ENH: Optimize _compute_phase_values ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/175">issue 175</a> )</p></li>
 </ul>
-</div>
-<div class="section" id="id10">
+</section>
+<section id="id10">
 <h2>0.7 (2018-03-19)<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with new features and performance improvements.</p>
 <ul class="simple">
@@ -294,17 +295,17 @@ The version scheme for development versions has changed. ( <a class="reference e
 <li><p>ENH: Performance of JIT compilation of phases has been improved.</p></li>
 <li><p>ENH: equilibrium: Performance optimizations to reduce the overhead of calling equilibrium, particularly in tight loops.</p></li>
 </ul>
-</div>
-<div class="section" id="id11">
+</section>
+<section id="id11">
 <h2>0.6.1 (2017-12-01)<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and new features.</p>
 <ul class="simple">
 <li><p>ENH: tdb: Add more command parsing: TEMPERATURE_LIMITS, DATABASE_INFO, VERSION_DATE, REFERENCE_FILE, ADD_REFERENCES</p></li>
-<li><p>FIX: tdb: Allow ‘-‘ character in phase names.</p></li>
+<li><p>FIX: tdb: Allow ‘-’ character in phase names.</p></li>
 <li><p>ENH/FIX: tdb: Allow comma character to specify default low temperature limit (0.01 K)</p></li>
 </ul>
-</div>
-<div class="section" id="id12">
+</section>
+<section id="id12">
 <h2>0.6 (2017-11-26)<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with new features, bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -322,8 +323,8 @@ The version scheme for development versions has changed. ( <a class="reference e
 <li><p>MAINT: Cleanup refdata, fitting, and core.eqresult modules ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/135">issue 135</a> ).</p></li>
 <li><p>FIX: tdb: Update float parsing regex ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/144">issue 144</a> ).</p></li>
 </ul>
-</div>
-<div class="section" id="id13">
+</section>
+<section id="id13">
 <h2>0.5.2 (2017-08-10)<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with a new feature, bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -334,16 +335,16 @@ The version scheme for development versions has changed. ( <a class="reference e
 <li><p>ENH/DOC: Remove log.py module ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/104">issue 104</a> ).</p></li>
 <li><p>FIX: Mistake in the Cementite Analysis example ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a> ).</p></li>
 </ul>
-</div>
-<div class="section" id="id14">
+</section>
+<section id="id14">
 <h2>0.5.1 (2017-05-12)<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes.</p>
 <ul class="simple">
 <li><p>FIX: Custom Models involving certain mathematical constants will compile. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a>.</p></li>
 <li><p>FIX: Undefined symbols in CompiledModel are automatically set to zero. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/90">issue 90</a>.</p></li>
 </ul>
-</div>
-<div class="section" id="id15">
+</section>
+<section id="id15">
 <h2>0.5 (2017-05-04)<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -368,8 +369,8 @@ with the caveat that users will need to install the Microsoft Visual C++ Build T
 <li><p>ENH: calculate: Performance enhancements via profiling.</p></li>
 <li><p>ENH: equilibrium: Break computation up into parallelizable pieces using dask.</p></li>
 </ul>
-</div>
-<div class="section" id="id16">
+</section>
+<section id="id16">
 <h2>0.4.2 (2016-08-26)<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor feature release with one breaking change.
 * There is now support for the Xiong magnetic model (Xiong et al, Calphad, 2012), two-state liquid-amorphous model,</p>
@@ -381,8 +382,8 @@ with the caveat that users will need to install the Microsoft Visual C++ Build T
 contributions. The API for custom contributions has changed; the old method will no longer work.</p></li>
 <li><p>FIX: equilibrium: Correctly use custom models during property calculation with <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument.</p></li>
 </ul>
-</div>
-<div class="section" id="id17">
+</section>
+<section id="id17">
 <h2>0.4.1 (2016-08-08)<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
@@ -391,8 +392,8 @@ contributions. The API for custom contributions has changed; the old method will
 <li><p>BLD: Exclude xarray 0.8 from dependencies since it has a regression. (Newer versions are fine.)</p></li>
 <li><p>DOC: Automated project documentation building and deployment via Travis CI.</p></li>
 </ul>
-</div>
-<div class="section" id="id18">
+</section>
+<section id="id18">
 <h2>0.4 (2016-08-03)<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -402,8 +403,8 @@ particularly for chemical potential calculation with miscibility gaps. See <a cl
 Because of this, dask and dill are now dependencies.</p></li>
 <li><p>Database and Model objects can now be pickled on all supported platforms, fixing a multiprocessing issue.</p></li>
 </ul>
-</div>
-<div class="section" id="id19">
+</section>
+<section id="id19">
 <h2>0.3.6 (2016-06-01)<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -411,8 +412,8 @@ Because of this, dask and dill are now dependencies.</p></li>
 <li><p>Add new compiled backend for phase models. This new backend provides a significant performance improvement.</p></li>
 <li><p>Experimental support for the numba library has been removed.</p></li>
 </ul>
-</div>
-<div class="section" id="id20">
+</section>
+<section id="id20">
 <h2>0.3.5 (2016-05-14)<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
@@ -421,15 +422,15 @@ Because of this, dask and dill are now dependencies.</p></li>
 Support mapping over two composition variables at once.
 An error is now raised if a calculation specifies components not in the Database.</p></li>
 </ul>
-</div>
-<div class="section" id="id21">
+</section>
+<section id="id21">
 <h2>0.3.4 (2016-04-28)<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Support the use of the absolute value function in the energy function.</p></li>
 </ul>
-</div>
-<div class="section" id="id22">
+</section>
+<section id="id22">
 <h2>0.3.3 (2016-04-21)<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -441,8 +442,8 @@ There is still some work to do for step and map calculations, planned for 0.4.</
 Kinetic simulations are not on the roadmap, but this makes it easier to manipulate diffusion data.
 Pull requests improving pycalphad’s support for kinetic calculations are welcome.</p></li>
 </ul>
-</div>
-<div class="section" id="id23">
+</section>
+<section id="id23">
 <h2>0.3.2 (2016-02-22)<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
@@ -453,16 +454,16 @@ Thanks to Ali for reporting.</p></li>
 Further performance improvements will come to this soon.</p></li>
 <li><p>pycalphad now depends on pyparsing&lt;2.1.0 pending resolution of <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/38">issue 38</a>.</p></li>
 </ul>
-</div>
-<div class="section" id="id24">
+</section>
+<section id="id24">
 <h2>0.3.1 (2016-02-18)<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Make the <code class="docutils literal notranslate"><span class="pre">curie_temperature</span></code> attribute work when dealing with the order-disorder model.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Fix a bug involving the <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument in multi-phase calculations.</p></li>
 </ul>
-</div>
-<div class="section" id="id25">
+</section>
+<section id="id25">
 <h2>0.3 (2016-02-17)<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with new features and fixes. It is very likely that
 if you will need to update code to be compatible with this version.</p>
@@ -494,8 +495,8 @@ for computing many different system configurations in a pointwise fashion, when 
 obvious way of expressing the calculation as a traditional “step” or “map”.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">xray</span></code> dependency was renamed to <code class="docutils literal notranslate"><span class="pre">xarray</span></code>. The change should be transparent to users when updating.</p></li>
 </ul>
-</div>
-<div class="section" id="id26">
+</section>
+<section id="id26">
 <h2>0.2.5 (2015-12-22)<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with new features and bug fixes.</p>
 <ul class="simple">
@@ -516,8 +517,8 @@ For now, users will probably not notice a difference.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Added <code class="docutils literal notranslate"><span class="pre">CPM_MIX</span></code> attribute for molar isobaric heat capacity of mixing.</p></li>
 <li><p>Many unit tests have been cleaned up and streamlined, with test coverage back up above 80%.</p></li>
 </ul>
-</div>
-<div class="section" id="id27">
+</section>
+<section id="id27">
 <h2>0.2.4 (2015-11-18)<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -537,8 +538,8 @@ Users will notice the biggest difference when calculating phases with the magnet
 <li><p>Support for numexpr has been removed.</p></li>
 <li><p>The documentation on ReadTheDocs should be building properly again ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/26">issue 26</a> ).</p></li>
 </ul>
-</div>
-<div class="section" id="id28">
+</section>
+<section id="id28">
 <h2>0.2.3 (2015-11-08)<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
@@ -554,8 +555,8 @@ Please report these numerical issues if you run into them because they are diffi
 This should help to find tricky bugs more quickly. (Note that this runs entirely on separate
 infrastructure and is not collecting information from users.)</p></li>
 </ul>
-</div>
-<div class="section" id="id29">
+</section>
+<section id="id29">
 <h2>0.2.2 (2015-10-17)<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
@@ -565,16 +566,16 @@ the value of <cite>pycalphad.core.equilibrium.MIN_STEP_LENGTH</cite> as discusse
 Please report these numerical issues if you run into them because they are difficult to find through automated testing.</p></li>
 <li><p>Fixes for the minimizer sometimes giving type conversion errors on numpy 1.10 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/24">issue 24</a> ).</p></li>
 </ul>
-</div>
-<div class="section" id="id30">
+</section>
+<section id="id30">
 <h2>0.2.1 (2015-09-10)<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
 <li><p>Composition conditions are correctly constructed when the dependent component does not come
 last in alphabetical order ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/21">issue 21</a> ).</p></li>
 </ul>
-</div>
-<div class="section" id="id31">
+</section>
+<section id="id31">
 <h2>0.2 (2015-08-23)<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h2>
 <p>This is a big release and is largely incompatible with 0.1.x.
 This was necessary for the move to the new equilibrium engine.
@@ -603,21 +604,21 @@ It requires the unlisted dependency <code class="docutils literal notranslate"><
 <li><p>ENH: Model: Symbol replacement performance improvement during initialization.</p></li>
 <li><p>TST: Test coverage above 80%</p></li>
 </ul>
-</div>
-<div class="section" id="post1-2015-04-10">
+</section>
+<section id="post1-2015-04-10">
 <h2>0.1.1.post1 (2015-04-10)<a class="headerlink" href="#post1-2015-04-10" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Fixes for automated test coverage</p></li>
 <li><p>Add funding acknowledgment</p></li>
 </ul>
-</div>
-<div class="section" id="id32">
+</section>
+<section id="id32">
 <h2>0.1.1 (2015-04-09)<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Single-source version support with Versioneer</p></li>
 </ul>
-</div>
-<div class="section" id="id33">
+</section>
+<section id="id33">
 <h2>0.1 (2015-04-09)<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Initial public release</p></li>
@@ -627,8 +628,8 @@ It requires the unlisted dependency <code class="docutils literal notranslate"><
 <dd><p>Sundman, Lu, and Ohtani, <em>Computational Materials Science</em> 101 (2015) 127-137 <a class="reference external" href="http://doi.org/10.1016/j.commatsci.2015.01.029">doi: 10.1016/j.commatsci.2015.01.029</a></p>
 </dd>
 </dl>
-</div>
-</div>
+</section>
+</section>
 
       </article>
       <footer>
@@ -729,10 +730,10 @@ It requires the unlisted dependency <code class="docutils literal notranslate"><
       
     </aside>
   </main>
-</div>
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+    <script src="_static/scripts/main.js"></script>
+    </body>
 </html>

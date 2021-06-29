@@ -2,13 +2,14 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="What’s New" href="CHANGES.html" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="What’s New" href="CHANGES.html" />
 
-    <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>Releasing pycalphad - pycalphad 0.9.1.dev2+gf5bd0329 documentation</title>
-      <link rel="stylesheet" href="_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
-    <link rel="stylesheet" href="_static/pygments.css">
-    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css">
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.06.24.beta37"/>
+        <title>Releasing pycalphad - pycalphad 0.9.1.dev3+g669815c4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css" />
     
 
 
@@ -37,7 +38,7 @@
   --color-code-foreground: #d0d0d0;
   
   }
-</style><link rel="stylesheet" href="_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+</style><link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css"></head>
   <body dir="">
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -86,7 +87,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pycalphad 0.9.1.dev2+gf5bd0329 documentation</div></a>
+      <a href="index.html"><div class="brand">pycalphad 0.9.1.dev3+g669815c4 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -103,7 +104,7 @@
     <img class="sidebar-logo" src="_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev2+gf5bd0329 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev3+g669815c4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -157,9 +158,9 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <div class="section" id="releasing-pycalphad">
+        <section id="releasing-pycalphad">
 <h1>Releasing pycalphad<a class="headerlink" href="#releasing-pycalphad" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="create-a-release-of-pycalphad">
+<section id="create-a-release-of-pycalphad">
 <h2>Create a release of pycalphad<a class="headerlink" href="#create-a-release-of-pycalphad" title="Permalink to this headline">¶</a></h2>
 <p>These steps assume that <code class="docutils literal notranslate"><span class="pre">0.1</span></code> is the most recently tagged version number and <code class="docutils literal notranslate"><span class="pre">0.2</span></code> is the next version number to be released.
 Replace their values with the last public release’s version number and the new version number as appropriate.</p>
@@ -194,8 +195,8 @@ Replace their values with the last public release’s version number and the new
 </li>
 <li><p>The new version will be available on PyPI when the <code class="docutils literal notranslate"><span class="pre">Build</span> <span class="pre">and</span> <span class="pre">deploy</span> <span class="pre">to</span> <span class="pre">PyPI</span></code> workflow on GitHub Actions finishes successfully.</p></li>
 </ol>
-</div>
-<div class="section" id="deploy-to-pypi-manually">
+</section>
+<section id="deploy-to-pypi-manually">
 <h2>Deploy to PyPI (manually)<a class="headerlink" href="#deploy-to-pypi-manually" title="Permalink to this headline">¶</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -213,8 +214,8 @@ Creating a GitHub release should trigger the <code class="docutils literal notra
 <li><p><strong>Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.</strong></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">twine</span> <span class="pre">upload</span> <span class="pre">dist/*</span></code> to upload (assumes a <a class="reference external" href="https://packaging.python.org/specifications/pypirc/">correctly configured</a> <code class="docutils literal notranslate"><span class="pre">~/.pypirc</span></code> file)</p></li>
 </ol>
-</div>
-<div class="section" id="deploy-to-conda-forge">
+</section>
+<section id="deploy-to-conda-forge">
 <h2>Deploy to conda-forge<a class="headerlink" href="#deploy-to-conda-forge" title="Permalink to this headline">¶</a></h2>
 <p>Start with the commit checked out which was tagged with the new version.</p>
 <ol class="arabic simple">
@@ -225,8 +226,8 @@ Creating a GitHub release should trigger the <code class="docutils literal notra
 <li><p>Submit a pull request to the main pycalphad feedstock repo.</p></li>
 <li><p>Once the tests pass, merge the pull request.</p></li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
       </article>
       <footer>
@@ -289,10 +290,10 @@ Creating a GitHub release should trigger the <code class="docutils literal notra
       
     </aside>
   </main>
-</div>
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+    <script src="_static/scripts/main.js"></script>
+    </body>
 </html>

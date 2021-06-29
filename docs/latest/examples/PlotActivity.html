@@ -2,13 +2,14 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Custom Models in pycalphad: Viscosity" href="ViscosityModel.html" /><link rel="prev" title="Calculations with Reference States" href="ReferenceStateExamples.html" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Custom Models in pycalphad: Viscosity" href="ViscosityModel.html" /><link rel="prev" title="Calculations with Reference States" href="ReferenceStateExamples.html" />
 
-    <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>Calculate and Plot Activity - pycalphad 0.9.1.dev2+gf5bd0329 documentation</title>
-      <link rel="stylesheet" href="../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
-    <link rel="stylesheet" href="../_static/pygments.css">
-    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.06.24.beta37"/>
+        <title>Calculate and Plot Activity - pycalphad 0.9.1.dev3+g669815c4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css" />
     
 
 
@@ -37,7 +38,7 @@
   --color-code-foreground: #d0d0d0;
   
   }
-</style><link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+</style><link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css"></head>
   <body dir="">
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -86,7 +87,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.1.dev2+gf5bd0329 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.1.dev3+g669815c4 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -103,7 +104,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev2+gf5bd0329 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev3+g669815c4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -157,11 +158,11 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <div class="section" id="calculate-and-plot-activity">
+        <section id="calculate-and-plot-activity">
 <h1>Calculate and Plot Activity<a class="headerlink" href="#calculate-and-plot-activity" title="Permalink to this headline">¶</a></h1>
 <p>Given an existing database for Al-Zn, we would like to calculate the
 activity of the liquid.</p>
-<div class="section" id="experimental-activity-results">
+<section id="experimental-activity-results">
 <h2>Experimental activity results<a class="headerlink" href="#experimental-activity-results" title="Permalink to this headline">¶</a></h2>
 <p>In order to make sure we are correct, we’ll compare the values with
 experimental results. Experimental activities are digtized from Fig 18
@@ -174,8 +175,8 @@ pure Zn at that temperature.</p>
 <span class="n">exp_acr_zn</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1154</span><span class="p">,</span> <span class="mf">0.3765</span><span class="p">,</span> <span class="mf">0.5411</span><span class="p">,</span> <span class="mf">0.6433</span><span class="p">,</span> <span class="mf">0.7352</span><span class="p">,</span> <span class="mf">0.8384</span><span class="p">,</span> <span class="mf">0.9531</span><span class="p">]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="set-up-the-database">
+</section>
+<section id="set-up-the-database">
 <h2>Set up the database<a class="headerlink" href="#set-up-the-database" title="Permalink to this headline">¶</a></h2>
 <p>Al-Zn database is taken from S. Mey, Reevaluation of the Al-Zn system,
 Zeitschrift F{ü}r Met. 84 (1993) 451–455.</p>
@@ -188,8 +189,8 @@ Zeitschrift F{ü}r Met. 84 (1993) 451–455.</p>
 <span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="calculate-the-reference-state">
+</section>
+<section id="calculate-the-reference-state">
 <h2>Calculate the reference state<a class="headerlink" href="#calculate-the-reference-state" title="Permalink to this headline">¶</a></h2>
 <p>Because all chemical activities must be specified with a reference
 state, we’re going to choose a reference state as the pure element at
@@ -197,15 +198,15 @@ the same temperature, consistent with the experimental data.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ref_eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1023</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'ZN'</span><span class="p">):</span> <span class="mi">1</span><span class="p">})</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="calculate-the-equilibria">
+</section>
+<section id="calculate-the-equilibria">
 <h2>Calculate the equilibria<a class="headerlink" href="#calculate-the-equilibria" title="Permalink to this headline">¶</a></h2>
 <p>Do the calculation over the composition range</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">1013325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1023</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'ZN'</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">)})</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="get-the-chemical-potentials-and-calculate-activity">
+</section>
+<section id="get-the-chemical-potentials-and-calculate-activity">
 <h2>Get the chemical potentials and calculate activity<a class="headerlink" href="#get-the-chemical-potentials-and-calculate-activity" title="Permalink to this headline">¶</a></h2>
 <p>We need to select the chemical potentials from the xarray Dataset and
 calculate the activity.</p>
@@ -215,8 +216,8 @@ calculate the activity.</p>
 <span class="n">acr_zn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">chempot</span> <span class="o">-</span> <span class="n">chempot_ref</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">8.315</span><span class="o">*</span><span class="mi">1023</span><span class="p">))</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="plot-the-result">
+</section>
+<section id="plot-the-result">
 <h2>Plot the result<a class="headerlink" href="#plot-the-result" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -238,8 +239,8 @@ calculate the activity.</p>
 </pre></div>
 </div>
 <img alt="../_images/PlotActivity_11_1.png" src="../_images/PlotActivity_11_1.png"/>
-</div>
-</div>
+</section>
+</section>
 
       </article>
       <footer>
@@ -313,10 +314,10 @@ calculate the activity.</p>
       
     </aside>
   </main>
-</div>
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+    <script src="../_static/scripts/main.js"></script>
+    </body>
 </html>

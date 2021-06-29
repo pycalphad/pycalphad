@@ -2,13 +2,14 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Exploring calculate and equilibrium xarray Datasets" href="UsingCalculationResults.html" /><link rel="prev" title="Calculate and Plot Activity" href="PlotActivity.html" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Exploring calculate and equilibrium xarray Datasets" href="UsingCalculationResults.html" /><link rel="prev" title="Calculate and Plot Activity" href="PlotActivity.html" />
 
-    <meta name="generator" content="sphinx-3.5.4, furo 2021.04.11.beta34"/>
-        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.9.1.dev2+gf5bd0329 documentation</title>
-      <link rel="stylesheet" href="../_static/styles/furo.css?digest=59ab60ac09ea94ccfe6deddff6d715cce948a6fc">
-    <link rel="stylesheet" href="../_static/pygments.css">
-    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.06.24.beta37"/>
+        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.9.1.dev3+g669815c4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css" />
     
 
 
@@ -37,7 +38,7 @@
   --color-code-foreground: #d0d0d0;
   
   }
-</style><link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+</style><link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css"></head>
   <body dir="">
     
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -86,7 +87,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.1.dev2+gf5bd0329 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.1.dev3+g669815c4 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -103,7 +104,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev2+gf5bd0329 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev3+g669815c4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -157,9 +158,9 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <div class="section" id="custom-models-in-pycalphad-viscosity">
+        <section id="custom-models-in-pycalphad-viscosity">
 <h1>Custom Models in pycalphad: Viscosity<a class="headerlink" href="#custom-models-in-pycalphad-viscosity" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="viscosity-model-background">
+<section id="viscosity-model-background">
 <h2>Viscosity Model Background<a class="headerlink" href="#viscosity-model-background" title="Permalink to this headline">¶</a></h2>
 <p>We are going to take a CALPHAD-based property model from the literature
 and use it to predict the viscosity of Al-Cu-Zr liquids.</p>
@@ -188,8 +189,8 @@ ability of the Al–Cu–Zr system</em>, Journal of Non-Crystalline Solids
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="tdb-parameters">
+</section>
+<section id="tdb-parameters">
 <h2>TDB Parameters<a class="headerlink" href="#tdb-parameters" title="Permalink to this headline">¶</a></h2>
 <p>We can calculate the excess entropy of the liquid using the Al-Cu-Zr
 thermodynamic database from Zhou et al.</p>
@@ -378,7 +379,7 @@ ParseException                            Traceback (most recent call last)
 ParseException: Expected {{"ELEMENT" W:(ABCD...) W:(ABCD...) Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') LineEnd} | {"SPECIES" W:(ABCD...) [Suppress:("%")] Group:({{W:(ABCD...) [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')]}}...) [{Suppress:("/") W:(+-01...)}] LineEnd} | {"TYPE_DEFINITION" Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {"FUNCTION" W:(ABCD...) {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}} | {"ASSESSED_SYSTEMS" SkipTo:(LineEnd)} | {"DEFINE_SYSTEM_DEFAULT" SkipTo:(LineEnd)} | {"DEFAULT_COMMAND" SkipTo:(LineEnd)} | {"DATABASE_INFO" SkipTo:(LineEnd)} | {"VERSION_DATE" SkipTo:(LineEnd)} | {"REFERENCE_FILE" SkipTo:(LineEnd)} | {"ADD_REFERENCES" SkipTo:(LineEnd)} | {"LIST_OF_REFERENCES" SkipTo:(LineEnd)} | {"TEMPERATURE_LIMITS" SkipTo:(LineEnd)} | {"PHASE" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0123...)) Group:({Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')}...) Suppress:(SkipTo:(LineEnd))} | {"CONSTITUENT" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(":") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) Suppress:(":") LineEnd} | {"PARAMETER" {"BMAGN" | "DF" | "DQ" | "G" | "GD" | "L" | "MF" | "MQ" | "NT" | "TC" | "THETA" | "V0" | "VS"} Suppress:("(") W:(ABCD...) [{Suppress:("&amp;") W:(ABCD...)}] Suppress:(",") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) [{Suppress:(";") W:(0123...)}] Suppress:(")") {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}}}, found '('  (at char 17), (line:1, col:18)
 </pre></div>
 </div>
-<div class="section" id="adding-the-eta-parameter-to-the-tdb-parser">
+<section id="adding-the-eta-parameter-to-the-tdb-parser">
 <h3>Adding the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameter to the TDB parser<a class="headerlink" href="#adding-the-eta-parameter-to-the-tdb-parser" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pycalphad.io.tdb_keywords</span>
 <span class="n">pycalphad</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">tdb_keywords</span><span class="o">.</span><span class="n">TDB_PARAM_TYPES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'ETA'</span><span class="p">)</span>
@@ -388,9 +389,9 @@ ParseException: Expected {{"ELEMENT" W:(ABCD...) W:(ABCD...) Re:('[-+]?([0-9]+\\
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'alcuzr-viscosity.tdb'</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="writing-the-custom-viscosity-model">
+</section>
+</section>
+<section id="writing-the-custom-viscosity-model">
 <h2>Writing the Custom Viscosity Model<a class="headerlink" href="#writing-the-custom-viscosity-model" title="Permalink to this headline">¶</a></h2>
 <p>Now that we have our <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters in the database, we need to
 write a <code class="docutils literal notranslate"><span class="pre">Model</span></code> class to tell pycalphad how to compute viscosity. All
@@ -441,8 +442,8 @@ the output in pycalphad caluclations.</p>
         <span class="k">return</span> <span class="n">result</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="performing-calculations">
+</section>
+<section id="performing-calculations">
 <h2>Performing Calculations<a class="headerlink" href="#performing-calculations" title="Permalink to this headline">¶</a></h2>
 <p>Now we can create an instance of <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code> for the liquid phase
 using the <code class="docutils literal notranslate"><span class="pre">Database</span></code> object we created earlier. We can verify this
@@ -498,8 +499,8 @@ the viscosity.</p>
 </pre></div>
 </div>
 <img alt="../_images/ViscosityModel_16_0.png" src="../_images/ViscosityModel_16_0.png"/>
-</div>
-</div>
+</section>
+</section>
 
       </article>
       <footer>
@@ -574,11 +575,11 @@ the viscosity.</p>
       
     </aside>
   </main>
-</div>
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+    <script src="../_static/scripts/main.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
 </html>
