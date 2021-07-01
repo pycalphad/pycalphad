@@ -760,7 +760,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
 
         take_step(spec, state, step_size)
         delta_phase_amt = np.asarray(state.phase_amt) - np.asarray(previous_phase_amt)
-        if ((state.mass_residual > 1e-2) and (not np.all(np.asarray(state.chempot_diff) < 1.0))) or (iteration == 0):
+        if ((state.mass_residual > 1e-2) and (np.any(np.asarray(state.chempot_diff) > 1.0))) or (iteration == 0):
             # When mass residual is not satisfied, do not allow phases to leave the system
             # However, if the chemical potentials are changing very little, phases may leave the system
             for j in range(state.phase_amt.shape[0]):
