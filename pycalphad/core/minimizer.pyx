@@ -315,7 +315,6 @@ cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[:
         chempot_change = equilibrium_soln[soln_index_offset + i] - chemical_potentials[chempot_idx]
         chemical_potentials[chempot_idx] = equilibrium_soln[soln_index_offset + i]
     soln_index_offset += free_chemical_potential_indices.shape[0]
-    largest_delta_phase_amt = np.max(np.abs(equilibrium_soln[soln_index_offset:soln_index_offset+free_stable_compset_indices.shape[0]]))
     for i in range(free_stable_compset_indices.shape[0]):
         compset_idx = free_stable_compset_indices[i]
         phase_amt_change = float(phase_amt[compset_idx])
@@ -752,7 +751,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     step_size = 1./10
     for iteration in range(1000):
         state.iteration = iteration
-        if (state.mass_residual > 10) and (np.max(np.abs(state.chemical_potentials)) > 1.0e10):
+        if (state.mass_residual > 10) and (np.any(np.abs(state.chemical_potentials) > 1.0e10)):
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
         previous_chemical_potentials[:] = state.chemical_potentials[:]
@@ -801,8 +800,8 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                     continue
                 if idx2 in compsets_to_remove:
                     continue
-                compset_distance = np.max(np.abs(np.array(state.phase_compositions[idx]) - np.array(state.phase_compositions[idx2])))
-                if compset_distance < 1e-4:
+                compset_distances = np.abs(np.array(state.phase_compositions[idx]) - np.array(state.phase_compositions[idx2]))
+                if np.all(compset_distances < 1e-4):
                     compsets_to_remove.add(idx2)
                     if idx not in spec.fixed_stable_compset_indices:
                         state.phase_amt[idx] += state.phase_amt[idx2]
@@ -830,12 +829,11 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
             chempot_diff = np.max(np.abs(np.array(state.chemical_potentials)/np.array(chemical_potentials) - 1))
         else:
             chempot_diff = 0.0
-        largest_moles_change = np.max(np.abs(state.delta_ms))
         chemical_potentials = state.chemical_potentials
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         system_is_feasible = (state.mass_residual < allowed_mass_residual) and (state.largest_internal_cons_max_residual < 1e-9) and \
-                             (chempot_diff < 1e-12) and (state.iteration > 5) and (largest_moles_change < 1e-9) and (phase_change_counter == 0)
+                             np.all(chempot_diff < 1e-12) and (state.iteration > 5) and np.all(np.abs(state.delta_ms) < 1e-9) and (phase_change_counter == 0)
         if system_is_feasible:
             # Check driving forces for metastable phases
             # This needs to be done per mole of atoms, not per formula unit, since we compare phases to each other
