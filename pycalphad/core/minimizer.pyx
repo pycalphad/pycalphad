@@ -768,9 +768,8 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef int num_stable_phases, num_fixed_components, num_free_variables
     cdef CompositionSet compset, compset2
     cdef double mass_residual = 1e-30
-    cdef double max_delta_m, delta_energy, allowed_mass_residual
+    cdef double delta_energy, allowed_mass_residual
     cdef double[::1] x, new_y, delta_y
-    cdef double[::1] delta_m = np.zeros(num_components)
     cdef double[::1] chemical_potentials = np.zeros(num_components)
     cdef double[::1] previous_chemical_potentials = np.empty(num_components)
     cdef int[::1] fixed_stable_compset_indices = np.array(np.nonzero([compset.fixed==True for compset in compsets])[0],
@@ -801,7 +800,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         allowed_mass_residual = 1e-8
     state.mass_residual = 1e10
     phase_change_counter = 5
-    step_size = 1./10
+    step_size = 1.0
     for iteration in range(1000):
         state.iteration = iteration
         if (state.mass_residual > 10) and (np.any(np.abs(state.chemical_potentials) > 1.0e10)):
@@ -812,28 +811,15 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         previous_phase_compositions[:, :] = state.phase_compositions[:, :]
 
         take_step(spec, state, step_size)
-        delta_phase_amt = np.asarray(state.phase_amt) - np.asarray(previous_phase_amt)
+
         if ((state.mass_residual > 1e-2) and (np.any(np.asarray(state.chempot_diff) > 1.0))) or (iteration == 0):
             # When mass residual is not satisfied, do not allow phases to leave the system
             # However, if the chemical potentials are changing very little, phases may leave the system
             for j in range(state.phase_amt.shape[0]):
                 if state.phase_amt[j] < 0:
                     state.phase_amt[j] = 1e-8
-        delta_m[:] = 0
-        max_delta_m = 0
-        for idx in range(state.phase_compositions.shape[0]):
-            for j in range(state.phase_compositions.shape[1]):
-                delta_m[j] += state.phase_amt[idx] * state.phase_compositions[idx, j] - previous_phase_amt[idx] * previous_phase_compositions[idx, j]
-        delta_energy = np.abs(np.dot(previous_chemical_potentials, np.abs(delta_m)))
-        if delta_energy == 0:
-                delta_energy = 1e-10
-        if state.mass_residual < 1e-2:
-            step_size = min(1, 1./delta_energy)
-        else:
-            step_size = 1./10
 
-        # Consolidate duplicate phases and remove unstable phases
-        prune_phases(spec, state)
+        prune_phases(spec, state) # Consolidate duplicate phases and remove unstable phases
 
         # Only include chemical potential difference if chemical potential conditions were enabled
         # XXX: This really should be a condition defined in terms of delta_m, because chempot_diff is only necessary
