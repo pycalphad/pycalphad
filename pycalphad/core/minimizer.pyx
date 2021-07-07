@@ -706,6 +706,59 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         # We need real state variable bounds support
 
 
+cdef void prune_phases(SystemSpecification spec, SystemState state):
+    """Remove phases that have become unstable (phase amount <= 0) and consolidate composition sets in an artificial misicbility gap.
+
+    Updates the state in place.
+    """
+    cdef int idx, idx2, cp_idx, comp_idx, dof_idx, phase_idx
+    cdef CompositionSet compset, compset2
+
+    compsets_to_remove = set()
+    for idx in range(len(state.compsets)):
+        compset = state.compsets[idx]
+        if compset.fixed:
+            continue
+        if idx in compsets_to_remove:
+            continue
+        # Remove unstable phases
+        if state.phase_amt[idx] < 1e-10:
+            compsets_to_remove.add(idx)
+            continue
+        for idx2 in range(len(state.compsets)):  # TODO: used to be compsets instead of state.compsets, is this valid?
+            compset2 = state.compsets[idx2]  # TODO: used to be compsets instead of state.compsets, is this valid?
+            if idx == idx2:
+                continue
+            if idx2 in spec.fixed_stable_compset_indices:
+                continue
+            if compset.phase_record.phase_name != compset2.phase_record.phase_name:
+                continue
+            if idx2 in compsets_to_remove:
+                continue
+            # Detect if these compsets describe the same internal configuration inside a miscibility gap
+            compset_distances = np.abs(np.array(state.phase_compositions[idx]) - np.array(state.phase_compositions[idx2]))
+            if np.all(compset_distances < 1e-4):
+                compsets_to_remove.add(idx2)
+                if idx not in spec.fixed_stable_compset_indices:
+                    state.phase_amt[idx] += state.phase_amt[idx2]
+                state.phase_amt[idx2] = 0
+    new_free_stable_compset_indices = np.array(sorted(set(state.free_stable_compset_indices) - set(compsets_to_remove)), dtype=np.int32)
+    if len(new_free_stable_compset_indices) == 0:
+        # Do not allow all phases to leave the system
+        for phase_idx in state.free_stable_compset_indices:
+            state.phase_amt[phase_idx] = 1
+        state.chemical_potentials[:] = 0
+        # Force some chemical potentials to adopt their fixed values
+        for cp_idx in range(spec.fixed_chemical_potential_indices.shape[0]):
+            comp_idx = spec.fixed_chemical_potential_indices[cp_idx]
+            state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
+    else:
+        state.free_stable_compset_indices = new_free_stable_compset_indices
+    for dof_idx in range(state.phase_amt.shape[0]):
+        if state.phase_amt[dof_idx] < 0.0:
+            state.phase_amt[dof_idx] = 0
+
+
 cpdef find_solution(list compsets, int num_statevars, int num_components,
                     double prescribed_system_amount, double[::1] initial_chemical_potentials,
                     int[::1] free_chemical_potential_indices, int[::1] fixed_chemical_potential_indices,
@@ -780,47 +833,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
             step_size = 1./10
 
         # Consolidate duplicate phases and remove unstable phases
-        compsets_to_remove = set()
-        for idx in range(len(state.compsets)):
-            compset = state.compsets[idx]
-            if compset.fixed:
-                continue
-            if idx in compsets_to_remove:
-                continue
-            if state.phase_amt[idx] < 1e-10:
-                compsets_to_remove.add(idx)
-                continue
-            for idx2 in range(len(compsets)):
-                compset2 = compsets[idx2]
-                if idx == idx2:
-                    continue
-                if idx2 in spec.fixed_stable_compset_indices:
-                    continue
-                if compset.phase_record.phase_name != compset2.phase_record.phase_name:
-                    continue
-                if idx2 in compsets_to_remove:
-                    continue
-                compset_distances = np.abs(np.array(state.phase_compositions[idx]) - np.array(state.phase_compositions[idx2]))
-                if np.all(compset_distances < 1e-4):
-                    compsets_to_remove.add(idx2)
-                    if idx not in spec.fixed_stable_compset_indices:
-                        state.phase_amt[idx] += state.phase_amt[idx2]
-                    state.phase_amt[idx2] = 0
-        new_free_stable_compset_indices = np.array(sorted(set(state.free_stable_compset_indices) - set(compsets_to_remove)), dtype=np.int32)
-        if len(new_free_stable_compset_indices) == 0:
-            # Do not allow all phases to leave the system
-            for phase_idx in state.free_stable_compset_indices:
-                state.phase_amt[phase_idx] = 1
-            state.chemical_potentials[:] = 0
-            # Force some chemical potentials to adopt their fixed values
-            for cp_idx in range(spec.fixed_chemical_potential_indices.shape[0]):
-                comp_idx = spec.fixed_chemical_potential_indices[cp_idx]
-                state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
-        else:
-            state.free_stable_compset_indices = new_free_stable_compset_indices
-        for dof_idx in range(state.phase_amt.shape[0]):
-            if state.phase_amt[dof_idx] < 0.0:
-                state.phase_amt[dof_idx] = 0
+        prune_phases(spec, state)
 
         # Only include chemical potential difference if chemical potential conditions were enabled
         # XXX: This really should be a condition defined in terms of delta_m, because chempot_diff is only necessary
