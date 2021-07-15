@@ -813,9 +813,10 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     else:
         allowed_mass_residual = 1e-8
     state.mass_residual = 1e10
-    phase_change_counter = 5
+    iterations_since_last_phase_change = 0
     step_size = 1.0
     for iteration in range(1000):
+        print(iteration, iterations_since_last_phase_change)
         state.iteration = iteration
         if (state.mass_residual > 10) and (np.any(np.abs(state.chemical_potentials) > 1.0e10)):
             state.chemical_potentials[:] = spec.initial_chemical_potentials
@@ -846,7 +847,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         system_is_feasible = (state.mass_residual < allowed_mass_residual) and (state.largest_internal_cons_max_residual < 1e-9) and \
-                             np.all(chempot_diff < 1e-12) and (state.iteration > 5) and np.all(np.abs(state.delta_ms) < 1e-9) and (phase_change_counter == 0)
+                             np.all(chempot_diff < 1e-12) and (state.iteration > 5) and np.all(np.abs(state.delta_ms) < 1e-9) and (iterations_since_last_phase_change >= 5)
         if system_is_feasible:
             # Check driving forces for metastable phases
             # This needs to be done per mole of atoms, not per formula unit, since we compare phases to each other
@@ -860,11 +861,13 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                     compset.phase_record.mass_obj(phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
                 compset.phase_record.obj(phase_energies_per_mole_atoms[idx, :], x)
                 driving_forces[idx] =  np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0]) - phase_energies_per_mole_atoms[idx, 0]
-            phases_were_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed, driving_forces, iteration > 3)
-            if not phases_were_changed:
+            phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed, driving_forces, iteration > 3)
+            if phases_changed:
+                iterations_since_last_phase_change = 0
+            else:
                 converged = True
                 break
-            phase_change_counter = 5
+        iterations_since_last_phase_change += 1
 
         for idx in range(len(state.compsets)):
             if idx in state.free_stable_compset_indices:
@@ -873,8 +876,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
             else:
                 metastable_phase_iterations[idx] += 1
                 stable_phase_iterations[idx] = 0
-        if phase_change_counter > 0:
-            phase_change_counter -= 1
+
     #if not converged:
     #    raise ValueError('Not converged')
     # Convert moles of formula units to phase fractions
