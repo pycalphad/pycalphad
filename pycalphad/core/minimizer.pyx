@@ -740,7 +740,8 @@ cdef void prune_phases(SystemSpecification spec, SystemState state):
             if np.all(compset_distances < 1e-4):
                 compsets_to_remove.add(idx2)
                 if idx not in spec.fixed_stable_compset_indices:
-                    state.phase_amt[idx] += state.phase_amt[idx2]
+                    # ensure that the consolidated phase is stable
+                    state.phase_amt[idx] = max(state.phase_amt[idx] + state.phase_amt[idx2], 1e-8)
                 state.phase_amt[idx2] = 0
     new_free_stable_compset_indices = np.array(sorted(set(state.free_stable_compset_indices) - set(compsets_to_remove)), dtype=np.int32)
     if len(new_free_stable_compset_indices) == 0:
