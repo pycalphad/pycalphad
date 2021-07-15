@@ -800,7 +800,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                     int[::1] free_chemical_potential_indices, int[::1] fixed_chemical_potential_indices,
                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                     int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
-    cdef int iteration, idx, idx2, comp_idx, phase_idx, i
+    cdef int iteration, idx, idx2, comp_idx, phase_idx, i, iterations_since_last_phase_change
     cdef int num_stable_phases, num_fixed_components, num_free_variables
     cdef CompositionSet compset, compset2
     cdef double mass_residual = 1e-30
