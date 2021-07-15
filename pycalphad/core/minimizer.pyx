@@ -837,7 +837,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     iterations_since_last_phase_change = 0
     step_size = 1.0
     for iteration in range(1000):
-        print(iteration, iterations_since_last_phase_change)
         state.iteration = iteration
         if (state.mass_residual > 10) and (np.any(np.abs(state.chemical_potentials) > 1.0e10)):
             state.chemical_potentials[:] = spec.initial_chemical_potentials
