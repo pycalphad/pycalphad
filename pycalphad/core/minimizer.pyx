@@ -581,7 +581,7 @@ cdef class SystemState:
                 for i in range(num_phase_dof+spec.num_statevars):
                     csst.moles_normalization_grad[i] += csst.mass_jac[comp_idx, i]
 
-    cdef double[::1] driving_forces(self, spec):  # TODO: spec only used for # of components, is that something the State should know on its own?
+    cdef double[::1] driving_forces(self, SystemSpecification spec):  # TODO: spec only used for # of components, is that something the State should know on its own?
         cdef int idx, comp_idx
         cdef CompositionSet compset
         cdef double[::1] x
