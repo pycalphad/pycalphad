@@ -203,7 +203,7 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
                                     [np.asarray(properties.coords[b][a], dtype=np.float_)
                                      for a, b in zip(it.multi_index, conds_keys)]))
         # assume 'points' and other dimensions (internal dof, etc.) always follow
-        curr_idx = [it.multi_index[i] for i, key in enumerate(conds_keys) if key in str_state_variables]
+        curr_idx = tuple(it.multi_index[i] for i, key in enumerate(conds_keys) if key in str_state_variables)
         state_variable_values = [cur_conds[key] for key in str_state_variables]
         state_variable_values = np.array(state_variable_values)
         # sum of independently specified components
@@ -235,6 +235,22 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
+        # Add unrepresented phases as metastable composition sets
+        # This should help catch phases around the limit of stability
+        unrepresented_phases = sorted(set(phase_records.keys()) - set(prop_Phase_values[it.multi_index]) - {'', '_FAKE_'})
+        driving_forces = (chemical_potentials * grid.X[np.index_exp[curr_idx]]).sum(axis=-1) - grid.GM[np.index_exp[curr_idx]]
+        for phase_name in unrepresented_phases:
+            phase_record = phase_records[phase_name]
+            phase_amt = 0.0
+            compset = CompositionSet(phase_record)
+            idx_grid_for_phase = grid.Phase[np.index_exp[curr_idx]] == phase_name
+            minimum_df_idx = np.argmax(driving_forces[idx_grid_for_phase])
+            if driving_forces[idx_grid_for_phase][minimum_df_idx] < 1000:
+                continue
+            df_idx = np.arange(len(driving_forces))[idx_grid_for_phase][minimum_df_idx]
+            sfx = np.atleast_1d(np.squeeze(grid.Y[curr_idx + (df_idx,) + np.index_exp[:phase_record.phase_dof]]))
+            compset.update(sfx, phase_amt, state_variable_values)
+            composition_sets.append(compset)
         #print('Composition Sets', composition_sets)
         phase_amt_sum = 0.0
         for compset in composition_sets:
