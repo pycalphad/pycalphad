@@ -332,30 +332,6 @@ cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[:
         largest_statevar_change[0] = max(largest_statevar_change[0], psc)
 
 
-def check_convergence_and_change_phases(phase_amt, current_free_stable_compset_indices, metastable_phase_iterations,
-                                        times_compset_removed, driving_forces, can_add_phases):
-    # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
-    if can_add_phases:
-        newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - \
-                                    set(current_free_stable_compset_indices)
-        add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(times_compset_removed) < 4)
-        compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
-    else:
-        compsets_to_add = set()
-    compsets_to_remove = set(np.nonzero(np.array(phase_amt) < 1e-9)[0])
-    new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
-                                                      | compsets_to_add
-                                                      )
-                                               )
-    removed_compset_indices = set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)
-    for idx in removed_compset_indices:
-        times_compset_removed[idx] += 1
-    converged = False
-    if set(current_free_stable_compset_indices) == set(new_free_stable_compset_indices):
-        # feasible system, and no phases to add or remove
-        converged = True
-    return converged, new_free_stable_compset_indices
-
 cdef class SystemSpecification:
     cdef int num_statevars, num_components
     cdef double prescribed_system_amount
@@ -760,6 +736,43 @@ cdef void prune_phases(SystemSpecification spec, SystemState state):
             state.phase_amt[dof_idx] = 0
 
 
+cdef bint change_phases(SystemSpecification spec, SystemState state, metastable_phase_iterations, times_compset_removed, driving_forces, can_add_phases):
+    cdef int idx
+    phase_amt = state.phase_amt
+    current_free_stable_compset_indices = state.free_stable_compset_indices
+    # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
+    if can_add_phases:
+        newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - \
+                                    set(current_free_stable_compset_indices)
+        add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(times_compset_removed) < 4)
+        compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
+    else:
+        compsets_to_add = set()
+    compsets_to_remove = set(np.nonzero(np.array(phase_amt) < 1e-9)[0])
+    new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
+                                                      | compsets_to_add
+                                                      ),
+                                               dtype=np.int32)
+    removed_compset_indices = set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)
+    for idx in removed_compset_indices:
+        times_compset_removed[idx] += 1
+    if set(current_free_stable_compset_indices) == set(new_free_stable_compset_indices):
+        # feasible system, and no phases to add or remove
+        phases_changed = False
+    else:
+        phases_changed = True
+    state.free_stable_compset_indices = new_free_stable_compset_indices
+    for idx in range(len(state.compsets)):
+        if idx in new_free_stable_compset_indices:
+            # Force some amount of newly stable phases
+            if state.phase_amt[idx] < 1e-10:
+                state.phase_amt[idx] = 1e-10
+        # Force unstable phase amounts to zero
+        else:
+            state.phase_amt[idx] = 0
+    return phases_changed
+
+
 cpdef find_solution(list compsets, int num_statevars, int num_components,
                     double prescribed_system_amount, double[::1] initial_chemical_potentials,
                     int[::1] free_chemical_potential_indices, int[::1] fixed_chemical_potential_indices,
@@ -847,22 +860,11 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                     compset.phase_record.mass_obj(phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
                 compset.phase_record.obj(phase_energies_per_mole_atoms[idx, :], x)
                 driving_forces[idx] =  np.dot(chemical_potentials, phase_amounts_per_mole_atoms[idx, :, 0]) - phase_energies_per_mole_atoms[idx, 0]
-            converged, new_free_stable_compset_indices = \
-                check_convergence_and_change_phases(state.phase_amt, state.free_stable_compset_indices, metastable_phase_iterations,
-                                                    times_compset_removed, driving_forces, iteration > 3)
-            # Force some amount of newly stable phases
-            for idx in new_free_stable_compset_indices:
-                if state.phase_amt[idx] < 1e-10:
-                    state.phase_amt[idx] = 1e-10
-            # Force unstable phase amounts to zero
-            for idx in range(state.phase_amt.shape[0]):
-                if state.phase_amt[idx] < 1e-10:
-                    state.phase_amt[idx] = 0
-            if converged:
+            phases_were_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed, driving_forces, iteration > 3)
+            if not phases_were_changed:
                 converged = True
                 break
             phase_change_counter = 5
-            state.free_stable_compset_indices = np.array(new_free_stable_compset_indices, dtype=np.int32)
 
         for idx in range(len(state.compsets)):
             if idx in state.free_stable_compset_indices:
