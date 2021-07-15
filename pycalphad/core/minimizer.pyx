@@ -703,7 +703,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         # We need real state variable bounds support
 
 
-cdef void prune_phases(SystemSpecification spec, SystemState state):
+cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState state):
     """Remove phases that have become unstable (phase amount <= 0) and consolidate composition sets in an artificial misicbility gap.
 
     Updates the state in place.
@@ -854,7 +854,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                 if state.phase_amt[j] < 0:
                     state.phase_amt[j] = 1e-8
 
-        prune_phases(spec, state) # Consolidate duplicate phases and remove unstable phases
+        remove_and_consolidate_phases(spec, state)
 
         # Only include chemical potential difference if chemical potential conditions were enabled
         # XXX: This really should be a condition defined in terms of delta_m, because chempot_diff is only necessary
