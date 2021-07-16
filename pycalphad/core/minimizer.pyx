@@ -589,15 +589,16 @@ cdef class SystemState:
                 for i in range(num_phase_dof+spec.num_statevars):
                     csst.moles_normalization_grad[i] += csst.mass_jac[comp_idx, i]
 
-    cdef double[::1] driving_forces(self, SystemSpecification spec):  # TODO: spec only used for # of components, is that something the State should know on its own?
+    cdef double[::1] driving_forces(self):
         cdef int idx, comp_idx
         cdef CompositionSet compset
         cdef double[::1] x
+        cdef int num_components = self.chemical_potentials.shape[0]
         # This needs to be done per mole of atoms, not per formula unit, since we compare phases to each other
         for idx in range(len(self.compsets)):
             compset = self.compsets[idx]
             x = self.dof[idx]
-            for comp_idx in range(spec.num_components):
+            for comp_idx in range(num_components):
                 compset.phase_record.mass_obj(self._phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
             compset.phase_record.obj(self._phase_energies_per_mole_atoms[idx, :], x)
             self._driving_forces[idx] = np.dot(self.chemical_potentials, self._phase_amounts_per_mole_atoms[idx, :, 0]) - self._phase_energies_per_mole_atoms[idx, 0]
@@ -769,7 +770,7 @@ cdef bint change_phases(SystemSpecification spec, SystemState state, metastable_
     cdef int idx
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
-    driving_forces = state.driving_forces(spec)
+    driving_forces = state.driving_forces()
     compsets_to_remove = set(current_free_stable_compset_indices).intersection(set(np.nonzero(np.array(phase_amt) < 1e-9)[0]))
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
     if can_add_phases:
