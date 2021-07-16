@@ -376,6 +376,7 @@ cdef class CompsetState:
     cdef double[::1] c_G
     cdef double[:, ::1] c_statevars
     cdef double[:, ::1] c_component
+    cdef double[::1] delta_y
     cdef double moles_normalization
     cdef double[::1] internal_cons
     cdef double[::1] moles_normalization_grad
@@ -406,7 +407,7 @@ cdef class CompsetState:
         self.moles_normalization_grad = np.zeros(spec.num_statevars+compset.phase_record.phase_dof)
         self.fixed_phase_dof_indices = np.array([], dtype=np.int32)
         self.ipiv = np.empty(self.phase_matrix.shape[0], dtype=np.int32)
-
+        self.delta_y = np.zeros(compset.phase_record.phase_dof)
         self.cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons, spec.num_statevars + compset.phase_record.phase_dof))
         self.mass_hess_tmp = np.zeros((spec.num_components,
                                        spec.num_statevars + compset.phase_record.phase_dof,
@@ -610,7 +611,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double largest_internal_dof_change = 0
     cdef double internal_cons_max_residual, minimum_step_size
     cdef double[::1] cons_tmp
-    cdef double[::1] delta_y
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_rhs, equilibrium_soln, old_chemical_potentials, new_y, x
     cdef CompositionSet compset
@@ -666,14 +666,14 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
             internal_cons_max_residual = max(internal_cons_max_residual, abs(csst.internal_cons[cons_idx]))
 
         # Construct delta_y from Eq. 43 in Sundman 2015
+        csst.delta_y[:] = 0
         # TODO: needs charge balance contribution
-        delta_y = np.zeros(compset.phase_record.phase_dof)
-        for i in range(delta_y.shape[0]):
-            delta_y[i] += csst.c_G[i]
+        for i in range(csst.delta_y.shape[0]):
+            csst.delta_y[i] += csst.c_G[i]
             for sv_idx in range(state.delta_statevars.shape[0]):
-                delta_y[i] += csst.c_statevars[i, sv_idx] * state.delta_statevars[sv_idx]
+                csst.delta_y[i] += csst.c_statevars[i, sv_idx] * state.delta_statevars[sv_idx]
             for cp_idx in range(state.chemical_potentials.shape[0]):
-                delta_y[i] += csst.c_component[cp_idx, i] * state.chemical_potentials[cp_idx]
+                csst.delta_y[i] += csst.c_component[cp_idx, i] * state.chemical_potentials[cp_idx]
 
         largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
         new_y = np.array(x)
@@ -681,7 +681,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         while step_size >= minimum_step_size:
             exceeded_bounds = False
             for i in range(spec.num_statevars, new_y.shape[0]):
-                new_y[i] = x[i] + step_size * delta_y[i - spec.num_statevars]
+                new_y[i] = x[i] + step_size * csst.delta_y[i - spec.num_statevars]
                 if new_y[i] > 1:
                     if (new_y[i] - 1) > 1e-11:
                         # Allow some tolerance in the name of progress
@@ -826,7 +826,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef CompositionSet compset, compset2
     cdef double mass_residual = 1e-30
     cdef double delta_energy, allowed_mass_residual
-    cdef double[::1] x, new_y, delta_y
+    cdef double[::1] x
     cdef double[::1] previous_chemical_potentials = np.empty(num_components)
     cdef int[::1] fixed_stable_compset_indices = np.array(np.nonzero([compset.fixed==True for compset in compsets])[0],
                                                           dtype=np.int32)
