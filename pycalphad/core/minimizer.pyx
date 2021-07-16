@@ -661,10 +661,9 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         x = state.dof[idx]
         csst = state.cs_states[idx]
         internal_cons_max_residual = 0
-        cons_tmp = np.zeros(compset.phase_record.num_internal_cons)
-        compset.phase_record.internal_cons_func(cons_tmp, x)
+        # Safe to use csst.internal_cons here because the phase dof hasn't changed yet
         for cons_idx in range(compset.phase_record.num_internal_cons):
-            internal_cons_max_residual = max(internal_cons_max_residual, abs(cons_tmp[cons_idx]))
+            internal_cons_max_residual = max(internal_cons_max_residual, abs(csst.internal_cons[cons_idx]))
 
         # Construct delta_y from Eq. 43 in Sundman 2015
         # TODO: needs charge balance contribution
