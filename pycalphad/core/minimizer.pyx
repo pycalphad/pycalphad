@@ -37,17 +37,14 @@ cdef void invert_matrix(double *A, int N, double *A_inv_out, int* ipiv) nogil:
         for i in range(N**2):
             A_inv_out[i] = -1e19
 
-cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess, CompositionSet compset,
+cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
+                               double[:, ::1] cons_jac_tmp, double[:, :, ::1] mass_hess_tmp,
+                               CompositionSet compset,
                                int num_statevars, double[::1] chemical_potentials, double[::1] phase_dof,
                                int[::1] fixed_phase_dof_indices):
     "Compute the LHS of Eq. 41, Sundman 2015."
     cdef int comp_idx, i, j, cons_idx, fixed_dof_idx
     cdef int num_components = chemical_potentials.shape[0]
-    cdef double[:, ::1] cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
-                                                num_statevars + compset.phase_record.phase_dof))
-    cdef double[:,:, ::1] mass_hess_tmp = np.zeros((num_components,
-                                                    num_statevars + compset.phase_record.phase_dof,
-                                                    num_statevars + compset.phase_record.phase_dof))
     compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
     phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess[
                                                                                      num_statevars:,
@@ -384,6 +381,9 @@ cdef class CompsetState:
     cdef double[::1] moles_normalization_grad
     cdef int[::1] fixed_phase_dof_indices
     cdef int[::1] ipiv
+    cdef double[:, ::1] cons_jac_tmp
+    cdef double[:,:, ::1] mass_hess_tmp
+
     def __init__(self, SystemSpecification spec, CompositionSet compset):
         self.x = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
         self.energy = 0
@@ -406,6 +406,12 @@ cdef class CompsetState:
         self.moles_normalization_grad = np.zeros(spec.num_statevars+compset.phase_record.phase_dof)
         self.fixed_phase_dof_indices = np.array([], dtype=np.int32)
         self.ipiv = np.empty(self.phase_matrix.shape[0], dtype=np.int32)
+
+        self.cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons, spec.num_statevars + compset.phase_record.phase_dof))
+        self.mass_hess_tmp = np.zeros((spec.num_components,
+                                       spec.num_statevars + compset.phase_record.phase_dof,
+                                       spec.num_statevars + compset.phase_record.phase_dof))
+
     def __getstate__(self):
         return (np.array(self.x), self.energy, np.array(self.grad), np.array(self.hess),
                 np.array(self.phase_matrix), np.array(self.phase_rhs), np.array(self.full_e_matrix),
@@ -538,7 +544,7 @@ cdef class SystemState:
             compset.phase_record.formulagrad(csst.grad, x)
             compset.phase_record.internal_cons_func(csst.internal_cons, x)
 
-            compute_phase_matrix(csst.phase_matrix, csst.hess, compset, spec.num_statevars, self.chemical_potentials, x,
+            compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, csst.mass_hess_tmp, compset, spec.num_statevars, self.chemical_potentials, x,
                                  csst.fixed_phase_dof_indices)
 
             # Compute right-hand side of Eq. 41, Sundman 2015
