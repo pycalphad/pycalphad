@@ -333,7 +333,7 @@ cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[:
 
 
 cdef class SystemSpecification:
-    cdef int num_statevars, num_components
+    cdef int num_statevars, num_components, max_num_free_stable_phases
     cdef double prescribed_system_amount
     cdef double[::1] initial_chemical_potentials, prescribed_elemental_amounts
     cdef int[::1] prescribed_element_indices
@@ -356,6 +356,7 @@ cdef class SystemSpecification:
         self.fixed_chemical_potential_indices = fixed_chemical_potential_indices
         self.fixed_statevar_indices = fixed_statevar_indices
         self.fixed_stable_compset_indices = fixed_stable_compset_indices
+        self.max_num_free_stable_phases = num_components + len(free_statevar_indices) - len(fixed_stable_compset_indices)
     def __getstate__(self):
         return (self.num_statevars, self.num_components, self.prescribed_system_amount,
                 np.array(self.initial_chemical_potentials), np.array(self.prescribed_elemental_amounts),
@@ -757,7 +758,7 @@ cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             state.phase_amt[dof_idx] = 0
 
 
-cdef bint change_phases(SystemSpecification spec, SystemState state, metastable_phase_iterations, times_compset_removed, can_add_phases, max_stable_phases):
+cdef bint change_phases(SystemSpecification spec, SystemState state, metastable_phase_iterations, times_compset_removed, can_add_phases):
     cdef int idx
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
@@ -769,7 +770,7 @@ cdef bint change_phases(SystemSpecification spec, SystemState state, metastable_
                                     set(current_free_stable_compset_indices)
         add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(times_compset_removed) < 4)
         compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
-        max_allowed_to_add = int(max_stable_phases) + len(compsets_to_remove) - len(current_free_stable_compset_indices)
+        max_allowed_to_add = spec.max_num_free_stable_phases + len(compsets_to_remove) - len(current_free_stable_compset_indices)
         # We must obey the Gibbs phase rule
         if len(compsets_to_add) > 0:
             if max_allowed_to_add < 1:
@@ -818,7 +819,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                     int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
     cdef int iteration, idx, idx2, comp_idx, phase_idx, i, iterations_since_last_phase_change
-    cdef int num_stable_phases, num_fixed_components, num_free_variables, max_free_stable_phases
+    cdef int num_stable_phases, num_fixed_components, num_free_variables
     cdef CompositionSet compset, compset2
     cdef double mass_residual = 1e-30
     cdef double delta_energy, allowed_mass_residual
@@ -839,7 +840,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                                                         free_chemical_potential_indices, free_statevar_indices,
                                                         fixed_chemical_potential_indices, fixed_statevar_indices,
                                                         fixed_stable_compset_indices)
-    max_free_stable_phases = num_components + len(spec.free_statevar_indices) - len(spec.fixed_stable_compset_indices)
     cdef SystemState state = SystemState(spec, compsets)
     cdef double[::1] previous_phase_amt = np.empty((state.phase_amt.shape[0],))
     cdef double[:, ::1] previous_phase_compositions = np.empty((state.phase_compositions.shape[0], state.phase_compositions.shape[1]))
@@ -886,7 +886,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         system_is_feasible = (state.mass_residual < allowed_mass_residual) and (state.largest_internal_cons_max_residual < 1e-9) and \
                              np.all(chempot_diff < 1e-12) and (state.iteration > 5) and np.all(np.abs(state.delta_ms) < 1e-9) and (iterations_since_last_phase_change >= 5)
         if system_is_feasible:
-            phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed, iteration > 3, max_free_stable_phases)
+            phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed, iteration > 3)
             if phases_changed:
                 iterations_since_last_phase_change = 0
             else:
