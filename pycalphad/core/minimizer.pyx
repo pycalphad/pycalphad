@@ -443,6 +443,7 @@ cdef class SystemState:
 
     def __init__(self, SystemSpecification spec, list compsets):
         cdef CompositionSet compset
+        cdef int idx, comp_idx
         self.compsets = compsets
         self.cs_states = [CompsetState(spec, compset) for compset in compsets]
         self.dof = [np.array(compset.dof) for compset in compsets]
@@ -468,9 +469,9 @@ cdef class SystemState:
         self._phase_energies_per_mole_atoms = np.zeros((len(compsets), 1))
         self._phase_amounts_per_mole_atoms = np.zeros((len(compsets), spec.num_components, 1))
 
+        cdef double[:, ::1] masses_tmp = np.zeros((spec.num_components, 1))
         for idx in range(self.phase_amt.shape[0]):
             compset = self.compsets[idx]
-            masses_tmp = np.zeros((spec.num_components, 1))
             x = self.dof[idx]
             for comp_idx in range(spec.num_components):
                 compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
