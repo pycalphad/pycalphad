@@ -367,7 +367,6 @@ cdef class CompsetState:
     cdef int[::1] fixed_phase_dof_indices
     cdef int[::1] ipiv
     cdef double[:, ::1] cons_jac_tmp
-    cdef double[:,:, ::1] mass_hess_tmp
 
     def __init__(self, SystemSpecification spec, CompositionSet compset):
         self.x = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
@@ -392,9 +391,6 @@ cdef class CompsetState:
         self.ipiv = np.empty(self.phase_matrix.shape[0], dtype=np.int32)
         self.delta_y = np.zeros(compset.phase_record.phase_dof)
         self.cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons, spec.num_statevars + compset.phase_record.phase_dof))
-        self.mass_hess_tmp = np.zeros((spec.num_components,
-                                       spec.num_statevars + compset.phase_record.phase_dof,
-                                       spec.num_statevars + compset.phase_record.phase_dof))
 
     def __getstate__(self):
         return (np.array(self.x), self.energy, np.array(self.grad), np.array(self.hess),
