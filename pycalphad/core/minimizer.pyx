@@ -610,7 +610,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double largest_internal_dof_change = 0
     cdef double internal_cons_max_residual, minimum_step_size
     cdef double[::1] cons_tmp
-    cdef double[::1] delta_statevars = np.zeros(spec.num_statevars)
     cdef double[::1] delta_y
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_rhs, equilibrium_soln, old_chemical_potentials, new_y, x
@@ -645,7 +644,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
 
     # STEP 2: Advance the system state
     # Extract chemical potentials and update phase amounts
-    extract_equilibrium_solution(state.chemical_potentials, state.phase_amt, delta_statevars,
+    extract_equilibrium_solution(state.chemical_potentials, state.phase_amt, state.delta_statevars,
                                  spec.free_chemical_potential_indices, spec.free_statevar_indices,
                                  state.free_stable_compset_indices, equilibrium_soln,
                                  state.largest_statevar_change, state.largest_phase_amt_change, state.dof)
@@ -672,8 +671,8 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         delta_y = np.zeros(compset.phase_record.phase_dof)
         for i in range(delta_y.shape[0]):
             delta_y[i] += csst.c_G[i]
-            for sv_idx in range(delta_statevars.shape[0]):
-                delta_y[i] += csst.c_statevars[i, sv_idx] * delta_statevars[sv_idx]
+            for sv_idx in range(state.delta_statevars.shape[0]):
+                delta_y[i] += csst.c_statevars[i, sv_idx] * state.delta_statevars[sv_idx]
             for cp_idx in range(state.chemical_potentials.shape[0]):
                 delta_y[i] += csst.c_component[cp_idx, i] * state.chemical_potentials[cp_idx]
 
@@ -707,8 +706,8 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     # Update state variables
     for idx in range(len(state.compsets)):
         x = state.dof[idx]
-        for sv_idx in range(delta_statevars.shape[0]):
-            x[sv_idx] += delta_statevars[sv_idx]
+        for sv_idx in range(state.delta_statevars.shape[0]):
+            x[sv_idx] += state.delta_statevars[sv_idx]
         # We need real state variable bounds support
 
 
