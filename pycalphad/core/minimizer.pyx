@@ -766,7 +766,7 @@ cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             state.phase_amt[dof_idx] = 0
 
 
-cdef bint change_phases(SystemSpecification spec, SystemState state, metastable_phase_iterations, times_compset_removed, can_add_phases):
+cdef bint change_phases(SystemSpecification spec, SystemState state, int[::1] metastable_phase_iterations, int[::1] times_compset_removed, bint can_add_phases):
     cdef int idx
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
