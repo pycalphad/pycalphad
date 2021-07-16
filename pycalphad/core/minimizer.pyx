@@ -596,9 +596,8 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef double largest_internal_cons_max_residual = 0
     cdef double largest_internal_dof_change = 0
     cdef double internal_cons_max_residual, minimum_step_size
-    cdef double[::1] cons_tmp
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
-    cdef double[::1] equilibrium_rhs, equilibrium_soln, old_chemical_potentials, new_y, x
+    cdef double[::1] equilibrium_soln, old_chemical_potentials, new_y, x
     cdef CompositionSet compset
     cdef CompsetState csst
     cdef bint exceeded_bounds
