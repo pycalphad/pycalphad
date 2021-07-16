@@ -371,7 +371,6 @@ cdef class CompsetState:
     cdef double[:,::1] masses
     cdef double[:,::1] mass_jac
     cdef double[:,::1] phase_matrix
-    cdef double[::1] phase_rhs
     cdef double[:,::1] full_e_matrix
     cdef double[::1] c_G
     cdef double[:, ::1] c_statevars
@@ -396,7 +395,6 @@ cdef class CompsetState:
                                   spec.num_statevars + compset.phase_record.phase_dof))
         self.phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
                                       compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
-        self.phase_rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
         self.full_e_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
                                        compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
         self.c_G = np.zeros(compset.phase_record.phase_dof)
@@ -415,12 +413,12 @@ cdef class CompsetState:
 
     def __getstate__(self):
         return (np.array(self.x), self.energy, np.array(self.grad), np.array(self.hess),
-                np.array(self.phase_matrix), np.array(self.phase_rhs), np.array(self.full_e_matrix),
+                np.array(self.phase_matrix), np.array(self.full_e_matrix),
                 np.array(self.masses), np.array(self.mass_jac), np.array(self.c_G), np.array(self.c_statevars),
                 np.array(self.c_component), self.moles_normalization, np.array(self.internal_cons), np.array(self.moles_normalization_grad),
                 np.array(self.fixed_phase_dof_indices, dtype=np.int32), np.array(self.ipiv, dtype=np.int32))
     def __setstate__(self, state):
-        (self.x, self.energy, self.grad, self.hess, self.phase_matrix, self.phase_rhs, self.full_e_matrix,
+        (self.x, self.energy, self.grad, self.hess, self.phase_matrix, self.full_e_matrix,
          self.masses, self.mass_jac, self.c_G, self.c_statevars,
          self.c_component, self.moles_normalization, self.internal_cons, self.moles_normalization_grad, self.fixed_phase_dof_indices,
          self.ipiv) = state
@@ -531,7 +529,6 @@ cdef class SystemState:
             csst.mass_jac[:,:] = 0
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
             csst.phase_matrix[:,:] = 0
-            csst.phase_rhs[:] = 0
             csst.internal_cons[:] = 0
             csst.full_e_matrix[:,:] = 0
             for i in range(csst.full_e_matrix.shape[0]):
@@ -548,17 +545,6 @@ cdef class SystemState:
 
             compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, csst.mass_hess_tmp, compset, spec.num_statevars, self.chemical_potentials, x,
                                  csst.fixed_phase_dof_indices)
-
-            # Compute right-hand side of Eq. 41, Sundman 2015
-            for i in range(compset.phase_record.phase_dof):
-                csst.phase_rhs[i] = -csst.grad[spec.num_statevars+i]
-                for sv_idx in range(spec.num_statevars):
-                    csst.phase_rhs[i] -= csst.hess[spec.num_statevars + i, sv_idx] * self.delta_statevars[sv_idx]
-                for comp_idx in range(num_components):
-                    csst.phase_rhs[i] += self.chemical_potentials[comp_idx] * csst.mass_jac[comp_idx, spec.num_statevars + i]
-
-            for cons_idx in range(compset.phase_record.num_internal_cons):
-                csst.phase_rhs[compset.phase_record.phase_dof + cons_idx] = -csst.internal_cons[cons_idx]
 
             invert_matrix(&csst.phase_matrix[0,0], csst.phase_matrix.shape[0], &csst.full_e_matrix[0,0], &csst.ipiv[0])
 
