@@ -766,37 +766,34 @@ cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             state.phase_amt[dof_idx] = 0
 
 
-cdef bint change_phases(SystemSpecification spec, SystemState state, int[::1] metastable_phase_iterations, int[::1] times_compset_removed, bint can_add_phases):
+cdef bint change_phases(SystemSpecification spec, SystemState state, int[::1] metastable_phase_iterations, int[::1] times_compset_removed):
     cdef int idx
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
     driving_forces = state.driving_forces()
     compsets_to_remove = set(current_free_stable_compset_indices).intersection(set(np.nonzero(np.array(phase_amt) < 1e-9)[0]))
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
-    if can_add_phases:
-        newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - \
-                                    set(current_free_stable_compset_indices)
-        add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(times_compset_removed) < 4)
-        compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
-        max_allowed_to_add = spec.max_num_free_stable_phases + len(compsets_to_remove) - len(current_free_stable_compset_indices)
-        # We must obey the Gibbs phase rule
-        if len(compsets_to_add) > 0:
-            if max_allowed_to_add < 1:
-                # We are at the maximum number of allowed phases, yet there is still positive driving force
-                # Destabilize one phase and add only one phase
-                possible_phases_to_destabilize = set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove
-                # Arbitrarily pick the lowest index to destabilize
-                idx_to_remove = sorted(possible_phases_to_destabilize)[0]
-                compsets_to_remove.add(idx_to_remove)
-                phase_amt[idx_to_remove] = 0
-                # XXX: This should be ordered by driving force
-                compsets_to_add = {sorted(compsets_to_add)[0]}
-            elif max_allowed_to_add < len(compsets_to_add):
-                # Only add a number of phases within the limit
-                # XXX: This should be ordered by driving force
-                compsets_to_add = set(sorted(compsets_to_add)[:max_allowed_to_add])
-    else:
-        compsets_to_add = set()
+    newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - \
+                                set(current_free_stable_compset_indices)
+    add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(times_compset_removed) < 4)
+    compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
+    max_allowed_to_add = spec.max_num_free_stable_phases + len(compsets_to_remove) - len(current_free_stable_compset_indices)
+    # We must obey the Gibbs phase rule
+    if len(compsets_to_add) > 0:
+        if max_allowed_to_add < 1:
+            # We are at the maximum number of allowed phases, yet there is still positive driving force
+            # Destabilize one phase and add only one phase
+            possible_phases_to_destabilize = set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove
+            # Arbitrarily pick the lowest index to destabilize
+            idx_to_remove = sorted(possible_phases_to_destabilize)[0]
+            compsets_to_remove.add(idx_to_remove)
+            phase_amt[idx_to_remove] = 0
+            # TODO: This should be ordered by driving force
+            compsets_to_add = {sorted(compsets_to_add)[0]}
+        elif max_allowed_to_add < len(compsets_to_add):
+            # Only add a number of phases within the limit
+            # TODO: This should be ordered by driving force
+            compsets_to_add = set(sorted(compsets_to_add)[:max_allowed_to_add])
     new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
                                                       | compsets_to_add
                                                       ),
@@ -837,7 +834,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                                                           dtype=np.int32)
     cdef list dof = [np.array(compset.dof) for compset in compsets]
     cdef list suspended_compsets = []
-    cdef int[::1] stable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
     cdef int[::1] metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
     cdef int[::1] times_compset_removed = np.zeros(len(compsets), dtype=np.int32)
     cdef bint converged = False
@@ -894,7 +890,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         system_is_feasible = (state.mass_residual < allowed_mass_residual) and (state.largest_internal_cons_max_residual < 1e-9) and \
                              np.all(chempot_diff < 1e-12) and (state.iteration > 5) and np.all(np.abs(state.delta_ms) < 1e-9) and (iterations_since_last_phase_change >= 5)
         if system_is_feasible:
-            phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed, iteration > 3)
+            phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed)
             if phases_changed:
                 iterations_since_last_phase_change = 0
             else:
@@ -905,10 +901,8 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         for idx in range(len(state.compsets)):
             if idx in state.free_stable_compset_indices:
                 metastable_phase_iterations[idx] = 0
-                stable_phase_iterations[idx] += 1
             else:
                 metastable_phase_iterations[idx] += 1
-                stable_phase_iterations[idx] = 0
 
     #if not converged:
     #    raise ValueError('Not converged')
