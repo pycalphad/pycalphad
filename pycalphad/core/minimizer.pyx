@@ -695,8 +695,8 @@ cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState st
         if state.phase_amt[idx] < 1e-10:
             compsets_to_remove.add(idx)
             continue
-        for idx2 in range(len(state.compsets)):  # TODO: used to be compsets instead of state.compsets, is this valid?
-            compset2 = state.compsets[idx2]  # TODO: used to be compsets instead of state.compsets, is this valid?
+        for idx2 in range(len(state.compsets)):
+            compset2 = state.compsets[idx2]
             if idx == idx2:
                 continue
             if idx2 in spec.fixed_stable_compset_indices:
