@@ -806,9 +806,13 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
 
         take_step(spec, state, step_size)
 
-        largest_chemical_potential_difference = 0
+        # In most cases, the chemical potentials should be decreasing and the
+        # largest_chemical_potential_difference could be negative. The following check
+        # against the differences will only prevent phases from being removed if the
+        # chemical potentials _increase_ by more than 1 J. It may make more sense to
+        # adjust the condition based on the absolute value of the differences.
+        largest_chemical_potential_difference = -np.inf
         for comp_idx in range(num_components):
-            # TODO: this was the equivalent change from chempot_diff, but maybe this should be abs()?
             largest_chemical_potential_difference = max(largest_chemical_potential_difference, state.chemical_potentials[comp_idx] - previous_chemical_potentials[comp_idx])
 
         if ((state.mass_residual > 1e-2) and (largest_chemical_potential_difference > 1.0)) or (iteration == 0):
