@@ -658,18 +658,18 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         # We need real state variable bounds support
 
 
-cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState state):
+cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState state):
     """Remove phases that have become unstable (phase amount <= 0) and consolidate composition sets in an artificial misicbility gap.
 
     Updates the state in place.
     """
-    cdef int idx, idx2, cp_idx, comp_idx, dof_idx, phase_idx
+    cdef int i, j, idx, idx2, cp_idx, comp_idx, dof_idx, phase_idx
     cdef CompositionSet compset, compset2
     cdef bint phases_changed = False
 
-    current_free_compset_indices = set(state.free_stable_compset_indices)
     compset_indices_to_remove = set()
-    for idx in range(len(state.compsets)):
+    for i in range(len(state.free_stable_compset_indices)):
+        idx = state.free_stable_compset_indices[i]
         compset = state.compsets[idx]
         if compset.fixed:
             continue
@@ -680,7 +680,8 @@ cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             compset_indices_to_remove.add(idx)
             state.phase_amt[idx] = 0
             continue
-        for idx2 in range(len(state.compsets)):
+        for j in range(len(state.free_stable_compset_indices)):
+            idx2 = state.free_stable_compset_indices[j]
             compset2 = state.compsets[idx2]
             if idx == idx2:
                 continue
@@ -698,20 +699,19 @@ cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState st
                     # ensure that the consolidated phase is stable
                     state.phase_amt[idx] = max(state.phase_amt[idx] + state.phase_amt[idx2], 1e-8)
                 state.phase_amt[idx2] = 0
-    new_free_stable_compset_indices = current_free_compset_indices - compset_indices_to_remove
-    if len(new_free_stable_compset_indices) == 0:
-        # Do not allow all phases to leave the system
-        for phase_idx in state.free_stable_compset_indices:
-            state.phase_amt[phase_idx] = 1
-        state.chemical_potentials[:] = 0
-        # Force some chemical potentials to adopt their fixed values
-        for cp_idx in range(spec.fixed_chemical_potential_indices.shape[0]):
-            comp_idx = spec.fixed_chemical_potential_indices[cp_idx]
-            state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
-    else:
-        if new_free_stable_compset_indices != current_free_compset_indices:
+    if len(compset_indices_to_remove) > 0:
+        if len(compset_indices_to_remove) - len(state.free_stable_compset_indices) == 0:
+            # Do not allow all phases to leave the system
+            for phase_idx in state.free_stable_compset_indices:
+                state.phase_amt[phase_idx] = 1
+            state.chemical_potentials[:] = 0
+            # Force some chemical potentials to adopt their fixed values
+            for cp_idx in range(spec.fixed_chemical_potential_indices.shape[0]):
+                comp_idx = spec.fixed_chemical_potential_indices[cp_idx]
+                state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
+        else:
+            state.free_stable_compset_indices = np.array(sorted(set(state.free_stable_compset_indices) - compset_indices_to_remove), dtype=np.int32)
             phases_changed = True
-            state.free_stable_compset_indices = np.array(sorted(new_free_stable_compset_indices), dtype=np.int32)
     return phases_changed
 
 cdef bint change_phases(SystemSpecification spec, SystemState state, int[::1] metastable_phase_iterations, int[::1] times_compset_removed):
