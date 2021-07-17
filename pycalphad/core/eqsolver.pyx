@@ -250,7 +250,7 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             result = solve_and_update(composition_sets, cur_conds, iter_solver)
 
             chemical_potentials[:] = result.chemical_potentials
-            changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
+            changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
                                             grid, curr_idx, chemical_potentials, state_variable_values,
                                             1e-4, verbose)
             iterations += 1
