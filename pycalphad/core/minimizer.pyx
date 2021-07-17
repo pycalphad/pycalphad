@@ -681,7 +681,7 @@ cdef void remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             compset2 = state.compsets[idx2]
             if idx == idx2:
                 continue
-            if idx2 in spec.fixed_stable_compset_indices:
+            if compset2.fixed:
                 continue
             if compset.phase_record.phase_name != compset2.phase_record.phase_name:
                 continue
