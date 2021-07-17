@@ -410,7 +410,7 @@ cdef class SystemState:
     cdef list cs_states
     cdef object dof
     cdef int iteration, num_statevars
-    cdef double mass_residual, largest_internal_cons_max_residual
+    cdef double mass_residual
     cdef double[::1] phase_amt, chemical_potentials, delta_statevars
     cdef double[:, ::1] phase_compositions, delta_ms
     cdef double[1] largest_statevar_change, largest_phase_amt_change
@@ -429,7 +429,6 @@ cdef class SystemState:
         self.dof = [np.array(compset.dof) for compset in compsets]
         self.iteration = 0
         self.mass_residual = 1e10
-        self.largest_internal_cons_max_residual = 0
         # Phase fractions need to be converted to moles of formula
         self.phase_amt = np.array([compset.NP for compset in compsets])
         self.chemical_potentials = np.zeros(spec.num_components)
@@ -457,13 +456,13 @@ cdef class SystemState:
             # Convert phase fractions to formula units
             self.phase_amt[idx] /= np.sum(self.phase_compositions[idx])
     def __getstate__(self):
-        return (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual, self.largest_internal_cons_max_residual,
+        return (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual,
                 np.array(self.phase_amt), np.array(self.chemical_potentials),
                 np.array(self.delta_ms), np.array(self.phase_compositions),
                 self.largest_statevar_change[0], self.largest_phase_amt_change[0],
                 np.array(self.free_stable_compset_indices), self.system_amount, np.array(self.mole_fractions))
     def __setstate__(self, state):
-        (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual, self.largest_internal_cons_max_residual,
+        (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual,
          self.phase_amt, self.chemical_potentials,
          self.delta_ms, self.phase_compositions, self.largest_statevar_change[0],
          self.largest_phase_amt_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
@@ -571,8 +570,7 @@ cdef class SystemState:
 
 
 cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
-    cdef double largest_internal_cons_max_residual = 0
-    cdef double internal_cons_max_residual, minimum_step_size
+    cdef double minimum_step_size
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln, new_y, x
     cdef CompositionSet compset
@@ -581,7 +579,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     cdef int i, comp_idx, cp_idx, idx, num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
 
     # STEP 1: Solve the equilibrium matrix (chemical potentials, corrections to phase amounts and state variables)
-    state.largest_internal_cons_max_residual = largest_internal_cons_max_residual
     state.recompute(spec)
 
     num_stable_phases = state.free_stable_compset_indices.shape[0]
@@ -619,10 +616,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         # TODO: Use better dof storage
         x = state.dof[idx]
         csst = state.cs_states[idx]
-        internal_cons_max_residual = 0
-        # Safe to use csst.internal_cons here because the phase dof hasn't changed yet
-        for cons_idx in range(compset.phase_record.num_internal_cons):
-            internal_cons_max_residual = max(internal_cons_max_residual, abs(csst.internal_cons[cons_idx]))
 
         # Construct delta_y from Eq. 43 in Sundman 2015
         csst.delta_y[:] = 0
@@ -634,7 +627,6 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
             for cp_idx in range(state.chemical_potentials.shape[0]):
                 csst.delta_y[i] += csst.c_component[cp_idx, i] * state.chemical_potentials[cp_idx]
 
-        largest_internal_cons_max_residual = max(largest_internal_cons_max_residual, internal_cons_max_residual)
         new_y = np.array(x)
         minimum_step_size = 1e-20 * step_size
         while step_size >= minimum_step_size:
@@ -835,7 +827,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
             chempot_diff = 0.0
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
-        system_is_feasible = (state.mass_residual < allowed_mass_residual) and (state.largest_internal_cons_max_residual < 1e-9) and \
+        system_is_feasible = (state.mass_residual < allowed_mass_residual) and \
                              np.all(chempot_diff < 1e-12) and (state.iteration > 5) and np.all(np.abs(state.delta_ms) < 1e-9) and (iterations_since_last_phase_change >= 5)
         if system_is_feasible:
             phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed)
