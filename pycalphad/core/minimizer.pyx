@@ -716,9 +716,9 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
 
 cdef bint change_phases(SystemSpecification spec, SystemState state, int[::1] metastable_phase_iterations, int[::1] times_compset_removed):
     cdef int idx
+    cdef double[::1] driving_forces = state.driving_forces()
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
-    driving_forces = state.driving_forces()
     compsets_to_remove = set(current_free_stable_compset_indices).intersection(set(np.nonzero(np.array(phase_amt) < 1e-9)[0]))
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
     newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - \
