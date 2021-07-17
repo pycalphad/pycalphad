@@ -783,21 +783,16 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                     int[::1] free_chemical_potential_indices, int[::1] fixed_chemical_potential_indices,
                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                     int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
-    cdef int iteration, idx, idx2, comp_idx, phase_idx, i, iterations_since_last_phase_change
-    cdef int num_stable_phases, num_fixed_components, num_free_variables
-    cdef CompositionSet compset, compset2
-    cdef double mass_residual = 1e-30
-    cdef double delta_energy, allowed_mass_residual, largest_chemical_potential_difference
+    cdef int iteration, idx, comp_idx, iterations_since_last_phase_change
+    cdef CompositionSet compset
+    cdef double allowed_mass_residual, largest_chemical_potential_difference, step_size
     cdef double[::1] x
     cdef double[::1] previous_chemical_potentials = np.empty(num_components)
     cdef int[::1] fixed_stable_compset_indices = np.array(np.nonzero([compset.fixed==True for compset in compsets])[0],
                                                           dtype=np.int32)
-    cdef list dof = [np.array(compset.dof) for compset in compsets]
-    cdef list suspended_compsets = []
     cdef int[::1] metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
     cdef int[::1] times_compset_removed = np.zeros(len(compsets), dtype=np.int32)
     cdef bint converged = False
-    cdef int max_dof = num_statevars + max([compset.phase_record.phase_dof for compset in compsets])
     cdef SystemSpecification spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
                                                         initial_chemical_potentials, prescribed_elemental_amounts,
                                                         prescribed_element_indices,
@@ -805,8 +800,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                                                         fixed_chemical_potential_indices, fixed_statevar_indices,
                                                         fixed_stable_compset_indices)
     cdef SystemState state = SystemState(spec, compsets)
-    cdef double[::1] previous_phase_amt = np.empty((state.phase_amt.shape[0],))
-    cdef double[:, ::1] previous_phase_compositions = np.empty((state.phase_compositions.shape[0], state.phase_compositions.shape[1]))
 
     if spec.prescribed_elemental_amounts.shape[0] > 0:
         allowed_mass_residual = min(1e-8, np.min(spec.prescribed_elemental_amounts)/10)
@@ -823,8 +816,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
         previous_chemical_potentials[:] = state.chemical_potentials[:]
-        previous_phase_amt[:] = state.phase_amt[:]
-        previous_phase_compositions[:, :] = state.phase_compositions[:, :]
 
         take_step(spec, state, step_size)
 
