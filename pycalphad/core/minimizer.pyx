@@ -788,8 +788,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef double allowed_mass_residual, largest_chemical_potential_difference, step_size
     cdef double[::1] x
     cdef double[::1] previous_chemical_potentials = np.empty(num_components)
-    cdef int[::1] fixed_stable_compset_indices = np.array(np.nonzero([compset.fixed==True for compset in compsets])[0],
-                                                          dtype=np.int32)
+    cdef int[::1] fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
     cdef int[::1] metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
     cdef int[::1] times_compset_removed = np.zeros(len(compsets), dtype=np.int32)
     cdef bint converged = False
