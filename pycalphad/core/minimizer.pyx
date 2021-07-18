@@ -1,4 +1,5 @@
 cimport cython
+cimport openmp
 import numpy as np
 cimport numpy as np
 from pycalphad.core.composition_set cimport CompositionSet
@@ -790,6 +791,12 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                                                         fixed_stable_compset_indices)
     cdef SystemState state = SystemState(spec, compsets)
 
+    # Our call to LAPACK in invert_matrix uses multithreading, but most of the time it's
+    # slower than working on a single thread. We'll set single threaded here and reset
+    # back to the current value at the end.
+    cdef int omp_orig_num_threads = openmp.omp_get_max_threads()
+    openmp.omp_set_num_threads(1)
+
     if spec.prescribed_elemental_amounts.shape[0] > 0:
         allowed_mass_residual = min(1e-8, np.min(spec.prescribed_elemental_amounts)/10)
         # Also adjust mass residual if we are near the edge of composition space
@@ -861,4 +868,8 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     for cs_dof in state.dof[1:]:
         x = np.r_[x, cs_dof[num_statevars:]]
     x = np.r_[x, phase_amt]
+
+    # Reset OpenMP threads to the initial value
+    openmp.omp_set_num_threads(omp_orig_num_threads)
+
     return converged, x, np.array(state.chemical_potentials)
