@@ -617,9 +617,10 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
         state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
 
     # Update phase internal degrees of freedom
-    for idx, compset in enumerate(state.compsets):
+    for idx in range(len(state.compsets)):
         # TODO: Use better dof storage
         x = state.dof[idx]
+        compset = state.compsets[idx]
         csst = state.cs_states[idx]
 
         # Construct delta_y from Eq. 43 in Sundman 2015
