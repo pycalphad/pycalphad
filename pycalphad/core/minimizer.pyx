@@ -40,10 +40,11 @@ cdef void invert_matrix(double *A, int N, int* ipiv) nogil:
         for i in range(N**2):
             A[i] = -1e19
 
+@cython.boundscheck(False)
 cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
                                double[:, ::1] cons_jac_tmp, CompositionSet compset,
                                int num_statevars, double[::1] chemical_potentials, double[::1] phase_dof,
-                               int[::1] fixed_phase_dof_indices):
+                               int[::1] fixed_phase_dof_indices) nogil:
     "Compute the LHS of Eq. 41, Sundman 2015."
     cdef int comp_idx, i, j, cons_idx, fixed_dof_idx
     cdef int num_components = chemical_potentials.shape[0]
@@ -470,12 +471,14 @@ cdef class SystemState:
          self.delta_ms, self.phase_compositions, self.largest_statevar_change[0],
          self.largest_phase_amt_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
 
+    @cython.boundscheck(False)
     cdef void recompute(self, SystemSpecification spec):
         cdef int num_components = spec.num_components
         cdef CompositionSet compset
         cdef CompsetState csst
         cdef double[::1] x
-        cdef int idx, comp_idx, cons_idx, i, j, stable_idx, fixed_idx, component_idx, fixed_component_idx
+        cdef int idx, comp_idx, cons_idx, i, j, stable_idx, fixed_idx, component_idx, fixed_component_idx, num_phase_dof
+        cdef double mu_c_sum
         self.mole_fractions[:] = 0
         self.delta_ms[:, :] = 0
         self.system_amount = 0
