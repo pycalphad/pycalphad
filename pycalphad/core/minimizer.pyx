@@ -28,14 +28,17 @@ cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
             x[i] = -1e19
 
 @cython.boundscheck(False)
-cdef void invert_matrix(double *A, int N, double *A_inv_out, int* ipiv) nogil:
-    "A_inv_out should be the identity matrix; it will be overwritten."
+cdef void invert_matrix(double *A, int N, int* ipiv) nogil:
+    "A will be overwritten."
     cdef int info = 0
+    cdef double* work = <double*>malloc(N * sizeof(double))
 
-    cython_lapack.dgesv(&N, &N, A, &N, ipiv, A_inv_out, &N, &info)
+    cython_lapack.dgetrf(&N, &N, A, &N, ipiv, &info)
+    cython_lapack.dgetri(&N, A, &N, ipiv, work, &N, &info)
+    free(work)
     if info != 0:
         for i in range(N**2):
-            A_inv_out[i] = -1e19
+            A[i] = -1e19
 
 cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
                                double[:, ::1] cons_jac_tmp, CompositionSet compset,
@@ -507,9 +510,6 @@ cdef class SystemState:
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
             csst.phase_matrix[:,:] = 0
             csst.internal_cons[:] = 0
-            csst.full_e_matrix[:,:] = 0
-            for i in range(csst.full_e_matrix.shape[0]):
-                csst.full_e_matrix[i,i] = 1
             csst.hess[:,:] = 0
             csst.grad[:] = 0
 
@@ -522,8 +522,11 @@ cdef class SystemState:
 
             compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, compset, spec.num_statevars, self.chemical_potentials, x,
                                  csst.fixed_phase_dof_indices)
-
-            invert_matrix(&csst.phase_matrix[0,0], csst.phase_matrix.shape[0], &csst.full_e_matrix[0,0], &csst.ipiv[0])
+            # Copy the phase matrix into the e matrix and invert the e matrix
+            for i in range(csst.full_e_matrix.shape[0]):
+                for j in range(csst.full_e_matrix.shape[1]):
+                    csst.full_e_matrix[i,j] = csst.phase_matrix[i,j]
+            invert_matrix(&csst.full_e_matrix[0,0], csst.full_e_matrix.shape[0], &csst.ipiv[0])
 
             num_phase_dof = compset.phase_record.phase_dof
             csst.c_G[:] = 0
