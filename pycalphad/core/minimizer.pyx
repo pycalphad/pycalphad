@@ -559,13 +559,15 @@ cdef class SystemState:
         cdef double[::1] x
         cdef int num_components = self.chemical_potentials.shape[0]
         # This needs to be done per mole of atoms, not per formula unit, since we compare phases to each other
+        self._driving_forces[:] = 0
         for idx in range(len(self.compsets)):
             compset = self.compsets[idx]
             x = self.dof[idx]
             for comp_idx in range(num_components):
                 compset.phase_record.mass_obj(self._phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
+                self._driving_forces[idx] += self.chemical_potentials[comp_idx] * self._phase_amounts_per_mole_atoms[idx, comp_idx, 0]
             compset.phase_record.obj(self._phase_energies_per_mole_atoms[idx, :], x)
-            self._driving_forces[idx] = np.dot(self.chemical_potentials, self._phase_amounts_per_mole_atoms[idx, :, 0]) - self._phase_energies_per_mole_atoms[idx, 0]
+            self._driving_forces[idx] -= self._phase_energies_per_mole_atoms[idx, 0]
         return self._driving_forces
 
 
