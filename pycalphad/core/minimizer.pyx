@@ -49,13 +49,15 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
     cdef int comp_idx, i, j, cons_idx, fixed_dof_idx
     cdef int num_components = chemical_potentials.shape[0]
     compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
-    phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess[num_statevars:, num_statevars:]
 
-    phase_matrix[compset.phase_record.phase_dof:compset.phase_record.phase_dof+compset.phase_record.num_internal_cons,
-                 :compset.phase_record.phase_dof] = cons_jac_tmp[:, num_statevars:]
-    phase_matrix[:compset.phase_record.phase_dof,
-                 compset.phase_record.phase_dof:compset.phase_record.phase_dof+compset.phase_record.num_internal_cons] \
-        = cons_jac_tmp[:, num_statevars:].T
+    for i in range(compset.phase_record.phase_dof):
+        for j in range(compset.phase_record.phase_dof):
+            phase_matrix[i, j] = hess[num_statevars+i, num_statevars+j]
+
+    for i in range(compset.phase_record.num_internal_cons):
+        for j in range(compset.phase_record.phase_dof):
+            phase_matrix[compset.phase_record.phase_dof+i, j] = cons_jac_tmp[i, num_statevars+j]
+            phase_matrix[j, compset.phase_record.phase_dof+i] = cons_jac_tmp[i, num_statevars+j]
 
     for cons_idx in range(fixed_phase_dof_indices.shape[0]):
         fixed_dof_idx = fixed_phase_dof_indices[cons_idx]
