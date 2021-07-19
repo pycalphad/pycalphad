@@ -157,8 +157,8 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
     ----------
     dbf : Database
         A Database object
-    comps : List[v.Species]
-        List of active species
+    comps : List[Union[str, v.Species]]
+        List of active pure elements or species.
     phases : list
         List of phase names
     conds : dict or None
@@ -195,6 +195,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
     build the constraints and phase records.
 
     """
+    comps = sorted(unpack_components(dbf, comps))
     parameters = parameters if parameters is not None else {}
     callables = callables if callables is not None else {}
     _constraints = {
