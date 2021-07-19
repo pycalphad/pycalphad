@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.io package" href="pycalphad.io.html" /><link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
 
-    <meta name="generator" content="sphinx-4.0.2, furo 2021.06.24.beta37"/>
-        <title>pycalphad.core package - pycalphad 0.9.1.dev3+g669815c4 documentation</title>
+    <meta name="generator" content="sphinx-4.1.1, furo 2021.07.05.beta38"/>
+        <title>pycalphad.core package - pycalphad 0.9.1.dev4+gc1e61339 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css" />
@@ -87,7 +87,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.1.dev3+g669815c4 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.1.dev4+gc1e61339 documentation</div></a>
     </div>
     <div class="header-right">
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
@@ -104,7 +104,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev3+g669815c4 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev4+gc1e61339 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html">
   <input class="sidebar-search" placeholder=Search name="q">
@@ -141,7 +141,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing pycalphad</a></li>
 </ul>
@@ -657,10 +657,6 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.minimizer.check_convergence_and_change_phases">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">check_convergence_and_change_phases</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.check_convergence_and_change_phases" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-<dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.minimizer.find_solution">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">find_solution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.find_solution" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1007,7 +1003,7 @@ Return a matrix corresponding to the compositions of all endmembers.</p>
 <li><p><strong>dof</strong> (<em>list of int</em>) – Number of components in each sublattice.</p></li>
 <li><p><strong>vacancy_indices</strong> – If vacancies are present in every sublattice, specify their indices
 in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p></li>
-<li><p><strong>of list of int</strong> (<em>list</em>) – If vacancies are present in every sublattice, specify their indices
+<li><p><strong>int</strong> (<em>list of list of</em>) – If vacancies are present in every sublattice, specify their indices
 in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p></li>
 <li><p><strong>optional</strong> – If vacancies are present in every sublattice, specify their indices
 in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p></li>
