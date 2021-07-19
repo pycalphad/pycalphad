@@ -148,7 +148,7 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
 
 def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                         callables=None, parameters=None, verbose=False,
-                        build_gradients=False, build_hessians=False
+                        build_gradients=True, build_hessians=True
                         ):
     """
     Combine compiled callables and callables from conditions into PhaseRecords.
