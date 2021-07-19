@@ -139,7 +139,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None, to_xarray=True,
                 scheduler='sync', parameters=None, solver=None, callables=None,
-                **kwargs):
+                phase_records=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -180,6 +180,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Defaults to a pycalphad.core.solver.Solver.
     callables : dict, optional
         Pre-computed callable functions for equilibrium calculation.
+    phase_records : Optional[Mapping[str, PhaseRecord]]
+        Mapping of phase names to PhaseRecord objects with `'GM'` output. Must include
+        all active phases.
 
     Returns
     -------
@@ -236,10 +239,16 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = set(output)
     output |= {'GM'}
     output = sorted(output)
-    phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
-                                        output='GM', callables=callables,
-                                        parameters=parameters, verbose=verbose,
-                                        build_gradients=True, build_hessians=True)
+    if phase_records is None:
+        phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
+                                            output='GM', callables=callables,
+                                            parameters=parameters, verbose=verbose,
+                                            build_gradients=True, build_hessians=True)
+    else:
+        active_phases_without_phase_records = set(active_phases).difference(set(phase_records.keys()))
+        if len(active_phases_without_phase_records) > 0:
+            raise ValueError(f"phase_records must contain a PhaseRecord object for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
+
     if verbose:
         print('[done]', end='\n')
 
@@ -251,7 +260,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 50
     grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
-                     callables=callables, output='GM', parameters=parameters,
+                     phase_records=phase_records, output='GM', parameters=parameters,
                      to_xarray=False, **grid_opts)
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
