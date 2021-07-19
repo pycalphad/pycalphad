@@ -225,7 +225,7 @@ def _compute_phase_values(components, statevar_dict,
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, phase_records=None, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -266,6 +266,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         The density of points is determined by 'pdens'
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+    phase_records : Optional[Mapping[str, PhaseRecord]]
+        Mapping of phase names to PhaseRecord objects. Must include all active phases.
+        Callers must take care that the PhaseRecord objects were created with the same
+        `output` as passed to `calculate`.
 
     Returns
     -------
@@ -323,11 +327,20 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
     # Sort after default state variable check to fix gh-116
     statevar_dict = OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
-    phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
-                                   models=models, parameters=parameters,
-                                   output=output, callables=callables, build_gradients=False, build_hessians=False,
-                                   verbose=kwargs.pop('verbose', False))
     str_statevar_dict = OrderedDict((str(key), unpack_condition(value)) for (key, value) in statevar_dict.items())
+
+    # Build phase records if they weren't passed
+    if phase_records is None:
+        phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
+                                            models=models, parameters=parameters,
+                                            output=output, callables=callables,
+                                            build_gradients=False, build_hessians=False,
+                                            verbose=kwargs.pop('verbose', False))
+    else:
+        active_phases_without_phase_records = set(active_phases).difference(set(phase_records.keys()))
+        if len(active_phases_without_phase_records) > 0:
+            raise ValueError(f"phase_records must contain a PhaseRecord object for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
+
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
     for phase_name in sorted(active_phases):
         mod = models[phase_name]

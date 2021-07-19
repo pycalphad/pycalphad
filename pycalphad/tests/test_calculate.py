@@ -4,9 +4,11 @@ Model quantities correctly.
 """
 
 import pytest
-from pycalphad import Database, calculate, Model
+from pycalphad import Database, calculate, Model, variables as v
 import numpy as np
 from numpy.testing import assert_allclose
+from pycalphad.codegen.callables import build_phase_records
+from pycalphad.core.utils import instantiate_models
 from pycalphad import ConditionError
 from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB, CUMG_PARAMETERS_TDB
 
@@ -106,3 +108,17 @@ def test_single_model_instance_raises():
     mod = Model(DBF, comps, 'L12_FCC')  # Model instance does not match the phase
     with pytest.raises(ValueError):
         calculate(DBF, comps, ['LIQUID', 'L12_FCC'], T=1400.0, output='_fail_', model=mod)
+
+
+def test_missing_phase_records_passed_to_calculate_raises():
+    "calculate should raise an error if all the active phases are not included in the phase_records"
+    my_phases = ['LIQUID', 'FCC_A1']
+    subset_phases = ['FCC_A1']
+    comps = ['AL', 'FE', 'VA']
+
+    models = instantiate_models(ALFE_DBF, comps, subset_phases)
+    # Dummy conditions are just needed to get all the state variables into the PhaseRecord objects
+    phase_records = build_phase_records(ALFE_DBF, comps, subset_phases, {v.N: None, v.P: None, v.T: None}, models)
+
+    with pytest.raises(ValueError):
+        calculate(ALFE_DBF, comps, my_phases, T=1200, P=101325, N=1, phase_records=phase_records)
