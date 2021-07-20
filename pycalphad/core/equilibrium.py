@@ -3,6 +3,9 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 import warnings
+from collections import OrderedDict
+from collections.abc import Mapping
+from datetime import datetime
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models, get_state_variables
 from pycalphad import calculate
@@ -10,11 +13,11 @@ from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
+from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.solver import Solver
 from pycalphad.core.light_dataset import LightDataset
+from pycalphad.model import Model
 import numpy as np
-from collections import OrderedDict
-from datetime import datetime
 
 
 def _adjust_conditions(conds):
@@ -182,7 +185,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Pre-computed callable functions for equilibrium calculation.
     phase_records : Optional[Mapping[str, PhaseRecord]]
         Mapping of phase names to PhaseRecord objects with `'GM'` output. Must include
-        all active phases.
+        all active phases. The `model` argument must be a mapping of phase names to
+        instances of Model objects.
 
     Returns
     -------
@@ -212,7 +216,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
-    models = instantiate_models(dbf, comps, active_phases, model=model, parameters=parameters)
     # Temporary solution until constraint system improves
     if conditions.get(v.N) is None:
         conditions[v.N] = 1
@@ -225,7 +228,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     for cond in conds.keys():
         if isinstance(cond, (v.MoleFraction, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))
-    state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     components = [x for x in sorted(comps)]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
@@ -240,17 +242,27 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output |= {'GM'}
     output = sorted(output)
     if phase_records is None:
+        models = instantiate_models(dbf, comps, active_phases, model=model, parameters=parameters)
         phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
                                             output='GM', callables=callables,
                                             parameters=parameters, verbose=verbose,
                                             build_gradients=True, build_hessians=True)
     else:
-        active_phases_without_phase_records = set(active_phases).difference(set(phase_records.keys()))
+        # phase_records were provided, instantiated models must also be provided by the caller
+        models = model
+        if not isinstance(models, Mapping):
+            raise ValueError("A dictionary of instantiated models must be passed to `equilibrium` with the `model` argument if the `phase_records` argument is used.")
+        active_phases_without_models = [name for name in active_phases if not isinstance(models.get(name), Model)]
+        active_phases_without_phase_records = [name for name in active_phases if not isinstance(phase_records.get(name), PhaseRecord)]
         if len(active_phases_without_phase_records) > 0:
-            raise ValueError(f"phase_records must contain a PhaseRecord object for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
+            raise ValueError(f"phase_records must contain a PhaseRecord instance for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
+        if len(active_phases_without_models) > 0:
+            raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
     if verbose:
         print('[done]', end='\n')
+
+    state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
 
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts = calc_opts.copy()
