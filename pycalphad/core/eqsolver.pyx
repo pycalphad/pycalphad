@@ -82,6 +82,40 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
+cdef bint add_nearly_stable(object composition_sets, dict phase_records,
+                            object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
+                            double[::1] state_variables, double minimum_df, bint verbose) except *:
+    cdef list unrepresented_phases
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] driving_forces, sfx
+    cdef double[:,::1] current_grid_Y = grid.Y[*current_idx, ...]
+    cdef double[:,::1] current_grid_X = grid.X[*current_idx, ...]
+    cdef np.ndarray current_grid_Phase = grid.Phase[*current_idx, ...]
+    cdef np.ndarray idx_grid_for_phase
+    cdef unicode df_phase_name, phase_name
+    cdef CompositionSet compset = composition_sets[0]
+    cdef PhaseRecord phase_record
+    cdef int num_statevars = len(compset.phase_record.state_variables)
+    cdef int df_idx, minimum_df_idx
+    cdef bint phases_added = False
+    driving_forces = (chemical_potentials * current_grid_X).sum(axis=-1) - grid.GM[*current_idx, ...]
+    # Add unrepresented phases as metastable composition sets
+    # This should help catch phases around the limit of stability
+    for phase_name in phase_records.keys():
+        if phase_name in current_grid_Phase:
+            continue
+        phase_record = phase_records[phase_name]
+        idx_grid_for_phase = current_grid_Phase == phase_name
+        minimum_df_idx = np.argmax(driving_forces[idx_grid_for_phase])
+        if driving_forces[idx_grid_for_phase][minimum_df_idx] >= minimum_df:
+            phases_added = True
+            df_idx = idx_grid_for_phase[minimum_df_idx]
+            sfx = np.atleast_1d(current_grid_Y[df_idx, :phase_record.phase_dof])
+            compset = CompositionSet(phase_record)
+            compset.update(sfx, 0.0, state_variables)
+            if verbose:
+                print('Adding metastable ' + repr(compset) + ' Driving force: ' + str(driving_forces[idx_grid_for_phase][minimum_df_idx]))
+            composition_sets.append(compset)
+    return phases_added
 
 cpdef update_composition_sets(composition_sets, solver_result, remove_metastable=True):
     """
@@ -235,6 +269,8 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
+        add_nearly_stable(composition_sets, phase_records, grid, curr_idx, chemical_potentials,
+                          state_variable_values, -1000, verbose)
         #print('Composition Sets', composition_sets)
         phase_amt_sum = 0.0
         for compset in composition_sets:
