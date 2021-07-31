@@ -5,6 +5,7 @@ property surface of a system.
 
 import itertools
 from collections import OrderedDict
+from collections.abc import Mapping
 import numpy as np
 from numpy import broadcast_to
 import pycalphad.variables as v
@@ -12,6 +13,7 @@ from pycalphad import ConditionError
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.cache import cacheit
 from pycalphad.core.light_dataset import LightDataset
+from pycalphad.model import Model
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     filter_phases, instantiate_models, point_sample, \
@@ -225,7 +227,7 @@ def _compute_phase_values(components, statevar_dict,
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, phase_records=None, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -266,6 +268,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         The density of points is determined by 'pdens'
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+    phase_records : Optional[Mapping[str, PhaseRecord]]
+        Mapping of phase names to PhaseRecord objects. Must include all active phases.
+        The `model` argument must be a mapping of phase names to instances of Model
+        objects. Callers must take care that the PhaseRecord objects were created with
+        the same `output` as passed to `calculate`.
 
     Returns
     -------
@@ -282,6 +289,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     callables = kwargs.pop('callables', {})
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
+    model = kwargs.pop('model', None)
     parameters = parameters or dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
@@ -305,8 +313,6 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     if len(active_phases) == 0:
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
 
-    models = instantiate_models(dbf, comps, active_phases, model=kwargs.pop('model', None), parameters=parameters)
-
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
     output = output if output is not None else 'GM'
@@ -323,11 +329,28 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
     # Sort after default state variable check to fix gh-116
     statevar_dict = OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
-    phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
-                                   models=models, parameters=parameters,
-                                   output=output, callables=callables, build_gradients=False, build_hessians=False,
-                                   verbose=kwargs.pop('verbose', False))
     str_statevar_dict = OrderedDict((str(key), unpack_condition(value)) for (key, value) in statevar_dict.items())
+
+    # Build phase records if they weren't passed
+    if phase_records is None:
+        models = instantiate_models(dbf, comps, active_phases, model=model, parameters=parameters)
+        phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
+                                            models=models, parameters=parameters,
+                                            output=output, callables=callables,
+                                            build_gradients=False, build_hessians=False,
+                                            verbose=kwargs.pop('verbose', False))
+    else:
+        # phase_records were provided, instantiated models must also be provided by the caller
+        models = model
+        if not isinstance(models, Mapping):
+            raise ValueError("A dictionary of instantiated models must be passed to `equilibrium` with the `model` argument if the `phase_records` argument is used.")
+        active_phases_without_models = [name for name in active_phases if not isinstance(models.get(name), Model)]
+        active_phases_without_phase_records = [name for name in active_phases if not isinstance(phase_records.get(name), PhaseRecord)]
+        if len(active_phases_without_phase_records) > 0:
+            raise ValueError(f"phase_records must contain a PhaseRecord instance for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
+        if len(active_phases_without_models) > 0:
+            raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
+
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
     for phase_name in sorted(active_phases):
         mod = models[phase_name]

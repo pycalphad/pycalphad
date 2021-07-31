@@ -61,7 +61,7 @@ def test_phase_records_are_picklable():
     dof = np.array([300, 1.0])
 
     mod = Model(ALNIPT_DBF, ['AL'], 'LIQUID')
-    prxs = build_phase_records(ALNIPT_DBF, [v.Species('AL')], ['LIQUID'], {v.T: 300}, {'LIQUID': mod}, build_gradients=True, build_hessians=True)
+    prxs = build_phase_records(ALNIPT_DBF, [v.Species('AL')], ['LIQUID'], [v.T], {'LIQUID': mod}, build_gradients=True, build_hessians=True)
     prx_liquid = prxs['LIQUID']
 
     out = np.array([0.0])

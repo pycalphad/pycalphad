@@ -10,9 +10,9 @@ from sympy import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
-from pycalphad.codegen.callables import build_callables
+from pycalphad.codegen.callables import build_callables, build_phase_records
 from pycalphad.core.solver import SolverBase, Solver
-from pycalphad.core.utils import get_state_variables
+from pycalphad.core.utils import get_state_variables, instantiate_models
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -52,6 +52,57 @@ def test_eq_binary():
     conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
+
+
+def test_phase_records_passed_to_equilibrium():
+    "Pre-built phase records can be passed to equilibrium."
+    my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
+    comps = ['AL', 'FE', 'VA']
+    conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
+
+    models = instantiate_models(ALFE_DBF, comps, my_phases)
+    phase_records = build_phase_records(ALFE_DBF, comps, my_phases, conds, models)
+
+    # With models passed
+    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records)
+    assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
+
+
+def test_missing_models_with_phase_records_passed_to_equilibrium_raises():
+    "equilibrium should raise an error if all the active phases are not included in the phase_records"
+    my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
+    comps = ['AL', 'FE', 'VA']
+    conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
+
+    models = instantiate_models(ALFE_DBF, comps, my_phases)
+    phase_records = build_phase_records(ALFE_DBF, comps, my_phases, conds, models)
+
+    with pytest.raises(ValueError):
+        # model=models NOT passed
+        equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True, phase_records=phase_records)
+
+
+def test_missing_phase_records_passed_to_equilibrium_raises():
+    "equilibrium should raise an error if all the active phases are not included in the phase_records"
+    my_phases = ['LIQUID', 'FCC_A1']
+    subset_phases = ['FCC_A1']
+    comps = ['AL', 'FE', 'VA']
+    conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
+
+    models = instantiate_models(ALFE_DBF, comps, my_phases)
+    phase_records = build_phase_records(ALFE_DBF, comps, my_phases, conds, models)
+
+    models_subset = instantiate_models(ALFE_DBF, comps, subset_phases)
+    phase_records_subset = build_phase_records(ALFE_DBF, comps, subset_phases, conds, models_subset)
+
+    # Under-specified models
+    with pytest.raises(ValueError):
+        equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True, model=models_subset, phase_records=phase_records)
+
+    # Under-specified phase_records
+    with pytest.raises(ValueError):
+        equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records_subset)
+
 
 @pytest.mark.solver
 def test_eq_single_phase():
