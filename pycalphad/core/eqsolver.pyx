@@ -81,14 +81,24 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
+@cython.boundscheck(False)
+cdef int argmax(double* a, int a_shape) nogil:
+    cdef int i
+    cdef int result = 0
+    cdef double highest = -1e30
+    for i in range(a_shape):
+        if a[i] > highest:
+            highest = a[i]
+            result = i
+    return result
+
 def add_nearly_stable(object composition_sets, dict phase_records,
                       object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
                       double[::1] state_variables, double minimum_df, bint verbose):
-    cdef np.ndarray[ndim=1, dtype=np.float64_t] driving_forces, driving_forces_for_phase, sfx
+    cdef double[::1] driving_forces, driving_forces_for_phase
     cdef double[:,::1] current_grid_Y = grid.Y[*current_idx, ...]
     cdef double[:,::1] current_grid_X = grid.X[*current_idx, ...]
-    cdef np.ndarray current_grid_Phase = grid.Phase[*current_idx, ...]
-    cdef np.ndarray bool_grid_for_phase
+    cdef double[::1] current_grid_GM = grid.GM[*current_idx, ...]
     cdef unicode phase_name
     cdef CompositionSet compset = composition_sets[0]
     cdef set stable_phases = {compset.phase_record.phase_name for compset in composition_sets}
@@ -96,22 +106,21 @@ def add_nearly_stable(object composition_sets, dict phase_records,
     cdef int num_statevars = len(compset.phase_record.state_variables)
     cdef int df_idx, minimum_df_idx
     cdef bint phases_added = False
-    driving_forces = np.dot(current_grid_X, chemical_potentials) - grid.GM[*current_idx, ...]
+    driving_forces = np.dot(current_grid_X, chemical_potentials) - current_grid_GM
     # Add unrepresented phases as metastable composition sets
     # This should help catch phases around the limit of stability
     for phase_name in sorted(phase_records.keys()):
         if phase_name in stable_phases:
             continue
         phase_record = phase_records[phase_name]
-        bool_grid_for_phase = current_grid_Phase == phase_name
-        driving_forces_for_phase = np.extract(bool_grid_for_phase, driving_forces)
-        minimum_df_idx = np.argmax(driving_forces_for_phase)
+        phase_indices = grid.attrs['phase_indices'][phase_name]
+        driving_forces_for_phase = driving_forces[phase_indices.start:phase_indices.stop]
+        minimum_df_idx = argmax(&driving_forces_for_phase[0], driving_forces_for_phase.shape[0])
         if driving_forces_for_phase[minimum_df_idx] >= minimum_df:
             phases_added = True
-            df_idx = np.flatnonzero(bool_grid_for_phase)[minimum_df_idx]
-            sfx = np.atleast_1d(current_grid_Y[df_idx, :phase_record.phase_dof])
+            df_idx = phase_indices.start + minimum_df_idx
             compset = CompositionSet(phase_record)
-            compset.update(sfx, 0.0, state_variables)
+            compset.update(current_grid_Y[df_idx, :phase_record.phase_dof], 0.0, state_variables)
             if verbose:
                 print('Adding metastable ' + repr(compset) + ' Driving force: ' + str(driving_forces_for_phase[minimum_df_idx]))
             composition_sets.append(compset)
