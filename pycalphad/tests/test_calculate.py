@@ -118,7 +118,7 @@ def test_missing_phase_records_passed_to_calculate_raises():
 
     models = instantiate_models(ALFE_DBF, comps, subset_phases)
     # Dummy conditions are just needed to get all the state variables into the PhaseRecord objects
-    phase_records = build_phase_records(ALFE_DBF, comps, subset_phases, {v.N: None, v.P: None, v.T: None}, models)
+    phase_records = build_phase_records(ALFE_DBF, comps, subset_phases, [v.T, v.P, v.N], models)
 
     with pytest.raises(ValueError):
         calculate(ALFE_DBF, comps, my_phases, T=1200, P=101325, N=1, phase_records=phase_records)
