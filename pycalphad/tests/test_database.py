@@ -678,3 +678,11 @@ def test_tdb_parser_raises_unterminated_parameters():
     """
     with pytest.raises(ParseException):
         Database(UNTERMINATED_PARAM_STR)
+
+
+def test_load_database_when_given_in_lowercase():
+    "Test loading a database coerced to lowercase loads correctly."
+    dbf = Database.from_string(ALFE_TDB, fmt='tdb')
+    dbf_lower = Database.from_string(ALFE_TDB.lower(), fmt='tdb')
+
+    assert dbf == dbf_lower
