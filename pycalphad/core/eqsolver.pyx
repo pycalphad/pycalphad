@@ -101,7 +101,7 @@ def add_nearly_stable(object composition_sets, dict phase_records,
     cdef double[::1] current_grid_GM = grid.GM[*current_idx, ...]
     cdef unicode phase_name
     cdef CompositionSet compset = composition_sets[0]
-    cdef set stable_phases = {compset.phase_record.phase_name for compset in composition_sets}
+    cdef set entered_phases = {compset.phase_record.phase_name for compset in composition_sets}
     cdef PhaseRecord phase_record
     cdef int num_statevars = len(compset.phase_record.state_variables)
     cdef int df_idx, minimum_df_idx
@@ -110,7 +110,7 @@ def add_nearly_stable(object composition_sets, dict phase_records,
     # Add unrepresented phases as metastable composition sets
     # This should help catch phases around the limit of stability
     for phase_name in sorted(phase_records.keys()):
-        if phase_name in stable_phases:
+        if phase_name in entered_phases:
             continue
         phase_record = phase_records[phase_name]
         phase_indices = grid.attrs['phase_indices'][phase_name]
