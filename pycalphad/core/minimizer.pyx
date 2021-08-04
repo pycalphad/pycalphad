@@ -316,7 +316,10 @@ cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[:
         statevar_idx = free_statevar_indices[i]
         delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
     for i in range(delta_statevars.shape[0]):
-        psc = abs(delta_statevars[i] / dof[0][i])
+        if dof[0][i] != 0:
+            psc = abs(delta_statevars[i] / dof[0][i])
+        else:
+            psc = abs(delta_statevars[i])
         largest_statevar_change[0] = max(largest_statevar_change[0], psc)
 
 
