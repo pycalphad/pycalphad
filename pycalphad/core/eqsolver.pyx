@@ -1,5 +1,5 @@
 # distutils: language = c++
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -9,7 +9,6 @@ from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord
 from pycalphad.core.constants import *
-import pycalphad.variables as v
 
 
 cdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
@@ -32,7 +31,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     cdef CompositionSet compset = composition_sets[0]
     cdef int num_statevars = len(compset.phase_record.state_variables)
     cdef bint distinct = False
-    driving_forces = (chemical_potentials * current_grid_X).sum(axis=-1) - grid.GM[*current_idx, ...]
+    driving_forces = np.dot(current_grid_X, chemical_potentials) - grid.GM[*current_idx, ...]
     for i in range(driving_forces.shape[0]):
         if driving_forces[i] > largest_df:
             df_comp = current_grid_Y[i]
@@ -82,6 +81,50 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
+@cython.boundscheck(False)
+cdef int argmax(double* a, int a_shape) nogil:
+    cdef int i
+    cdef int result = 0
+    cdef double highest = -1e30
+    for i in range(a_shape):
+        if a[i] > highest:
+            highest = a[i]
+            result = i
+    return result
+
+def add_nearly_stable(object composition_sets, dict phase_records,
+                      object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
+                      double[::1] state_variables, double minimum_df, bint verbose):
+    cdef double[::1] driving_forces, driving_forces_for_phase
+    cdef double[:,::1] current_grid_Y = grid.Y[*current_idx, ...]
+    cdef double[:,::1] current_grid_X = grid.X[*current_idx, ...]
+    cdef double[::1] current_grid_GM = grid.GM[*current_idx, ...]
+    cdef unicode phase_name
+    cdef CompositionSet compset = composition_sets[0]
+    cdef set entered_phases = {compset.phase_record.phase_name for compset in composition_sets}
+    cdef PhaseRecord phase_record
+    cdef int num_statevars = len(compset.phase_record.state_variables)
+    cdef int df_idx, minimum_df_idx
+    cdef bint phases_added = False
+    driving_forces = np.dot(current_grid_X, chemical_potentials) - current_grid_GM
+    # Add unrepresented phases as metastable composition sets
+    # This should help catch phases around the limit of stability
+    for phase_name in sorted(phase_records.keys()):
+        if phase_name in entered_phases:
+            continue
+        phase_record = phase_records[phase_name]
+        phase_indices = grid.attrs['phase_indices'][phase_name]
+        driving_forces_for_phase = driving_forces[phase_indices.start:phase_indices.stop]
+        minimum_df_idx = argmax(&driving_forces_for_phase[0], driving_forces_for_phase.shape[0])
+        if driving_forces_for_phase[minimum_df_idx] >= minimum_df:
+            phases_added = True
+            df_idx = phase_indices.start + minimum_df_idx
+            compset = CompositionSet(phase_record)
+            compset.update(current_grid_Y[df_idx, :phase_record.phase_dof], 0.0, state_variables)
+            if verbose:
+                print('Adding metastable ' + repr(compset) + ' Driving force: ' + str(driving_forces_for_phase[minimum_df_idx]))
+            composition_sets.append(compset)
+    return phases_added
 
 cpdef update_composition_sets(composition_sets, solver_result, remove_metastable=True):
     """
@@ -235,6 +278,8 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
+        add_nearly_stable(composition_sets, phase_records, grid, curr_idx, chemical_potentials,
+                          state_variable_values, -1000, verbose)
         #print('Composition Sets', composition_sets)
         phase_amt_sum = 0.0
         for compset in composition_sets:

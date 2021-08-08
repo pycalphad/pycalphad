@@ -641,3 +641,20 @@ def test_eq_issue259():
     eq = equilibrium(dbf, comps, ['B2_BCC'], {v.P: 101325, v.N: 1, v.T: 1013, v.MU('AL'): -95906})
     assert_allclose(eq.GM.values, -65786.260)
     assert_allclose(eq.MU.values.flatten(), [-95906., -52877.592122])
+
+
+@pytest.mark.solver
+def test_eq_needs_metastable_starting():
+    """
+    Complex multi-component system with many phases near the starting hyperplane.
+    """
+    dbf = Database(MC_FECOCRNBTI_TDB)
+    phases = list(set(dbf.phases.keys()) - {'GP_MAT'})
+    mass_fracs = {v.W('CR'): 28./100, v.W('FE'): 21./100, v.W('NB'): 1./100, v.W('TI'): 1.3/100}
+    conds = v.get_mole_fractions(mass_fracs, 'CO', dbf)
+    conds[v.T] = 960
+    conds[v.P] = 1e5
+    conds[v.N] = 1
+    eq = equilibrium(dbf, ['CO', 'CR', 'FE', 'NB', 'TI', 'VA'], phases, conds)
+    assert set(np.squeeze(eq.Phase.values)) == {'SIGMA', 'BCC_A2', 'MU_PHASE', 'FCC_A1', 'LAVES_PHASE', ''}
+    assert_allclose(eq.GM.values, -46868.31620088)
