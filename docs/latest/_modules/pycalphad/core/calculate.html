@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.1.2, furo 2021.07.31.beta41"/>
-        <title>pycalphad.core.calculate - pycalphad 0.9.1.dev7+gf41c315e documentation</title>
+        <title>pycalphad.core.calculate - pycalphad 0.9.1.dev8+g8dffc5fc documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=daa650a7760fac3eee23aa959745d2c866b74cb3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=93475b62d1c3bc01323a0eefdc14a62d77b12690" />
@@ -120,7 +120,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.9.1.dev7+gf41c315e documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.9.1.dev8+g8dffc5fc documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -146,7 +146,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.1.dev7+gf41c315e documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.1.dev8+g8dffc5fc documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -583,6 +583,10 @@
                                          <span class="n">largest_energy</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">largest_energy</span><span class="p">),</span> <span class="n">fake_points</span><span class="o">=</span><span class="n">fp</span><span class="p">)</span>
         <span class="n">all_phase_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phase_ds</span><span class="p">)</span>
 
+    <span class="n">fp_offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_components</span><span class="p">)</span> <span class="k">if</span> <span class="n">fake_points</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">running_total</span> <span class="o">=</span> <span class="p">[</span><span class="n">fp_offset</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">([</span><span class="n">phase_ds</span><span class="p">[</span><span class="s1">'X'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">phase_ds</span> <span class="ow">in</span> <span class="n">all_phase_data</span><span class="p">]))</span>
+    <span class="n">islice_by_phase</span> <span class="o">=</span> <span class="p">{</span><span class="n">phase_name</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="n">running_total</span><span class="p">[</span><span class="n">phase_idx</span><span class="p">],</span> <span class="n">running_total</span><span class="p">[</span><span class="n">phase_idx</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">phase_idx</span><span class="p">,</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">active_phases</span><span class="p">))}</span>
     <span class="c1"># speedup for single-phase case (found by profiling)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_phase_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">concatenated_coords</span> <span class="o">=</span> <span class="n">all_phase_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span>
@@ -600,6 +604,7 @@
         <span class="n">final_ds</span> <span class="o">=</span> <span class="n">LightDataset</span><span class="p">(</span><span class="n">data_vars</span><span class="o">=</span><span class="n">concatenated_data_vars</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">concatenated_coords</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">final_ds</span> <span class="o">=</span> <span class="n">all_phase_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">final_ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'phase_indices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">islice_by_phase</span>
     <span class="k">if</span> <span class="n">to_xarray</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">final_ds</span><span class="o">.</span><span class="n">get_dataset</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
