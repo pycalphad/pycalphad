@@ -301,7 +301,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
     nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
-    nonvacant_elements = get_pure_elements(dbf, nonvacant_components)
+    nonvacant_elements = [x for x in get_pure_elements(dbf, comps) if x != 'VA']
 
     all_phase_data = []
     largest_energy = 1e10
