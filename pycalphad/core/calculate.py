@@ -16,7 +16,7 @@ from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
-    filter_phases, instantiate_models, point_sample, \
+    get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
 
 
@@ -301,9 +301,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
     nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
-    desired_active_pure_elements = [list(x.constituents.keys()) for x in comps]
-    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-    nonvacant_elements = sorted([x for x in set(desired_active_pure_elements) if x != 'VA'])
+    nonvacant_elements = get_pure_elements(dbf, nonvacant_components)
 
     all_phase_data = []
     largest_energy = 1e10
