@@ -16,7 +16,7 @@ from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
-    filter_phases, instantiate_models, point_sample, \
+    get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
 
 
@@ -301,6 +301,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
     nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
+    nonvacant_elements = get_pure_elements(dbf, comps)
 
     all_phase_data = []
     largest_energy = 1e10
@@ -368,7 +369,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                          largest_energy=float(largest_energy), fake_points=fp)
         all_phase_data.append(phase_ds)
 
-    fp_offset = len(nonvacant_components) if fake_points else 0
+    fp_offset = len(nonvacant_elements) if fake_points else 0
     running_total = [fp_offset] + list(np.cumsum([phase_ds['X'].shape[-2] for phase_ds in all_phase_data]))
     islice_by_phase = {phase_name: slice(running_total[phase_idx], running_total[phase_idx+1], None)
                        for phase_idx, phase_name in enumerate(sorted(active_phases))}

@@ -658,3 +658,45 @@ def test_eq_needs_metastable_starting():
     eq = equilibrium(dbf, ['CO', 'CR', 'FE', 'NB', 'TI', 'VA'], phases, conds)
     assert set(np.squeeze(eq.Phase.values)) == {'SIGMA', 'BCC_A2', 'MU_PHASE', 'FCC_A1', 'LAVES_PHASE', ''}
     assert_allclose(eq.GM.values, -46868.31620088)
+
+
+def test_eq_associate():
+    """
+    Associate model where the number of elements is different from the number of components (gh-367).
+    """
+    ASSOC_TDB = """
+    ELEMENT A BLANK 0.0 0.0 0.0 !
+    ELEMENT Q BLANK 0.0 0.0 0.0 !
+    SPECIES COMPA A1.0Q1.0 !
+    SPECIES COMPB Q2.0 !
+    SPECIES COMPC A1.0 !
+    SPECIES COMPD A1.5 !
+    TYPE_DEFINITION % SEQ * !
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    
+    PHASE PHASEA %  1 1.0 !
+    CONSTITUENT PHASEA :Q: !
+    
+    PHASE PHASEB %  1 1.0 !
+    CONSTITUENT PHASEB :Q: !
+    
+    PHASE PHASEC %  1 1.0 !
+    CONSTITUENT PHASEC :Q: !
+    
+    PHASE PHASED %  1 1.0 !
+    CONSTITUENT PHASED :Q: !
+    
+    PHASE PHASEE %  1 1.0 !
+    CONSTITUENT PHASEE :A: !
+    
+    PHASE PHASEF %  1 1.0 !
+    CONSTITUENT PHASEF :COMPB,COMPC: !
+    
+    PHASE PHASEG %  1 1.0 !
+    CONSTITUENT PHASEG :COMPA,COMPD: !
+    """
+    dbf = Database(ASSOC_TDB)
+    phases = list(set(dbf.phases.keys()))
+    conds = {v.X('Q'): 0.3, v.T: 500, v.P: 1e5, v.N: 1}
+    eq = equilibrium(dbf, ['A', 'Q'], phases, conds)
+    assert_allclose(eq.GM.values, -1736.981311)
