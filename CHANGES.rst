@@ -1,6 +1,14 @@
 What's New
 ==========
 
+0.9.2 (2021-08-12)
+------------------
+
+This is a minor release containing a bug fix for a regression introduced by the previous release.
+
+* FIX: Associate model computation in ``calculate`` when number of components is different from number of elements ( :issue:`367`, :issue:`368` )
+
+
 0.9.1 (2021-08-08)
 ------------------
 
