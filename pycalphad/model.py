@@ -11,8 +11,8 @@ from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
 import numpy as np
-from collections import OrderedDict
-
+from collections import OrderedDict, Counter
+#from pycalphad.io.database import Database
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols
 _MAX_PARAM_NESTING = 32
@@ -119,6 +119,8 @@ class Model(object):
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
                      ('ord', 'atomic_ordering_energy')]
     def __init__(self, dbe, comps, phase_name, parameters=None):
+#        print(comps,phase_name)
+        
         self._dbe = dbe
         self._endmember_reference_model = None
         self.components = set()
@@ -130,6 +132,7 @@ class Model(object):
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(active_species)
             self.components |= subl_comps
+          
             # Support for variable site ratios in ionic liquid model
             if phase.model_hints.get('ionic_liquid_2SL', False):
                 if idx == 0:
@@ -178,13 +181,18 @@ class Model(object):
         desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements
                                         for el in constituents]
+#        print(desired_active_pure_elements)
         self.pure_elements = sorted(set(desired_active_pure_elements))
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
+#        print(self.pure_elements)
+#        print(self.nonvacant_elements)
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
         symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
+        
 
+        
         if parameters is not None:
             self._parameters_arg = parameters
             if isinstance(parameters, dict):
@@ -195,18 +203,25 @@ class Model(object):
                     symbols.pop(wrap_symbol(s))
         else:
             self._parameters_arg = None
-
+            
         self._symbols = {wrap_symbol(key): value for key, value in symbols.items()}
 
         self.models = OrderedDict()
+#        print('self.models, my dude',dbe)
+#        print('LOS self variables 1',self.variables)
+        
         self.build_phase(dbe)
+        
+#        print('LOS self variables 2',self.variables)
+#        print('understand _myclass_',self.__class__.)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
-
+            
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
-
+#        print(self.site_fractions,self.state_variables)
+        
     @staticmethod
     def symbol_replace(obj, symbols):
         """
@@ -396,15 +411,20 @@ class Model(object):
         dbe : Database
         """
         contrib_vals = list(OrderedDict(self.__class__.contributions).values())
+#        print('contrib_vals',contrib_vals)
         if 'atomic_ordering_energy' in contrib_vals:
             if contrib_vals.index('atomic_ordering_energy') != (len(contrib_vals) - 1):
                 # Check for a common mistake in custom models
                 # Users that need to override this behavior should override build_phase
                 raise ValueError('\'atomic_ordering_energy\' must be the final contribution')
         self.models.clear()
+#        print('At build_phase function',self.models)
         for key, value in self.__class__.contributions:
+#            print(key,value)
             self.models[key] = S(getattr(self, value)(dbe))
-
+#        print('At build_phase function 2',self.models)
+#        print('self class, At build_phase',self.__class__.contributions)
+            
     def _array_validity(self, constituent_array):
         """
         Return True if the constituent_array contains only active species of the current Model instance.
@@ -454,6 +474,7 @@ class Model(object):
         for idx, sublattice in enumerate(self.constituents):
             active = set(sublattice).intersection(self.components)
             subl_content = sum(spec.number_of_atoms * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+
             site_ratio_normalization += self.site_ratios[idx] * subl_content
         return site_ratio_normalization
 
@@ -499,6 +520,8 @@ class Model(object):
             mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
                 comp_symbols = None
+#                print('this is comps',comps)
+#                print('constituent array',self._purity_test(param['constituent_array']))
                 # convert strings to symbols
                 if comps[0] == v.Species('*'):
                     # Handle wildcards in constituent array
@@ -637,10 +660,15 @@ class Model(object):
             (where('parameter_type') == "G") & \
             (where('constituent_array').test(self._purity_test))
         )
+ #       print(dbe.search(pure_param_query))
+#        print('pure_param_query',pure_param_query)
         phase = dbe.phases[self.phase_name]
+#        print('This is ref_ene phase',phase)
         param_search = dbe.search
+#        print('This is param search',param_search)
         pure_energy_term = self.redlich_kister_sum(phase, param_search,
                                                    pure_param_query)
+#        print('pure_energy',pure_energy_term)
         return pure_energy_term / self._site_ratio_normalization
 
     def ideal_mixing_energy(self, dbe):
@@ -1157,13 +1185,15 @@ class Model(object):
         model_pure_elements = set(get_pure_elements(dbe, self.components))
         refstate_pure_elements_list = get_pure_elements(dbe, [r.species for r in reference_states])
         refstate_pure_elements = set(refstate_pure_elements_list)
+
         if len(refstate_pure_elements_list) != len(refstate_pure_elements):
-            raise DofError("Multiple ReferenceState objects exist for at least one pure element: {}".format(refstate_pure_elements_list))
+            raise DofError("Multiple ReferenceState objects exist for at least one pure element:{}".format(refstate_pure_elements_list)) 
+                             
         if not refstate_pure_elements.issuperset(model_pure_elements):
-            raise DofError("Non-existent ReferenceState for pure components {} in {} for {}".format(model_pure_elements.difference(refstate_pure_elements), self, self.phase_name))
-
+            raise DofError("Non-existent ReferenceState for pure components {} in {} for {}".format(model_pure_elements.difference(refstate_pure_elements), self, self.phase_name))  
+            
         contrib_mods = contrib_mods or {}
-
+            
         def _pure_element_test(constituent_array):
             all_comps = set()
             for sublattice in constituent_array:
@@ -1171,13 +1201,15 @@ class Model(object):
                     return False
                 all_comps.add(sublattice[0].name)
             pure_els = all_comps.intersection(model_pure_elements)
-            return len(pure_els) == 1
-
+            return len(pure_els) == 1   
+        
         # Remove interactions from a copy of the Database, avoids any element/VA interactions.
         endmember_only_dbe = copy.deepcopy(dbe)
         endmember_only_dbe._parameters.remove(~where('constituent_array').test(_pure_element_test))
-        reference_dict = {out: [] for out in output}  # output: terms list
+        reference_dict = {out: [] for out in output}  # output: terms list        
+
         for ref_state in reference_states:
+
             if ref_state.species not in self.components:
                 continue
             mod_pure = self.__class__(endmember_only_dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)
@@ -1187,21 +1219,46 @@ class Model(object):
             # set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix
             site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
             for mod_key, mod_val in mod_pure.models.items():
+#                    print(mod_key, mod_val)
                 mod_pure.models[mod_key] = self.symbol_replace(mod_val, site_frac_subs)
+#                print(mod_pure.models)    
             moles = self.moles(ref_state.species)
+#                print(moles)
             # get the output property of interest, substitute the fixed state variables (e.g. T=298.15) and add the pure element moles weighted term to the list of terms
             # substitution of fixed state variables has to happen after getting the attribute in case there are any derivatives involving that state variable
             for out in reference_dict.keys():
                 mod_out = self.symbol_replace(getattr(mod_pure, out), ref_state.fixed_statevars)
                 reference_dict[out].append(mod_out*moles)
+#                    print('This is mod_out',mod_out)
+#                    print('This is reference_dict',reference_dict)
 
-        # set the attribute on the class
-        for out, terms in reference_dict.items():
-            reference_contrib = Add(*terms)
-            referenced_value = getattr(self, out) - reference_contrib
-            setattr(self, fmt_str.format(out), referenced_value)
+            # set the attribute on the class
+            for out, terms in reference_dict.items():
+#                print(out,terms)
+                reference_contrib = Add(*terms)
+                referenced_value = getattr(self, out) - reference_contrib
+                setattr(self, fmt_str.format(out), referenced_value)
+        else:
+            for ref_state in reference_states:
 
-
+                mod_pure = self.__class__(endmember_only_dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)   
+#                print(ref_state)    
+#                print(endmember_only_dbe)
+#                print([ref_state.species, v.Species('VA')])
+#                print(ref_state.phase_name)
+#                print(self._parameters_arg)
+#                print(mod_pure)
+#                print(type(mod_pure))
+                
+                for contrib, new_val in contrib_mods.items():
+                    mod_pure.models[contrib] = new_val
+                    
+#                site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
+#                print(mod_pure.ast.free_symbols)
+#                print(ref_state,site_frac_subs)
+#                for sf in mod_pure.ast.free_symbols:
+#                    print(sf)
+                
 class TestModel(Model):
     """
     Test Model object for global minimization.

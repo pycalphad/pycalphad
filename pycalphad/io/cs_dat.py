@@ -624,10 +624,12 @@ class ExcessQuadruplet:
         # TODO: don't store empty parameters. Store exponents.
         indices=[count for count,i in enumerate(self.excess_coeffs)]
         parameter_G=self.expr(indices)
-
         dbf.add_parameter('EXMG', phase_name, constituent_array, index, parameter_G, diffusing_species=None, force_insert=False)
-        if sum(self.mixing_exponents)==1 and self.additional_mixing_const==0:
+#        print(self.mixing_exponents, self.additional_mixing_const==0)
+# THIS USED TO BE if sum(self.mixing_exponents)==1 and self.additional_mixing_const==0: BEFORE I CHANGED THE IF STATEMENT BELOW 
+        if sum(self.mixing_exponents)!=0 and self.additional_mixing_const==0:
             specie_order=[count for count,par in enumerate(self.mixing_exponents) if par!=0 ]
+#            print('binary array',binary_array,specie_order)
             for count,mix_exp in enumerate(self.mixing_exponents):
                 parameter_order=count+1+index
                 parameter=mix_exp
@@ -637,6 +639,8 @@ class ExcessQuadruplet:
             for count,mix_exp in enumerate(self.mixing_exponents):
                 parameter_order=count+1+index
                 parameter=mix_exp
+#                print('else part of if statement',parameter)
+#                print(linear_species,self.additional_mixing_const)
                 dbf.add_parameter('EXMQ', phase_name, constituent_array,
                                   parameter_order, parameter, diffusing_species=linear_species[self.additional_mixing_const], force_insert=False)
 
@@ -682,7 +686,7 @@ class Phase_SUBQ(PhaseBase):
     subl_const_idx_pairs: [(int,)]
     quadruplets: [Quadruplet]
     excess_parameters: [ExcessQuadruplet]
-
+    phase_type= [str]
     def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
         # There are some tricky things to handle for quadruplet formalism
         # All AB:XY quadruplets are the constituents and they exist on one
@@ -730,20 +734,27 @@ class Phase_SUBQ(PhaseBase):
         # TODO: can model hints give us the map we need from the mangled
         #       species names to the real species (and give us a way to compute
         #       mass)?
-
-        
-        model_hints = {
-            'mqmqa': {
-                'chemical_groups': {'cations': dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups))
-                                    , 'anions': dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups))}
-            }
-        }
-
-
+        model_hints={}
+        model_hints['mqmqa']={}        
+        model_hints['mqmqa']['chemical_groups']={}        
+#        model_hints = {
+#            'mqmqa': {
+#                'chemical_groups': {'cations': dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups))
+#                                    , 'anions': dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups))}
+#            }
+#        }
+###LOOK AT HOW TO UPDATE THIS BETTER
+        model_hints['mqmqa']['chemical_groups']['cations']=dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups))
 #        model_hints = {
 #            'mqmqa': list(map(_species, tot_ele))
-#        }       
+#        } 
 
+        model_hints['mqmqa']['chemical_groups']['anions']=dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups))
+#        model_hints = {
+#            'mqmqa': list(map(_species, tot_ele))
+#        } 
+
+        model_hints['mqmqa']['type']=self.phase_type
         dbf.add_phase(self.phase_name, model_hints, sublattices=[1.0])
         dbf.add_phase_constituents(self.phase_name, [cations, anions])
 
@@ -1112,7 +1123,10 @@ def parse_phase(toks, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs, nu
     phase_name = toks.parse(str)
     phase_type = toks.parse(str)
     if phase_type in ('SUBQ', 'SUBG'):
+#        model_hints={}
+#        model_hints['mqmqa']={}
         phase = parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs)
+#        model_hints['mqmqa']['type']=phase_type
     elif phase_type == 'IDVD':
         phase = parse_phase_real_gas(toks, phase_name, phase_type, num_pure_elements, num_gibbs_coeffs, num_const)
     elif phase_type == 'IDWZ':
@@ -1127,6 +1141,8 @@ def parse_phase(toks, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs, nu
 
 def parse_stoich_phase(toks, num_pure_elements, num_gibbs_coeffs):
     endmember = parse_endmember(toks, num_pure_elements, num_gibbs_coeffs, is_stoichiometric=True)
+
+
     phase_name = endmember.species_name
     return Phase_Stoichiometric(phase_name, None, [endmember])
 

@@ -330,9 +330,12 @@ def _process_typedef(targetdb, typechar, line):
             raise ValueError(f"The {disordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
     if keyword == 'MQMQA':
         token=tokens[4:]
+#        print(token.index('TYPE'))
         # This is for mqmqa I don't know what I am doing yet though....
         in_cat=[i for num,i in enumerate(token) if num<token.index('ANIONS') and i !='CATIONS']
         in_an=[i for num,i in enumerate(token) if num>token.index('ANIONS')]
+        in_type=[i for num,i in enumerate(token) if num>token.index('TYPE')]
+#        print(in_type)        
         chemical_group={'cations':{},'anions':{}}
         species_cat=[i for i in targetdb.species if i.name in in_cat]
         species_an=[i for i in targetdb.species if i.name in in_an]
@@ -350,9 +353,10 @@ def _process_typedef(targetdb, typechar, line):
                 Janions[i]=a
         chemical_group['cations']=Jcations
         chemical_group['anions']=Janions
-
+#        mqmqa_type=model_hints['mqmqa']['type']
+        
         model_hints = {
-            'mqmqa': {'chemical_groups':chemical_group}
+            'mqmqa': {'chemical_groups':chemical_group, 'type':in_type[0]}
         }
         for phase_name in matching_phases:
             targetdb.phases[phase_name].model_hints.update(model_hints)
@@ -836,10 +840,11 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             new_char = typedef_chars.pop()
             typedefs[name].append(new_char)
             chemical_groups = model_hints['mqmqa']['chemical_groups']
+            mqmqa_type=model_hints['mqmqa']['type']
             cations = ' '.join([f'{species.name} {group_index}' for species, group_index in chemical_groups.get('cations', {}).items()])
             anions = ' '.join([f'{species.name} {group_index}' for species, group_index in chemical_groups.get('anions', {}).items()])
-            output += 'TYPE_DEFINITION {} GES AMEND_PHASE_DESCRIPTION {} MQMQA CATIONS {} ANIONS {} !\n'\
-                .format(new_char,name.upper(),cations,anions)
+            output += 'TYPE_DEFINITION {} GES AMEND_PHASE_DESCRIPTION {} MQMQA CATIONS {} ANIONS {} TYPE {} !\n'\
+                .format(new_char,name.upper(),cations,anions,mqmqa_type)
             del model_hints['mqmqa']
         if 'ihj_magnetic_afm_factor' in model_hints.keys():
             new_char = typedef_chars.pop()
