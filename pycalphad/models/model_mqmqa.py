@@ -525,7 +525,7 @@ class ModelMQMQA:
 #                        print('fifth term',term5,A,B,X,Y)
                         final_term=term1*(term2+term3+term4+term5)
                         surf+=p(A,B,X,Y)*final_term
-        return surf#/self.normalization
+        return surf/self.normalization
 
 
     def reference_energy(self, dbe):
@@ -607,7 +607,7 @@ class ModelMQMQA:
                         self.t4 = p(A,B,X,Y)*log(p(A,B,X,Y)/(factor * (ξ(A,X)**(1))*(ξ(A,Y)**(1))*(ξ(B,X)**(1))*(ξ(B,Y)**(1)) / ((w(A)**(0.5))*(w(B)**(0.5))*(w(X)**(0.5))*(w(Y)**(0.5)))))
     #                        self.t4 += p(A,B,X,Y)*log(p(A,B,X,Y)/(factor*(ξ(A,X)*ξ(A,Y)*ξ(B,X)*ξ(B,Y))**(0.75) / (w(A)*w(B)*w(X)*w(Y))**(0.5)))
 #                        self.t4 += factor * ξ(A,X)*ξ(A,Y)*ξ(B,X)*ξ(B,Y) / (w(A)*w(B)*w(X)*w(Y))
-        return Sid*v.T*v.R#/self.normalization#(self.t1+self.t2+self.t3+self.t4)
+        return Sid*v.T*v.R/self.normalization#(self.t1+self.t2+self.t3+self.t4)
 
 
     def excess_mixing_t1(self,dbe,constituent_array):
@@ -898,7 +898,7 @@ class ModelMQMQA:
 #            print('part 2',X_ex_1,X_ex_2,exp,coeff,X_ex_0)
             X_ex+=self.excess_mixing_t1(dbe,param['constituent_array'])*coeff*X_ex_1*(X_ex_2/exp)*X_ex_0
 #used to multiplt X_ex_0 paramter. But I don't think it does anything anymore
-        return X_ex#/self.normalization
+        return X_ex/self.normalization
 
     def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):
         """

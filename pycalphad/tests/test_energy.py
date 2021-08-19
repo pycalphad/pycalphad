@@ -676,26 +676,26 @@ def test_MQMQA_site_fraction_energy():
 
     mod = ModelMQMQA(VIITALA_DBF,['CU','ZN','FE','CL'], 'LIQUIDSOLN')
 
-    subs_dict ={mod._p(CU1,CU1,CL,CL): 0.11658 ,
-                mod._p(FE3,FE3,CL,CL): 1.2866E-29 ,
-                mod._p(FE2,FE2,CL,CL): 0.11134 ,
-                mod._p(CU2,CU2,CL,CL): 9.4530E-35 ,
-                mod._p(ZN,ZN,CL,CL):  0.12170 ,
-                mod._p(CU1,FE3,CL,CL): 2.0667E-15 ,
-                mod._p(CU1,CU2,CL,CL): 5.9018E-18 ,
-                mod._p(CU2,FE3,CL,CL): 6.9749E-32 ,
-                mod._p(CU1,FE2,CL,CL): 0.22711 ,
-                mod._p(FE2,FE3,CL,CL): 2.6993E-15 ,
-                mod._p(CU1,ZN,CL,CL): 0.20640 ,
-                mod._p(CU2,FE2,CL,CL): 7.2080E-18 ,
-                mod._p(FE3,ZN,CL,CL): 5.4157E-15 ,
-                mod._p(CU2,ZN,CL,CL): 5.6356E-18 ,
-                mod._p(FE2,ZN,CL,CL): 0.21687 ,
-                v.T: 600
+    subs_dict ={mod._p(CU1,CU1,CL,CL): 3.6411159329213960E-002,
+                mod._p(FE3,FE3,CL,CL): 0.19187702069719115,
+                mod._p(FE2,FE2,CL,CL): 6.6706457325108374E-004,
+                mod._p(CU2,CU2,CL,CL): 7.4480630453876051E-004,
+                mod._p(ZN,ZN,CL,CL): 6.3597725840616029E-002,
+                mod._p(CU1,FE3,CL,CL): 0.26054793342102595,
+                mod._p(CU1,CU2,CL,CL): 1.1687135533100841E-002,
+                mod._p(CU2,FE3,CL,CL): 2.3762278972894308E-002,
+                mod._p(CU1,FE2,CL,CL): 1.1060387601365204E-002,
+                mod._p(FE2,FE3,CL,CL): 2.5177769772622496E-002,
+                mod._p(CU1,ZN,CL,CL): 9.3472468895210881E-002,
+                mod._p(CU2,FE2,CL,CL): 1.6621696354116697E-003,
+                mod._p(FE3,ZN,CL,CL): 0.25634822067819923,
+                mod._p(CU2,ZN,CL,CL): 1.1808559140386612E-002,
+                mod._p(FE2,ZN,CL,CL): 1.1175299604972171E-002,
+                v.T: 800
                 }
 
-    check_energy(mod, subs_dict, -138473.75, mode='sympy')
-    assert np.isclose(float(mod.moles('CU').subs(subs_dict)), 0.125,1e-5)
-    assert np.isclose(float(mod.moles('CL').subs(subs_dict)), 0.625,1e-5)
-    assert np.isclose(float(mod.moles('ZN').subs(subs_dict)), 0.125,1e-5)
-    assert np.isclose(float(mod.moles('FE').subs(subs_dict)), 0.125,1e-5)
+    check_energy(mod, subs_dict,-1.47867E+05, mode='sympy')
+    assert np.isclose(float(mod.moles('CU').subs(subs_dict)), 0.07692307692,1e-5)
+    assert np.isclose(float(mod.moles('CL').subs(subs_dict)), 0.6923076923,1e-5)
+    assert np.isclose(float(mod.moles('ZN').subs(subs_dict)), 0.07692307692,1e-5)
+    assert np.isclose(float(mod.moles('FE').subs(subs_dict)), 0.15384615384,1e-5)

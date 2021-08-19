@@ -617,18 +617,20 @@ def test_MQMQA_equilibrium():
     
 def test_MQMQA_equilibrium_symmetry_fe2():
 
-    comps = ['CU','FE','ZN','CL']  # other pure element component names that you want
-#    phases = ['CL2(G)', 'FE_BCC(S)','CU_SOLID(S)','ZN_SOLID(S)','PB_SOLID(S)','ZNFESOLN', 'FEZNSOLN', 'LIQUIDSOLN', 'CUCL']
-    phases = ['LIQUIDSOLN']
+    comps=['CU','FE','CL','ZN']
+
+    phase=['LIQUIDSOLN']
+
     conds = {v.N: 1, v.P: 101325, v.T: 600, v.X('FE'): 0.125, v.X('CU'): 0.125,v.X('CL'): 0.625}
 
     model = {'LIQUIDSOLN': ModelMQMQA}
-    eq = equilibrium(VIITALA_DBF_SYMMETRY_FE_2 , comps, phases, conds, model=model)
+    eq = equilibrium(VIITALA_DBF_SYMMETRY_FE_2 , comps, phase, conds, model=model)
 
     print(eq.Phase.values.squeeze())
     print(eq.NP.values.squeeze())
+    print(eq.GM.values.squeeze())
 
-    assert np.isclose(eq.GM, -1.38673E+05, 1e-5)  # value from Thermochimica
+    assert np.isclose(eq.GM,-1.38673E+05, 1e-5)  # value from Thermochimica
 
 def test_MQMQA_equilibrium_symmetry_zn():
 
@@ -643,7 +645,7 @@ def test_MQMQA_equilibrium_symmetry_zn():
     print(eq.Phase.values.squeeze())
     print(eq.NP.values.squeeze())
 
-    assert np.isclose(eq.GM, -1.38747E+05, 1e-5)  # value from Thermochimica   
+    assert np.isclose(eq.GM, -1.38747E+05, 1e-5)  # value from Thermochimica 
     
 def test_MQMQA_equilibrium_symmetry_cu_1():
 
@@ -657,5 +659,5 @@ def test_MQMQA_equilibrium_symmetry_cu_1():
 
     print(eq.Phase.values.squeeze())
     print(eq.NP.values.squeeze())
-
+    
     assert np.isclose(eq.GM, -1.38882E+05, 1e-5)  # value from Thermochimica     
