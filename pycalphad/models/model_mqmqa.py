@@ -424,8 +424,9 @@ class ModelMQMQA:
         Z = partial(self.Z, dbe)
         Coa=Z(A,A,B,X,Y)
         Cox=Z(X,A,B,X,Y)
+#        print(Coa,Cox)
         ratio_C=Coa/Cox
-        if ratio_C==int(ratio_C):
+        if ratio_C==ratio_C:
             fin_Coa=1
         else:
             frac=Fraction(ratio_C).limit_denominator()

@@ -624,7 +624,7 @@ def test_MQMQA_equilibrium_symmetry_fe2():
     conds = {v.N: 1, v.P: 101325, v.T: 600, v.X('FE'): 0.125, v.X('CU'): 0.125,v.X('CL'): 0.625}
 
     model = {'LIQUIDSOLN': ModelMQMQA}
-    eq = equilibrium(VIITALA_DBF_SYMMETRY_FE_2 , comps, phase, conds, model=model)
+    eq = equilibrium(VIITALA_DBF_SYMMETRY_FE_2 , comps, phase, conds, model=model, calc_opts={'pdens': 2000})
 
     print(eq.Phase.values.squeeze())
     print(eq.NP.values.squeeze())
