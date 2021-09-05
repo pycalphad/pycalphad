@@ -789,6 +789,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef int[::1] metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
     cdef int[::1] times_compset_removed = np.zeros(len(compsets), dtype=np.int32)
     cdef bint converged = False
+    cdef bint phases_changed
     cdef SystemSpecification spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
                                                         initial_chemical_potentials, prescribed_elemental_amounts,
                                                         prescribed_element_indices,
@@ -814,27 +815,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         previous_chemical_potentials[:] = state.chemical_potentials[:]
 
         eq_soln = solve_state(spec, state)
-        # TODO: refactor to only advance if the phases won't change and if we aren't converged (i.e. later)
-        advance_state(spec, state, eq_soln, step_size)
-
-
-        # In most cases, the chemical potentials should be decreasing and the
-        # largest_chemical_potential_difference could be negative. The following check
-        # against the differences will only prevent phases from being removed if the
-        # chemical potentials _increase_ by more than 1 J. It may make more sense to
-        # adjust the condition based on the absolute value of the differences.
-        largest_chemical_potential_difference = -np.inf
-        for comp_idx in range(num_components):
-            largest_chemical_potential_difference = max(largest_chemical_potential_difference, state.chemical_potentials[comp_idx] - previous_chemical_potentials[comp_idx])
-
-        if ((state.mass_residual > 1e-2) and (largest_chemical_potential_difference > 1.0)) or (iteration == 0):
-            # When mass residual is not satisfied, do not allow phases to leave the system
-            # However, if the chemical potentials are changing very little, phases may leave the system
-            for j in range(state.phase_amt.shape[0]):
-                if state.phase_amt[j] < 0:
-                    state.phase_amt[j] = 1e-8
-
-        remove_and_consolidate_phases(spec, state)
 
         # Only include chemical potential difference if chemical potential conditions were enabled
         # XXX: This really should be a condition defined in terms of delta_m, because chempot_diff is only necessary
@@ -847,6 +827,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         system_is_feasible = (state.mass_residual < allowed_mass_residual) and \
                              np.all(chempot_diff < 1e-12) and (state.iteration > 5) and np.all(np.abs(state.delta_ms) < 1e-9) and (iterations_since_last_phase_change >= 5)
+        phases_changed = False
         if system_is_feasible:
             phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed)
             if phases_changed:
@@ -861,6 +842,27 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                 metastable_phase_iterations[idx] = 0
             else:
                 metastable_phase_iterations[idx] += 1
+
+        if not phases_changed:
+            advance_state(spec, state, eq_soln, step_size)
+
+            # In most cases, the chemical potentials should be decreasing and the
+            # largest_chemical_potential_difference could be negative. The following check
+            # against the differences will only prevent phases from being removed if the
+            # chemical potentials _increase_ by more than 1 J. It may make more sense to
+            # adjust the condition based on the absolute value of the differences.
+            largest_chemical_potential_difference = -np.inf
+            for comp_idx in range(num_components):
+                largest_chemical_potential_difference = max(largest_chemical_potential_difference, state.chemical_potentials[comp_idx] - previous_chemical_potentials[comp_idx])
+
+            if ((state.mass_residual > 1e-2) and (largest_chemical_potential_difference > 1.0)) or (iteration == 0):
+                # When mass residual is not satisfied, do not allow phases to leave the system
+                # However, if the chemical potentials are changing very little, phases may leave the system
+                for j in range(state.phase_amt.shape[0]):
+                    if state.phase_amt[j] < 0:
+                        state.phase_amt[j] = 1e-8
+
+            remove_and_consolidate_phases(spec, state)
 
     #if not converged:
     #    raise ValueError('Not converged')
