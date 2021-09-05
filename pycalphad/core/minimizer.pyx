@@ -588,7 +588,7 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
     return equilibrium_soln
 
 
-# TODO: pass this in from the solution or store it in the state(?)
+# TODO: should we store equilibrium_soln in the state(?)
 cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equilibrium_soln, double step_size):
     cdef bint exceeded_bounds
     cdef double minimum_step_size, phase_amt_change, psc
