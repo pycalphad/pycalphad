@@ -290,38 +290,6 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
     equilibrium_rhs[system_amount_index] -= system_residual
 
 
-cdef void extract_equilibrium_solution(double[::1] chemical_potentials, double[::1] phase_amt, double[::1] delta_statevars,
-                                 int[::1] free_chemical_potential_indices, int[::1] free_statevar_indices,
-                                 int[::1] free_stable_compset_indices, double[::1] equilibrium_soln,
-                                 double[:] largest_statevar_change, double[:] largest_phase_amt_change, list dof):
-    cdef int i, idx, chempot_idx, compset_idx, statevar_idx
-    cdef int num_statevars = delta_statevars.shape[0]
-    cdef int soln_index_offset = 0
-    cdef double chempot_change, percent_chempot_change, phase_amt_change, psc
-    for i in range(free_chemical_potential_indices.shape[0]):
-        chempot_idx = free_chemical_potential_indices[i]
-        chempot_change = equilibrium_soln[soln_index_offset + i] - chemical_potentials[chempot_idx]
-        chemical_potentials[chempot_idx] = equilibrium_soln[soln_index_offset + i]
-    soln_index_offset += free_chemical_potential_indices.shape[0]
-    for i in range(free_stable_compset_indices.shape[0]):
-        compset_idx = free_stable_compset_indices[i]
-        phase_amt_change = float(phase_amt[compset_idx])
-        phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
-        phase_amt_change = phase_amt[compset_idx] - phase_amt_change
-        largest_phase_amt_change[0] = max(largest_phase_amt_change[0], phase_amt_change)
-
-    soln_index_offset += free_stable_compset_indices.shape[0]
-    delta_statevars[:] = 0
-    for i in range(free_statevar_indices.shape[0]):
-        statevar_idx = free_statevar_indices[i]
-        delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
-        if dof[0][statevar_idx] == 0:
-            psc = np.inf
-        else:
-            psc = abs(delta_statevars[statevar_idx] / dof[0][statevar_idx])
-        largest_statevar_change[0] = max(largest_statevar_change[0], psc)
-
-
 cdef class SystemSpecification:
     cdef int num_statevars, num_components, max_num_free_stable_phases
     cdef double prescribed_system_amount
@@ -581,16 +549,11 @@ cdef class SystemState:
         return self._driving_forces
 
 
-cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
-    cdef double minimum_step_size
+cpdef solve_state(SystemSpecification spec, SystemState state):
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
-    cdef double[::1] equilibrium_soln, new_y, x
-    cdef CompositionSet compset
-    cdef CompsetState csst
-    cdef bint exceeded_bounds
-    cdef int i, comp_idx, cp_idx, idx, num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
+    cdef double[::1] equilibrium_soln
+    cdef int chempot_idx, comp_idx, num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
 
-    # STEP 1: Solve the equilibrium matrix (chemical potentials, corrections to phase amounts and state variables)
     state.recompute(spec)
 
     num_stable_phases = state.free_stable_compset_indices.shape[0]
@@ -601,6 +564,7 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
 
     equilibrium_matrix = np.zeros((num_stable_phases + num_fixed_phases + num_fixed_components + 1, num_free_variables), order='F')
     equilibrium_soln = np.zeros(num_stable_phases + num_fixed_phases + num_fixed_components + 1)
+    # TODO: can we move this error check outside?
     if (num_stable_phases + num_fixed_phases + num_fixed_components + 1) != num_free_variables:
         raise ValueError('Conditions do not obey Gibbs Phase Rule')
 
@@ -611,17 +575,50 @@ cpdef take_step(SystemSpecification spec, SystemState state, double step_size):
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
           &equilibrium_soln[0], -1)
 
-    # STEP 2: Advance the system state
-    # Extract chemical potentials and update phase amounts
-    extract_equilibrium_solution(state.chemical_potentials, state.phase_amt, state.delta_statevars,
-                                 spec.free_chemical_potential_indices, spec.free_statevar_indices,
-                                 state.free_stable_compset_indices, equilibrium_soln,
-                                 state.largest_statevar_change, state.largest_phase_amt_change, state.dof)
+    # set the chemical potentials from the solution
+    for i in range(spec.free_chemical_potential_indices.shape[0]):
+        chempot_idx = spec.free_chemical_potential_indices[i]
+        state.chemical_potentials[chempot_idx] = equilibrium_soln[i]
 
     # Force some chemical potentials to adopt their fixed values
-    for cp_idx in range(spec.fixed_chemical_potential_indices.shape[0]):
-        comp_idx = spec.fixed_chemical_potential_indices[cp_idx]
+    for chempot_idx in range(spec.fixed_chemical_potential_indices.shape[0]):
+        comp_idx = spec.fixed_chemical_potential_indices[chempot_idx]
         state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
+
+    return equilibrium_soln
+
+
+# TODO: pass this in from the solution or store it in the state(?)
+cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equilibrium_soln, double step_size):
+    cdef bint exceeded_bounds
+    cdef double minimum_step_size, phase_amt_change, psc
+    cdef int i, compset_idx, statevar_idx
+    cdef int soln_index_offset = spec.free_chemical_potential_indices.shape[0]  # Chemical potentials handled after solving
+    cdef double[::1] new_y, x
+    cdef CompsetState csst
+
+    # Update phase amounts
+    # TODO: phase amount change scaling to prevent negative amounts
+    # TODO: equilibrium_soln[soln_index_offset + i] is the change, so we can simplify
+    for i in range(state.free_stable_compset_indices.shape[0]):
+        compset_idx = state.free_stable_compset_indices[i]
+        phase_amt_change = float(state.phase_amt[compset_idx])
+        state.phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
+        phase_amt_change = state.phase_amt[compset_idx] - phase_amt_change
+        state.largest_phase_amt_change[0] = max(state.largest_phase_amt_change[0], phase_amt_change)
+    soln_index_offset += state.free_stable_compset_indices.shape[0]
+
+    # Compute changes in state variables
+    # TODO: combine this with the "update" step below
+    state.delta_statevars[:] = 0
+    for i in range(spec.free_statevar_indices.shape[0]):
+        statevar_idx = spec.free_statevar_indices[i]
+        state.delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
+        if state.dof[0][statevar_idx] == 0:
+            psc = np.inf
+        else:
+            psc = abs(state.delta_statevars[statevar_idx] / state.dof[0][statevar_idx])
+        state.largest_statevar_change[0] = max(state.largest_statevar_change[0], psc)
 
     # Update phase internal degrees of freedom
     for idx in range(len(state.compsets)):
@@ -786,7 +783,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef int iteration, idx, comp_idx, iterations_since_last_phase_change
     cdef CompositionSet compset
     cdef double allowed_mass_residual, largest_chemical_potential_difference, step_size
-    cdef double[::1] x
+    cdef double[::1] x, eq_soln
     cdef double[::1] previous_chemical_potentials = np.empty(num_components)
     cdef int[::1] fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
     cdef int[::1] metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
@@ -816,7 +813,10 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
 
         previous_chemical_potentials[:] = state.chemical_potentials[:]
 
-        take_step(spec, state, step_size)
+        eq_soln = solve_state(spec, state)
+        # TODO: refactor to only advance if the phases won't change and if we aren't converged (i.e. later)
+        advance_state(spec, state, eq_soln, step_size)
+
 
         # In most cases, the chemical potentials should be decreasing and the
         # largest_chemical_potential_difference could be negative. The following check
