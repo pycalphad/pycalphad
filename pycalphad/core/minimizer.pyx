@@ -841,16 +841,15 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                 if state.phase_amt[j] < 0:
                     state.phase_amt[j] = 1e-8
 
-        remove_and_consolidate_phases(spec, state)
+        phases_changed = remove_and_consolidate_phases(spec, state)
 
         solution_is_feasible = (
             (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
             (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
             (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR)
         )
-        phases_changed = False
         if solution_is_feasible and (iterations_since_last_phase_change >= 5):
-            phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed)
+            phases_changed = phases_changed or change_phases(spec, state, metastable_phase_iterations, times_compset_removed)
             if phases_changed:
                 iterations_since_last_phase_change = 0
             else:
@@ -873,4 +872,5 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     for cs_dof in state.dof[1:]:
         x = np.r_[x, cs_dof[num_statevars:]]
     x = np.r_[x, phase_amt]
+    print(f'iteration {iteration}')
     return converged, x, np.array(state.chemical_potentials)
