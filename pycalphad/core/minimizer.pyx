@@ -389,7 +389,7 @@ cdef class SystemState:
     cdef double mass_residual
     cdef double[::1] phase_amt, chemical_potentials, delta_statevars
     cdef double[:, ::1] phase_compositions, delta_ms
-    cdef double[1] largest_statevar_change, largest_phase_amt_change
+    cdef double[1] largest_statevar_change, largest_phase_amt_change, largest_y_change
     cdef int[::1] free_stable_compset_indices
     cdef double system_amount
     cdef double[::1] mole_fractions
@@ -415,6 +415,7 @@ cdef class SystemState:
                                                                 for compset in compsets])[0], dtype=np.int32)
         self.largest_statevar_change[0] = 0
         self.largest_phase_amt_change[0] = 0
+        self.largest_y_change[0] = 0
         self.system_amount = 0
         self.mole_fractions = np.zeros(spec.num_components)
         self._driving_forces = np.zeros(len(compsets))
@@ -435,13 +436,13 @@ cdef class SystemState:
         return (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual,
                 np.array(self.phase_amt), np.array(self.chemical_potentials),
                 np.array(self.delta_ms), np.array(self.phase_compositions),
-                self.largest_statevar_change[0], self.largest_phase_amt_change[0],
+                self.largest_statevar_change[0], self.largest_phase_amt_change[0], self.largest_y_change[0],
                 np.array(self.free_stable_compset_indices), self.system_amount, np.array(self.mole_fractions))
     def __setstate__(self, state):
         (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual,
          self.phase_amt, self.chemical_potentials,
          self.delta_ms, self.phase_compositions, self.largest_statevar_change[0],
-         self.largest_phase_amt_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
+         self.largest_phase_amt_change[0], self.largest_y_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
 
     @cython.boundscheck(False)
     cdef void recompute(self, SystemSpecification spec):
@@ -600,15 +601,15 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
 
     # Update phase amounts
     # TODO: phase amount change scaling to prevent negative amounts
-    # TODO: equilibrium_soln[soln_index_offset + i] is the phase_amt_change, so we can simplify
+    state.largest_phase_amt_change[0] = 0
     for i in range(state.free_stable_compset_indices.shape[0]):
         compset_idx = state.free_stable_compset_indices[i]
         state.phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
-        state.largest_phase_amt_change[0] = max(state.largest_phase_amt_change[0], equilibrium_soln[soln_index_offset + i])
+        state.largest_phase_amt_change[0] = max(state.largest_phase_amt_change[0], abs(equilibrium_soln[soln_index_offset + i]))
     soln_index_offset += state.free_stable_compset_indices.shape[0]
 
     # Update state variables
-    # TODO: combine this with the "update" step below
+    state.largest_statevar_change[0] = 0
     state.delta_statevars[:] = 0
     for i in range(spec.free_statevar_indices.shape[0]):
         statevar_idx = spec.free_statevar_indices[i]
@@ -662,6 +663,9 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
                 step_size *= 0.5
                 continue
             break
+        state.largest_y_change[0] = 0.0
+        for i in range(spec.num_statevars, new_y.shape[0]):
+            state.largest_y_change[0] = max(state.largest_y_change[0], abs(x[i] - new_y[i]))
         x[:] = new_y
 
 
@@ -796,6 +800,11 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                                                         fixed_stable_compset_indices)
     cdef SystemState state = SystemState(spec, compsets)
 
+    # convergence criteria
+    cdef double ALLOWED_DELTA_Y = 1e-10
+    cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
+    cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
+
     if spec.prescribed_elemental_amounts.shape[0] > 0:
         allowed_mass_residual = min(1e-8, np.min(spec.prescribed_elemental_amounts)/10)
         # Also adjust mass residual if we are near the edge of composition space
@@ -814,6 +823,26 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
 
         eq_soln = solve_state(spec, state)
 
+        advance_state(spec, state, eq_soln, step_size)
+
+        # In most cases, the chemical potentials should be decreasing and the
+        # largest_chemical_potential_difference could be negative. The following check
+        # against the differences will only prevent phases from being removed if the
+        # chemical potentials _increase_ by more than 1 J. It may make more sense to
+        # adjust the condition based on the absolute value of the differences.
+        largest_chemical_potential_difference = -np.inf
+        for comp_idx in range(num_components):
+            largest_chemical_potential_difference = max(largest_chemical_potential_difference, state.chemical_potentials[comp_idx] - previous_chemical_potentials[comp_idx])
+
+        if ((state.mass_residual > 1e-2) and (largest_chemical_potential_difference > 1.0)) or (iteration == 0):
+            # When mass residual is not satisfied, do not allow phases to leave the system
+            # However, if the chemical potentials are changing very little, phases may leave the system
+            for j in range(state.phase_amt.shape[0]):
+                if state.phase_amt[j] < 0:
+                    state.phase_amt[j] = 1e-8
+
+        remove_and_consolidate_phases(spec, state)
+
         # Only include chemical potential difference if chemical potential conditions were enabled
         # XXX: This really should be a condition defined in terms of delta_m, because chempot_diff is only necessary
         # because mass_residual is no longer driving convergence for partially/fully open systems
@@ -823,10 +852,13 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
             chempot_diff = 0.0
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
-        system_is_feasible = (state.mass_residual < allowed_mass_residual) and \
-                             np.all(chempot_diff < 1e-12) and (state.iteration > 5) and np.all(np.abs(state.delta_ms) < 1e-9) and (iterations_since_last_phase_change >= 5)
+        solution_is_feasible = (
+            (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
+            (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
+            (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR)
+        )
         phases_changed = False
-        if system_is_feasible:
+        if solution_is_feasible and (iterations_since_last_phase_change >= 5):
             phases_changed = change_phases(spec, state, metastable_phase_iterations, times_compset_removed)
             if phases_changed:
                 iterations_since_last_phase_change = 0
@@ -840,27 +872,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                 metastable_phase_iterations[idx] = 0
             else:
                 metastable_phase_iterations[idx] += 1
-
-        if not phases_changed:
-            advance_state(spec, state, eq_soln, step_size)
-
-            # In most cases, the chemical potentials should be decreasing and the
-            # largest_chemical_potential_difference could be negative. The following check
-            # against the differences will only prevent phases from being removed if the
-            # chemical potentials _increase_ by more than 1 J. It may make more sense to
-            # adjust the condition based on the absolute value of the differences.
-            largest_chemical_potential_difference = -np.inf
-            for comp_idx in range(num_components):
-                largest_chemical_potential_difference = max(largest_chemical_potential_difference, state.chemical_potentials[comp_idx] - previous_chemical_potentials[comp_idx])
-
-            if ((state.mass_residual > 1e-2) and (largest_chemical_potential_difference > 1.0)) or (iteration == 0):
-                # When mass residual is not satisfied, do not allow phases to leave the system
-                # However, if the chemical potentials are changing very little, phases may leave the system
-                for j in range(state.phase_amt.shape[0]):
-                    if state.phase_amt[j] < 0:
-                        state.phase_amt[j] = 1e-8
-
-            remove_and_consolidate_phases(spec, state)
 
     #if not converged:
     #    raise ValueError('Not converged')
