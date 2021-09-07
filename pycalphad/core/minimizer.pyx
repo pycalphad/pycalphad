@@ -872,5 +872,4 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     for cs_dof in state.dof[1:]:
         x = np.r_[x, cs_dof[num_statevars:]]
     x = np.r_[x, phase_amt]
-    print(f'iteration {iteration}')
     return converged, x, np.array(state.chemical_potentials)
