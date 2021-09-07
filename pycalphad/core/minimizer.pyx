@@ -843,15 +843,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
 
         remove_and_consolidate_phases(spec, state)
 
-        # Only include chemical potential difference if chemical potential conditions were enabled
-        # XXX: This really should be a condition defined in terms of delta_m, because chempot_diff is only necessary
-        # because mass_residual is no longer driving convergence for partially/fully open systems
-        if spec.fixed_chemical_potential_indices.shape[0] > 0:
-            chempot_diff = np.max(np.abs(np.array(state.chemical_potentials)/np.array(previous_chemical_potentials) - 1))
-        else:
-            chempot_diff = 0.0
-        # Wait for mass balance to be satisfied before changing phases
-        # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         solution_is_feasible = (
             (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
             (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
