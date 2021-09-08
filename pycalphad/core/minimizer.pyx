@@ -593,22 +593,32 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
 cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equilibrium_soln, double step_size):
     # Apply linear corrections in phase amounts, state variables and site fractions
     cdef bint exceeded_bounds
-    cdef double minimum_step_size, psc
+    cdef double minimum_step_size, psc, phase_amt_step_size
     cdef int i, idx, compset_idx, statevar_idx, chempot_idx
     cdef int soln_index_offset = spec.free_chemical_potential_indices.shape[0]  # Chemical potentials handled after solving
     cdef double[::1] new_y, x
     cdef CompsetState csst
 
-    # Update phase amounts
-    # TODO: phase amount change scaling to prevent negative amounts
+    # 1. Step in phase amounts
+    # Determine largest allowable step size such that the smallest phase amount is zero
+    phase_amt_step_size = step_size
+    for i in range(state.free_stable_compset_indices.shape[0]):
+        compset_idx = state.free_stable_compset_indices[i]
+        if state.phase_amt[compset_idx] + equilibrium_soln[soln_index_offset + i] < 0:
+            # Assuming:
+            # 1. NP>0 (the phase would not be a free_stable_compset if not) and
+            # 2. delta_NP<0 (must be true if assumption #1 is true and this condition is true)
+            # The largest allowable step size satisfies the equation: (NP + step_size * delta_NP = 0)
+            phase_amt_step_size = min(phase_amt_step_size, -state.phase_amt[compset_idx] / equilibrium_soln[soln_index_offset + i])
+    # Update the phase amounts using the largest allowable step size
     state.largest_phase_amt_change[0] = 0
     for i in range(state.free_stable_compset_indices.shape[0]):
         compset_idx = state.free_stable_compset_indices[i]
-        state.phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
-        state.largest_phase_amt_change[0] = max(state.largest_phase_amt_change[0], abs(equilibrium_soln[soln_index_offset + i]))
+        state.phase_amt[compset_idx] += phase_amt_step_size * equilibrium_soln[soln_index_offset + i]
+        state.largest_phase_amt_change[0] = max(state.largest_phase_amt_change[0], abs(phase_amt_step_size * equilibrium_soln[soln_index_offset + i]))
     soln_index_offset += state.free_stable_compset_indices.shape[0]
 
-    # Update state variables
+    # 2. Step in state variables
     state.largest_statevar_change[0] = 0
     state.delta_statevars[:] = 0
     for i in range(spec.free_statevar_indices.shape[0]):
@@ -626,7 +636,7 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
             x[statevar_idx] += state.delta_statevars[statevar_idx]
         # We need real state variable bounds support
 
-    # Update phase internal degrees of freedom
+    # 3. Step in phase internal degrees of freedom
     for idx in range(len(state.compsets)):
         # TODO: Use better dof storage
         x = state.dof[idx]
