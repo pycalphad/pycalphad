@@ -461,7 +461,6 @@ class Phase_CEF(PhaseBase):
     excess_parameters: [ExcessBase]
     magnetic_afm_factor: float
     magnetic_structure_factor: float
-
     def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
         model_hints = {}
         if self.magnetic_afm_factor is not None and self.magnetic_structure_factor is not None:
@@ -474,8 +473,9 @@ class Phase_CEF(PhaseBase):
             # model divides by the AFM factor (-1/3). We convert the AFM
             # factor to the version used in the TDB/Model.
             model_hints['ihj_magnetic_afm_factor'] = -1/self.magnetic_afm_factor
-
-        if all(isinstance(xs, (ExcessQKTO, ExcessRKMMagnetic)) for xs in self.excess_parameters):
+        if len(self.excess_parameters) == 0:
+            pass  # no excess parameters: no model hints
+        elif all(isinstance(xs, (ExcessQKTO, ExcessRKMMagnetic)) for xs in self.excess_parameters):
             # We have only QKTO excess models, add model hint.
             model_hints['excess_model'] = ('KOHLER_TOOP', None, None, None)
         elif any(isinstance(xs, (ExcessQKTO)) for xs in self.excess_parameters) and any(isinstance(xs, (ExcessRKM)) for xs in self.excess_parameters):
@@ -722,13 +722,14 @@ class Phase_SUBQ(PhaseBase):
         # order to make the species entered in the expected way (`CL-1`).
         anion_el_chg_pairs = list(zip(self.subl_2_const, [-1*c for c in self.subl_2_charges]))
         cations = [rename_element_charge(el, chg) for el, chg in cation_el_chg_pairs]
+
         anions = [rename_element_charge(el, chg) for el, chg in anion_el_chg_pairs]
         tot_ele=cation_el_chg_pairs+anion_el_chg_pairs
 
         # Add the "pure" (renamed) species to the database so the phase constituents can be added
         dbf.species.update(map(_species, cation_el_chg_pairs))
         dbf.species.update(map(_species, anion_el_chg_pairs))
-
+       
         # Second: add the phase and phase constituents
         # TODO: model hints to identify this phase as MQMQA
         # TODO: can model hints give us the map we need from the mangled
