@@ -59,7 +59,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     if v.N not in conds:
         conds[v.N] = [1.0]
     if 'pdens' not in calc_kwargs:
-        calc_kwargs['pdens'] = 2000
+        calc_kwargs['pdens'] = 50
 
     species = unpack_components(dbf, comps)
     phases = filter_phases(dbf, species, phases)

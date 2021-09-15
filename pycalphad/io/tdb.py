@@ -975,7 +975,7 @@ def read_tdb(dbf, fd):
     fd : file-like
         File descriptor.
     """
-    lines = fd.read()
+    lines = fd.read().upper()
     lines = lines.replace('\t', ' ')
     lines = lines.strip()
     # Split the string by newlines

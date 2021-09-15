@@ -431,8 +431,8 @@ def get_state_variables(models=None, conds=None):
     ----------
     models : dict, optional
         Dictionary mapping phase names to instances of Model objects
-    conds : dict, optional
-        Dictionary mapping pycalphad StateVariables to values
+    conds : Iterable[v.StateVariable]
+        An iterable of StateVariables or a dictionary mapping pycalphad StateVariables to values
 
     Returns
     -------
@@ -451,7 +451,7 @@ def get_state_variables(models=None, conds=None):
         for mod in models.values():
             state_vars.update(mod.state_variables)
     if conds is not None:
-        for c in conds.keys():
+        for c in conds:
             # StateVariable instances are ok (e.g. P, T, N, V, S),
             # however, subclasses (X, Y, MU, NP) are not ok.
             if type(c) is v.StateVariable:

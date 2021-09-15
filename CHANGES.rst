@@ -1,10 +1,31 @@
 What's New
 ==========
 
+0.9.2 (2021-08-12)
+------------------
+
+This is a minor release containing a bug fix for a regression introduced by the previous release.
+
+* FIX: Associate model computation in ``calculate`` when number of components is different from number of elements ( :issue:`367`, :issue:`368` )
+
+
+0.9.1 (2021-08-08)
+------------------
+
+This is a minor release containing performance improvements and bug fixes.
+
+* ENH: Add metastable composition sets to solver starting point ( :issue:`362` )
+* ENH: Refactor solver and improve solver performance ( :issue:`357`, :issue:`360` )
+* FIX: Custom state variables cannot be set equal to zero ( :issue:`365` )
+* ENH: Allow passing dictionaries of PhaseRecord objects to equilibrium and calculate ( :issue:`361` )
+* FIX: Database parsing fails if some tokens are not uppercase ( :issue:`364` )
+* ENH: Add parsing support for all TC parameters as of 2021b documentation ( :issue:`358` )
+
+
 0.9.0 (2021-06-06)
 ------------------
 
-This is a major relase including a new minimizer, support for installing from PyPI using pip, performance improvements, documentation improvements, and bug fixes.
+This is a major release including a new minimizer, support for installing from PyPI using pip, performance improvements, documentation improvements, and bug fixes.
 
 * ENH: Introduce a new energy minimizer based on the method described by [Sundman2015]_.
   The new minimizer improves performance, convergence for dilute and pseudo-binary systems,

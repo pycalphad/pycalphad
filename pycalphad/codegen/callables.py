@@ -90,7 +90,7 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
 
     state_variables = get_state_variables(models=models)
     state_variables |= additional_statevars
-    if state_variables != {v.T, v.P, v.N}:
+    if not {v.T, v.P, v.N}.issubset(state_variables):
         warnings.warn("State variables in `build_callables` are not {{N, P, T}}, but {}. This can lead to incorrectly "
                       "calculated values if the state variables used to call the generated functions do not match the "
                       "state variables used to create them. State variables can be added with the "
@@ -146,9 +146,9 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
     return {output: _callables}
 
 
-def build_phase_records(dbf, comps, phases, conds, models, output='GM',
+def build_phase_records(dbf, comps, phases, state_variables, models, output='GM',
                         callables=None, parameters=None, verbose=False,
-                        build_gradients=False, build_hessians=False
+                        build_gradients=True, build_hessians=True
                         ):
     """
     Combine compiled callables and callables from conditions into PhaseRecords.
@@ -157,14 +157,14 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
     ----------
     dbf : Database
         A Database object
-    comps : List[v.Species]
-        List of active species
+    comps : List[Union[str, v.Species]]
+        List of active pure elements or species.
     phases : list
         List of phase names
-    conds : dict or None
-        Conditions for calculation
-    models : dict
-        Dictionary of {'phase_name': Model()}
+    state_variables : Iterable[v.StateVariable]
+        State variables used to produce the generated functions.
+    models : Mapping[str, Model]
+        Mapping of phase names to model instances
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
     callables : dict, optional
@@ -195,6 +195,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
     build the constraints and phase records.
 
     """
+    comps = sorted(unpack_components(dbf, comps))
     parameters = parameters if parameters is not None else {}
     callables = callables if callables is not None else {}
     _constraints = {
@@ -203,7 +204,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         'internal_cons_hess': {},
     }
     phase_records = {}
-    state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
+    state_variables = sorted(get_state_variables(models=models, conds=state_variables), key=str)
     param_symbols, param_values = extract_parameters(parameters)
 
     if callables.get(output) is None:
