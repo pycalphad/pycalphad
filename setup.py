@@ -63,7 +63,7 @@ setup(
         'scipy',
         'setuptools_scm[toml]>=6.0',
         'symengine==0.7.2',  # python-symengine on conda-forge
-        'sympy==1.8',
+        'sympy==1.9',
         'tinydb>=3.8',
         'xarray>=0.11.2',
     ],
