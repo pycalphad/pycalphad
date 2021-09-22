@@ -57,8 +57,8 @@ class Species(object):
         new_self.constituents = dict(parse_list)
         return new_self
 
-    def __getnewargs__(self):
-        return self.name, self.constituents, self.charge
+    def __getnewargs_ex__(self):
+        return (self.name, self.constituents, self.charge), {}
 
     def __eq__(self, other):
         """Two species are the same if their names and constituents are the same."""
@@ -113,7 +113,8 @@ class StateVariable(Symbol):
     State variables are symbols with built-in assumptions of being real.
     """
     def __new__(cls, name, *args, **assumptions):
-        return Symbol.__new__(cls, name.upper(), real=True, **assumptions)
+        assumptions['real'] = True
+        return Symbol.__new__(cls, name.upper(), *args, **assumptions)
 
 class SiteFraction(StateVariable):
     """
@@ -129,8 +130,8 @@ class SiteFraction(StateVariable):
         new_self.species = Species(species)
         return new_self
 
-    def __getnewargs__(self):
-        return self.phase_name, self.sublattice_index, self.species
+    def __getnewargs_ex__(self):
+        return (self.phase_name, self.sublattice_index, self.species), {}
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -156,8 +157,8 @@ class PhaseFraction(StateVariable):
         new_self.phase_name = phase_name.upper()
         return new_self
 
-    def __getnewargs__(self):
-        return self.phase_name,
+    def __getnewargs_ex__(self):
+        return (self.phase_name,), {}
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -193,11 +194,11 @@ class MoleFraction(StateVariable):
         new_self.species = species
         return new_self
 
-    def __getnewargs__(self):
+    def __getnewargs_ex__(self):
         if self.phase_name is not None:
-            return self.phase_name, self.species
+            return (self.phase_name, self.species), {}
         else:
-            return self.species,
+            return (self.species,), {}
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -237,11 +238,11 @@ class MassFraction(StateVariable):
         new_self.species = species
         return new_self
 
-    def __getnewargs__(self):
+    def __getnewargs_ex__(self):
         if self.phase_name is not None:
-            return self.phase_name, self.species
+            return (self.phase_name, self.species), {}
         else:
-            return self.species,
+            return (self.species,), {}
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -358,8 +359,8 @@ class ChemicalPotential(StateVariable):
         new_self.species = species
         return new_self
 
-    def __getnewargs__(self):
-        return self.species,
+    def __getnewargs_ex__(self):
+        return (self.species,), {}
 
     def _latex(self, printer=None):
         "LaTeX representation."
