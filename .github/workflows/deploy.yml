@@ -1,0 +1,21 @@
+name: Website
+on:
+  push:
+    branches:
+      - website
+
+jobs:
+  Deploy-latest:
+    name: Deploy branch to S3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PYCALPHAD_ORG_AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PYCALPHAD_ORG_AWS_SECRET_KEY }}
+          aws-region: us-east-1
+      - name: Copy files to the website with the AWS CLI
+        run: |
+          aws s3 sync . s3://pycalphad.org
