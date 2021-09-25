@@ -16,6 +16,6 @@ jobs:
           aws-access-key-id: ${{ secrets.PYCALPHAD_ORG_AWS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PYCALPHAD_ORG_AWS_SECRET_KEY }}
           aws-region: us-east-1
-      - name: Copy files to the website with the AWS CLI
+      - name: Copy docs to the website with the AWS CLI
         run: |
-          aws s3 sync --dryrun docs s3://pycalphad.org/docs/
+          aws s3 sync docs s3://pycalphad.org/docs/
