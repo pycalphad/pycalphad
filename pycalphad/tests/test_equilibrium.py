@@ -6,7 +6,7 @@ correct solution for thermodynamic equilibrium.
 import warnings
 import os
 import pytest
-from sympy import Symbol
+from symengine import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError

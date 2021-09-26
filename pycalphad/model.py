@@ -584,9 +584,9 @@ class Model(object):
                             other_tern_params[0] == param:
                             # only the current parameter is specified
                             # We need to generate the other two parameters.
-                            order_one = copy.deepcopy(param)
+                            order_one = copy.copy(param)
                             order_one['parameter_order'] = 1
-                            order_two = copy.deepcopy(param)
+                            order_two = copy.copy(param)
                             order_two['parameter_order'] = 2
                             # Add these parameters to our iteration.
                             params.extend((order_one, order_two))

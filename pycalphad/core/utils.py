@@ -89,7 +89,7 @@ def make_callable(model, variables, mode=None):
         mode = 'numpy'
 
     if mode == 'sympy':
-        energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
+        energy = lambda *vs: model.subs(dict(zip(variables, vs))).n(real=True)
     else:
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=mode)
