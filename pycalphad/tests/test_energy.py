@@ -54,7 +54,7 @@ def calculate_output(model, variables, output, mode='sympy'):
     # our optimization functions are working.
     prop = make_callable(getattr(model, output), list(variables.keys()), mode=mode)
     # Unpack all the values in the dict and use them to call the function
-    return prop(*(list(variables.values())))
+    return prop(*[float(x) for x in variables.values()])
 
 
 def check_output(model, variables, output, known_value, mode='sympy'):
