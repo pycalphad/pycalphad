@@ -11,10 +11,6 @@ import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise
 from symengine import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, S
-from symengine import Mul, Pow, Rational
-from sympy.printing.str import StrPrinter
-from sympy.core.mul import _keep_coeff
-from sympy.printing.precedence import precedence
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
 from pycalphad.io.grammar import float_number, chemical_formula
@@ -440,10 +436,14 @@ def to_interval(relational):
     else:
         raise ValueError('Unsupported Relational: {}'.format(relational.__class__.__name__))
 
-class TCPrinter(StrPrinter):
+
+class TCPrinter(object):
     """
     Prints Thermo-Calc style function expressions.
     """
+    def doprint(self, expr):
+        return self._print_Piecewise(expr)
+
     def _print_Piecewise(self, expr):
         # Filter out default zeros since they are implicit in a TDB
         filtered_args = [(x, cond) for x, cond in zip(*[iter(expr.args)]*2) if not ((cond == S.true) and (x == S.Zero))]
@@ -479,122 +479,6 @@ class TCPrinter(StrPrinter):
                                              as_str(intervals[0].args[1]))
 
         return result
-
-    def _print_Mul(self, expr):
-        "Copied from sympy StrPrinter and modified to remove division."
-
-        prec = precedence(expr)
-
-        c, e = expr.as_coeff_Mul()
-        if c < 0:
-            expr = _keep_coeff(-c, e)
-            sign = "-"
-        else:
-            sign = ""
-
-        a = []  # items in the numerator
-        b = []  # items that are in the denominator (if any)
-
-        if self.order not in ('old', 'none'):
-            args = expr.as_ordered_factors()
-        else:
-            # use make_args in case expr was something like -x -> x
-            args = Mul.make_args(expr)
-
-        # Gather args for numerator/denominator
-        for item in args:
-            if item.is_commutative and item.is_Pow and item.exp.is_Rational and item.exp.is_negative:
-                if item.exp != -1:
-                    b.append(Pow(item.base, -item.exp, evaluate=False))
-                else:
-                    b.append(Pow(item.base, -item.exp))
-            elif item.is_Rational and item is not S.Infinity:
-                if item.p != 1:
-                    a.append(Rational(item.p))
-                if item.q != 1:
-                    b.append(Rational(item.q))
-            else:
-                a.append(item)
-
-        a = a or [S.One]
-
-        a_str = [self.parenthesize(x, prec) for x in a]
-        b_str = [self.parenthesize(x, prec) for x in b]
-
-        if len(b) == 0:
-            return sign + '*'.join(a_str)
-        elif len(b) == 1:
-            # Thermo-Calc's parser can't handle division operators
-            return sign + '*'.join(a_str) + "*%s" % self.parenthesize(b[0]**(-1), prec)
-        else:
-            # TODO: Make this Thermo-Calc compatible by removing division operation
-            return sign + '*'.join(a_str) + "/(%s)" % '*'.join(b_str)
-
-    def _print_Pow(self, expr, rational=False):
-        "Copied from sympy StrPrinter to remove TC-incompatible Pow simplifications."
-        PREC = precedence(expr)
-
-        e = self.parenthesize(expr.exp, PREC)
-        if self.printmethod == '_sympyrepr' and expr.exp.is_Rational and expr.exp.q != 1:
-            # the parenthesized exp should be '(Rational(a, b))' so strip parens,
-            # but just check to be sure.
-            if e.startswith('(Rational'):
-                return '%s**%s' % (self.parenthesize(expr.base, PREC), e[1:-1])
-        return '%s**%s' % (self.parenthesize(expr.base, PREC), e)
-
-    def _print_Infinity(self, expr):
-        # Use "default value" though TC's Database Checker complains about this
-        return ","
-
-    def _print_Symbol(self, expr):
-        if isinstance(expr, v.StateVariable):
-            return expr.name
-        else:
-            # Thermo-Calc likes symbol references to be marked with a '#' at the end
-            return expr.name + "#"
-
-    def _print_Function(self, expr):
-        func_translations = {'log': 'ln', 'exp': 'exp'}
-        if expr.func.__name__.lower() in func_translations:
-            return func_translations[expr.func.__name__.lower()] + "(%s)" % self.stringify(expr.args, ", ")
-        else:
-            raise TypeError("Unable to represent function: %s" %
-                             expr.func.__name__)
-
-    def blacklisted(self, expr):
-        raise TypeError("Unable to represent expression: %s" %
-                        expr.__class__.__name__)
-
-
-    # blacklist all Matrix printing
-    _print_SparseMatrix = \
-    _print_MutableSparseMatrix = \
-    _print_ImmutableSparseMatrix = \
-    _print_Matrix = \
-    _print_DenseMatrix = \
-    _print_MutableDenseMatrix = \
-    _print_ImmutableMatrix = \
-    _print_ImmutableDenseMatrix = \
-    blacklisted
-    # blacklist other operations
-    _print_Derivative = \
-    _print_Integral = \
-    blacklisted
-    # blacklist some logical operations
-    # These should never show up outside a piecewise function
-    # Piecewise handles them directly
-    _print_And = \
-    _print_Or = \
-    _print_Not = \
-    blacklisted
-    # blacklist some python expressions
-    _print_list = \
-    _print_tuple = \
-    _print_Tuple = \
-    _print_dict = \
-    _print_Dict = \
-    blacklisted
-
 
 def reflow_text(text, linewidth=80):
     """

@@ -7,7 +7,7 @@ import hashlib
 import os
 from copy import deepcopy
 from pyparsing import ParseException
-from sympy import Symbol, Piecewise, And
+from symengine import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
 from pycalphad.io.tdb import expand_keyword

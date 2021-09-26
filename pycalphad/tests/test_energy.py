@@ -4,7 +4,7 @@ correct abstract syntax tree for the energy.
 """
 
 import pytest
-from sympy import S
+from symengine import S
 from pycalphad import Database, Model, ReferenceState
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \

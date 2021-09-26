@@ -6,8 +6,7 @@ import warnings
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from sympy.utilities.lambdify import lambdify
-from symengine import Symbol
+from symengine import lambdify, Symbol
 import numpy as np
 import operator
 import functools
@@ -465,13 +464,3 @@ def wrap_symbol(obj):
     else:
         return Symbol(obj)
 
-
-def wrap_symbol_symengine(obj):
-    from symengine import Symbol, sympify
-    from sympy import Symbol as Symbol_sympy
-    if isinstance(obj, Symbol):
-        return obj
-    elif isinstance(obj, Symbol_sympy):
-        return sympify(obj)
-    else:
-        return Symbol(obj)
