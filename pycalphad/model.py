@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 import copy
 import warnings
-from symengine import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
+from symengine import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
@@ -380,7 +380,7 @@ class Model(object):
                     "for an example."
                 )
                 for k in mod_endmember_only.models.keys():
-                    mod_endmember_only.models[k] = nan
+                    mod_endmember_only.models[k] = float('nan')
             self._endmember_reference_model = mod_endmember_only
         return self._endmember_reference_model
 
