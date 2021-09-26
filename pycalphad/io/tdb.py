@@ -8,10 +8,10 @@ from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
-from sympy import sympify, And, Or, Not, Intersection, Union, EmptySet, Interval, Piecewise
-from sympy import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, Complement, S
-from sympy import Mul, Pow, Rational
-from sympy.abc import _clash
+from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
+from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise
+from symengine import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, S
+from symengine import Mul, Pow, Rational
 from sympy.printing.str import StrPrinter
 from sympy.core.mul import _keep_coeff
 from sympy.printing.precedence import precedence
@@ -39,16 +39,6 @@ _AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Constant, ast.Div,
                   ast.Expression, ast.Load, ast.Mult, ast.Name, ast.Num,
                   ast.Pow, ast.Sub, ast.UAdd, ast.UnaryOp, ast.USub]
 
-# Avoid symbol names clashing with objects in sympy (gh-233)
-clashing_namespace = {}
-clashing_namespace.update(_clash)
-clashing_namespace['CC'] = Symbol('CC')
-clashing_namespace['FF'] = Symbol('FF')
-clashing_namespace['T'] = v.T
-clashing_namespace['P'] = v.P
-clashing_namespace['R'] = v.R
-
-
 def _sympify_string(math_string):
     "Convert math string into SymPy object."
     # drop pound symbols ('#') since they denote function names
@@ -71,8 +61,10 @@ def _sympify_string(math_string):
         if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
-
-    return sympify(expr_string, locals=clashing_namespace)
+    # SymEngine can't handle leading plus signs in strings
+    if expr_string[0] == '+':
+        expr_string = expr_string[1:]
+    return sympify(expr_string)
 
 def _parse_action(func):
     """
@@ -152,7 +144,7 @@ def _make_piecewise_ast(toks):
             )
         cur_tok = cur_tok + 2
     expr_cond_pairs.append((0, True))
-    return Piecewise(*expr_cond_pairs, evaluate=False)
+    return Piecewise(*expr_cond_pairs)
 
 class TCCommand(CaselessKeyword): #pylint: disable=R0903
     """
@@ -417,13 +409,16 @@ _TDB_PROCESSOR = {
 
 def to_interval(relational):
     if isinstance(relational, And):
-        return Intersection(*[to_interval(i) for i in relational.args])
+        result = UniversalSet()
+        for i in relational.args:
+            result = result.intersection(to_interval(i))
+        return result
     elif isinstance(relational, Or):
         return Union(*[to_interval(i) for i in relational.args])
     elif isinstance(relational, Not):
         return Complement(*[to_interval(i) for i in relational.args])
     if relational == S.true:
-        return Interval(S.NegativeInfinity, S.Infinity, left_open=True, right_open=True)
+        return Interval(S.NegativeInfinity, S.Infinity, True, True)
 
     if len(relational.free_symbols) != 1:
         raise ValueError('Relational must only have one free symbol')
@@ -432,26 +427,16 @@ def to_interval(relational):
     free_symbol = list(relational.free_symbols)[0]
     lhs = relational.args[0]
     rhs = relational.args[1]
-    if isinstance(relational, GreaterThan):
-        if lhs == free_symbol:
-            return Interval(rhs, S.Infinity, left_open=False)
+    if isinstance(relational, LessThan):
+        if rhs == free_symbol:
+            return Interval(lhs, S.Infinity, False, True)
         else:
-            return Interval(S.NegativeInfinity, rhs, right_open=False)
-    elif isinstance(relational, StrictGreaterThan):
-        if lhs == free_symbol:
-            return Interval(rhs, S.Infinity, left_open=True)
-        else:
-            return Interval(S.NegativeInfinity, rhs, right_open=True)
-    elif isinstance(relational, LessThan):
-        if lhs != free_symbol:
-            return Interval(rhs, S.Infinity, left_open=False)
-        else:
-            return Interval(S.NegativeInfinity, rhs, right_open=False)
+            return Interval(S.NegativeInfinity, rhs, True, False)
     elif isinstance(relational, StrictLessThan):
-        if lhs != free_symbol:
-            return Interval(rhs, S.Infinity, left_open=True)
+        if rhs == free_symbol:
+            return Interval(lhs, S.Infinity, True, False)
         else:
-            return Interval(S.NegativeInfinity, rhs, right_open=True)
+            return Interval(S.NegativeInfinity, rhs, False, True)
     else:
         raise ValueError('Unsupported Relational: {}'.format(relational.__class__.__name__))
 
@@ -461,32 +446,37 @@ class TCPrinter(StrPrinter):
     """
     def _print_Piecewise(self, expr):
         # Filter out default zeros since they are implicit in a TDB
-        filtered_args = [i for i in expr.args if not ((i.cond == S.true) and (i.expr == S.Zero))]
-        exprs = [self._print(arg.expr) for arg in filtered_args]
+        filtered_args = [(x, cond) for x, cond in zip(*[iter(expr.args)]*2) if not ((cond == S.true) and (x == S.Zero))]
+        exprs = [str(x) for x, cond in filtered_args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
         # to_interval() is used instead of sympy.Relational.as_set() for performance reasons
-        intervals = [to_interval(i.cond) for i in filtered_args]
-        if (len(intervals) > 1) and not Intersection(*intervals) is EmptySet:
+        intervals = [to_interval(cond) for x, cond in filtered_args]
+        intersected_intervals = UniversalSet()
+        for i in intervals:
+            intersected_intervals = intersected_intervals.intersection(i)
+        if (len(intervals) > 1) and (intersected_intervals != EmptySet):
             raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
-        if not isinstance(Union(*intervals), Interval):
+        continuous_interval = Interval(intervals[0].args[0], intervals[-1].args[1], False, True)
+        # XXX: Wait, should this be the intersection or the union of continuous_interval?
+        if Union(*intervals).union(continuous_interval) != continuous_interval:
             raise ValueError('Piecewise intervals must be continuous')
-        if not all([arg.cond.free_symbols == {v.T} for arg in filtered_args]):
+        if not all([cond.free_symbols == {v.T} for x, cond in filtered_args]):
             raise ValueError('Only temperature-dependent piecewise conditions are supported')
         # Sort expressions based on intervals
-        sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].start)]
+        sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].args[0])]
         exprs = [exprs[idx] for idx in sortindices]
-        intervals = [intervals[idx] for idx in sortindices]
-
+        # Force intervals to be finite in a temperature range from 0.01 K to 10000 K
+        intervals = [intervals[idx].intersection(Interval(0.01, 10000)) for idx in sortindices]
         if len(exprs) > 1:
-            result = '{1} {0}; {2} Y'.format(exprs[0], self._print(intervals[0].start),
-                                             self._print(intervals[0].end))
+            result = '{1} {0}; {2} Y'.format(exprs[0], str(intervals[0].args[0]),
+                                             str(intervals[0].args[1]))
             result += 'Y'.join([' {0}; {1} '.format(expr,
-                                                   self._print(i.end)) for i, expr in zip(intervals[1:], exprs[1:])])
+                                                   str(i.args[1])) for i, expr in zip(intervals[1:], exprs[1:])])
             result += 'N'
         else:
-            result = '{0} {1}; {2} N'.format(self._print(intervals[0].start), exprs[0],
-                                             self._print(intervals[0].end))
+            result = '{0} {1}; {2} N'.format(str(intervals[0].args[0]), exprs[0],
+                                             str(intervals[0].args[1]))
 
         return result
 

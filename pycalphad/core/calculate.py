@@ -352,6 +352,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
+    print(list(models[phase_name].site_fractions for phase_name in active_phases))
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
     for phase_name in sorted(active_phases):
         mod = models[phase_name]

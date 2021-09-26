@@ -7,7 +7,7 @@ import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from sympy.utilities.lambdify import lambdify
-from sympy import Symbol
+from symengine import Symbol
 import numpy as np
 import operator
 import functools
