@@ -202,7 +202,8 @@ class Model(object):
         self.build_phase(dbe)
 
         for name, value in self.models.items():
-            self.models[name] = self.symbol_replace(value, symbols)
+            # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
+            self.models[name] = self.symbol_replace(value, symbols).xreplace({Symbol('T'): v.T, Symbol('P'): v.P})
 
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
