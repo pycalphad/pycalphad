@@ -115,6 +115,9 @@ class StateVariable(Symbol):
     def __init__(self, name):
         super().__init__(name.upper())
 
+    def __reduce__(self):
+        return self.__class__, (self.name,)
+
     def __eq__(self, other):
         """Two species are the same if their names are the same."""
         if isinstance(other, self.__class__):
@@ -140,6 +143,9 @@ class SiteFraction(StateVariable):
         self.phase_name = phase_name.upper()
         self.sublattice_index = subl_index
         self.species = Species(species)
+
+    def __reduce__(self):
+        return self.__class__, (self.phase_name, self.sublattice_index, self.species)
 
     def __eq__(self, other):
         """Two species are the same if their names and constituents are the same."""
@@ -208,6 +214,12 @@ class MoleFraction(StateVariable):
         self.phase_name = phase_name
         self.species = species
 
+    def __reduce__(self):
+        if self.phase_name is None:
+            return self.__class__, (self.species,)
+        else:
+            return self.__class__, (self.phase_name, self.species,)
+
     def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
@@ -243,6 +255,12 @@ class MassFraction(StateVariable):
         super().__init__(varname)
         self.phase_name = phase_name
         self.species = species
+
+    def __reduce__(self):
+        if self.phase_name is None:
+            return self.__class__, (self.species,)
+        else:
+            return self.__class__, (self.phase_name, self.species,)
 
     def _latex(self, printer=None):
         "LaTeX representation."
