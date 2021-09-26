@@ -466,17 +466,17 @@ class TCPrinter(StrPrinter):
         # Sort expressions based on intervals
         sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].args[0])]
         exprs = [exprs[idx] for idx in sortindices]
-        # Force intervals to be finite in a temperature range from 0.01 K to 10000 K
-        intervals = [intervals[idx].intersection(Interval(0.01, 10000)) for idx in sortindices]
+        # Infinity is implicit in TDB, so we shouldn't print it
+        as_str = lambda x: '' if (x == S.Infinity) or (x == S.NegativeInfinity) else str(x)
         if len(exprs) > 1:
-            result = '{1} {0}; {2} Y'.format(exprs[0], str(intervals[0].args[0]),
-                                             str(intervals[0].args[1]))
+            result = '{1} {0}; {2} Y'.format(exprs[0], as_str(intervals[0].args[0]),
+                                             as_str(intervals[0].args[1]))
             result += 'Y'.join([' {0}; {1} '.format(expr,
-                                                   str(i.args[1])) for i, expr in zip(intervals[1:], exprs[1:])])
+                                                   as_str(i.args[1])) for i, expr in zip(intervals[1:], exprs[1:])])
             result += 'N'
         else:
-            result = '{0} {1}; {2} N'.format(str(intervals[0].args[0]), exprs[0],
-                                             str(intervals[0].args[1]))
+            result = '{0} {1}; {2} N'.format(as_str(intervals[0].args[0]), exprs[0],
+                                             as_str(intervals[0].args[1]))
 
         return result
 
