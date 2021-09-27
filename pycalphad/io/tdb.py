@@ -466,8 +466,8 @@ class TCPrinter(object):
         # Sort expressions based on intervals
         sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].args[0])]
         exprs = [exprs[idx] for idx in sortindices]
-        # Infinity is implicit in TDB, so we shouldn't print it
-        as_str = lambda x: '' if (x == S.Infinity) or (x == S.NegativeInfinity) else str(x)
+        # Infinity is implicit in TDB, so we shouldn't print it; ',' means use default value
+        as_str = lambda x: ',' if (x == S.Infinity) or (x == S.NegativeInfinity) else str(x)
         if len(exprs) > 1:
             result = '{1} {0}; {2} Y'.format(exprs[0], as_str(intervals[0].args[0]),
                                              as_str(intervals[0].args[1]))
