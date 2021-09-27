@@ -347,14 +347,9 @@ class Database(object): #pylint: disable=R0902
                         return False
                     self_params = sorted(self._parameters.all(), key=param_sort_key)
                     other_params = sorted(other._parameters.all(), key=param_sort_key)
-                    for x, y in zip(self_params, other_params):
-                        if x != y:
-                            #print(f'UNEQUAL parameter: {x} != {y}')
-                            return False
                     if self_params != other_params:
                         return False
                 elif self.__dict__[key] != other.__dict__[key]:
-                    #print(f'UNEQUAL {key}: {self.__dict__[key]} != {other.__dict__[key]}')
                     return False
             return True
 
