@@ -9,7 +9,7 @@ from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
-from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise
+from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Basic
 from symengine import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, S
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
@@ -636,6 +636,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         output += "\n"
     # Write FUNCTION block
     for name, expr in sorted(dbf.symbols.items()):
+        if not isinstance(expr, Basic):
+            expr = sympify(expr).xreplace({Symbol('T'): v.T, Symbol('P'): v.P})
         if not isinstance(expr, Piecewise):
             # Non-piecewise exprs need to be wrapped to print
             # Otherwise TC's TDB parser will complain
