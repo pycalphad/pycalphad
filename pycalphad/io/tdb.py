@@ -60,6 +60,8 @@ def _sympify_string(math_string):
     # SymEngine can't handle leading plus signs in strings
     if expr_string[0] == '+':
         expr_string = expr_string[1:]
+    # SymEngine can't handle leading plus signs in parentheses
+    expr_string = expr_string.replace('(+', '(')
     return sympify(expr_string)
 
 def _parse_action(func):
