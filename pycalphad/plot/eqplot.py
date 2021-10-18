@@ -100,9 +100,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
     if z is not None:
         raise NotImplementedError('3D plotting is not yet implemented')
     if ax is None:
-        fig = plt.figure()
-        ax = fig.gca(projection=projection)
-    ax = plt.gca(projection=projection) if ax is None else ax
+        fig, (ax) = plt.subplots(subplot_kw={'projection': projection})
 
     # Handle cases for different plot types
     if projection is None:
