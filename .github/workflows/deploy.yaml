@@ -34,7 +34,7 @@ jobs:
           # Build all CPython platforms except Python 3.5 and 3.6
           # PyPy wheels not allowed because SciPy (build requirement) is not available
           CIBW_BUILD: cp3*-*
-          CIBW_SKIP: cp35-* cp36-*
+          CIBW_SKIP: cp35-* cp36-* *-musllinux_*
           CIBW_ARCHS_LINUX: auto64
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_WINDOWS: auto64
