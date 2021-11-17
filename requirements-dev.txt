@@ -6,7 +6,7 @@ setuptools
 setuptools_scm[toml]>=6.0
 wheel
 # Development dependencies
-furo
+furo<=2021.10.09  # TODO: >2021.11.16 when available
 ipython  # for pygments syntax highlighting
 pytest-cov
 sphinx
