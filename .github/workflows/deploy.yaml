@@ -35,7 +35,9 @@ jobs:
           # PyPy wheels not allowed because SciPy (build requirement) is not available
           CIBW_BUILD: cp3*-*
           CIBW_SKIP: cp35-* cp36-*
+          CIBW_ARCHS_LINUX: auto64
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          CIBW_ARCHS_WINDOWS: auto64
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_BUILD_VERBOSITY: 2
 
