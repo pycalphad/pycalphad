@@ -36,6 +36,7 @@ jobs:
           CIBW_BUILD: cp3*-*
           CIBW_SKIP: cp35-* cp36-*
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          CIBW_BUILD_VERBOSITY: 2
 
       - uses: actions/upload-artifact@v2
         with:
