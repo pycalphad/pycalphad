@@ -594,7 +594,7 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
     # Apply linear corrections in phase amounts, state variables and site fractions
     cdef bint exceeded_bounds
     cdef double minimum_step_size, psc, phase_amt_step_size
-    cdef int i, idx, compset_idx, statevar_idx, chempot_idx
+    cdef int i, idx, cons_idx, compset_idx, statevar_idx, chempot_idx
     cdef int soln_index_offset = spec.free_chemical_potential_indices.shape[0]  # Chemical potentials handled after solving
     cdef double[::1] new_y, x
     cdef CompsetState csst
@@ -644,13 +644,15 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
 
         # Construct delta_y from Eq. 43 in Sundman 2015
         csst.delta_y[:] = 0
-        # TODO: needs charge balance contribution
+
         for i in range(csst.delta_y.shape[0]):
             csst.delta_y[i] += csst.c_G[i]
             for statevar_idx in range(state.delta_statevars.shape[0]):
                 csst.delta_y[i] += csst.c_statevars[i, statevar_idx] * state.delta_statevars[statevar_idx]
             for chempot_idx in range(state.chemical_potentials.shape[0]):
                 csst.delta_y[i] += csst.c_component[chempot_idx, i] * state.chemical_potentials[chempot_idx]
+            for cons_idx in range(csst.internal_cons.shape[0]):
+                csst.delta_y[i] -= csst.full_e_matrix[csst.delta_y.shape[0] + cons_idx, i] * csst.internal_cons[cons_idx]
 
         new_y = np.array(x)
         minimum_step_size = 1e-20 * step_size
@@ -811,7 +813,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef SystemState state = SystemState(spec, compsets)
 
     # convergence criteria
-    cdef double ALLOWED_DELTA_Y = 1e-10
+    cdef double ALLOWED_DELTA_Y = 1e-08
     cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
     cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
 

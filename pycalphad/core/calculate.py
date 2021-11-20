@@ -41,6 +41,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     ndarray of points
     """
     # Eliminate pure vacancy endmembers from the calculation
+    ALLOWED_CHARGE=1E-10
     vacancy_indices = []
     for sublattice in model.constituents:
         subl_va_indices = [idx for idx, spec in enumerate(sorted(set(sublattice))) if spec.number_of_atoms == 0]
@@ -50,6 +51,27 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     sublattice_dof = [len(subl) for subl in model.constituents]
     # Add all endmembers to guarantee their presence
     points = endmember_matrix(sublattice_dof, vacancy_indices=vacancy_indices)
+    site_ratios = model.site_ratios
+    constant_site_ratios = True
+    # The only implementation with variable site ratios is the two-sublattice ionic liquid.
+    # This check is convenient for detecting 2SL ionic liquids without keeping other state.
+    for sr in site_ratios:
+        try:
+            float(sr)
+        except TypeError:
+            constant_site_ratios = False
+    species_charge = []
+    for sublattice in range(len(model.constituents)):
+        for species in sorted(model.constituents[sublattice]):
+            species_charge.append(species.charge*site_ratios[sublattice])
+    species_charge = np.array(species_charge)
+    charge_constrained_space = constant_site_ratios and np.any(species_charge != 0)
+
+    if charge_constrained_space:
+        Q = np.dot(points, species_charge)
+        neutral_mask = np.abs(Q) < ALLOWED_CHARGE
+        # Do not preserve all endmembers for charge-constrained spaces; they may be infeasible
+        points = points[neutral_mask]
     if fixed_grid is True:
         # Sample along the edges of the endmembers
         # These constitution space edges are often the equilibrium points!
@@ -59,10 +81,14 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
                         second_em * lingrid[::-1][np.newaxis].T
                         for first_em, second_em in em_pairs]
         points = np.concatenate(list(itertools.chain([points], extra_points)))
-
     # Sample composition space for more points
     if sum(sublattice_dof) > len(sublattice_dof):
-        points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
+        if charge_constrained_space:
+            # Do not perform random sampling in charge-constrained spaces
+            # Otherwise, we risk including infeasible points in the grid
+            pass
+        else:
+            points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
 
     # Filter out nan's that may have slipped in if we sampled too high a vacancy concentration
     # Issues with this appear to be platform-dependent

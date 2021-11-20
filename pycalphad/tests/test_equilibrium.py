@@ -29,6 +29,8 @@ CUO_DBF = Database(CUO_TDB)
 PBSN_DBF = Database(PBSN_TDB)
 AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
+AL2O3_ND2O3_ZRO2_DBF = Database(AL2O3_ND2O3_ZRO2_TDB)
+ALFEO_DBF = Database(ALFEO_TDB)
 
 
 @pytest.mark.solver
@@ -700,3 +702,59 @@ def test_eq_associate():
     conds = {v.X('Q'): 0.3, v.T: 500, v.P: 1e5, v.N: 1}
     eq = equilibrium(dbf, ['A', 'Q'], phases, conds)
     assert_allclose(eq.GM.values, -1736.981311)
+
+
+@pytest.mark.solver
+def test_eq_charge_halite():
+    """Halite (with charged species) is correctly calculated and charged balanced in equilibrium"""
+    alfeo = ALFEO_DBF
+    comps = ['FE', 'AL', 'O', 'VA']
+    phases = ['HALITE']
+    conds = {v.P: 101325, v.N: 1, v.T: 500, v.X('FE'): 0.2, v.MU('O'): -200000}
+    res = equilibrium(alfeo, comps, phases, conds, verbose=True)
+    assert_allclose(res.GM.values, -248202.28)
+
+
+@pytest.mark.solver
+def test_eq_charge_alfeo():
+    """Phases with charged species are correctly calculated and charged balanced in equilibrium"""
+    alfeo = ALFEO_DBF
+    comps = ['AL', 'FE', 'O', 'VA']
+    phases = list(alfeo.phases.keys())
+    conds = {v.P: 101325, v.N: 1, v.T: 500, v.X('FE'): 0.2, v.X('O'): 0.6}
+    res = equilibrium(alfeo, comps, phases, conds, verbose=True)
+    # Values below checked with Thermo-Calc
+    assert np.allclose(res.NP.values.squeeze()[:2], [0.47826862, 0.52173138])
+    assert np.allclose(res.GM.values.flat[0], -257462.33)
+
+
+@pytest.mark.solver
+def test_eq_charge_ndzro():
+    """Nd-Zr-O system (with charged species) are correctly calculated and charged balanced in equilibrium"""
+    comps = ['ND', 'ZR', 'O', 'VA']
+    phases = ['ND2O3_A', 'PYRO']
+    conds = {v.P: 101325, v.N: 1, v.T: 1400, v.X('ND'): 0.25, v.X('O'): 0.625}
+    # Higher point density is required for convergence. Lower point densities
+    # Can result in either no phases, or only FLUO phase (incorrect)
+    res = equilibrium(AL2O3_ND2O3_ZRO2_DBF, comps, phases, conds, verbose=True)
+    # Values below checked with Thermo-Calc
+    assert np.isclose(-432325.423784, res.GM.values.squeeze())
+    assert np.all(res.Phase.values.squeeze() == np.array(['ND2O3_A', 'PYRO', '', '']))
+    assert np.allclose(res.NP.values.squeeze()[:2], [0.30164254, 0.69835646])
+    # site fractions of ND2O3_A
+    Y_ND2O3_A = res.Y.values.squeeze()[0, :5]
+    Y_PYRO = res.Y.values.squeeze()[1, :]
+    SPEC_CHG_ND2O3_A = np.array([3, 4, -2, -2, 0])  # (ND+3,ZR+4):(O-2):(O-2,VA)
+    SITE_RATIO_ND2O3_A = np.array([2, 2, 3, 1, 1])  # 2:3:1
+    SPEC_CHG_PYRO = np.array([3, 4, 3, 4, -2, 0, -2, -2, 0])  # (ND+3,ZR+4):(ND+3,ZR+4):(O-2,VA):(O-2):(O-2,VA)
+    SITE_RATIO_PYRO = np.array([2, 2, 2, 2, 6, 6, 1, 1, 1])  # 2:2:6:1:1
+    CHG_ND2O3_A = np.dot(Y_ND2O3_A*SPEC_CHG_ND2O3_A, SITE_RATIO_ND2O3_A)
+    CHG_PYRO = np.dot(Y_PYRO*SPEC_CHG_PYRO, SITE_RATIO_PYRO)
+    print('CHARGE ND2O3_A', CHG_ND2O3_A)
+    print('CHARGE PYRO', CHG_PYRO)
+    assert np.isclose(CHG_ND2O3_A, 0)
+    assert np.isclose(CHG_PYRO, 0)
+    assert np.allclose(Y_ND2O3_A, [9.79497936e-01, 2.05020639e-02, 1.00000000e+00, 2.05020639e-02, 9.79497936e-01],
+                       rtol=5e-4)
+    assert np.allclose(Y_PYRO, [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01,
+                                6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
