@@ -239,7 +239,7 @@ def _compute_phase_values(components, statevar_dict,
         coordinate_dict['param_symbols'] = [str(x) for x in param_symbols]
     else:
         parameter_column = []
-    data_arrays = {'X': (output_columns + ['component'], phase_compositions),
+    data_arrays = {'X': (output_columns + ['component'], np.ascontiguousarray(phase_compositions)),
                    'Phase': (output_columns, phase_names),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
                    output: (['dim_'+str(i) for i in range(len(phase_output.shape) - (len(output_columns)+len(parameter_column)))] + output_columns + parameter_column, phase_output)
