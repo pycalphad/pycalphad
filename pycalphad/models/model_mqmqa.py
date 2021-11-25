@@ -198,12 +198,12 @@ class ModelMQMQA:
         """
         cations = self.cations
         anions = self.anions
-#        print(species.constituents, species.charge)
+
         # aliases for notation
         Z = partial(self.Z, dbe)
         p = self._p
         M = S.Zero
-#        print(species,species.constituents)
+
         if species in cations:
             A = species
             for i, X in enumerate(anions):
@@ -464,27 +464,15 @@ class ModelMQMQA:
             Y=subl_2[0]
             Gibbs[A,B,X,Y]=param['parameter']
 
-#        NA=[i for i in cations for name,count in i.constituents.items() if name=='NA'][0]
-#        CL=[i for i in anions for name,count in i.constituents.items() if name=='CL'][0]
-#        VA=[i for i in anions for name,count in i.constituents.items() if name=='VA'][0]
-
-#        AL1=[i for i in cations for name,count in i.constituents.items() if name=='AL' and count==1][0]
-#        AL2=[i for i in cations for name,count in i.constituents.items() if name=='AL' and count==2][0]
-
         for i, A in enumerate(cations):
             for B in cations[i:]:
                 for j, X in enumerate(anions):
                     for Y in anions[j:]:
                         term1=((abs(X.charge)/self.Z(dbe,X,A,B,X,Y))+(abs(Y.charge)/self.Z(dbe,Y,A,B,X,Y)))**(-1)
-#                        print('term1',self.Z(dbe,X,A,B,X,Y),self.Z(dbe,Y,A,B,X,Y),A,B,X,Y)
                         term2=(abs(X.charge)*self.Z(dbe,A,A,A,X,X)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[A,A,X,X]*2/(self.Z(dbe,A,A,A,X,X)*self.Coax(dbe,A,A,X,X)))
-#                        print('second term',Gibbs[A,A,X,X],A,B,X,Y)
-                        term3=(abs(X.charge)*self.Z(dbe,B,B,B,X,X)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[B,B,X,X]*2/(self.Z(dbe,B,B,B,X,X)*self.Coax(dbe,B,B,X,X)))#*self.Coax(dbe,B,B,X,X)
-#                        print('third term',term3,A,B,X,Y)
-                        term4=(abs(Y.charge)*self.Z(dbe,A,A,A,Y,Y)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[A,A,Y,Y]*2/(self.Z(dbe,A,A,A,Y,Y)*self.Coax(dbe,A,A,Y,Y)))#*self.Coax(dbe,A,A,Y,Y)
-#                        print('fourth term',term4,A,B,X,Y)
-                        term5=(abs(Y.charge)*self.Z(dbe,B,B,B,Y,Y)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[B,B,Y,Y]*2/(self.Z(dbe,B,B,B,Y,Y)*self.Coax(dbe,B,B,Y,Y)))#*self.Coax(dbe,B,B,Y,Y)
-#                        print('fifth term',term5,A,B,X,Y)
+                        term3=(abs(X.charge)*self.Z(dbe,B,B,B,X,X)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[B,B,X,X]*2/(self.Z(dbe,B,B,B,X,X)*self.Coax(dbe,B,B,X,X)))
+                        term4=(abs(Y.charge)*self.Z(dbe,A,A,A,Y,Y)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[A,A,Y,Y]*2/(self.Z(dbe,A,A,A,Y,Y)*self.Coax(dbe,A,A,Y,Y)))
+                        term5=(abs(Y.charge)*self.Z(dbe,B,B,B,Y,Y)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[B,B,Y,Y]*2/(self.Z(dbe,B,B,B,Y,Y)*self.Coax(dbe,B,B,Y,Y)))
                         final_term=term1*(term2+term3+term4+term5)
                         surf+=p(A,B,X,Y)*final_term
         return surf/self.normalization
@@ -531,27 +519,19 @@ class ModelMQMQA:
             exp1=1.0
             exp2=1.0
         Sid = S.Zero
-        self.t1 = S.Zero
-        self.t2 = S.Zero
-        self.t3 = S.Zero
-        self.t4 = S.Zero
+
         ζ = 2.4  # hardcoded, but we can get it from the model_hints (SUBQ) or the pairs (SUBG)
         for A in cations:
             Sid += M(A)*log(ϑ(A))  # term 1
-            self.t1 += M(A)*log(ϑ(A))
         for X in anions:
             Sid += M(X)*log(ϑ(X))  # term 2
-            self.t2 += M(X)*log(ϑ(X))
         for A in cations:
             for X in anions:
                 ξ_AX = ξ(A,X)
                 p_AAXX = p(A,A,X,X)
                 w_A = w(A)
                 w_X = w(X)
-#                Sid += 4/ζ*ξ_AX*log(ξ_AX/(w_A*w_X))  # term 3
-                Sid += 4/ζ*ξ_AX*log(ξ_AX/(w_A*w_X))
-                self.t3 += 4/ζ*ξ_AX*log(ξ_AX/(w_A*w_X))
-#                self.t3 += ξ_AX*log(ξ_AX/(w_A*w_X))
+                Sid += 4/ζ*ξ_AX*log(ξ_AX/(w_A*w_X))  # term 3
 
         # flatter loop over all quadruplets:
         # for A, B, X, Y in ((A, B, X, Y) for i, A in enumerate(cations) for B in cations[i:] for j, X in enumerate(anions) for Y in anions[j:]):
@@ -563,12 +543,8 @@ class ModelMQMQA:
                         factor = 1
                         if A != B: factor *= 2
                         if X != Y: factor *= 2
-#                        print(factor,A,B,X,Y)
                         Sid += p(A,B,X,Y)*log(p(A,B,X,Y)/(factor * (ξ(A,X)**(exp1))*(ξ(A,Y)**(exp1))*(ξ(B,X)**(exp1))*(ξ(B,Y)**(exp1)) / ((w(A)**(exp2))*(w(B)**(exp2))*(w(X)**(exp2))*(w(Y)**(exp2)))))
-                        self.t4 = p(A,B,X,Y)*log(p(A,B,X,Y)/(factor * (ξ(A,X)**(1))*(ξ(A,Y)**(1))*(ξ(B,X)**(1))*(ξ(B,Y)**(1)) / ((w(A)**(0.5))*(w(B)**(0.5))*(w(X)**(0.5))*(w(Y)**(0.5)))))
-    #                        self.t4 += p(A,B,X,Y)*log(p(A,B,X,Y)/(factor*(ξ(A,X)*ξ(A,Y)*ξ(B,X)*ξ(B,Y))**(0.75) / (w(A)*w(B)*w(X)*w(Y))**(0.5)))
-#                        self.t4 += factor * ξ(A,X)*ξ(A,Y)*ξ(B,X)*ξ(B,Y) / (w(A)*w(B)*w(X)*w(Y))
-        return Sid*v.T*v.R/self.normalization#(self.t1+self.t2+self.t3+self.t4)
+        return Sid*v.T*v.R/self.normalization
 
 
     def excess_mixing_t1(self,dbe,constituent_array):
@@ -583,7 +559,6 @@ class ModelMQMQA:
         B=subl_1[1]
         X=subl_2[0]
         Y=subl_2[1]
-        test=[p(A,B,i,Y) for i in anions if i!=Y]
 ##Figure out how to connect this. Below is the correct expression. Maybe this can be its own function separately
 #And it can be called in the other final function
         return 0.5*(p(A,B,X,Y)
@@ -718,14 +693,12 @@ class ModelMQMQA:
             (where('diffusing_species') != v.Species(None)) & \
             (where('constituent_array').test(self._mixing_test))
         )
-        test=[i['parameter'] for i in pair_query_3]
-#        print(pair_query_1,pair_query_3)
+
         indi_que_3=[i['parameter_order'] for i in pair_query_3 ]
         chem_groups=dbe.phases[self.phase_name].model_hints['mqmqa']['chemical_groups']
         X_ex=S.Zero
         X_tern_original=S.One
         for param in pair_query_1:
-#            print('parameter in query 1',param)
             index=param['parameter_order']
             coeff=param['parameter']
             diff=[i for i in indi_que_3 if 0<(i-index)<=4]
@@ -739,7 +712,7 @@ class ModelMQMQA:
                 exp=parse['parameter']
                 diff_spe=parse['diffusing_species']
                 cons_arr=parse['constituent_array']
-#                print('exponent',exp,coeff,parse['parameter_order'])
+
                 cons_cat=cons_arr[0]
                 cons_an=cons_arr[1]
                 A=cons_cat[0]
@@ -752,13 +725,9 @@ class ModelMQMQA:
                     Sub_ex_1+=1
                 elif A==B and X!=Y:
                     Sub_ex_2+=1
-#                print('JORGE TEST!',A,B,X,Y,Sub_ex_1,Sub_ex_2)
+
                 if 0<(parse['parameter_order']-index)<=4 and diff_spe in cons_cat:
                     X_ex_1*=(self.X_1_2(dbe,cons_arr,diff_spe))**exp
-#                    print(coeff)
-#                    print(exp)
-#                    print('This is the cons_array mayn',cons_arr, 'ANNND diffusing species',diff_spe)
-#                    print(self.X_1_2(dbe,cons_arr,diff_spe))
                     if X_ex_1==1:
                         X_ex_0=0
                     else:
@@ -792,7 +761,6 @@ class ModelMQMQA:
 
                     X_ex_2+=exp*(X_a_Xb_tern*(ξ(diff_spe,X)/w(X))\
                     *((1-self.K_1_2(dbe,A,B)-self.K_1_2(dbe,B,A))**(exp-1)))
-#                    print(X_ex_2,coeff,self.excess_mixing_t1(dbe,param['constituent_array']))
 
                 elif diff_spe in cations and diff_spe not in cons_cat \
                 and 2<(parse['parameter_order']-index)<=4 \
