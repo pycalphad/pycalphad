@@ -12,12 +12,8 @@ import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
 from pycalphad.codegen.callables import build_callables, build_phase_records
 from pycalphad.core.solver import SolverBase, Solver
-<<<<<<< HEAD
-from pycalphad.core.utils import get_state_variables
-from pycalphad.models.model_mqmqa import ModelMQMQA
-=======
 from pycalphad.core.utils import get_state_variables, instantiate_models
->>>>>>> PyCalphad/master
+from pycalphad.models.model_mqmqa import ModelMQMQA
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -681,25 +677,25 @@ def test_eq_associate():
     SPECIES COMPD A1.5 !
     TYPE_DEFINITION % SEQ * !
     DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
-    
+
     PHASE PHASEA %  1 1.0 !
     CONSTITUENT PHASEA :Q: !
-    
+
     PHASE PHASEB %  1 1.0 !
     CONSTITUENT PHASEB :Q: !
-    
+
     PHASE PHASEC %  1 1.0 !
     CONSTITUENT PHASEC :Q: !
-    
+
     PHASE PHASED %  1 1.0 !
     CONSTITUENT PHASED :Q: !
-    
+
     PHASE PHASEE %  1 1.0 !
     CONSTITUENT PHASEE :A: !
-    
+
     PHASE PHASEF %  1 1.0 !
     CONSTITUENT PHASEF :COMPB,COMPC: !
-    
+
     PHASE PHASEG %  1 1.0 !
     CONSTITUENT PHASEG :COMPA,COMPD: !
     """
@@ -726,8 +722,8 @@ def test_MQMQA_equilibrium():
     Y_quad_KNIFF=eq.Y.values[0][0][0][0][0][1][1]
     assert np.isclose(Y_quad_KKFF, 0.160136063, atol=1e-4)
     assert np.isclose(Y_quad_KNIFF, 0.628377052, atol=1e-4)
-    
-    
+
+
 def test_MQMQA_equilibrium_symmetry_fe2():
 
     comps=['CU','FE','CL','ZN']
@@ -758,8 +754,8 @@ def test_MQMQA_equilibrium_symmetry_zn():
     print(eq.Phase.values.squeeze())
     print(eq.NP.values.squeeze())
 
-    assert np.isclose(eq.GM, -1.38747E+05, 1e-5)  # value from Thermochimica 
-    
+    assert np.isclose(eq.GM, -1.38747E+05, 1e-5)  # value from Thermochimica
+
 def test_MQMQA_equilibrium_symmetry_cu_1():
 
     comps = ['CU','FE','ZN','CL']  # other pure element component names that you want
@@ -772,21 +768,21 @@ def test_MQMQA_equilibrium_symmetry_cu_1():
 
     print(eq.Phase.values.squeeze())
     print(eq.NP.values.squeeze())
-    
-    assert np.isclose(eq.GM, -1.38882E+05, 1e-5)  # value from Thermochimica 
-    
-def test_MQMQA_equilibrium_Al_Na_Cl_():
 
-    comps = ['AL','CL','NA','VA']  # other pure element component names that you want
-#    phases = ['CL2(G)', 'FE_BCC(S)','CU_SOLID(S)','ZN_SOLID(S)','PB_SOLID(S)','ZNFESOLN', 'FEZNSOLN', 'LIQUIDSOLN', 'CUCL']
-    phases = ['MSSOLN']
-    conds = {v.N: 1,v.P: 101325, v.T: 2000, v.X("CL"):0.3, v.X("NA"):0.35}
+    assert np.isclose(eq.GM, -1.38882E+05, 1e-5)  # value from Thermochimica
+
+# def test_MQMQA_equilibrium_Al_Na_Cl_():
+
+#     comps = ['AL','CL','NA','VA']  # other pure element component names that you want
+# #    phases = ['CL2(G)', 'FE_BCC(S)','CU_SOLID(S)','ZN_SOLID(S)','PB_SOLID(S)','ZNFESOLN', 'FEZNSOLN', 'LIQUIDSOLN', 'CUCL']
+#     phases = ['MSSOLN']
+#     conds = {v.N: 1,v.P: 101325, v.T: 2000, v.X("CL"):0.3, v.X("NA"):0.35}
 
 
-    model = {'MSSOLN': ModelMQMQA}
-    eq = equilibrium(SCU_AL_NA_CL_TDB , comps, phases, conds, model=model, calc_opts={'pdens': 2000})
+#     model = {'MSSOLN': ModelMQMQA}
+#     eq = equilibrium(SCU_AL_NA_CL_TDB , comps, phases, conds, model=model, calc_opts={'pdens': 20_000}, verbose=True)
 
-    print(eq.Phase.values.squeeze())
-    print(eq.NP.values.squeeze())
-    
-    assert np.isclose(eq.GM, -2.69502E+05, 1e-5)  # value from Thermochimica     
+#     print(eq.Phase.values.squeeze())
+#     print(eq.NP.values.squeeze())
+
+#     assert np.isclose(eq.GM, -2.69502E+05, 1e-5)  # value from Thermochimica
