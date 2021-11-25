@@ -1,12 +1,12 @@
 # Build requirements, matching pyproject.toml[build-system][requires]
 Cython
-numpy<1.20
+oldest-supported-numpy
 scipy
 setuptools
 setuptools_scm[toml]>=6.0
 wheel
 # Development dependencies
-furo
+furo<=2021.10.09  # TODO: >2021.11.16 when available
 ipython  # for pygments syntax highlighting
 pytest-cov
 sphinx
