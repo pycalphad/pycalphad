@@ -406,22 +406,6 @@ class ModelMQMQA:
         else:
             return result/self.normalization
 
-    def Coax(self,dbe,A,B,X,Y):
-    #Taking nomenclature from thermochimica. Only going to calculate the one for the cation
-    #This value is important when calculating the surface energies
-        Z = partial(self.Z, dbe)
-        Coa=Z(A,A,B,X,Y)
-        Cox=Z(X,A,B,X,Y)
-#        print(Coa,Cox)
-        ratio_C=Coa/Cox
-        if ratio_C==ratio_C:
-            fin_Coa=1
-        else:
-            frac=Fraction(ratio_C).limit_denominator()
-            low_com_mul=np.lcm(frac.numerator,frac.denominator)
-            fin_Coa=low_com_mul/frac.numerator
-        return fin_Coa
-
     degree_of_ordering = DOO = S.Zero
     curie_temperature = TC = S.Zero
     beta = BMAG = S.Zero
@@ -468,12 +452,12 @@ class ModelMQMQA:
             for B in cations[i:]:
                 for j, X in enumerate(anions):
                     for Y in anions[j:]:
-                        term1=((abs(X.charge)/self.Z(dbe,X,A,B,X,Y))+(abs(Y.charge)/self.Z(dbe,Y,A,B,X,Y)))**(-1)
-                        term2=(abs(X.charge)*self.Z(dbe,A,A,A,X,X)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[A,A,X,X]*2/(self.Z(dbe,A,A,A,X,X)*self.Coax(dbe,A,A,X,X)))
-                        term3=(abs(X.charge)*self.Z(dbe,B,B,B,X,X)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[B,B,X,X]*2/(self.Z(dbe,B,B,B,X,X)*self.Coax(dbe,B,B,X,X)))
-                        term4=(abs(Y.charge)*self.Z(dbe,A,A,A,Y,Y)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[A,A,Y,Y]*2/(self.Z(dbe,A,A,A,Y,Y)*self.Coax(dbe,A,A,Y,Y)))
-                        term5=(abs(Y.charge)*self.Z(dbe,B,B,B,Y,Y)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[B,B,Y,Y]*2/(self.Z(dbe,B,B,B,Y,Y)*self.Coax(dbe,B,B,Y,Y)))
-                        final_term=term1*(term2+term3+term4+term5)
+                        term1=((abs(X.charge)/self.Z(dbe,X,A,B,X,Y))+(abs(Y.charge)/self.Z(dbe,Y,A,B,X,Y)))
+                        term2=(abs(X.charge)*self.Z(dbe,A,A,A,X,X)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[A,A,X,X]*2/(self.Z(dbe,A,A,A,X,X)))
+                        term3=(abs(X.charge)*self.Z(dbe,B,B,B,X,X)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[B,B,X,X]*2/(self.Z(dbe,B,B,B,X,X)))
+                        term4=(abs(Y.charge)*self.Z(dbe,A,A,A,Y,Y)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[A,A,Y,Y]*2/(self.Z(dbe,A,A,A,Y,Y)))
+                        term5=(abs(Y.charge)*self.Z(dbe,B,B,B,Y,Y)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[B,B,Y,Y]*2/(self.Z(dbe,B,B,B,Y,Y)))
+                        final_term=(term2+term3+term4+term5)/term1
                         surf+=p(A,B,X,Y)*final_term
         return surf/self.normalization
 
