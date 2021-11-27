@@ -73,7 +73,7 @@ def check_output(model, variables, output, known_value, mode='sympy'):
 
 def check_energy(model, variables, known_value, mode='sympy'):
     "Check that our calculated energy matches the known value."
-    check_output(model, variables, 'ast', known_value, mode=mode)
+    check_output(model, variables, 'GM', known_value, mode=mode)
 
 # PURE COMPONENT TESTS
 def test_pure_sympy():
