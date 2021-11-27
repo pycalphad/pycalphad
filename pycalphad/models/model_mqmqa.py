@@ -448,6 +448,7 @@ class ModelMQMQA:
             Y=subl_2[0]
             Gibbs[A,B,X,Y]=param['parameter']
 
+        # TODO: remove these loops and simply loop over params instead
         for i, A in enumerate(cations):
             for B in cations[i:]:
                 for j, X in enumerate(anions):
@@ -482,6 +483,7 @@ class ModelMQMQA:
         for param in params:
             A = param['constituent_array'][0][0]
             X = param['constituent_array'][1][0]
+            # I think that the problem is that this never gets the coordination numbers for mixed quadruplets. It always gets the Z of the pair
             ξ_AX = 0.25 * (
                 p(A,A,X,X) +
                 sum(p(A,A,X,Y) for Y in anions) +
