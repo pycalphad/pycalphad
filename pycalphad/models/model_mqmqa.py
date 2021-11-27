@@ -51,7 +51,7 @@ class ModelMQMQA:
 
     """
     contributions = [
-        ('ref', 'traditional_reference_energy'),
+        ('ref', 'reference_energy'),
         ('idmix', 'ideal_mixing_energy'),
         ('xsmix', 'excess_mixing_energy'),
     ]
@@ -425,45 +425,8 @@ class ModelMQMQA:
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
     mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
-    def traditional_reference_energy(self,dbe):
-        Gibbs={}
-        pair_query = (
-            (where('phase_name') == self.phase_name) & \
-            (where('parameter_order') == 0) & \
-            (where('parameter_type') == "G") & \
-            (where('constituent_array').test(self._pair_test))
-        )
-        cations = self.cations
-        anions = self.anions
-        params = dbe._parameters.search(pair_query)
-        p = self._p
-        surf=S.Zero
-        for param in params:
-            subl_1 = param['constituent_array'][0]
-            subl_2 = param['constituent_array'][1]
-
-            A=subl_1[0]
-            B=subl_1[0]
-            X=subl_2[0]
-            Y=subl_2[0]
-            Gibbs[A,B,X,Y]=param['parameter']
-
-        # TODO: remove these loops and simply loop over params instead
-        for i, A in enumerate(cations):
-            for B in cations[i:]:
-                for j, X in enumerate(anions):
-                    for Y in anions[j:]:
-                        # Requires charge neutrality in each quadruplet for this to be valid, since it relies on Z^X/Z^Y = q_X/q_Y
-                        term2 = Gibbs[A,A,X,X] / (2 * self.Z(dbe,A,A,B,X,Y))
-                        term3 = Gibbs[B,B,X,X] / (2 * self.Z(dbe,B,A,B,X,Y))
-                        term4 = Gibbs[A,A,Y,Y] / (2 * self.Z(dbe,A,A,B,X,Y))
-                        term5 = Gibbs[B,B,Y,Y] / (2 * self.Z(dbe,B,A,B,X,Y))
-                        final_term=term2 + term3 + term4 + term5
-                        surf+=p(A,B,X,Y)*final_term
-        return surf
-
-
     def reference_energy(self, dbe):
+        # This considers the pair contributions to the energy, the first sum terms in Eq. 37 in Pelton2001.
         """
         Returns the weighted average of the endmember energies
         in symbolic form.
@@ -477,25 +440,21 @@ class ModelMQMQA:
         p = self._p
         anions = self.anions
         cations = self.cations
-        self._ξ = S.Zero
         params = dbe._parameters.search(pair_query)
         terms = S.Zero
         for param in params:
             A = param['constituent_array'][0][0]
             X = param['constituent_array'][1][0]
-            # I think that the problem is that this never gets the coordination numbers for mixed quadruplets. It always gets the Z of the pair
-            ξ_AX = 0.25 * (
-                p(A,A,X,X) +
-                sum(p(A,A,X,Y) for Y in anions) +
-                sum(p(A,B,X,X) for B in cations) +
-                sum(p(A,B,X,Y) for B, Y in itertools.product(cations, anions))
-            )
-            print('ξ', ξ_AX)
-            self._ξ += ξ_AX
+            ξ_AX = S.Zero
+            for B in cations:
+                for Y in anions:
+                    factor = 1
+                    if B == A: factor *= 2  # Double count (for symmetry?)
+                    if Y == X: factor *= 2  # Double count
+                    ξ_AX += factor * p(A,B,X,Y) / (2 * self.Z(dbe,A,A,B,X,Y))
             G_AX = param['parameter']
-            Z = self.Z(dbe, A, A, A, X, X)
-            terms += (ξ_AX * G_AX)*2/Z
-        return terms/self.normalization
+            terms += (ξ_AX * G_AX)
+        return terms
 
     def ideal_mixing_energy(self, dbe):
         # notational niceties
