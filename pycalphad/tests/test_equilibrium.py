@@ -747,7 +747,7 @@ def test_MQMQA_energy_symmetry_fe2():
     assert np.isclose(calc_res.GM.values.squeeze(), -1.38673E+05, 1e-5)
     assert np.all(np.isclose(calc_res.X.values.squeeze(), [0.625, 0.125, 0.125, 0.125], 1e-5))
 
-
+@pytest.mark.skip("Flaky, perhaps pseudo-binary")
 def test_MQMQA_equilibrium_symmetry_fe2():
 
     comps=['CU','FE','CL','ZN']
@@ -809,7 +809,7 @@ def test_MQMQA_energy_symmetry_cu_1():
     assert np.isclose(calc_res.GM.values.squeeze(), -1.38882E+05, 1e-5)
     assert np.all(np.isclose(calc_res.X.values.squeeze(), [0.625, 0.125, 0.125, 0.125], 1e-5))
 
-
+@pytest.mark.skip("Flaky, perhaps pseudo-binary")
 def test_MQMQA_equilibrium_symmetry_cu_1():
 
     comps = ['CU','FE','ZN','CL']  # other pure element component names that you want
