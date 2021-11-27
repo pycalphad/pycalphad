@@ -452,11 +452,12 @@ class ModelMQMQA:
             for B in cations[i:]:
                 for j, X in enumerate(anions):
                     for Y in anions[j:]:
-                        term1=((abs(X.charge)/self.Z(dbe,X,A,B,X,Y))+(abs(Y.charge)/self.Z(dbe,Y,A,B,X,Y)))
-                        term2=(abs(X.charge)*self.Z(dbe,A,A,A,X,X)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[A,A,X,X]*2/(self.Z(dbe,A,A,A,X,X)))
-                        term3=(abs(X.charge)*self.Z(dbe,B,B,B,X,X)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,X,A,B,X,Y)))*(Gibbs[B,B,X,X]*2/(self.Z(dbe,B,B,B,X,X)))
-                        term4=(abs(Y.charge)*self.Z(dbe,A,A,A,Y,Y)/(2*self.Z(dbe,A,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[A,A,Y,Y]*2/(self.Z(dbe,A,A,A,Y,Y)))
-                        term5=(abs(Y.charge)*self.Z(dbe,B,B,B,Y,Y)/(2*self.Z(dbe,B,A,B,X,Y)*self.Z(dbe,Y,A,B,X,Y)))*(Gibbs[B,B,Y,Y]*2/(self.Z(dbe,B,B,B,Y,Y)))
+                        print(A, B, X, Y)
+                        term1= (abs(X.charge) / self.Z(dbe,X,A,B,X,Y)) + (abs(Y.charge) / self.Z(dbe,Y,A,B,X,Y))
+                        term2= abs(X.charge) / self.Z(dbe,A,A,B,X,Y) / self.Z(dbe,X,A,B,X,Y) * Gibbs[A,A,X,X]
+                        term3= abs(X.charge) / self.Z(dbe,B,A,B,X,Y) / self.Z(dbe,X,A,B,X,Y) * Gibbs[B,B,X,X]
+                        term4= abs(Y.charge) / self.Z(dbe,A,A,B,X,Y) / self.Z(dbe,Y,A,B,X,Y) * Gibbs[A,A,Y,Y]
+                        term5= abs(Y.charge) / self.Z(dbe,B,A,B,X,Y) / self.Z(dbe,Y,A,B,X,Y) * Gibbs[B,B,Y,Y]
                         final_term=(term2+term3+term4+term5)/term1
                         surf+=p(A,B,X,Y)*final_term
         return surf/self.normalization
@@ -473,13 +474,22 @@ class ModelMQMQA:
             (where('parameter_type') == "G") & \
             (where('constituent_array').test(self._pair_test))
         )
+        p = self._p
+        anions = self.anions
+        cations = self.cations
         self._ξ = S.Zero
         params = dbe._parameters.search(pair_query)
         terms = S.Zero
         for param in params:
             A = param['constituent_array'][0][0]
             X = param['constituent_array'][1][0]
-            ξ_AX = self.ξ(A, X)
+            ξ_AX = 0.25 * (
+                p(A,A,X,X) +
+                sum(p(A,A,X,Y) for Y in anions) +
+                sum(p(A,B,X,X) for B in cations) +
+                sum(p(A,B,X,Y) for B, Y in itertools.product(cations, anions))
+            )
+            print('ξ', ξ_AX)
             self._ξ += ξ_AX
             G_AX = param['parameter']
             Z = self.Z(dbe, A, A, A, X, X)
