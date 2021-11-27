@@ -452,13 +452,12 @@ class ModelMQMQA:
             for B in cations[i:]:
                 for j, X in enumerate(anions):
                     for Y in anions[j:]:
-                        print(A, B, X, Y)
-                        term1= (abs(X.charge) / self.Z(dbe,X,A,B,X,Y)) + (abs(Y.charge) / self.Z(dbe,Y,A,B,X,Y))
-                        term2= abs(X.charge) / self.Z(dbe,A,A,B,X,Y) / self.Z(dbe,X,A,B,X,Y) * Gibbs[A,A,X,X]
-                        term3= abs(X.charge) / self.Z(dbe,B,A,B,X,Y) / self.Z(dbe,X,A,B,X,Y) * Gibbs[B,B,X,X]
-                        term4= abs(Y.charge) / self.Z(dbe,A,A,B,X,Y) / self.Z(dbe,Y,A,B,X,Y) * Gibbs[A,A,Y,Y]
-                        term5= abs(Y.charge) / self.Z(dbe,B,A,B,X,Y) / self.Z(dbe,Y,A,B,X,Y) * Gibbs[B,B,Y,Y]
-                        final_term=(term2+term3+term4+term5)/term1
+                        # Requires charge neutrality in each quadruplet for this to be valid, since it relies on Z^X/Z^Y = q_X/q_Y
+                        term2 = Gibbs[A,A,X,X] / (2 * self.Z(dbe,A,A,B,X,Y))
+                        term3 = Gibbs[B,B,X,X] / (2 * self.Z(dbe,B,A,B,X,Y))
+                        term4 = Gibbs[A,A,Y,Y] / (2 * self.Z(dbe,A,A,B,X,Y))
+                        term5 = Gibbs[B,B,Y,Y] / (2 * self.Z(dbe,B,A,B,X,Y))
+                        final_term=term2 + term3 + term4 + term5
                         surf+=p(A,B,X,Y)*final_term
         return surf/self.normalization
 
