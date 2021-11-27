@@ -413,8 +413,8 @@ class ModelMQMQA:
 
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
-    GM = property(lambda self: self.ast)
-    G = property(lambda self: self.ast*self.normalization)
+    GM = property(lambda self: self.ast / self.normalization)
+    G = property(lambda self: self.ast)
     energy = GM
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
@@ -459,7 +459,7 @@ class ModelMQMQA:
                         term5 = Gibbs[B,B,Y,Y] / (2 * self.Z(dbe,B,A,B,X,Y))
                         final_term=term2 + term3 + term4 + term5
                         surf+=p(A,B,X,Y)*final_term
-        return surf/self.normalization
+        return surf
 
 
     def reference_energy(self, dbe):
@@ -537,7 +537,7 @@ class ModelMQMQA:
                         if A != B: factor *= 2
                         if X != Y: factor *= 2
                         Sid += p(A,B,X,Y)*log(p(A,B,X,Y)/(factor * (ξ(A,X)**(exp1))*(ξ(A,Y)**(exp1))*(ξ(B,X)**(exp1))*(ξ(B,Y)**(exp1)) / ((w(A)**(exp2))*(w(B)**(exp2))*(w(X)**(exp2))*(w(Y)**(exp2)))))
-        return Sid*v.T*v.R/self.normalization
+        return Sid*v.T*v.R
 
 
     def excess_mixing_t1(self,dbe,constituent_array):
@@ -835,7 +835,7 @@ class ModelMQMQA:
 #            print('part 1',self.excess_mixing_t1(dbe,param['constituent_array']),coeff)
             X_ex+=self.excess_mixing_t1(dbe,param['constituent_array'])*coeff*X_ex_1*(X_ex_2/exp)*X_ex_0
 #used to multiplt X_ex_0 paramter. But I don't think it does anything anymore
-        return X_ex/self.normalization
+        return X_ex
 
     def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):
         raise NotImplementedError()
