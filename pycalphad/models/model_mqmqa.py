@@ -3,15 +3,13 @@ import itertools
 from typing import List, Tuple
 from collections import Counter, OrderedDict
 from functools import partial
-from sympy import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
-from sympy.logic.boolalg import Not
+from sympy import log, S, Symbol
 from tinydb import where
 from pycalphad.model import _MAX_PARAM_NESTING
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, wrap_symbol, get_pure_elements
+from pycalphad.core.utils import unpack_components, wrap_symbol
 from pycalphad import Model
-import numpy as np
-from fractions import Fraction
+
 
 def get_species(*constituents) -> v.Species:
     """Return a Species for a pair or quadruplet given by constituents
@@ -31,7 +29,7 @@ def get_species(*constituents) -> v.Species:
         constituents = [c.name for c in constituents]
     if len(constituents) == 4:
         constituents = sorted(constituents[0:2]) + sorted(constituents[2:4])
-    name = ''.join(constituents)
+    name = "".join(constituents)
     constituent_dict = {}
     # using get() will increment c instead of overriding if c is already defined
     for c in constituents:
@@ -50,11 +48,13 @@ class ModelMQMQA:
     whenever there is a charge.
 
     """
+
     contributions = [
-        ('ref', 'reference_energy'),
-        ('idmix', 'ideal_mixing_energy'),
-        ('xsmix', 'excess_mixing_energy'),
+        ("ref", "reference_energy"),
+        ("idmix", "ideal_mixing_energy"),
+        ("xsmix", "excess_mixing_energy"),
     ]
+
     def __init__(self, dbe, comps, phase_name, parameters=None):
         self._dbe = dbe
         self._reference_model = None
@@ -75,8 +75,8 @@ class ModelMQMQA:
             constituents.append(sublattice_comps)
         self.components = sorted(self.components)
         # create self.cations and self.anions properties to use instead of constituents
-        if len(constituents)==1:
-            self.ele=constituents
+        if len(constituents) == 1:
+            self.ele = constituents
         else:
             self.cations = sorted(constituents[0])
             self.anions = sorted(constituents[1])
@@ -86,23 +86,25 @@ class ModelMQMQA:
         shared_species = set(self.cations).intersection(set(self.anions))
         assert len(shared_species) == 0, f"No species can be shared between the two MQMQA lattices, got {shared_species}"
 
-        quads = itertools.product(itertools.combinations_with_replacement(self.cations, 2), itertools.combinations_with_replacement(self.anions, 2))
-        quad_species = [get_species(A,B,X,Y) for (A, B), (X, Y) in quads]
+        quads = itertools.product(
+            itertools.combinations_with_replacement(self.cations, 2),
+            itertools.combinations_with_replacement(self.anions, 2),
+        )
+        quad_species = [get_species(A, B, X, Y) for (A, B), (X, Y) in quads]
         self.constituents = [sorted(quad_species)]
 
         # Verify that this phase is still possible to build
         if len(self.cations) == 0:
-            raise DofError(f'{self.phase_name}: Cation sublattice of {phase.constituents[0]} has no active species in {self.components}')
+            raise DofError(f"{self.phase_name}: Cation sublattice of {phase.constituents[0]} has no active species in {self.components}")
         if len(self.anions) == 0:
-            raise DofError(f'{self.phase_name}: Anion sublattice of {phase.constituents[1]} has no active species in {self.components}')
+            raise DofError(f"{self.phase_name}: Anion sublattice of {phase.constituents[1]} has no active species in {self.components}")
 
         # Set self.nonvacant_elements, only used by get_multiphase_constraint
         # TODO: can we remove this? or re-work it?
         desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
-        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements
-                                        for el in constituents]
+        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
         pure_elements = sorted(set(desired_active_pure_elements))
-        self.nonvacant_elements = [x for x in pure_elements if x != 'VA']
+        self.nonvacant_elements = [x for x in pure_elements if x != "VA"]
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
@@ -179,8 +181,7 @@ class ModelMQMQA:
         return True
 
     def _mixing_test(self, constituent_array):
-        """Return True if the constituent array is satisfies all components.
-                """
+        """Return True if the constituent array is satisfies all components."""
         for subl in constituent_array:
             for constituent in subl:
                 if constituent not in self.components:
@@ -216,9 +217,9 @@ class ModelMQMQA:
             X = species
             for i, A in enumerate(cations):
                 for B in cations[i:]:
-                    M += p(A,B,X,X)/Z(X,A,B,X,X)
+                    M += p(A,B,X,X) / Z(X,A,B,X,X)
                     for Y in anions:
-                        M += p(A, B, X, Y)/Z(X, A, B, X, Y)
+                        M += p(A,B,X,Y) / Z(X,A,B,X,Y)
         return M
 
     def ξ(self, A: v.Species, X: v.Species):
@@ -237,10 +238,10 @@ class ModelMQMQA:
 
         # Sundman notes equation (12)
         return 0.25 * (
-            p(A,A,X,X) +
-        sum(p(A,A,X,Y) for Y in anions) +
-        sum(p(A,B,X,X) for B in cations) +
-        sum(p(A,B,X,Y) for B, Y in itertools.product(cations, anions))
+            p(A,A,X,X)
+            + sum(p(A,A,X,Y) for Y in anions)
+            + sum(p(A,B,X,X) for B in cations)
+            + sum(p(A,B,X,Y) for B, Y in itertools.product(cations, anions))
         )
 
     def w(self, species: v.Species):
@@ -273,7 +274,7 @@ class ModelMQMQA:
                     w += p(A, B, X, X)
                     for Y in anions:
                         w += p(A, B, X, Y)
-        return 0.5*w
+        return 0.5 * w
 
     def ϑ(self, dbe, species: v.Species):
         """Return the site fraction of species on it's sublattice.
@@ -289,14 +290,13 @@ class ModelMQMQA:
         anions = self.anions
 
         if species in cations:
-            return self.M(dbe, species)/sum(self.M(dbe, sp) for sp in cations)
+            return self.M(dbe, species) / sum(self.M(dbe, sp) for sp in cations)
         else:
             assert species in anions
-            return self.M(dbe, species)/sum(self.M(dbe, sp) for sp in anions)
+            return self.M(dbe, species) / sum(self.M(dbe, sp) for sp in anions)
 
-    def _calc_Z(self, dbe: 'pycalphad.io.Database', species, A, B, X, Y):
-        Z = partial(self.Z,  dbe)
-#         print(f'calculating $Z^{{{species}}}_{{{A} {B} {X} {Y}}}$')
+    def _calc_Z(self, dbe: "pycalphad.io.Database", species, A, B, X, Y):
+        Z = partial(self.Z, dbe)
         if (species == A) or (species == B):
             species_is_cation = True
         elif (species == X) or (species == Y):
@@ -305,28 +305,28 @@ class ModelMQMQA:
             raise ValueError(f"{species} is not A ({A}), B ({B}), X ({X}) or Y ({Y}).")
 
         if A == B and X == Y:
-            raise ValueError(f'Z({species}, {A}{B}/{X}{Y}) is a pure pair and must be defined explictly')
+            raise ValueError(f"Z({species}, {A}{B}/{X}{Y}) is a pure pair and must be defined explictly")
         elif A != B and X != Y:
             # This is a reciprocal AB/XY quadruplet and needs to be calculated by eq 23 and 24 in Pelton et al. Met Trans B (2001)
             F = 1/8 * (  # eq. 24
-                  abs(A.charge)/Z(A, A, A, X, Y)
-                + abs(B.charge)/Z(B, B, B, X, Y)
-                + abs(X.charge)/Z(X, A, B, X, X)
-                + abs(Y.charge)/Z(Y, A, B, Y, Y)
+                  abs(A.charge) / Z(A, A,A,X,Y)
+                + abs(B.charge) / Z(B, B,B,X,Y)
+                + abs(X.charge) / Z(X, A,B,X,X)
+                + abs(Y.charge) / Z(Y, A,B,Y,Y)
                 )
             if species_is_cation:
                 inv_Z = F * (
-                              Z(X, A, B, X, X)/(abs(X.charge) * Z(species, A, B, X, X))
-                            + Z(Y, A, B, Y, Y)/(abs(Y.charge) * Z(species, A, B, Y, Y))
+                    Z(X, A,B,X,X) / (abs(X.charge) * Z(species, A,B,X,X))
+                    + Z(Y, A,B,Y,Y) / (abs(Y.charge) * Z(species, A,B,Y,Y))
                             )
 
             else:
                 inv_Z = F * (
-                              Z(A, A, A, X, Y)/(abs(A.charge) * Z(species, A, A, X, Y))
-                            + Z(B, B, B, X, Y)/(abs(B.charge) * Z(species, B, B, X, Y))
+                    Z(A, A,A,X,Y) / (abs(A.charge) * Z(species, A,A,X,Y))
+                    + Z(B, B,B,X,Y) / (abs(B.charge) * Z(species, B,B,X,Y))
                             )
 
-            return 1/inv_Z
+            return 1 / inv_Z
         elif A != B:  # X == Y
             # Need to calculate Z^i_AB/XX (Y = X).
             # We assume Z^A_ABXX = Z^A_AAXX = Z^A_AAYY
@@ -335,34 +335,34 @@ class ModelMQMQA:
             if species_is_cation:
                 return Z(species, species, species, X, X)
             else:
-#                 print(f'calculating bad $Z^{{{species}}}_{{{A} {B} {X} {Y}}}$')
-                return 2*abs(species.charge)/(abs(A.charge)/Z(A, A, A, species, species) + abs(B.charge)/Z(B, B, B, species, species))
+                return 2*abs(species.charge) / (
+                    abs(A.charge) / Z(A, A,A,species,species) + abs(B.charge) / Z(B, B,B,species,species)
+                    )
         elif X != Y:  # A == B
             # These use the same equations as A != B case with the same assumptions
             if species_is_cation:
                 # similarly, Z^A_AAXY = (q_A + q_B)/(q_X/Z^X_AAXX + q_Y/Z^Y_AAYY)
-#                 print(f'calculating bad $Z^{{{species}}}_{{{A} {B} {X} {Y}}}$')
                 return 2*abs(species.charge)/(abs(X.charge)/Z(X, species, species, X, X) + abs(Y.charge)/Z(Y, species, species, Y, Y))
             else:
                 return Z(species, A, A, species, species)
         raise ValueError("This should be unreachable")
 
 
-    def Z(self, dbe: 'pycalphad.io.Database', species: v.Species, A: v.Species, B: v.Species, X: v.Species, Y: v.Species):
-        Z_cat=sorted((A,B))
-        Z_an=sorted((X,Y))
-        Z_quad=(tuple(Z_cat),tuple(Z_an))
+    def Z(self, dbe: "pycalphad.io.Database", species: v.Species, A: v.Species, B: v.Species, X: v.Species, Y: v.Species):
+        Z_cat = sorted((A,B))
+        Z_an = sorted((X,Y))
+        Z_quad = (tuple(Z_cat),tuple(Z_an))
         Zs = dbe._parameters.search(
-            (where('phase_name') == self.phase_name) & \
-            (where('parameter_type') == "Z") & \
-            (where('diffusing_species').test(lambda sp: sp.name == species.name)) & \
-            (where('constituent_array').test(lambda x: x == Z_quad)))
+            (where("phase_name") == self.phase_name) & \
+            (where("parameter_type") == "Z") & \
+            (where("diffusing_species").test(lambda sp: sp.name == species.name)) & \
+            (where("constituent_array").test(lambda x: x == Z_quad)))
             # quadruplet needs to be in 1 sublattice constituent array `[[q]]`, in tuples
         if len(Zs) == 0:
             # TODO: add this to the database so we don't need to recalculate? where should that happen?
             return self._calc_Z(dbe, species, A, B, X, Y)
         elif len(Zs) == 1:
-            return Zs[0]['parameter']
+            return Zs[0]["parameter"]
         else:
             raise ValueError(f"Expected exactly one Z for {species} of {((A, B), (X, Y))}, got {len(Zs)}")
 
@@ -380,14 +380,13 @@ class ModelMQMQA:
         constraints.append(total_quad)
         return constraints
 
-
     @property
     def normalization(self):
         """Divide by this normalization factor to convert from J/mole-quadruplets to J/mole-atoms"""
-        #No_Vac is to fix the normalization so that it does not take vacancy into consideration
-        no_vac=[j for j in self.components for o in j.constituents if o!='VA']
-        const_spe=[k for i in no_vac for j,k in i.constituents.items()]
-        return sum(self.M(self._dbe, c)*const_spe[count] for count,c in enumerate(no_vac))
+        # No_Vac is to fix the normalization so that it does not take vacancy into consideration
+        no_vac = [j for j in self.components for o in j.constituents if o != "VA"]
+        const_spe = [k for i in no_vac for j, k in i.constituents.items()]
+        return sum(self.M(self._dbe, c) * const_spe[count] for count, c in enumerate(no_vac))
 
     def moles(self, species, per_formula_unit=False):
         "Number of moles of species or elements."
@@ -395,8 +394,8 @@ class ModelMQMQA:
         result = S.Zero
         for i in itertools.chain(self.cations, self.anions):
             if list(species.constituents.keys())[0] in i.constituents:
-                count=list(i.constituents.values())[0]
-                result += self.M(self._dbe, i)*count
+                count = list(i.constituents.values())[0]
+                result += self.M(self._dbe, i) * count
         # moles is supposed to compute the moles of a pure element, but with a caveat that pycalphad assumes sum(moles(c) for c in comps) == 1
         # The correct solution is to make the changes where pycalphad assumes n=1. But I think it would be easier to change how we implement the model so that the model has n=1 and the energies are normalized to per-mole-atoms.
         # Since normalizing to moles of quadruplets is allowing us to easily compare with thermochimica, I'm thinking that we might be able to fake pycalphad into thinking we have N=1 by normalizing "moles" to n=1
@@ -404,26 +403,26 @@ class ModelMQMQA:
         if per_formula_unit:
             return result
         else:
-            return result/self.normalization
+            return result / self.normalization
 
     degree_of_ordering = DOO = S.Zero
     curie_temperature = TC = S.Zero
     beta = BMAG = S.Zero
     neel_temperature = NT = S.Zero
 
-    #pylint: disable=C0103
+    # pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
     GM = property(lambda self: self.ast / self.normalization)
     G = property(lambda self: self.ast)
     energy = GM
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
-    enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
-    heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
-    #pylint: enable=C0103
+    enthalpy = HM = property(lambda self: self.GM - v.T * self.GM.diff(v.T))
+    heat_capacity = CPM = property(lambda self: -v.T * self.GM.diff(v.T, v.T))
+    # pylint: enable=C0103
     mixing_energy = GM_MIX = property(lambda self: self.GM - self.reference_model.GM)
-    mixing_enthalpy = HM_MIX = property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
+    mixing_enthalpy = HM_MIX = property(lambda self: self.GM_MIX - v.T * self.GM_MIX.diff(v.T))
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
-    mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
+    mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T * self.GM_MIX.diff(v.T, v.T))
 
     def reference_energy(self, dbe):
         # This considers the pair contributions to the energy, the first sum terms in Eq. 37 in Pelton2001.
@@ -432,10 +431,10 @@ class ModelMQMQA:
         in symbolic form.
         """
         pair_query = (
-            (where('phase_name') == self.phase_name) & \
-            (where('parameter_order') == 0) & \
-            (where('parameter_type') == "G") & \
-            (where('constituent_array').test(self._pair_test))
+            (where("phase_name") == self.phase_name) & \
+            (where("parameter_order") == 0) & \
+            (where("parameter_type") == "G") & \
+            (where("constituent_array").test(self._pair_test))
         )
         p = self._p
         anions = self.anions
@@ -443,17 +442,17 @@ class ModelMQMQA:
         params = dbe._parameters.search(pair_query)
         terms = S.Zero
         for param in params:
-            A = param['constituent_array'][0][0]
-            X = param['constituent_array'][1][0]
+            A = param["constituent_array"][0][0]
+            X = param["constituent_array"][1][0]
             ξ_AX = S.Zero
             for B in cations:
                 for Y in anions:
                     factor = 1
                     if B == A: factor *= 2  # Double count (for symmetry?)
                     if Y == X: factor *= 2  # Double count
-                    ξ_AX += factor * p(A,B,X,Y) / (2 * self.Z(dbe,A,A,B,X,Y))
-            G_AX = param['parameter']
-            terms += (ξ_AX * G_AX)
+                    ξ_AX += factor * p(A,B,X,Y) / (2 * self.Z(dbe, A, A,B,X,Y))
+            G_AX = param["parameter"]
+            terms += ξ_AX * G_AX
         return terms
 
     def ideal_mixing_energy(self, dbe):
@@ -463,29 +462,29 @@ class ModelMQMQA:
         ξ = self.ξ
         w = self.w
         p = self._p
-        soln_type=dbe.phases[self.phase_name].model_hints['mqmqa']['type']
+        soln_type = dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
         cations = self.cations
         anions = self.anions
-        if soln_type=='SUBQ':
-            exp1=0.75
-            exp2=0.5
-        elif soln_type=='SUBG':
-            exp1=1.0
-            exp2=1.0
+        if soln_type == "SUBQ":
+            exp1 = 0.75
+            exp2 = 0.5
+        elif soln_type == "SUBG":
+            exp1 = 1.0
+            exp2 = 1.0
         Sid = S.Zero
 
         ζ = 2.4  # hardcoded, but we can get it from the model_hints (SUBQ) or the pairs (SUBG)
         for A in cations:
-            Sid += M(A)*log(ϑ(A))  # term 1
+            Sid += M(A) * log(ϑ(A))  # term 1
         for X in anions:
-            Sid += M(X)*log(ϑ(X))  # term 2
+            Sid += M(X) * log(ϑ(X))  # term 2
         for A in cations:
             for X in anions:
-                ξ_AX = ξ(A,X)
+                ξ_AX = ξ(A, X)
                 p_AAXX = p(A,A,X,X)
                 w_A = w(A)
                 w_X = w(X)
-                Sid += 4/ζ*ξ_AX*log(ξ_AX/(w_A*w_X))  # term 3
+                Sid += 4 / ζ * ξ_AX * log(ξ_AX / (w_A * w_X))  # term 3
 
         # flatter loop over all quadruplets:
         # for A, B, X, Y in ((A, B, X, Y) for i, A in enumerate(cations) for B in cations[i:] for j, X in enumerate(anions) for Y in anions[j:]):
@@ -498,49 +497,48 @@ class ModelMQMQA:
                         if A != B: factor *= 2
                         if X != Y: factor *= 2
                         Sid += p(A,B,X,Y)*log(p(A,B,X,Y)/(factor * (ξ(A,X)**(exp1))*(ξ(A,Y)**(exp1))*(ξ(B,X)**(exp1))*(ξ(B,Y)**(exp1)) / ((w(A)**(exp2))*(w(B)**(exp2))*(w(X)**(exp2))*(w(Y)**(exp2)))))
-        return Sid*v.T*v.R
+        return Sid * v.T * v.R
 
-
-    def excess_mixing_t1(self,dbe,constituent_array):
+    def excess_mixing_t1(self, dbe, constituent_array):
         Z = partial(self.Z, dbe)
-        cations=self.cations
-        anions=self.anions
+        cations = self.cations
+        anions = self.anions
         p = self._p
         subl_1 = constituent_array[0]
         subl_2 = constituent_array[1]
-        A=subl_1[0]
-        B=subl_1[1]
-        X=subl_2[0]
-        Y=subl_2[1]
+        A = subl_1[0]
+        B = subl_1[1]
+        X = subl_2[0]
+        Y = subl_2[1]
 ##Figure out how to connect this. Below is the correct expression. Maybe this can be its own function separately
-#And it can be called in the other final function
-        return 0.5*(p(A,B,X,Y)
-                    +sum(0.5*Z(j,A,B,j,j)*sum(p(A,B,i,Y)/Z(Y,A,B,i,Y) for i in anions if i!=Y) for j in anions if j==X==Y)
-                    +sum(0.5*Z(q,q,q,X,Y)*sum(p(r,B,X,Y)/Z(B,r,B,X,Y) for r in cations if r!=B) for q in cations if q==A==B))
+        # And it can be called in the other final function
+        return 0.5 * (p(A,B,X,Y)
+            + sum(0.5 * Z(j, A,B,j,j) * sum(p(A,B,i,Y) / Z(Y, A,B,i,Y) for i in anions if i != Y) for j in anions if j == X == Y)
+            + sum(0.5 * Z(q, q,q,X,Y) * sum(p(r,B,X,Y) / Z(B, r,B,X,Y) for r in cations if r != B) for q in cations if q == A == B)
+        )
 
+    def X_1_2(self, dbe, constituent_array, diffusing_species):
+        chem_groups_cat = dbe.phases[self.phase_name].model_hints["mqmqa"]["chemical_groups"]["cations"]
+        chem_groups_an = dbe.phases[self.phase_name].model_hints["mqmqa"]["chemical_groups"]["anions"]
+        soln_type = dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
 
-    def X_1_2(self,dbe, constituent_array, diffusing_species):
-        chem_groups_cat=dbe.phases[self.phase_name].model_hints['mqmqa']['chemical_groups']['cations']
-        chem_groups_an=dbe.phases[self.phase_name].model_hints['mqmqa']['chemical_groups']['anions']
-        soln_type=dbe.phases[self.phase_name].model_hints['mqmqa']['type']
-
-        cations=self.cations
-        anions=self.anions
+        cations = self.cations
+        anions = self.anions
         p = self._p
-        res1=S.Zero
-        res2=S.Zero
+        res1 = S.Zero
+        res2 = S.Zero
 
         subl_1 = constituent_array[0]
         subl_2 = constituent_array[1]
-        A=subl_1[0]
-        B=subl_1[1]
-        X=subl_2[0]
-        Y=subl_2[1]
-        #non_diff_spe is either the first element of the subl1/2 or is the remaining element of subl1/2 when diffusing species is one of the elements in the sublattice
+        A = subl_1[0]
+        B = subl_1[1]
+        X = subl_2[0]
+        Y = subl_2[1]
+        # non_diff_spe is either the first element of the subl1/2 or is the remaining element of subl1/2 when diffusing species is one of the elements in the sublattice
         if diffusing_species in subl_1:
-            non_diff_spe=[i for i in subl_1 if i !=diffusing_species][0]
-            k_As_cat=[i for i in cations if chem_groups_cat[i]!=chem_groups_cat[diffusing_species] if diffusing_species in cations and i not in subl_1]
-            l_As_cat=[i for i in cations if chem_groups_cat[i]!=chem_groups_cat[non_diff_spe] if diffusing_species and i not in subl_1]
+            non_diff_spe = [i for i in subl_1 if i != diffusing_species][0]
+            k_As_cat = [i for i in cations if chem_groups_cat[i] != chem_groups_cat[diffusing_species] if diffusing_species in cations and i not in subl_1]
+            l_As_cat = [i for i in cations if chem_groups_cat[i] != chem_groups_cat[non_diff_spe] if diffusing_species and i not in subl_1]
         elif diffusing_species in subl_2:
             non_diff_spe=[i for i in subl_2 if i !=diffusing_species][0]
             k_As_an=[i for i in anions if chem_groups_an[i]!=chem_groups_an[diffusing_species] if diffusing_species in anions and i not in subl_1]
