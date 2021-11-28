@@ -40,7 +40,7 @@ def get_species(*constituents) -> v.Species:
 # TODO: cleanup this class (style)
 # TODO: remove dead code (e.g. duplicate reference_energy)
 # TODO: document the model contributions with the mathematics
-class ModelMQMQA:
+class ModelMQMQA(Model):
     """
 
     One peculiarity about the ModelMQMQA is that the charges in the way the

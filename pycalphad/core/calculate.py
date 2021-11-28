@@ -18,7 +18,6 @@ from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
-from pycalphad.models.model_mqmqa import ModelMQMQA
 
 
 @cacheit
@@ -347,11 +346,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         if not isinstance(models, Mapping):
             raise ValueError("A dictionary of instantiated models must be passed to `equilibrium` with the `model` argument if the `phase_records` argument is used.")
         active_phases_without_models = [name for name in active_phases if not isinstance(models.get(name), Model)]
-        Quasichemical_Quadruplet = [name for name in active_phases if  isinstance(models.get(name), ModelMQMQA)]
         active_phases_without_phase_records = [name for name in active_phases if not isinstance(phase_records.get(name), PhaseRecord)]
         if len(active_phases_without_phase_records) > 0:
             raise ValueError(f"phase_records must contain a PhaseRecord instance for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
-        if len(active_phases_without_models) > 0 and active_phases_without_models!=Quasichemical_Quadruplet:
+        if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
