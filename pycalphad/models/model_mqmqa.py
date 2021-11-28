@@ -678,12 +678,12 @@ class ModelMQMQA:
                         X_ex_0 = 0
                     else:
                         X_ex_0 = 1
-            #    elif diff_spe in cations and diff_spe not in cons_cat and \
-            #    0<(parse['parameter_order']-index)<=2:
-            #        X_tern_diff_spe=parse['parameter_order']-index
-            #        X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**expon
+                # elif diff_spe in cations and diff_spe not in cons_cat and \
+                # 0<(parse['parameter_order']-index)<=2:
+                #     X_tern_diff_spe=parse['parameter_order']-index
+                #     X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**expon
 
-            # TODO: IMPORTANT!!!! MIGHT NEED TO ADD SOMETHING HERE TO MAKE SURE ORDER OF ELEMENTS IN QUAD IS NOT AFFECTING
+                # TODO: IMPORTANT!!!! MIGHT NEED TO ADD SOMETHING HERE TO MAKE SURE ORDER OF ELEMENTS IN QUAD IS NOT AFFECTING
 
                 elif (
                     diff_spe in cations
@@ -695,9 +695,7 @@ class ModelMQMQA:
                         X_tern_diff_spe = parse["parameter_order"] - index
                         X_a_Xb_tern *= self.X_1_2(dbe, cons_arr, cons_cat[X_tern_diff_spe - 1]) ** expon
                     # IMPORTANT! expon is not the best way to fix this for parameteres higher than 1
-                    X_ex_2 += expon * (
-                        X_a_Xb_tern * (ξ(diff_spe, X) / w(X)) * ((1 - self.K_1_2(dbe, A, B) - self.K_1_2(dbe, B, A)) ** (expon - 1))
-                    )
+                    X_ex_2 += expon * (X_a_Xb_tern * (ξ(diff_spe, X) / w(X)) * ((1 - self.K_1_2(dbe, A, B) - self.K_1_2(dbe, B, A)) ** (expon - 1)))
 
                 elif (
                     diff_spe in cations
