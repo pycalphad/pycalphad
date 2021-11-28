@@ -502,7 +502,6 @@ class ModelMQMQA:
 
 
     def excess_mixing_t1(self,dbe,constituent_array):
-#        Exid=S.Zero
         Z = partial(self.Z, dbe)
         cations=self.cations
         anions=self.anions
@@ -530,7 +529,6 @@ class ModelMQMQA:
         p = self._p
         res1=S.Zero
         res2=S.Zero
-        res1_rec_quad=S.Zero
 
         subl_1 = constituent_array[0]
         subl_2 = constituent_array[1]
@@ -558,7 +556,6 @@ class ModelMQMQA:
                     res1+=p(a,b,X,Y)
                     if soln_type=='SUBQ':
                         res1+=0.5*sum(p(a,b,X,Y) for Y in anions if Y!=X)
-#            res1+=0.5*sum(p(A,B,X,Y) for Y in anions if Y!=X)
 
             if Counter(k_As_cat)!=Counter(l_As_cat):
                 subl_1=list(subl_1)
@@ -579,7 +576,6 @@ class ModelMQMQA:
                     res1+=p(A,B,x,y)
                     if soln_type=='SUBQ':
                         res1+=0.5*sum(p(A,B,x,y) for B in cations if A!=B)
-#            res1+=0.5*sum(p(A,B,X,Y) for Y in anions if Y!=X)
 
             if Counter(k_As_an)!=Counter(l_As_an):
                 subl_2=list(subl_2)
@@ -649,9 +645,7 @@ class ModelMQMQA:
         )
 
         indi_que_3=[i['parameter_order'] for i in pair_query_3 ]
-        chem_groups=dbe.phases[self.phase_name].model_hints['mqmqa']['chemical_groups']
         X_ex=S.Zero
-        X_tern_original=S.One
         for param in pair_query_1:
             index=param['parameter_order']
             coeff=param['parameter']
@@ -788,12 +782,9 @@ class ModelMQMQA:
 #This is assuming that one wouldn't have both interaction parameters for anions and cations at the same time
             if X_ex_2!=0 and exp==0:
                 exp+=1
-#            print('CHECK HERE',coeff,X_ex_1,X_ex_0,X_ex_2,exp)
             if X_ex_2==0:
                 X_ex_2+=1
                 exp+=1
-#            print(param['constituent_array'])
-#            print('part 1',self.excess_mixing_t1(dbe,param['constituent_array']),coeff)
             X_ex+=self.excess_mixing_t1(dbe,param['constituent_array'])*coeff*X_ex_1*(X_ex_2/exp)*X_ex_0
 #used to multiplt X_ex_0 paramter. But I don't think it does anything anymore
         return X_ex
