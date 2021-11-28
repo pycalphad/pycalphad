@@ -510,8 +510,9 @@ class ModelMQMQA:
         B = subl_1[1]
         X = subl_2[0]
         Y = subl_2[1]
-##Figure out how to connect this. Below is the correct expression. Maybe this can be its own function separately
+        # TODO: Figure out how to connect this. Below is the correct expression. Maybe this can be its own function separately
         # And it can be called in the other final function
+        # TODO: can this be merged with ξ?
         return 0.5 * (p(A,B,X,Y)
             + sum(0.5 * Z(j, A,B,j,j) * sum(p(A,B,i,Y) / Z(Y, A,B,i,Y) for i in anions if i != Y) for j in anions if j == X == Y)
             + sum(0.5 * Z(q, q,q,X,Y) * sum(p(r,B,X,Y) / Z(B, r,B,X,Y) for r in cations if r != B) for q in cations if q == A == B)
@@ -543,8 +544,8 @@ class ModelMQMQA:
             non_diff_spe = [i for i in subl_2 if i != diffusing_species][0]
             k_As_an = [i for i in anions if chem_groups_an[i] != chem_groups_an[diffusing_species] if diffusing_species in anions and i not in subl_1]
             l_As_an = [i for i in anions if chem_groups_an[i] != chem_groups_an[non_diff_spe] if diffusing_species in anions and i not in subl_1]
-####This is all assuming that there will be only two groups for symmetrical and asymmetrical
 
+        # This is all assuming that there will be only two groups for symmetrical and asymmetrical
         if X == Y and diffusing_species in subl_1:
             As_diff = [diffusing_species]
             if Counter(k_As_cat) != Counter(l_As_cat):
@@ -677,12 +678,12 @@ class ModelMQMQA:
                         X_ex_0 = 0
                     else:
                         X_ex_0 = 1
-#                elif diff_spe in cations and diff_spe not in cons_cat and \
-#                0<(parse['parameter_order']-index)<=2:
-#                    X_tern_diff_spe=parse['parameter_order']-index
-#                    X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**expon
+            #    elif diff_spe in cations and diff_spe not in cons_cat and \
+            #    0<(parse['parameter_order']-index)<=2:
+            #        X_tern_diff_spe=parse['parameter_order']-index
+            #        X_a_Xb_tern*=self.X_1_2(dbe,cons_arr,cons_cat[X_tern_diff_spe-1])**expon
 
-####IMPORTANT!!!! MIGHT NEED TO ADD SOMETHING HERE TO MAKE SURE ORDER OF ELEMENTS IN QUAD IS NOT AFFECTING
+            # TODO: IMPORTANT!!!! MIGHT NEED TO ADD SOMETHING HERE TO MAKE SURE ORDER OF ELEMENTS IN QUAD IS NOT AFFECTING
 
                 elif (
                     diff_spe in cations
@@ -732,7 +733,7 @@ class ModelMQMQA:
                         X_tern_diff_spe = parse["parameter_order"] - index
                         X_a_Xb_tern *= self.X_1_2(dbe, cons_arr, cons_cat[X_tern_diff_spe - 1]) ** expon
                     X_ex_2 += expon * (X_a_Xb_tern * (ξ(diff_spe, X) / (w(X) * self.K_1_2(dbe, B, A))) * (1 - (ξ(B, X) / (w(X) * self.K_1_2(dbe, B, A)))) ** (expon - 1))
-####LAST TERM IN THE 17.52 EQUATION
+                # LAST TERM IN THE 17.52 EQUATION
                 elif diff_spe in anions and Sub_ex_1 == 1 and 0 < (parse["parameter_order"] - index) <= 4:
                     if 0 < (parse["parameter_order"] - index) <= 2:
                         X_tern_diff_spe = parse["parameter_order"] - index
