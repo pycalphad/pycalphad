@@ -210,6 +210,15 @@ class Model(object):
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
 
+    def __setstate__(self, d):
+        self.__dict__ = d
+        # xreplace hack because SymEngine deserializes expressions with StateVariables as bare Symbol objects
+        state_variable_map = {Symbol(x): x for x in v.__dict__.keys() if isinstance(x, v.StateVariable)}
+        for name, value in self.models.items():
+            self.models[name] = value.xreplace(state_variable_map)
+        for name, value in self._symbols.items():
+            self._symbols[name] = value.xreplace(state_variable_map)
+
     @staticmethod
     def symbol_replace(obj, symbols):
         """
