@@ -53,7 +53,6 @@ setup(
         # conda-forge Anaconda channel. For example, conda-forge/symengine
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
-        'Cython>=0.24',
         'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
         'matplotlib>=3.3',
         'numpy>=1.13',
@@ -62,7 +61,8 @@ setup(
         'pytest-cov',
         'scipy',
         'setuptools_scm[toml]>=6.0',
-        'symengine==0.7.2',  # python-symengine on conda-forge
+        'symengine==0.8.1',  # python-symengine on conda-forge
+        'sympy==1.8',
         'tinydb>=3.8',
         'xarray>=0.11.2',
     ],
