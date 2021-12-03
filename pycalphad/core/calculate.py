@@ -18,6 +18,7 @@ from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
+from pycalphad.core.constants import MIN_SITE_FRACTION
 
 
 @cacheit
@@ -84,9 +85,57 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     # Sample composition space for more points
     if sum(sublattice_dof) > len(sublattice_dof):
         if charge_constrained_space:
-            # Do not perform random sampling in charge-constrained spaces
-            # Otherwise, we risk including infeasible points in the grid
-            pass
+            # number of sublattices, plus charge balance
+            num_constraints = len(sublattice_dof) + 1
+            constraint_jac = np.zeros((num_constraints, points.shape[-1]))
+            constraint_rhs = np.zeros(num_constraints)
+            # site fraction balance
+            dof_idx = 0
+            constraint_idx = 0
+            for subl_dof in sublattice_dof:
+                constraint_jac[constraint_idx, dof_idx:dof_idx+subl_dof] = 1
+                constraint_rhs[constraint_idx] = 1
+                constraint_idx += 1
+                dof_idx += subl_dof
+            # charge balance
+            constraint_jac[constraint_idx, :] = species_charge
+            constraint_rhs[constraint_idx] = 0
+
+            q, r = np.linalg.qr(constraint_jac.T, mode='complete')
+            q1 = q[:, :constraint_jac.shape[0]]
+            q2 = q[:, constraint_jac.shape[0]:]
+            r1 = r[:constraint_jac.shape[0], :]
+            # minimum norm solution to underdetermined system of equations
+            z_bar = q1.dot(np.linalg.inv(r1.T).dot(constraint_rhs))
+            # Hit-and-Run sampling
+            num_points = (pdens**2) * (constraint_jac.shape[1] - constraint_jac.shape[0])
+            new_feasible_z = np.zeros((num_points, constraint_jac.shape[1]))
+            # choose initial point as minimum norm solution (guaranteed feasible)
+            current_z = np.array(z_bar)
+            min_z = MIN_SITE_FRACTION
+            rng = np.random.RandomState(1769)
+            for iteration in range(num_points):
+                # generate unit direction in null space
+                d = rng.normal(size=(constraint_jac.shape[1] - constraint_jac.shape[0]))
+                d /= np.linalg.norm(d, axis=0)
+                proj = np.dot(q2, d)
+                # protect from divide-by-zero error
+                proj[np.abs(proj) < 1e-12] = 1e-12
+                # find extent of step direction possible while staying within bounds (0 <= z)
+                alphas = (min_z - current_z) / proj
+                max_alpha_candidates = alphas[proj > 0]
+                min_alpha_candidates = alphas[proj < 0]
+                alpha_min = np.min(min_alpha_candidates)
+                alpha_max = np.max(max_alpha_candidates)
+                # choose a random step size within the feasible interval
+                new_alpha = rng.uniform(low=alpha_min, high=alpha_max)
+                current_z += new_alpha * proj
+                new_feasible_z[iteration, :] = current_z
+            # XXX: These assertions should be moved to a suitable test
+            if new_feasible_z.shape[0] > 0:
+                assert ~np.any(new_feasible_z < 0)
+                #print(np.max(np.dot(constraint_jac, new_feasible_z.T).T - constraint_rhs))
+            points = np.concatenate((points, np.atleast_2d(z_bar), new_feasible_z))
         else:
             points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
 

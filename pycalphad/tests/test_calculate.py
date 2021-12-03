@@ -122,3 +122,23 @@ def test_missing_phase_records_passed_to_calculate_raises():
 
     with pytest.raises(ValueError):
         calculate(ALFE_DBF, comps, my_phases, T=1200, P=101325, N=1, phase_records=phase_records)
+
+
+def test_no_neutral_endmembers_single():
+    "calculate returns the feasible configuration in a charge-constrained phase, when no endmembers are neutral"
+    tdb = """
+    ELEMENT Al FCC_A1 0 0 0 !
+    ELEMENT CL GAS 0 0 0 !
+    ELEMENT VA VACUUM 0 0 0 !
+
+    SPECIES AL+3 AL1/+3 !
+    SPECIES CL-1 CL1/-1 !
+
+    PHASE ALCL3 % 2 1 1 !
+    CONSTITUENT ALCL3 : AL+3, VA : CL-1 : !
+    PARAMETER G(ALCL3,AL+3:CL-1;0) 1 -100000; 10000 N !
+    PARAMETER G(ALCL3,VA:CL-1;0) 1 0; 10000 N !
+    """
+    dbf = Database(tdb)
+    calc_res = calculate(dbf, ['AL', 'CL', 'VA'], ['ALCL3'], N=1, P=101325, T=300)
+    np.testing.assert_allclose(np.squeeze(calc_res.Y.values), np.array([1/3, 2/3, 1]))
