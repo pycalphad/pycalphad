@@ -10,12 +10,14 @@ from numpy.testing import assert_allclose
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.utils import instantiate_models
 from pycalphad import ConditionError
-from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB, CUMG_PARAMETERS_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB, CUMG_PARAMETERS_TDB, ZRLAYALO_TDB
 
 
 DBF = Database(TDB_TEST_STRING)
 ALFE_DBF = Database(ALFE_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
+ZRLAYALO_DBF = Database(ZRLAYALO_TDB)
+
 
 def test_surface():
     "Bare minimum: calculation produces a result."
@@ -142,3 +144,53 @@ def test_no_neutral_endmembers_single():
     dbf = Database(tdb)
     calc_res = calculate(dbf, ['AL', 'CL', 'VA'], ['ALCL3'], N=1, P=101325, T=300)
     np.testing.assert_allclose(np.squeeze(calc_res.Y.values), np.array([1/3, 2/3, 1]))
+
+
+def test_pyrochlore_infeasible():
+    "calculate raises an error when it is impossible to satisfy a phase's constraints"
+    dbf = ZRLAYALO_DBF
+    with pytest.raises(ValueError):
+        calculate(dbf, ['LA', 'Y', 'O'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
+
+
+def test_pyrochlore_complex():
+    "calculate generates feasible points for complex charged phase"
+    dbf = ZRLAYALO_DBF
+    # PYROCHLORE
+    # 2   2   6   1   1
+    # LA+3,Y+3,ZR+4 : LA+3,Y+3,ZR+4 : O-2,VA : O-2 :  O-2,VA :  !
+    constraint_jac = np.array([[1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                               [2*3, 2*3, 2*4, 2*3, 2*3, 2*4, 6*-2, 6*0, 1*-2, 1*-2, 1*0]])
+    constraint_rhs = np.array([1, 1, 1, 1, 1, 0])
+    res = calculate(dbf, ['LA', 'Y', 'ZR', 'O', 'VA'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
+    output = np.squeeze(res.Y.values)
+    assert output.shape[0] > 0
+    assert np.all(output > 0)
+    cons_infeasibility = np.max(np.abs(constraint_jac.dot(output.T).T - constraint_rhs))
+    assert cons_infeasibility < 1e-10
+
+
+def test_pyrochlore_no_freedom():
+    "calculate generates at least one feasible point for a phase with no degrees of freedom"
+    dbf = ZRLAYALO_DBF
+    # PYROCHLORE
+    # 2   2   6   1   1
+    # LA+3,Y+3,ZR+4 : LA+3,Y+3,ZR+4 : O-2 : O-2 :  O-2 :  !
+    # Note that we are not including VA on purpose here
+    constraint_jac = np.array([[1, 1, 1, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 1, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 1, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                               [2*3, 2*3, 2*4, 2*3, 2*3, 2*4, 6*-2, 1*-2, 1*-2]])
+    constraint_rhs = np.array([1, 1, 1, 1, 1, 0])
+    res = calculate(dbf, ['LA', 'Y', 'ZR', 'O'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
+    output = np.squeeze(res.Y.values)
+    assert output.shape[0] > 0
+    assert np.all(output > 0)
+    cons_infeasibility = np.max(np.abs(constraint_jac.dot(output.T).T - constraint_rhs))
+    assert cons_infeasibility < 1e-10
