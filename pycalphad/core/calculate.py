@@ -106,7 +106,11 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
             q2 = q[:, constraint_jac.shape[0]:]
             r1 = r[:constraint_jac.shape[0], :]
             # minimum norm solution to underdetermined system of equations
-            z_bar = q1.dot(np.linalg.inv(r1.T).dot(constraint_rhs))
+            z_bar = np.linalg.lstsq(constraint_jac, constraint_rhs, rcond=None)[0]
+            #print('z_bar', z_bar)
+            solution_norm = np.linalg.norm(constraint_jac.dot(z_bar) - constraint_rhs)
+            if solution_norm > 1e-4:
+                raise ValueError(f'Impossible to satisfy constraints on internal degrees of freedom of {model.phase_name}')
             # Hit-and-Run sampling
             num_points = (pdens**2) * (constraint_jac.shape[1] - constraint_jac.shape[0])
             new_feasible_z = np.zeros((num_points, constraint_jac.shape[1]))
@@ -119,22 +123,30 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
                 d = rng.normal(size=(constraint_jac.shape[1] - constraint_jac.shape[0]))
                 d /= np.linalg.norm(d, axis=0)
                 proj = np.dot(q2, d)
-                # protect from divide-by-zero error
-                proj[np.abs(proj) < 1e-12] = 1e-12
+                #print('proj', proj)
                 # find extent of step direction possible while staying within bounds (0 <= z)
-                alphas = (min_z - current_z) / proj
-                max_alpha_candidates = alphas[proj > 0]
-                min_alpha_candidates = alphas[proj < 0]
+                with np.errstate(divide='ignore'):
+                    alphas = (min_z - current_z) / proj
+                #print('alphas', alphas)
+                max_alpha_candidates = alphas[np.logical_and(proj > 0, np.isfinite(alphas))]
+                min_alpha_candidates = alphas[np.logical_and(proj < 0, np.isfinite(alphas))]
                 alpha_min = np.min(min_alpha_candidates)
                 alpha_max = np.max(max_alpha_candidates)
+                # Poor progress; give up on sampling
+                if np.abs(alpha_max - alpha_min) < 1e-4:
+                    new_feasible_z = new_feasible_z[:iteration, :]
+                    break
+                #print('alpha_min, alpha_max', alpha_min, alpha_max)
                 # choose a random step size within the feasible interval
                 new_alpha = rng.uniform(low=alpha_min, high=alpha_max)
                 current_z += new_alpha * proj
+                #print('current_z', current_z)
+                assert ~np.any(current_z<0)
                 new_feasible_z[iteration, :] = current_z
             # XXX: These assertions should be moved to a suitable test
             if new_feasible_z.shape[0] > 0:
                 assert ~np.any(new_feasible_z < 0)
-                #print(np.max(np.dot(constraint_jac, new_feasible_z.T).T - constraint_rhs))
+                print('Constraint Infeasibility:', np.max(np.dot(constraint_jac, new_feasible_z.T).T - constraint_rhs))
             points = np.concatenate((points, np.atleast_2d(z_bar), new_feasible_z))
         else:
             points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
