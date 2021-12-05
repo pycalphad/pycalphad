@@ -194,3 +194,27 @@ def test_pyrochlore_no_freedom():
     assert np.all(output > 0)
     cons_infeasibility = np.max(np.abs(constraint_jac.dot(output.T).T - constraint_rhs))
     assert cons_infeasibility < 1e-10
+
+
+def test_charged_infeasible_minimum_norm():
+    "calculate generates a uniform sample when the minimum norm constraint solution is infeasible"
+    tdb = """
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT ND   DOUBLE_HCP(ABAC)          1.4424E+02  0.0000E+00  0.0000E+00!
+ ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+ ELEMENT Y    HCP_A3                    8.8906E+01  5.9664E+03  4.4434E+01!
+ SPECIES ND+3                        ND1/+3!
+ SPECIES Y+3                         Y1/+3!
+ SPECIES O-2                         O1/-2!
+ PHASE M2O3B:I %  3 2   3   1 !
+ CONSTITUENT M2O3B:I :ND+3,Y+3 : O-2 : O-2,VA :  !
+    """
+    dbf = Database(tdb)
+    res = calculate(dbf, ['ND', 'Y', 'O', 'VA'], 'M2O3B', T=600, P=1e5, pdens=10)
+    output = np.squeeze(res.Y.values)
+    assert output.shape[0] > 10
+    assert np.all(output > 0)
+    # Check that the point sample didn't get 'stuck' in part of the space
+    assert np.any(np.logical_and(output[:, 1] > 0.05, output[:, 1] < 0.15))
+    assert np.any(np.logical_and(output[:, 1] > 0.25, output[:, 1] < 0.35))

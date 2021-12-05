@@ -22,21 +22,24 @@ from pycalphad.core.utils import endmember_matrix, extract_parameters, \
 from pycalphad.core.constants import MIN_SITE_FRACTION
 
 
-def hr_point_sample(constraint_jac, constraint_rhs, num_points):
+def hr_point_sample(constraint_jac, constraint_rhs, initial_point, num_points):
     "Hit-and-run sampling of linearly-constrained site fraction spaces"
     q, r = np.linalg.qr(constraint_jac.T, mode='complete')
     q1 = q[:, :constraint_jac.shape[0]]
     q2 = q[:, constraint_jac.shape[0]:]
     r1 = r[:constraint_jac.shape[0], :]
-    # minimum norm solution to underdetermined system of equations
-    z_bar = np.linalg.lstsq(constraint_jac, constraint_rhs, rcond=None)[0]
+    if initial_point is not None:
+        z_bar = initial_point
+    else:
+        # minimum norm solution to underdetermined system of equations
+        # may not be feasible if it fails the non-negativity constraint
+        z_bar = np.linalg.lstsq(constraint_jac, constraint_rhs, rcond=None)[0]
     solution_norm = np.linalg.norm(constraint_jac.dot(z_bar) - constraint_rhs)
     if (solution_norm > 1e-4) or np.any(z_bar < 0):
-        # Does not satisfy constraints
-        return np.atleast_2d([])
+        # initial point does not satisfy constraints; give up
+        return np.empty((0, z_bar.shape[0]))
     # Hit-and-Run sampling
     new_feasible_z = np.zeros((num_points, constraint_jac.shape[1]))
-    # choose initial point as minimum norm solution (guaranteed feasible if any solution exists)
     current_z = np.array(z_bar)
     min_z = MIN_SITE_FRACTION
     rng = np.random.RandomState(1769)
@@ -48,8 +51,9 @@ def hr_point_sample(constraint_jac, constraint_rhs, num_points):
         # find extent of step direction possible while staying within bounds (0 <= z)
         with np.errstate(divide='ignore'):
             alphas = (min_z - current_z) / proj
-        max_alpha_candidates = alphas[np.logical_and(proj > 0, np.isfinite(alphas))]
-        min_alpha_candidates = alphas[np.logical_and(proj < 0, np.isfinite(alphas))]
+        # Need to use small value to prevent constraints binding one sublattice (with proj ~ 0) from binding all dof
+        max_alpha_candidates = alphas[np.logical_and(proj > 1e-6, np.isfinite(alphas))]
+        min_alpha_candidates = alphas[np.logical_and(proj < -1e-6, np.isfinite(alphas))]
         alpha_min = np.min(min_alpha_candidates)
         alpha_max = np.max(max_alpha_candidates)
         # Poor progress; give up on sampling
@@ -173,9 +177,12 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
             constraint_jac[constraint_idx, :] = species_charge
             constraint_rhs[constraint_idx] = 0
             # Sample additional points which obey the constraints
+            # Mean of pseudo-endmembers is feasible by convexity of the space
+            initial_point = np.mean(points, axis=0)
             num_points = (pdens ** 2) * (constraint_jac.shape[1] - constraint_jac.shape[0])
-            extra_points = hr_point_sample(constraint_jac, constraint_rhs, num_points)
+            extra_points = hr_point_sample(constraint_jac, constraint_rhs, initial_point, num_points)
             points = np.concatenate((points, extra_points))
+            assert np.max(np.abs(constraint_jac.dot(points.T).T - constraint_rhs)) < 1e-6
             if points.shape[0] == 0:
                 warnings.warn(f'{model.phase_name} has zero feasible configurations under the given conditions')
         else:
