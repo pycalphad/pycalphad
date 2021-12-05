@@ -4,6 +4,7 @@ property surface of a system.
 """
 
 import itertools
+import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
 import numpy as np
@@ -19,6 +20,49 @@ from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
 from pycalphad.core.constants import MIN_SITE_FRACTION
+
+
+def hr_point_sample(constraint_jac, constraint_rhs, num_points):
+    "Hit-and-run sampling of linearly-constrained site fraction spaces"
+    q, r = np.linalg.qr(constraint_jac.T, mode='complete')
+    q1 = q[:, :constraint_jac.shape[0]]
+    q2 = q[:, constraint_jac.shape[0]:]
+    r1 = r[:constraint_jac.shape[0], :]
+    # minimum norm solution to underdetermined system of equations
+    z_bar = np.linalg.lstsq(constraint_jac, constraint_rhs, rcond=None)[0]
+    solution_norm = np.linalg.norm(constraint_jac.dot(z_bar) - constraint_rhs)
+    if (solution_norm > 1e-4) or np.any(z_bar < 0):
+        # Does not satisfy constraints
+        return np.atleast_2d([])
+    # Hit-and-Run sampling
+    new_feasible_z = np.zeros((num_points, constraint_jac.shape[1]))
+    # choose initial point as minimum norm solution (guaranteed feasible if any solution exists)
+    current_z = np.array(z_bar)
+    min_z = MIN_SITE_FRACTION
+    rng = np.random.RandomState(1769)
+    for iteration in range(num_points):
+        # generate unit direction in null space
+        d = rng.normal(size=(constraint_jac.shape[1] - constraint_jac.shape[0]))
+        d /= np.linalg.norm(d, axis=0)
+        proj = np.dot(q2, d)
+        # find extent of step direction possible while staying within bounds (0 <= z)
+        with np.errstate(divide='ignore'):
+            alphas = (min_z - current_z) / proj
+        max_alpha_candidates = alphas[np.logical_and(proj > 0, np.isfinite(alphas))]
+        min_alpha_candidates = alphas[np.logical_and(proj < 0, np.isfinite(alphas))]
+        alpha_min = np.min(min_alpha_candidates)
+        alpha_max = np.max(max_alpha_candidates)
+        # Poor progress; give up on sampling
+        if np.abs(alpha_max - alpha_min) < 1e-4:
+            new_feasible_z = new_feasible_z[:iteration, :]
+            break
+        # choose a random step size within the feasible interval
+        new_alpha = rng.uniform(low=alpha_min, high=alpha_max)
+        current_z += new_alpha * proj
+        new_feasible_z[iteration, :] = current_z
+    if np.any(new_feasible_z < 0):
+        raise ValueError('Constrained sampling generated negative site fractions')
+    return new_feasible_z
 
 
 @cacheit
@@ -67,13 +111,39 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
             species_charge.append(species.charge*site_ratios[sublattice])
     species_charge = np.array(species_charge)
     charge_constrained_space = constant_site_ratios and np.any(species_charge != 0)
+    # We differentiate between (specifically) charge balance and general linear constraints for future use
+    # This simplifies adding future constraints, such as disordered configuration sampling, or site fraction conditions
+    # Note that if a phase only consists of site fraction balance constraints,
+    # we do not consider that 'linearly constrained' for the purposes of sampling,
+    # since the default sampler handles that case with an efficient method.
+    linearly_constrained_space = charge_constrained_space
 
     if charge_constrained_space:
-        Q = np.dot(points, species_charge)
-        neutral_mask = np.abs(Q) < ALLOWED_CHARGE
-        # Do not preserve all endmembers for charge-constrained spaces; they may be infeasible
-        points = points[neutral_mask]
-    if fixed_grid is True:
+        endmembers = points
+        Q = np.dot(endmembers, species_charge)
+        # Sort endmembers by their charge
+        charge_neutral_endmember_idxs = []
+        charge_positive_endmember_idxs = []
+        charge_negative_endmember_idxs = []
+        for em_idx in range(endmembers.shape[0]):
+            if Q[em_idx] > ALLOWED_CHARGE:
+                charge_positive_endmember_idxs.append(em_idx)
+            elif Q[em_idx] < -ALLOWED_CHARGE:
+                charge_negative_endmember_idxs.append(em_idx)
+            else:
+                charge_neutral_endmember_idxs.append(em_idx)
+
+        # Find all endmember pairs between the
+        em_pts = [endmembers[em_idx] for em_idx in charge_neutral_endmember_idxs]
+        for pos_em_idx, neg_em_idx in itertools.product(charge_positive_endmember_idxs, charge_negative_endmember_idxs):
+            # Solve equation: Q_{pos}*x + Q_{neg}(1-x) = 0
+            x = - Q[neg_em_idx] / (Q[pos_em_idx] - Q[neg_em_idx])
+            em_pts.append(endmembers[pos_em_idx] * x + endmembers[neg_em_idx] * (1-x))
+
+        # Charge neutral endmembers and mixed pseudo-endmembers
+        points = np.asarray(em_pts)
+
+    if (fixed_grid is True) and not linearly_constrained_space:
         # Sample along the edges of the endmembers
         # These constitution space edges are often the equilibrium points!
         em_pairs = list(itertools.combinations(points, 2))
@@ -84,7 +154,9 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
         points = np.concatenate(list(itertools.chain([points], extra_points)))
     # Sample composition space for more points
     if sum(sublattice_dof) > len(sublattice_dof):
-        if charge_constrained_space:
+        if linearly_constrained_space:
+            # construct constraint Jacobian for this phase
+            # Model technically already does this so it would be better to reuse that functionality
             # number of sublattices, plus charge balance
             num_constraints = len(sublattice_dof) + 1
             constraint_jac = np.zeros((num_constraints, points.shape[-1]))
@@ -93,61 +165,19 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
             dof_idx = 0
             constraint_idx = 0
             for subl_dof in sublattice_dof:
-                constraint_jac[constraint_idx, dof_idx:dof_idx+subl_dof] = 1
+                constraint_jac[constraint_idx, dof_idx:dof_idx + subl_dof] = 1
                 constraint_rhs[constraint_idx] = 1
                 constraint_idx += 1
                 dof_idx += subl_dof
             # charge balance
             constraint_jac[constraint_idx, :] = species_charge
             constraint_rhs[constraint_idx] = 0
-
-            q, r = np.linalg.qr(constraint_jac.T, mode='complete')
-            q1 = q[:, :constraint_jac.shape[0]]
-            q2 = q[:, constraint_jac.shape[0]:]
-            r1 = r[:constraint_jac.shape[0], :]
-            # minimum norm solution to underdetermined system of equations
-            z_bar = np.linalg.lstsq(constraint_jac, constraint_rhs, rcond=None)[0]
-            #print('z_bar', z_bar)
-            solution_norm = np.linalg.norm(constraint_jac.dot(z_bar) - constraint_rhs)
-            if solution_norm > 1e-4:
-                raise ValueError(f'Impossible to satisfy constraints on internal degrees of freedom of {model.phase_name}')
-            # Hit-and-Run sampling
-            num_points = (pdens**2) * (constraint_jac.shape[1] - constraint_jac.shape[0])
-            new_feasible_z = np.zeros((num_points, constraint_jac.shape[1]))
-            # choose initial point as minimum norm solution (guaranteed feasible)
-            current_z = np.array(z_bar)
-            min_z = MIN_SITE_FRACTION
-            rng = np.random.RandomState(1769)
-            for iteration in range(num_points):
-                # generate unit direction in null space
-                d = rng.normal(size=(constraint_jac.shape[1] - constraint_jac.shape[0]))
-                d /= np.linalg.norm(d, axis=0)
-                proj = np.dot(q2, d)
-                #print('proj', proj)
-                # find extent of step direction possible while staying within bounds (0 <= z)
-                with np.errstate(divide='ignore'):
-                    alphas = (min_z - current_z) / proj
-                #print('alphas', alphas)
-                max_alpha_candidates = alphas[np.logical_and(proj > 0, np.isfinite(alphas))]
-                min_alpha_candidates = alphas[np.logical_and(proj < 0, np.isfinite(alphas))]
-                alpha_min = np.min(min_alpha_candidates)
-                alpha_max = np.max(max_alpha_candidates)
-                # Poor progress; give up on sampling
-                if np.abs(alpha_max - alpha_min) < 1e-4:
-                    new_feasible_z = new_feasible_z[:iteration, :]
-                    break
-                #print('alpha_min, alpha_max', alpha_min, alpha_max)
-                # choose a random step size within the feasible interval
-                new_alpha = rng.uniform(low=alpha_min, high=alpha_max)
-                current_z += new_alpha * proj
-                #print('current_z', current_z)
-                assert ~np.any(current_z<0)
-                new_feasible_z[iteration, :] = current_z
-            # XXX: These assertions should be moved to a suitable test
-            if new_feasible_z.shape[0] > 0:
-                assert ~np.any(new_feasible_z < 0)
-                print('Constraint Infeasibility:', np.max(np.dot(constraint_jac, new_feasible_z.T).T - constraint_rhs))
-            points = np.concatenate((points, np.atleast_2d(z_bar), new_feasible_z))
+            # Sample additional points which obey the constraints
+            num_points = (pdens ** 2) * (constraint_jac.shape[1] - constraint_jac.shape[0])
+            extra_points = hr_point_sample(constraint_jac, constraint_rhs, num_points)
+            points = np.concatenate((points, extra_points))
+            if points.shape[0] == 0:
+                warnings.warn(f'{model.phase_name} has zero feasible configurations under the given conditions')
         else:
             points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
 
