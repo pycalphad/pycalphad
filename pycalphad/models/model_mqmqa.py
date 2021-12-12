@@ -624,16 +624,74 @@ class ModelMQMQA(Model):
 
         return num_res
 
+    def _chemical_group_filter(self, dbe, symmetric_species, asymmetric_species, sublattice):
+        # TODO: another flavor of this would be to check if species == symmetric_species and return true, then we wouldn't have to explictly construct [A] + nu and [A, B] + gamma
+        # sublattice should be "cations" or "anions"
+        chem_group_dict = dbe.phases[self.phase_name].model_hints["mqmqa"]["chemical_groups"][sublattice]
+        def _f(species):
+            if chem_group_dict[species] == chem_group_dict[symmetric_species] and chem_group_dict[species] != chem_group_dict[asymmetric_species]:
+                return True  # This chemical group should be mixed
+            else:
+                return False
+        return _f
+
+    def _Chi_mix(self, dbe, A, B, X, Y):
+        # Compute Poschmann Eq. 21 (SUBG-type model) or Eq. 22 (SUBQ-type model)
+        cations = self.cations
+        anions = self.anions
+        p = self._p
+
+        mixing_term_numerator = S.Zero
+        mixing_term_denominator = S.Zero
+
+        if A == B and X == Y:
+            raise ValueError(f"Excess energies for pairs are not defined. Got quadruplet {(A, B, X, Y)}")
+        elif A != B and X == Y:  # Mixing on first sublattice
+            # TODO: add support for SUBQ type where there is a loop over the anions
+            nu = list(filter(self._chemical_group_filter(dbe, A, B, "cations"), cations))
+            gamma = list(filter(lambda sp: self._chemical_group_filter(dbe, A, B, "cations")(sp) or self._chemical_group_filter(dbe, B, A, "cations")(sp), cations))
+            for idx, i in enumerate([A] + nu):  # enumerate to avoid double counting
+                for j in ([A] + nu)[idx:]:
+                    mixing_term_numerator += p(i, j, X, Y)
+            for idx, i in enumerate([A, B] + gamma):  # enumerate to avoid double counting
+                for j in ([A, B] + gamma)[idx:]:
+                    mixing_term_denominator += p(i, j, X, Y)
+            return mixing_term_numerator / mixing_term_denominator
+        elif A == B and X != Y:
+            # Mixing on second sublattice
+            raise NotImplementedError()
+        else:
+            raise ValueError(f"Excess energies for reciprocal quadruplets are not implemented. Got quadruplet {(A, B, X, Y)}")
+
+    def _Xi_mix(self, dbe, A, B, X, Y):
+        # For mixing in cations,  A != B, X == Y, this term is follows Poschmann Eq. 20
+        # for any terms nu (nu in cations) for all systems where A and nu have the same
+        # chemical group and B has a different chemical group
+        raise NotImplementedError()
+
     def excess_mixing_energy(self, dbe):
         params = [
+            # {
+            #     "parameter": -50000,
+            #     "exponents": [[0, 0], [0, 0]],
+            #     "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
+            #     "parameter_type": "MQMX",
+            #     "phase_name": "REGLIQ",
+            #     "mixing_code": "G",
+            #     "additional_mixing_constituent": None,
+            #     "additional_mixing_exponent": 0
+            # },
             {
-                "parameter": -50000,
-                "exponents": [[0, 0], [0, 0]],
+                "parameter": -10000,
+                "exponents": [1, 0, 0, 0],
                 "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
-                "parameter_type": "Q",
-                "phase_name": "REGLIQ"
+                "parameter_type": "MQMX",
+                "phase_name": "REGLIQ",
+                "mixing_code": "G",
+                "additional_mixing_constituent": None,
+                "additional_mixing_exponent": 0
+            },
 
-            }
         ]
 
         cations = self.cations
@@ -644,15 +702,26 @@ class ModelMQMQA(Model):
 
         energy = S.Zero
         for param in params:
+            (A, B), (X, Y) = param["constituent_array"]
+            exponents = param["exponents"]
+            mixing_code = param["mixing_code"]
+
             # TODO: handle (Chi and Zeta mixing) x (binary and ternary mixing)
             # Poschmann Eq. 23-26
-            mixing_term = S.One
+            if A != B and X == Y:
+                if param["mixing_code"] == "G":
+                    # Poschmann Eq. 23 (cations mixing)
+                    mixing_term = self._Chi_mix(dbe, A, B, X, X)**exponents[0] * self._Chi_mix(dbe, B, A, X, X)**exponents[1]
+                else:
+                    raise ValueError(f"Unknown mixing type code {mixing_code}")
+            elif A == B and X != Y:
+                raise NotImplementedError()
+            else:
+                raise ValueError(f"Unsupported mixing configuration for quadruplet {(A, B, X, Y)}")
             g = param["parameter"] * mixing_term
 
 
             # Poschmann Eq. 17
-            (A, B), (X, Y) = param["constituent_array"]
-
             cation_factor = S.Zero
             if A == B:
                 for m in cations:
@@ -665,12 +734,12 @@ class ModelMQMQA(Model):
                     if m != X:
                         anion_factor += p(A,B,X,m) / Z(X, A,B,X,m)
                 anion_factor *= Z(X, A,B,X,Y) / 2
-
             energy += 0.5 * g * (p(A,B,X,Y) + cation_factor + anion_factor)
 
         return energy
 
     def jorge_excess_mixing_energy(self, dbe):
+    # def excess_mixing_energy(self, dbe):
 
         w = self.w
         ξ = self.ξ
