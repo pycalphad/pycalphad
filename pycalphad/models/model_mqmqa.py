@@ -687,11 +687,10 @@ class ModelMQMQA(Model):
                 "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
                 "parameter_type": "MQMX",
                 "phase_name": "REGLIQ",
-                "mixing_code": "G",
-                "additional_mixing_constituent": None,
+                "mixing_code": "G",  # special types, "G" is one equation, "Q" is another. Thermochimica makes mention of "R" and "B", but I don't know if they are implemented and there's no equations in the paper. It could make sense just to have these as different `parameter_type`
+                "additional_mixing_constituent": None,  # Can be a v.Species() that is not in the constituent array. This for ternary mixing. With the way the equations are laid out, it probably makes sense to keep it separate from the constituent array
                 "additional_mixing_exponent": 0
             },
-
         ]
 
         cations = self.cations
