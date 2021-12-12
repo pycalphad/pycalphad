@@ -649,12 +649,12 @@ class ModelMQMQA(Model):
         elif A != B and X == Y:  # Mixing on first sublattice
             # TODO: add support for SUBQ type where there is a loop over the anions
             nu = list(filter(self._chemical_group_filter(dbe, A, B, "cations"), cations))
-            gamma = list(filter(lambda sp: self._chemical_group_filter(dbe, A, B, "cations")(sp) or self._chemical_group_filter(dbe, B, A, "cations")(sp), cations))
+            gamma = list(filter(self._chemical_group_filter(dbe, B, A, "cations"), cations))
             for idx, i in enumerate([A] + nu):  # enumerate to avoid double counting
                 for j in ([A] + nu)[idx:]:
                     mixing_term_numerator += p(i, j, X, Y)
-            for idx, i in enumerate([A, B] + gamma):  # enumerate to avoid double counting
-                for j in ([A, B] + gamma)[idx:]:
+            for idx, i in enumerate([A, B] + nu + gamma):  # enumerate to avoid double counting
+                for j in ([A, B] + nu + gamma)[idx:]:
                     mixing_term_denominator += p(i, j, X, Y)
             return mixing_term_numerator / mixing_term_denominator
         elif A == B and X != Y:
