@@ -673,7 +673,7 @@ class ModelMQMQA(Model):
         params = [
             # {
             #     "parameter": -50000,
-            #     "exponents": [[0, 0], [0, 0]],
+            #     "exponents": [0, 0, 0, 0],
             #     "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
             #     "parameter_type": "MQMX",
             #     "phase_name": "REGLIQ",
