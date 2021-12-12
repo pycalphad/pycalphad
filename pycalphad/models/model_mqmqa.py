@@ -625,6 +625,52 @@ class ModelMQMQA(Model):
         return num_res
 
     def excess_mixing_energy(self, dbe):
+        params = [
+            {
+                "parameter": -50000,
+                "exponents": [[0, 0], [0, 0]],
+                "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
+                "parameter_type": "Q",
+                "phase_name": "REGLIQ"
+
+            }
+        ]
+
+        cations = self.cations
+        anions = self.anions
+
+        p = self._p
+        Z = partial(self.Z, dbe)
+
+        energy = S.Zero
+        for param in params:
+            # TODO: handle (Chi and Zeta mixing) x (binary and ternary mixing)
+            # Poschmann Eq. 23-26
+            mixing_term = S.One
+            g = param["parameter"] * mixing_term
+
+
+            # Poschmann Eq. 17
+            (A, B), (X, Y) = param["constituent_array"]
+
+            cation_factor = S.Zero
+            if A == B:
+                for m in cations:
+                    if m != A:
+                        cation_factor += p(A,m,X,Y) / Z(A, A,m,X,Y)
+                cation_factor *= Z(A, A,B,X,Y) / 2
+            anion_factor = S.Zero
+            if X == Y:
+                for m in anions:
+                    if m != X:
+                        anion_factor += p(A,B,X,m) / Z(X, A,B,X,m)
+                anion_factor *= Z(X, A,B,X,Y) / 2
+
+            energy += 0.5 * g * (p(A,B,X,Y) + cation_factor + anion_factor)
+
+        return energy
+
+    def jorge_excess_mixing_energy(self, dbe):
 
         w = self.w
         ξ = self.ξ
