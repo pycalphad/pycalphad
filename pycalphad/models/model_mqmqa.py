@@ -709,39 +709,11 @@ class ModelMQMQA(Model):
             raise ValueError(f"Excess energies for reciprocal quadruplets are not implemented. Got quadruplet {(i, j, k, l)}")
 
     def excess_mixing_energy(self, dbe):
-        params = [
-            # {
-            #     "parameter": -50000,
-            #     "exponents": [0, 0, 0, 0],
-            #     "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
-            #     "parameter_type": "MQMX",
-            #     "phase_name": "REGLIQ",
-            #     "mixing_code": "G",
-            #     "additional_mixing_constituent": None,
-            #     "additional_mixing_exponent": 0
-            # },
-            {
-                "parameter": -10000,
-                "exponents": [1, 0, 0, 0],
-                "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
-                "parameter_type": "MQMX",
-                "phase_name": "REGLIQ",
-                "mixing_code": "G",  # special types, "G" is one equation, "Q" is another. Thermochimica makes mention of "R" and "B", but I don't know if they are implemented and there's no equations in the paper. It could make sense just to have these as different `parameter_type`
-                "additional_mixing_constituent": None,  # Can be a v.Species() that is not in the constituent array. This for ternary mixing. With the way the equations are laid out, it probably makes sense to keep it separate from the constituent array
-                "additional_mixing_exponent": 0
-            },
-            {
-                "parameter": -5000,
-                "exponents": [0, 1, 0, 0],
-                "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
-                "parameter_type": "MQMX",
-                "phase_name": "REGLIQ",
-                "mixing_code": "Q",  # special types, "G" is one equation, "Q" is another. Thermochimica makes mention of "R" and "B", but I don't know if they are implemented and there's no equations in the paper. It could make sense just to have these as different `parameter_type`
-                "additional_mixing_constituent": None,  # Can be a v.Species() that is not in the constituent array. This for ternary mixing. With the way the equations are laid out, it probably makes sense to keep it separate from the constituent array
-                "additional_mixing_exponent": 0
-            },
-
-        ]
+        params = dbe._parameters.search(
+            (where("phase_name") == self.phase_name) &
+            (where("parameter_type") == "MQMX") &
+            (where("constituent_array").test(self._mixing_test))  # TODO: this is really array validity
+        )
 
         cations = self.cations
         anions = self.anions
