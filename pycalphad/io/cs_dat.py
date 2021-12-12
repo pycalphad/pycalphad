@@ -626,7 +626,7 @@ class ExcessQuadruplet:
         parameter_G=self.expr(indices)
         dbf.add_parameter('EXMG', phase_name, constituent_array, index, parameter_G, diffusing_species=None, force_insert=False)
 #        print(self.mixing_exponents, self.additional_mixing_const==0)
-# THIS USED TO BE if sum(self.mixing_exponents)==1 and self.additional_mixing_const==0: BEFORE I CHANGED THE IF STATEMENT BELOW 
+# THIS USED TO BE if sum(self.mixing_exponents)==1 and self.additional_mixing_const==0: BEFORE I CHANGED THE IF STATEMENT BELOW
         if sum(self.mixing_exponents)!=0 and self.additional_mixing_const==0:
             specie_order=[count for count,par in enumerate(self.mixing_exponents) if par!=0 ]
 #            print('binary array',binary_array,specie_order)
@@ -729,15 +729,15 @@ class Phase_SUBQ(PhaseBase):
         # Add the "pure" (renamed) species to the database so the phase constituents can be added
         dbf.species.update(map(_species, cation_el_chg_pairs))
         dbf.species.update(map(_species, anion_el_chg_pairs))
-       
+
         # Second: add the phase and phase constituents
         # TODO: model hints to identify this phase as MQMQA
         # TODO: can model hints give us the map we need from the mangled
         #       species names to the real species (and give us a way to compute
         #       mass)?
         model_hints={}
-        model_hints['mqmqa']={}        
-        model_hints['mqmqa']['chemical_groups']={}        
+        model_hints['mqmqa']={}
+        model_hints['mqmqa']['chemical_groups']={}
 #        model_hints = {
 #            'mqmqa': {
 #                'chemical_groups': {'cations': dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups))
@@ -748,12 +748,12 @@ class Phase_SUBQ(PhaseBase):
         model_hints['mqmqa']['chemical_groups']['cations']=dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups))
 #        model_hints = {
 #            'mqmqa': list(map(_species, tot_ele))
-#        } 
+#        }
 
         model_hints['mqmqa']['chemical_groups']['anions']=dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups))
 #        model_hints = {
 #            'mqmqa': list(map(_species, tot_ele))
-#        } 
+#        }
 
         model_hints['mqmqa']['type']=self.phase_type
         dbf.add_phase(self.phase_name, model_hints, sublattices=[1.0])
