@@ -726,20 +726,48 @@ class ModelMQMQA(Model):
             (A, B), (X, Y) = param["constituent_array"]
             exponents = param["exponents"]
             mixing_code = param["mixing_code"]
-
-            # TODO: handle (Chi and Zeta mixing) x (binary and ternary mixing)
+            m = param["additional_mixing_constituent"]
+            r_alpha = param["additional_mixing_exponent"]
+            # TODO: Test/fix cation mixing
+            # TODO: Implement and test anion mixing
             # Poschmann Eq. 23-26
             mixing_term = S.Zero
             if A != B and X == Y:
+                p_alpha = exponents[0]
+                q_alpha = exponents[1]
                 if mixing_code == "G":
                     # Poschmann Eq. 23 (cations mixing)
-                    mixing_term += self._Chi_mix(dbe, A, B, X, X)**exponents[0] * self._Chi_mix(dbe, B, A, X, X)**exponents[1]
+                    mixing_term += self._Chi_mix(dbe, A, B, X, X)**p_alpha * self._Chi_mix(dbe, B, A, X, X)**q_alpha
+                    if m != v.Species(None):
+                        # Poschmann Eq. 25 ternary term
+                        Xi_ijk = self._Xi_ijkl(dbe, A, B, X, X)
+                        Xi_jik = self._Xi_ijkl(dbe, B, A, X, X)
+                        Y_mk = self._Y_ik(m, X)
+                        nu = list(filter(self._chemical_group_filter(dbe, A, B, "cations"), cations))
+                        gamma = list(filter(self._chemical_group_filter(dbe, B, A, "cations"), cations))
+                        if m in gamma:
+                            mixing_term *= Y_mk / Xi_jik * (1 - self._Y_ik(B, X) / Xi_jik)**(r_alpha - 1)
+                        elif m in nu:
+                            mixing_term *= Y_mk / Xi_ijk * (1 - self._Y_ik(A, X) / Xi_ijk)**(r_alpha - 1)
+                        else:  # not in nu or gamma
+                            mixing_term *= Y_mk * (1 - Xi_ijk - Xi_jik)**(r_alpha - 1)
                 elif mixing_code == "Q":
                     # Poschmann Eq. 19 and 20 (cations mixing)
                     Xi_ijk = self._Xi_ijkl(dbe, A, B, X, X)
                     Xi_jik = self._Xi_ijkl(dbe, B, A, X, X)
                     # Poschmann Eq. 24
-                    mixing_term += Xi_ijk**exponents[0] * Xi_jik**exponents[1] / (Xi_ijk + Xi_jik)**(exponents[0] + exponents[1])
+                    mixing_term += Xi_ijk**p_alpha * Xi_jik**q_alpha / (Xi_ijk + Xi_jik)**(p_alpha + q_alpha)
+                    if m != v.Species(None):
+                        # Poschmann Eq. 26 ternary term
+                        Y_mk = self._Y_ik(m, X)
+                        nu = list(filter(self._chemical_group_filter(dbe, A, B, "cations"), cations))
+                        gamma = list(filter(self._chemical_group_filter(dbe, B, A, "cations"), cations))
+                        if m in gamma:
+                            mixing_term *= Y_mk / Xi_jik * (1 - self._Y_ik(B, X) / Xi_jik)**(r_alpha - 1)
+                        elif m in nu:
+                            mixing_term *= Y_mk / Xi_ijk * (1 - self._Y_ik(A, X) / Xi_ijk)**(r_alpha - 1)
+                        else:  # not in nu or gamma
+                            mixing_term *= Y_mk * (1 - Xi_ijk - Xi_jik)**(r_alpha - 1)
                 else:
                     raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}")
             elif A == B and X != Y:
