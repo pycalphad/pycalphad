@@ -663,11 +663,50 @@ class ModelMQMQA(Model):
         else:
             raise ValueError(f"Excess energies for reciprocal quadruplets are not implemented. Got quadruplet {(A, B, X, Y)}")
 
-    def _Xi_mix(self, dbe, A, B, X, Y):
-        # For mixing in cations,  A != B, X == Y, this term is follows Poschmann Eq. 20
-        # for any terms nu (nu in cations) for all systems where A and nu have the same
-        # chemical group and B has a different chemical group
-        raise NotImplementedError()
+    def _Y_ik(self, i, k):
+        # Poschmann Eq. 20
+        cations = self.cations
+        anions = self.anions
+        p = self._p
+        term = S.Zero
+        for cat_idx, a in enumerate(cations):
+            for b in cations[cat_idx:]:
+                for an_idx, x in enumerate(anions):
+                    for y in anions[an_idx:]:
+                        cation_factor = S.Zero
+                        if a == i: cation_factor += 1
+                        if b == i: cation_factor += 1
+                        anion_factor = S.Zero
+                        if x == k: anion_factor += 1
+                        if y == k: anion_factor += 1
+                        term += p(a,b,x,y) * cation_factor * anion_factor / 4
+        return term
+
+    def _Xi_ijkl(self, dbe, i, j, k, l):
+        # Poschmann Eq. 19
+        # For mixing in cations,  i != j, k == l, this term is follows Poschmann Eq. 19
+        # for any terms nu (nu in cations) for all systems where i and nu have the same
+        # chemical group and j has a different chemical group
+        cations = self.cations
+        anions = self.anions
+        mixing_term = S.Zero
+
+        if i == j and k == l:
+            raise ValueError(f"Excess energies for pairs are not defined. Got quadruplet {(i, j, k, l)}")
+        elif i != j and k == l:  # Mixing on first sublattice
+            # TODO: add support for SUjQ type where there is a loop over the anions
+            nu = list(filter(self._chemical_group_filter(dbe, i, j, "cations"), cations))
+            for a in [i] + nu:
+                mixing_term += self._Y_ik(a, k)
+            return mixing_term
+        elif i == j and k != l:
+            # Mixing on second sublattice
+            nu = list(filter(self._chemical_group_filter(dbe, k, l, "anions"), anions))
+            for x in [k] + nu:
+                mixing_term += self._Y_ik(i, x)
+            return mixing_term
+        else:
+            raise ValueError(f"Excess energies for reciprocal quadruplets are not implemented. Got quadruplet {(i, j, k, l)}")
 
     def excess_mixing_energy(self, dbe):
         params = [
@@ -691,6 +730,17 @@ class ModelMQMQA(Model):
                 "additional_mixing_constituent": None,  # Can be a v.Species() that is not in the constituent array. This for ternary mixing. With the way the equations are laid out, it probably makes sense to keep it separate from the constituent array
                 "additional_mixing_exponent": 0
             },
+            {
+                "parameter": -5000,
+                "exponents": [0, 1, 0, 0],
+                "constituent_array": ((v.Species('CU+2.0', {'CU': 1.0}, charge=2.0), v.Species('NI+2.0', {'NI': 1.0}, charge=2.0)), (v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0), v.Species('VA-1.0', {'VA': 1.0}, charge=-1.0))),
+                "parameter_type": "MQMX",
+                "phase_name": "REGLIQ",
+                "mixing_code": "Q",  # special types, "G" is one equation, "Q" is another. Thermochimica makes mention of "R" and "B", but I don't know if they are implemented and there's no equations in the paper. It could make sense just to have these as different `parameter_type`
+                "additional_mixing_constituent": None,  # Can be a v.Species() that is not in the constituent array. This for ternary mixing. With the way the equations are laid out, it probably makes sense to keep it separate from the constituent array
+                "additional_mixing_exponent": 0
+            },
+
         ]
 
         cations = self.cations
@@ -707,12 +757,19 @@ class ModelMQMQA(Model):
 
             # TODO: handle (Chi and Zeta mixing) x (binary and ternary mixing)
             # Poschmann Eq. 23-26
+            mixing_term = S.Zero
             if A != B and X == Y:
-                if param["mixing_code"] == "G":
+                if mixing_code == "G":
                     # Poschmann Eq. 23 (cations mixing)
-                    mixing_term = self._Chi_mix(dbe, A, B, X, X)**exponents[0] * self._Chi_mix(dbe, B, A, X, X)**exponents[1]
+                    mixing_term += self._Chi_mix(dbe, A, B, X, X)**exponents[0] * self._Chi_mix(dbe, B, A, X, X)**exponents[1]
+                elif mixing_code == "Q":
+                    # Poschmann Eq. 19 and 20 (cations mixing)
+                    Xi_ijk = self._Xi_ijkl(dbe, A, B, X, X)
+                    Xi_jik = self._Xi_ijkl(dbe, B, A, X, X)
+                    # Poschmann Eq. 24
+                    mixing_term += Xi_ijk**exponents[0] * Xi_jik**exponents[1] / (Xi_ijk + Xi_jik)**(exponents[0] + exponents[1])
                 else:
-                    raise ValueError(f"Unknown mixing type code {mixing_code}")
+                    raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}")
             elif A == B and X != Y:
                 raise NotImplementedError()
             else:
