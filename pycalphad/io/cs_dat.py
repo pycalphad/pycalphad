@@ -33,7 +33,6 @@ CP_TERMS = (S.Zero, S.One, v.T, v.T**2, v.T**(-2))
 # Terms are
 # Cp = (S.Zero, S.One, v.T, v.T**2, v.T**(-2))
 EXCESS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2, v.T**3, 1/v.T, v.P, v.P**2)
-EXCESS_TERMS_SUBG = (S.One, v.T, v.T*log(v.T), v.T**2, v.T**3, 1/v.T, v.P, v.P**2)
 
 
 def _parse_species_postfix_charge(formula) -> v.Species:
@@ -603,11 +602,53 @@ class ExcessQuadruplet:
         """Return an expression for the energy in this temperature interval"""
         energy = S.Zero
         # Add fixed energy terms
-        # TODO: just use `EXCESS_TERMS` and fix the indexing
-        energy += sum([C*EXCESS_TERMS_SUBG[i] for C, i in zip(self.excess_coeffs, indices)])
+        energy += sum([C*EXCESS_TERMS[i] for C, i in zip(self.excess_coeffs, indices)])
         return energy
 
-    def insert(self, dbf: Database, phase_name: str, As: [str], Xs: [str],index):
+    @staticmethod  # So it can be in the style of a Database() method
+    def _database_add_parameter(
+        self, param_type, phase_name, mixing_code, constituent_array, exponents, param,
+        additional_mixing_constituent=None, additional_mixing_exponent=0,
+        ref=None, force_insert=True
+        ):
+        species_dict = {s.name: s for s in self.species}
+        if additional_mixing_constituent is not None:
+            additional_mixing_constituent = species_dict.get(additional_mixing_constituent.upper(), v.Species(additional_mixing_constituent))
+        else:
+            additional_mixing_constituent = v.Species(None)
+        new_parameter = {
+            'phase_name': phase_name,
+            'constituent_array': tuple(tuple(species_dict.get(s.upper(), v.Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
+            'parameter_type': param_type,
+            'exponents': exponents,
+            'parameter': param,
+            'additional_mixing_constituent': additional_mixing_constituent,
+            'additional_mixing_exponent': additional_mixing_exponent,
+            "mixing_code" : mixing_code,
+            'reference': ref,
+        }
+        if force_insert:
+            self._parameters.insert(new_parameter)
+        else:
+            self._parameter_queue.append(new_parameter)
+
+
+    def insert(self, dbf: Database, phase_name: str, As: [str], Xs: [str], excess_coeff_indices: [int]):
+        linear_species = [None] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
+        A, B, X, Y = tuple(linear_species[idx] for idx in self.mixing_const)
+        # TODO: do we need to sort these?
+        constituent_array = [[A, B], [X, Y]]
+        mixing_code = self.mixing_code
+        exponents = self.mixing_exponents
+        addtl_mixing_const = linear_species[self.additional_mixing_const]
+        addtl_mixing_expon = self.additional_mixing_exponent
+        expr = self.expr(excess_coeff_indices)
+
+        # Use local API to insert into the database, since there's no Database.add_parameter API for this yet
+        self._database_add_parameter(dbf, "MQMX", phase_name, mixing_code, constituent_array, exponents, expr, addtl_mixing_const, addtl_mixing_expon)
+
+
+    def insert_jorge(self, dbf: Database, phase_name: str, As: [str], Xs: [str],index):
         """
         TODO: This is probably not implemented correctly because we ignore
         mixing code Q vs. G.
@@ -622,7 +663,7 @@ class ExcessQuadruplet:
         constituent_array = [[A, B], [X, Y]]
         binary_array=[subl for subl in constituent_array if len(set(subl))>1]
         # TODO: don't store empty parameters. Store exponents.
-        indices=[count for count,i in enumerate(self.excess_coeffs)]
+        indices=[count+1 for count,i in enumerate(self.excess_coeffs)]  # TODO: fix hardcoded 1-N indexing here
         parameter_G=self.expr(indices)
         dbf.add_parameter('EXMG', phase_name, constituent_array, index, parameter_G, diffusing_species=None, force_insert=False)
 #        print(self.mixing_exponents, self.additional_mixing_const==0)
@@ -778,8 +819,11 @@ class Phase_SUBQ(PhaseBase):
             quadruplet.insert(dbf, self.phase_name, cations, anions)
 
         # Fifth: add excess parameters
+        for excess_param in self.excess_parameters:
+            excess_param.insert(dbf, self.phase_name, cations, anions, excess_coefficient_idxs)
+        # TODO: remove Jorge's version (currently used for TDB compatibility)
         for index,excess_param in enumerate(self.excess_parameters):
-            excess_param.insert(dbf, self.phase_name, cations, anions,5*index)
+            excess_param.insert_jorge(dbf, self.phase_name, cations, anions,5*index)
 
 
 # TODO: not yet supported
