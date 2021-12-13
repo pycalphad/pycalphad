@@ -16,6 +16,7 @@ from pycalphad.core.utils import get_state_variables, instantiate_models
 from pycalphad.models.model_mqmqa import ModelMQMQA
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
+from pycalphad.tests.fixtures import load_database, select_database
 
 warnings.simplefilter("always", UserWarning) # so we can test warnings
 
@@ -840,8 +841,9 @@ def test_MQMQA_equilibrium_symmetry_cu_1():
 #     assert np.isclose(eq.GM, -2.69502E+05, 1e-5)  # value from Thermochimica
 
 
-def test_MQMQA_equilibrium_ideal():
-    dbf_0 = Database("/Users/brandon/Projects/thermochimica/data/Cu-Mg-Ni_0.dat")
+@select_database("Cu-Mg-Ni_0.dat")
+def test_MQMQA_equilibrium_ideal(load_database):
+    dbf_0 = load_database()
     comps = ['CU', 'NI', 'VA']
     eq = equilibrium(dbf_0, comps, ['REGLIQ'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'REGLIQ': ModelMQMQA})
     assert np.isclose(eq.GM.squeeze(), -2.07631E+04)  # Thermochimica result
@@ -849,9 +851,10 @@ def test_MQMQA_equilibrium_ideal():
     assert np.allclose(eq.Y.squeeze()[0, :], [0.25, 0.5, 0.25])  # Thermochimica result
 
 
-def test_MQMQA_equilibrium_mixed_quad_energy():
+@select_database("Cu-Mg-Ni_1.dat")
+def test_MQMQA_equilibrium_mixed_quad_energy(load_database):
     """Assign a quadruplet energy"""
-    dbf_1 = Database("/Users/brandon/Projects/thermochimica/data/Cu-Mg-Ni_1.dat")
+    dbf_1 = load_database()
     comps = ['CU', 'NI', 'VA']
     eq = equilibrium(dbf_1, comps, ['REGLIQ'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'REGLIQ': ModelMQMQA})
     print('GM', eq.GM.values.squeeze())
@@ -862,9 +865,10 @@ def test_MQMQA_equilibrium_mixed_quad_energy():
     assert np.allclose(eq.Y.squeeze()[0, :], [2.3560E-02, 0.95288, 2.3560E-02])  # Thermochimica result
 
 
-def test_MQMQA_equilibrium_binary_G_mixing():
+@select_database("Cu-Mg-Ni_2.dat")
+def test_MQMQA_equilibrium_binary_G_mixing(load_database):
     """Binary mixing with mixing code `G`"""
-    dbf_2 = Database("/Users/brandon/Projects/thermochimica/data/Cu-Mg-Ni_2.dat")
+    dbf_2 = load_database()
     comps = ['CU', 'NI', 'VA']
     eq = equilibrium(dbf_2, comps, ['REGLIQ'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'REGLIQ': ModelMQMQA})
     print('GM', eq.GM.values.squeeze())
@@ -875,9 +879,10 @@ def test_MQMQA_equilibrium_binary_G_mixing():
     assert np.allclose(eq.Y.squeeze()[0, :], [0.25, 0.5, 0.25])  # Thermochimica result
 
 
-def test_MQMQA_equilibrium_binary_Q_mixing():
+@select_database("Cu-Mg-Ni_3.dat")
+def test_MQMQA_equilibrium_binary_Q_mixing(load_database):
     """Binary mixing with mixing code `Q`"""
-    dbf_3 = Database("/Users/brandon/Projects/thermochimica/data/Cu-Mg-Ni_3.dat")
+    dbf_3 = load_database()
     comps = ['CU', 'NI', 'VA']
     eq = equilibrium(dbf_3, comps, ['REGLIQ'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'REGLIQ': ModelMQMQA})
     print('GM', eq.GM.values.squeeze())

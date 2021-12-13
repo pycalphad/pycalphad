@@ -54,6 +54,7 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
+        'importlib_resources',  # drop when pycalphad drops support for Python<3.9
         'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing>=2.4',
