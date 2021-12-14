@@ -858,7 +858,8 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         solution_is_feasible = (
             (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
             (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
-            (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR)
+            (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR) and
+            (state.mass_residual < allowed_mass_residual)
         )
         if solution_is_feasible and (iterations_since_last_phase_change >= 5):
             phases_changed = phases_changed or change_phases(spec, state, metastable_phase_iterations, times_compset_removed)
