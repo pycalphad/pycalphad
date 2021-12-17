@@ -349,20 +349,19 @@ class ModelMQMQA(Model):
 
 
     def Z(self, dbe: "pycalphad.io.Database", species: v.Species, A: v.Species, B: v.Species, X: v.Species, Y: v.Species):
-        Z_cat = sorted((A,B))
-        Z_an = sorted((X,Y))
-        Z_quad = (tuple(Z_cat),tuple(Z_an))
+        A, B = sorted((A, B))
+        X, Y = sorted((X, Y))
         Zs = dbe._parameters.search(
             (where("phase_name") == self.phase_name) & \
-            (where("parameter_type") == "Z") & \
-            (where("diffusing_species").test(lambda sp: sp.name == species.name)) & \
-            (where("constituent_array").test(lambda x: x == Z_quad)))
-            # quadruplet needs to be in 1 sublattice constituent array `[[q]]`, in tuples
+            (where("parameter_type") == "MQMZ") & \
+            (where("constituent_array").test(lambda x: x == ((A, B), (X, Y))))
+        )
         if len(Zs) == 0:
             # TODO: add this to the database so we don't need to recalculate? where should that happen?
             return self._calc_Z(dbe, species, A, B, X, Y)
         elif len(Zs) == 1:
-            return Zs[0]["parameter"]
+            sp_idx = [A, B, X, Y].index(species)
+            return Zs[0]["coordinations"][sp_idx]
         else:
             raise ValueError(f"Expected exactly one Z for {species} of {((A, B), (X, Y))}, got {len(Zs)}")
 
