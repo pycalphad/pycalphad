@@ -593,15 +593,7 @@ class Quadruplet:
         """Add a Z_i_AB:XY parameter for each species defined in the quadruplet"""
         linear_species = [''] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.quadruplet_idxs)
-        # TODO: do we need to sort these?
-        constituent_array = [[A, B], [X, Y]]
-        added_diffusing_species = set()
-        for i, Z in zip((A, B, X, Y), self.quadruplet_coordinations):
-            # diffusing species, i, will make Z^i_{AB/XY}
-            # avoid adding duplicate Z parameters, each should be unique
-            if i not in added_diffusing_species:
-                dbf.add_parameter('Z', phase_name, constituent_array, 0, Z, diffusing_species=i, force_insert=False)
-                added_diffusing_species.add(i)
+        constituent_array = [[A, B], [X, Y]]  # TODO: do we need to sort these?
         self._database_add_parameter(dbf, "MQMZ", phase_name, constituent_array, self.quadruplet_coordinations, force_insert=False)
 
 
@@ -616,7 +608,6 @@ class ExcessQuadruplet:
     additional_mixing_exponent: int
     excess_coeffs: [float]
 
-    # TODO: implement
     def expr(self, indices):
         """Return an expression for the energy in this temperature interval"""
         energy = S.Zero
@@ -651,7 +642,6 @@ class ExcessQuadruplet:
         else:
             self._parameter_queue.append(new_parameter)
 
-
     def insert(self, dbf: Database, phase_name: str, As: [str], Xs: [str], excess_coeff_indices: [int]):
         linear_species = [None] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.mixing_const)
@@ -665,63 +655,6 @@ class ExcessQuadruplet:
 
         # Use local API to insert into the database, since there's no Database.add_parameter API for this yet
         self._database_add_parameter(dbf, "MQMX", phase_name, mixing_code, constituent_array, exponents, expr, addtl_mixing_const, addtl_mixing_expon)
-
-
-    def insert_jorge(self, dbf: Database, phase_name: str, As: [str], Xs: [str],index):
-        """
-        TODO: This is probably not implemented correctly because we ignore
-        mixing code Q vs. G.
-
-        I think:
-        G :: X_AB:XY (i.e. y_constituent)
-        Q :: Y_A
-        """
-#        return  # TODO: implement this function correctly
-        linear_species = [''] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
-        A, B, X, Y = tuple(linear_species[idx] for idx in self.mixing_const)
-        constituent_array = [[A, B], [X, Y]]
-        binary_array=[subl for subl in constituent_array if len(set(subl))>1]
-        # TODO: don't store empty parameters. Store exponents.
-        indices=[count+1 for count,i in enumerate(self.excess_coeffs)]  # TODO: fix hardcoded 1-N indexing here
-        parameter_G=self.expr(indices)
-        dbf.add_parameter('EXMG', phase_name, constituent_array, index, parameter_G, diffusing_species=None, force_insert=False)
-#        print(self.mixing_exponents, self.additional_mixing_const==0)
-# THIS USED TO BE if sum(self.mixing_exponents)==1 and self.additional_mixing_const==0: BEFORE I CHANGED THE IF STATEMENT BELOW
-        if sum(self.mixing_exponents)!=0 and self.additional_mixing_const==0:
-            specie_order=[count for count,par in enumerate(self.mixing_exponents) if par!=0 ]
-#            print('binary array',binary_array,specie_order)
-            for count,mix_exp in enumerate(self.mixing_exponents):
-                parameter_order=count+1+index
-                parameter=mix_exp
-                dbf.add_parameter('EXMQ', phase_name, constituent_array, parameter_order, parameter,
-                                  diffusing_species=binary_array[0][specie_order[0]], force_insert=False)
-        else:
-            for count,mix_exp in enumerate(self.mixing_exponents):
-                parameter_order=count+1+index
-                parameter=mix_exp
-#                print('else part of if statement',parameter)
-#                print(linear_species,self.additional_mixing_const)
-                dbf.add_parameter('EXMQ', phase_name, constituent_array,
-                                  parameter_order, parameter, diffusing_species=linear_species[self.additional_mixing_const], force_insert=False)
-
-        parameter=[par for count,par in enumerate(self.mixing_exponents) if par!=0]
-        parameter_binary=[par for count,par in enumerate(self.mixing_exponents) if par!=0 and count<2]
-
-#        parameter_order_ternary=[count+1+index for count,par in enumerate(self.mixing_exponents) if par!=0 and count>1]
-
-#        parameter_order=[count+1+index for count,par in enumerate(self.mixing_exponents) if par!=0]
-
-#        specie_order=[count for count,par in enumerate(self.mixing_exponents) if par!=0]
-#        if len(parameter)==1 and len(parameter_binary)==1:
-#            dbf.add_parameter('EXMG', phase_name, constituent_array, parameter_order[0],
-#                                  parameter_G, diffusing_species=binary_array[0][specie_order[0]], force_insert=False)
-#        elif len(parameter)>1:
-#            dbf.add_parameter('EXMG', phase_name, constituent_array, parameter_order_ternary[0],
-#                          parameter_G, diffusing_species=self.additional_mixing_const,force_insert=False)
-
-
-
-
 
 
 def _species(el_chg):
@@ -748,6 +681,7 @@ class Phase_SUBQ(PhaseBase):
     excess_parameters: [ExcessQuadruplet]
     phase_type= [str]
     def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
+        # TODO: revisit these comments
         # There are some tricky things to handle for quadruplet formalism
         # All AB:XY quadruplets are the constituents and they exist on one
         # sublattice.
@@ -791,29 +725,14 @@ class Phase_SUBQ(PhaseBase):
         dbf.species.update(map(_species, anion_el_chg_pairs))
 
         # Second: add the phase and phase constituents
-        # TODO: model hints to identify this phase as MQMQA
         # TODO: can model hints give us the map we need from the mangled
         #       species names to the real species (and give us a way to compute
         #       mass)?
-        model_hints={}
-        model_hints['mqmqa']={}
-        model_hints['mqmqa']['chemical_groups']={}
-#        model_hints = {
-#            'mqmqa': {
-#                'chemical_groups': {'cations': dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups))
-#                                    , 'anions': dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups))}
-#            }
-#        }
-###LOOK AT HOW TO UPDATE THIS BETTER
+        model_hints = {}
+        model_hints['mqmqa'] = {}
+        model_hints['mqmqa']['chemical_groups'] = {}
         model_hints['mqmqa']['chemical_groups']['cations']=dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups))
-#        model_hints = {
-#            'mqmqa': list(map(_species, tot_ele))
-#        }
-
         model_hints['mqmqa']['chemical_groups']['anions']=dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups))
-#        model_hints = {
-#            'mqmqa': list(map(_species, tot_ele))
-#        }
 
         model_hints['mqmqa']['type']=self.phase_type
         dbf.add_phase(self.phase_name, model_hints, sublattices=[1.0])
@@ -840,9 +759,6 @@ class Phase_SUBQ(PhaseBase):
         # Fifth: add excess parameters
         for excess_param in self.excess_parameters:
             excess_param.insert(dbf, self.phase_name, cations, anions, excess_coefficient_idxs)
-        # TODO: remove Jorge's version (currently used for TDB compatibility)
-        for index,excess_param in enumerate(self.excess_parameters):
-            excess_param.insert_jorge(dbf, self.phase_name, cations, anions,5*index)
 
 
 # TODO: not yet supported
