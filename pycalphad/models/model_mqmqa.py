@@ -732,14 +732,13 @@ class ModelMQMQA(Model):
             exponents = param["exponents"]
             mixing_code = param["mixing_code"]
             m = param["additional_mixing_constituent"]
-            r_alpha = param["additional_mixing_exponent"]
-            # TODO: Test/fix cation mixing
             # TODO: Implement and test anion mixing
             # Poschmann Eq. 23-26
             mixing_term = S.Zero
             if A != B and X == Y:
-                p_alpha = exponents[0]
+                p_alpha = exponents[0]  # TODO: are these always [0] and [1] even for anions?
                 q_alpha = exponents[1]
+                r_alpha = exponents[2]
                 if mixing_code == "G":
                     # Poschmann Eq. 23 (cations mixing)
                     mixing_term += self._Chi_mix(dbe, A, B, X, X)**p_alpha * self._Chi_mix(dbe, B, A, X, X)**q_alpha
