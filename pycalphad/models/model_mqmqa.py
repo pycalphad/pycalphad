@@ -629,7 +629,11 @@ class ModelMQMQA(Model):
         # sublattice should be "cations" or "anions"
         chem_group_dict = dbe.phases[self.phase_name].model_hints["mqmqa"]["chemical_groups"][sublattice]
         def _f(species):
-            if chem_group_dict[species] == chem_group_dict[symmetric_species] and chem_group_dict[species] != chem_group_dict[asymmetric_species]:
+            if species == symmetric_species:
+                return False
+            elif species == asymmetric_species:
+                return False
+            elif chem_group_dict[species] == chem_group_dict[symmetric_species] and chem_group_dict[species] != chem_group_dict[asymmetric_species]:
                 return True  # This chemical group should be mixed
             else:
                 return False
@@ -658,6 +662,7 @@ class ModelMQMQA(Model):
                     mixing_term_denominator += p(i, j, X, Y)
             return mixing_term_numerator / mixing_term_denominator
         elif A == B and X != Y:
+            # TODO: implement
             # Mixing on second sublattice
             raise NotImplementedError()
         else:
