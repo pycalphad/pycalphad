@@ -846,9 +846,9 @@ def test_MQMQA_equilibrium_ideal(load_database):
     dbf_0 = load_database()
     comps = ['CU', 'NI', 'VA']
     eq = equilibrium(dbf_0, comps, ['IDEALLIQUID'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'IDEALLIQUID': ModelMQMQA})
-    assert np.isclose(eq.GM.squeeze(), -2.07631E+04)  # Thermochimica result
+    assert np.isclose(eq.GM.values.squeeze(), -2.07631E+04)  # Thermochimica result
     assert np.all(eq.Phase.squeeze() == ['IDEALLIQUID', '', ''])
-    assert np.allclose(eq.Y.squeeze()[0, :], [0.25, 0.5, 0.25])  # Thermochimica result
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25, 0.5, 0.25])  # Thermochimica result
 
 
 @select_database("MQMQA-tern-tests.dat")
@@ -860,9 +860,9 @@ def test_MQMQA_equilibrium_mixed_quad_energy(load_database):
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
-    assert np.isclose(eq.GM.squeeze(), -7.96774E+04)  # Thermochimica result
+    assert np.isclose(eq.GM.values.squeeze(), -7.96774E+04)  # Thermochimica result
     assert np.all(eq.Phase.squeeze() == ['L_SUBG_0', '', ''])
-    assert np.allclose(eq.Y.squeeze()[0, :], [2.3560E-02, 0.95288, 2.3560E-02])  # Thermochimica result
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [2.3560E-02, 0.95288, 2.3560E-02])  # Thermochimica result
 
 
 @select_database("MQMQA-tern-tests.dat")
@@ -874,9 +874,9 @@ def test_MQMQA_equilibrium_binary_G_mixing(load_database):
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
-    assert np.isclose(eq.GM.squeeze(), -2.26381E+04)  # Thermochimica result
+    assert np.isclose(eq.GM.values.squeeze(), -2.26381E+04)  # Thermochimica result
     assert np.all(eq.Phase.squeeze() == ['L_SUBG_1', '', ''])
-    assert np.allclose(eq.Y.squeeze()[0, :], [0.25, 0.5, 0.25])  # Thermochimica result
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25, 0.5, 0.25])  # Thermochimica result
 
 
 @select_database("MQMQA-tern-tests.dat")
@@ -888,8 +888,9 @@ def test_MQMQA_equilibrium_binary_Q_mixing(load_database):
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
-    assert np.isclose(eq.GM.squeeze(), -2.45743E+04)  # Thermochimica result
+    assert np.isclose(eq.GM.values.squeeze(), -2.45743E+04)  # Thermochimica result
     assert np.all(eq.Phase.squeeze() == ['L_SUBG_2', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [0.23368, 0.53263, 0.23368], atol=1e-5)  # Thermochimica result
 
 @select_database("MQMQA-tern-tests.dat")
 def test_MQMQA_equilibrium_multiple_binary_excess_terms(load_database):
