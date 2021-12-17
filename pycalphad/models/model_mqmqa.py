@@ -625,7 +625,6 @@ class ModelMQMQA(Model):
         return num_res
 
     def _chemical_group_filter(self, dbe, symmetric_species, asymmetric_species, sublattice):
-        # TODO: another flavor of this would be to check if species == symmetric_species and return true, then we wouldn't have to explictly construct [A] + nu and [A, B] + gamma
         # sublattice should be "cations" or "anions"
         chem_group_dict = dbe.phases[self.phase_name].model_hints["mqmqa"]["chemical_groups"][sublattice]
         def _f(species):
@@ -661,12 +660,19 @@ class ModelMQMQA(Model):
                 for j in ([A, B] + nu + gamma)[idx:]:
                     mixing_term_denominator += p(i, j, X, Y)
             return mixing_term_numerator / mixing_term_denominator
-        elif A == B and X != Y:
-            # TODO: implement
-            # Mixing on second sublattice
-            raise NotImplementedError()
+        elif A == B and X != Y: # Mixing on second sublattice
+            # TODO: add support for SUBQ type where there is a loop over the cations
+            nu = list(filter(self._chemical_group_filter(dbe, X, Y, "anions"), anions))
+            gamma = list(filter(self._chemical_group_filter(dbe, Y, X, "anions"), anions))
+            for idx, k in enumerate([X] + nu):  # enumerate to avoid double counting
+                for l in ([X] + nu)[idx:]:
+                    mixing_term_numerator += p(A, B, k, l)
+            for idx, k in enumerate([X, Y] + nu + gamma):  # enumerate to avoid double counting
+                for l in ([X, Y] + nu + gamma)[idx:]:
+                    mixing_term_denominator += p(A, B, k, l)
+            return mixing_term_numerator / mixing_term_denominator
         else:
-            raise ValueError(f"Excess energies for reciprocal quadruplets are not implemented. Got quadruplet {(A, B, X, Y)}")
+            raise ValueError(f"Computing Chi_mix is not supported for reciprocal quadruplets. Got quadruplet {(A, B, X, Y)}.")
 
     def _Y_ik(self, i, k):
         # Poschmann Eq. 20
@@ -699,25 +705,23 @@ class ModelMQMQA(Model):
         if i == j and k == l:
             raise ValueError(f"Excess energies for pairs are not defined. Got quadruplet {(i, j, k, l)}")
         elif i != j and k == l:  # Mixing on first sublattice
-            # TODO: add support for SUjQ type where there is a loop over the anions
             nu = list(filter(self._chemical_group_filter(dbe, i, j, "cations"), cations))
             for a in [i] + nu:
                 mixing_term += self._Y_ik(a, k)
             return mixing_term
-        elif i == j and k != l:
-            # Mixing on second sublattice
+        elif i == j and k != l:  # Mixing on second sublattice
             nu = list(filter(self._chemical_group_filter(dbe, k, l, "anions"), anions))
             for x in [k] + nu:
                 mixing_term += self._Y_ik(i, x)
             return mixing_term
         else:
-            raise ValueError(f"Excess energies for reciprocal quadruplets are not implemented. Got quadruplet {(i, j, k, l)}")
+            raise ValueError(f"Computing Xi_ijkl is not supported for reciprocal quadruplets. Got quadruplet {(i, j, k, l)}.")
 
     def excess_mixing_energy(self, dbe):
         params = dbe._parameters.search(
             (where("phase_name") == self.phase_name) &
             (where("parameter_type") == "MQMX") &
-            (where("constituent_array").test(self._mixing_test))  # TODO: this is really array validity
+            (where("constituent_array").test(self._mixing_test))  # TODO: this is really `array_validity`?
         )
 
         cations = self.cations
@@ -732,13 +736,11 @@ class ModelMQMQA(Model):
             exponents = param["exponents"]
             mixing_code = param["mixing_code"]
             m = param["additional_mixing_constituent"]
-            # TODO: Implement and test anion mixing
+            p_alpha = exponents[0]  # TODO: are these always [0] and [1] even for anions?
+            q_alpha = exponents[1]
             # Poschmann Eq. 23-26
             mixing_term = S.Zero
             if A != B and X == Y:
-                p_alpha = exponents[0]  # TODO: are these always [0] and [1] even for anions?
-                q_alpha = exponents[1]
-                r_alpha = exponents[2]
                 if mixing_code == "G":
                     # Poschmann Eq. 23 (cations mixing)
                     mixing_term += self._Chi_mix(dbe, A, B, X, X)**p_alpha * self._Chi_mix(dbe, B, A, X, X)**q_alpha
@@ -752,6 +754,7 @@ class ModelMQMQA(Model):
                     raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}")
                 if m != v.Species(None):
                     # Poschmann Eq. 25 and 26 ternary term (same for both mixing codes)
+                    r_alpha = exponents[2]
                     Xi_ijk = self._Xi_ijkl(dbe, A, B, X, X)
                     Xi_jik = self._Xi_ijkl(dbe, B, A, X, X)
                     Y_mk = self._Y_ik(m, X)
@@ -763,12 +766,37 @@ class ModelMQMQA(Model):
                         mixing_term *= Y_mk / Xi_ijk * (1 - self._Y_ik(A, X) / Xi_ijk)**(r_alpha - 1)
                     else:  # not in nu or gamma
                         mixing_term *= Y_mk * (1 - Xi_ijk - Xi_jik)**(r_alpha - 1)
+            # TODO: test anion mixing
             elif A == B and X != Y:
-                raise NotImplementedError()
+                if mixing_code == "G":
+                    # Poschmann Eq. 23 (anions mixing)
+                    mixing_term += self._Chi_mix(dbe, A, A, X, Y)**p_alpha * self._Chi_mix(dbe, A, A, Y, X)**q_alpha
+                elif mixing_code == "Q":
+                    # Poschmann Eq. 19 and 20 (anions mixing)
+                    Xi_ikl = self._Xi_ijkl(dbe, A, A, X, Y)
+                    Xi_ilk = self._Xi_ijkl(dbe, A, A, Y, X)
+                    # Poschmann Eq. 24
+                    mixing_term += Xi_ikl**p_alpha * Xi_ilk**q_alpha / (Xi_ikl + Xi_ilk)**(p_alpha + q_alpha)
+                else:
+                    raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}")
+                if m != v.Species(None):
+                    # Poschmann Eq. 25 and 26 ternary term (same for both mixing codes)
+                    r_alpha = exponents[3]
+                    Xi_ikl = self._Xi_ijkl(dbe, A, A, X, Y)
+                    Xi_ilk = self._Xi_ijkl(dbe, A, A, Y, X)
+                    Y_im = self._Y_ik(A, m)
+                    nu = list(filter(self._chemical_group_filter(dbe, X, Y, "anions"), anions))
+                    gamma = list(filter(self._chemical_group_filter(dbe, Y, X, "anions"), anions))
+                    if m in gamma:
+                        mixing_term *= Y_im / Xi_ilk * (1 - self._Y_ik(A, Y) / Xi_ilk)**(r_alpha - 1)
+                    elif m in nu:
+                        mixing_term *= Y_im / Xi_ikl * (1 - self._Y_ik(A, X) / Xi_ikl)**(r_alpha - 1)
+                    else:  # not in nu or gamma
+                        mixing_term *= Y_im * (1 - Xi_ikl - Xi_ilk)**(r_alpha - 1)
             else:
+            # TODO: implement and test reciprocal quadruplet energetics
                 raise ValueError(f"Unsupported mixing configuration for quadruplet {(A, B, X, Y)}")
             g = param["parameter"] * mixing_term
-
 
             # Poschmann Eq. 17
             cation_factor = S.Zero
