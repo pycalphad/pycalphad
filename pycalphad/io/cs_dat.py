@@ -571,6 +571,24 @@ class Quadruplet:
     quadruplet_idxs: [int]  # exactly four
     quadruplet_coordinations: [float]  # exactly four
 
+    @staticmethod  # So it can be in the style of a Database() method
+    def _database_add_parameter(
+        self, param_type, phase_name, constituent_array, coordinations,
+        ref=None, force_insert=True
+        ):
+        species_dict = {s.name: s for s in self.species}
+        new_parameter = {
+            'phase_name': phase_name,
+            'constituent_array': tuple(tuple(species_dict.get(s.upper(), v.Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
+            'parameter_type': param_type,
+            'coordinations': coordinations,
+            'reference': ref,
+        }
+        if force_insert:
+            self._parameters.insert(new_parameter)
+        else:
+            self._parameter_queue.append(new_parameter)
+
     def insert(self, dbf: Database, phase_name: str, As: [str], Xs: [str]):
         """Add a Z_i_AB:XY parameter for each species defined in the quadruplet"""
         linear_species = [''] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
@@ -584,6 +602,7 @@ class Quadruplet:
             if i not in added_diffusing_species:
                 dbf.add_parameter('Z', phase_name, constituent_array, 0, Z, diffusing_species=i, force_insert=False)
                 added_diffusing_species.add(i)
+        self._database_add_parameter(dbf, "MQMZ", phase_name, constituent_array, self.quadruplet_coordinations, force_insert=False)
 
 
 @dataclass
