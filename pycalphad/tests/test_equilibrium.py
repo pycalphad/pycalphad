@@ -890,4 +890,58 @@ def test_MQMQA_equilibrium_binary_Q_mixing(load_database):
     print('Phase', eq.Phase.values.squeeze())
     assert np.isclose(eq.GM.squeeze(), -2.45743E+04)  # Thermochimica result
     assert np.all(eq.Phase.squeeze() == ['L_SUBG_2', '', ''])
-    assert np.allclose(eq.Y.squeeze()[0, :], [0.23368, 0.53263, 0.23368], atol=1e-5)  # Thermochimica result
+
+@select_database("MQMQA-tern-tests.dat")
+def test_MQMQA_equilibrium_multiple_binary_excess_terms(load_database):
+    """Multiple excess terms"""
+    dbf = load_database()
+    comps = ['CU', 'NI', 'VA']
+    eq = equilibrium(dbf, comps, ['MULTI_XS_0'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'MULTI_XS_0': ModelMQMQA})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -2.46671E+04)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['MULTI_XS_0', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [0.14841, 0.70318, 0.14841], atol=1e-5)  # Thermochimica result
+
+
+@select_database("MQMQA-tern-tests.dat")
+def test_MQMQA_equilibrium_multiple_binary_excess_terms_25(load_database):
+    """Multiple excess terms"""
+    dbf = load_database()
+    comps = ['CU', 'NI', 'VA']
+    eq = equilibrium(dbf, comps, ['MULTI_XS_0'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.25}, model={'MULTI_XS_0': ModelMQMQA})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -1.62650E+04)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['MULTI_XS_0', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [0.51871, 0.46258, 1.8708E-02], atol=1e-5)  # Thermochimica result
+
+@select_database("MQMQA-tern-tests.dat")
+def test_MQMQA_equilibrium_multiple_binary_excess_terms_different_chemical_group(load_database):
+    """Multiple excess terms"""
+    dbf = load_database()
+    comps = ['CU', 'NI', 'VA']
+    eq = equilibrium(dbf, comps, ['MULTI_XS_1'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'MULTI_XS_1': ModelMQMQA})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -2.07225E+04)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['MULTI_XS_1', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [5.2808E-02, 0.59626, 0.35094], atol=1e-5)  # Thermochimica result
+
+
+
+@select_database("MQMQA-tern-tests.dat")
+def test_MQMQA_equilibrium_multiple_binary_excess_terms_same_chemical_group(load_database):
+    """Multiple excess terms"""
+    dbf = load_database()
+    comps = ['CU', 'NI', 'VA']
+    eq = equilibrium(dbf, comps, ['MULTI_XS_1_SAMECG'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'MULTI_XS_1_SAMECG': ModelMQMQA})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -2.07225E+04)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['MULTI_XS_1_SAMECG', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [5.2808E-02, 0.59626, 0.35094], atol=1e-5)  # Thermochimica result
