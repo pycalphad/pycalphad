@@ -1,4 +1,3 @@
-
 Calculations with Reference States
 ==================================
 
@@ -63,7 +62,7 @@ state to be calculated with respect to the calculation temperature.
 
 
 
-.. image:: ReferenceStateExamples_files/ReferenceStateExamples_2_0.png
+.. image:: ReferenceStateExamples_files%5CReferenceStateExamples_2_0.png
 
 
 Enthalpy of formation - convex hull
@@ -122,7 +121,7 @@ phases and fixed at 298.15 K and 1 atm.
 
 
 
-.. image:: ReferenceStateExamples_files/ReferenceStateExamples_4_0.png
+.. image:: ReferenceStateExamples_files%5CReferenceStateExamples_4_0.png
 
 
 Special ``_MIX`` Reference State
@@ -164,7 +163,7 @@ endmembers have a mixing enthalpy of zero.
 
 
 
-.. image:: ReferenceStateExamples_files/ReferenceStateExamples_6_0.png
+.. image:: ReferenceStateExamples_files%5CReferenceStateExamples_6_0.png
 
 
 Calculations at specific site fractions
@@ -250,8 +249,8 @@ within each sublattice (e.g. NB is always before RE within a sublattice)
      [1.00e+00 9.99e-01 1.00e-03 1.00e+00 0.00e+00]
      [1.00e+00 1.00e+00 0.00e+00 1.00e+00 0.00e+00]]
     Site fractions shape: (1001, 5) (1001 points, 5 internal degrees of freedom)
+    
 
 
-
-.. image:: ReferenceStateExamples_files/ReferenceStateExamples_8_1.png
+.. image:: ReferenceStateExamples_files%5CReferenceStateExamples_8_1.png
 

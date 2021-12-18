@@ -5,10 +5,11 @@ Examples
    :maxdepth: 1
 
    BinaryExamples
-   CementiteAnalysis
-   EquilibriumWithOrdering
    TernaryExamples
+   UsingCalculationResults
+   ChargedPhases
    ReferenceStateExamples
    PlotActivity
+   EquilibriumWithOrdering
    ViscosityModel
-   UsingCalculationResults
+   CementiteAnalysis

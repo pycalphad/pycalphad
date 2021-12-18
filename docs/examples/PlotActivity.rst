@@ -1,4 +1,3 @@
-
 Calculate and Plot Activity
 ===========================
 
@@ -47,7 +46,7 @@ the same temperature, consistent with the experimental data.
 
 .. code:: ipython3
 
-    ref_eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 1023, v.X('ZN'): 1})
+    ref_eq = equilibrium(dbf, ['ZN'], phases, {v.P: 101325, v.T: 1023})
 
 Calculate the equilibria
 ------------------------
@@ -96,10 +95,10 @@ Plot the result
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x7fd3009b8668>
+    <matplotlib.legend.Legend at 0x2d936d0c070>
 
 
 
 
-.. image:: PlotActivity_files/PlotActivity_11_1.png
+.. image:: PlotActivity_files%5CPlotActivity_11_1.png
 

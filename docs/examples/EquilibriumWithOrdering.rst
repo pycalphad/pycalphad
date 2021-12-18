@@ -1,4 +1,3 @@
-
 Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)
 =============================================================
 
@@ -48,27 +47,28 @@ the value of ``output``.
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:             (P: 1, T: 34, X_AL: 1, component: 2, internal_dof: 5, vertex: 2)
+    Dimensions:             (N: 1, P: 1, T: 34, X_AL: 1, vertex: 3, component: 2, internal_dof: 5)
     Coordinates:
+      * N                   (N) float64 1.0
       * P                   (P) float64 1.013e+05
-      * T                   (T) float64 300.0 350.0 400.0 450.0 500.0 550.0 ...
+      * T                   (T) float64 300.0 350.0 400.0 ... 1.9e+03 1.95e+03
       * X_AL                (X_AL) float64 0.25
-      * vertex              (vertex) int64 0 1
+      * vertex              (vertex) int32 0 1 2
       * component           (component) <U2 'AL' 'FE'
     Dimensions without coordinates: internal_dof
     Data variables:
-        NP                  (P, T, X_AL, vertex) float64 1.0 nan 1.0 nan 1.0 nan ...
-        GM                  (P, T, X_AL) float64 -2.858e+04 -2.994e+04 -3.15e+04 ...
-        MU                  (P, T, X_AL, component) float64 -7.274e+04 ...
-        X                   (P, T, X_AL, vertex, component) float64 0.25 0.75 ...
-        Y                   (P, T, X_AL, vertex, internal_dof) float64 0.5 0.5 ...
-        Phase               (P, T, X_AL, vertex) <U6 'B2_BCC' '' 'B2_BCC' '' ...
-        degree_of_ordering  (P, T, X_AL, vertex) float64 0.6666 nan 0.6665 nan ...
-        heat_capacity       (P, T, X_AL) float64 25.45 26.93 28.47 30.18 32.16 ...
+        NP                  (N, P, T, X_AL, vertex) float64 1.0 nan nan ... nan nan
+        GM                  (N, P, T, X_AL) float64 -2.858e+04 ... -1.413e+05
+        MU                  (N, P, T, X_AL, component) float64 -7.274e+04 ... -1....
+        X                   (N, P, T, X_AL, vertex, component) float64 0.25 ... nan
+        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 0.5 ......
+        Phase               (N, P, T, X_AL, vertex) <U6 'B2_BCC' '' '' ... '' ''
+        degree_of_ordering  (N, P, T, X_AL, vertex) float64 0.6666 nan ... nan nan
+        heat_capacity       (N, P, T, X_AL) float64 25.45 26.93 ... 42.44 42.44
     Attributes:
-        engine:   pycalphad 0.7+5.g20149e02.dirty
-        created:  2018-04-18T19:27:07.389851
-
+        engine:   pycalphad 0.9.3.dev13+gbb04ffdd.d20211218
+        created:  2021-12-18T22:15:36.246280
+    
 
 We also compute degree of ordering at fixed temperature as a function of
 composition.
@@ -83,27 +83,27 @@ composition.
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:             (N: 1, P: 1, T: 1, X_AL: 100, component: 2, internal_dof: 5, vertex: 3)
+    Dimensions:             (N: 1, P: 1, T: 1, X_AL: 100, vertex: 3, component: 2, internal_dof: 5)
     Coordinates:
       * N                   (N) float64 1.0
       * P                   (P) float64 1.013e+05
       * T                   (T) float64 700.0
-      * X_AL                (X_AL) float64 1e-12 0.01 0.02 0.03 ... 0.97 0.98 0.99
-      * vertex              (vertex) int64 0 1 2
+      * X_AL                (X_AL) float64 1e-10 0.01 0.02 0.03 ... 0.97 0.98 0.99
+      * vertex              (vertex) int32 0 1 2
       * component           (component) <U2 'AL' 'FE'
     Dimensions without coordinates: internal_dof
     Data variables:
         NP                  (N, P, T, X_AL, vertex) float64 1.0 nan nan ... nan nan
         GM                  (N, P, T, X_AL) float64 -2.447e+04 ... -1.949e+04
-        MU                  (N, P, T, X_AL, component) float64 -2.714e+05 ... -1.444e+05
-        X                   (N, P, T, X_AL, vertex, component) float64 1e-12 ... nan
-        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 1e-12 ... nan
+        MU                  (N, P, T, X_AL, component) float64 -2.433e+05 ... -1....
+        X                   (N, P, T, X_AL, vertex, component) float64 1e-10 ... nan
+        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 7.983e-...
         Phase               (N, P, T, X_AL, vertex) <U6 'B2_BCC' '' '' ... '' ''
-        degree_of_ordering  (N, P, T, X_AL, vertex) float64 3.029e-16 nan ... nan
+        degree_of_ordering  (N, P, T, X_AL, vertex) float64 0.1009 nan ... nan nan
     Attributes:
-        engine:   pycalphad 0.8.3+10.gfd19517e.dirty
-        created:  2020-10-27T14:48:18.391819
-
+        engine:   pycalphad 0.9.3.dev13+gbb04ffdd.d20211218
+        created:  2021-12-18T22:15:36.736462
+    
 
 Plots
 ~~~~~
@@ -128,7 +128,7 @@ partially ordered B2 to disordered bcc (A2).
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_8_0.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_8_0.png
 
 
 For the heat capacity curve shown below we notice a sharp increase in
@@ -153,7 +153,7 @@ corresponding to the melting of the bcc phase.
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_10_0.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_10_0.png
 
 
 To understand more about what’s happening around 700 K, we plot the
@@ -173,7 +173,7 @@ bcc (A2) until around 13% Al or Fe, when the phase begins to order.
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_12_0.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_12_0.png
 
 
 Al-Ni (Degree of Ordering)
@@ -191,27 +191,27 @@ Al-Ni (Degree of Ordering)
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:             (N: 1, P: 1, T: 110, X_AL: 1, component: 2, internal_dof: 5, vertex: 3)
+    Dimensions:             (N: 1, P: 1, T: 110, X_AL: 1, vertex: 3, component: 2, internal_dof: 5)
     Coordinates:
       * N                   (N) float64 1.0
       * P                   (P) float64 1.013e+05
       * T                   (T) float64 300.0 320.0 340.0 ... 2.46e+03 2.48e+03
       * X_AL                (X_AL) float64 0.1
-      * vertex              (vertex) int64 0 1 2
+      * vertex              (vertex) int32 0 1 2
       * component           (component) <U2 'AL' 'NI'
     Dimensions without coordinates: internal_dof
     Data variables:
-        NP                  (N, P, T, X_AL, vertex) float64 0.6363 0.3637 ... nan
+        NP                  (N, P, T, X_AL, vertex) float64 0.3637 0.6363 ... nan
         GM                  (N, P, T, X_AL) float64 -2.526e+04 ... -1.944e+05
-        MU                  (N, P, T, X_AL, component) float64 -1.719e+05 ... -1.816e+05
-        X                   (N, P, T, X_AL, vertex, component) float64 0.01427 ... nan
-        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 0.01427 ... nan
+        MU                  (N, P, T, X_AL, component) float64 -1.719e+05 ... -1....
+        X                   (N, P, T, X_AL, vertex, component) float64 0.25 ... nan
+        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 2.229e-...
         Phase               (N, P, T, X_AL, vertex) <U7 'FCC_L12' 'FCC_L12' ... ''
-        degree_of_ordering  (N, P, T, X_AL, vertex) float64 2.396e-15 1.0 ... nan
+        degree_of_ordering  (N, P, T, X_AL, vertex) float64 1.0 4.006e-15 ... nan
     Attributes:
-        engine:   pycalphad 0.8.3+10.gfd19517e.dirty
-        created:  2020-10-27T14:48:26.640842
-
+        engine:   pycalphad 0.9.3.dev13+gbb04ffdd.d20211218
+        created:  2021-12-18T22:15:39.930780
+    
 
 Plots
 ~~~~~
@@ -242,12 +242,12 @@ disappears around 750 K, leaving only the disordered gamma phase.
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x7faec02c0208>
+    <matplotlib.legend.Legend at 0x25418910970>
 
 
 
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_16_1.png
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_16_1.png
 
 
 In the plot below we see that the degree of ordering does not change at
@@ -277,7 +277,14 @@ gamma phase. This is a first-order phase transition.
     plt.show()
 
 
+.. parsed-literal::
 
-.. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_18_0.png
+    C:\Users\rotis\AppData\Local\Temp/ipykernel_1472/3149017277.py:7: RuntimeWarning: invalid value encountered in greater
+      (eq_alni.degree_of_ordering.values > 0.01)))
+    C:\Users\rotis\AppData\Local\Temp/ipykernel_1472/3149017277.py:10: RuntimeWarning: invalid value encountered in less_equal
+      (eq_alni.degree_of_ordering.values <= 0.01)))
+    
 
+
+.. image:: EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_18_1.png
 
