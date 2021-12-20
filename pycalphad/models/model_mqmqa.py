@@ -197,7 +197,7 @@ class ModelMQMQA(Model):
         anions = self.anions
         X_ijkl = self._X_ijkl
 
-        # TODO: reformulate to Poschmann notation?
+        # TODO: does this have zeta dependence for SUBQ models? Reformulate to be more Poschmann-like?
         return 0.25 * (
             X_ijkl(A,A,X,X)
             + sum(X_ijkl(A,A,X,Y) for Y in anions)
