@@ -31,7 +31,7 @@ CUO_DBF = Database(CUO_TDB)
 PBSN_DBF = Database(PBSN_TDB)
 AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
-OCADIZ_FLORES_DBF = Database.from_string(OCADIZ_FLORES_DAT, fmt='dat')
+
 
 @pytest.mark.solver
 def test_rose_nine():
@@ -702,22 +702,24 @@ def test_eq_associate():
     eq = equilibrium(dbf, ['A', 'Q'], phases, conds)
     assert_allclose(eq.GM.values, -1736.981311)
 
-
-def test_MQMQA_energy_K_F_NI():
+@select_database("Ocadiz-Flores.dat")
+def test_MQMQA_energy_K_F_NI(load_database):
+    dbf = load_database()
     comps = ['K', 'F', 'NI']
     model = {'LIQUID2': ModelMQMQA}
     pts = np.asarray([[0.16011913, 0.62837421, 0.21150666]])
-    calc_res = calculate(OCADIZ_FLORES_DBF, comps, 'LIQUID2', T=1450, N=1, P=101325, points=pts, model=model)
+    calc_res = calculate(dbf, comps, 'LIQUID2', T=1450, N=1, P=101325, points=pts, model=model)
     assert np.isclose(calc_res.GM.values.squeeze(), -332679.167, 1e-5)
     assert np.all(np.isclose(calc_res.X.values.squeeze(), [0.58334, 0.250, 0.16667], 1e-3))
 
-
-def test_MQMQA_equilibrium_K_F_NI():
+@select_database("Ocadiz-Flores.dat")
+def test_MQMQA_equilibrium_K_F_NI(load_database):
+    dbf = load_database()
     comps = ['K', 'F', 'NI']  # other pure element component names that you want
     phases = ['F2(G)', 'KF_S1(S)', 'NIF2_S1(S)', 'NIK2F4_S1(S)', 'LIQUID2', 'NIKF3_S1(S)']
     conds = {v.N: 1, v.P: 101325, v.T: 1450, v.X('NI'): 0.16667, v.X('F'): 0.58334}
     model = {'LIQUID2': ModelMQMQA}
-    eq = equilibrium(OCADIZ_FLORES_DBF , comps, phases, conds, model=model)
+    eq = equilibrium(dbf , comps, phases, conds, model=model)
     print(eq.Phase.values.squeeze())
     print(eq.NP.values.squeeze())
     print("Y", eq.Y.values.squeeze())
