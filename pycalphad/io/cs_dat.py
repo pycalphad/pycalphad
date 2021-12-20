@@ -16,11 +16,6 @@ from .grammar import parse_chemical_formula
 # this prevents us from needing to shift the indicies.
 GIBBS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2, v.T**3, 1/v.T)
 CP_TERMS = (S.Zero, S.One, v.T, v.T**2, v.T**(-2))
-# TODO: HEAT_CAPACITY_TERMS:
-# We need to transform these into Gibbs energies, i.e.
-# G = H - TS = (A + integral(CpdT)) + T(B + integral(Cp/T dT))
-# Terms are
-# Cp = (S.Zero, S.One, v.T, v.T**2, v.T**(-2))
 EXCESS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2, v.T**3, 1/v.T, v.P, v.P**2)
 
 
@@ -145,12 +140,13 @@ class IntervalCP(IntervalBase):
         if len(self.PTVm_terms) > 0:
             raise NotImplementedError("P-T molar volume terms are not supported")
 
+        # We need to transform these into Gibbs energies, i.e.
         # Construct the H(T) and S(T) functions
         # \[ H(T) = H298 + \int_{298.15}^{T} Cp dT \]
         H_ = self.H298 + integrate(Cp, (v.T, 298.15, v.T))
         # \[ S(T) = S298 + \int_{298.15}^{T} Cp/T dT \]
         S_ = self.S298 + integrate(Cp/v.T, (v.T, 298.15, v.T))
-        return H_ - v.T*S_
+        return H_ - v.T*S_  # G = H - TS
 
 
 @dataclass
