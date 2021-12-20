@@ -35,7 +35,7 @@ OCADIZ_FLORES_DBF = Database.from_string(OCADIZ_FLORES_DAT, fmt='dat')
 VIITALA_DBF_SYMMETRY_FE_2=Database.from_string(VIITALA_DAT_SYMMETRY_FE_2, fmt='dat')
 VIITALA_DBF_SYMMETRY_ZN=Database.from_string(VIITALA_DAT_SYMMETRY_ZN, fmt='dat')
 VIITALA_DBF_SYMMETRY_CU_1=Database.from_string(VIITALA_DAT_SYMMETRY_CU_1, fmt='dat')
-SCU_AL_NA_CL_TDB=Database.from_string(AL_CL_NA_SOUTH_CAROLINA, fmt='dat')
+
 
 @pytest.mark.solver
 def test_rose_nine():
@@ -796,18 +796,6 @@ def test_MQMQA_equilibrium_symmetry_cu_1():
     print(eq.NP.values.squeeze())
     print("Y", eq.Y.values.squeeze())
     assert np.isclose(eq.GM, -1.38882E+05, 1e-5)  # value from Thermochimica
-
-
-# def test_MQMQA_equilibrium_Al_Na_Cl_():
-#     comps = ['AL','CL','NA','VA']  # other pure element component names that you want
-# #    phases = ['CL2(G)', 'FE_BCC(S)','CU_SOLID(S)','ZN_SOLID(S)','PB_SOLID(S)','ZNFESOLN', 'FEZNSOLN', 'LIQUIDSOLN', 'CUCL']
-#     phases = ['MSSOLN']
-#     conds = {v.N: 1,v.P: 101325, v.T: 2000, v.X("CL"):0.3, v.X("NA"):0.35}
-#     model = {'MSSOLN': ModelMQMQA}
-#     eq = equilibrium(SCU_AL_NA_CL_TDB , comps, phases, conds, model=model, calc_opts={'pdens': 20_000}, verbose=True)
-#     print(eq.Phase.values.squeeze())
-#     print(eq.NP.values.squeeze())
-#     assert np.isclose(eq.GM, -2.69502E+05, 1e-5)  # value from Thermochimica
 
 
 @select_database("MQMQA-tern-tests.dat")
