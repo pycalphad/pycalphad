@@ -93,10 +93,6 @@ TDB_PARAM_TYPES = sorted([
     'DQ',     # Activation enthalpy for diffusivity
     'DF',     # Pre-expontential factor for diffusivity
     'VS',     # Volume per mole of volume-carrying species
-    # MQMQA special parameters
-    'EXMQ',   # Current parameters for MQMQA. Symbolizes exponents
-    'EXMG',   # Symbolizes interaction energy expression
-    'Z',      # Coordination number
 ])
 
 def expand_keyword(possible, candidate):
