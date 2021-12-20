@@ -38,8 +38,6 @@ def get_species(i, j, k, l) -> v.Species:
     return v.Species(name, constituents=constituent_dict)
 
 
-# TODO: cleanup this class (style)
-# TODO: document the model contributions with the mathematics
 class ModelMQMQA(Model):
     """
     Symbolic implementation of the modified quasichemical model in the
@@ -448,7 +446,6 @@ class ModelMQMQA(Model):
             (where("constituent_array").test(lambda x: x == ((A, B), (X, Y))))
         )
         if len(Zs) == 0:
-            # TODO: add this to the database so we don't need to recalculate? where should that happen?
             return self._calc_Z(dbe, species, A, B, X, Y)
         elif len(Zs) == 1:
             sp_idx = [A, B, X, Y].index(species)
