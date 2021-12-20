@@ -8,7 +8,8 @@ from sympy import S
 from pycalphad import Database, Model, ReferenceState, equilibrium
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
-    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB,VIITALA_DAT
+    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB
+from pycalphad.tests.fixtures import load_database, select_database
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
@@ -23,7 +24,6 @@ CUMG_DBF = Database(CUMG_TDB)
 FE_MN_S_DBF = Database(FE_MN_S_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
-VIITALA_DBF = Database.from_string(VIITALA_DAT, fmt='dat')
 
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
@@ -664,9 +664,9 @@ def test_order_disorder_magnetic_ordering():
     check_output(mod, subs_dict, 'BMAG', 0.81435207, mode='sympy')
     check_energy(mod, subs_dict, 34659.484, mode='sympy')
 
-
-def test_MQMQA_site_fraction_energy():
-
+@select_database("Viitala.dat")
+def test_MQMQA_site_fraction_energy(load_database):
+    dbf = load_database()
     ZN =  v.Species('ZN+2.0', constituents={'ZN': 1.0}, charge=2)
     FE2 = v.Species('FE+2.0', constituents={'FE': 1.0}, charge=2)
     FE3 = v.Species('FE+3.0', constituents={'FE': 1.0}, charge=3)
@@ -674,7 +674,7 @@ def test_MQMQA_site_fraction_energy():
     CU2 = v.Species('CU+2.0', constituents={'CU': 1.0}, charge=2)
     CL =  v.Species('CL-1.0', constituents={'CL': 1.0}, charge=-1)
 
-    mod = ModelMQMQA(VIITALA_DBF,['CU','ZN','FE','CL'], 'LIQUIDSOLN')
+    mod = ModelMQMQA(dbf,['CU','ZN','FE','CL'], 'LIQUIDSOLN')
 
     subs_dict ={mod._X_ijkl(CU1,CU1,CL,CL): 3.6411159329213960E-002,
                 mod._X_ijkl(FE3,FE3,CL,CL): 0.19187702069719115,
