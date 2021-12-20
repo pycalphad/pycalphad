@@ -1,16 +1,5 @@
 """
 Support for reading ChemSage DAT files.
-
-This implementation is based on a careful reading of Thermochimica source code (with some trial-and-error).
-Thermochimica is software written by M. H. A. Piro and released under the BSD License.
-
-Careful of a gotcha:  `obj.setParseAction` modifies the object in place but calling it a name makes a new object:
-
-`obj = Word(nums); obj is obj.setParseAction(lambda t: t)` is True
-`obj = Word(nums); obj is obj('abc').setParseAction(lambda t: t)` is False
-
-
-
 """
 
 import re
