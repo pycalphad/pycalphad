@@ -694,44 +694,25 @@ class Phase_SUBQ(PhaseBase):
     excess_parameters: [ExcessQuadruplet]
     phase_type= [str]
     def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
-        # TODO: revisit these comments
-        # There are some tricky things to handle for quadruplet formalism
-        # All AB:XY quadruplets are the constituents and they exist on one
-        # sublattice.
-        # 1. We need to store the endmember energies which are defined in A:X
-        #    pairs. We'll store these as the pairs and it will be up to the
-        #    Model implementation to query for these parameters.
-        # 2. We need to store the coordination numbers of Z^i_AB:XY defined in
-        #    we'll AB:XY quadruplets. We'll store the Z parameter for the
-        #    quadrpulet configuration and use the diffusing species to indicate
-        #    the element that coordination number belongs to. We store these
-        #    like endmembers for AB:XY quadruplets.
-        # 3. We need to store the excess parameters, defined in terms of AB:XY
-        #    quadruplets. AB:XX means mixing between AA:XX - BB:XX, so we can
-        #    enter the constituent array as normal with mixing between them.
-
-        # One thing we'll have to keep track of is repeated species that have
-        # different charge. Since pycalphad usually uses Species to
-        # differentiate charged species, for example Species('CU', charge=1)
-        # vs. Species('CU', charge=2) and we are using Speices to refer to a
-        # quadruplet which may have both CU+1 and CU+2 states inside, we need
-        # to add an additional qualifier to the name of the elements in the
-        # species so that we can clearly differentiate the (CU+1 CU+1):(XY)
-        # quadruplet from the (CU+2 CU+2):(XY) quadruplet. We do that by adding
-        # the charge to the name (without +/-), i.e. CU_1 or CU_1.0. One benefit
-        # of doing this is that we don't have to worry about Species name
-        # collisions within the Database.
-
         # First: get the pair and quadruplet species added to the database:
         # Here we rename the species names according to their charges, to avoid creating duplicate pairs/quadruplets
         cation_el_chg_pairs = list(zip(self.subl_1_const, self.subl_1_charges))
         # anion charges are given as positive values, but should be negative in
         # order to make the species entered in the expected way (`CL-1`).
         anion_el_chg_pairs = list(zip(self.subl_2_const, [-1*c for c in self.subl_2_charges]))
+        # pycalphad usually uses Species to differentiate charged species, for
+        # example Species('CU', charge=1) vs. Species('CU', charge=2). In the
+        # implementation of the model, we will use Speices to refer to a
+        # quadruplet which may have both CU+1 and CU+2 species inside, so we
+        # need to add an additional qualifier that mangles the name of the
+        # elements in the species so that we can clearly differentiate the
+        # (CU+1 CU+1):(XY) quadruplet from the (CU+2 CU+2):(XY) quadruplet. We
+        # do that by adding the charge to the name (without +/-), i.e. CU_1 or
+        # CU_1.0. This mangling frees us from worrying about Species name
+        # collisions within the Database.
         cations = [rename_element_charge(el, chg) for el, chg in cation_el_chg_pairs]
         anions = [rename_element_charge(el, chg) for el, chg in anion_el_chg_pairs]
-
-        # Add the "pure" (renamed) species to the database so the phase constituents can be added
+        # Add the (renamed) species to the database so the phase constituents can be added
         dbf.species.update(map(_species, cation_el_chg_pairs))
         dbf.species.update(map(_species, anion_el_chg_pairs))
 
@@ -746,7 +727,6 @@ class Phase_SUBQ(PhaseBase):
                 }
             }
         }
-
         dbf.add_phase(self.phase_name, model_hints, sublattices=[1.0])
         dbf.add_phase_constituents(self.phase_name, [cations, anions])
 
