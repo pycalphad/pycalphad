@@ -729,31 +729,30 @@ class Phase_SUBQ(PhaseBase):
         # order to make the species entered in the expected way (`CL-1`).
         anion_el_chg_pairs = list(zip(self.subl_2_const, [-1*c for c in self.subl_2_charges]))
         cations = [rename_element_charge(el, chg) for el, chg in cation_el_chg_pairs]
-
         anions = [rename_element_charge(el, chg) for el, chg in anion_el_chg_pairs]
-        tot_ele=cation_el_chg_pairs+anion_el_chg_pairs
 
         # Add the "pure" (renamed) species to the database so the phase constituents can be added
         dbf.species.update(map(_species, cation_el_chg_pairs))
         dbf.species.update(map(_species, anion_el_chg_pairs))
 
         # Second: add the phase and phase constituents
-        # TODO: can model hints give us the map we need from the mangled
-        #       species names to the real species (and give us a way to compute
-        #       mass)?
-        model_hints = {}
-        model_hints['mqmqa'] = {}
-        model_hints['mqmqa']['chemical_groups'] = {}
-        model_hints['mqmqa']['chemical_groups']['cations']=dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups))
-        model_hints['mqmqa']['chemical_groups']['anions']=dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups))
+        # TODO: can model hints give us the map we need from the mangled species names to the real species
+        model_hints = {
+            "mqmqa": {
+                "type": self.phase_type,
+                "chemical_groups": {
+                    "cations": dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups)),
+                    "anions": dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups)),
+                }
+            }
+        }
 
-        model_hints['mqmqa']['type']=self.phase_type
         dbf.add_phase(self.phase_name, model_hints, sublattices=[1.0])
         dbf.add_phase_constituents(self.phase_name, [cations, anions])
 
         # Third: add the endmember (pair) Gibbs energies
-        # We assume that every pair that can exist is defined, i.e.
-
+        # We assume that every pair that can exist is defined
+        # TODO: can there be other order dependence based on how they are listed in the DAT?
         num_pairs = len(list(itertools.product(cations, anions)))
         assert len(self.endmembers) == num_pairs
 
@@ -762,10 +761,6 @@ class Phase_SUBQ(PhaseBase):
             endmember.insert(dbf, self.phase_name, [[cations[i-1]], [anions[j-1]]], gibbs_coefficient_idxs)
 
         # Fourth: add parameters for coordinations
-        # TODO: for the quadruplets that are not specified here, the
-        # coordination numbers are calculated. Do we need to calculate the
-        # coordination numbers not specified here or can/should it wait until
-        # model?
         for quadruplet in self.quadruplets:
             quadruplet.insert(dbf, self.phase_name, cations, anions)
 
