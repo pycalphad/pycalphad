@@ -549,18 +549,14 @@ class ModelMQMQA(Model):
             exp2 = 1.0
         Sid = S.Zero
 
-        ζ = 2.4  # hardcoded, but we can get it from the model_hints (SUBQ) or the pairs (SUBG)
+        zeta = 2.4  # TODO: hardcoded, but we can get it from the model_hints (SUBQ) or the pairs (SUBG), needs test
         for A in cations:
-            Sid += n_i(A) * log(X_i(A))  # term 1
+            Sid += n_i(A) * log(X_i(A))
         for X in anions:
-            Sid += n_i(X) * log(X_i(X))  # term 2
+            Sid += n_i(X) * log(X_i(X))
         for A in cations:
             for X in anions:
-                X_AX = X_ik(A, X)
-                p_AAXX = X_ijkl(A,A,X,X)
-                w_A = Y_i(A)
-                w_X = Y_i(X)
-                Sid += 4 / ζ * X_AX * log(X_AX / (w_A * w_X))  # term 3
+                Sid += 4 / zeta * X_ik(A, X) * log(X_ik(A, X) / (Y_i(A) * Y_i(X)))
 
         # flatter loop over all quadruplets:
         # for A, B, X, Y in ((A, B, X, Y) for i, A in enumerate(cations) for B in cations[i:] for j, X in enumerate(anions) for Y in anions[j:]):
@@ -572,7 +568,7 @@ class ModelMQMQA(Model):
                         factor = 1
                         if A != B: factor *= 2
                         if X != Y: factor *= 2
-                        Sid += X_ijkl(A,B,X,Y)*log(X_ijkl(A,B,X,Y)/(factor * (X_ik(A,X)**(exp1))*(X_ik(A,Y)**(exp1))*(X_ik(B,X)**(exp1))*(X_ik(B,Y)**(exp1)) / ((Y_i(A)**(exp2))*(Y_i(B)**(exp2))*(Y_i(X)**(exp2))*(Y_i(Y)**(exp2)))))
+                        Sid += X_ijkl(A,B,X,Y) * log(X_ijkl(A,B,X,Y) / (factor * (X_ik(A,X) * X_ik(A,Y) * X_ik(B,X) * X_ik(B,Y))**exp1 / (Y_i(A) * Y_i(B) * Y_i(X) * Y_i(Y))**exp2))
         return Sid * v.T * v.R
 
     def excess_mixing_energy(self, dbe):
