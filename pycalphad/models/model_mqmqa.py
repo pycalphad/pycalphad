@@ -104,13 +104,6 @@ class ModelMQMQA(Model):
         if len(self.anions) == 0:
             raise DofError(f"{self.phase_name}: Anion sublattice of {phase.constituents[1]} has no active species in {self.components}")
 
-        # Set self.nonvacant_elements, only used by get_multiphase_constraint
-        # TODO: can we remove this? or re-work it?
-        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
-        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-        pure_elements = sorted(set(desired_active_pure_elements))
-        self.nonvacant_elements = [x for x in pure_elements if x != "VA"]
-
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
         symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
