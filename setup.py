@@ -37,8 +37,8 @@ setup(
         compiler_directives=CYTHON_COMPILER_DIRECTIVES,
     ),
     package_data={
-        'pycalphad/core': ['*.pxd'],
-        'pycalphad/tests/databases': ['*'],
+        'pycalphad.core': ['*.pxd'],
+        'pycalphad.tests.databases': ['*'],
     },
     # This include is for the compiler to find the *.h files during the build_ext phase
     # the include must contain a symengine directory with header files
