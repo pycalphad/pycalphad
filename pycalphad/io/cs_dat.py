@@ -858,7 +858,6 @@ def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_
     subl_1_chemical_groups = toks.parseN(num_subl_1_const, int)
     subl_2_charges = toks.parseN(num_subl_2_const, float)
     subl_2_chemical_groups = toks.parseN(num_subl_2_const, int)
-    # TODO: not exactly sure my math is right on how many pairs, but I think it should be cations*anions
     subl_1_pair_idx = toks.parseN(num_subl_1_const*num_subl_2_const, int)
     subl_2_pair_idx = toks.parseN(num_subl_1_const*num_subl_2_const, int)
     subl_const_idx_pairs = [(s1i, s2i) for s1i, s2i in zip(subl_1_pair_idx, subl_2_pair_idx)]
