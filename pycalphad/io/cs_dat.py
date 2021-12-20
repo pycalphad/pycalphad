@@ -813,7 +813,6 @@ def parse_endmember(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, is_s
         # special case for stoichiometric phases, this is a dummy species, skip it
         _ = toks.parse(str)
     gibbs_eq_type = toks.parse(int)
-#    print(species_name,gibbs_eq_type)
     # Determine how to parse the type of thermodynamic option
     has_magnetic = gibbs_eq_type > 12
     gibbs_eq_type_reduced = (gibbs_eq_type - 12) if has_magnetic else gibbs_eq_type
@@ -823,7 +822,6 @@ def parse_endmember(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, is_s
     has_constant_Vm_terms = gibbs_eq_type_reduced in (2, 5, 8, 11)
     has_PTVm_terms = gibbs_eq_type_reduced in (3, 6, 9, 12)
     num_intervals = toks.parse(int)
-#    print('nums_intervals',num_intervals)
     stoichiometry_pure_elements = toks.parseN(num_pure_elements, float)
     if has_constant_Vm_terms:
         raise ValueError("Constant molar volume equations (thermodynamic data options (2, 5, 8, 11)) are not supported yet.")
@@ -849,7 +847,6 @@ def parse_endmember(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, is_s
             toks.parse(float)
             toks.parse(float)
         return EndmemberMagnetic(species_name, gibbs_eq_type, stoichiometry_pure_elements, intervals, curie_temperature, magnetic_moment)
-#    print(Endmember(species_name, gibbs_eq_type, stoichiometry_pure_elements, intervals))
     return Endmember(species_name, gibbs_eq_type, stoichiometry_pure_elements, intervals)
 
 
@@ -1154,9 +1151,7 @@ def read_cs_dat(dbf: Database, fd):
         if parsed_phase.phase_name in processed_phases:
             # DAT files allow multiple entries of the same phase to handle
             # miscibility gaps. We discard the duplicate phase definitions.
-            print(f"Skipping phase {parsed_phase.phase_name} because it's already in the database.")
             continue
-        print(parsed_phase.phase_name)
         parsed_phase.insert(dbf, header.pure_elements, header.gibbs_coefficient_idxs, header.excess_coefficient_idxs)
         processed_phases.append(parsed_phase.phase_name)
 
