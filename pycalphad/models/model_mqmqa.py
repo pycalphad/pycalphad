@@ -159,10 +159,10 @@ class ModelMQMQA(Model):
         "Return the full abstract syntax tree of the model."
         return sum(self.models.values())
 
-    def _p(self, *ABXYs: v.Species) -> v.SiteFraction:
+    def _X_ijkl(self, *ABXYs: v.Species) -> v.SiteFraction:
         """Shorthand for creating a site fraction object v.Y for a quadruplet.
 
-        The name `p` is intended to mirror construction of `p(A,B,X,Y)`
+        The name `X_ijkl` is intended to mirror construction of `X_ijkl(A,B,X,Y)`
         quadruplets, following Sundman's notation.
         """
         return v.Y(self.phase_name, 0, get_species(*ABXYs))
@@ -188,114 +188,92 @@ class ModelMQMQA(Model):
                     return False
         return True
 
-    def M(self, dbe, species):
-        """Return the mass of the species.
-
-        The returned expression is composed only of v.Y objects for
-        quadruplets, p(A,B,X,Y) in Sundman's notation. The expression
-        constructed here follows equation (8) of Sundman's notes.
-
-        This is the same as X_A in Pelton's notation.
+    def _n_i(self, dbe, species):
+        """
+        Return the mass of the species following Poschmann Eq. 7 and 8.
         """
         cations = self.cations
         anions = self.anions
 
         # aliases for notation
         Z = partial(self.Z, dbe)
-        p = self._p
-        M = S.Zero
+        X_ijkl = self._X_ijkl
+        n_i = S.Zero
 
         if species in cations:
             A = species
             for i, X in enumerate(anions):
                 for Y in anions[i:]:
-                    M += p(A,A,X,Y)/Z(A,A,A,X,Y)
+                    n_i += X_ijkl(A,A,X,Y)/Z(A,A,A,X,Y)
                     for B in cations:
-                        M += p(A, B, X, Y)/Z(A, A, B, X, Y)
+                        n_i += X_ijkl(A, B, X, Y)/Z(A, A, B, X, Y)
         else:
             assert species in anions
             X = species
             for i, A in enumerate(cations):
                 for B in cations[i:]:
-                    M += p(A,B,X,X) / Z(X,A,B,X,X)
+                    n_i += X_ijkl(A,B,X,X) / Z(X,A,B,X,X)
                     for Y in anions:
-                        M += p(A,B,X,Y) / Z(X,A,B,X,Y)
-        return M
+                        n_i += X_ijkl(A,B,X,Y) / Z(X,A,B,X,Y)
+        return n_i
 
-    def ξ(self, A: v.Species, X: v.Species):
-        """Return the endmember fraction, ξ_A:X, for a pair Species A:X
-
-        The returned expression is composed only of v.Y objects for
-        quadruplets, p(A,B,X,Y) in Sundman's notation. The expression
-        constructed here follow equation (12) of Sundman's notes.
-
-        This is the same as X_A/X in Pelton's notation.
+    def _X_ik(self, A: v.Species, X: v.Species):
+        """
+        Return the endmember fraction, X_ik, for a the pair i/k following Poschmann Eq. 6
         """
         cations = self.cations
         anions = self.anions
 
-        p = self._p  # alias to keep the notation close to the math
+        X_ijkl = self._X_ijkl  # alias to keep the notation close to the math
 
         # Sundman notes equation (12)
         return 0.25 * (
-            p(A,A,X,X)
-            + sum(p(A,A,X,Y) for Y in anions)
-            + sum(p(A,B,X,X) for B in cations)
-            + sum(p(A,B,X,Y) for B, Y in itertools.product(cations, anions))
+            X_ijkl(A,A,X,X)
+            + sum(X_ijkl(A,A,X,Y) for Y in anions)
+            + sum(X_ijkl(A,B,X,X) for B in cations)
+            + sum(X_ijkl(A,B,X,Y) for B, Y in itertools.product(cations, anions))
         )
 
-    def w(self, species: v.Species):
-        """Return the coordination equivalent site fraction of species.
-
-        The returned expression is composed only of v.Y objects for
-        quadruplets, p(A,B,X,Y) in Sundman's notation. The expression
-        constructed here follow equation (15) of Sundman's notes.
-
-
-        This is the same as Y_i in Pelton's notation.
+    def _Y_i(self, species: v.Species):
         """
-        p = self._p
+        Return the coordination equivalent site fraction of species following Poschmann Eq. 11 and 12.
+        """
+        X_ijkl = self._X_ijkl
         cations = self.cations
         anions = self.anions
 
-        w = S.Zero
+        Y_i = S.Zero
         if species in cations:
             A = species
             for i, X in enumerate(anions):
                 for Y in anions[i:]:
-                    w += p(A, A, X, Y)
+                    Y_i += X_ijkl(A, A, X, Y)
                     for B in cations:
-                        w += p(A, B, X, Y)
+                        Y_i += X_ijkl(A, B, X, Y)
         else:
             assert species in anions
             X = species
             for i, A in enumerate(cations):
                 for B in cations[i:]:
-                    w += p(A, B, X, X)
+                    Y_i += X_ijkl(A, B, X, X)
                     for Y in anions:
-                        w += p(A, B, X, Y)
-        return 0.5 * w
+                        Y_i += X_ijkl(A, B, X, Y)
+        return 0.5 * Y_i
 
-    def ϑ(self, dbe, species: v.Species):
-        """Return the site fraction of species on it's sublattice.
-
-        The returned expression is composed only of v.Y objects for
-        quadruplets, p(A,B,X,Y) in Sundman's notation, and (constant)
-        coordination numbers. The expression constructed here follow equation
-        (10) of Sundman's notes.
-
-        This is the same as X_i in Pelton's notation.
+    def _X_i(self, dbe, species: v.Species):
+        """
+        Return the site fraction of species on it's sublattice. Poschmann Eq. 9 and 10.
         """
         cations = self.cations
         anions = self.anions
 
         if species in cations:
-            return self.M(dbe, species) / sum(self.M(dbe, sp) for sp in cations)
+            return self._n_i(dbe, species) / sum(self._n_i(dbe, sp) for sp in cations)
         else:
             assert species in anions
-            return self.M(dbe, species) / sum(self.M(dbe, sp) for sp in anions)
+            return self._n_i(dbe, species) / sum(self._n_i(dbe, sp) for sp in anions)
 
-    def _calc_Z(self, dbe: "pycalphad.io.Database", species, A, B, X, Y):
+    def _calc_Z(self, dbe, species, A, B, X, Y):
         Z = partial(self.Z, dbe)
         if (species == A) or (species == B):
             species_is_cation = True
@@ -348,7 +326,7 @@ class ModelMQMQA(Model):
         raise ValueError("This should be unreachable")
 
 
-    def Z(self, dbe: "pycalphad.io.Database", species: v.Species, A: v.Species, B: v.Species, X: v.Species, Y: v.Species):
+    def Z(self, dbe, species: v.Species, A: v.Species, B: v.Species, X: v.Species, Y: v.Species):
         A, B = sorted((A, B))
         X, Y = sorted((X, Y))
         Zs = dbe._parameters.search(
@@ -367,7 +345,7 @@ class ModelMQMQA(Model):
 
     def get_internal_constraints(self):
         constraints = []
-        p = self._p
+        X_ijkl = self._X_ijkl
         total_quad = -1
         cations = self.cations
         anions = self.anions
@@ -375,7 +353,7 @@ class ModelMQMQA(Model):
             for B in cations[i:]:
                 for j, X in enumerate(anions):
                     for Y in anions[j:]:
-                        total_quad += p(A,B,X,Y)
+                        total_quad += X_ijkl(A,B,X,Y)
         constraints.append(total_quad)
         return constraints
 
@@ -385,7 +363,7 @@ class ModelMQMQA(Model):
         # No_Vac is to fix the normalization so that it does not take vacancy into consideration
         no_vac = [j for j in self.components for o in j.constituents if o != "VA"]
         const_spe = [k for i in no_vac for j, k in i.constituents.items()]
-        return sum(self.M(self._dbe, c) * const_spe[count] for count, c in enumerate(no_vac))
+        return sum(self._n_i(self._dbe, c) * const_spe[count] for count, c in enumerate(no_vac))
 
     def moles(self, species, per_formula_unit=False):
         "Number of moles of species or elements."
@@ -394,7 +372,7 @@ class ModelMQMQA(Model):
         for i in itertools.chain(self.cations, self.anions):
             if list(species.constituents.keys())[0] in i.constituents:
                 count = list(i.constituents.values())[0]
-                result += self.M(self._dbe, i) * count
+                result += self._n_i(self._dbe, i) * count
         # moles is supposed to compute the moles of a pure element, but with a caveat that pycalphad assumes sum(moles(c) for c in comps) == 1
         # The correct solution is to make the changes where pycalphad assumes n=1. But I think it would be easier to change how we implement the model so that the model has n=1 and the energies are normalized to per-mole-atoms.
         # Since normalizing to moles of quadruplets is allowing us to easily compare with thermochimica, I'm thinking that we might be able to fake pycalphad into thinking we have N=1 by normalizing "moles" to n=1
@@ -435,7 +413,7 @@ class ModelMQMQA(Model):
             (where("parameter_type") == "G") & \
             (where("constituent_array").test(self._pair_test))
         )
-        p = self._p
+        X_ijkl = self._X_ijkl
         anions = self.anions
         cations = self.cations
         params = dbe._parameters.search(pair_query)
@@ -443,24 +421,24 @@ class ModelMQMQA(Model):
         for param in params:
             A = param["constituent_array"][0][0]
             X = param["constituent_array"][1][0]
-            ξ_AX = S.Zero
+            X_AX = S.Zero
             for B in cations:
                 for Y in anions:
                     factor = 1
                     if B == A: factor *= 2  # Double count (for symmetry?)
                     if Y == X: factor *= 2  # Double count
-                    ξ_AX += factor * p(A,B,X,Y) / (2 * self.Z(dbe, A, A,B,X,Y))
+                    X_AX += factor * X_ijkl(A,B,X,Y) / (2 * self.Z(dbe, A, A,B,X,Y))
             G_AX = param["parameter"]
-            terms += ξ_AX * G_AX
+            terms += X_AX * G_AX
         return terms
 
     def ideal_mixing_energy(self, dbe):
         # notational niceties
-        M = partial(self.M, dbe)
-        ϑ = partial(self.ϑ, dbe)
-        ξ = self.ξ
-        w = self.w
-        p = self._p
+        n_i = partial(self._n_i, dbe)
+        X_i = partial(self._X_i, dbe)
+        X_ik = self._X_ik
+        Y_i = self._Y_i
+        X_ijkl = self._X_ijkl
         soln_type = dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
         cations = self.cations
         anions = self.anions
@@ -474,16 +452,16 @@ class ModelMQMQA(Model):
 
         ζ = 2.4  # hardcoded, but we can get it from the model_hints (SUBQ) or the pairs (SUBG)
         for A in cations:
-            Sid += M(A) * log(ϑ(A))  # term 1
+            Sid += n_i(A) * log(X_i(A))  # term 1
         for X in anions:
-            Sid += M(X) * log(ϑ(X))  # term 2
+            Sid += n_i(X) * log(X_i(X))  # term 2
         for A in cations:
             for X in anions:
-                ξ_AX = ξ(A, X)
-                p_AAXX = p(A,A,X,X)
-                w_A = w(A)
-                w_X = w(X)
-                Sid += 4 / ζ * ξ_AX * log(ξ_AX / (w_A * w_X))  # term 3
+                X_AX = X_ik(A, X)
+                p_AAXX = X_ijkl(A,A,X,X)
+                w_A = Y_i(A)
+                w_X = Y_i(X)
+                Sid += 4 / ζ * X_AX * log(X_AX / (w_A * w_X))  # term 3
 
         # flatter loop over all quadruplets:
         # for A, B, X, Y in ((A, B, X, Y) for i, A in enumerate(cations) for B in cations[i:] for j, X in enumerate(anions) for Y in anions[j:]):
@@ -495,7 +473,7 @@ class ModelMQMQA(Model):
                         factor = 1
                         if A != B: factor *= 2
                         if X != Y: factor *= 2
-                        Sid += p(A,B,X,Y)*log(p(A,B,X,Y)/(factor * (ξ(A,X)**(exp1))*(ξ(A,Y)**(exp1))*(ξ(B,X)**(exp1))*(ξ(B,Y)**(exp1)) / ((w(A)**(exp2))*(w(B)**(exp2))*(w(X)**(exp2))*(w(Y)**(exp2)))))
+                        Sid += X_ijkl(A,B,X,Y)*log(X_ijkl(A,B,X,Y)/(factor * (X_ik(A,X)**(exp1))*(X_ik(A,Y)**(exp1))*(X_ik(B,X)**(exp1))*(X_ik(B,Y)**(exp1)) / ((Y_i(A)**(exp2))*(Y_i(B)**(exp2))*(Y_i(X)**(exp2))*(Y_i(Y)**(exp2)))))
         return Sid * v.T * v.R
 
     def _chemical_group_filter(self, dbe, symmetric_species, asymmetric_species, sublattice):
@@ -516,7 +494,7 @@ class ModelMQMQA(Model):
         # Compute Poschmann Eq. 21 (SUBG-type model) or Eq. 22 (SUBQ-type model)
         cations = self.cations
         anions = self.anions
-        p = self._p
+        X_ijkl = self._X_ijkl
 
         mixing_term_numerator = S.Zero
         mixing_term_denominator = S.Zero
@@ -529,10 +507,10 @@ class ModelMQMQA(Model):
             gamma = list(filter(self._chemical_group_filter(dbe, B, A, "cations"), cations))
             for idx, i in enumerate([A] + nu):  # enumerate to avoid double counting
                 for j in ([A] + nu)[idx:]:
-                    mixing_term_numerator += p(i, j, X, Y)
+                    mixing_term_numerator += X_ijkl(i, j, X, Y)
             for idx, i in enumerate([A, B] + nu + gamma):  # enumerate to avoid double counting
                 for j in ([A, B] + nu + gamma)[idx:]:
-                    mixing_term_denominator += p(i, j, X, Y)
+                    mixing_term_denominator += X_ijkl(i, j, X, Y)
             return mixing_term_numerator / mixing_term_denominator
         elif A == B and X != Y: # Mixing on second sublattice
             # TODO: add support for SUBQ type where there is a loop over the cations
@@ -540,10 +518,10 @@ class ModelMQMQA(Model):
             gamma = list(filter(self._chemical_group_filter(dbe, Y, X, "anions"), anions))
             for idx, k in enumerate([X] + nu):  # enumerate to avoid double counting
                 for l in ([X] + nu)[idx:]:
-                    mixing_term_numerator += p(A, B, k, l)
+                    mixing_term_numerator += X_ijkl(A, B, k, l)
             for idx, k in enumerate([X, Y] + nu + gamma):  # enumerate to avoid double counting
                 for l in ([X, Y] + nu + gamma)[idx:]:
-                    mixing_term_denominator += p(A, B, k, l)
+                    mixing_term_denominator += X_ijkl(A, B, k, l)
             return mixing_term_numerator / mixing_term_denominator
         else:
             raise ValueError(f"Computing Chi_mix is not supported for reciprocal quadruplets. Got quadruplet {(A, B, X, Y)}.")
@@ -552,7 +530,7 @@ class ModelMQMQA(Model):
         # Poschmann Eq. 20
         cations = self.cations
         anions = self.anions
-        p = self._p
+        X_ijkl = self._X_ijkl
         term = S.Zero
         for cat_idx, a in enumerate(cations):
             for b in cations[cat_idx:]:
@@ -564,7 +542,7 @@ class ModelMQMQA(Model):
                         anion_factor = S.Zero
                         if x == k: anion_factor += 1
                         if y == k: anion_factor += 1
-                        term += p(a,b,x,y) * cation_factor * anion_factor / 4
+                        term += X_ijkl(a,b,x,y) * cation_factor * anion_factor / 4
         return term
 
     def _Xi_ijkl(self, dbe, i, j, k, l):
@@ -601,7 +579,7 @@ class ModelMQMQA(Model):
         cations = self.cations
         anions = self.anions
 
-        p = self._p
+        X_ijkl = self._X_ijkl
         Z = partial(self.Z, dbe)
 
         energy = S.Zero
@@ -677,15 +655,15 @@ class ModelMQMQA(Model):
             if A == B:
                 for m in cations:
                     if m != A:
-                        cation_factor += p(A,m,X,Y) / Z(A, A,m,X,Y)
+                        cation_factor += X_ijkl(A,m,X,Y) / Z(A, A,m,X,Y)
                 cation_factor *= Z(A, A,B,X,Y) / 2
             anion_factor = S.Zero
             if X == Y:
                 for m in anions:
                     if m != X:
-                        anion_factor += p(A,B,X,m) / Z(X, A,B,X,m)
+                        anion_factor += X_ijkl(A,B,X,m) / Z(X, A,B,X,m)
                 anion_factor *= Z(X, A,B,X,Y) / 2
-            energy += 0.5 * g * (p(A,B,X,Y) + cation_factor + anion_factor)
+            energy += 0.5 * g * (X_ijkl(A,B,X,Y) + cation_factor + anion_factor)
 
         return energy
 

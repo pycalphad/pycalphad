@@ -676,21 +676,21 @@ def test_MQMQA_site_fraction_energy():
 
     mod = ModelMQMQA(VIITALA_DBF,['CU','ZN','FE','CL'], 'LIQUIDSOLN')
 
-    subs_dict ={mod._p(CU1,CU1,CL,CL): 3.6411159329213960E-002,
-                mod._p(FE3,FE3,CL,CL): 0.19187702069719115,
-                mod._p(FE2,FE2,CL,CL): 6.6706457325108374E-004,
-                mod._p(CU2,CU2,CL,CL): 7.4480630453876051E-004,
-                mod._p(ZN,ZN,CL,CL): 6.3597725840616029E-002,
-                mod._p(CU1,FE3,CL,CL): 0.26054793342102595,
-                mod._p(CU1,CU2,CL,CL): 1.1687135533100841E-002,
-                mod._p(CU2,FE3,CL,CL): 2.3762278972894308E-002,
-                mod._p(CU1,FE2,CL,CL): 1.1060387601365204E-002,
-                mod._p(FE2,FE3,CL,CL): 2.5177769772622496E-002,
-                mod._p(CU1,ZN,CL,CL): 9.3472468895210881E-002,
-                mod._p(CU2,FE2,CL,CL): 1.6621696354116697E-003,
-                mod._p(FE3,ZN,CL,CL): 0.25634822067819923,
-                mod._p(CU2,ZN,CL,CL): 1.1808559140386612E-002,
-                mod._p(FE2,ZN,CL,CL): 1.1175299604972171E-002,
+    subs_dict ={mod._X_ijkl(CU1,CU1,CL,CL): 3.6411159329213960E-002,
+                mod._X_ijkl(FE3,FE3,CL,CL): 0.19187702069719115,
+                mod._X_ijkl(FE2,FE2,CL,CL): 6.6706457325108374E-004,
+                mod._X_ijkl(CU2,CU2,CL,CL): 7.4480630453876051E-004,
+                mod._X_ijkl(ZN,ZN,CL,CL): 6.3597725840616029E-002,
+                mod._X_ijkl(CU1,FE3,CL,CL): 0.26054793342102595,
+                mod._X_ijkl(CU1,CU2,CL,CL): 1.1687135533100841E-002,
+                mod._X_ijkl(CU2,FE3,CL,CL): 2.3762278972894308E-002,
+                mod._X_ijkl(CU1,FE2,CL,CL): 1.1060387601365204E-002,
+                mod._X_ijkl(FE2,FE3,CL,CL): 2.5177769772622496E-002,
+                mod._X_ijkl(CU1,ZN,CL,CL): 9.3472468895210881E-002,
+                mod._X_ijkl(CU2,FE2,CL,CL): 1.6621696354116697E-003,
+                mod._X_ijkl(FE3,ZN,CL,CL): 0.25634822067819923,
+                mod._X_ijkl(CU2,ZN,CL,CL): 1.1808559140386612E-002,
+                mod._X_ijkl(FE2,ZN,CL,CL): 1.1175299604972171E-002,
                 v.T: 800
                 }
 
