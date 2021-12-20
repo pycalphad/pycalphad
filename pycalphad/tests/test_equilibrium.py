@@ -772,7 +772,7 @@ def test_MQMQA_equilibrium_symmetry_fe2():
     print("Y", eq.Y.values.squeeze())
     assert np.isclose(eq.GM,-1.38673E+05, 1e-5)  # value from Thermochimica
 
-
+@pytest.mark.skip(reason="Flaky equilibrium test due to pseudo-binary")
 def test_MQMQA_equilibrium_symmetry_zn():
     comps=['CU', 'FE', 'CL', 'ZN']
     phases = ['LIQUIDSOLN']
