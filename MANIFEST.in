@@ -2,7 +2,6 @@ include pycalphad/core/_isnan.h
 include README.rst
 include LICENSE.txt
 recursive-include pycalphad *.pyx *.px[di]
-recursive-include pycalphad/tests/databases *
 
 # This subpckage is only used in development checkouts and should not be
 # included in source distributions
