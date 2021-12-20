@@ -94,9 +94,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
     elif len(indep_comps) == 2 and len(indep_pots) == 0:
         projection = 'triangular'
     else:
-        # TODO: DO NOT MERGE: temporary pseudo-binary system hack
-        projection = None
-#        raise ValueError('The eqplot projection is not defined and cannot be autodetected. There are {} independent compositions and {} indepedent potentials.'.format(len(indep_comps), len(indep_pots)))
+        raise ValueError('The eqplot projection is not defined and cannot be autodetected. There are {} independent compositions and {} indepedent potentials.'.format(len(indep_comps), len(indep_pots)))
     if z is not None:
         raise NotImplementedError('3D plotting is not yet implemented')
     if ax is None:
@@ -144,8 +142,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
             two_phase_y = eq.X.sel(component=y.species.name).values[two_phase_idx][..., :2]
         else:
             # it's a StateVariable. This must be True
-            two_phase_y = np.take(eq[str(y)].values, two_phase_idx[eq.Phase.dims.index(str(y))])
-
+            two_phase_y = np.take(eq[str(y)].values, two_phase_idx[list(str(i) for i in conds.keys()).index(str(y))])
             # because the above gave us a shape of (n,) instead of (n,2) we are going to create it ourselves
             two_phase_y = np.array([two_phase_y, two_phase_y]).swapaxes(0, 1)
 
