@@ -604,8 +604,8 @@ class ExcessQuadruplet:
     mixing_const: [int]  # exactly four
     mixing_exponents: [int]  # exactly four
     junk: [float]  # exactly twelve
-    additional_mixing_const: int
-    additional_mixing_exponent: int
+    additional_cation_mixing_const: int
+    additional_anion_mixing_const: int
     excess_coeffs: [float]
 
     def expr(self, indices):
@@ -649,8 +649,21 @@ class ExcessQuadruplet:
         constituent_array = [[A, B], [X, Y]]
         mixing_code = self.mixing_code
         exponents = self.mixing_exponents
-        addtl_mixing_const = linear_species[self.additional_mixing_const]
-        addtl_mixing_expon = self.additional_mixing_exponent
+        
+        addtl_cation_mixing_const = linear_species[self.additional_cation_mixing_const]
+        addtl_anion_mixing_const = linear_species[self.additional_anion_mixing_const]
+        if addtl_cation_mixing_const is not None and addtl_anion_mixing_const is not None:
+            raise ValueError(f"Having a cation _and_ anion as additional mixing constituents is not allowed. Got {addtl_cation_mixing_const} and {addtl_anion_mixing_const} for {phase_name} and quadruplet {A, B, X, Y}.")
+        elif addtl_cation_mixing_const is not None:
+            addtl_mixing_const = addtl_cation_mixing_const
+            addtl_mixing_expon = exponents[2]
+        elif addtl_anion_mixing_const is not None:
+            addtl_mixing_const = addtl_anion_mixing_const
+            addtl_mixing_expon = exponents[3]
+        else:
+            addtl_mixing_const = None
+            addtl_mixing_expon = 0
+
         expr = self.expr(excess_coeff_indices)
 
         # Use local API to insert into the database, since there's no Database.add_parameter API for this yet
@@ -904,10 +917,10 @@ def parse_subq_excess(toks, mixing_type, num_excess_coeffs):
     mixing_const = toks.parseN(4, int)
     mixing_exponents = toks.parseN(4, int)
     junk = toks.parseN(12, float)
-    additional_mixing_const = toks.parse(int)
-    additional_mixing_exponent = toks.parse(float)
+    additional_cation_mixing_const = toks.parse(int)
+    additional_anion_mixing_exponent = toks.parse(int)
     excess_coeffs = toks.parseN(num_excess_coeffs, float)
-    return ExcessQuadruplet(mixing_type, mixing_code, mixing_const, mixing_exponents, junk, additional_mixing_const, additional_mixing_exponent, excess_coeffs)
+    return ExcessQuadruplet(mixing_type, mixing_code, mixing_const, mixing_exponents, junk, additional_cation_mixing_const, additional_anion_mixing_exponent, excess_coeffs)
 
 
 def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs):

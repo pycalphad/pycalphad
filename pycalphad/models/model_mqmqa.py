@@ -604,8 +604,9 @@ class ModelMQMQA(Model):
             exponents = param["exponents"]
             mixing_code = param["mixing_code"]
             m = param["additional_mixing_constituent"]
-            p_alpha = exponents[0]  # TODO: are these always [0] and [1] even for anions?
+            p_alpha = exponents[0]  # TODO: verify with a test that these always [0] and [1] even for anions?
             q_alpha = exponents[1]
+            r_alpha = param["additional_mixing_exponent"]
             # Poschmann Eq. 23-26
             mixing_term = S.Zero
             if A != B and X == Y:
@@ -622,7 +623,6 @@ class ModelMQMQA(Model):
                     raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}")
                 if m != v.Species(None):
                     # Poschmann Eq. 25 and 26 ternary term (same for both mixing codes)
-                    r_alpha = exponents[2]
                     Xi_ijk = self._Xi_mix(dbe, A, B, X, X)
                     Xi_jik = self._Xi_mix(dbe, B, A, X, X)
                     Y_mk = self._Y_ik(m, X)
@@ -649,7 +649,6 @@ class ModelMQMQA(Model):
                     raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}")
                 if m != v.Species(None):
                     # Poschmann Eq. 25 and 26 ternary term (same for both mixing codes)
-                    r_alpha = exponents[3]
                     Xi_ikl = self._Xi_mix(dbe, A, A, X, Y)
                     Xi_ilk = self._Xi_mix(dbe, A, A, Y, X)
                     Y_im = self._Y_ik(A, m)
