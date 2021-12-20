@@ -54,4 +54,3 @@ env/
 *.sublime-project
 *.sublime-workspace
 *.cpp
-htmlcov
