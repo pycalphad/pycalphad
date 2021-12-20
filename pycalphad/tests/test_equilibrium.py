@@ -32,10 +32,6 @@ PBSN_DBF = Database(PBSN_TDB)
 AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
 OCADIZ_FLORES_DBF = Database.from_string(OCADIZ_FLORES_DAT, fmt='dat')
-VIITALA_DBF_SYMMETRY_FE_2=Database.from_string(VIITALA_DAT_SYMMETRY_FE_2, fmt='dat')
-VIITALA_DBF_SYMMETRY_ZN=Database.from_string(VIITALA_DAT_SYMMETRY_ZN, fmt='dat')
-VIITALA_DBF_SYMMETRY_CU_1=Database.from_string(VIITALA_DAT_SYMMETRY_CU_1, fmt='dat')
-
 
 @pytest.mark.solver
 def test_rose_nine():
@@ -716,33 +712,6 @@ def test_MQMQA_energy_K_F_NI():
     assert np.all(np.isclose(calc_res.X.values.squeeze(), [0.58334, 0.250, 0.16667], 1e-3))
 
 
-def test_MQMQA_energy_symmetry_fe2():
-    comps = ['CU','FE','ZN','CL']  # other pure element component names that you want
-    model = {'LIQUIDSOLN': ModelMQMQA}
-    pts = np.asarray([[1.09671498e-01, 8.90328509e-12, 2.23404076e-01, 1.50187604e-13, 2.23919596e-01, 2.26313735e-11, 8.95623893e-12, 4.07268399e-12, 8.89297136e-12, 1.15269378e-01, 2.05215168e-13, 2.12723836e-01, 1.00000000e-14, 3.79114826e-13, 1.15011619e-01]])
-    calc_res = calculate(VIITALA_DBF_SYMMETRY_FE_2, comps, 'LIQUIDSOLN', T=600, N=1, P=101325, points=pts, model=model)
-    assert np.isclose(calc_res.GM.values.squeeze(), -1.38673E+05, 1e-5)
-    assert np.all(np.isclose(calc_res.X.values.squeeze(), [0.625, 0.125, 0.125, 0.125], 1e-5))
-
-
-def test_MQMQA_energy_symmetry_zn():
-    comps = ['CU','FE','ZN','CL']  # other pure element component names that you want
-    model = {'LIQUIDSOLN': ModelMQMQA}
-    pts = np.asarray([[1.02400968e-01, 9.40191755e-13, 2.20549432e-01, 5.19264411e-12, 2.41315299e-01, 1.55681395e-12, 9.43062238e-13, 7.30493982e-13, 9.39570874e-13, 1.18753888e-01, 7.44926458e-12, 2.08609459e-01, 1.00000000e-14, 7.88402320e-12, 1.08370954e-01]])
-    calc_res = calculate(VIITALA_DBF_SYMMETRY_ZN, comps, 'LIQUIDSOLN', T=600, N=1, P=101325, points=pts, model=model)
-    assert np.isclose(calc_res.GM.values.squeeze(), -1.38747E+05, 1e-5)
-    assert np.all(np.isclose(calc_res.X.values.squeeze(), [0.625, 0.125, 0.125, 0.125], 1e-5))
-
-
-def test_MQMQA_energy_symmetry_cu_1():
-    comps = ['CU','FE','ZN','CL']  # other pure element component names that you want
-    model = {'LIQUIDSOLN': ModelMQMQA}
-    pts = np.asarray([[1.03988595e-01, 1.07191944e-12, 2.05798718e-01, 1.31705370e-13, 2.52890761e-01, 1.82223949e-12, 1.07589387e-12, 8.22604296e-13, 1.07261405e-12, 1.21420431e-01, 1.20160912e-13, 2.18027089e-01, 1.00000000e-14, 2.30815506e-13, 9.78744090e-02]])
-    calc_res = calculate(VIITALA_DBF_SYMMETRY_CU_1, comps, 'LIQUIDSOLN', T=600, N=1, P=101325, points=pts, model=model)
-    assert np.isclose(calc_res.GM.values.squeeze(), -1.38882E+05, 1e-5)
-    assert np.all(np.isclose(calc_res.X.values.squeeze(), [0.625, 0.125, 0.125, 0.125], 1e-5))
-
-
 def test_MQMQA_equilibrium_K_F_NI():
     comps = ['K', 'F', 'NI']  # other pure element component names that you want
     phases = ['F2(G)', 'KF_S1(S)', 'NIF2_S1(S)', 'NIK2F4_S1(S)', 'LIQUID2', 'NIKF3_S1(S)']
@@ -757,45 +726,6 @@ def test_MQMQA_equilibrium_K_F_NI():
     Y_quad_KNIFF = eq.Y.values[0][0][0][0][0][1][1]
     assert np.isclose(Y_quad_KKFF, 0.160136063, atol=1e-4)
     assert np.isclose(Y_quad_KNIFF, 0.628377052, atol=1e-4)
-
-
-@pytest.mark.skip(reason="Flaky equilibrium test due to pseudo-binary")
-def test_MQMQA_equilibrium_symmetry_fe2():
-    comps=['CU', 'FE', 'CL', 'ZN']
-    phase=['LIQUIDSOLN']
-    conds = {v.N: 1, v.P: 101325, v.T: 600, v.X('FE'): 0.125, v.X('CU'): 0.125,v.X('CL'): 0.625}
-    model = {'LIQUIDSOLN': ModelMQMQA}
-    eq = equilibrium(VIITALA_DBF_SYMMETRY_FE_2 , comps, phase, conds, model=model, calc_opts={'pdens': 2000})
-    print(eq.Phase.values.squeeze())
-    print(eq.NP.values.squeeze())
-    print(eq.GM.values.squeeze())
-    print("Y", eq.Y.values.squeeze())
-    assert np.isclose(eq.GM,-1.38673E+05, 1e-5)  # value from Thermochimica
-
-@pytest.mark.skip(reason="Flaky equilibrium test due to pseudo-binary")
-def test_MQMQA_equilibrium_symmetry_zn():
-    comps=['CU', 'FE', 'CL', 'ZN']
-    phases = ['LIQUIDSOLN']
-    conds = {v.N: 1, v.P: 101325, v.T: 600, v.X('FE'): 0.125, v.X('CU'): 0.125,v.X('CL'): 0.625}
-    model = {'LIQUIDSOLN': ModelMQMQA}
-    eq = equilibrium(VIITALA_DBF_SYMMETRY_ZN , comps, phases, conds, model=model)
-    print(eq.Phase.values.squeeze())
-    print(eq.NP.values.squeeze())
-    print("Y", eq.Y.values.squeeze())
-    assert np.isclose(eq.GM, -1.38747E+05, 1e-5)  # value from Thermochimica
-
-
-@pytest.mark.skip(reason="Flaky equilibrium test due to pseudo-binary")
-def test_MQMQA_equilibrium_symmetry_cu_1():
-    comps=['CU', 'FE', 'CL', 'ZN']
-    phases = ['LIQUIDSOLN']
-    conds = {v.N: 1, v.P: 101325, v.T: 600, v.X('FE'): 0.125, v.X('CU'): 0.125, v.MU('CL'): 0.625}
-    model = {'LIQUIDSOLN': ModelMQMQA}
-    eq = equilibrium(VIITALA_DBF_SYMMETRY_CU_1 , comps, phases, conds, model=model)
-    print(eq.Phase.values.squeeze())
-    print(eq.NP.values.squeeze())
-    print("Y", eq.Y.values.squeeze())
-    assert np.isclose(eq.GM, -1.38882E+05, 1e-5)  # value from Thermochimica
 
 
 @select_database("MQMQA-tern-tests.dat")
