@@ -355,47 +355,9 @@ class ExcessQKTO(ExcessBase):
         energy += sum([C*EXCESS_TERMS[i] for C, i in zip(self.coefficients, indices)])
         return energy
 
-    def _odd_species_out(self, phase_constituents):
-        # this assumes that the same species is the same type regardless of
-        # sublattice. See also the comment in ExcessQKTO.insert, which
-        # requires that the species of the different type is identified by
-        # species (i.e. no sublattice information).
-
-        # flatten phase constituents so they map to the linear indices
-        linear_constituents = list(itertools.chain(*phase_constituents))
-        species_groups = {}
-        for linear_idx, group_id in zip(self.interacting_species_idxs, self.interacing_species_type):
-            constit = linear_constituents[linear_idx - 1]  # linear_idx is one-indexed
-            species_groups[group_id] = species_groups.get(group_id, set()) | {constit}
-        assert len(species_groups) <= 2, f"A maximum of two species group types are supported, got group ids: {list(species_groups.keys())} with {species_groups}."
-        if len(species_groups.keys()) == 1:
-            return None
-        # find the group that contains the "odd one out" species
-        odd_species = [tuple(group)[0] for group in species_groups.values() if len(group) == 1][0]
-        odd_species_group_membership_ids = [group_id for group_id, group in species_groups.items() if odd_species in group]
-        assert len(odd_species_group_membership_ids) == 1, f"The odd species out ({odd_species}) can only belong to one element group, but it is found in element groups: {odd_species_group_membership_ids}."
-        return odd_species
-
     def insert(self, dbf: Database, phase_name: str, phase_constituents: [str], excess_coefficient_idxs: [int]):
-        # we need to store the element types for each parameter, since the same
-        # constituents can have different types per parameter
-        # one option might be to use a diffusing species to indicate the odd
-        # species out, if it exists, however for multicomponent interactions,
-        # (e.g. with just 4 elements) we can have two elements of each type
-        # and then the diffusing species assumption breaks. So we would need to
-        # extend dbf._parameters to include some metadata, since the element
-        # types need to stay with the parameter. For now, we just assert that
-        # there are no interactions of this type and we just have one different
-        # species
-        odd_species = self._odd_species_out(phase_constituents)
-        const_array = self.constituent_array(phase_constituents)
-        # TODO: can higher order parameters be specified? Is this something I'm
-        # missing in the DAT file somewhere?
-        param_order = 0
-        dbf.add_parameter('L', phase_name, const_array, param_order,
-                          self.expr(excess_coefficient_idxs),
-                          diffusing_species=odd_species, force_insert=False)
-
+        # TODO: does this use the chemical groups in the generalized Kohler-Toop formalism?
+        raise NotImplementedError()
 
 @dataclass
 class PhaseBase:
