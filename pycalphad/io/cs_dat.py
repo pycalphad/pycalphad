@@ -503,7 +503,7 @@ def rename_element_charge(element, charge):
 
 
 @dataclass
-class EndmemberSUBQ(Endmember):
+class SUBQPair(Endmember):
     stoichiometry_quadruplet: [float]
     zeta: float
 
@@ -514,7 +514,7 @@ class EndmemberSUBQ(Endmember):
 
 
 @dataclass
-class Quadruplet:
+class SUBQQuadrupletCoordinations:
     quadruplet_idxs: [int]  # exactly four
     quadruplet_coordinations: [float]  # exactly four
 
@@ -545,7 +545,7 @@ class Quadruplet:
 
 
 @dataclass
-class ExcessQuadruplet:
+class SUBQExcessQuadruplet:
     mixing_type: int
     mixing_code: str  # G, Q, B, or R
     mixing_const: [int]  # exactly four
@@ -637,8 +637,8 @@ class Phase_SUBQ(PhaseBase):
     subl_2_charges: [float]
     subl_2_chemical_groups: [int]
     subl_const_idx_pairs: [(int,)]
-    quadruplets: [Quadruplet]
-    excess_parameters: [ExcessQuadruplet]
+    quadruplets: [SUBQQuadrupletCoordinations]
+    excess_parameters: [SUBQExcessQuadruplet]
     phase_type= [str]
     def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
         # First: get the pair and quadruplet species added to the database:
@@ -822,13 +822,13 @@ def parse_endmember_subq(toks: TokenParser, num_pure_elements, num_gibbs_coeffs,
     if zeta is None:
         # This is SUBQ we need to parse it. If zeta is passed, that means we're in SUBG mode
         zeta = toks.parse(float)
-    return EndmemberSUBQ(em.species_name, em.gibbs_eq_type, em.stoichiometry_pure_elements, em.intervals, stoichiometry_quadruplet, zeta)
+    return SUBQPair(em.species_name, em.gibbs_eq_type, em.stoichiometry_pure_elements, em.intervals, stoichiometry_quadruplet, zeta)
 
 
 def parse_quadruplet(toks):
     quad_idx = toks.parseN(4, int)
     quad_coords = toks.parseN(4, float)
-    return Quadruplet(quad_idx, quad_coords)
+    return SUBQQuadrupletCoordinations(quad_idx, quad_coords)
 
 
 def parse_subq_excess(toks, mixing_type, num_excess_coeffs):
@@ -839,7 +839,7 @@ def parse_subq_excess(toks, mixing_type, num_excess_coeffs):
     additional_cation_mixing_const = toks.parse(int)
     additional_anion_mixing_exponent = toks.parse(int)
     excess_coeffs = toks.parseN(num_excess_coeffs, float)
-    return ExcessQuadruplet(mixing_type, mixing_code, mixing_const, mixing_exponents, junk, additional_cation_mixing_const, additional_anion_mixing_exponent, excess_coeffs)
+    return SUBQExcessQuadruplet(mixing_type, mixing_code, mixing_const, mixing_exponents, junk, additional_cation_mixing_const, additional_anion_mixing_exponent, excess_coeffs)
 
 
 def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs):
