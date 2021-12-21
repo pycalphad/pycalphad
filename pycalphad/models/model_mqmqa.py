@@ -80,16 +80,22 @@ class ModelMQMQA(Model):
             constituents.append(sublattice_comps)
         self.components = sorted(self.components)
         # create self.cations and self.anions properties to use instead of constituents
-        if len(constituents) == 1:
-            self.ele = constituents
-        else:
+        if len(constituents) == 2:
             self.cations = sorted(constituents[0])
             self.anions = sorted(constituents[1])
+        else:
+            raise ValueError(f"Exactly two sublattices are required for the MQMQA. Got {len(constituents)} sublattices: {constituents}.")
 
         # In several places we use the assumption that the cation lattice and
         # anion lattice have no common species; we validate that assumption here
         shared_species = set(self.cations).intersection(set(self.anions))
         assert len(shared_species) == 0, f"No species can be shared between the two MQMQA lattices, got {shared_species}"
+
+        # Verify that this phase is still possible to build
+        if len(self.cations) == 0:
+            raise DofError(f"{self.phase_name}: Cation sublattice of {phase.constituents[0]} has no active species in {self.components}")
+        if len(self.anions) == 0:
+            raise DofError(f"{self.phase_name}: Anion sublattice of {phase.constituents[1]} has no active species in {self.components}")
 
         quads = itertools.product(
             itertools.combinations_with_replacement(self.cations, 2),
@@ -97,12 +103,6 @@ class ModelMQMQA(Model):
         )
         quad_species = [get_species(A, B, X, Y) for (A, B), (X, Y) in quads]
         self.constituents = [sorted(quad_species)]
-
-        # Verify that this phase is still possible to build
-        if len(self.cations) == 0:
-            raise DofError(f"{self.phase_name}: Cation sublattice of {phase.constituents[0]} has no active species in {self.components}")
-        if len(self.anions) == 0:
-            raise DofError(f"{self.phase_name}: Anion sublattice of {phase.constituents[1]} has no active species in {self.components}")
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
