@@ -1034,10 +1034,7 @@ def parse_phase(toks, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs, nu
     phase_name = toks.parse(str)
     phase_type = toks.parse(str)
     if phase_type in ('SUBQ', 'SUBG'):
-#        model_hints={}
-#        model_hints['mqmqa']={}
         phase = parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs)
-#        model_hints['mqmqa']['type']=phase_type
     elif phase_type == 'IDVD':
         phase = parse_phase_real_gas(toks, phase_name, phase_type, num_pure_elements, num_gibbs_coeffs, num_const)
     elif phase_type == 'IDWZ':
