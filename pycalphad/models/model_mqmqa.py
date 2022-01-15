@@ -273,6 +273,43 @@ class ModelMQMQA(Model):
                         Y_i += X_ijkl(A, B, X, Y)
         return 0.5 * Y_i
 
+
+    def _zeta_ik(self, i, k):
+        pair_query = (
+            (where("phase_name") == self.phase_name) & \
+            (where("parameter_type") == "MQMG") & \
+            (where("constituent_array").test(lambda x: x == ((i,), (k,))))
+        )
+        params = list(self._dbe._parameters.search(pair_query))
+        assert len(params) == 1, f"Expected exactly one pair parameter for ({i, k}), got {len(params)}: {params}"
+        param = params[0]
+        return param["zeta"]
+
+
+    def _F_i(self, species: v.Species):
+        """
+        Return the coordination-equivalent fraction of species. 
+        
+        Note that Poschmann Eq. 13 and 14 assume that zeta are equal for all pairs, but generally this is not true.
+
+        For now, this function makes that same assumption.
+        """
+        cations = self.cations
+        anions = self.anions
+
+        F_i = S.Zero
+        if species in cations:
+            i = species
+            for k in anions:
+                F_i += self._X_ik(i, k)
+        else:
+            assert species in anions
+            k = species
+            for i in cations:
+                F_i += self._X_ik(i, k)
+        return F_i
+
+
     def _chemical_group_filter(self, dbe, symmetric_species, asymmetric_species, sublattice):
         """
         Return a function ``f(m)`` that returns ``True`` if m is symmetric with
@@ -536,6 +573,7 @@ class ModelMQMQA(Model):
         X_i = partial(self._X_i, dbe)
         X_ik = self._X_ik
         Y_i = self._Y_i
+        F_i = self._F_i
         X_ijkl = self._X_ijkl
         soln_type = dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
         cations = self.cations
@@ -557,16 +595,7 @@ class ModelMQMQA(Model):
         # Pairs
         for A in cations:
             for X in anions:
-                pair_query = (
-                    (where("phase_name") == self.phase_name) & \
-                    (where("parameter_type") == "MQMG") & \
-                    (where("constituent_array").test(lambda x: x == ((A,), (X,))))
-                )
-                params = list(dbe._parameters.search(pair_query))
-                assert len(params) == 1, f"Expected exactly one pair parameter for {A, X}, got {len(params)}: {params}"
-                param = params[0]
-                zeta = param["zeta"]
-                Sid += 4 / zeta * X_ik(A, X) * log(X_ik(A, X) / (Y_i(A) * Y_i(X)))
+                Sid += 4 / self._zeta_ik(A, X) * X_ik(A, X) * log(X_ik(A, X) / (F_i(A) * F_i(X)))
 
         # Quadruplets
         # flatter loop over all quadruplets:
