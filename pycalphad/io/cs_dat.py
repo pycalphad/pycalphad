@@ -507,10 +507,29 @@ class SUBQPair(Endmember):
     stoichiometry_quadruplet: [float]
     zeta: float
 
+    @staticmethod  # So it can be in the style of a Database() method
+    def _database_add_parameter(
+        self, param_type, phase_name, constituent_array, parameter, zeta,
+        ref=None, force_insert=True
+        ):
+        species_dict = {s.name: s for s in self.species}
+        new_parameter = {
+            'phase_name': phase_name,
+            'constituent_array': tuple(tuple(species_dict.get(s.upper(), v.Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
+            'parameter_type': param_type,
+            'parameter': parameter,
+            'zeta': zeta,
+            'reference': ref,
+        }
+        if force_insert:
+            self._parameters.insert(new_parameter)
+        else:
+            self._parameter_queue.append(new_parameter)
+
     def insert(self, dbf: Database, phase_name: str, constituent_array: [str], gibbs_coefficient_idxs: [int]):
         # Here the constituent array should be the pair name using the corrected
         # names, i.e. CU1.0CL1.0
-        dbf.add_parameter('G', phase_name, constituent_array, 0, self.expr(gibbs_coefficient_idxs), force_insert=False)
+        self._database_add_parameter(dbf, 'MQMG', phase_name, constituent_array, self.expr(gibbs_coefficient_idxs), self.zeta, force_insert=False)
 
 
 @dataclass

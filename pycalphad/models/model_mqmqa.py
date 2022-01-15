@@ -508,8 +508,7 @@ class ModelMQMQA(Model):
         """
         pair_query = (
             (where("phase_name") == self.phase_name) & \
-            (where("parameter_order") == 0) & \
-            (where("parameter_type") == "G") & \
+            (where("parameter_type") == "MQMG") & \
             (where("constituent_array").test(self._pair_test))
         )
         X_ijkl = self._X_ijkl
@@ -549,15 +548,27 @@ class ModelMQMQA(Model):
             exp2 = 1.0
         Sid = S.Zero
 
-        zeta = 2.4  # TODO: hardcoded, but we can get it from the model_hints (SUBQ) or the pairs (SUBG), needs test
+        # Individual constituents
         for A in cations:
             Sid += n_i(A) * log(X_i(A))
         for X in anions:
             Sid += n_i(X) * log(X_i(X))
+
+        # Pairs
         for A in cations:
             for X in anions:
+                pair_query = (
+                    (where("phase_name") == self.phase_name) & \
+                    (where("parameter_type") == "MQMG") & \
+                    (where("constituent_array").test(lambda x: x == ((A,), (X,))))
+                )
+                params = list(dbe._parameters.search(pair_query))
+                assert len(params) == 1, f"Expected exactly one pair parameter for {A, X}, got {len(params)}: {params}"
+                param = params[0]
+                zeta = 2.4
                 Sid += 4 / zeta * X_ik(A, X) * log(X_ik(A, X) / (Y_i(A) * Y_i(X)))
 
+        # Quadruplets
         # flatter loop over all quadruplets:
         # for A, B, X, Y in ((A, B, X, Y) for i, A in enumerate(cations) for B in cations[i:] for j, X in enumerate(anions) for Y in anions[j:]):
         # Count last 4 terms in the sum
