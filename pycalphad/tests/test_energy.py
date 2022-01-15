@@ -664,17 +664,18 @@ def test_order_disorder_magnetic_ordering():
     check_output(mod, subs_dict, 'BMAG', 0.81435207, mode='sympy')
     check_energy(mod, subs_dict, 34659.484, mode='sympy')
 
+
 @select_database("Viitala.dat")
 def test_MQMQA_site_fraction_energy(load_database):
     dbf = load_database()
-    ZN =  v.Species('ZN+2.0', constituents={'ZN': 1.0}, charge=2)
-    FE2 = v.Species('FE+2.0', constituents={'FE': 1.0}, charge=2)
-    FE3 = v.Species('FE+3.0', constituents={'FE': 1.0}, charge=3)
-    CU1 = v.Species('CU+1.0', constituents={'CU': 1.0}, charge=1)
-    CU2 = v.Species('CU+2.0', constituents={'CU': 1.0}, charge=2)
-    CL =  v.Species('CL-1.0', constituents={'CL': 1.0}, charge=-1)
+    ZN =  v.Species("ZN+2.0", constituents={"ZN": 1.0}, charge=2)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    CU1 = v.Species("CU+1.0", constituents={"CU": 1.0}, charge=1)
+    CU2 = v.Species("CU+2.0", constituents={"CU": 1.0}, charge=2)
+    CL =  v.Species("CL-1.0", constituents={"CL": 1.0}, charge=-1)
 
-    mod = ModelMQMQA(dbf,['CU','ZN','FE','CL'], 'LIQUIDSOLN')
+    mod = ModelMQMQA(dbf, ["CU", "ZN", "FE", "CL"], "LIQUIDSOLN")
 
     subs_dict ={mod._X_ijkl(CU1,CU1,CL,CL): 3.6411159329213960E-002,
                 mod._X_ijkl(FE3,FE3,CL,CL): 0.19187702069719115,
@@ -694,8 +695,9 @@ def test_MQMQA_site_fraction_energy(load_database):
                 v.T: 800
                 }
 
-    check_energy(mod, subs_dict,-1.47867E+05, mode='sympy')
-    assert np.isclose(float(mod.moles('CU').subs(subs_dict)), 0.07692307692,1e-5)
-    assert np.isclose(float(mod.moles('CL').subs(subs_dict)), 0.6923076923,1e-5)
-    assert np.isclose(float(mod.moles('ZN').subs(subs_dict)), 0.07692307692,1e-5)
-    assert np.isclose(float(mod.moles('FE').subs(subs_dict)), 0.15384615384,1e-5)
+    check_energy(mod, subs_dict, -1.47867E+05, mode="sympy")
+    assert np.isclose(float(mod.moles("CU").subs(subs_dict)), 0.07692307692,1e-5)
+    assert np.isclose(float(mod.moles("CL").subs(subs_dict)), 0.6923076923,1e-5)
+    assert np.isclose(float(mod.moles("ZN").subs(subs_dict)), 0.07692307692,1e-5)
+    assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.15384615384,1e-5)
+
