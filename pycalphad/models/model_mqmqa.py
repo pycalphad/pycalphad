@@ -509,28 +509,23 @@ class ModelMQMQA(Model):
     mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T * self.GM_MIX.diff(v.T, v.T))
 
     def reference_energy(self, dbe):
-        # This considers the pair contributions to the energy, the first sum terms in Eq. 37 in Pelton2001.
         """
-        Returns the weighted average of the endmember energies
-        in symbolic form.
+        Returns energies contributed by pairs.
         """
         pair_query = (
             (where("phase_name") == self.phase_name) & \
             (where("parameter_type") == "MQMG") & \
             (where("constituent_array").test(self._pair_test))
         )
-        X_ijkl = self._X_ijkl
-        anions = self.anions
-        cations = self.cations
         params = dbe._parameters.search(pair_query)
         terms = S.Zero
         for param in params:
             a = i = param["constituent_array"][0][0]
             x = k = param["constituent_array"][1][0]
             X_ax = S.Zero
-            for b in cations:
-                for y in anions:
-                    X_ax += X_ijkl(a,b,x,y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / (2 * self.Z(dbe, a, a,b,x,y))
+            for b in self.cations:
+                for y in self.anions:
+                    X_ax += self._X_ijkl(a,b,x,y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / (2 * self.Z(dbe, a, a,b,x,y))
             G_ax = param["parameter"]
             terms += X_ax * G_ax
         return terms
