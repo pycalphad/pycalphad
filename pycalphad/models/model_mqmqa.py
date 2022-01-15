@@ -42,8 +42,18 @@ class ModelMQMQA(Model):
     """
     Symbolic implementation of the modified quasichemical model in the
     quadruplet approximation developed by Pelton _et al._ [1]_. The formulation
-    here largely follows the derivation by Poschmann _et al._ [2]_.
-
+    here largely follows the derivation by Poschmann _et al._ [2]_. 
+    
+    Following pycalphad convention, ``ModelMQMQA.G`` defines the energy for one
+    "formula unit" of this phase. The MQMQA formulations by Pelton _et al._ and
+    Poschmann _et al._ do not formally define the energy per formula unit in
+    the same way as is done for the CEF. However, it is convienient to define
+    one formula unit of an MQMQA phase to be the energy corresponding to one
+    mole of quadruplets. In terms of the equations from Poschmann _et al._,
+    which are largely followed in this class, that means
+    :math:`\\sum_{ab/xy} n_{ab/xy} = 1` and therefore
+    :math:`n_{ab/xy} = X_{ij/kl}` by definition. 
+    
     This class is only semantically a subclass of ``Model``. It implements the
     API expected for a Model in a self-contained way without any need to rely
     on the Model superclass, but it is created as a subclass to satisfy various
@@ -182,10 +192,6 @@ class ModelMQMQA(Model):
         """
         Shorthand for creating a site fraction object v.Y for a quadruplet (ij/kl)
 
-        This would follow Poschmann Eq. 4, except that the basis of pycalphad models are site fractions. The MQMQA does
-        not formally define the energy per "formula unit" of a phase in the same way as the CEF. However, it is
-        convienient to define one formula unit of an MQMQA phase to be the energy corresponding to one mole of
-        quadruplets.
         """
         return v.Y(self.phase_name, 0, get_species(i, j, k, l))
 
