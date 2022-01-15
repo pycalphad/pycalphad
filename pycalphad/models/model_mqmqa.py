@@ -353,21 +353,9 @@ class ModelMQMQA(Model):
         """
         Poschmann Eq. 20
         """
-        cations = self.cations
-        anions = self.anions
-        X_ijkl = self._X_ijkl
         term = S.Zero
-        for cat_idx, a in enumerate(cations):
-            for b in cations[cat_idx:]:
-                for an_idx, x in enumerate(anions):
-                    for y in anions[an_idx:]:
-                        cation_factor = S.Zero
-                        if a == i: cation_factor += 1
-                        if b == i: cation_factor += 1
-                        anion_factor = S.Zero
-                        if x == k: anion_factor += 1
-                        if y == k: anion_factor += 1
-                        term += X_ijkl(a,b,x,y) * cation_factor * anion_factor / 4
+        for a, b, x, y in self._quadruplets:
+            term += self._X_ijkl(a,b,x,y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / 4
         return term
 
     def _Xi_mix(self, dbe, i, j, k, l):
