@@ -525,17 +525,14 @@ class ModelMQMQA(Model):
         params = dbe._parameters.search(pair_query)
         terms = S.Zero
         for param in params:
-            A = param["constituent_array"][0][0]
-            X = param["constituent_array"][1][0]
-            X_AX = S.Zero
-            for B in cations:
-                for Y in anions:
-                    factor = 1
-                    if B == A: factor *= 2  # Double count (for symmetry?)
-                    if Y == X: factor *= 2  # Double count
-                    X_AX += factor * X_ijkl(A,B,X,Y) / (2 * self.Z(dbe, A, A,B,X,Y))
-            G_AX = param["parameter"]
-            terms += X_AX * G_AX
+            a = i = param["constituent_array"][0][0]
+            x = k = param["constituent_array"][1][0]
+            X_ax = S.Zero
+            for b in cations:
+                for y in anions:
+                    X_ax += X_ijkl(a,b,x,y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / (2 * self.Z(dbe, a, a,b,x,y))
+            G_ax = param["parameter"]
+            terms += X_ax * G_ax
         return terms
 
     def ideal_mixing_energy(self, dbe):
