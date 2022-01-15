@@ -510,7 +510,7 @@ class SUBQPair(Endmember):
 
     @staticmethod  # So it can be in the style of a Database() method
     def _database_add_parameter(
-        self, param_type, phase_name, constituent_array, parameter, zeta,
+        self, param_type, phase_name, constituent_array, parameter, zeta, stoichiometry,
         ref=None, force_insert=True
         ):
         species_dict = {s.name: s for s in self.species}
@@ -520,6 +520,7 @@ class SUBQPair(Endmember):
             'parameter_type': param_type,
             'parameter': parameter,
             'zeta': zeta,
+            'stoichiometry': stoichiometry,
             'reference': ref,
         }
         if force_insert:
@@ -530,7 +531,7 @@ class SUBQPair(Endmember):
     def insert(self, dbf: Database, phase_name: str, constituent_array: List[str], gibbs_coefficient_idxs: List[int]):
         # Here the constituent array should be the pair name using the corrected
         # names, i.e. CU1.0CL1.0
-        self._database_add_parameter(dbf, 'MQMG', phase_name, constituent_array, self.expr(gibbs_coefficient_idxs), self.zeta, force_insert=False)
+        self._database_add_parameter(dbf, 'MQMG', phase_name, constituent_array, self.expr(gibbs_coefficient_idxs), self.zeta, self.stoichiometry_quadruplet, force_insert=False)
 
 
 @dataclass

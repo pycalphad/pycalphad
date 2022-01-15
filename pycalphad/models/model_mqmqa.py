@@ -557,7 +557,7 @@ class ModelMQMQA(Model):
                 for y in self.anions:
                     X_ax += self._X_ijkl(a,b,x,y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / (2 * self.Z(dbe, a, a,b,x,y))
             G_ax = param["parameter"]
-            terms += X_ax * G_ax
+            terms += X_ax * G_ax / param["stoichiometry"][0]
         return terms
 
     def ideal_mixing_energy(self, dbe):
