@@ -748,7 +748,7 @@ def test_MQMQA_SUBQ_entropy_only(load_database):
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
     
-@pytest.mark.xfail("Not yet working")
+@pytest.mark.xfail(reason="Not yet working")
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing(load_database):
     dbf = load_database()
