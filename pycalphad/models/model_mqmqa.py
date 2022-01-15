@@ -565,7 +565,7 @@ class ModelMQMQA(Model):
                 params = list(dbe._parameters.search(pair_query))
                 assert len(params) == 1, f"Expected exactly one pair parameter for {A, X}, got {len(params)}: {params}"
                 param = params[0]
-                zeta = 2.4
+                zeta = param["zeta"]
                 Sid += 4 / zeta * X_ik(A, X) * log(X_ik(A, X) / (Y_i(A) * Y_i(X)))
 
         # Quadruplets
