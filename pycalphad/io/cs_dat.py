@@ -2,6 +2,7 @@
 Support for reading ChemSage DAT files.
 """
 
+from typing import Dict, List, Tuple
 import re
 import numpy as np
 import itertools
@@ -51,12 +52,12 @@ class TokenParser(deque):
 
 @dataclass
 class Header:
-    list_soln_species_count: [int]
+    list_soln_species_count: List[int]
     num_stoich_phases: int
-    pure_elements: [str]
-    pure_elements_mass: [float]
-    gibbs_coefficient_idxs: [int]
-    excess_coefficient_idxs: [int]
+    pure_elements: List[str]
+    pure_elements_mass: List[float]
+    gibbs_coefficient_idxs: List[int]
+    excess_coefficient_idxs: List[int]
 
 
 import warnings
@@ -78,7 +79,7 @@ class AdditionalCoefficientPair:
 
 @dataclass
 class PTVmTerms:
-    terms: [float]
+    terms: List[float]
 
 
 @dataclass
@@ -100,9 +101,9 @@ class IntervalBase:
 
 @dataclass
 class IntervalG(IntervalBase):
-    coefficients: [float]
-    additional_coeff_pairs: [AdditionalCoefficientPair]
-    PTVm_terms: [PTVmTerms]
+    coefficients: List[float]
+    additional_coeff_pairs: List[AdditionalCoefficientPair]
+    PTVm_terms: List[PTVmTerms]
 
     def expr(self, indices):
         """Return an expression for the energy in this temperature interval"""
@@ -124,8 +125,8 @@ class IntervalCP(IntervalBase):
     S298: float
     CP_coefficients: float
     H_trans: float
-    additional_coeff_pairs: [AdditionalCoefficientPair]
-    PTVm_terms: [PTVmTerms]
+    additional_coeff_pairs: List[AdditionalCoefficientPair]
+    PTVm_terms: List[PTVmTerms]
 
     def expr(self, indices, T_min=298.15):
         """Return an expression for the energy in this temperature interval"""
@@ -153,8 +154,8 @@ class IntervalCP(IntervalBase):
 class Endmember():
     species_name: str
     gibbs_eq_type: str
-    stoichiometry_pure_elements: [float]
-    intervals: [IntervalBase]
+    stoichiometry_pure_elements: List[float]
+    intervals: List[IntervalBase]
 
     def expr(self, indices):
         """Return a Piecewise (in temperature) energy expression for this endmember (i.e. only the data from the energy intervals)"""
@@ -167,13 +168,13 @@ class Endmember():
         expr_cond_pairs.append((S.Zero, S.true))
         return Piecewise(*expr_cond_pairs, evaluate=False)
 
-    def constituents(self, pure_elements: [str]) -> {str: float}:
+    def constituents(self, pure_elements: List[str]) -> Dict[str: float]:
         return {el: amnt for el, amnt in zip(pure_elements, self.stoichiometry_pure_elements) if amnt != 0.0}
 
-    def constituent_array(self) -> [[str]]:
+    def constituent_array(self) -> List[List[str]]:
         return [[sp] for sp in self.species_name.split(':')]
 
-    def species(self, pure_elements) -> [v.Species]:
+    def species(self, pure_elements) -> List[v.Species]:
         if len(self.species_name.split(':')) > 1:
             # If given in sublattice notation, assume species are pure elements
             # i.e. multi-sublattice models cannot have associates
@@ -183,7 +184,7 @@ class Endmember():
             # We only have one sublattice, this can be a non-pure element species
             return [v.Species(self.species_name, constituents=self.constituents(pure_elements))]
 
-    def insert(self, dbf: Database, phase_name: str, constituent_array: [[str]], gibbs_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, phase_name: str, constituent_array: List[List[str]], gibbs_coefficient_idxs: List[int]):
         dbf.add_parameter('G', phase_name, constituent_array,
                           0, self.expr(gibbs_coefficient_idxs), force_insert=False)
 
@@ -193,7 +194,7 @@ class EndmemberMagnetic(Endmember):
     curie_temperature: float
     magnetic_moment: float
 
-    def insert(self, dbf: Database, phase_name: str, pure_elements: [str], gibbs_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, phase_name: str, pure_elements: List[str], gibbs_coefficient_idxs: List[int]):
         # add Gibbs energy
         super().insert(dbf, phase_name, pure_elements, gibbs_coefficient_idxs)
 
@@ -227,22 +228,22 @@ class EndmemberAqueous(Endmember):
 
 @dataclass
 class ExcessBase:
-    interacting_species_idxs: [int]
+    interacting_species_idxs: List[int]
 
-    def _map_const_idxs_to_subl_idxs(self, num_subl_species: [int]) -> [[int]]:
+    def _map_const_idxs_to_subl_idxs(self, num_subl_species: List[int]) -> List[List[int]]:
         """
         Converts from one-indexed linear phase species indices to zero-indexed
         sublattice species indices.
 
         Parameters
         ----------
-        num_subl_species: [int]
+        num_subl_species: List[int]
             Number of species in each sublattice, i.e. [1, 2, 1] could
             correspond to a sublattice model of [['A'], ['A', 'B'], ['C']]
 
         Returns
         -------
-        [[int]] - a list of species index lists
+        List[List[int]] - a list of species index lists
 
         Examples
         --------
@@ -274,7 +275,7 @@ class ExcessBase:
         assert all(len(subl) > 0 for subl in subl_species_idxs)
         return subl_species_idxs
 
-    def constituent_array(self, phase_constituents: [[str]]) -> [[str]]:
+    def constituent_array(self, phase_constituents: List[List[str]]) -> List[List[str]]:
         """
         Return the constituent array of this interaction using the entire phase
         sublattice model.
@@ -294,14 +295,14 @@ class ExcessBase:
         subl_species_idxs = self._map_const_idxs_to_subl_idxs(num_subl_species)
         return [[phase_constituents[subl_idx][idx] for idx in subl] for subl_idx, subl in enumerate(subl_species_idxs)]
 
-    def insert(self, dbf: Database, phase_name: str, phase_constituents: [[str]], excess_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, phase_name: str, phase_constituents: List[List[str]], excess_coefficient_idxs: List[int]):
         raise NotImplementedError(f"Subclass {type(self).__name__} of ExcessBase must implement `insert` to add the phase, constituents and parameters to the Database.")
 
 
 @dataclass
 class ExcessRKM(ExcessBase):
     parameter_order: int
-    coefficients: [float]
+    coefficients: List[float]
 
     def expr(self, indices):
         """Return an expression for the energy in this temperature interval"""
@@ -310,7 +311,7 @@ class ExcessRKM(ExcessBase):
         energy += sum([C*EXCESS_TERMS[i] for C, i in zip(self.coefficients, indices)])
         return energy
 
-    def insert(self, dbf: Database, phase_name: str, phase_constituents: [[str]], excess_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, phase_name: str, phase_constituents: List[List[str]], excess_coefficient_idxs: List[int]):
         """
         Requires all Species in dbf.species to be defined.
         """
@@ -333,7 +334,7 @@ class ExcessRKMMagnetic(ExcessBase):
     curie_temperature: float
     magnetic_moment: float
 
-    def insert(self, dbf: Database, phase_name: str, phase_constituents: [[str]], excess_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, phase_name: str, phase_constituents: List[List[str]], excess_coefficient_idxs: List[int]):
         """
         Requires all Species in dbf.species to be defined.
         """
@@ -345,8 +346,8 @@ class ExcessRKMMagnetic(ExcessBase):
 
 @dataclass
 class ExcessQKTO(ExcessBase):
-    interacing_species_type: [int]
-    coefficients: [float]
+    interacing_species_type: List[int]
+    coefficients: List[float]
 
     def expr(self, indices):
         """Return an expression for the energy in this temperature interval"""
@@ -355,7 +356,7 @@ class ExcessQKTO(ExcessBase):
         energy += sum([C*EXCESS_TERMS[i] for C, i in zip(self.coefficients, indices)])
         return energy
 
-    def insert(self, dbf: Database, phase_name: str, phase_constituents: [str], excess_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, phase_name: str, phase_constituents: List[str], excess_coefficient_idxs: List[int]):
         # TODO: does this use the chemical groups in the generalized Kohler-Toop formalism?
         raise NotImplementedError()
 
@@ -363,9 +364,9 @@ class ExcessQKTO(ExcessBase):
 class PhaseBase:
     phase_name: str
     phase_type: str
-    endmembers: [Endmember]
+    endmembers: List[Endmember]
 
-    def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
         """Enter this phase and its parameters into the Database.
 
         This method should call:
@@ -380,7 +381,7 @@ class PhaseBase:
 
 @dataclass
 class Phase_Stoichiometric(PhaseBase):
-    def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
         # TODO: magnetic model hints? Are these why there are four numbers for
         # magnetic endmembers instead of two for solution phases? Add a raise in
         # the parser instead of parsing these into nothing to find the examples.
@@ -401,13 +402,13 @@ class Phase_Stoichiometric(PhaseBase):
 
 @dataclass
 class Phase_CEF(PhaseBase):
-    subl_ratios: [float]
-    constituent_array: [[str]]
-    endmember_constituent_idxs: [[int]]
-    excess_parameters: [ExcessBase]
+    subl_ratios: List[float]
+    constituent_array: List[List[str]]
+    endmember_constituent_idxs: List[List[int]]
+    excess_parameters: List[ExcessBase]
     magnetic_afm_factor: float
     magnetic_structure_factor: float
-    def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
         model_hints = {}
         if self.magnetic_afm_factor is not None and self.magnetic_structure_factor is not None:
             # This follows the Redlich-Kister Muggianu IHJ model. The ChemSage
@@ -504,7 +505,7 @@ def rename_element_charge(element, charge):
 
 @dataclass
 class SUBQPair(Endmember):
-    stoichiometry_quadruplet: [float]
+    stoichiometry_quadruplet: List[float]
     zeta: float
 
     @staticmethod  # So it can be in the style of a Database() method
@@ -526,7 +527,7 @@ class SUBQPair(Endmember):
         else:
             self._parameter_queue.append(new_parameter)
 
-    def insert(self, dbf: Database, phase_name: str, constituent_array: [str], gibbs_coefficient_idxs: [int]):
+    def insert(self, dbf: Database, phase_name: str, constituent_array: List[str], gibbs_coefficient_idxs: List[int]):
         # Here the constituent array should be the pair name using the corrected
         # names, i.e. CU1.0CL1.0
         self._database_add_parameter(dbf, 'MQMG', phase_name, constituent_array, self.expr(gibbs_coefficient_idxs), self.zeta, force_insert=False)
@@ -534,8 +535,8 @@ class SUBQPair(Endmember):
 
 @dataclass
 class SUBQQuadrupletCoordinations:
-    quadruplet_idxs: [int]  # exactly four
-    quadruplet_coordinations: [float]  # exactly four
+    quadruplet_idxs: List[int]  # exactly four
+    quadruplet_coordinations: List[float]  # exactly four
 
     @staticmethod  # So it can be in the style of a Database() method
     def _database_add_parameter(
@@ -555,7 +556,7 @@ class SUBQQuadrupletCoordinations:
         else:
             self._parameter_queue.append(new_parameter)
 
-    def insert(self, dbf: Database, phase_name: str, As: [str], Xs: [str]):
+    def insert(self, dbf: Database, phase_name: str, As: List[str], Xs: List[str]):
         """Add a Z_i_AB:XY parameter for each species defined in the quadruplet"""
         linear_species = [''] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.quadruplet_idxs)
@@ -567,12 +568,12 @@ class SUBQQuadrupletCoordinations:
 class SUBQExcessQuadruplet:
     mixing_type: int
     mixing_code: str  # G, Q, B, or R
-    mixing_const: [int]  # exactly four
-    mixing_exponents: [int]  # exactly four
-    junk: [float]  # exactly twelve
+    mixing_const: List[int]  # exactly four
+    mixing_exponents: List[int]  # exactly four
+    junk: List[float]  # exactly twelve
     additional_cation_mixing_const: int
     additional_anion_mixing_const: int
-    excess_coeffs: [float]
+    excess_coeffs: List[float]
 
     def expr(self, indices):
         """Return an expression for the energy in this temperature interval"""
@@ -608,7 +609,7 @@ class SUBQExcessQuadruplet:
         else:
             self._parameter_queue.append(new_parameter)
 
-    def insert(self, dbf: Database, phase_name: str, As: [str], Xs: [str], excess_coeff_indices: [int]):
+    def insert(self, dbf: Database, phase_name: str, As: List[str], Xs: List[str], excess_coeff_indices: List[int]):
         linear_species = [None] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.mixing_const)
         # TODO: do we need to sort these?
@@ -649,17 +650,17 @@ class Phase_SUBQ(PhaseBase):
     num_quadruplets: int
     num_subl_1_const: int
     num_subl_2_const: int
-    subl_1_const: [str]
-    subl_2_const: [str]
-    subl_1_charges: [float]
-    subl_1_chemical_groups: [int]
-    subl_2_charges: [float]
-    subl_2_chemical_groups: [int]
-    subl_const_idx_pairs: [(int,)]
-    quadruplets: [SUBQQuadrupletCoordinations]
-    excess_parameters: [SUBQExcessQuadruplet]
-    phase_type= [str]
-    def insert(self, dbf: Database, pure_elements: [str], gibbs_coefficient_idxs: [int], excess_coefficient_idxs: [int]):
+    subl_1_const: List[str]
+    subl_2_const: List[str]
+    subl_1_charges: List[float]
+    subl_1_chemical_groups: List[int]
+    subl_2_charges: List[float]
+    subl_2_chemical_groups: List[int]
+    subl_const_idx_pairs: List[Tuple[int, int]]
+    quadruplets: List[SUBQQuadrupletCoordinations]
+    excess_parameters: List[SUBQExcessQuadruplet]
+    phase_type= List[str]
+    def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
         # First: get the pair and quadruplet species added to the database:
         # Here we rename the species names according to their charges, to avoid creating duplicate pairs/quadruplets
         cation_el_chg_pairs = list(zip(self.subl_1_const, self.subl_1_charges))
@@ -718,13 +719,13 @@ class Phase_SUBQ(PhaseBase):
 # TODO: not yet supported
 @dataclass
 class Phase_RealGas(PhaseBase):
-    endmembers: [EndmemberRealGas]
+    endmembers: List[EndmemberRealGas]
 
 
 # TODO: not yet supported
 @dataclass
 class Phase_Aqueous(PhaseBase):
-    endmembers: [EndmemberAqueous]
+    endmembers: List[EndmemberAqueous]
 
 
 def tokenize(instring, startline=0, force_upper=False):
@@ -749,7 +750,7 @@ def parse_header(toks: TokenParser) -> Header:
     return header
 
 
-def parse_additional_terms(toks: TokenParser) -> [AdditionalCoefficientPair]:
+def parse_additional_terms(toks: TokenParser) -> List[AdditionalCoefficientPair]:
     num_additional_terms = toks.parse(int)
     return [AdditionalCoefficientPair(*toks.parseN(2, float)) for _ in range(num_additional_terms)]
 
