@@ -168,7 +168,7 @@ class Endmember():
         expr_cond_pairs.append((S.Zero, S.true))
         return Piecewise(*expr_cond_pairs, evaluate=False)
 
-    def constituents(self, pure_elements: List[str]) -> Dict[str: float]:
+    def constituents(self, pure_elements: List[str]) -> Dict[str, float]:
         return {el: amnt for el, amnt in zip(pure_elements, self.stoichiometry_pure_elements) if amnt != 0.0}
 
     def constituent_array(self) -> List[List[str]]:
