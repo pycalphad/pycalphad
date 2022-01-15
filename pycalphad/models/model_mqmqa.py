@@ -107,10 +107,12 @@ class ModelMQMQA(Model):
         if len(self.anions) == 0:
             raise DofError(f"{self.phase_name}: Anion sublattice of {phase.constituents[1]} has no active species in {self.components}")
 
-        quads = itertools.product(
+        self._pairs = list(itertools.product(self.cations, self.anions))
+        quads = list(itertools.product(
             itertools.combinations_with_replacement(self.cations, 2),
             itertools.combinations_with_replacement(self.anions, 2),
-        )
+        ))
+        self._quadruplets = [(A, B, X, Y) for (A, B), (X, Y) in quads]
         quad_species = [get_species(A, B, X, Y) for (A, B), (X, Y) in quads]
         self.constituents = [sorted(quad_species)]
 
@@ -188,98 +190,6 @@ class ModelMQMQA(Model):
                     return False
         return True
 
-    def _X_ijkl(self, i, j, k, l) -> v.SiteFraction:
-        """
-        Shorthand for creating a site fraction object v.Y for a quadruplet (ij/kl)
-
-        """
-        return v.Y(self.phase_name, 0, get_species(i, j, k, l))
-
-    def _X_ik(self, A: v.Species, X: v.Species):
-        """
-        Return the endmember fraction, X_i/k, for a the pair i/k following Poschmann Eq. 6
-        """
-        cations = self.cations
-        anions = self.anions
-        X_ijkl = self._X_ijkl
-
-        # TODO: does this have zeta dependence for SUBQ models? Reformulate to be more Poschmann-like?
-        return 0.25 * (
-            X_ijkl(A,A,X,X)
-            + sum(X_ijkl(A,A,X,Y) for Y in anions)
-            + sum(X_ijkl(A,B,X,X) for B in cations)
-            + sum(X_ijkl(A,B,X,Y) for B, Y in itertools.product(cations, anions))
-        )
-
-    def _n_i(self, dbe, species):
-        """
-        Return the mass of the species following Poschmann Eq. 7 and 8.
-        """
-        cations = self.cations
-        anions = self.anions
-
-        # aliases for notation
-        Z = partial(self.Z, dbe)
-        X_ijkl = self._X_ijkl
-        n_i = S.Zero
-
-        if species in cations:
-            A = species
-            for i, X in enumerate(anions):
-                for Y in anions[i:]:
-                    n_i += X_ijkl(A,A,X,Y)/Z(A,A,A,X,Y)
-                    for B in cations:
-                        n_i += X_ijkl(A, B, X, Y)/Z(A, A, B, X, Y)
-        else:
-            assert species in anions
-            X = species
-            for i, A in enumerate(cations):
-                for B in cations[i:]:
-                    n_i += X_ijkl(A,B,X,X) / Z(X,A,B,X,X)
-                    for Y in anions:
-                        n_i += X_ijkl(A,B,X,Y) / Z(X,A,B,X,Y)
-        return n_i
-
-    def _X_i(self, dbe, species: v.Species):
-        """
-        Return the site fraction of species on it's sublattice. Poschmann Eq. 9 and 10.
-        """
-        cations = self.cations
-        anions = self.anions
-
-        if species in cations:
-            return self._n_i(dbe, species) / sum(self._n_i(dbe, sp) for sp in cations)
-        else:
-            assert species in anions
-            return self._n_i(dbe, species) / sum(self._n_i(dbe, sp) for sp in anions)
-
-    def _Y_i(self, species: v.Species):
-        """
-        Return the site equivalent fraction of species following Poschmann Eq. 11 and 12.
-        """
-        X_ijkl = self._X_ijkl
-        cations = self.cations
-        anions = self.anions
-
-        Y_i = S.Zero
-        if species in cations:
-            A = species
-            for i, X in enumerate(anions):
-                for Y in anions[i:]:
-                    Y_i += X_ijkl(A, A, X, Y)
-                    for B in cations:
-                        Y_i += X_ijkl(A, B, X, Y)
-        else:
-            assert species in anions
-            X = species
-            for i, A in enumerate(cations):
-                for B in cations[i:]:
-                    Y_i += X_ijkl(A, B, X, X)
-                    for Y in anions:
-                        Y_i += X_ijkl(A, B, X, Y)
-        return 0.5 * Y_i
-
-
     def _zeta_ik(self, i, k):
         pair_query = (
             (where("phase_name") == self.phase_name) & \
@@ -291,28 +201,95 @@ class ModelMQMQA(Model):
         param = params[0]
         return param["zeta"]
 
-
-    def _F_i(self, species: v.Species):
+    def _X_ijkl(self, i, j, k, l) -> v.SiteFraction:
         """
-        Return the coordination-equivalent fraction of species. 
-        
-        Note that Poschmann Eq. 13 and 14 assume that zeta are equal for all pairs, but generally this is not true.
-
-        For now, this function makes that same assumption.
+        Shorthand for creating a site fraction object v.Y for a quadruplet (ij/kl)
         """
+        return v.Y(self.phase_name, 0, get_species(i, j, k, l))
+
+    def _n_ik(self, i, k):
+        """
+        Return the amount of pair, n_i/k, for the pair i/k following Poschmann Eq. 5
+        """
+        n_ik = S.Zero
+        for a, b, x, y in self._quadruplets:
+            n_ik += self._X_ijkl(a, b, x, y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / self._zeta_ik(i, k)
+        return n_ik
+
+    def _X_ik(self, i: v.Species, k: v.Species):
+        """
+        Return the endmember fraction, X_i/k, for a the pair i/k following Poschmann Eq. 6
+        """
+        # TODO: the definition given in Poschmann is actually this one, but enabling seems to break the tests.
+        # X_ik = self._n_ik(i, k) / sum(self._n_ik(a, x) for a, x in self._pairs)
+        # return X_ik
+
+        X_ik = S.Zero
+        for a, b, x, y in self._quadruplets:
+            X_ik += self._X_ijkl(a, b, x, y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / 4
+        return X_ik
+
+    def _n_i(self, dbe, species):
+        """
+        Return the mass of the species following Poschmann Eq. 7 and 8.
+        """
+        Z = partial(self.Z, dbe)  # alias for notation
+        n_i = S.Zero
+        if species in self.cations:
+            i = species
+            for a, b, x, y in self._quadruplets:
+                n_i += self._X_ijkl(a, b, x, y) * ((a == i) / Z(a, a, b, x, y) + (b == i) / Z(b, a, b, x, y))
+        else:
+            assert species in self.anions
+            k = species
+            for a, b, x, y in self._quadruplets:
+                n_i += self._X_ijkl(a, b, x, y) * ((x == k) / Z(x, a, b, x, y) + (y == k) / Z(y, a, b, x, y))
+        return n_i
+
+    def _X_i(self, dbe, species: v.Species):
+        """
+        Return the site fraction of species on it's sublattice. Poschmann Eq. 9 and 10.
+        """
+        if species in self.cations:
+            return self._n_i(dbe, species) / sum(self._n_i(dbe, a) for a in self.cations)
+        else:
+            assert species in self.anions
+            return self._n_i(dbe, species) / sum(self._n_i(dbe, x) for x in self.anions)
+
+    def _Y_i(self, species: v.Species):
+        """
+        Return the site equivalent fraction of species following Poschmann Eq. 11 and 12.
+        """
+        X_ijkl = self._X_ijkl
         cations = self.cations
         anions = self.anions
 
-        F_i = S.Zero
+        Y_i = S.Zero
         if species in cations:
             i = species
-            for k in anions:
-                F_i += self._X_ik(i, k)
+            for a, b, x, y in self._quadruplets:
+                Y_i += self._X_ijkl(a, b, x, y) * ((a == i) + (b == i)) / 2
         else:
             assert species in anions
             k = species
-            for i in cations:
-                F_i += self._X_ik(i, k)
+            for a, b, x, y in self._quadruplets:
+                Y_i += self._X_ijkl(a, b, x, y) * ((x == k) + (y == k)) / 2
+        return Y_i
+
+    def _F_i(self, species: v.Species):
+        """
+        Return the coordination-equivalent fraction of species, Poschmann Eq. 13 and 14.
+        """
+        F_i = S.Zero
+        if species in self.cations:
+            i = species
+            for a, x in self._pairs:
+                F_i += int(a == i) * self._X_ik(a, x)
+        else:
+            assert species in self.anions
+            k = species
+            for a, x in self._pairs:
+                F_i += int(x == k) * self._X_ik(a, x)
         return F_i
 
 
@@ -590,31 +567,21 @@ class ModelMQMQA(Model):
         elif soln_type == "SUBG":
             exp1 = 1.0
             exp2 = 1.0
-        Sid = S.Zero
 
+        Sid = S.Zero
         # Individual constituents
         for A in cations:
             Sid += n_i(A) * log(X_i(A))
         for X in anions:
             Sid += n_i(X) * log(X_i(X))
-
         # Pairs
         for A in cations:
             for X in anions:
-                Sid += 4 / self._zeta_ik(A, X) * X_ik(A, X) * log(X_ik(A, X) / (F_i(A) * F_i(X)))
-
+                Sid += self._n_ik(A, X) * log(X_ik(A, X) / (F_i(A) * F_i(X)))
         # Quadruplets
-        # flatter loop over all quadruplets:
-        # for A, B, X, Y in ((A, B, X, Y) for i, A in enumerate(cations) for B in cations[i:] for j, X in enumerate(anions) for Y in anions[j:]):
-        # Count last 4 terms in the sum
-        for i, A in enumerate(cations):
-            for B in cations[i:]:
-                for j, X in enumerate(anions):
-                    for Y in anions[j:]:
-                        factor = 1
-                        if A != B: factor *= 2
-                        if X != Y: factor *= 2
-                        Sid += X_ijkl(A,B,X,Y) * log(X_ijkl(A,B,X,Y) / (factor * (X_ik(A,X) * X_ik(A,Y) * X_ik(B,X) * X_ik(B,Y))**exp1 / (Y_i(A) * Y_i(B) * Y_i(X) * Y_i(Y))**exp2))
+        for i, j, k, l in self._quadruplets:
+            C_ijkl = (2 - (i == j)) * (2 - (k == l))
+            Sid += X_ijkl(i, j, k, l) * log(X_ijkl(i, j, k, l) / (C_ijkl * (X_ik(i, k) * X_ik(i, l) * X_ik(j, k) * X_ik(j, l))**exp1 / (Y_i(i) * Y_i(j) * Y_i(k) * Y_i(l))**exp2))
         return Sid * v.T * v.R
 
     def excess_mixing_energy(self, dbe):
