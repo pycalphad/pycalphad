@@ -209,24 +209,47 @@ class ModelMQMQA(Model):
 
     def _n_ik(self, i, k):
         """
-        Return the amount of pair, n_i/k, for the pair i/k following Poschmann Eq. 5
+        Return the amount of pair, n_i/k, for the pair i/k.
+        
+        Follows Poschmann Eq. 5 except that including zeta here (as by
+        Poschmann) seems to break the tests when the coordination numbers
+        vary across quadruplets.
         """
         n_ik = S.Zero
         for a, b, x, y in self._quadruplets:
-            n_ik += self._X_ijkl(a, b, x, y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / self._zeta_ik(i, k)
+            n_ik += self._X_ijkl(a, b, x, y) * ((a == i) + (b == i)) * ((x == k) + (y == k))
+        return n_ik
+
+    def _n_ik_star(self, i, k):
+        """
+        Return the amount of pair, n^*_i/k, for the pair i/k following Lambotte JCT 2011 Eq. A.3
+
+        This term is only used in the pair part of the entropy.
+        """
+        n_ik = S.Zero
+        for a, b, x, y in self._quadruplets:
+            n_ik += self._X_ijkl(a, b, x, y) * ((a == i) + (b == i)) * ((x == k) + (y == k))
+        n_ik /= self._zeta_ik(i, k)
         return n_ik
 
     def _X_ik(self, i: v.Species, k: v.Species):
         """
         Return the endmember fraction, X_i/k, for a the pair i/k following Poschmann Eq. 6
         """
-        # TODO: the definition given in Poschmann is actually this one, but enabling seems to break the tests.
-        # X_ik = self._n_ik(i, k) / sum(self._n_ik(a, x) for a, x in self._pairs)
-        # return X_ik
+        X_ik = self._n_ik(i, k) / sum(self._n_ik(a, x) for a, x in self._pairs)
+        return X_ik
 
-        X_ik = S.Zero
-        for a, b, x, y in self._quadruplets:
-            X_ik += self._X_ijkl(a, b, x, y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / 4
+    def _X_ik_star(self, i: v.Species, k: v.Species):
+        """
+        Return the endmember fraction, X^*_i/k, for a the pair i/k.
+        
+        Follows Lambotte JCT 2011 Eq. A.5, but this is simply Poschmann Eq. 6
+        with n^*_ik instead of n_ik.
+
+        This term is only used in the pair part of the entropy and as a
+        sub-expression of F_i (also part of the pair part of the entropy).
+        """
+        X_ik = self._n_ik_star(i, k) / sum(self._n_ik_star(a, x) for a, x in self._pairs)
         return X_ik
 
     def _n_i(self, dbe, species):
@@ -280,16 +303,23 @@ class ModelMQMQA(Model):
         """
         Return the coordination-equivalent fraction of species, Poschmann Eq. 13 and 14.
         """
+        soln_type = self._dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
         F_i = S.Zero
         if species in self.cations:
             i = species
             for a, x in self._pairs:
-                F_i += int(a == i) * self._X_ik(a, x)
+                if soln_type == "SUBG":
+                    F_i += int(a == i) * self._X_ik(a, x)
+                elif soln_type == "SUBQ":
+                    F_i += int(a == i) * self._X_ik_star(a, x)
         else:
             assert species in self.anions
             k = species
             for a, x in self._pairs:
-                F_i += int(x == k) * self._X_ik(a, x)
+                if soln_type == "SUBG":
+                    F_i += int(x == k) * self._X_ik(a, x)
+                elif soln_type == "SUBQ":
+                    F_i += int(x == k) * self._X_ik_star(a, x)
         return F_i
 
 
@@ -538,15 +568,15 @@ class ModelMQMQA(Model):
         Y_i = self._Y_i
         F_i = self._F_i
         X_ijkl = self._X_ijkl
-        soln_type = dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
         cations = self.cations
         anions = self.anions
-        if soln_type == "SUBQ":
-            exp1 = 0.75
-            exp2 = 0.5
-        elif soln_type == "SUBG":
+        soln_type = dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
+        if soln_type == "SUBG":
             exp1 = 1.0
             exp2 = 1.0
+        elif soln_type == "SUBQ":
+            exp1 = 0.75
+            exp2 = 0.5
 
         Sid = S.Zero
         # Individual constituents
@@ -555,9 +585,14 @@ class ModelMQMQA(Model):
         for X in anions:
             Sid += n_i(X) * log(X_i(X))
         # Pairs
-        for A in cations:
-            for X in anions:
-                Sid += self._n_ik(A, X) * log(X_ik(A, X) / (F_i(A) * F_i(X)))
+        if soln_type == "SUBG":
+            for A in cations:
+                for X in anions:
+                    Sid += self._n_ik(A, X) * log(X_ik(A, X) / (F_i(A) * F_i(X)))
+        elif soln_type == "SUBQ":
+            for A in cations:
+                for X in anions:
+                    Sid += self._n_ik_star(A, X) * log(self._X_ik_star(A, X) / (F_i(A) * F_i(X)))
         # Quadruplets
         for i, j, k, l in self._quadruplets:
             C_ijkl = (2 - (i == j)) * (2 - (k == l))
