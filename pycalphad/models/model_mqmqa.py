@@ -470,20 +470,20 @@ class ModelMQMQA(Model):
 
     @property
     def normalization(self):
-        """Divide by this normalization factor to convert from J/mole-quadruplets to J/mole-atoms"""
-        # No_Vac is to fix the normalization so that it does not take vacancy into consideration
-        no_vac = [j for j in self.components for o in j.constituents if o != "VA"]
-        const_spe = [k for i in no_vac for j, k in i.constituents.items()]
-        return sum(self._n_i(self._dbe, c) * const_spe[count] for count, c in enumerate(no_vac))
+        """
+        Total number of moles of this phase.
+        
+        Divide by this normalization factor to convert from J/mole-formula to J/mole-atoms
+        """
+        return sum(self._n_i(self._dbe, i) for i in self.cations + self.anions if "VA" not in i.constituents)
 
     def moles(self, species, per_formula_unit=False):
         "Number of moles of species or elements."
         species = v.Species(species)
         result = S.Zero
-        for i in itertools.chain(self.cations, self.anions):
+        for i in self.cations + self.anions:
             if list(species.constituents.keys())[0] in i.constituents:
-                count = list(i.constituents.values())[0]
-                result += self._n_i(self._dbe, i) * count
+                result += self._n_i(self._dbe, i)
         if per_formula_unit:
             return result
         else:
