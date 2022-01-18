@@ -283,17 +283,13 @@ class ModelMQMQA(Model):
         """
         Return the site equivalent fraction of species following Poschmann Eq. 11 and 12.
         """
-        X_ijkl = self._X_ijkl
-        cations = self.cations
-        anions = self.anions
-
         Y_i = S.Zero
-        if species in cations:
+        if species in self.cations:
             i = species
             for a, b, x, y in self._quadruplets:
                 Y_i += self._X_ijkl(a, b, x, y) * ((a == i) + (b == i)) / 2
         else:
-            assert species in anions
+            assert species in self.anions
             k = species
             for a, b, x, y in self._quadruplets:
                 Y_i += self._X_ijkl(a, b, x, y) * ((x == k) + (y == k)) / 2
@@ -394,18 +390,16 @@ class ModelMQMQA(Model):
         """
         # For mixing in cations (i != j, k == l), nu are cations (nu != i, nu != j) where i and nu have the same
         # chemical group and j has a different chemical group.
-        cations = self.cations
-        anions = self.anions
         mixing_term = S.Zero
         if i == j and k == l:
             raise ValueError(f"Computing Xi_mix is not supported for pair quadruplets (there must be mixing among cations or anions). Got quadruplet {(i, j, k, l)}.")
         elif i != j and k == l:  # Mixing on first sublattice
-            nu = list(filter(self._chemical_group_filter(dbe, i, j, "cations"), cations))
+            nu = list(filter(self._chemical_group_filter(dbe, i, j, "cations"), self.cations))
             for a in [i] + nu:
                 mixing_term += self._Y_ik(a, k)
             return mixing_term
         elif i == j and k != l:  # Mixing on second sublattice
-            nu = list(filter(self._chemical_group_filter(dbe, k, l, "anions"), anions))
+            nu = list(filter(self._chemical_group_filter(dbe, k, l, "anions"), self.anions))
             for x in [k] + nu:
                 mixing_term += self._Y_ik(i, x)
             return mixing_term
@@ -414,7 +408,6 @@ class ModelMQMQA(Model):
 
     def _calc_Z(self, dbe, species, A, B, X, Y):
         # In derivations of the MQMQA, charges are written as if they have the same sign. The absolute values of the charges are used here.
-
         Z = partial(self.Z, dbe)
         if (species == A) or (species == B):
             species_is_cation = True
@@ -486,16 +479,11 @@ class ModelMQMQA(Model):
 
     def get_internal_constraints(self):
         constraints = []
-        X_ijkl = self._X_ijkl
-        total_quad = -1
-        cations = self.cations
-        anions = self.anions
-        for i, A in enumerate(cations):
-            for B in cations[i:]:
-                for j, X in enumerate(anions):
-                    for Y in anions[j:]:
-                        total_quad += X_ijkl(A,B,X,Y)
-        constraints.append(total_quad)
+        # Site fraction constraint
+        site_frac_sum = S.Zero
+        for a, b, x, y in self._quadruplets:
+            site_frac_sum += self._X_ijkl(a, b, x, y)
+        constraints.append(site_frac_sum - 1)  # = 0
         return constraints
 
     @property
@@ -533,6 +521,7 @@ class ModelMQMQA(Model):
     enthalpy = HM = property(lambda self: self.GM - v.T * self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T * self.GM.diff(v.T, v.T))
     # pylint: enable=C0103
+    # TODO: these should probably raise or be undefined because they are meaningless.
     mixing_energy = GM_MIX = property(lambda self: self.GM - self.reference_model.GM)
     mixing_enthalpy = HM_MIX = property(lambda self: self.GM_MIX - v.T * self.GM_MIX.diff(v.T))
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
@@ -568,35 +557,31 @@ class ModelMQMQA(Model):
         Y_i = self._Y_i
         F_i = self._F_i
         X_ijkl = self._X_ijkl
-        cations = self.cations
-        anions = self.anions
         soln_type = dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
         if soln_type == "SUBG":
-            exp1 = 1.0
-            exp2 = 1.0
+            pow_X_ik = 1.0
+            pow_Y_i = 1.0
         elif soln_type == "SUBQ":
-            exp1 = 0.75
-            exp2 = 0.5
+            pow_X_ik = 0.75
+            pow_Y_i = 0.5
 
         Sid = S.Zero
         # Individual constituents
-        for A in cations:
+        for A in self.cations:
             Sid += n_i(A) * log(X_i(A))
-        for X in anions:
+        for X in self.anions:
             Sid += n_i(X) * log(X_i(X))
         # Pairs
         if soln_type == "SUBG":
-            for A in cations:
-                for X in anions:
-                    Sid += self._n_ik(A, X) * log(X_ik(A, X) / (F_i(A) * F_i(X)))
+            for i, k in self._pairs:
+                Sid += self._n_ik(i, k) * log(X_ik(i, k) / (F_i(i) * F_i(k)))
         elif soln_type == "SUBQ":
-            for A in cations:
-                for X in anions:
-                    Sid += self._n_ik_star(A, X) * log(self._X_ik_star(A, X) / (F_i(A) * F_i(X)))
+            for i, k in self._pairs:
+                Sid += self._n_ik_star(i, k) * log(self._X_ik_star(i, k) / (F_i(i) * F_i(k)))
         # Quadruplets
         for i, j, k, l in self._quadruplets:
             C_ijkl = (2 - (i == j)) * (2 - (k == l))
-            Sid += X_ijkl(i, j, k, l) * log(X_ijkl(i, j, k, l) / (C_ijkl * (X_ik(i, k) * X_ik(i, l) * X_ik(j, k) * X_ik(j, l))**exp1 / (Y_i(i) * Y_i(j) * Y_i(k) * Y_i(l))**exp2))
+            Sid += X_ijkl(i, j, k, l) * log(X_ijkl(i, j, k, l) / (C_ijkl * (X_ik(i, k) * X_ik(i, l) * X_ik(j, k) * X_ik(j, l))**pow_X_ik / (Y_i(i) * Y_i(j) * Y_i(k) * Y_i(l))**pow_Y_i))
         return Sid * v.T * v.R
 
     def excess_mixing_energy(self, dbe):
