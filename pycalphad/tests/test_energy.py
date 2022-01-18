@@ -750,7 +750,7 @@ def test_MQMQA_SUBQ_entropy_only(load_database):
     
 # TODO: make this pass
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
-def test_MQMQA_SUBQ_Q_mixing(load_database):
+def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     dbf = load_database()
     # TODO: demonstration of bad species mangling
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
@@ -793,3 +793,180 @@ def test_MQMQA_SUBQ_Q_mixing(load_database):
     assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.2, 1e-5)
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
+
+
+@select_database("Shishin_Fe-Sb-O-S_slag.dat")
+def test_MQMQA_SUBQ_Q_mixing_400K(load_database):
+    dbf = load_database()
+    # TODO: demonstration of bad species mangling
+    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
+    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
+    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
+    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
+    mod = ModelMQMQA(dbf, ["FE", "SB", "O", "S"], "SLAG-LIQ")
+
+    assert FE2 in mod.cations
+    assert FE3 in mod.cations
+    assert SB3 in mod.cations
+    assert O in mod.anions
+    assert S in mod.anions
+
+    subs_dict = {  # Thermochimica site fractions
+        mod._X_ijkl(FE2,FE2,O,O): 3.3714E-39,
+        mod._X_ijkl(FE3,FE3,O,O): 8.0924E-05,
+        mod._X_ijkl(SB3,SB3,O,O): 0.46319   ,
+        mod._X_ijkl(FE2,FE3,O,O): 2.6591E-20,
+        mod._X_ijkl(FE2,SB3,O,O): 8.6141E-20,
+        mod._X_ijkl(FE3,SB3,O,O): 1.2245E-02,
+        mod._X_ijkl(FE2,FE2,S,S): 5.2925E-28,
+        mod._X_ijkl(FE3,FE3,S,S): 0.46319   ,
+        mod._X_ijkl(SB3,SB3,S,S): 8.0924E-05,
+        mod._X_ijkl(FE2,FE3,S,S): 3.4130E-14,
+        mod._X_ijkl(FE2,SB3,S,S): 4.5113E-16,
+        mod._X_ijkl(FE3,SB3,S,S): 1.2245E-02,
+        mod._X_ijkl(FE2,FE2,O,S): 4.0569E-35,
+        mod._X_ijkl(FE3,FE3,O,S): 1.2245E-02,
+        mod._X_ijkl(SB3,SB3,O,S): 1.2245E-02,
+        mod._X_ijkl(FE2,FE3,O,S): 7.4248E-18,
+        mod._X_ijkl(FE2,SB3,O,S): 1.5364E-18,
+        mod._X_ijkl(FE3,SB3,O,S): 2.4489E-02,
+        v.T: 400.0,
+    }
+
+    check_energy(mod, subs_dict, -9.59007E+04, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.2, 1e-5)
+    assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.2, 1e-5)
+    assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
+    assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
+
+
+@select_database("Shishin_Fe-Sb-O-S_slag.dat")
+def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
+    dbf = load_database()
+    # TODO: demonstration of bad species mangling
+    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
+    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
+    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
+    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
+    mod = ModelMQMQA(dbf, ["SB", "O", "S"], "SLAG-LIQ")
+
+    assert FE2 not in mod.cations
+    assert FE3 not in mod.cations
+    assert SB3 in mod.cations
+    assert O in mod.anions
+    assert S in mod.anions
+
+    subs_dict = {  # Thermochimica site fractions
+        mod._X_ijkl(SB3,SB3,O,O): 0.25,
+        mod._X_ijkl(SB3,SB3,S,S): 0.25,
+        mod._X_ijkl(SB3,SB3,O,S): 0.5,
+        v.T: 400.0,
+    }
+
+    check_energy(mod, subs_dict, -8.04978E+04, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.4, 1e-5)
+    assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
+    assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
+
+
+@select_database("Shishin_Fe-Sb-O-S_slag.dat")
+def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_1000K(load_database):
+    dbf = load_database()
+    # TODO: demonstration of bad species mangling
+    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
+    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
+    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
+    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
+    mod = ModelMQMQA(dbf, ["SB", "O", "S"], "SLAG-LIQ")
+
+    assert FE2 not in mod.cations
+    assert FE3 not in mod.cations
+    assert SB3 in mod.cations
+    assert O in mod.anions
+    assert S in mod.anions
+
+    subs_dict = {  # Thermochimica site fractions
+        mod._X_ijkl(SB3,SB3,O,O): 0.25,
+        mod._X_ijkl(SB3,SB3,S,S): 0.25,
+        mod._X_ijkl(SB3,SB3,O,S): 0.5,
+        v.T: 1000.0,
+    }
+
+    check_energy(mod, subs_dict, -1.18391E+05, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.4, 1e-5)
+    assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
+    assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
+
+
+@select_database("Shishin_Fe-Sb-O-S_slag.dat")
+def test_MQMQA_SUBQ_Q_mixing_Fe_O_S(load_database):
+    dbf = load_database()
+    # TODO: demonstration of bad species mangling
+    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
+    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
+    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
+    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
+    mod = ModelMQMQA(dbf, ["FE", "O", "S"], "SLAG-LIQ")
+
+    assert FE2 in mod.cations
+    assert FE3 in mod.cations
+    assert SB3 not in mod.cations
+    assert O in mod.anions
+    assert S in mod.anions
+
+    subs_dict = {  # Thermochimica site fractions
+        mod._X_ijkl(FE2,FE2,O,O): 1.2662E-30,
+        mod._X_ijkl(FE3,FE3,O,O): 0.25000   ,
+        mod._X_ijkl(FE2,FE3,O,O): 4.6228E-15,
+        mod._X_ijkl(FE2,FE2,S,S): 1.1655E-28,
+        mod._X_ijkl(FE3,FE3,S,S): 0.25000   ,
+        mod._X_ijkl(FE2,FE3,S,S): 1.2576E-14,
+        mod._X_ijkl(FE2,FE2,O,S): 1.7709E-29,
+        mod._X_ijkl(FE3,FE3,O,S): 0.50000   ,
+        mod._X_ijkl(FE2,FE3,O,S): 1.3019E-14,
+        v.T: 1000.0,
+    }
+
+    check_energy(mod, subs_dict, -1.37905E+05, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.4, 1e-5)
+    assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
+    assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
+
+@select_database("Shishin_Fe-Sb-O-S_slag.dat")
+def test_MQMQA_SUBQ_Q_mixing_Fe_O_S_2(load_database):
+    dbf = load_database()
+    # TODO: demonstration of bad species mangling
+    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
+    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
+    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
+    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
+    mod = ModelMQMQA(dbf, ["FE", "O", "S"], "SLAG-LIQ")
+
+    assert FE2 in mod.cations
+    assert FE3 in mod.cations
+    assert SB3 not in mod.cations
+    assert O in mod.anions
+    assert S in mod.anions
+
+    subs_dict = {  # Thermochimica site fractions
+        mod._X_ijkl(FE2,FE2,O,O): 5.0999E-03,
+        mod._X_ijkl(FE3,FE3,O,O): 0.16282   ,
+        mod._X_ijkl(FE2,FE3,O,O): 0.14021   ,
+        mod._X_ijkl(FE2,FE2,S,S): 0.16575   ,
+        mod._X_ijkl(FE3,FE3,S,S): 2.1897E-02,
+        mod._X_ijkl(FE2,FE3,S,S): 0.12049   ,
+        mod._X_ijkl(FE2,FE2,O,S): 4.2382E-02,
+        mod._X_ijkl(FE3,FE3,O,S): 0.11942   ,
+        mod._X_ijkl(FE2,FE3,O,S): 0.22193   ,
+        v.T: 1000.0,
+    }
+
+    check_energy(mod, subs_dict, -1.39362E+05, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.45, 1e-5)
+    assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.275, 1e-5)
+    assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.275, 1e-5)
