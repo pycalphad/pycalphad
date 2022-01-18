@@ -748,7 +748,7 @@ def test_MQMQA_SUBQ_entropy_only(load_database):
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
     
-@pytest.mark.skip(reason='Thermochimica seems to produce the wrong answers currently.')
+
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     dbf = load_database()
@@ -767,28 +767,28 @@ def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     assert S in mod.anions
 
     subs_dict = {  # Thermochimica site fractions
-        mod._X_ijkl(FE2,FE2,O,O): 1.8217E-31,
-        mod._X_ijkl(FE3,FE3,O,O): 6.8606E-03,
-        mod._X_ijkl(SB3,SB3,O,O): 0.24643   ,
-        mod._X_ijkl(FE2,FE3,O,O): 2.8656E-16,
-        mod._X_ijkl(FE2,SB3,O,O): 4.8701E-16,
-        mod._X_ijkl(FE3,SB3,O,O): 8.2236E-02,
-        mod._X_ijkl(FE2,FE2,S,S): 3.6058E-28,
-        mod._X_ijkl(FE3,FE3,S,S): 0.24643   ,
-        mod._X_ijkl(SB3,SB3,S,S): 6.8606E-03,
-        mod._X_ijkl(FE2,FE3,S,S): 2.1667E-14,
-        mod._X_ijkl(FE2,SB3,S,S): 3.6152E-15,
-        mod._X_ijkl(FE3,SB3,S,S): 8.2236E-02,
-        mod._X_ijkl(FE2,FE2,O,S): 1.1815E-29,
-        mod._X_ijkl(FE3,FE3,O,S): 8.2236E-02,
-        mod._X_ijkl(SB3,SB3,O,S): 8.2236E-02,
-        mod._X_ijkl(FE2,FE3,O,S): 4.2546E-15,
-        mod._X_ijkl(FE2,SB3,O,S): 2.2656E-15,
-        mod._X_ijkl(FE3,SB3,O,S): 0.16447   ,
+        mod._X_ijkl(FE2,FE2,O,O): 1.1862E-32,
+        mod._X_ijkl(FE3,FE3,O,O): 5.5017E-03,
+        mod._X_ijkl(SB3,SB3,O,O): 0.26528   ,
+        mod._X_ijkl(FE2,FE3,O,O): 6.6681E-17,
+        mod._X_ijkl(FE2,SB3,O,O): 1.3130E-16,
+        mod._X_ijkl(FE3,SB3,O,O): 7.6407E-02,
+        mod._X_ijkl(FE2,FE2,S,S): 3.1247E-29,
+        mod._X_ijkl(FE3,FE3,S,S): 0.26528   ,
+        mod._X_ijkl(SB3,SB3,S,S): 5.5017E-03,
+        mod._X_ijkl(FE2,FE3,S,S): 6.7388E-15,
+        mod._X_ijkl(FE2,SB3,S,S): 9.7047E-16,
+        mod._X_ijkl(FE3,SB3,S,S): 7.6407E-02,
+        mod._X_ijkl(FE2,FE2,O,S): 8.8748E-31,
+        mod._X_ijkl(FE3,FE3,O,S): 7.6407E-02,
+        mod._X_ijkl(SB3,SB3,O,S): 7.6407E-02,
+        mod._X_ijkl(FE2,FE3,O,S): 1.1446E-15,
+        mod._X_ijkl(FE2,SB3,O,S): 6.0950E-16,
+        mod._X_ijkl(FE3,SB3,O,S): 0.15281   ,
         v.T: 1000.0,
     }
 
-    check_energy(mod, subs_dict, -1.31732E+05, mode="sympy")  # Thermochimica energy
+    check_energy(mod, subs_dict, -1.31831E+05, mode="sympy")  # Thermochimica energy
     assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.2, 1e-5)
     assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.2, 1e-5)
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
@@ -839,8 +839,7 @@ def test_MQMQA_SUBQ_Q_mixing_1000K_FACTSAGE(load_database):
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
 
-
-@pytest.mark.skip(reason='Thermochimica seems to produce the wrong answers currently.')
+               
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_400K(load_database):
     dbf = load_database()
@@ -859,28 +858,28 @@ def test_MQMQA_SUBQ_Q_mixing_400K(load_database):
     assert S in mod.anions
 
     subs_dict = {  # Thermochimica site fractions
-        mod._X_ijkl(FE2,FE2,O,O): 3.3714E-39,
-        mod._X_ijkl(FE3,FE3,O,O): 8.0924E-05,
-        mod._X_ijkl(SB3,SB3,O,O): 0.46319   ,
-        mod._X_ijkl(FE2,FE3,O,O): 2.6591E-20,
-        mod._X_ijkl(FE2,SB3,O,O): 8.6141E-20,
-        mod._X_ijkl(FE3,SB3,O,O): 1.2245E-02,
-        mod._X_ijkl(FE2,FE2,S,S): 5.2925E-28,
-        mod._X_ijkl(FE3,FE3,S,S): 0.46319   ,
-        mod._X_ijkl(SB3,SB3,S,S): 8.0924E-05,
-        mod._X_ijkl(FE2,FE3,S,S): 3.4130E-14,
-        mod._X_ijkl(FE2,SB3,S,S): 4.5113E-16,
-        mod._X_ijkl(FE3,SB3,S,S): 1.2245E-02,
-        mod._X_ijkl(FE2,FE2,O,S): 4.0569E-35,
-        mod._X_ijkl(FE3,FE3,O,S): 1.2245E-02,
-        mod._X_ijkl(SB3,SB3,O,S): 1.2245E-02,
-        mod._X_ijkl(FE2,FE3,O,S): 7.4248E-18,
-        mod._X_ijkl(FE2,SB3,O,S): 1.5364E-18,
-        mod._X_ijkl(FE3,SB3,O,S): 2.4489E-02,
+        mod._X_ijkl(FE2,FE2,O,O): 1.1225E-39,
+        mod._X_ijkl(FE3,FE3,O,O): 2.9334E-05,
+        mod._X_ijkl(SB3,SB3,O,O): 0.47751   ,
+        mod._X_ijkl(FE2,FE3,O,O): 1.2682E-20,
+        mod._X_ijkl(FE2,SB3,O,O): 6.9281E-20,
+        mod._X_ijkl(FE3,SB3,O,O): 7.4853E-03,
+        mod._X_ijkl(FE2,FE2,S,S): 4.2377E-28,
+        mod._X_ijkl(FE3,FE3,S,S): 0.47751   ,
+        mod._X_ijkl(SB3,SB3,S,S): 2.9334E-05,
+        mod._X_ijkl(FE2,FE3,S,S): 4.2568E-14,
+        mod._X_ijkl(FE2,SB3,S,S): 3.3364E-16,
+        mod._X_ijkl(FE3,SB3,S,S): 7.4853E-03,
+        mod._X_ijkl(FE2,FE2,O,S): 2.0947E-35,
+        mod._X_ijkl(FE3,FE3,O,S): 7.4853E-03,
+        mod._X_ijkl(SB3,SB3,O,S): 7.4853E-03,
+        mod._X_ijkl(FE2,FE3,O,S): 5.7263E-18,
+        mod._X_ijkl(FE2,SB3,O,S): 1.1849E-18,
+        mod._X_ijkl(FE3,SB3,O,S): 1.4971E-02,
         v.T: 400.0,
     }
 
-    check_energy(mod, subs_dict, -9.59007E+04, mode="sympy")  # Thermochimica energy
+    check_energy(mod, subs_dict, -9.60740E+04, mode="sympy")  # Thermochimica energy
     assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.2, 1e-5)
     assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.2, 1e-5)
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
