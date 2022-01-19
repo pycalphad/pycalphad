@@ -1147,3 +1147,33 @@ def test_MQMQA_SUBQ_Q_mixing_Fe2_Fe3_Sb_O(load_database):
     assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.13333333, 1e-5)
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.56666667, 1e-5)
 
+
+@select_database("Kaye_Pd-Ru-Tc-Mo.dat")
+def test_CEF_QTKO_mixing(load_database):
+    dbf = load_database()
+    PD = v.Species("PD")
+    RU = v.Species("RU")
+    TC = v.Species("TC")
+    MO = v.Species("MO")
+
+    mod = Model(dbf, ["PD", "RU", "TC", "MO"], "HCPN")
+
+    assert PD in mod.constituents[0]
+    assert RU in mod.constituents[0]
+    assert TC in mod.constituents[0]
+    assert MO in mod.constituents[0]
+
+    subs_dict = {  # Thermochimica site fractions
+        v.Y("HCPN", 0, MO): 0.025,
+        v.Y("HCPN", 0, TC): 0.5,  
+        v.Y("HCPN", 0, RU): 0.4,  
+        v.Y("HCPN", 0, PD): 0.075,
+        v.T: 1500.00,
+    }
+
+    check_energy(mod, subs_dict, -9.01700E+04, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("MO").subs(subs_dict)), 0.025, 1e-5)
+    assert np.isclose(float(mod.moles("TC").subs(subs_dict)), 0.50, 1e-5)
+    assert np.isclose(float(mod.moles("RU").subs(subs_dict)), 0.40, 1e-5)
+    assert np.isclose(float(mod.moles("PD").subs(subs_dict)), 0.075, 1e-5)
+

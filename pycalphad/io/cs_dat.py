@@ -358,7 +358,8 @@ class ExcessQKTO(ExcessBase):
 
     def insert(self, dbf: Database, phase_name: str, phase_constituents: List[str], excess_coefficient_idxs: List[int]):
         # TODO: does this use the chemical groups in the generalized Kohler-Toop formalism?
-        raise NotImplementedError()
+        pass
+        # raise NotImplementedError()
 
 @dataclass
 class PhaseBase:
