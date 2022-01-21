@@ -179,7 +179,7 @@ class Endmember():
             # If given in sublattice notation, assume species are pure elements
             # i.e. multi-sublattice models cannot have associates
             all_species = self.species_name.split(':')
-            return np.unique([v.Species(sp_str) for sp_str in all_species]).tolist()
+            return np.unique([v.Species(sp_str) for sp_str in all_species]).tolist()  # TODO: `unique` does sorting, is this the correct behavior?
         else:
             # We only have one sublattice, this can be a non-pure element species
             return [v.Species(self.species_name, constituents=self.constituents(pure_elements))]
@@ -346,7 +346,7 @@ class ExcessRKMMagnetic(ExcessBase):
 
 @dataclass
 class ExcessQKTO(ExcessBase):
-    interacing_species_type: List[int]
+    exponents: List[int]
     coefficients: List[float]
 
     def expr(self, indices):
@@ -356,10 +356,34 @@ class ExcessQKTO(ExcessBase):
         energy += sum([C*EXCESS_TERMS[i] for C, i in zip(self.coefficients, indices)])
         return energy
 
+    @staticmethod  # So it can be in the style of a Database() method
+    def _database_add_parameter(
+        self, param_type, phase_name, constituent_array,
+        parameter, exponents,
+        ref=None, force_insert=True
+        ):
+        species_dict = {s.name: s for s in self.species}
+        new_parameter = {
+            'phase_name': phase_name,
+            'constituent_array': tuple(tuple(species_dict.get(s.upper(), v.Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
+            'parameter_type': param_type,
+            'parameter': parameter,
+            'exponents': exponents,
+            'reference': ref,
+        }
+        if force_insert:
+            self._parameters.insert(new_parameter)
+        else:
+            self._parameter_queue.append(new_parameter)
+
     def insert(self, dbf: Database, phase_name: str, phase_constituents: List[str], excess_coefficient_idxs: List[int]):
         # TODO: does this use the chemical groups in the generalized Kohler-Toop formalism?
-        pass
-        # raise NotImplementedError()
+        const_array = self.constituent_array(phase_constituents)
+        exponents = [exponent - 1 for exponent in self.exponents]  # For some reason, an exponent of 1 really means an exponent of zero...
+        self._database_add_parameter(
+            dbf, "QKT", phase_name, const_array,
+            self.expr(excess_coefficient_idxs), exponents, 
+            force_insert=False)
 
 @dataclass
 class PhaseBase:
@@ -456,7 +480,8 @@ class Phase_CEF(PhaseBase):
             for endmember in self.endmembers:
                 for subl, const_subl in zip(endmember.constituent_array(), constituents):
                     const_subl.extend(subl)
-            self.constituent_array = [np.unique(ca).tolist() for ca in constituents]
+            self.constituent_array = constituents  # Be careful to preserve ordering here, since the mapping from species indices to species depends on the order of this
+
         # TODO:
         # constituent array now has all the constituents in every sublattice,
         # e.g. it could be [['A', 'B'], ['D', 'B']]
@@ -954,9 +979,9 @@ def parse_excess_qkto(toks, num_excess_coeffs):
         if num_interacting_species == 0:
             break
         interacting_species_idxs = toks.parseN(num_interacting_species, int)
-        interacing_species_type = toks.parseN(num_interacting_species, int)  # species type, for identify the asymmetry
+        exponents = toks.parseN(num_interacting_species, int)
         coefficients = toks.parseN(num_excess_coeffs, float)
-        excess_terms.append(ExcessQKTO(interacting_species_idxs, interacing_species_type, coefficients))
+        excess_terms.append(ExcessQKTO(interacting_species_idxs, exponents, coefficients))
     return excess_terms
 
 
@@ -980,10 +1005,8 @@ def parse_phase_cef(toks, phase_name, phase_type, num_pure_elements, num_gibbs_c
         else:
             endmembers.append(parse_endmember(toks, num_pure_elements, num_gibbs_coeffs))
         if sanitized_phase_type in ('QKTO',):
-            # TODO: is this correct?
-            # there's two additional numbers. they seem to always be 1.000 and 1, so we'll just throw them away
-            toks.parse(float)
-            toks.parse(int)
+            toks.parse(float)  # stoichiometric factor for this constituent
+            toks.parse(int)  # chemical group
 
     # defining sublattice model
     if sanitized_phase_type in ('SUBL',):
