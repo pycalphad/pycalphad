@@ -185,9 +185,20 @@ class Endmember():
             return [v.Species(self.species_name, constituents=self.constituents(pure_elements))]
 
     def insert(self, dbf: Database, phase_name: str, constituent_array: List[List[str]], gibbs_coefficient_idxs: List[int]):
-        dbf.add_parameter('G', phase_name, constituent_array,
-                          0, self.expr(gibbs_coefficient_idxs), force_insert=False)
+        dbf.add_parameter('G', phase_name, constituent_array, 0, self.expr(gibbs_coefficient_idxs), force_insert=False)
 
+@dataclass
+class EndmemberQKTO(Endmember):
+    stoichiometric_factor: float
+    chemical_group: int
+
+    def insert(self, dbf: Database, phase_name: str, constituent_array: List[List[str]], gibbs_coefficient_idxs: List[int]):
+        dbf.add_parameter('G', phase_name, constituent_array, 0, self.expr(gibbs_coefficient_idxs), force_insert=False)
+        # Most databases in the wild use stoichiometric factors of unity,
+        # so we're avoiding the complexity of non-unity factors for now.
+        if not np.isclose(self.stoichiometric_factor, 1.0):
+            raise ValueError(f"QKTO endmembers with stoichiometric factors other than 1 are not yet supported. Got {self.stoichiometric_factor} for {self}")
+        
 
 @dataclass
 class EndmemberMagnetic(Endmember):
@@ -445,13 +456,24 @@ class Phase_CEF(PhaseBase):
             # model divides by the AFM factor (-1/3). We convert the AFM
             # factor to the version used in the TDB/Model.
             model_hints['ihj_magnetic_afm_factor'] = -1/self.magnetic_afm_factor
-        if len(self.excess_parameters) == 0:
-            pass  # no excess parameters: no model hints
-        elif all(isinstance(xs, (ExcessQKTO, ExcessRKMMagnetic)) for xs in self.excess_parameters):
-            # We have only QKTO excess models, add model hint.
-            model_hints['excess_model'] = ('KOHLER_TOOP', None, None, None)
-        elif any(isinstance(xs, (ExcessQKTO)) for xs in self.excess_parameters) and any(isinstance(xs, (ExcessRKM)) for xs in self.excess_parameters):
+        if any(isinstance(xs, (ExcessQKTO)) for xs in self.excess_parameters) and any(isinstance(xs, (ExcessRKM)) for xs in self.excess_parameters):
             raise ValueError("ExcessQKTO and ExcessRKM parameters found, but they cannot co-exist.")
+
+        # Try adding model hints for chemical groups from endmembers
+        chemical_groups = {}
+        for endmember in self.endmembers:
+            if hasattr(endmember, "chemical_group"):
+                endmember_species = endmember.species(pure_elements)
+                # make the assumption that there's only one species in this endmember
+                # currently, only QKTO model endmembers supply chemical groups
+                # and QKTO models in the DAT can only have one sublattice.
+                species = endmember_species[0]
+                if species in chemical_groups:
+                    raise ValueError(f"Species {species} is already present in the chemical groups dictionary for phase {self.phase_name}  with endmembers {self.endmembers}.")
+                else:
+                    chemical_groups[species] = endmember.chemical_group
+        if len(chemical_groups.keys()) > 0:
+            model_hints["chemical_groups"] = chemical_groups
 
         dbf.add_phase(self.phase_name, model_hints=model_hints, sublattices=self.subl_ratios)
 
@@ -855,6 +877,15 @@ def parse_endmember(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, is_s
     return Endmember(species_name, gibbs_eq_type, stoichiometry_pure_elements, intervals)
 
 
+def parse_endmember_qkto(toks: TokenParser, num_pure_elements: int, num_gibbs_coeffs: int):
+    # add an extra "pure element" to parse the charge
+    em = parse_endmember(toks, num_pure_elements, num_gibbs_coeffs)
+    # TODO: needs special QKTO endmember to store these, the stoichiometric factors and chemical groups should be parsed into model hints or something...
+    stoichiometric_factor = toks.parse(float)
+    chemical_group = toks.parse(int)
+    return EndmemberQKTO(em.species_name, em.gibbs_eq_type, em.stoichiometry_pure_elements, em.intervals, stoichiometric_factor, chemical_group)
+
+
 def parse_endmember_aqueous(toks: TokenParser, num_pure_elements: int, num_gibbs_coeffs: int):
     # add an extra "pure element" to parse the charge
     em = parse_endmember(toks, num_pure_elements + 1, num_gibbs_coeffs)
@@ -1002,11 +1033,10 @@ def parse_phase_cef(toks, phase_name, phase_type, num_pure_elements, num_gibbs_c
     for _ in range(num_const):
         if sanitized_phase_type == 'PITZ':
             endmembers.append(parse_endmember_aqueous(toks, num_pure_elements, num_gibbs_coeffs))
+        elif sanitized_phase_type == 'QKTO':
+            endmembers.append(parse_endmember_qkto(toks, num_pure_elements, num_gibbs_coeffs))
         else:
             endmembers.append(parse_endmember(toks, num_pure_elements, num_gibbs_coeffs))
-        if sanitized_phase_type in ('QKTO',):
-            toks.parse(float)  # stoichiometric factor for this constituent
-            toks.parse(int)  # chemical group
 
     # defining sublattice model
     if sanitized_phase_type in ('SUBL',):

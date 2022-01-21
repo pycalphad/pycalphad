@@ -520,18 +520,11 @@ class Model(object):
             return_dict[comp] = comp + correction_term
         return return_dict
 
-    CHEMICAL_GROUPS = { # TODO: REMOVE
-        v.Species("PD"): 1,
-        v.Species("RU"): 1,
-        v.Species("TC"): 1,
-        v.Species("MO"): 1,
-    }
-
     def _Xi_ij(self, phase, sublattice_index, i, j):
         # Species of the same chemical group may use a Kohler-type or
         # Muggianu-type approximation (the choice does not affect this function).
         # Species of different chemical groups use a Toop-type approximation.
-        toop_filter = _toop_filter(self.CHEMICAL_GROUPS, i, j)
+        toop_filter = _toop_filter(phase.model_hints['chemical_groups'], i, j)
         toop_correction = S.Zero
         active_subl_comps = phase.constituents[sublattice_index].intersection(self.components)
         for k in filter(toop_filter, active_subl_comps):
@@ -547,7 +540,7 @@ class Model(object):
         # callers of this function are only interested in a Kohler-type
         # approximation for species of the same type. Species of different
         # chemical groups use a Toop-type approximation.
-        kohler_filter = _kohler_filter(self.CHEMICAL_GROUPS, i, j)
+        kohler_filter = _kohler_filter(phase.model_hints['chemical_groups'], i, j)
         kohler_correction = S.Zero
         active_subl_comps = phase.constituents[sublattice_index].intersection(self.components)
         for k in filter(kohler_filter, active_subl_comps):
@@ -583,7 +576,6 @@ class Model(object):
         )
         param_search = dbe.search
 
-        # TODO: chemical groups that aren't hard-coded
         params = param_search(param_query)
         kohler_toop_xs = S.Zero
         for param in params:
