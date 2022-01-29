@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.io package" href="pycalphad.io.html" /><link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
 
-    <meta name="generator" content="sphinx-4.3.0, furo 2021.10.09"/>
-        <title>pycalphad.core package - pycalphad 0.9.3.dev5+g631c41c3 documentation</title>
+    <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
+        <title>pycalphad.core package - pycalphad 0.9.3.dev6+g58fec408 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev5+g631c41c3 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev6+g58fec408 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev5+g631c41c3 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev6+g58fec408 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -291,11 +291,8 @@ objects. Callers must take care that the PhaseRecord objects were created with
 the same <cite>output</cite> as passed to <cite>calculate</cite>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dataset of the sampled attribute as a function of state variables</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dataset of the sampled attribute as a function of state variables</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -503,11 +500,8 @@ all active phases. The <cite>model</cite> argument must be a mapping of phase na
 instances of Model objects.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Structured equilibrium calculation, or Dask graph if scheduler=None.</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Structured equilibrium calculation, or Dask graph if scheduler=None.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -558,11 +552,8 @@ scrambled Halton sequences.</p>
 <li><p><strong>scramble</strong> (<em>boolean</em><em>, </em><em>optional</em><em> (</em><em>default: True</em><em>)</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>ndarray of shape (nbpts, dim)</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>ndarray of shape (nbpts, dim)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -694,11 +685,8 @@ conditions in the result array.</p>
 Coordinates correspond to conditions axes.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None. Results are written to result_array.</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None. Results are written to result_array.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -953,11 +941,8 @@ Then outp.shape = (M,N)</p>
 <li><p><strong>conditions</strong> (<em>OrderedDict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Conditions to satisfy.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -983,11 +968,8 @@ Minimize the energy under the specified conditions using the given candidate com
 <li><p><strong>conditions</strong> (<em>OrderedDict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Conditions to satisfy.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">pycalphad.core.solver.SolverResult</a></p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">pycalphad.core.solver.SolverResult</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1031,11 +1013,8 @@ there may be multiple (or zero) solutions.</p>
 <li><p><strong>state_variables</strong> (<em>iterable of StateVariables</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1053,11 +1032,8 @@ there may be multiple (or zero) solutions.</p>
 cover the same state variable space as specified in the conditions.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dataset</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dataset</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1263,11 +1239,8 @@ are zero for that case.</p>
 <li><p><strong>pdof</strong> (<em>int</em>) – Number of points to sample per degree of freedom.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>ndarray of generated points satisfying the mass balance.</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>ndarray of generated points satisfying the mass balance.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -1327,11 +1300,8 @@ there, then the constant value is used.</p>
 <li><p><strong>default_arg</strong> (<em>object</em>) – Default value to use if iterable isn’t specified</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>defaultdict for the keyword argument of interest</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>defaultdict for the keyword argument of interest</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
