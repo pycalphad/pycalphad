@@ -698,6 +698,8 @@ def test_reflow_text_raises_on_unbreakable_lines():
 def test_long_constituent_line_writes_correctly():
     TDB = """
     $ From SGTE Unary 50
+    ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
     ELEMENT AG   FCC_A1                    1.0787E+02  5.7446E+03  4.2551E+01 !
     ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01 !
     ELEMENT AM   DHCP                      2.4306E+02  0.0000E+00  0.0000E+00 !
@@ -784,4 +786,8 @@ def test_long_constituent_line_writes_correctly():
     W,Y,YB,ZN,ZR : !
     """
     dbf = Database(TDB)
-    dbf.to_string(fmt='tdb')
+    assert len(dbf.elements) == 80
+    assert len(dbf.phases['LIQUID'].constituents[0]) == 78  # No VA or /-
+    reloaded_dbf = Database(dbf.to_string(fmt='tdb'))
+    assert len(dbf.elements) == len(reloaded_dbf.elements)
+    assert len(dbf.phases['LIQUID'].constituents[0]) == len(reloaded_dbf.phases['LIQUID'].constituents[0])
