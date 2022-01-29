@@ -620,7 +620,7 @@ def reflow_text(text, linewidth=80):
     reflowed_text : str
     """
     lines = text.split("\n")
-    linebreak_chars = [" ", "$", ","]
+    linebreak_chars = [" ", "$"]
     output_lines = []
     for line in lines:
         if len(line) <= linewidth:
