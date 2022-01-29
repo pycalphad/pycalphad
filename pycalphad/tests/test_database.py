@@ -10,7 +10,7 @@ from pyparsing import ParseException
 from sympy import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
-from pycalphad.io.tdb import expand_keyword
+from pycalphad.io.tdb import expand_keyword, reflow_text
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
 
@@ -685,3 +685,17 @@ def test_load_database_when_given_in_lowercase():
     dbf_lower = Database.from_string(ALFE_TDB.lower(), fmt='tdb')
 
     assert dbf == dbf_lower
+
+
+def test_reflow_text_raises_on_unbreakable_lines():
+    """Long lines without linebreak characters should raise an error."""
+    very_long_line = "NOBREAKCHARACTERS" * 50
+    with pytest.raises(ValueError):
+        reflow_text(very_long_line, 80)
+
+
+def test_reflow_text_can_reflow_long_constituent_lines():
+    """Long lines without linebreak characters should raise an error."""
+    long_constituent_line = """CONSTITUENT SIGMA_D8B :AL,C,CR,FE,HF,MO,NB,NI,TA,TI,V,W,ZR:AL,C,CR,FE,HF,MO,NB,NI,TA,TI,V,W,ZR:AL,C,CR,FE,HF,MO,NB,NI,TA,TI,V,W,ZR: !"""
+    lines = reflow_text(long_constituent_line, 78)
+    assert len(lines.split("\n")) == 2

@@ -619,18 +619,22 @@ def reflow_text(text, linewidth=80):
     -------
     reflowed_text : str
     """
-    ""
     lines = text.split("\n")
-    linebreak_chars = [" ", "$"]
+    linebreak_chars = [" ", "$", ","]
     output_lines = []
     for line in lines:
         if len(line) <= linewidth:
             output_lines.append(line)
         else:
+            if set(line).isdisjoint(linebreak_chars):
+                raise ValueError(f"Unable to reflow the following line of length {len(line)} below the maximum length of {linewidth}: \n{line}")
             while len(line) > linewidth:
-                linebreak_idx = linewidth-1
+                linebreak_idx = linewidth - 1
                 while line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
+                # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
+                if linebreak_idx == 2:
+                    raise ValueError(f"Unable to reflow the following line of length {len(line)} below the maximum length of {linewidth}: \n{line}")
                 output_lines.append(line[:linebreak_idx])
                 if "$" in line:
                     # previous line was a comment
