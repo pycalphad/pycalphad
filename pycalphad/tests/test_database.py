@@ -789,5 +789,6 @@ def test_long_constituent_line_writes_correctly():
     assert len(dbf.elements) == 80
     assert len(dbf.phases['LIQUID'].constituents[0]) == 78  # No VA or /-
     reloaded_dbf = Database(dbf.to_string(fmt='tdb'))
+    dbf == reloaded_dbf
     assert len(dbf.elements) == len(reloaded_dbf.elements)
     assert len(dbf.phases['LIQUID'].constituents[0]) == len(reloaded_dbf.phases['LIQUID'].constituents[0])
