@@ -828,7 +828,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         output += "PHASE {0} {1}  {2} {3} !\n".format(name_with_options, ''.join(typedefs[name]),
                                                       len(phase_obj.sublattices),
                                                       ' '.join([str(i) for i in phase_obj.sublattices]))
-        constituents = ':'.join([','.join([spec.name for spec in sorted(subl)]) for subl in phase_obj.constituents])
+        constituents = ':'.join([', '.join([spec.name for spec in sorted(subl)]) for subl in phase_obj.constituents])
         output += "CONSTITUENT {0} :{1}: !\n".format(name_with_options, constituents)
         output += "\n"
 
