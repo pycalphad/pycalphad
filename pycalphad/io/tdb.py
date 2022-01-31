@@ -619,7 +619,6 @@ def reflow_text(text, linewidth=80):
     -------
     reflowed_text : str
     """
-    ""
     lines = text.split("\n")
     linebreak_chars = [" ", "$"]
     output_lines = []
@@ -628,9 +627,12 @@ def reflow_text(text, linewidth=80):
             output_lines.append(line)
         else:
             while len(line) > linewidth:
-                linebreak_idx = linewidth-1
-                while line[linebreak_idx] not in linebreak_chars:
+                linebreak_idx = linewidth - 1
+                while linebreak_idx > 0 and line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
+                # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
+                if linebreak_idx <= 2:
+                    raise ValueError(f"Unable to reflow the following line of length {len(line)} below the maximum length of {linewidth}: \n{line}")
                 output_lines.append(line[:linebreak_idx])
                 if "$" in line:
                     # previous line was a comment
@@ -824,7 +826,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         output += "PHASE {0} {1}  {2} {3} !\n".format(name_with_options, ''.join(typedefs[name]),
                                                       len(phase_obj.sublattices),
                                                       ' '.join([str(i) for i in phase_obj.sublattices]))
-        constituents = ':'.join([','.join([spec.name for spec in sorted(subl)]) for subl in phase_obj.constituents])
+        constituents = ':'.join([', '.join([spec.name for spec in sorted(subl)]) for subl in phase_obj.constituents])
         output += "CONSTITUENT {0} :{1}: !\n".format(name_with_options, constituents)
         output += "\n"
 

@@ -10,7 +10,7 @@ from pyparsing import ParseException
 from sympy import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
-from pycalphad.io.tdb import expand_keyword
+from pycalphad.io.tdb import expand_keyword, reflow_text
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
 
@@ -685,3 +685,110 @@ def test_load_database_when_given_in_lowercase():
     dbf_lower = Database.from_string(ALFE_TDB.lower(), fmt='tdb')
 
     assert dbf == dbf_lower
+
+
+def test_reflow_text_raises_on_unbreakable_lines():
+    """Long lines without linebreak characters should raise an error."""
+    very_long_line = "NOBREAKCHARACTERS" * 50
+    with pytest.raises(ValueError):
+        reflow_text(very_long_line, 80)
+
+
+# TODO: when the new database-as-files test fixture is merged, replace with unary 50 proper.
+def test_long_constituent_line_writes_correctly():
+    TDB = """
+    $ From SGTE Unary 50
+    ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT AG   FCC_A1                    1.0787E+02  5.7446E+03  4.2551E+01 !
+    ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01 !
+    ELEMENT AM   DHCP                      2.4306E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT AS   RHOMBOHEDRAL_A7           7.4922E+01  0.0000E+00  0.0000E+00 !
+    ELEMENT AU   FCC_A1                    1.9697E+02  6.0166E+03  4.7488E+01 !
+    ELEMENT B    BETA_RHOMBO_B             1.0811E+01  1.2220E+03  5.9000E+00 !
+    ELEMENT BA   BCC_A2                    1.3733E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT BE   HCP_A3                    9.0122E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT BI   RHOMBOHEDRAL_A7           2.0898E+02  6.4266E+03  5.6735E+01 !
+    ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7400E+00 !
+    ELEMENT CA   FCC_A1                    4.0078E+01  6.1965E+03  4.1589E+01 !
+    ELEMENT CD   HCP_A3                    1.1241E+02  6.2509E+03  5.1798E+01 !
+    ELEMENT CE   FCC_A1                    1.4011E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT CO   HCP_A3                    5.8933E+01  0.0000E+00  0.0000E+00 !
+    ELEMENT CR   BCC_A2                    5.1996E+01  4.0500E+03  2.3560E+01 !
+    ELEMENT CS   BCC_A2                    1.3291E+02  7.7153E+03  8.5149E+01 !
+    ELEMENT CU   FCC_A1                    6.3546E+01  5.0041E+03  3.3150E+01 !
+    ELEMENT DY   HCP_A3                    1.6250E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT ER   HCP_A3                    1.6726E+02  7.3923E+03  7.3178E+01 !
+    ELEMENT EU   BCC_A2                    1.5197E+02  0.0000E+00  8.0793E+01 !
+    ELEMENT FE   BCC_A2                    5.5847E+01  4.4890E+03  2.7280E+01 !
+    ELEMENT GA   ORTHORHOMBIC_GA           6.9723E+01  5.5731E+03  4.0828E+01 !
+    ELEMENT GD   HCP_A3                    1.5725E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT GE   DIAMOND_A4                7.2610E+01  4.6275E+03  3.1087E+01 !
+    ELEMENT HF   HCP_A3                    1.7849E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT HG   LIQUID                    2.0059E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT HO   HCP_A3                    1.6493E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT IN   TETRAGONAL_A6             1.1482E+02  6.6100E+03  5.7650E+01 !
+    ELEMENT IR   FCC_A1                    1.9222E+02  5.2677E+03  3.5505E+01 !
+    ELEMENT K    BCC_A2                    3.9098E+01  7.0835E+03  6.4672E+01 !
+    ELEMENT LA   DHCP                      1.3891E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT LI   BCC_A2                    6.9410E+00  4.6233E+03  2.9095E+01 !
+    ELEMENT LU   HCP_A3                    1.7497E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT MG   HCP_A3                    2.4305E+01  4.9980E+03  3.2671E+01 !
+    ELEMENT MN   CBCC_A12                  5.4938E+01  4.9960E+03  3.2008E+01 !
+    ELEMENT MO   BCC_A2                    9.5940E+01  4.5890E+03  2.8560E+01 !
+    ELEMENT N    1/2_MOLE_N2(G)            1.4007E+01  4.3350E+03  9.5751E+01 !
+    ELEMENT NA   BCC_A2                    2.2990E+01  6.4475E+03  5.1447E+01 !
+    ELEMENT NB   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01 !
+    ELEMENT ND   DHCP                      1.4424E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT NI   FCC_A1                    5.8690E+01  4.7870E+03  2.9796E+01 !
+    ELEMENT NP   ORTHORHOMBIC_AC           2.3705E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02 !
+    ELEMENT OS   HCP_A3                    1.9020E+02  0.0000E+00  3.2635E+01 !
+    ELEMENT P    WHITE_P                   3.0974E+01  0.0000E+00  0.0000E+00 !
+    ELEMENT PA   BCT_AA                    2.3104E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT PB   FCC_A1                    2.0720E+02  6.8785E+03  6.4785E+01 !
+    ELEMENT PD   FCC_A1                    1.0642E+02  5.4685E+03  3.7823E+01 !
+    ELEMENT PR   DHCP                      1.4091E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT PT   FCC_A1                    1.9508E+02  5.7237E+03  4.1631E+01 !
+    ELEMENT PU   ALPHA_PU                  2.4406E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT RB   BCC_A2                    8.5468E+01  7.4894E+03  7.6776E+01 !
+    ELEMENT RE   HCP_A3                    1.8621E+02  5.3555E+03  3.6526E+01 !
+    ELEMENT RH   FCC_A1                    1.0291E+02  4.9204E+03  3.1505E+01 !
+    ELEMENT RU   HCP_A3                    1.0107E+02  4.6024E+03  2.8535E+01 !
+    ELEMENT S    ORTHORHOMBIC_S            3.2066E+01  0.0000E+00  0.0000E+00 !
+    ELEMENT SB   RHOMBOHEDRAL_A7           1.2175E+02  5.8702E+03  4.5522E+01 !
+    ELEMENT SC   HCP_A3                    4.4956E+01  0.0000E+00  0.0000E+00 !
+    ELEMENT SE   HEXAGONAL_A8              7.8960E+01  5.5145E+03  4.1966E+01 !
+    ELEMENT SI   DIAMOND_A4                2.8085E+01  3.2175E+03  1.8820E+01 !
+    ELEMENT SM   RHOMBOHEDRAL_SM           1.5036E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT SN   BCT_A5                    1.1871E+02  6.3220E+03  5.1195E+01 !
+    ELEMENT SR   FCC_A1                    8.7620E+01  0.0000E+00  0.0000E+00 !
+    ELEMENT TA   BCC_A2                    1.8095E+02  5.6819E+03  4.1472E+01 !
+    ELEMENT TB   HCP_A3                    1.5893E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT TC   HCP_A3                    9.7907E+01  0.0000E+00  0.0000E+00 !
+    ELEMENT TE   HEXAGONAL_A8              1.2760E+02  6.1212E+03  4.9497E+01 !
+    ELEMENT TH   FCC_A1                    2.3204E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT TI   HCP_A3                    4.7880E+01  4.8100E+03  3.0648E+01 !
+    ELEMENT TL   HCP_A3                    2.0438E+02  6.8283E+03  6.4183E+01 !
+    ELEMENT TM   HCP_A3                    1.6893E+02  7.3973E+03  7.4015E+01 !
+    ELEMENT U    ORTHORHOMBIC_A20          2.3803E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT V    BCC_A2                    5.0941E+01  4.5070E+03  3.0890E+01 !
+    ELEMENT W    BCC_A2                    1.8385E+02  4.9700E+03  3.2620E+01 !
+    ELEMENT Y    HCP_A3                    8.8906E+01  0.0000E+00  0.0000E+00 !
+    ELEMENT YB   FCC_A1                    1.7304E+02  0.0000E+00  0.0000E+00 !
+    ELEMENT ZN   HCP_A3                    6.5390E+01  5.6568E+03  4.1631E+01 !
+    ELEMENT ZR   HCP_A3                    9.1224E+01  5.5663E+03  3.9181E+01 !
+
+    PHASE LIQUID % 1 1 !
+    CONSTITUENT LIQUID : AG,AL,AM,AS,AU,B,BA,BE,BI,C,CA,CD,CE,CO,CR,CS,CU,DY,ER,
+    EU,FE,GA,GD,GE,HF,HG,HO,IN,IR,K,LA,LI,LU,MG,MN,MO,N,NA,NB,ND,NI,NP,O,OS,P,PA,
+    PB,PD,PR,PT,PU,RB,RE,RH,RU,S,SB,SC,SE,SI,SM,SN,SR,TA,TB,TC,TE,TH,TI,TL,TM,U,V,
+    W,Y,YB,ZN,ZR : !
+    """
+    dbf = Database(TDB)
+    assert len(dbf.elements) == 80
+    assert len(dbf.phases['LIQUID'].constituents[0]) == 78  # No VA or /-
+    reloaded_dbf = Database(dbf.to_string(fmt='tdb'))
+    dbf == reloaded_dbf
+    assert len(dbf.elements) == len(reloaded_dbf.elements)
+    assert len(dbf.phases['LIQUID'].constituents[0]) == len(reloaded_dbf.phases['LIQUID'].constituents[0])
