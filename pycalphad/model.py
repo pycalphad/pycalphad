@@ -400,9 +400,7 @@ class Model(object):
         # For all other cases where charge is present, we do need to add charge balance.
         if constant_site_ratios and has_charge:
             total_charge = 0
-            total_site_ratios = 0
             for idx, (sublattice, site_ratio) in enumerate(zip(self.constituents, self.site_ratios)):
-                total_site_ratios += site_ratio
                 total_charge += sum(v.SiteFraction(self.phase_name, idx, spec) * spec.charge * site_ratio
                                     for spec in sublattice)
             constraints.append(total_charge)
