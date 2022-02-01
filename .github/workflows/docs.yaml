@@ -21,7 +21,7 @@ jobs:
       - run: source pycalphad-env/bin/activate
       - run: pip install -U pip setuptools
       - run: pip install -U -r requirements-dev.txt
-      - run: pip install -U --no-build-isolation --editable .
+      - run: pip install --prefix=$(python -m site --user-base) -U --no-build-isolation --editable .
       # Build documentation
       - run: sphinx-build -b html docs docs/_build/html
       # Upload documentation html directory
