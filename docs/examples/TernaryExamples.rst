@@ -1,4 +1,3 @@
-
 Plotting Ternary Phase Diagrams and Using Triangular Axes
 =========================================================
 
@@ -12,13 +11,11 @@ already have an equilibrium calculation, you can directly import and use
 ternplot
 --------
 
-Here we well use the ternplot API to plot an isothermal section of the
+Here we will use the ternplot API to plot an isothermal section of the
 Al-Cu-Y system from the thermodynamic database found at the `NIST
 CALPHAD assessments <http://hdl.handle.net/11115/101>`__ assessed by
-Zhang et al. \ `Calphad 35
-(2011) <https://doi.org/10.1016/j.calphad.2011.09.008>`__. Note that we
-have commented out the Cu6Y phase in the TDB because it utilized the Cu2
-species. Species are not currently supported in pycalphad.
+Zhang et al. `Calphad 35
+(2011) <https://doi.org/10.1016/j.calphad.2011.09.008>`__.
 
 .. code:: ipython3
 
@@ -31,19 +28,24 @@ species. Species are not currently supported in pycalphad.
     phases = list(db_al_cu_y.phases.keys())
     conds = {v.T: 830, v.P:101325, v.X('AL'): (0,1,0.015), v.X('Y'): (0,1,0.015)}
     
-    ternplot(db_al_cu_y, comps, phases, conds, x=v.X('AL'), y=v.X('Y'))
+    %time ternplot(db_al_cu_y, comps, phases, conds, x=v.X('AL'), y=v.X('Y'))
 
+
+.. parsed-literal::
+
+    Wall time: 5min 47s
+    
 
 
 
 .. parsed-literal::
 
-    <matplotlib.axes._subplots.TriangularAxesSubplot at 0x117fcd5f8>
+    <TriangularAxesSubplot:title={'center':'Al-Cu-Y'}, xlabel='X(AL)', ylabel='X(Y)'>
 
 
 
 
-.. image:: TernaryExamples_files/TernaryExamples_2_1.png
+.. image:: TernaryExamples_files%5CTernaryExamples_2_2.png
 
 
 triangular projection
@@ -76,7 +78,7 @@ axes.
     
     # when we imported the pycalphad.plot.triangular module, it made the 'triangular' projection available for us to use.
     fig = plt.figure()
-    ax = fig.gca(projection='triangular')
+    ax = fig.add_subplot(projection='triangular')
     ax.scatter(xs, ys, c=zs, 
                cmap='coolwarm', 
                linewidth=0.0)
@@ -91,18 +93,10 @@ axes.
     # set up the colorbar
     cm = plt.cm.ScalarMappable(cmap='coolwarm')
     cm.set_array(zs)
-    fig.colorbar(cm)
+    fig.colorbar(cm);
 
 
 
-
-.. parsed-literal::
-
-    <matplotlib.colorbar.Colorbar at 0x117110588>
-
-
-
-
-.. image:: TernaryExamples_files/TernaryExamples_4_1.png
+.. image:: TernaryExamples_files%5CTernaryExamples_4_0.png
 
 
