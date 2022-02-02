@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Calculate and Plot Activity" href="PlotActivity.html" /><link rel="prev" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Calculate and Plot Activity" href="PlotActivity.html" /><link rel="prev" title="Phases with Electrically Charged Species" href="ChargedPhases.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>Calculations with Reference States - pycalphad 0.9.3.dev6+g58fec408 documentation</title>
+        <title>Calculations with Reference States - pycalphad 0.9.3.dev7+g81999609 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev6+g58fec408 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev7+g81999609 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev6+g58fec408 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev7+g81999609 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -162,13 +162,14 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Calculations with Reference States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -270,7 +271,7 @@ state to be calculated with respect to the calculation temperature.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/ReferenceStateExamples_2_0.png" src="../_images/ReferenceStateExamples_2_0.png"/>
+<img alt="examples/ReferenceStateExamples_files%5CReferenceStateExamples_2_0.png" src="examples/ReferenceStateExamples_files%5CReferenceStateExamples_2_0.png"/>
 </section>
 <section id="enthalpy-of-formation-convex-hull">
 <h3>Enthalpy of formation - convex hull<a class="headerlink" href="#enthalpy-of-formation-convex-hull" title="Permalink to this headline">¶</a></h3>
@@ -323,7 +324,7 @@ phases and fixed at 298.15 K and 1 atm.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/ReferenceStateExamples_4_0.png" src="../_images/ReferenceStateExamples_4_0.png"/>
+<img alt="examples/ReferenceStateExamples_files%5CReferenceStateExamples_4_0.png" src="examples/ReferenceStateExamples_files%5CReferenceStateExamples_4_0.png"/>
 </section>
 </section>
 <section id="special-mix-reference-state">
@@ -359,7 +360,7 @@ endmembers have a mixing enthalpy of zero.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/ReferenceStateExamples_6_0.png" src="../_images/ReferenceStateExamples_6_0.png"/>
+<img alt="examples/ReferenceStateExamples_files%5CReferenceStateExamples_6_0.png" src="examples/ReferenceStateExamples_files%5CReferenceStateExamples_6_0.png"/>
 </section>
 <section id="calculations-at-specific-site-fractions">
 <h2>Calculations at specific site fractions<a class="headerlink" href="#calculations-at-specific-site-fractions" title="Permalink to this headline">¶</a></h2>
@@ -434,7 +435,7 @@ within each sublattice (e.g. NB is always before RE within a sublattice)</p>
 <span class="n">Site</span> <span class="n">fractions</span> <span class="n">shape</span><span class="p">:</span> <span class="p">(</span><span class="mi">1001</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="mi">1001</span> <span class="n">points</span><span class="p">,</span> <span class="mi">5</span> <span class="n">internal</span> <span class="n">degrees</span> <span class="n">of</span> <span class="n">freedom</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="../_images/ReferenceStateExamples_8_1.png" src="../_images/ReferenceStateExamples_8_1.png"/>
+<img alt="examples/ReferenceStateExamples_files%5CReferenceStateExamples_8_1.png" src="examples/ReferenceStateExamples_files%5CReferenceStateExamples_8_1.png"/>
 </section>
 </section>
 
@@ -452,14 +453,14 @@ within each sublattice (e.g. NB is always before RE within a sublattice)</p>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="TernaryExamples.html">
+          <a class="prev-page" href="ChargedPhases.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Plotting Ternary Phase Diagrams and Using Triangular Axes</div>
+                <div class="title">Phases with Electrically Charged Species</div>
                 
               </div>
             </a>

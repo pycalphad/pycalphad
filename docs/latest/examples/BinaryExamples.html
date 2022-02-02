@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Heat Capacity of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html" /><link rel="prev" title="Examples" href="index.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html" /><link rel="prev" title="Examples" href="index.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.9.3.dev6+g58fec408 documentation</title>
+        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.9.3.dev7+g81999609 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev6+g58fec408 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev7+g81999609 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev6+g58fec408 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev7+g81999609 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -162,13 +162,14 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ReferenceStateExamples.html">Calculations with Reference States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -280,7 +281,7 @@ shown below.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_4_0.png" src="../_images/BinaryExamples_4_0.png"/>
+<img alt="examples/BinaryExamples_files%5CBinaryExamples_4_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_4_0.png"/>
 </section>
 <section id="al-mg-y-zhong-2005">
 <h3>Al-Mg (Y. Zhong, 2005)<a class="headerlink" href="#al-mg-y-zhong-2005" title="Permalink to this headline">¶</a></h3>
@@ -304,7 +305,7 @@ doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.0
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_6_0.png" src="../_images/BinaryExamples_6_0.png"/>
+<img alt="examples/BinaryExamples_files%5CBinaryExamples_6_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_6_0.png"/>
 </section>
 <section id="al-ni-dupin-2001">
 <h3>Al-Ni (Dupin, 2001)<a class="headerlink" href="#al-ni-dupin-2001" title="Permalink to this headline">¶</a></h3>
@@ -340,7 +341,7 @@ doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_8_0.png" src="../_images/BinaryExamples_8_0.png"/>
+<img alt="examples/BinaryExamples_files%5CBinaryExamples_8_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_8_0.png"/>
 </section>
 <section id="al-fe-m-seiersten-1991">
 <h3>Al-Fe (M. Seiersten, 1991)<a class="headerlink" href="#al-fe-m-seiersten-1991" title="Permalink to this headline">¶</a></h3>
@@ -365,7 +366,7 @@ doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_10_0.png" src="../_images/BinaryExamples_10_0.png"/>
+<img alt="examples/BinaryExamples_files%5CBinaryExamples_10_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_10_0.png"/>
 </section>
 <section id="nb-re-liu-2013">
 <h3>Nb-Re (Liu, 2013)<a class="headerlink" href="#nb-re-liu-2013" title="Permalink to this headline">¶</a></h3>
@@ -390,7 +391,7 @@ doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.0
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_12_0.png" src="../_images/BinaryExamples_12_0.png"/>
+<img alt="examples/BinaryExamples_files%5CBinaryExamples_12_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_12_0.png"/>
 </section>
 </section>
 </section>
@@ -433,7 +434,7 @@ equilibrium phase diagram.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_14_0.png" src="../_images/BinaryExamples_14_0.png"/>
+<img alt="examples/BinaryExamples_files%5CBinaryExamples_14_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_14_0.png"/>
 </section>
 
         </article>
@@ -441,12 +442,12 @@ equilibrium phase diagram.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="CementiteAnalysis.html">
+          <a class="next-page" href="TernaryExamples.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</div>
+                <div class="title">Plotting Ternary Phase Diagrams and Using Triangular Axes</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>

@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="FAQ" href="../faq.html" /><link rel="prev" title="Custom Models in pycalphad: Viscosity" href="ViscosityModel.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Phases with Electrically Charged Species" href="ChargedPhases.html" /><link rel="prev" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.9.3.dev6+g58fec408 documentation</title>
+        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.9.3.dev7+g81999609 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev6+g58fec408 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev7+g81999609 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev6+g58fec408 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev7+g81999609 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -162,13 +162,14 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ReferenceStateExamples.html">Calculations with Reference States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -286,18 +287,20 @@ Gibbs energy, GM.</p></li>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
-<span class="n">Dimensions</span><span class="p">:</span>    <span class="p">(</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="mi">4001</span><span class="p">)</span>
+<span class="n">Dimensions</span><span class="p">:</span>    <span class="p">(</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="mi">4001</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">Coordinates</span><span class="p">:</span>
   <span class="o">*</span> <span class="n">component</span>  <span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U2</span> <span class="s1">'AL'</span> <span class="s1">'ZN'</span>
   <span class="o">*</span> <span class="n">N</span>          <span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span>
   <span class="o">*</span> <span class="n">P</span>          <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
   <span class="o">*</span> <span class="n">T</span>          <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">500.0</span> <span class="mf">1e+03</span>
-<span class="n">Dimensions</span> <span class="n">without</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">internal_dof</span><span class="p">,</span> <span class="n">points</span>
+<span class="n">Dimensions</span> <span class="n">without</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">points</span><span class="p">,</span> <span class="n">internal_dof</span>
 <span class="n">Data</span> <span class="n">variables</span><span class="p">:</span>
-    <span class="n">X</span>          <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-15</span> <span class="o">...</span> <span class="mf">0.7439</span> <span class="mf">0.2561</span>
+    <span class="n">X</span>          <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-14</span> <span class="o">...</span> <span class="mf">0.7439</span> <span class="mf">0.2561</span>
     <span class="n">Phase</span>      <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U6</span> <span class="s1">'FCC_A1'</span> <span class="s1">'FCC_A1'</span> <span class="o">...</span> <span class="s1">'FCC_A1'</span> <span class="s1">'FCC_A1'</span>
-    <span class="n">Y</span>          <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-15</span> <span class="o">...</span> <span class="mf">0.2561</span>
+    <span class="n">Y</span>          <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-14</span> <span class="o">...</span> <span class="mf">0.2561</span>
     <span class="n">GM</span>         <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">1.559e+04</span> <span class="o">-</span><span class="mf">2.01e+04</span> <span class="o">...</span> <span class="o">-</span><span class="mf">4.81e+04</span>
+<span class="n">Attributes</span><span class="p">:</span>
+    <span class="n">phase_indices</span><span class="p">:</span>  <span class="p">{</span><span class="s1">'FCC_A1'</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4001</span><span class="p">,</span> <span class="kc">None</span><span class="p">)}</span>
 </pre></div>
 </div>
 <p>We can manipulate this by selecting data by value (of a coordinate)
@@ -325,17 +328,17 @@ multidimensional NumPy array</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[[[[[</span><span class="mf">1.00000000e+00</span> <span class="mf">1.00000000e-15</span><span class="p">]</span>
-    <span class="p">[</span><span class="mf">1.00000000e-15</span> <span class="mf">1.00000000e+00</span><span class="p">]</span>
-    <span class="p">[</span><span class="mf">1.00000000e-15</span> <span class="mf">1.00000000e+00</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[[[[[</span><span class="mf">1.00000000e+00</span> <span class="mf">1.00000000e-14</span><span class="p">]</span>
+    <span class="p">[</span><span class="mf">1.00000000e-14</span> <span class="mf">1.00000000e+00</span><span class="p">]</span>
+    <span class="p">[</span><span class="mf">1.00000000e-14</span> <span class="mf">1.00000000e+00</span><span class="p">]</span>
     <span class="o">...</span>
     <span class="p">[</span><span class="mf">1.56995650e-01</span> <span class="mf">8.43004350e-01</span><span class="p">]</span>
     <span class="p">[</span><span class="mf">1.12072782e-01</span> <span class="mf">8.87927218e-01</span><span class="p">]</span>
     <span class="p">[</span><span class="mf">7.43933641e-01</span> <span class="mf">2.56066359e-01</span><span class="p">]]</span>
 
-   <span class="p">[[</span><span class="mf">1.00000000e+00</span> <span class="mf">1.00000000e-15</span><span class="p">]</span>
-    <span class="p">[</span><span class="mf">1.00000000e-15</span> <span class="mf">1.00000000e+00</span><span class="p">]</span>
-    <span class="p">[</span><span class="mf">1.00000000e-15</span> <span class="mf">1.00000000e+00</span><span class="p">]</span>
+   <span class="p">[[</span><span class="mf">1.00000000e+00</span> <span class="mf">1.00000000e-14</span><span class="p">]</span>
+    <span class="p">[</span><span class="mf">1.00000000e-14</span> <span class="mf">1.00000000e+00</span><span class="p">]</span>
+    <span class="p">[</span><span class="mf">1.00000000e-14</span> <span class="mf">1.00000000e+00</span><span class="p">]</span>
     <span class="o">...</span>
     <span class="p">[</span><span class="mf">1.56995650e-01</span> <span class="mf">8.43004350e-01</span><span class="p">]</span>
     <span class="p">[</span><span class="mf">1.12072782e-01</span> <span class="mf">8.87927218e-01</span><span class="p">]</span>
@@ -400,26 +403,26 @@ the <code class="docutils literal notranslate"><span class="pre">GM</span></code
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
-<span class="n">Dimensions</span><span class="p">:</span>    <span class="p">(</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">Dimensions</span><span class="p">:</span>    <span class="p">(</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">Coordinates</span><span class="p">:</span>
   <span class="o">*</span> <span class="n">N</span>          <span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span>
   <span class="o">*</span> <span class="n">P</span>          <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
   <span class="o">*</span> <span class="n">T</span>          <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">500.0</span> <span class="mf">600.0</span> <span class="mf">700.0</span> <span class="mf">800.0</span> <span class="mf">900.0</span>
-  <span class="o">*</span> <span class="n">X_ZN</span>       <span class="p">(</span><span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-12</span> <span class="mf">0.05</span> <span class="mf">0.1</span> <span class="mf">0.15</span> <span class="mf">0.2</span> <span class="o">...</span> <span class="mf">0.75</span> <span class="mf">0.8</span> <span class="mf">0.85</span> <span class="mf">0.9</span> <span class="mf">0.95</span>
-  <span class="o">*</span> <span class="n">vertex</span>     <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int64</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
+  <span class="o">*</span> <span class="n">X_ZN</span>       <span class="p">(</span><span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-10</span> <span class="mf">0.05</span> <span class="mf">0.1</span> <span class="mf">0.15</span> <span class="mf">0.2</span> <span class="o">...</span> <span class="mf">0.75</span> <span class="mf">0.8</span> <span class="mf">0.85</span> <span class="mf">0.9</span> <span class="mf">0.95</span>
+  <span class="o">*</span> <span class="n">vertex</span>     <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int32</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
   <span class="o">*</span> <span class="n">component</span>  <span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U2</span> <span class="s1">'AL'</span> <span class="s1">'ZN'</span>
 <span class="n">Dimensions</span> <span class="n">without</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">internal_dof</span>
 <span class="n">Data</span> <span class="n">variables</span><span class="p">:</span>
     <span class="n">NP</span>         <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="n">nan</span> <span class="mf">1.0</span> <span class="o">...</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="n">nan</span>
     <span class="n">GM</span>         <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">1.559e+04</span> <span class="o">-</span><span class="mf">1.615e+04</span> <span class="o">...</span> <span class="o">-</span><span class="mf">5.068e+04</span>
     <span class="n">MU</span>         <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">1.559e+04</span> <span class="o">...</span> <span class="o">-</span><span class="mf">5.065e+04</span>
-    <span class="n">X</span>          <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-12</span> <span class="o">...</span> <span class="n">nan</span> <span class="n">nan</span>
-    <span class="n">Y</span>          <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-12</span> <span class="o">...</span> <span class="n">nan</span>
+    <span class="n">X</span>          <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-10</span> <span class="o">...</span> <span class="n">nan</span> <span class="n">nan</span>
+    <span class="n">Y</span>          <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-10</span> <span class="o">...</span> <span class="n">nan</span>
     <span class="n">Phase</span>      <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U6</span> <span class="s1">'FCC_A1'</span> <span class="s1">''</span> <span class="s1">''</span> <span class="o">...</span> <span class="s1">'LIQUID'</span> <span class="s1">''</span> <span class="s1">''</span>
     <span class="n">HM</span>         <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">5.194e+03</span> <span class="mf">5.859e+03</span> <span class="o">...</span> <span class="mf">2.528e+04</span>
 <span class="n">Attributes</span><span class="p">:</span>
-    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.8</span><span class="o">.</span><span class="mi">3</span><span class="o">+</span><span class="mf">10.</span><span class="n">gfd19517e</span>
-    <span class="n">created</span><span class="p">:</span>  <span class="mi">2020</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">27</span><span class="n">T14</span><span class="p">:</span><span class="mi">30</span><span class="p">:</span><span class="mf">03.243487</span>
+    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.9</span><span class="o">.</span><span class="mf">3.</span><span class="n">dev13</span><span class="o">+</span><span class="n">gbb04ffdd</span><span class="o">.</span><span class="n">d20211218</span>
+    <span class="n">created</span><span class="p">:</span>  <span class="mi">2021</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">18</span><span class="n">T22</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mf">32.873515</span>
 </pre></div>
 </div>
 <p>A common operation might be to find the phase fractions of the HCP_A3
@@ -439,12 +442,12 @@ to find the data values that match a condition (the Phase is FCC_A1):</p>
         <span class="p">[</span><span class="mf">1.</span>        <span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
         <span class="p">[</span><span class="mf">1.</span>        <span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
         <span class="p">[</span><span class="mf">1.</span>        <span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.89739918</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.89739922</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
         <span class="p">[</span><span class="mf">0.71825009</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.53910097</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.35995186</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.18080276</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.00165369</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.53910096</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.35995184</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.18080271</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
+        <span class="p">[</span>       <span class="n">nan</span><span class="p">,</span> <span class="mf">0.00165358</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
         <span class="p">[</span>       <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
         <span class="p">[</span>       <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
         <span class="p">[</span>       <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">,</span>        <span class="n">nan</span><span class="p">],</span>
@@ -459,8 +462,8 @@ to find the data values that match a condition (the Phase is FCC_A1):</p>
   <span class="o">*</span> <span class="n">N</span>        <span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span>
     <span class="n">P</span>        <span class="n">float64</span> <span class="mf">1.013e+05</span>
     <span class="n">T</span>        <span class="n">float64</span> <span class="mf">800.0</span>
-  <span class="o">*</span> <span class="n">X_ZN</span>     <span class="p">(</span><span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-12</span> <span class="mf">0.05</span> <span class="mf">0.1</span> <span class="mf">0.15</span> <span class="mf">0.2</span> <span class="o">...</span> <span class="mf">0.75</span> <span class="mf">0.8</span> <span class="mf">0.85</span> <span class="mf">0.9</span> <span class="mf">0.95</span>
-  <span class="o">*</span> <span class="n">vertex</span>   <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int64</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
+  <span class="o">*</span> <span class="n">X_ZN</span>     <span class="p">(</span><span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-10</span> <span class="mf">0.05</span> <span class="mf">0.1</span> <span class="mf">0.15</span> <span class="mf">0.2</span> <span class="o">...</span> <span class="mf">0.75</span> <span class="mf">0.8</span> <span class="mf">0.85</span> <span class="mf">0.9</span> <span class="mf">0.95</span>
+  <span class="o">*</span> <span class="n">vertex</span>   <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int32</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
 </pre></div>
 </div>
 </section>
@@ -471,23 +474,23 @@ to find the data values that match a condition (the Phase is FCC_A1):</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../faq.html">
+          <a class="next-page" href="ChargedPhases.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">FAQ</div>
+                <div class="title">Phases with Electrically Charged Species</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="ViscosityModel.html">
+          <a class="prev-page" href="TernaryExamples.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Custom Models in pycalphad: Viscosity</div>
+                <div class="title">Plotting Ternary Phase Diagrams and Using Triangular Axes</div>
                 
               </div>
             </a>

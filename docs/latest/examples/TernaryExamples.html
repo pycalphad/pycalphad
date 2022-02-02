@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Calculations with Reference States" href="ReferenceStateExamples.html" /><link rel="prev" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Exploring calculate and equilibrium xarray Datasets" href="UsingCalculationResults.html" /><link rel="prev" title="Plotting Isobaric Binary Phase Diagrams with binplot" href="BinaryExamples.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>Plotting Ternary Phase Diagrams and Using Triangular Axes - pycalphad 0.9.3.dev6+g58fec408 documentation</title>
+        <title>Plotting Ternary Phase Diagrams and Using Triangular Axes - pycalphad 0.9.3.dev7+g81999609 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev6+g58fec408 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev7+g81999609 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev6+g58fec408 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev7+g81999609 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -162,13 +162,14 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ReferenceStateExamples.html">Calculations with Reference States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -226,13 +227,11 @@ already have an equilibrium calculation, you can directly import and use
 <code class="docutils literal notranslate"><span class="pre">eqplot</span></code>.</p>
 <section id="ternplot">
 <h2>ternplot<a class="headerlink" href="#ternplot" title="Permalink to this headline">¶</a></h2>
-<p>Here we well use the ternplot API to plot an isothermal section of the
+<p>Here we will use the ternplot API to plot an isothermal section of the
 Al-Cu-Y system from the thermodynamic database found at the <a class="reference external" href="http://hdl.handle.net/11115/101">NIST
 CALPHAD assessments</a> assessed by
 Zhang et al. <a class="reference external" href="https://doi.org/10.1016/j.calphad.2011.09.008">Calphad 35
-(2011)</a>. Note that we
-have commented out the Cu6Y phase in the TDB because it utilized the Cu2
-species. Species are not currently supported in pycalphad.</p>
+(2011)</a>.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
@@ -242,13 +241,16 @@ species. Species are not currently supported in pycalphad.</p>
 <span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">830</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'AL'</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'Y'</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">)}</span>
 
-<span class="n">ternplot</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'AL'</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'Y'</span><span class="p">))</span>
+<span class="o">%</span><span class="k">time</span> ternplot(db_al_cu_y, comps, phases, conds, x=v.X('AL'), y=v.X('Y'))
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">TriangularAxesSubplot</span> <span class="n">at</span> <span class="mh">0x117fcd5f8</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Wall</span> <span class="n">time</span><span class="p">:</span> <span class="mi">5</span><span class="nb">min</span> <span class="mi">47</span><span class="n">s</span>
 </pre></div>
 </div>
-<img alt="../_images/TernaryExamples_2_1.png" src="../_images/TernaryExamples_2_1.png"/>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">TriangularAxesSubplot</span><span class="p">:</span><span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="s1">'center'</span><span class="p">:</span><span class="s1">'Al-Cu-Y'</span><span class="p">},</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">'X(AL)'</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">'X(Y)'</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="examples/TernaryExamples_files%5CTernaryExamples_2_2.png" src="examples/TernaryExamples_files%5CTernaryExamples_2_2.png"/>
 </section>
 <section id="triangular-projection">
 <h2>triangular projection<a class="headerlink" href="#triangular-projection" title="Permalink to this headline">¶</a></h2>
@@ -275,7 +277,7 @@ axes.</p>
 
 <span class="c1"># when we imported the pycalphad.plot.triangular module, it made the 'triangular' projection available for us to use.</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s1">'triangular'</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s1">'triangular'</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">zs</span><span class="p">,</span>
            <span class="n">cmap</span><span class="o">=</span><span class="s1">'coolwarm'</span><span class="p">,</span>
            <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
@@ -290,13 +292,10 @@ axes.</p>
 <span class="c1"># set up the colorbar</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">'coolwarm'</span><span class="p">)</span>
 <span class="n">cm</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">zs</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cm</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">Colorbar</span> <span class="n">at</span> <span class="mh">0x117110588</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-<img alt="../_images/TernaryExamples_4_1.png" src="../_images/TernaryExamples_4_1.png"/>
+<img alt="examples/TernaryExamples_files%5CTernaryExamples_4_0.png" src="examples/TernaryExamples_files%5CTernaryExamples_4_0.png"/>
 </section>
 </section>
 
@@ -305,23 +304,23 @@ axes.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="ReferenceStateExamples.html">
+          <a class="next-page" href="UsingCalculationResults.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Calculations with Reference States</div>
+                <div class="title">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="EquilibriumWithOrdering.html">
+          <a class="prev-page" href="BinaryExamples.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</div>
+                <div class="title">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></div>
                 
               </div>
             </a>

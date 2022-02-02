@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Exploring calculate and equilibrium xarray Datasets" href="UsingCalculationResults.html" /><link rel="prev" title="Calculate and Plot Activity" href="PlotActivity.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Heat Capacity of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html" /><link rel="prev" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.9.3.dev6+g58fec408 documentation</title>
+        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.9.3.dev7+g81999609 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev6+g58fec408 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev7+g81999609 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev6+g58fec408 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev7+g81999609 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -162,13 +162,14 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ReferenceStateExamples.html">Calculations with Reference States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Custom Models in pycalphad: Viscosity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -267,176 +268,15 @@ PARAMETER ETA(LIQUID,ZR;0) 2.98150E+02  +4.74E-3 - 4.97E-6*(T-2128) ;   6.00000E
 error. This is because <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters are not supported by default
 in pycalphad, so we need to tell pycalphad’s TDB parser that “ETA”
 should be on the list of supported parameter types.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'alcuzr-viscosity.tdb'</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'alcuzr-viscosity.tdb'</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Failed</span> <span class="k">while</span> <span class="n">parsing</span><span class="p">:</span>     <span class="n">PARAMETER</span> <span class="n">ETA</span><span class="p">(</span><span class="n">LIQUID</span><span class="p">,</span><span class="n">AL</span><span class="p">;</span><span class="mi">0</span><span class="p">)</span> <span class="mf">2.98150E+02</span> <span class="o">+</span><span class="mf">0.000281</span><span class="o">*</span><span class="n">EXP</span><span class="p">(</span><span class="mi">12300</span><span class="o">/</span><span class="p">(</span><span class="mf">8.3145</span><span class="o">*</span><span class="n">T</span><span class="p">));</span> <span class="mf">6.00000E+03</span> <span class="n">N</span> <span class="n">REF</span><span class="p">:</span><span class="mi">0</span>
-<span class="n">Tokens</span><span class="p">:</span> <span class="kc">None</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>---------------------------------------------------------------------------
-
-ParseException                            Traceback (most recent call last)
-
-&lt;ipython-input-2-d711f4128286&gt; in &lt;module&gt;
-----&gt; 1 dbf = Database('alcuzr-viscosity.tdb')
-
-
-~/Projects/pycalphad/pycalphad/io/database.py in __new__(cls, *args)
-    117             elif fname.find('\n') == -1:
-    118                 # Single-line string; it's probably a filename
---&gt; 119                 return cls.from_file(fname, fmt=fmt)
-    120             else:
-    121                 # Newlines found: probably a full database string
-
-
-~/Projects/pycalphad/pycalphad/io/database.py in from_file(fname, fmt)
-    211         try:
-    212             dbf = Database()
---&gt; 213             format_registry[fmt.lower()].read(dbf, fd)
-    214         finally:
-    215             # Close file descriptors created in this routine
-
-
-~/Projects/pycalphad/pycalphad/io/tdb.py in read_tdb(dbf, fd)
-    950         tokens = None
-    951         try:
---&gt; 952             tokens = grammar.parseString(command)
-    953             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
-    954         except:
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseString(self, instring, parseAll)
-   1943             else:
-   1944                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
--&gt; 1945                 raise exc
-   1946         else:
-   1947             return tokens
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseString(self, instring, parseAll)
-   1933             instring = instring.expandtabs()
-   1934         try:
--&gt; 1935             loc, tokens = self._parse(instring, 0)
-   1936             if parseAll:
-   1937                 loc = self.preParse(instring, loc)
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-   1834                 ParserElement.packrat_cache_stats[MISS] += 1
-   1835                 try:
--&gt; 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-   1837                 except ParseBaseException as pe:
-   1838                     # cache a copy of the exception, without the traceback
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-   1673             if self.mayIndexError or preloc &gt;= len(instring):
-   1674                 try:
--&gt; 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
-   1676                 except IndexError:
-   1677                     raise ParseException(instring, len(instring), self.errmsg, self)
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   4248             if maxException is not None:
-   4249                 maxException.msg = self.errmsg
--&gt; 4250                 raise maxException
-   4251             else:
-   4252                 raise ParseException(instring, loc, "no defined alternatives to match", self)
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   4233         for e in self.exprs:
-   4234             try:
--&gt; 4235                 ret = e._parse(instring, loc, doActions)
-   4236                 return ret
-   4237             except ParseException as err:
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-   1834                 ParserElement.packrat_cache_stats[MISS] += 1
-   1835                 try:
--&gt; 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-   1837                 except ParseBaseException as pe:
-   1838                     # cache a copy of the exception, without the traceback
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-   1673             if self.mayIndexError or preloc &gt;= len(instring):
-   1674                 try:
--&gt; 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
-   1676                 except IndexError:
-   1677                     raise ParseException(instring, len(instring), self.errmsg, self)
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   4048                     raise ParseSyntaxException(instring, len(instring), self.errmsg, self)
-   4049             else:
--&gt; 4050                 loc, exprtokens = e._parse(instring, loc, doActions)
-   4051             if exprtokens or exprtokens.haskeys():
-   4052                 resultlist += exprtokens
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-   1834                 ParserElement.packrat_cache_stats[MISS] += 1
-   1835                 try:
--&gt; 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-   1837                 except ParseBaseException as pe:
-   1838                     # cache a copy of the exception, without the traceback
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-   1673             if self.mayIndexError or preloc &gt;= len(instring):
-   1674                 try:
--&gt; 1675                     loc, tokens = self.parseImpl(instring, preloc, doActions)
-   1676                 except IndexError:
-   1677                     raise ParseException(instring, len(instring), self.errmsg, self)
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   4248             if maxException is not None:
-   4249                 maxException.msg = self.errmsg
--&gt; 4250                 raise maxException
-   4251             else:
-   4252                 raise ParseException(instring, loc, "no defined alternatives to match", self)
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in parseImpl(self, instring, loc, doActions)
-   4233         for e in self.exprs:
-   4234             try:
--&gt; 4235                 ret = e._parse(instring, loc, doActions)
-   4236                 return ret
-   4237             except ParseException as err:
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseCache(self, instring, loc, doActions, callPreParse)
-   1834                 ParserElement.packrat_cache_stats[MISS] += 1
-   1835                 try:
--&gt; 1836                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-   1837                 except ParseBaseException as pe:
-   1838                     # cache a copy of the exception, without the traceback
-
-
-~/anaconda3/envs/calphad-dev-2/lib/python3.7/site-packages/pyparsing.py in _parseNoCache(self, instring, loc, doActions, callPreParse)
-   1677                     raise ParseException(instring, len(instring), self.errmsg, self)
-   1678             else:
--&gt; 1679                 loc, tokens = self.parseImpl(instring, preloc, doActions)
-   1680
-   1681         tokens = self.postParse(instring, loc, tokens)
-
-
-~/Projects/pycalphad/pycalphad/io/tdb.py in parseImpl(self, instring, loc, doActions)
-    186         except ValueError:
-    187             pass
---&gt; 188         raise ParseException(instring, loc, self.errmsg, self)
-    189
-    190 def _tdb_grammar(): #pylint: disable=R0914
-
-
-ParseException: Expected {{"ELEMENT" W:(ABCD...) W:(ABCD...) Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') LineEnd} | {"SPECIES" W:(ABCD...) [Suppress:("%")] Group:({{W:(ABCD...) [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')]}}...) [{Suppress:("/") W:(+-01...)}] LineEnd} | {"TYPE_DEFINITION" Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {"FUNCTION" W:(ABCD...) {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}} | {"ASSESSED_SYSTEMS" SkipTo:(LineEnd)} | {"DEFINE_SYSTEM_DEFAULT" SkipTo:(LineEnd)} | {"DEFAULT_COMMAND" SkipTo:(LineEnd)} | {"DATABASE_INFO" SkipTo:(LineEnd)} | {"VERSION_DATE" SkipTo:(LineEnd)} | {"REFERENCE_FILE" SkipTo:(LineEnd)} | {"ADD_REFERENCES" SkipTo:(LineEnd)} | {"LIST_OF_REFERENCES" SkipTo:(LineEnd)} | {"TEMPERATURE_LIMITS" SkipTo:(LineEnd)} | {"PHASE" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0123...)) Group:({Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')}...) Suppress:(SkipTo:(LineEnd))} | {"CONSTITUENT" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(":") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) Suppress:(":") LineEnd} | {"PARAMETER" {"BMAGN" | "DF" | "DQ" | "G" | "GD" | "L" | "MF" | "MQ" | "NT" | "TC" | "THETA" | "V0" | "VS"} Suppress:("(") W:(ABCD...) [{Suppress:("&amp;") W:(ABCD...)}] Suppress:(",") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) [{Suppress:(";") W:(0123...)}] Suppress:(")") {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:({W:(YNyn) | &lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;})}}...}}}, found '('  (at char 17), (line:1, col:18)
-</pre></div>
-</div>
+<pre class="literal-block">Failed while parsing:     PARAMETER ETA(LIQUID,AL;0) 2.98150E+02 +0.000281*EXP(12300/(8.3145*T)); 6.00000E+03 N REF:0
+Tokens: None
+Expected {{"ELEMENT" W:(ABCD...) W:(ABCD...) Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') LineEnd} | {"SPECIES" W:(ABCD...) [Suppress:("%")] Group:({{W:(ABCD...) [Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')]}}...) [{Suppress:("/") W:(+-01...)}] LineEnd} | {"TYPE_DEFINITION" Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {"FUNCTION" W:(ABCD...) {{Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:([W:(Yy)])}}... Suppress:([W:(Nn)])} [Suppress:(W:(ABCD...))] LineEnd} | {"ASSESSED_SYSTEMS" SkipTo:(LineEnd)} | {"DEFINE_SYSTEM_DEFAULT" SkipTo:(LineEnd)} | {"DEFAULT_COMMAND" SkipTo:(LineEnd)} | {"DATABASE_INFO" SkipTo:(LineEnd)} | {"VERSION_DATE" SkipTo:(LineEnd)} | {"REFERENCE_FILE" SkipTo:(LineEnd)} | {"ADD_REFERENCES" SkipTo:(LineEnd)} | {"LIST_OF_REFERENCES" SkipTo:(LineEnd)} | {"TEMPERATURE_LIMITS" SkipTo:(LineEnd)} | {"PHASE" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0123...)) Group:({Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')}...) Suppress:(SkipTo:(LineEnd))} | {"CONSTITUENT" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(":") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) Suppress:(":") LineEnd} | {"PARAMETER" {"BMAGN" | "DF" | "DQ" | "ELRS" | "G" | "GD" | "L" | "MF" | "MQ" | "NT" | "SIGM" | "TC" | "THCD" | "THETA" | "V0" | "VA" | "VC" | "VISC" | "VK" | "VS" | "XI"} Suppress:("(") W:(ABCD...) [{Suppress:("&amp;") W:(ABCD...)}] Suppress:(",") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) [{Suppress:(";") W:(0123...)}] Suppress:(")") {{Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:([W:(Yy)])}}... Suppress:([W:(Nn)])} [Suppress:(W:(ABCD...))] LineEnd}}, found '('  (at char 17), (line:1, col:18)</pre>
 <section id="adding-the-eta-parameter-to-the-tdb-parser">
 <h3>Adding the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameter to the TDB parser<a class="headerlink" href="#adding-the-eta-parameter-to-the-tdb-parser" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pycalphad.io.tdb_keywords</span>
@@ -536,7 +376,7 @@ the viscosity.</p>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Viscosity at </span><span class="si">{}</span><span class="s1">K'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
 </pre></div>
 </div>
-<img alt="../_images/ViscosityModel_14_0.png" src="../_images/ViscosityModel_14_0.png"/>
+<img alt="examples/ViscosityModel_files%5CViscosityModel_14_0.png" src="examples/ViscosityModel_files%5CViscosityModel_14_0.png"/>
 <p>We repeat the calculation for Al-Cu.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -556,7 +396,7 @@ the viscosity.</p>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Viscosity at </span><span class="si">{}</span><span class="s1">K'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
 </pre></div>
 </div>
-<img alt="../_images/ViscosityModel_16_0.png" src="../_images/ViscosityModel_16_0.png"/>
+<img alt="examples/ViscosityModel_files%5CViscosityModel_16_0.png" src="examples/ViscosityModel_files%5CViscosityModel_16_0.png"/>
 </section>
 </section>
 
@@ -565,23 +405,23 @@ the viscosity.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="UsingCalculationResults.html">
+          <a class="next-page" href="CementiteAnalysis.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</div>
+                <div class="title">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="PlotActivity.html">
+          <a class="prev-page" href="EquilibriumWithOrdering.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Calculate and Plot Activity</div>
+                <div class="title">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</div>
                 
               </div>
             </a>
