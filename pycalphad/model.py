@@ -383,9 +383,29 @@ class Model(object):
 
     def get_internal_constraints(self):
         constraints = []
+        # Site fraction balance
         for idx, sublattice in enumerate(self.constituents):
             constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
+        # Charge balance for all phases that are charged
+        has_charge = len({sp for sp in self.components if sp.charge != 0}) > 0
+        constant_site_ratios = True
+        # The only implementation with variable site ratios is the two-sublattice ionic liquid.
+        # This check is convenient for detecting 2SL ionic liquids without keeping other state.
+        # Because 2SL ionic liquids charge balance 'automatically', we do not need to enforce charge balance.
+        for sr in self.site_ratios:
+            try:
+                float(sr)
+            except TypeError:
+                constant_site_ratios = False
+        # For all other cases where charge is present, we do need to add charge balance.
+        if constant_site_ratios and has_charge:
+            total_charge = 0
+            for idx, (sublattice, site_ratio) in enumerate(zip(self.constituents, self.site_ratios)):
+                total_charge += sum(v.SiteFraction(self.phase_name, idx, spec) * spec.charge * site_ratio
+                                    for spec in sublattice)
+            constraints.append(total_charge)
         return constraints
+
 
     def build_phase(self, dbe):
         """

@@ -4,6 +4,7 @@ property surface of a system.
 """
 
 import itertools
+import warnings
 from collections import OrderedDict
 from collections.abc import Mapping
 import numpy as np
@@ -18,6 +19,54 @@ from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
+from pycalphad.core.constants import MIN_SITE_FRACTION
+
+
+def hr_point_sample(constraint_jac, constraint_rhs, initial_point, num_points):
+    "Hit-and-run sampling of linearly-constrained site fraction spaces"
+    q, r = np.linalg.qr(constraint_jac.T, mode='complete')
+    q1 = q[:, :constraint_jac.shape[0]]
+    q2 = q[:, constraint_jac.shape[0]:]
+    r1 = r[:constraint_jac.shape[0], :]
+    if initial_point is not None:
+        z_bar = initial_point
+    else:
+        # minimum norm solution to underdetermined system of equations
+        # may not be feasible if it fails the non-negativity constraint
+        z_bar = np.linalg.lstsq(constraint_jac, constraint_rhs, rcond=None)[0]
+    solution_norm = np.linalg.norm(constraint_jac.dot(z_bar) - constraint_rhs)
+    if (solution_norm > 1e-4) or np.any(z_bar < 0):
+        # initial point does not satisfy constraints; give up
+        return np.empty((0, z_bar.shape[0]))
+    # Hit-and-Run sampling
+    new_feasible_z = np.zeros((num_points, constraint_jac.shape[1]))
+    current_z = np.array(z_bar)
+    min_z = MIN_SITE_FRACTION
+    rng = np.random.RandomState(1769)
+    for iteration in range(num_points):
+        # generate unit direction in null space
+        d = rng.normal(size=(constraint_jac.shape[1] - constraint_jac.shape[0]))
+        d /= np.linalg.norm(d, axis=0)
+        proj = np.dot(q2, d)
+        # find extent of step direction possible while staying within bounds (0 <= z)
+        with np.errstate(divide='ignore'):
+            alphas = (min_z - current_z) / proj
+        # Need to use small value to prevent constraints binding one sublattice (with proj ~ 0) from binding all dof
+        max_alpha_candidates = alphas[np.logical_and(proj > 1e-6, np.isfinite(alphas))]
+        min_alpha_candidates = alphas[np.logical_and(proj < -1e-6, np.isfinite(alphas))]
+        alpha_min = np.min(min_alpha_candidates)
+        alpha_max = np.max(max_alpha_candidates)
+        # Poor progress; give up on sampling
+        if np.abs(alpha_max - alpha_min) < 1e-4:
+            new_feasible_z = new_feasible_z[:iteration, :]
+            break
+        # choose a random step size within the feasible interval
+        new_alpha = rng.uniform(low=alpha_min, high=alpha_max)
+        current_z += new_alpha * proj
+        new_feasible_z[iteration, :] = current_z
+    if np.any(new_feasible_z < 0):
+        raise ValueError('Constrained sampling generated negative site fractions')
+    return new_feasible_z
 
 
 @cacheit
@@ -41,6 +90,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     ndarray of points
     """
     # Eliminate pure vacancy endmembers from the calculation
+    ALLOWED_CHARGE=1E-10
     vacancy_indices = []
     for sublattice in model.constituents:
         subl_va_indices = [idx for idx, spec in enumerate(sorted(set(sublattice))) if spec.number_of_atoms == 0]
@@ -50,7 +100,54 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     sublattice_dof = [len(subl) for subl in model.constituents]
     # Add all endmembers to guarantee their presence
     points = endmember_matrix(sublattice_dof, vacancy_indices=vacancy_indices)
-    if fixed_grid is True:
+    site_ratios = model.site_ratios
+    constant_site_ratios = True
+    # The only implementation with variable site ratios is the two-sublattice ionic liquid.
+    # This check is convenient for detecting 2SL ionic liquids without keeping other state.
+    for sr in site_ratios:
+        try:
+            float(sr)
+        except TypeError:
+            constant_site_ratios = False
+    species_charge = []
+    for sublattice in range(len(model.constituents)):
+        for species in sorted(model.constituents[sublattice]):
+            species_charge.append(species.charge*site_ratios[sublattice])
+    species_charge = np.array(species_charge)
+    charge_constrained_space = constant_site_ratios and np.any(species_charge != 0)
+    # We differentiate between (specifically) charge balance and general linear constraints for future use
+    # This simplifies adding future constraints, such as disordered configuration sampling, or site fraction conditions
+    # Note that if a phase only consists of site fraction balance constraints,
+    # we do not consider that 'linearly constrained' for the purposes of sampling,
+    # since the default sampler handles that case with an efficient method.
+    linearly_constrained_space = charge_constrained_space
+
+    if charge_constrained_space:
+        endmembers = points
+        Q = np.dot(endmembers, species_charge)
+        # Sort endmembers by their charge
+        charge_neutral_endmember_idxs = []
+        charge_positive_endmember_idxs = []
+        charge_negative_endmember_idxs = []
+        for em_idx in range(endmembers.shape[0]):
+            if Q[em_idx] > ALLOWED_CHARGE:
+                charge_positive_endmember_idxs.append(em_idx)
+            elif Q[em_idx] < -ALLOWED_CHARGE:
+                charge_negative_endmember_idxs.append(em_idx)
+            else:
+                charge_neutral_endmember_idxs.append(em_idx)
+
+        # Find all endmember pairs between the
+        em_pts = [endmembers[em_idx] for em_idx in charge_neutral_endmember_idxs]
+        for pos_em_idx, neg_em_idx in itertools.product(charge_positive_endmember_idxs, charge_negative_endmember_idxs):
+            # Solve equation: Q_{pos}*x + Q_{neg}(1-x) = 0
+            x = - Q[neg_em_idx] / (Q[pos_em_idx] - Q[neg_em_idx])
+            em_pts.append(endmembers[pos_em_idx] * x + endmembers[neg_em_idx] * (1-x))
+
+        # Charge neutral endmembers and mixed pseudo-endmembers
+        points = np.asarray(em_pts)
+
+    if (fixed_grid is True) and not linearly_constrained_space:
         # Sample along the edges of the endmembers
         # These constitution space edges are often the equilibrium points!
         em_pairs = list(itertools.combinations(points, 2))
@@ -59,10 +156,37 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
                         second_em * lingrid[::-1][np.newaxis].T
                         for first_em, second_em in em_pairs]
         points = np.concatenate(list(itertools.chain([points], extra_points)))
-
     # Sample composition space for more points
     if sum(sublattice_dof) > len(sublattice_dof):
-        points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
+        if linearly_constrained_space:
+            # construct constraint Jacobian for this phase
+            # Model technically already does this so it would be better to reuse that functionality
+            # number of sublattices, plus charge balance
+            num_constraints = len(sublattice_dof) + 1
+            constraint_jac = np.zeros((num_constraints, points.shape[-1]))
+            constraint_rhs = np.zeros(num_constraints)
+            # site fraction balance
+            dof_idx = 0
+            constraint_idx = 0
+            for subl_dof in sublattice_dof:
+                constraint_jac[constraint_idx, dof_idx:dof_idx + subl_dof] = 1
+                constraint_rhs[constraint_idx] = 1
+                constraint_idx += 1
+                dof_idx += subl_dof
+            # charge balance
+            constraint_jac[constraint_idx, :] = species_charge
+            constraint_rhs[constraint_idx] = 0
+            # Sample additional points which obey the constraints
+            # Mean of pseudo-endmembers is feasible by convexity of the space
+            initial_point = np.mean(points, axis=0)
+            num_points = (pdens ** 2) * (constraint_jac.shape[1] - constraint_jac.shape[0])
+            extra_points = hr_point_sample(constraint_jac, constraint_rhs, initial_point, num_points)
+            points = np.concatenate((points, extra_points))
+            assert np.max(np.abs(constraint_jac.dot(points.T).T - constraint_rhs)) < 1e-6
+            if points.shape[0] == 0:
+                warnings.warn(f'{model.phase_name} has zero feasible configurations under the given conditions')
+        else:
+            points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
 
     # Filter out nan's that may have slipped in if we sampled too high a vacancy concentration
     # Issues with this appear to be platform-dependent
@@ -213,7 +337,7 @@ def _compute_phase_values(components, statevar_dict,
         coordinate_dict['param_symbols'] = [str(x) for x in param_symbols]
     else:
         parameter_column = []
-    data_arrays = {'X': (output_columns + ['component'], phase_compositions),
+    data_arrays = {'X': (output_columns + ['component'], np.ascontiguousarray(phase_compositions)),
                    'Phase': (output_columns, phase_names),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
                    output: (['dim_'+str(i) for i in range(len(phase_output.shape) - (len(output_columns)+len(parameter_column)))] + output_columns + parameter_column, phase_output)
