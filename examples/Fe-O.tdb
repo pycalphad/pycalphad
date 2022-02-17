@@ -1,0 +1,491 @@
+$ FEO
+$
+$ TDB-file for the thermodynamic assessment of the Fe-O system
+$
+$------------------------------------------------------------------------------
+$ 2011.11.14
+
+$ TDB file created by T.Abe, K.Hashimoto and Y.Sawada
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for 
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ e-mail: abe.taichi@nims.go.jp
+$ Copyright (C) NIMS 2008
+$
+$
+$   10Kje   Thermodynamic assessment of the Fe-Mn-O system
+$            L.Kjellqvist, M.Selleby, J. Phase Equilibria, 31 (2010), 113-134.
+$
+$ Phase-name        Synonym      This database
+$        FeO        wustite      Halite
+$        Fe3O4      magnetite    Spinel
+$        Fe2O3      Hematite     Corundum
+$
+$       : 93Tay
+$         A Thermodynamic Assessment of the Cr-Fe-O System,
+$         J.R.Taylor, A.T.Dinsdale, Z. Metallkd. 84 (1993), 335-345.
+$       : 91Sun
+$         An Assessment of the Fe-O System.
+$         B.Sundman, J. Phase Eq., 12 (1991), 127-140.   ***** NOTE: see 96Sel.
+$       : 96Sel
+$         A reassessment of the Ca-Fe-O system.
+$         M.Selleby, B.Sundman, CALPHAD 20 (1996), 381-392.
+$
+$2012.3.8 fcc bcc-->91sundman
+$                
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT FE   BCC_A2                    5.5847E+01  4.4890E+03  2.7280E+01!
+ ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+
+$------------------------------------------------------------------------------
+ SPECIES FE+2                        FE1/+2!
+ SPECIES FE+3                        FE1/+3!
+$ SPECIES FE2O3                       FE2O3!
+ SPECIES FEO                         FE1O1!
+ SPECIES FEO3/2                      FE1O1.5!
+
+ SPECIES O-2                         O1/-2!
+ SPECIES O2                          O2!
+ 
+
+ FUNCTION GO2GAS     298.15  -6961.742 -76729.5*T**(-1)
+          -51.0061*T-22.271*T*LN(T)-.01019775*T**2+1.32369E-06*T**3;  1000 Y
+          -13137.527+525810*T**(-1)+25.31976*T-33.6276*T*LN(T)
+          -.001191595*T**2+1.35611E-08*T**3;                          3300  Y
+          -27973.4908+8766421.4*T**(-1)+62.5195726*T-37.9072074*T*LN(T)
+          -8.50483772E-04*T**2+2.14409777E-08*T**3;                   6000  N !
+
+ FUNCTION GHSEROO    298.15  +0.5*GO2GAS;                             6000  N !
+ FUNCTION GOBCC      298.15  +0.5*GO2GAS+1000000;                     3000  N !
+                                                                       $  96Sel
+
+ FUNCTION GHSERFE    298.15  +1225.7+124.134*T-23.5143*T*LN(T)
+          -0.00439752*T**2-5.89269E-08*T**3+77358.5*T**(-1);          1811  Y
+          -25383.581+299.31255*T-46*T*LN(T)+2.2960305E+31*T**(-9);    6000  N !
+                                                                        $ 91Din
+ FUNCTION GFELIQ     298.15 
+          +12040.17-6.55843*T-3.6751551E-21*T**7+GHSERFE;             1811  Y
+          +14544.751-8.01055*T-2.2960305E+31*T**(-9)+GHSERFE;         6000  N !
+                                                                        $ 91Din
+ FUNCTION GFEFCC     298.15 
+          -1462.4+8.282*T-1.15*T*LN(T)+6.4E-04*T**2+GHSERFE;          1811  Y
+           -1713.815+0.94001*T+0.4925095E+31*T**(-9)+GHSERFE;         6000  N !
+                                                                        $ 91Din
+ FUNCTION GPFEFCC    298.15   0.0;                                    6000  N !
+ FUNCTION GPFELIQ    298.15   0.0;                                    6000  N !
+
+ FUNCTION GFEOLIQ    298.15  -137252+224.641*T-37.1815*T*LN(T);       3000  N !
+
+ FUNCTION GFE3O2     298.15  
+          -858683+827.946*T-137.0089*T*LN(T)+1453810*T**(-1);         3000  N !
+
+ FUNCTION GFE2O3     298.15  +GFE3O2;                                 6000  N !
+                                                                        $ 10Kje
+ FUNCTION GWUSTITE   298.15  
+         -279318+252.848*T-46.12826*T*LN(T)-.0057402984*T**2;         3000  N !
+ FUNCTION AWUSTITE   298.15  -55384+27.888*T;                         3000  N !
+
+ FUNCTION BFE3O4     298.15  +46826-27.266*T;                         3000  N !
+ FUNCTION CFE3O4     298.15  +120730-20.102*T;                        3000  N !
+ FUNCTION DFE3O4     298.15  +402520-30.529*T;                        3000  N !
+ FUNCTION FFE3O4     298.15  -214607.7+138.83*T-23.28714*T*LN(T)
+                             -.001595929*T**2+227729.3*T**(-1);       3000  N !
+ FUNCTION GFE3O4     298.15  -161731+144.873*T-24.9879*T*LN(T)
+                             -.0011952256*T**2+206520*T**(-1);        3000  N !
+ FUNCTION RFE3O4     298.15  +156000-3.37*T;                          3000  N !
+ FUNCTION SFE3O4     298.15  +46028.95+38.73173*T-11.58574*T*LN(T)
+                             +.006411774*T**2;                        3000  N !
+
+
+ FUNCTION GHSERMN    298.15  -8115.28+130.059*T-23.4582*T*LN(T)
+                     -.00734768*T**2+69827*T**(-1);                   1519  Y
+                     -28733.41+312.2648*T-48*T*LN(T)+1.656847E+30*T**(-9);
+                                                                      3000  N !
+ FUNCTION GMNBCC     298.15  -3235.3+127.85*T-23.7*T*LN(T)
+                     -.00744271*T**2+60000*T**(-1);                   1519  Y
+                     -23188.83+307.7043*T-48*T*LN(T)+1.265152E+30*T**(-9);
+                                                                      3000  N !
+ FUNCTION GMNFCC     298.15  -3439.3+131.884*T-24.5177*T*LN(T)
+                     -.006*T**2+69600*T**(-1);                        1519  Y
+                     -26070.1+309.6664*T-48*T*LN(T)+3.86196E+30*T**(-9);
+                                                                      3000  N !
+ FUNCTION GMNLIQ     298.15
+         +GHSERMN +17859.91 -12.6208*T-4.41929E-21*T**7;              1519  Y
+         +GHSERMN +18739.51 -13.2288*T-1.656847E+30*T**(-9);          3000  N !
+                                                              $92Wan,507,10Kje3
+
+ FUNCTION GMNOLIQ    298.15  -252595-293.164*T+15.0712*T*LN(T);       6000  N !
+                                                                         $92Wan
+
+$ FUNCTION GMN1O1    298.15  -401784.4+268.75251*T-48.2744592*T*LN(T)
+$                     -0.00323061*T**2 +257553.188*T**(-1);           6000  N !
+                                                                         $92Wan
+$ FUNCTION GMN3O4    298.15  -1443167+905.71*T-156.211772*T*LN(T)
+$                     -0.0179602213*T**2 +1106277.72*T**(-1);         6000  N !
+                                                                         $92Wan
+$ FUNCTION GMN2O3    298.15  -993634.5+584.605647*T-102.148721*T*LN(T)
+$                     -0.0181244679*T**2 +595113*T**(-1);             6000  N !
+                                                                         $92Wan
+$ FUNCTION GMN1O2    298.15  -548242+444.10228*T-72.5000062*T*LN(T)
+$                     -0.002720343*T**2 +885523.74*T**(-1);           6000  N !
+                                                                         $92Wan
+
+ FUNCTION GMN1O1     298.15  -402478+259.356*T-46.835*T*LN(T)
+                      -0.003850*T**2 +212922*T**(-1);                 6000  N !
+                                                            $03Gun,10Kje,10Kje3
+
+ FUNCTION GMN3O4     298.15  -1437037+889.568*T-154.748*T*LN(T)
+                      -0.017408*T**2 +986139*T**(-1);                 6000  N !
+                                                                         $03Gun
+
+ FUNCTION GMN3O4BB    298.15  -1416189+875.120*T-154.748*T*LN(T)
+                      -0.017408*T**2 +986139*T**(-1);                 6000  N !
+                                                                         $03Gun
+
+ FUNCTION GMN2O3     298.15  -998618+588.619*T-101.956*T*LN(T)
+                      -0.018844*T**2 +589055*T**(-1);                 6000  N !
+                                                                         $03Gun
+
+ FUNCTION GMN1O2     298.15  -545091+395.379*T-65.277*T*LN(T)
+                      -0.007803*T**2 +664955*T**(-1);                 6000  N !
+                                                                   $03Gun,10Kje
+
+ FUNCTION GMN1O1_L   298.15  +GMN1O1 +43947-20.628*T;                 6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GMN2O3_L   298.15  +2*GMN1O1 +0.5*GO2GAS -64953+43.144*T;   6000  N !
+                                                                 $ 10Kje,10Kje3
+
+$ for Beta_Spinel
+
+$         JFE   =     BFe3O4
+$         C     =     CFE3O4
+$         D     =     DFE3O4
+ FUNCTION GFFB        298.15  +GFE3O4;                                6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GFMB        298.15  +0.1428571*GMN2O3 +0.1428571*GWUSTITE;  6000  N !
+                                                                        $ 10Kje
+ FUNCTION GMFB        298.15  -182450+133*T-23.099*T*LN(T)
+                               -0.0014*T**2+124000*T**(-1);           6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GMN3O4A     298.15  -1439700+892.2*T-154.748*T*LN(T)
+                               -0.017408*T**2+986139*T**(-1);         6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GMN3O4B     298.15  +15270+7*T;                             6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GMMB        298.15  +0.1428571*GMN3O4B +0.1428571*GMN3O4A;  6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION JMMB        298.15  +26210-17.46*T;                         6000  N !
+                                                      $ 10Kje,10Kje3(type_miss)
+ FUNCTION JMFB        298.15  +28000;                                 6000  N !
+                                                                        $ 10Kje
+ FUNCTION JFMB        298.15  -27000;                                 6000  N !
+                                                                        $ 10Kje
+ FUNCTION GGMN1O1B    298.15  +GMN1O1 +41500-10.25*T;                 6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GGMN2O3B    298.15  +GMN2O3 +192300-193.8*T+0.05*T**2;      6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GM2M2B      298.15  +21*GMFB +2*JMFB -14*GFE3O4 +2*BFE3O4;  6000  N !
+                                                                 $ 10Kje,10Kje3
+
+ FUNCTION GNFB        298.15  -153200 +173.55*T -28.259*T*LN(T) -3.2E-04*T**2
+          +291000*T**(-1);                                            6000  N !
+                                                               $ 10Kje3, for Ni
+ FUNCTION JNF         298.15  +142000;                                6000  N !
+                                                               $ 10Kje3, for Ni
+ FUNCTION GNMOB       298.15  +GNIO + GMN2O3 -6300 +12.5*T;           6000  N !
+                                                               $ 10Kje3, for Ni
+ FUNCTION GNMB        298.15  +0.1428571*GNMOB;                       6000  N !
+                                                               $ 10Kje3, for Ni
+ FUNCTION JNM         298.15  +38400;                                 6000  N !
+                                                               $ 10Kje3, for Ni
+ FUNCTION DNM         298.15  -29000;                                 6000  N !
+                                                               $ 10Kje3, for Ni
+ FUNCTION LNM         298.15  +0;                                     6000  N !
+                                                               $ 10Kje3, for Ni
+
+$ for Alpha_Spinel
+
+ FUNCTION GFFA        298.15  +GFE3O4 +1000;                          6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GFMA        298.15  +GFMB;                                  6000  N !
+                                                                        $ 10Kje
+ FUNCTION GMFA        298.15  +GMFB +4900 -1.9*T;                     6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GMMA        298.15  +0.1428571*GMN3O4A;                     6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION JMMA        298.15  +95000;                                 6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION JMFA        298.15  +28000;                                 6000  N !
+                                                                        $ 10Kje
+ FUNCTION GGMN1O1A    298.15  +GMN1O1 +58500 -11*T;                   6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GGMN2O3A    298.15  +GMN2O3 +240000-211.8*T+0.05*T**2;      6000  N !
+                                                                 $ 10Kje,10Kje3
+ FUNCTION GM3M3A      298.15  +10.5*GMMA +JMMA -10.5*GMFA -JMFA
+                      +7*GFFA -BFE3O4;                                6000  N !
+                                                                 $ 10Kje,10Kje3
+
+ FUNCTION GNFA        298.15  +GNFB +10000;                           6000  N !
+                                                               $ 10Kje3, for Ni
+ FUNCTION GNMOA       298.15  -9800;                                  6000  N !
+                                                               $ 10Kje3, for Ni
+ FUNCTION GNMA        298.15  +0.1428571*GNMOB +0.1428571*GNMOA;      6000  N !
+                                                               $ 10Kje3, for Ni
+
+ FUNCTION RR          298.15  +8.31451;                       6000  N ! $ 10Kje
+ FUNCTION FLN6        298.15  +1.791759;                      6000  N ! $ 10Kje
+ FUNCTION FLN5        298.15  +1.609438;                      6000  N ! $ 10Kje
+ FUNCTION FLN3        298.15  +1.098612;                      6000  N ! $ 10Kje
+ FUNCTION FLN2        298.15  +0.693147;                      6000  N ! $ 10Kje
+
+ FUNCTION GNIO      298.15   -254927.2 + 276.208*T - 46.0391*T*LN(T)
+          - 0.00931454*T**2 + 1.29092E-06*T**3 + 382916*T**(-1);      1000  Y
+          -256835.2 + 340.043*T - 56.36068*T*LN(T)
+          + 0.00254106*T**2 - 8.11809E-07*T**3 + 1270*T**(-1);        1800  Y
+          -259131.4 + 337.305*T - 55.75758*T*LN(T) + 0.00220246*T**2
+          - 7.80093E-07*T**3;                                          6000 N !
+                                                                       $ 10Kje3
+
+
+ FUNCTION UN_ASS     298.15  0.0;                                       300 N !
+
+ TYPE_DEFINITION % SEQ *!
+
+ PHASE GAS:G  %  1  1.0  !
+   CONSTITUENT GAS:G  :O2 :  !
+   PARAMETER G(GAS,O2;0)  298.15  +GO2GAS +R*T*LN(1E-05*P);            6000 N !
+
+$   CONSTITUENT IONIC_LIQ:Y :CR+3,FE+3,FE+2 : FEO3/2,O-2,VA :  !        $ 93Tay
+
+$   CONSTITUENT IONIC_LIQ:Y :CR+3,FE+3,FE+2,MN+2,MN+3 : O-2,VA :  !     $ 03Gru
+
+$   CONSTITUENT IONIC_LIQ:Y :FE+2,MN+2 : O-2,VA,FEO3/2,MNO3/2 :  !      $ 10Kje
+
+ PHASE IONIC_LIQ:Y %  2 1   1 !
+   CONSTITUENT IONIC_LIQ:Y :FE+3,FE+2 : O-2,VA,FEO3/2 :  !
+
+   PARAMETER G(IONIC_LIQ,FE+2:O-2;0)  298.15  +4*GFEOLIQ;              6000 N !
+                                                                        $ 10Kje
+   PARAMETER G(IONIC_LIQ,FE+2:VA;0)   298.15  +GFELIQ;                 6000 N !
+                                                                        $ 10Kje
+   PARAMETER G(IONIC_LIQ,FEO3/2;0)    298.15  -89819+39.962*T+2.5*GFEOLIQ;   
+                                                               6000 N ! $ 10Kje
+
+   PARAMETER G(IONIC_LIQ,FE+2:O-2,VA;0)       298.15  +176681-16.368*T;
+                                                               3000 N ! $ 10Kje
+   PARAMETER G(IONIC_LIQ,FE+2:O-2,VA;1)       298.15  -65655+30.869*T;
+                                                               3000 N ! $ 10Kje
+   PARAMETER G(IONIC_LIQ,FE+2:O-2,FEO3/2;0)   298.15  -26362;  3000 N ! $ 10Kje
+   PARAMETER G(IONIC_LIQ,FE+2:O-2,FEO3/2;1)   298.15  13353;   3000 N ! $ 10Kje
+   PARAMETER G(IONIC_LIQ,FE+2:VA,FEO3/2;0)    298.15  110000;  3000 N ! $ 10Kje
+
+
+$   PARAMETER G(IONIC_LIQ,FE+3:O-2;0)  298.15  +5*GFEOLIQ -179638 +79.923*T;
+$                                                                       6000 N !
+$   PARAMETER G(IONIC_LIQ,FE+3:VA;0)   298.15  +GFELIQ +200000;        6000 N !
+$   PARAMETER G(IONIC_LIQ,FE+3,FE+2:O-2;0)     298.15  -26362;         6000 N !
+$   PARAMETER G(IONIC_LIQ,FE+3,FE+2:O-2;1)     298.15  +13353;         6000 N !
+                                                               $note 2007-10-19
+$
+
+$  PARAMETER G(IONIC_LIQ,FE+2:FEO3/2;0)    298.15  -89819+39.962*T+2.5*GFEOLIQ;
+$                                                                       6000 N !
+
+ TYPE_DEFINITION & GES A_P_D BCC_A2 MAGNETIC  -1.0    0.4 !
+ PHASE BCC_A2  %&  2 1   3 !
+   CONSTITUENT BCC_A2  :FE,O : VA :  !
+   PARAMETER G(BCC_A2,FE:VA;0)     298.15  +GHSERFE;      6000   N  !
+   PARAMETER TC(BCC_A2,FE:VA;0)    298.15  +1043;         6000   N  ! $ 91Din
+   PARAMETER BMAGN(BCC_A2,FE:VA;0) 298.15  +2.22;         6000   N  ! $ 91Din
+
+   PARAMETER G(BCC_A2,O:VA;0)     298.15  +0.5*GO2GAS+30000;          6000 N !
+                                                                        $91Sun
+   PARAMETER G(BCC_A2,FE,O:VA;0)  298.15  -209794+84*T;               6000 N !
+                                                                        $91Sun
+
+ TYPE_DEFINITION ( GES A_P_D FCC_A1 MAGNETIC  -3.0    2.80000E-01 !
+ PHASE FCC_A1  %(  2 1   1 !
+   CONSTITUENT FCC_A1  :FE,O : VA :  !
+   PARAMETER G(FCC_A1,FE:VA;0)      298.15  +GFEFCC;                  6000 N !
+   PARAMETER TC(FCC_A1,FE:VA;0)     298.15  -201;                     6000 N !
+                                                                       $ 91Din
+   PARAMETER BMAGN(FCC_A1,FE:VA;0)  298.15  -2.1;                     6000 N !
+                                                                       $ 91Din
+   PARAMETER G(FCC_A1,O:VA;0)       298.15  +0.5*GO2GAS+30000;        6000 N !
+                                                                        $91Sun
+   PARAMETER G(FCC_A1,FE,O:VA;0)    298.15  -199345.5+84*T;           6000 N !
+                                                                        $91Sun
+
+
+$   CONSTITUENT CORUNDUM:I :CR+2,CR+3,FE+3 : CR+3,VA : O-2 :  !   $93Tay, 03Gru
+
+ TYPE_DEFINITION ' GES A_P_D CORUNDUM MAGNETIC  -3.0    2.80000E-01 !
+ PHASE CORUNDUM:I %'  3 2   1   3 !
+   CONSTITUENT CORUNDUM:I :FE+2,FE+3 : FE+3,VA : O-2 :  !
+
+$  PARAMETER G(CORUNDUM,FE+3:VA:O-2;0)        298.15  +GFE3O2;        6000 N !
+
+   PARAMETER G(CORUNDUM,FE+2:FE+3:O-2;0)      298.15  +GFE2O3 +85000;
+                                                              6000 N ! $ 10Kje
+   PARAMETER G(CORUNDUM,FE+3:FE+3:O-2;0)      298.15  +GFE2O3 +85000;
+                                                              6000 N ! $ 10Kje
+   PARAMETER G(CORUNDUM,FE+2:VA:O-2;0)        298.15  +GFE2O3;
+                                                              6000 N ! $ 10Kje
+   PARAMETER G(CORUNDUM,FE+3:VA:O-2;0)        298.15  +GFE2O3; 
+                                                              6000 N ! $ 10Kje
+
+   PARAMETER TC(CORUNDUM,FE+3:VA:O-2;0)       298.15  -2867;   6000 N ! $ 10Kje
+   PARAMETER BMAGN(CORUNDUM,FE+3:VA:O-2;0)    298.15  -25.1;   6000 N ! $ 10Kje
+
+
+$      MnO
+$
+ PHASE HALITE:I %  2 1   1 !
+   CONSTITUENT HALITE:I :FE+2,FE+3,VA : O-2 :  !                 $ 10Kje,10Kje3
+   PARAMETER G(HALITE,FE+3:O-2;0)       298.15
+             +1.25*AWUSTITE+1.25*GWUSTITE;             3000 N !   $ 93Tay,10Kje
+
+$           -418377.5+350.92*T-57.66032*T*LN(T)-.00717537*T**2; 3000 N !
+
+   PARAMETER G(HALITE,FE+2:O-2;0)       298.15  +GWUSTITE;             3000 N !
+                                                                  $ 03Gun,10Kje
+   PARAMETER G(HALITE,VA:O-2;0)         298.15  +0;                    6000 N !
+                                                           $ 03Gun,10Kje,10Kje3
+   PARAMETER G(HALITE,FE+2,FE+3:O-2;0)  298.15  -12324;                3000 N !
+                                                             $91Sun,96Sel,10Kje
+   PARAMETER G(HALITE,FE+2,FE+3:O-2;1)  298.15  +20070;                3000 N !
+                                                             $91Sun,96Sel,10Kje
+
+$  for Halite, P=0.30, for compounds containing only Ni cations 
+$  on the first sublattice Tc=519 and B=0.9873   in 10Kje3.
+
+
+$  For the Mn system, there are Alpha and Beta Spinel.
+$                                         Beta on high temperature.
+$
+$      old SPINEL = Beta_Spinel in 10Kje.
+$
+ TYPE_DEFINITION ) GES A_P_D SPINEL MAGNETIC  -3.0    2.80000E-01 !
+ PHASE SPINEL:I %)  4   1   2   2   4 !
+   CONSTITUENT SPINEL:I :FE+2,FE+3 : FE+2,FE+3,VA : FE+2,VA : O-2 :  !
+
+$  *:*:Fe+2:O-2:   = *:*:Va:O-2: + 2*GFE3O4     + DFE3O4 - BFE3O4;  in 10Kje
+
+   PARAMETER G(SPINEL,FE+2:FE+2:VA:O-2;0)    298.15  +7*GFE3O4+BFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+3:FE+2:VA:O-2;0)    298.15  +7*GFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+2:FE+3:VA:O-2;0)    298.15  +7*GFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+3:FE+3:VA:O-2;0)    298.15  +7*GFE3O4-BFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+2:VA:VA:O-2;0)      298.15  +5*GFE3O4+CFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+3:VA:VA:O-2;0)      298.15  +5*GFE3O4+CFE3O4-BFE3O4;
+                                                             3000 N !   $ 10Kje
+
+   PARAMETER G(SPINEL,FE+2:FE+2:FE+2:O-2;0)  298.15  +9*GFE3O4+DFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+3:FE+2:FE+2:O-2;0)  298.15  +9*GFE3O4+DFE3O4-BFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+2:FE+3:FE+2:O-2;0)  298.15  +9*GFE3O4+DFE3O4-BFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+3:FE+3:FE+2:O-2;0)  298.15  +9*GFE3O4+DFE3O4-2*BFE3O4;
+                                                             3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+2:VA:FE+2:O-2;0)    298.15  +7*GFE3O4+DFE3O4+CFE3O4
+                                             -BFE3O4;        3000 N !   $ 10Kje
+   PARAMETER G(SPINEL,FE+3:VA:FE+2:O-2;0)    298.15  +7*GFE3O4+DFE3O4+CFE3O4
+                                             -2*BFE3O4;      3000 N !   $ 10Kje
+
+   PARAMETER TC(SPINEL,FE+2:FE+2:FE+2:O-2;0)   298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+3:FE+2:FE+2:O-2;0)   298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+2:FE+3:FE+2:O-2;0)   298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+3:FE+3:FE+2:O-2;0)   298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+2:VA:FE+2:O-2;0)     298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+3:VA:FE+2:O-2;0)     298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+2:FE+2:VA:O-2;0)     298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+3:FE+2:VA:O-2;0)     298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+2:FE+3:VA:O-2;0)     298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+3:FE+3:VA:O-2;0)     298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+2:VA:VA:O-2;0)       298.15  848;            3000 N !
+   PARAMETER TC(SPINEL,FE+3:VA:VA:O-2;0)       298.15  848;            3000 N !
+                                                                        $ 10Kje
+   PARAMETER BMAGN(SPINEL,FE+2:FE+2:FE+2:O-2;0)    298.15  44.54;      3000 N !
+   PARAMETER BMAGN(SPINEL,FE+3:FE+2:FE+2:O-2;0)    298.15  44.54;      3000 N !
+   PARAMETER BMAGN(SPINEL,FE+2:FE+3:FE+2:O-2;0)    298.15  44.54;      3000 N !
+   PARAMETER BMAGN(SPINEL,FE+3:FE+3:FE+2:O-2;0)   298.15  44.54;       3000 N !
+   PARAMETER BMAGN(SPINEL,FE+2:VA:FE+2:O-2;0)     298.15  44.54;       3000 N !
+   PARAMETER BMAGN(SPINEL,FE+3:VA:FE+2:O-2;0)     298.15  44.54;       3000 N !
+   PARAMETER BMAGN(SPINEL,FE+2:FE+2:VA:O-2;0)     298.15  44.54;       3000 N !
+   PARAMETER BMAGN(SPINEL,FE+3:FE+2:VA:O-2;0)     298.15  44.54;       3000 N !
+   PARAMETER BMAGN(SPINEL,FE+2:FE+3:VA:O-2;0)     298.15  44.54;       3000 N !
+   PARAMETER BMAGN(SPINEL,FE+3:FE+3:VA:O-2;0)     298.15  44.54;       3000 N !
+   PARAMETER BMAGN(SPINEL,FE+2:VA:VA:O-2;0)       298.15  44.54;       3000 N !
+   PARAMETER BMAGN(SPINEL,FE+3:VA:VA:O-2;0)       298.15  44.54;       3000 N !
+                                                                        $ 10Kje
+
+$
+$     alpha_Spinel in 10Kje , G(Fe:Fe:Va:O)alpha = G(Fe:Fe:Va:O)beta + 7*1000;
+$
+ TYPE_DEFINITION 9 GES A_P_D SPINEL_A MAGNETIC  -3.0    2.80000E-01 !
+ PHASE SPINEL_A:I %9  4 1   2   2   4 !
+   CONSTITUENT SPINEL_A:I :FE+2,FE+3 : FE+2,FE+3,VA : FE+2,VA : O-2 :  !
+
+$   *:*:Fe+2:O-2:   = *:*:Va:O-2: + 2*GFE3O4 +2000 + DFE3O4 - BFE3O4;  in 10Kje
+
+   PARAMETER G(SPINEL_A,FE+2:FE+2:VA:O-2;0)   298.15  +7*GFE3O4 +7000 +BFE3O4;
+                                                               3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+3:FE+2:VA:O-2;0)   298.15  +7*GFE3O4 +7000;
+                                                               3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+2:FE+3:VA:O-2;0)   298.15  +7*GFE3O4 +7000;
+                                                               3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+3:FE+3:VA:O-2;0)   298.15  +7*GFE3O4 +7000 -BFE3O4;
+                                                               3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+2:VA:VA:O-2;0)     298.15  +5*GFE3O4 +5000 +CFE3O4;
+                                                               3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+3:VA:VA:O-2;0)     298.15  +5*GFE3O4 +5000
+                                            +CFE3O4-BFE3O4;    3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+2:FE+2:FE+2:O-2;0)  298.15  +9*GFE3O4 +9000 +DFE3O4;
+                                                               3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+3:FE+2:FE+2:O-2;0)  298.15  +9*GFE3O4 +9000
+                                            +DFE3O4-BFE3O4;    3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+2:FE+3:FE+2:O-2;0)  298.15  +9*GFE3O4 +9000
+                                            +DFE3O4-BFE3O4;    3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+3:FE+3:FE+2:O-2;0)  298.15  +9*GFE3O4 +9000
+                                            +DFE3O4-2*BFE3O4;  3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+2:VA:FE+2:O-2;0)    298.15  +7*GFE3O4 +7000 +DFE3O4
+                                            +CFE3O4-BFE3O4;    3000 N ! $ 10Kje
+   PARAMETER G(SPINEL_A,FE+3:VA:FE+2:O-2;0)    298.15  +7*GFE3O4 +7000 +DFE3O4
+                                            +CFE3O4-2*BFE3O4;  3000 N ! $ 10Kje
+
+
+   PARAMETER TC(SPINEL_A,FE+2:FE+2:FE+2:O-2;0)       298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+3:FE+2:FE+2:O-2;0)       298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+2:FE+3:FE+2:O-2;0)       298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+3:FE+3:FE+2:O-2;0)       298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+2:VA:FE+2:O-2;0)         298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+3:VA:FE+2:O-2;0)         298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+2:FE+2:VA:O-2;0)         298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+3:FE+2:VA:O-2;0)         298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+2:FE+3:VA:O-2;0)         298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+3:FE+3:VA:O-2;0)         298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+2:VA:VA:O-2;0)           298.15  848;      3000 N !
+   PARAMETER TC(SPINEL_A,FE+3:VA:VA:O-2;0)           298.15  848;      3000 N !
+                                                                        $ 10Kje
+
+   PARAMETER BMAGN(SPINEL_A,FE+2:FE+2:FE+2:O-2;0)    298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+3:FE+2:FE+2:O-2;0)    298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+2:FE+3:FE+2:O-2;0)    298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+3:FE+3:FE+2:O-2;0)    298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+2:VA:FE+2:O-2;0)      298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+3:VA:FE+2:O-2;0)      298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+2:FE+2:VA:O-2;0)      298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+3:FE+2:VA:O-2;0)      298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+2:FE+3:VA:O-2;0)      298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+3:FE+3:VA:O-2;0)      298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+2:VA:VA:O-2;0)        298.15  44.54;    3000 N !
+   PARAMETER BMAGN(SPINEL_A,FE+3:VA:VA:O-2;0)        298.15  44.54;    3000 N !
+                                                                        $ 10Kje
+
+$end

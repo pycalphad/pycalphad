@@ -10,12 +10,14 @@ from numpy.testing import assert_allclose
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.utils import instantiate_models
 from pycalphad import ConditionError
-from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB, CUMG_PARAMETERS_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB, CUMG_PARAMETERS_TDB, ZRLAYALO_TDB
 
 
 DBF = Database(TDB_TEST_STRING)
 ALFE_DBF = Database(ALFE_TDB)
 CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
+ZRLAYALO_DBF = Database(ZRLAYALO_TDB)
+
 
 def test_surface():
     "Bare minimum: calculation produces a result."
@@ -122,3 +124,97 @@ def test_missing_phase_records_passed_to_calculate_raises():
 
     with pytest.raises(ValueError):
         calculate(ALFE_DBF, comps, my_phases, T=1200, P=101325, N=1, phase_records=phase_records)
+
+
+def test_no_neutral_endmembers_single():
+    "calculate returns the feasible configuration in a charge-constrained phase, when no endmembers are neutral"
+    tdb = """
+    ELEMENT Al FCC_A1 0 0 0 !
+    ELEMENT CL GAS 0 0 0 !
+    ELEMENT VA VACUUM 0 0 0 !
+
+    SPECIES AL+3 AL1/+3 !
+    SPECIES CL-1 CL1/-1 !
+
+    PHASE ALCL3 % 2 1 1 !
+    CONSTITUENT ALCL3 : AL+3, VA : CL-1 : !
+    PARAMETER G(ALCL3,AL+3:CL-1;0) 1 -100000; 10000 N !
+    PARAMETER G(ALCL3,VA:CL-1;0) 1 0; 10000 N !
+    """
+    dbf = Database(tdb)
+    calc_res = calculate(dbf, ['AL', 'CL', 'VA'], ['ALCL3'], N=1, P=101325, T=300)
+    np.testing.assert_allclose(np.squeeze(calc_res.Y.values), np.array([1/3, 2/3, 1]))
+
+
+def test_pyrochlore_infeasible():
+    "calculate raises an error when it is impossible to satisfy a phase's constraints"
+    dbf = ZRLAYALO_DBF
+    with pytest.raises(ValueError):
+        calculate(dbf, ['LA', 'Y', 'O'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
+
+
+def test_pyrochlore_complex():
+    "calculate generates feasible points for complex charged phase"
+    dbf = ZRLAYALO_DBF
+    # PYROCHLORE
+    # 2   2   6   1   1
+    # LA+3,Y+3,ZR+4 : LA+3,Y+3,ZR+4 : O-2,VA : O-2 :  O-2,VA :  !
+    constraint_jac = np.array([[1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                               [2*3, 2*3, 2*4, 2*3, 2*3, 2*4, 6*-2, 6*0, 1*-2, 1*-2, 1*0]])
+    constraint_rhs = np.array([1, 1, 1, 1, 1, 0])
+    res = calculate(dbf, ['LA', 'Y', 'ZR', 'O', 'VA'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
+    output = np.squeeze(res.Y.values)
+    assert output.shape[0] > 0
+    assert np.all(output > 0)
+    cons_infeasibility = np.max(np.abs(constraint_jac.dot(output.T).T - constraint_rhs))
+    assert cons_infeasibility < 1e-10
+
+
+def test_pyrochlore_no_freedom():
+    "calculate generates at least one feasible point for a phase with no degrees of freedom"
+    dbf = ZRLAYALO_DBF
+    # PYROCHLORE
+    # 2   2   6   1   1
+    # LA+3,Y+3,ZR+4 : LA+3,Y+3,ZR+4 : O-2 : O-2 :  O-2 :  !
+    # Note that we are not including VA on purpose here
+    constraint_jac = np.array([[1, 1, 1, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 1, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 1, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                               [2*3, 2*3, 2*4, 2*3, 2*3, 2*4, 6*-2, 1*-2, 1*-2]])
+    constraint_rhs = np.array([1, 1, 1, 1, 1, 0])
+    res = calculate(dbf, ['LA', 'Y', 'ZR', 'O'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
+    output = np.squeeze(res.Y.values)
+    assert output.shape[0] > 0
+    assert np.all(output > 0)
+    cons_infeasibility = np.max(np.abs(constraint_jac.dot(output.T).T - constraint_rhs))
+    assert cons_infeasibility < 1e-10
+
+
+def test_charged_infeasible_minimum_norm():
+    "calculate generates a uniform sample when the minimum norm constraint solution is infeasible"
+    tdb = """
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT ND   DOUBLE_HCP(ABAC)          1.4424E+02  0.0000E+00  0.0000E+00!
+ ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+ ELEMENT Y    HCP_A3                    8.8906E+01  5.9664E+03  4.4434E+01!
+ SPECIES ND+3                        ND1/+3!
+ SPECIES Y+3                         Y1/+3!
+ SPECIES O-2                         O1/-2!
+ PHASE M2O3B:I %  3 2   3   1 !
+ CONSTITUENT M2O3B:I :ND+3,Y+3 : O-2 : O-2,VA :  !
+    """
+    dbf = Database(tdb)
+    res = calculate(dbf, ['ND', 'Y', 'O', 'VA'], 'M2O3B', T=600, P=1e5, pdens=10)
+    output = np.squeeze(res.Y.values)
+    assert output.shape[0] > 10
+    assert np.all(output > 0)
+    # Check that the point sample didn't get 'stuck' in part of the space
+    assert np.any(np.logical_and(output[:, 1] > 0.05, output[:, 1] < 0.15))
+    assert np.any(np.logical_and(output[:, 1] > 0.25, output[:, 1] < 0.35))
