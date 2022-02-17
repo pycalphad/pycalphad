@@ -398,7 +398,7 @@ class Model(object):
         for sr in self.site_ratios:
             try:
                 float(sr)
-            except TypeError:
+            except (TypeError, RuntimeError):
                 constant_site_ratios = False
         # For all other cases where charge is present, we do need to add charge balance.
         if constant_site_ratios and has_charge:
