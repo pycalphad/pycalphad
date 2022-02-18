@@ -57,11 +57,6 @@ def _sympify_string(math_string):
         if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
-    # SymEngine can't handle leading plus signs in strings
-    if expr_string[0] == '+':
-        expr_string = expr_string[1:]
-    # SymEngine can't handle leading plus signs in parentheses
-    expr_string = expr_string.replace('(+', '(')
     return sympify(expr_string)
 
 def _parse_action(func):
@@ -416,7 +411,7 @@ def to_interval(relational):
     elif isinstance(relational, Not):
         return Complement(*[to_interval(i) for i in relational.args])
     if relational == S.true:
-        return Interval(S.NegativeInfinity, S.Infinity, True, True)
+        return Interval(S.NegativeInfinity, S.Infinity, left_open=True, right_open=True)
 
     if len(relational.free_symbols) != 1:
         raise ValueError('Relational must only have one free symbol')
@@ -427,14 +422,14 @@ def to_interval(relational):
     rhs = relational.args[1]
     if isinstance(relational, LessThan):
         if rhs == free_symbol:
-            return Interval(lhs, S.Infinity, False, True)
+            return Interval(lhs, S.Infinity, left_open=False, right_open=True)
         else:
-            return Interval(S.NegativeInfinity, rhs, True, False)
+            return Interval(S.NegativeInfinity, rhs, left_open=True, right_open=False)
     elif isinstance(relational, StrictLessThan):
         if rhs == free_symbol:
-            return Interval(lhs, S.Infinity, True, False)
+            return Interval(lhs, S.Infinity, left_open=True, right_open=False)
         else:
-            return Interval(S.NegativeInfinity, rhs, False, True)
+            return Interval(S.NegativeInfinity, rhs, left_open=False, right_open=True)
     else:
         raise ValueError('Unsupported Relational: {}'.format(relational.__class__.__name__))
 
@@ -640,8 +635,6 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         output += "\n"
     # Write FUNCTION block
     for name, expr in sorted(dbf.symbols.items()):
-        if not isinstance(expr, Basic):
-            expr = sympify(expr).xreplace({Symbol('T'): v.T, Symbol('P'): v.P})
         if not isinstance(expr, Piecewise):
             # Non-piecewise exprs need to be wrapped to print
             # Otherwise TC's TDB parser will complain
