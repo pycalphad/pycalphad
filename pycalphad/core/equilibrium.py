@@ -270,7 +270,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts.update({key: value for key, value in str_conds.items() if key in statevar_strings})
 
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 50
+        grid_opts['pdens'] = 60
     grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
                      phase_records=phase_records, output='GM', parameters=parameters,
                      to_xarray=False, **grid_opts)
