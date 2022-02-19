@@ -574,7 +574,7 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
     fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, spec, state)
 
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
-          &equilibrium_soln[0], -1)
+          &equilibrium_soln[0], 1e-16)
 
     # set the chemical potentials from the solution
     for i in range(spec.free_chemical_potential_indices.shape[0]):
