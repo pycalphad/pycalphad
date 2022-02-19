@@ -397,3 +397,6 @@ NP = PhaseFraction
 si_gas_constant = R = Float(8.3145) # ideal gas constant
 
 CONDITIONS_REQUIRING_HESSIANS = {ChemicalPotential, PhaseFraction}
+
+# When loading databases, these symbols should be replaced by their StateVariable counter-parts defined above
+supported_variables_in_databases = {Symbol('T'): T, Symbol('P'): P, Symbol('R'): R}
