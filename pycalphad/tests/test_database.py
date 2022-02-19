@@ -5,6 +5,7 @@ from io import StringIO
 import pytest
 import hashlib
 import os
+import pickle
 from copy import deepcopy
 from pyparsing import ParseException
 from symengine import Symbol, Piecewise, And
@@ -55,6 +56,12 @@ def test_database_ne():
     assert test_dbf != None
     assert None != test_dbf
     assert 42 != test_dbf
+
+def test_database_pickle():
+    "Database pickle roundtrip."
+    test_dbf = Database(ALCRNI_TDB)
+    new_dbf = pickle.loads(pickle.dumps(test_dbf))
+    assert test_dbf == new_dbf
 
 def test_database_diffusion():
     "Diffusion database support."
