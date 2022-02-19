@@ -813,7 +813,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef SystemState state = SystemState(spec, compsets)
 
     # convergence criteria
-    cdef double ALLOWED_DELTA_Y = 5e-09
+    cdef double ALLOWED_DELTA_Y = 8e-09
     cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
     cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
 
