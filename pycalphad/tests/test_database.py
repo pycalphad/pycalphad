@@ -549,19 +549,19 @@ def test_database_parameter_with_species_that_is_not_a_stoichiometric_formula():
     import tinydb
     silica = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SILICA'],),))
     assert len(silica) == 1
-    assert silica[0]['parameter'].args[0] == 10
+    assert silica[0]['parameter'].args[0] == float(10)
 
     nasb_6oh = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['NASB_6OH'],),))
     assert len(nasb_6oh) == 1
-    assert nasb_6oh[0]['parameter'].args[0] == 100
+    assert nasb_6oh[0]['parameter'].args[0] == float(100)
 
     alcl2oh_3water = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['ALCL2OH.3WATER'],),))
     assert len(alcl2oh_3water) == 1
-    assert alcl2oh_3water[0]['parameter'].args[0] == 1000
+    assert alcl2oh_3water[0]['parameter'].args[0] == float(1000)
 
     sbminus3 = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SB-3'],),))
     assert len(sbminus3) == 1
-    assert sbminus3[0]['parameter'].args[0] == 10000
+    assert sbminus3[0]['parameter'].args[0] == float(10000)
 
 
 def test_database_sympy_namespace_clash():
