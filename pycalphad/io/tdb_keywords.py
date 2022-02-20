@@ -33,7 +33,7 @@ TDB_KEYWORDS = sorted([
     'VERSION_DATA',
     'VERSION_DATE',
     'DIFFUSION',
-    'ZERO_VOLUME_SPECIES'
+    'ZEROVOLUME_SPECIES'
 ])
 
 # Reference: Thermo-Calc Console Mode Command Reference, Version 4.1
