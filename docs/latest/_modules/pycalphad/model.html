@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.model - pycalphad 0.9.3.dev10+g9dc745b0 documentation</title>
+        <title>pycalphad.model - pycalphad 0.9.3.dev11+g9712b2ee documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.9.3.dev10+g9dc745b0 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.9.3.dev11+g9712b2ee documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev10+g9dc745b0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev11+g9712b2ee documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -400,7 +400,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pure_elements</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">desired_active_pure_elements</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nonvacant_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pure_elements</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s1">'VA'</span><span class="p">]</span>
 
-        <span class="c1"># Convert string symbol names to sympy Symbol objects</span>
+        <span class="c1"># Convert string symbol names to Symbol objects</span>
         <span class="c1"># This makes xreplace work with the symbols dict</span>
         <span class="n">symbols</span> <span class="o">=</span> <span class="p">{</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="n">val</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dbe</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
@@ -434,12 +434,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        obj : SymPy object</span>
-<span class="sd">        symbols : dict mapping sympy.Symbol to SymPy object</span>
+<span class="sd">        obj : SymEngine object</span>
+<span class="sd">        symbols : dict mapping symengine.Symbol to SymEngine object</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        SymPy object</span>
+<span class="sd">        SymEngine object</span>
 <span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Need to do more substitutions to catch symbols that are functions</span>

@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.io package" href="pycalphad.io.html" /><link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.core package - pycalphad 0.9.3.dev10+g9dc745b0 documentation</title>
+        <title>pycalphad.core package - pycalphad 0.9.3.dev11+g9712b2ee documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev10+g9dc745b0 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev11+g9712b2ee documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev10+g9dc745b0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev11+g9712b2ee documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -285,7 +285,7 @@ Default: 2000; Default when called from equilibrium(): 500</p></li>
 Must have same signature as ‘pycalphad.core.utils.point_sample’</p></li>
 <li><p><strong>grid_points</strong> (<em>bool</em><em>, </em><em>a dict of phase names to bool</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em><em> (</em><em>Default: True</em><em>)</em>) – Whether to add evenly spaced points between end-members.
 The density of points is determined by ‘pdens’</p></li>
-<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
 <li><p><strong>phase_records</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#pycalphad.core.phase_rec.PhaseRecord" title="pycalphad.core.phase_rec.PhaseRecord"><em>PhaseRecord</em></a><em>]</em><em>]</em>) – Mapping of phase names to PhaseRecord objects. Must include all active phases.
 The <cite>model</cite> argument must be a mapping of phase names to instances of Model
 objects. Callers must take care that the PhaseRecord objects were created with
@@ -497,7 +497,7 @@ when those conditions don’t comprise a grid.</p></li>
 <li><p><strong>to_xarray</strong> (<em>bool</em>) – Whether to return an xarray Dataset (True, default) or an EquilibriumResult.</p></li>
 <li><p><strong>scheduler</strong> (<em>Dask scheduler</em><em>, </em><em>optional</em>) – Job scheduler for performing the computation.
 If None, return a Dask graph of the computation instead of actually doing it.</p></li>
-<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
 <li><p><strong>solver</strong> (<a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><em>pycalphad.core.solver.SolverBase</em></a>) – Instance of a solver that is used to calculate local equilibria.
 Defaults to a pycalphad.core.solver.Solver.</p></li>
 <li><p><strong>callables</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pre-computed callable functions for equilibrium calculation.</p></li>
@@ -1134,7 +1134,7 @@ Return a tuple of variable names and the sublattice degrees of freedom.</p>
 <li><p><strong>comps</strong> (<em>Iterable</em>) – Names of components to consider in the calculation.</p></li>
 <li><p><strong>phases</strong> (<em>Iterable</em>) – Names of phases to consider in the calculation.</p></li>
 <li><p><strong>model</strong> (<em>Model class</em><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a Iterable of both</em>) – Model class to use for each phase.</p></li>
-<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in
+<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymEngine Symbol to numbers, for overriding the values of parameters in
 the Database.</p></li>
 <li><p><strong>symbols_only</strong> (<em>bool</em>) – If True, symbols will be extracted from the parameters dict and used to
 construct the Model instances.</p></li>
@@ -1147,50 +1147,6 @@ construct the Model instances.</p></li>
 <dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
-</dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.utils.make_callable">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">make_callable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#make_callable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.make_callable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Take a SymPy object and create a callable function.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – Abstract representation of function</p></li>
-<li><p><strong>object</strong> (<em>SymPy</em>) – Abstract representation of function</p></li>
-<li><p><strong>variables</strong> – Input variables, ordered in the way the return function will expect</p></li>
-<li><p><strong>list</strong> – Input variables, ordered in the way the return function will expect</p></li>
-<li><p><strong>mode</strong> – Method to use when ‘compiling’ the function. SymPy mode is
-slow and should only be used for debugging. If Numba is installed,
-it can offer speed-ups when calling the energy function many
-times on multi-core CPUs.</p></li>
-<li><p><strong>[</strong><strong>'numpy'</strong> – Method to use when ‘compiling’ the function. SymPy mode is
-slow and should only be used for debugging. If Numba is installed,
-it can offer speed-ups when calling the energy function many
-times on multi-core CPUs.</p></li>
-<li><p><strong>'numba'</strong> – Method to use when ‘compiling’ the function. SymPy mode is
-slow and should only be used for debugging. If Numba is installed,
-it can offer speed-ups when calling the energy function many
-times on multi-core CPUs.</p></li>
-<li><p><strong>'sympy'</strong><strong>]</strong> – Method to use when ‘compiling’ the function. SymPy mode is
-slow and should only be used for debugging. If Numba is installed,
-it can offer speed-ups when calling the energy function many
-times on multi-core CPUs.</p></li>
-<li><p><strong>optional</strong> – Method to use when ‘compiling’ the function. SymPy mode is
-slow and should only be used for debugging. If Numba is installed,
-it can offer speed-ups when calling the energy function many
-times on multi-core CPUs.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><em>Function that takes arguments in the same order as ‘variables’</em></p></li>
-<li><p><em>and returns the energy according to ‘model’.</em></p></li>
-</ul>
-</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<p>None yet.</p>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.utils.point_sample">

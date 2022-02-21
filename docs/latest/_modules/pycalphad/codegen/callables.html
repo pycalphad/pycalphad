@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.codegen.callables - pycalphad 0.9.3.dev10+g9dc745b0 documentation</title>
+        <title>pycalphad.codegen.callables - pycalphad 0.9.3.dev11+g9712b2ee documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev10+g9dc745b0 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev11+g9712b2ee documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev10+g9dc745b0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev11+g9712b2ee documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -244,7 +244,7 @@
 <span class="sd">    models : dict</span>
 <span class="sd">        Dictionary of {phase_name: Model subclass}</span>
 <span class="sd">    parameter_symbols : list, optional</span>
-<span class="sd">        List of string or SymPy Symbols that will be overridden in the callables.</span>
+<span class="sd">        List of string or SymEngine Symbols that will be overridden in the callables.</span>
 <span class="sd">    output : str, optional</span>
 <span class="sd">        Output property of the particular Model to sample. Defaults to 'GM'</span>
 <span class="sd">    build_gradients : bool, optional</span>
@@ -385,7 +385,7 @@
 <span class="sd">    models : Mapping[str, Model]</span>
 <span class="sd">        Mapping of phase names to model instances</span>
 <span class="sd">    parameters : dict, optional</span>
-<span class="sd">        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</span>
+<span class="sd">        Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.</span>
 <span class="sd">    callables : dict, optional</span>
 <span class="sd">        Pre-computed callables. If None are passed, they will be built.</span>
 <span class="sd">        Maps {'output' -&gt; {'function' -&gt; {'phase_name' -&gt; AutowrapFunction()}}</span>

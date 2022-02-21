@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.io.database - pycalphad 0.9.3.dev10+g9dc745b0 documentation</title>
+        <title>pycalphad.io.database - pycalphad 0.9.3.dev11+g9712b2ee documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev10+g9dc745b0 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev11+g9712b2ee documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev10+g9dc745b0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev11+g9712b2ee documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -292,7 +292,7 @@
 <span class="sd">    phases : dict</span>
 <span class="sd">        Phase objects indexed by their system-local name.</span>
 <span class="sd">    symbols : dict</span>
-<span class="sd">        SymPy objects indexed by their name (FUNCTIONs in Thermo-Calc).</span>
+<span class="sd">        SymEngine objects indexed by their name (FUNCTIONs in Thermo-Calc).</span>
 <span class="sd">    references : dict</span>
 <span class="sd">        Reference objects indexed by their system-local identifier.</span>
 
@@ -586,7 +586,7 @@
 <span class="sd">        local_name : string</span>
 <span class="sd">            System-local name of the phase.</span>
 <span class="sd">        global_name : object</span>
-<span class="sd">            Abstract representation of symbol, e.g., in SymPy format.</span>
+<span class="sd">            Abstract representation of symbol, e.g., in SymEngine format.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -610,7 +610,7 @@
 <span class="sd">        param_order : int</span>
 <span class="sd">            Polynomial order of the parameter.</span>
 <span class="sd">        param : object</span>
-<span class="sd">            Abstract representation of the parameter, e.g., in SymPy format.</span>
+<span class="sd">            Abstract representation of the parameter, e.g., in SymEngine format.</span>
 <span class="sd">        ref : str, optional</span>
 <span class="sd">            Reference for the parameter.</span>
 <span class="sd">        diffusing_species : str, optional</span>

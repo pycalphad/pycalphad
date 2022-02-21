@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.core package" href="pycalphad.core.html" /><link rel="prev" title="pycalphad package" href="pycalphad.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.codegen package - pycalphad 0.9.3.dev10+g9dc745b0 documentation</title>
+        <title>pycalphad.codegen package - pycalphad 0.9.3.dev11+g9712b2ee documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev10+g9dc745b0 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev11+g9712b2ee documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev10+g9dc745b0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev11+g9712b2ee documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -235,7 +235,7 @@
 <li><p><strong>comps</strong> (<em>list</em>) – List of component names</p></li>
 <li><p><strong>phases</strong> (<em>list</em>) – List of phase names</p></li>
 <li><p><strong>models</strong> (<em>dict</em>) – Dictionary of {phase_name: Model subclass}</p></li>
-<li><p><strong>parameter_symbols</strong> (<em>list</em><em>, </em><em>optional</em>) – List of string or SymPy Symbols that will be overridden in the callables.</p></li>
+<li><p><strong>parameter_symbols</strong> (<em>list</em><em>, </em><em>optional</em>) – List of string or SymEngine Symbols that will be overridden in the callables.</p></li>
 <li><p><strong>output</strong> (<em>str</em><em>, </em><em>optional</em>) – Output property of the particular Model to sample. Defaults to ‘GM’</p></li>
 <li><p><strong>build_gradients</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether or not to build gradient functions. Defaults to True.</p></li>
 <li><p><strong>build_hessians</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether or not to build Hessian functions. Defaults to False.</p></li>
@@ -286,7 +286,7 @@ argument.</p>
 <li><p><strong>phases</strong> (<em>list</em>) – List of phase names</p></li>
 <li><p><strong>state_variables</strong> (<em>Iterable</em><em>[</em><em>v.StateVariable</em><em>]</em>) – State variables used to produce the generated functions.</p></li>
 <li><p><strong>models</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>]</em>) – Mapping of phase names to model instances</p></li>
-<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
 <li><p><strong>callables</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pre-computed callables. If None are passed, they will be built.
 Maps {‘output’ -&gt; {‘function’ -&gt; {‘phase_name’ -&gt; AutowrapFunction()}}</p></li>
 <li><p><strong>output</strong> (<em>str</em>) – Output property of the particular Model to sample</p></li>
@@ -314,7 +314,7 @@ build the constraints and phase records.</p>
 </section>
 <section id="module-pycalphad.codegen.sympydiff_utils">
 <span id="pycalphad-codegen-sympydiff-utils-module"></span><h2>pycalphad.codegen.sympydiff_utils module<a class="headerlink" href="#module-pycalphad.codegen.sympydiff_utils" title="Permalink to this headline">¶</a></h2>
-<p>This module defines functions for compiling symbolic SymPy or SymEngine
+<p>This module defines functions for compiling symbolic SymEngine
 expressions into fast callable functions.</p>
 <p>The SymEngine <code class="docutils literal notranslate"><span class="pre">lambdify</span></code> function is used to compile the functions using a
 particular backend, with or without common subexpression elimination (CSE).</p>
@@ -385,10 +385,10 @@ functions or PhaseRecords. The following issues track this behavior:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>variables</strong> (<em>List</em><em>[</em><em>sympy.core.symbol.Symbol</em><em>]</em>) – Free variables in the sympy_graph. By convention these are usually all
+<li><p><strong>variables</strong> (<em>List</em><em>[</em><em>symengine.Symbol</em><em>]</em>) – Free variables in the symengine_graph. By convention these are usually all
 instances of StateVariables.</p></li>
-<li><p><strong>constraints</strong> (<em>List</em><em>[</em><em>sympy.core.expr.Expr</em><em>]</em>) – List of SymPy expression to compile</p></li>
-<li><p><strong>parameters</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>sympy.core.symbol.Symbol</em><em>]</em><em>]</em>) – Free variables in the sympy_graph. These are typically external
+<li><p><strong>constraints</strong> (<em>List</em><em>[</em><em>symengine.Basic</em><em>]</em>) – List of SymEngine expression to compile</p></li>
+<li><p><strong>parameters</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>symengine.Symbol</em><em>]</em><em>]</em>) – Free variables in the symengine_graph. These are typically external
 parameters that are controlled by the user.</p></li>
 <li><p><strong>func_options</strong> (<em>None</em><em>, </em><em>optional</em>) – Options to pass to <code class="docutils literal notranslate"><span class="pre">lambdify</span></code> when compiling the function.</p></li>
 <li><p><strong>jac_options</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – Options to pass to <code class="docutils literal notranslate"><span class="pre">lambdify</span></code> when compiling the Jacobian.</p></li>
@@ -404,21 +404,21 @@ parameters that are controlled by the user.</p></li>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.codegen.sympydiff_utils.build_functions">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">build_functions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sympy_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_hess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build function, gradient, and Hessian callables of the sympy_graph.</p>
+<span class="sig-prename descclassname"><span class="pre">pycalphad.codegen.sympydiff_utils.</span></span><span class="sig-name descname"><span class="pre">build_functions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symengine_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_hess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hess_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build function, gradient, and Hessian callables of the symengine_graph.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sympy_graph</strong> (<em>sympy.core.expr.Expr</em>) – SymPy expression to compile,
+<li><p><strong>symengine_graph</strong> (<em>symengine.Basic</em>) – symengine expression to compile,
 <span class="math notranslate nohighlight">\(f(x) : \mathbb{R}^{n} \rightarrow \mathbb{R}\)</span>,
-which will corresponds to <code class="docutils literal notranslate"><span class="pre">sympy_graph(variables+parameters)</span></code></p></li>
-<li><p><strong>variables</strong> (<em>List</em><em>[</em><em>sympy.core.symbol.Symbol</em><em>]</em>) – Free variables in the sympy_graph. By convention these are usually all
+which will corresponds to <code class="docutils literal notranslate"><span class="pre">symengine_graph(variables+parameters)</span></code></p></li>
+<li><p><strong>variables</strong> (<em>List</em><em>[</em><em>symengine.Symbol</em><em>]</em>) – Free variables in the symengine_graph. By convention these are usually all
 instances of StateVariables.</p></li>
-<li><p><strong>parameters</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>sympy.core.symbol.Symbol</em><em>]</em><em>]</em>) – Free variables in the sympy_graph. These are typically external
+<li><p><strong>parameters</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>symengine.Symbol</em><em>]</em><em>]</em>) – Free variables in the symengine_graph. These are typically external
 parameters that are controlled by the user.</p></li>
-<li><p><strong>wrt</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>sympy.core.symbol.Symbol</em><em>]</em><em>]</em>) – Variables to differentiate <em>with respect to</em> for the gradient and
+<li><p><strong>wrt</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>symengine.Symbol</em><em>]</em><em>]</em>) – Variables to differentiate <em>with respect to</em> for the gradient and
 Hessian callables. If None, will fall back to <code class="docutils literal notranslate"><span class="pre">variables</span></code>.</p></li>
-<li><p><strong>include_obj</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em>) – Whether to build the sympy_graph callable,
+<li><p><strong>include_obj</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em>) – Whether to build the symengine_graph callable,
 <span class="math notranslate nohighlight">\(f(x) : \mathbb{R}^{n} \rightarrow \mathbb{R}\)</span></p></li>
 <li><p><strong>include_grad</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em>) – Whether to build the gradient callable,
 <span class="math notranslate nohighlight">\(\pmb{g}(x) = \nabla f(x) : \mathbb{R}^{n} \rightarrow \mathbb{R}^{n}\)</span></p></li>

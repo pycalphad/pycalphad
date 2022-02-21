@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.core.calculate - pycalphad 0.9.3.dev10+g9dc745b0 documentation</title>
+        <title>pycalphad.core.calculate - pycalphad 0.9.3.dev11+g9712b2ee documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev10+g9dc745b0 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev11+g9712b2ee documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev10+g9dc745b0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev11+g9712b2ee documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -441,7 +441,7 @@
 <span class="sd">        If True, broadcast state variables against each other to create a grid.</span>
 <span class="sd">        If False, assume state variables are given as equal-length lists (or single-valued).</span>
 <span class="sd">    parameters : OrderedDict {str -&gt; float or sequence}, optional</span>
-<span class="sd">        Maps SymPy symbols to a scalar or 1-D array. The arrays must be equal length.</span>
+<span class="sd">        Maps SymEngine symbols to a scalar or 1-D array. The arrays must be equal length.</span>
 <span class="sd">        The corresponding PhaseRecord must have been initialized with the same parameters.</span>
 <span class="sd">    fake_points : bool, optional (Default: False)</span>
 <span class="sd">        If True, the first few points of the output surface will be fictitious</span>
@@ -610,7 +610,7 @@
 <span class="sd">        Whether to add evenly spaced points between end-members.</span>
 <span class="sd">        The density of points is determined by 'pdens'</span>
 <span class="sd">    parameters : dict, optional</span>
-<span class="sd">        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</span>
+<span class="sd">        Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.</span>
 <span class="sd">    phase_records : Optional[Mapping[str, PhaseRecord]]</span>
 <span class="sd">        Mapping of phase names to PhaseRecord objects. Must include all active phases.</span>
 <span class="sd">        The `model` argument must be a mapping of phase names to instances of Model</span>

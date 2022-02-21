@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.core.utils - pycalphad 0.9.3.dev10+g9dc745b0 documentation</title>
+        <title>pycalphad.core.utils - pycalphad 0.9.3.dev11+g9712b2ee documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev10+g9dc745b0 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev11+g9712b2ee documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev10+g9dc745b0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev11+g9712b2ee documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -277,42 +277,6 @@
         <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_count</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">pts</span></div>
 
-<div class="viewcode-block" id="make_callable"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.make_callable">[docs]</a><span class="k">def</span> <span class="nf">make_callable</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">"""</span>
-<span class="sd">    Take a SymPy object and create a callable function.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model, SymPy object</span>
-<span class="sd">        Abstract representation of function</span>
-<span class="sd">    variables, list</span>
-<span class="sd">        Input variables, ordered in the way the return function will expect</span>
-<span class="sd">    mode, ['numpy', 'numba', 'sympy'], optional</span>
-<span class="sd">        Method to use when 'compiling' the function. SymPy mode is</span>
-<span class="sd">        slow and should only be used for debugging. If Numba is installed,</span>
-<span class="sd">        it can offer speed-ups when calling the energy function many</span>
-<span class="sd">        times on multi-core CPUs.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Function that takes arguments in the same order as 'variables'</span>
-<span class="sd">    and returns the energy according to 'model'.</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    None yet.</span>
-<span class="sd">    """</span>
-    <span class="n">energy</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">mode</span> <span class="o">=</span> <span class="s1">'numpy'</span>
-
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">'sympy'</span><span class="p">:</span>
-        <span class="n">energy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">vs</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">vs</span><span class="p">)))</span><span class="o">.</span><span class="n">n</span><span class="p">(</span><span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">energy</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">dummify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                          <span class="n">modules</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">energy</span></div>
 
 <div class="viewcode-block" id="sizeof_fmt"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.sizeof_fmt">[docs]</a><span class="k">def</span> <span class="nf">sizeof_fmt</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">'B'</span><span class="p">):</span>
     <span class="sd">"""</span>
@@ -609,7 +573,7 @@
 <span class="sd">    model : Model class, a dict of phase names to Model, or a Iterable of both</span>
 <span class="sd">        Model class to use for each phase.</span>
 <span class="sd">    parameters : dict, optional</span>
-<span class="sd">        Maps SymPy Symbol to numbers, for overriding the values of parameters in</span>
+<span class="sd">        Maps SymEngine Symbol to numbers, for overriding the values of parameters in</span>
 <span class="sd">        the Database.</span>
 <span class="sd">    symbols_only : bool</span>
 <span class="sd">        If True, symbols will be extracted from the parameters dict and used to</span>

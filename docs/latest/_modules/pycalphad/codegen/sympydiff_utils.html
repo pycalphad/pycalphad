@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.codegen.sympydiff_utils - pycalphad 0.9.3.dev10+g9dc745b0 documentation</title>
+        <title>pycalphad.codegen.sympydiff_utils - pycalphad 0.9.3.dev11+g9712b2ee documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev10+g9dc745b0 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.9.3.dev11+g9712b2ee documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev10+g9dc745b0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev11+g9712b2ee documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -218,7 +218,7 @@
         <article role="main">
           <h1>Source code for pycalphad.codegen.sympydiff_utils</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""</span>
-<span class="sd">This module defines functions for compiling symbolic SymPy or SymEngine</span>
+<span class="sd">This module defines functions for compiling symbolic SymEngine</span>
 <span class="sd">expressions into fast callable functions.</span>
 
 <span class="sd">The SymEngine ``lambdify`` function is used to compile the functions using a</span>
@@ -269,28 +269,28 @@
 
 
 <div class="viewcode-block" id="build_functions"><a class="viewcode-back" href="../../../api/pycalphad.codegen.html#pycalphad.codegen.sympydiff_utils.build_functions">[docs]</a><span class="nd">@cacheit</span>
-<span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">symengine_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                     <span class="n">func_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">grad_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hess_options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">"""Build function, gradient, and Hessian callables of the sympy_graph.</span>
+    <span class="sd">"""Build function, gradient, and Hessian callables of the symengine_graph.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    sympy_graph : sympy.core.expr.Expr</span>
-<span class="sd">        SymPy expression to compile,</span>
+<span class="sd">    symengine_graph : symengine.Basic</span>
+<span class="sd">        symengine expression to compile,</span>
 <span class="sd">        :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`,</span>
-<span class="sd">        which will corresponds to ``sympy_graph(variables+parameters)``</span>
-<span class="sd">    variables : List[sympy.core.symbol.Symbol]</span>
-<span class="sd">        Free variables in the sympy_graph. By convention these are usually all</span>
+<span class="sd">        which will corresponds to ``symengine_graph(variables+parameters)``</span>
+<span class="sd">    variables : List[symengine.Symbol]</span>
+<span class="sd">        Free variables in the symengine_graph. By convention these are usually all</span>
 <span class="sd">        instances of StateVariables.</span>
-<span class="sd">    parameters : Optional[List[sympy.core.symbol.Symbol]]</span>
-<span class="sd">        Free variables in the sympy_graph. These are typically external</span>
+<span class="sd">    parameters : Optional[List[symengine.Symbol]]</span>
+<span class="sd">        Free variables in the symengine_graph. These are typically external</span>
 <span class="sd">        parameters that are controlled by the user.</span>
-<span class="sd">    wrt : Optional[List[sympy.core.symbol.Symbol]]</span>
+<span class="sd">    wrt : Optional[List[symengine.Symbol]]</span>
 <span class="sd">        Variables to differentiate *with respect to* for the gradient and</span>
 <span class="sd">        Hessian callables. If None, will fall back to ``variables``.</span>
 <span class="sd">    include_obj : Optional[bool]</span>
-<span class="sd">        Whether to build the sympy_graph callable,</span>
+<span class="sd">        Whether to build the symengine_graph callable,</span>
 <span class="sd">        :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`</span>
 <span class="sd">    include_grad : Optional[bool]</span>
 <span class="sd">        Whether to build the gradient callable,</span>
@@ -329,7 +329,7 @@
     <span class="c1"># replacement is assumed to be cheap enough that it's safer to replace the</span>
     <span class="c1"># complex values and pay the minor time penalty.</span>
     <span class="n">inp</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="n">parameters</span><span class="p">)</span>
-    <span class="n">graph</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">oo</span><span class="p">})</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">symengine_graph</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">oo</span><span class="p">})</span>
     <span class="n">func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="p">[</span><span class="n">graph</span><span class="p">],</span> <span class="o">**</span><span class="n">_get_lambidfy_options</span><span class="p">(</span><span class="n">func_options</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">include_grad</span> <span class="ow">or</span> <span class="n">include_hess</span><span class="p">:</span>
         <span class="n">grad_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">oo</span><span class="p">})</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span>
@@ -347,13 +347,13 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    variables : List[sympy.core.symbol.Symbol]</span>
-<span class="sd">        Free variables in the sympy_graph. By convention these are usually all</span>
+<span class="sd">    variables : List[symengine.Symbol]</span>
+<span class="sd">        Free variables in the symengine_graph. By convention these are usually all</span>
 <span class="sd">        instances of StateVariables.</span>
-<span class="sd">    constraints : List[sympy.core.expr.Expr]</span>
-<span class="sd">        List of SymPy expression to compile</span>
-<span class="sd">    parameters : Optional[List[sympy.core.symbol.Symbol]]</span>
-<span class="sd">        Free variables in the sympy_graph. These are typically external</span>
+<span class="sd">    constraints : List[symengine.Basic]</span>
+<span class="sd">        List of SymEngine expression to compile</span>
+<span class="sd">    parameters : Optional[List[symengine.Symbol]]</span>
+<span class="sd">        Free variables in the symengine_graph. These are typically external</span>
 <span class="sd">        parameters that are controlled by the user.</span>
 <span class="sd">    func_options : None, optional</span>
 <span class="sd">        Options to pass to ``lambdify`` when compiling the function.</span>
