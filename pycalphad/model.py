@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 import copy
 import warnings
-from sympy import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
+from symengine import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
@@ -202,7 +202,8 @@ class Model(object):
         self.build_phase(dbe)
 
         for name, value in self.models.items():
-            self.models[name] = self.symbol_replace(value, symbols)
+            # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
+            self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
 
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
@@ -377,7 +378,7 @@ class Model(object):
                     "for an example."
                 )
                 for k in mod_endmember_only.models.keys():
-                    mod_endmember_only.models[k] = nan
+                    mod_endmember_only.models[k] = float('nan')
             self._endmember_reference_model = mod_endmember_only
         return self._endmember_reference_model
 
@@ -395,7 +396,7 @@ class Model(object):
         for sr in self.site_ratios:
             try:
                 float(sr)
-            except TypeError:
+            except (TypeError, RuntimeError):
                 constant_site_ratios = False
         # For all other cases where charge is present, we do need to add charge balance.
         if constant_site_ratios and has_charge:
@@ -604,17 +605,16 @@ class Model(object):
                             other_tern_params[0] == param:
                             # only the current parameter is specified
                             # We need to generate the other two parameters.
-                            order_one = copy.deepcopy(param)
+                            order_one = copy.copy(param)
                             order_one['parameter_order'] = 1
-                            order_two = copy.deepcopy(param)
+                            order_two = copy.copy(param)
                             order_two['parameter_order'] = 2
                             # Add these parameters to our iteration.
                             params.extend((order_one, order_two))
                     # Include variable indicated by parameter order index
                     # Perform Muggianu adjustment to site fractions
                     mixing_term *= comp_symbols[param['parameter_order']].subs(
-                        self._Muggianu_correction_dict(comp_symbols),
-                        simultaneous=True)
+                        self._Muggianu_correction_dict(comp_symbols))
             if phase.model_hints.get('ionic_liquid_2SL', False):
                 # Special normalization rules for parameters apply under this model
                 # If there are no anions present in the anion sublattice (only VA and neutral
@@ -640,9 +640,9 @@ class Model(object):
             param_val = param['parameter']
             if isinstance(param_val, Piecewise):
                 # Eliminate redundant Piecewise and extrapolate beyond temperature limits
-                filtered_args = [i for i in param_val.args if not ((i.cond == S.true) and (i.expr == S.Zero))]
+                filtered_args = [expr for expr, cond in zip(*[iter(param_val.args)]*2) if not ((cond == S.true) and (expr == S.Zero))]
                 if len(filtered_args) == 1:
-                    param_val = filtered_args[0].expr
+                    param_val = filtered_args[0]
             rk_terms.append(mixing_term * param_val)
         return Add(*rk_terms)
 
@@ -681,8 +681,8 @@ class Model(object):
                 # We lose some precision here, but this makes the limit behave nicely
                 # We're okay until fractions of about 1e-12 (platform-dependent)
                 mixing_term = Piecewise((sitefrac*log(sitefrac),
-                                         StrictGreaterThan(sitefrac, sitefrac_limit, evaluate=False)), (0, True),
-                                        evaluate=False)
+                                         StrictGreaterThan(sitefrac, sitefrac_limit)), (0, True),
+                                        )
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term / self._site_ratio_normalization
@@ -745,8 +745,7 @@ class Model(object):
             self.redlich_kister_sum(phase, param_search, bm_param_query)
         beta = mean_magnetic_moment / Piecewise(
             (afm_factor, mean_magnetic_moment <= 0),
-            (1., True),
-            evaluate=False
+            (1., True)
             )
         self.BMAG = self.beta = self.symbol_replace(beta, self._symbols)
 
@@ -754,8 +753,7 @@ class Model(object):
             self.redlich_kister_sum(phase, param_search, tc_param_query)
         tc = curie_temp / Piecewise(
             (afm_factor, curie_temp <= 0),
-            (1., True),
-            evaluate=False
+            (1., True)
             )
         self.TC = self.curie_temperature = self.symbol_replace(tc, self._symbols)
 
@@ -786,7 +784,7 @@ class Model(object):
                            (super_tau_neg_tc, And(curie_temp/afm_factor < v.T, curie_temp < 0)),
                            (0, True)
                            ]
-        g_term = Piecewise(*expr_cond_pairs, evaluate=False)
+        g_term = Piecewise(*expr_cond_pairs)
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
@@ -866,7 +864,7 @@ class Model(object):
                                 (super_tau_neel, tau_neel > 1),
                                 (sub_tau_neel, True)
                                ]
-        g_term = Piecewise(*expr_cond_pairs_curie, evaluate=False) + Piecewise(*expr_cond_pairs_neel, evaluate=False)
+        g_term = Piecewise(*expr_cond_pairs_curie) + Piecewise(*expr_cond_pairs_neel)
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization

@@ -4,7 +4,7 @@ Classes and constants for representing thermodynamic variables.
 """
 
 import sys
-from sympy import Float, Symbol
+from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
 
 
@@ -112,25 +112,53 @@ class StateVariable(Symbol):
     """
     State variables are symbols with built-in assumptions of being real.
     """
-    def __new__(cls, name, *args, **assumptions):
-        return Symbol.__new__(cls, name.upper(), real=True, **assumptions)
+    def __init__(self, name):
+        super().__init__(name.upper())
+
+    def __reduce__(self):
+        return self.__class__, (self.name,)
+
+    def __eq__(self, other):
+        """Two species are the same if their names are the same."""
+        if isinstance(other, self.__class__):
+            return self.name == other.name
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((self.__class__, self.name))
 
 class SiteFraction(StateVariable):
     """
     Site fractions are symbols with built-in assumptions of being real
     and nonnegative. The constructor handles formatting of the name.
     """
-    def __new__(cls, phase_name, subl_index, species): #pylint: disable=W0221
+    def __init__(self, phase_name, subl_index, species): #pylint: disable=W0221
         varname = phase_name + str(subl_index) + Species(species).escaped_name
         #pylint: disable=E1121
-        new_self = StateVariable.__new__(cls, varname, nonnegative=True)
-        new_self.phase_name = phase_name.upper()
-        new_self.sublattice_index = subl_index
-        new_self.species = Species(species)
-        return new_self
+        super().__init__(varname)
+        self.phase_name = phase_name.upper()
+        self.sublattice_index = subl_index
+        self.species = Species(species)
 
-    def __getnewargs__(self):
-        return self.phase_name, self.sublattice_index, self.species
+    def __reduce__(self):
+        return self.__class__, (self.phase_name, self.sublattice_index, self.species)
+
+    def __eq__(self, other):
+        """Two species are the same if their names and constituents are the same."""
+        if isinstance(other, self.__class__):
+            return self.name == other.name
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((self.phase_name, self.sublattice_index, self.species))
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -149,15 +177,10 @@ class PhaseFraction(StateVariable):
     Phase fractions are symbols with built-in assumptions of being real
     and nonnegative. The constructor handles formatting of the name.
     """
-    def __new__(cls, phase_name): #pylint: disable=W0221
+    def __init__(self, phase_name): #pylint: disable=W0221
         varname = 'NP_' + str(phase_name)
-        #pylint: disable=E1121
-        new_self = StateVariable.__new__(cls, varname, nonnegative=True)
-        new_self.phase_name = phase_name.upper()
-        return new_self
-
-    def __getnewargs__(self):
-        return self.phase_name,
+        super().__init__(varname)
+        self.phase_name = phase_name.upper()
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -169,8 +192,7 @@ class MoleFraction(StateVariable):
     MoleFractions are symbols with built-in assumptions of being real
     and nonnegative.
     """
-    def __new__(cls, *args): #pylint: disable=W0221
-        new_self = None
+    def __init__(self, *args): #pylint: disable=W0221
         varname = None
         phase_name = None
         species = None
@@ -188,16 +210,15 @@ class MoleFraction(StateVariable):
             raise ValueError('MoleFraction not defined for args: '+args)
 
         #pylint: disable=E1121
-        new_self = StateVariable.__new__(cls, varname, nonnegative=True)
-        new_self.phase_name = phase_name
-        new_self.species = species
-        return new_self
+        super().__init__(varname)
+        self.phase_name = phase_name
+        self.species = species
 
-    def __getnewargs__(self):
-        if self.phase_name is not None:
-            return self.phase_name, self.species
+    def __reduce__(self):
+        if self.phase_name is None:
+            return self.__class__, (self.species,)
         else:
-            return self.species,
+            return self.__class__, (self.phase_name, self.species,)
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -213,8 +234,7 @@ class MassFraction(StateVariable):
     """
     Weight fractions are symbols with built-in assumptions of being real and nonnegative.
     """
-    def __new__(cls, *args):  # pylint: disable=W0221
-        new_self = None
+    def __init__(self, *args):  # pylint: disable=W0221
         varname = None
         phase_name = None
         species = None
@@ -232,16 +252,15 @@ class MassFraction(StateVariable):
             raise ValueError('Weight fraction not defined for args: '+args)
 
         # pylint: disable=E1121
-        new_self = StateVariable.__new__(cls, varname, nonnegative=True)
-        new_self.phase_name = phase_name
-        new_self.species = species
-        return new_self
+        super().__init__(varname)
+        self.phase_name = phase_name
+        self.species = species
 
-    def __getnewargs__(self):
-        if self.phase_name is not None:
-            return self.phase_name, self.species
+    def __reduce__(self):
+        if self.phase_name is None:
+            return self.__class__, (self.species,)
         else:
-            return self.species,
+            return self.__class__, (self.phase_name, self.species,)
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -351,15 +370,11 @@ class ChemicalPotential(StateVariable):
     """
     Chemical potentials are symbols with built-in assumptions of being real.
     """
-    def __new__(cls, species, **assumptions):
+    def __init__(self, species):
         species = Species(species)
         varname = 'MU_' + species.escaped_name.upper()
-        new_self = StateVariable.__new__(cls, varname, **assumptions)
-        new_self.species = species
-        return new_self
-
-    def __getnewargs__(self):
-        return self.species,
+        super().__init__(varname)
+        self.species = species
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -382,3 +397,6 @@ NP = PhaseFraction
 si_gas_constant = R = Float(8.3145) # ideal gas constant
 
 CONDITIONS_REQUIRING_HESSIANS = {ChemicalPotential, PhaseFraction}
+
+# When loading databases, these symbols should be replaced by their StateVariable counter-parts defined above
+supported_variables_in_databases = {Symbol('T'): T, Symbol('P'): P, Symbol('R'): R}

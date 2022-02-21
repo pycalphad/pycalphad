@@ -28,7 +28,7 @@ functions or PhaseRecords. The following issues track this behavior:
 
 """
 from pycalphad.core.cache import cacheit
-from pycalphad.core.utils import wrap_symbol_symengine
+from pycalphad.core.utils import wrap_symbol
 from symengine import sympify, lambdify, zoo, oo
 from collections import namedtuple
 
@@ -100,7 +100,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
     if parameters is None:
         parameters = []
     else:
-        parameters = [wrap_symbol_symengine(p) for p in parameters]
+        parameters = [wrap_symbol(p) for p in parameters]
     variables = tuple(variables)
     parameters = tuple(parameters)
     func, grad, hess = None, None, None
@@ -155,7 +155,7 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     if parameters is None:
         parameters = []
     else:
-        parameters = [wrap_symbol_symengine(p) for p in parameters]
+        parameters = [wrap_symbol(p) for p in parameters]
     variables = tuple(variables)
     wrt = variables
     parameters = tuple(parameters)

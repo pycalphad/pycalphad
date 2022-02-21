@@ -3,6 +3,7 @@ Tests for code generation from SymPy/SymEngine objects.
 """
 
 import pickle
+import pytest
 import numpy as np
 from symengine.lib.symengine_wrapper import LambdaDouble, LLVMDouble
 from symengine import zoo
@@ -75,6 +76,7 @@ def test_phase_records_are_picklable():
     assert np.all(out == out_unpickled)
 
 
+@pytest.mark.xfail
 def test_complex_infinity_can_build_callables_successfully():
     """Test that functions that containing complex infinity can be built with codegen."""
     mod = Model(C_FE_DBF, ['C'], 'DIAMOND_A4')
@@ -83,6 +85,7 @@ def test_complex_infinity_can_build_callables_successfully():
     # Test builds functions only, since functions takes about 1 second to run.
     # Both lambda and llvm backends take a few seconds to build the derivatives
     # and are probably unnecessary to test.
+    # XXX: SymEngine does not produce a zoo for this case
     assert zoo in list(mod.GM.atoms())
     build_functions(mod.GM, mod_vars, include_obj=True, include_grad=False, include_hess=False)
 

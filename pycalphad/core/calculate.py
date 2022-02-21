@@ -107,7 +107,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     for sr in site_ratios:
         try:
             float(sr)
-        except TypeError:
+        except (TypeError, RuntimeError):
             constant_site_ratios = False
     species_charge = []
     for sublattice in range(len(model.constituents)):

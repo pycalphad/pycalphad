@@ -144,6 +144,17 @@ class Database(object): #pylint: disable=R0902
             else:
                 setattr(self, key, value)
 
+    def __deepcopy__(self, memo):
+        copy = type(self)()
+        memo[id(self)] = copy
+        for key, value in self.__dict__.items():
+            if key == '_parameters':
+                copy._parameters = TinyDB(storage=MemoryStorage)
+                copy._parameters.insert_multiple(value.all())
+            else:
+                setattr(copy, key, value)
+        return copy
+
     @staticmethod
     def register_format(fmt, read=None, write=None):
         """
