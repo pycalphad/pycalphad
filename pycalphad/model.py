@@ -181,7 +181,7 @@ class Model(object):
         self.pure_elements = sorted(set(desired_active_pure_elements))
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
 
-        # Convert string symbol names to sympy Symbol objects
+        # Convert string symbol names to Symbol objects
         # This makes xreplace work with the symbols dict
         symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
 
@@ -215,12 +215,12 @@ class Model(object):
 
         Parameters
         ----------
-        obj : SymPy object
-        symbols : dict mapping sympy.Symbol to SymPy object
+        obj : SymEngine object
+        symbols : dict mapping symengine.Symbol to SymEngine object
 
         Returns
         -------
-        SymPy object
+        SymEngine object
         """
         try:
             # Need to do more substitutions to catch symbols that are functions

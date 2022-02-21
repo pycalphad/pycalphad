@@ -222,7 +222,7 @@ def _compute_phase_values(components, statevar_dict,
         If True, broadcast state variables against each other to create a grid.
         If False, assume state variables are given as equal-length lists (or single-valued).
     parameters : OrderedDict {str -> float or sequence}, optional
-        Maps SymPy symbols to a scalar or 1-D array. The arrays must be equal length.
+        Maps SymEngine symbols to a scalar or 1-D array. The arrays must be equal length.
         The corresponding PhaseRecord must have been initialized with the same parameters.
     fake_points : bool, optional (Default: False)
         If True, the first few points of the output surface will be fictitious
@@ -391,7 +391,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         Whether to add evenly spaced points between end-members.
         The density of points is determined by 'pdens'
     parameters : dict, optional
-        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+        Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.
     phase_records : Optional[Mapping[str, PhaseRecord]]
         Mapping of phase names to PhaseRecord objects. Must include all active phases.
         The `model` argument must be a mapping of phase names to instances of Model

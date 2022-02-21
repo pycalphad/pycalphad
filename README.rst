@@ -53,7 +53,7 @@ See LICENSE.txt for details.
 Required Dependencies:
 
 * Python 3.7+
-* matplotlib, numpy, scipy, sympy, symengine, xarray, pyparsing, tinydb
+* matplotlib, numpy, scipy, symengine, xarray, pyparsing, tinydb
 
 Installation
 ------------

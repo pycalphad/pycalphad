@@ -36,7 +36,7 @@ _AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Constant, ast.Div,
                   ast.Pow, ast.Sub, ast.UAdd, ast.UnaryOp, ast.USub]
 
 def _sympify_string(math_string):
-    "Convert math string into SymPy object."
+    "Convert math string into SymEngine object."
     # drop pound symbols ('#') since they denote function names
     # we detect those automatically
     expr_string = math_string.replace('#', '')
@@ -104,7 +104,7 @@ def _parse_action(func):
 @_parse_action
 def _make_piecewise_ast(toks):
     """
-    Convenience function for converting tokens into a piecewise sympy AST.
+    Convenience function for converting tokens into a piecewise symengine object.
     """
     cur_tok = 0
     expr_cond_pairs = []
@@ -187,7 +187,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     # each subarray can be comma- or space-delimited
     constituent_array = Group(delimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
     param_types = MatchFirst([TCCommand(param_type) for param_type in TDB_PARAM_TYPES])
-    # Let sympy do heavy arithmetic / algebra parsing for us
+    # Let symengine do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details
     func_expr = (float_number | ZeroOrMore(',').setParseAction(lambda t: 0.01)) + OneOrMore(SkipTo(';') \
         + Suppress(';') + ZeroOrMore(Suppress(',')) + Optional(float_number) + \
@@ -483,7 +483,7 @@ class TCPrinter(object):
         exprs = [self._stringify_expr(x) for x, cond in filtered_args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
-        # to_interval() is used instead of sympy.Relational.as_set() for performance reasons
+        # to_interval() is used because symengine does not implement as_set()
         intervals = [to_interval(cond) for x, cond in filtered_args]
         intersected_intervals = UniversalSet()
         for i in intervals:
@@ -554,7 +554,7 @@ def reflow_text(text, linewidth=80):
 
 def _apply_new_symbol_names(dbf, symbol_name_map):
     """
-    Push changes in symbol names through the Sympy expressions in symbols and parameters
+    Push changes in symbol names through the SymEngine expressions in symbols and parameters
 
     Parameters
     ----------
@@ -565,7 +565,7 @@ def _apply_new_symbol_names(dbf, symbol_name_map):
     """
     # first apply the rename to the keys
     dbf.symbols = {symbol_name_map.get(name, name): expr for name, expr in dbf.symbols.items()}
-    # then propagate through to the symbol SymPy expression values
+    # then propagate through to the symbol SymEngine expression values
     dbf.symbols = {name: S(expr).xreplace({Symbol(s): Symbol(v) for s, v in symbol_name_map.items()}) for name, expr in dbf.symbols.items()}
     # finally propagate through to the parameters
     for p in dbf._parameters.all():

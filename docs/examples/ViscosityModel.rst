@@ -112,7 +112,6 @@ the output in pycalphad caluclations.
 .. code:: ipython3
 
     from tinydb import where
-    import sympy
     from pycalphad import Model, variables as v
     
     class ViscosityModel(Model):
@@ -162,7 +161,7 @@ the viscosity.
 
 .. parsed-literal::
 
-    (1 + 0.240543628600637*(LIQUID0CU*LIQUID0ZR*(75.3798 - 9.6125*log(T))*(LIQUID0CU - LIQUID0ZR) + LIQUID0CU*LIQUID0ZR*(105.895 - 13.6488*log(T))*(LIQUID0CU - LIQUID0ZR)**3 + LIQUID0CU*LIQUID0ZR*(392.8485 - 51.3121*log(T)) + LIQUID0CU*LIQUID0ZR*(LIQUID0CU - LIQUID0ZR)**2*(36.8512*log(T) - 270.5305))/(1.0*LIQUID0CU + 1.0*LIQUID0ZR))*(0.000657*LIQUID0CU*exp(2585.84400745685/T) + LIQUID0ZR*(0.01531616 - 4.97e-6*T))
+    (0.000657*LIQUID0CU*2.71828182845905**(2585.84400745685*T**(-1.0)) + LIQUID0ZR*(0.00474 - 4.97e-06*(-2128.0 + T)))*(1 + 0.240543628600637*(LIQUID0CU*LIQUID0ZR*(392.8485 - 51.3121*log(T)) + (LIQUID0CU - LIQUID0ZR)*LIQUID0CU*LIQUID0ZR*(75.3798 - 9.6125*log(T)) + (LIQUID0CU - LIQUID0ZR)**2*LIQUID0CU*LIQUID0ZR*(-270.5305 + 36.8512*log(T)) + (LIQUID0CU - LIQUID0ZR)**3*LIQUID0CU*LIQUID0ZR*(105.895 - 13.6488*log(T)))/(LIQUID0CU + LIQUID0ZR))
     
 
 Finally we calculate and plot the viscosity.
