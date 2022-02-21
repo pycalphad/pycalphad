@@ -8,10 +8,10 @@ import os
 import pickle
 from copy import deepcopy
 from pyparsing import ParseException
-from symengine import Symbol, Piecewise, And
+from symengine import Symbol, Piecewise, And, S
 from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
-from pycalphad.io.tdb import expand_keyword, reflow_text
+from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
 
@@ -800,3 +800,10 @@ def test_long_constituent_line_writes_correctly():
     dbf == reloaded_dbf
     assert len(dbf.elements) == len(reloaded_dbf.elements)
     assert len(dbf.phases['LIQUID'].constituents[0]) == len(reloaded_dbf.phases['LIQUID'].constituents[0])
+
+
+def test_tc_printer_no_division_symbols():
+    "TCPrinter does not produce division symbols in string output of symbolic expressions."
+    test_expr = Piecewise((S('VV0000/T + T*VV0004 + T**2*VV0001 + T**3*VV0002 + T*LOG(T)*VV0003'), v.T>0))
+    result = TCPrinter().doprint(test_expr)
+    assert '/' not in result

@@ -4,13 +4,13 @@ Thermo-Calc TDB format.
 """
 
 from pyparsing import CaselessKeyword, CharsNotIn, Group
-from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
+from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
-from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Basic
-from symengine import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, S
+from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
+from symengine import Symbol, LessThan, StrictLessThan, S
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
 from pycalphad.io.grammar import float_number, chemical_formula
@@ -441,10 +441,38 @@ class TCPrinter(object):
     def doprint(self, expr):
         return self._print_Piecewise(expr)
 
+    def _stringify_expr(self, expr):
+        if isinstance(expr, Add):
+            terms = self._stringify_expr(expr.args[0])
+            for arg in expr.args[1:]:
+                adding_term = self._stringify_expr(arg)
+                if adding_term[0] == '-':
+                    terms += adding_term
+                else:
+                    terms += ' + ' + adding_term
+            return terms
+        elif isinstance(expr, Mul):
+            terms = self._stringify_expr(expr.args[0])
+            for arg in expr.args[1:]:
+                terms += '*' + self._stringify_expr(arg)
+            return terms
+        elif isinstance(expr, Pow):
+            if int(expr.args[1]) != float(expr.args[1]):
+                raise ValueError('Exponent must be integer to be TDB compatible')
+            exponent = int(expr.args[1])
+            if exponent < 0:
+                exponent = '('+str(exponent)+')'
+            else:
+                exponent = str(exponent)
+            terms = self._stringify_expr(expr.args[0]) + '**' + exponent
+            return terms
+        else:
+            return str(expr)
+
     def _print_Piecewise(self, expr):
         # Filter out default zeros since they are implicit in a TDB
         filtered_args = [(x, cond) for x, cond in zip(*[iter(expr.args)]*2) if not ((cond == S.true) and (x == S.Zero))]
-        exprs = [str(x) for x, cond in filtered_args]
+        exprs = [self._stringify_expr(x) for x, cond in filtered_args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
         # to_interval() is used instead of sympy.Relational.as_set() for performance reasons
