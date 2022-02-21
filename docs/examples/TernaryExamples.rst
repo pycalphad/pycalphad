@@ -33,7 +33,7 @@ Zhang et al. `Calphad 35
 
 .. parsed-literal::
 
-    Wall time: 5min 47s
+    Wall time: 5min 56s
     
 
 

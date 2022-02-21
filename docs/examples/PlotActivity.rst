@@ -95,7 +95,7 @@ Plot the result
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x2d936d0c070>
+    <matplotlib.legend.Legend at 0x2107633e640>
 
 
 

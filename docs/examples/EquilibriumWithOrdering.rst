@@ -66,8 +66,8 @@ the value of ``output``.
         degree_of_ordering  (N, P, T, X_AL, vertex) float64 0.6666 nan ... nan nan
         heat_capacity       (N, P, T, X_AL) float64 25.45 26.93 ... 42.44 42.44
     Attributes:
-        engine:   pycalphad 0.9.3.dev13+gbb04ffdd.d20211218
-        created:  2021-12-18T22:15:36.246280
+        engine:   pycalphad 0.9.3.dev40+g1bf356e4.d20220219
+        created:  2022-02-19T19:18:13.281597
     
 
 We also compute degree of ordering at fixed temperature as a function of
@@ -95,14 +95,14 @@ composition.
     Data variables:
         NP                  (N, P, T, X_AL, vertex) float64 1.0 nan nan ... nan nan
         GM                  (N, P, T, X_AL) float64 -2.447e+04 ... -1.949e+04
-        MU                  (N, P, T, X_AL, component) float64 -2.433e+05 ... -1....
+        MU                  (N, P, T, X_AL, component) float64 -2.443e+05 ... -1....
         X                   (N, P, T, X_AL, vertex, component) float64 1e-10 ... nan
-        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 7.983e-...
+        Y                   (N, P, T, X_AL, vertex, internal_dof) float64 9.807e-...
         Phase               (N, P, T, X_AL, vertex) <U6 'B2_BCC' '' '' ... '' ''
-        degree_of_ordering  (N, P, T, X_AL, vertex) float64 0.1009 nan ... nan nan
+        degree_of_ordering  (N, P, T, X_AL, vertex) float64 0.009636 nan ... nan nan
     Attributes:
-        engine:   pycalphad 0.9.3.dev13+gbb04ffdd.d20211218
-        created:  2021-12-18T22:15:36.736462
+        engine:   pycalphad 0.9.3.dev40+g1bf356e4.d20220219
+        created:  2022-02-19T19:18:13.601354
     
 
 Plots
@@ -207,10 +207,10 @@ Al-Ni (Degree of Ordering)
         X                   (N, P, T, X_AL, vertex, component) float64 0.25 ... nan
         Y                   (N, P, T, X_AL, vertex, internal_dof) float64 2.229e-...
         Phase               (N, P, T, X_AL, vertex) <U7 'FCC_L12' 'FCC_L12' ... ''
-        degree_of_ordering  (N, P, T, X_AL, vertex) float64 1.0 4.006e-15 ... nan
+        degree_of_ordering  (N, P, T, X_AL, vertex) float64 1.0 6.377e-15 ... nan
     Attributes:
-        engine:   pycalphad 0.9.3.dev13+gbb04ffdd.d20211218
-        created:  2021-12-18T22:15:39.930780
+        engine:   pycalphad 0.9.3.dev40+g1bf356e4.d20220219
+        created:  2022-02-19T19:18:16.761326
     
 
 Plots
@@ -242,7 +242,7 @@ disappears around 750 K, leaving only the disordered gamma phase.
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x25418910970>
+    <matplotlib.legend.Legend at 0x1ebe70d6dc0>
 
 
 
@@ -279,9 +279,9 @@ gamma phase. This is a first-order phase transition.
 
 .. parsed-literal::
 
-    C:\Users\rotis\AppData\Local\Temp/ipykernel_1472/3149017277.py:7: RuntimeWarning: invalid value encountered in greater
+    C:\Users\rotis\AppData\Local\Temp/ipykernel_7844/3149017277.py:7: RuntimeWarning: invalid value encountered in greater
       (eq_alni.degree_of_ordering.values > 0.01)))
-    C:\Users\rotis\AppData\Local\Temp/ipykernel_1472/3149017277.py:10: RuntimeWarning: invalid value encountered in less_equal
+    C:\Users\rotis\AppData\Local\Temp/ipykernel_7844/3149017277.py:10: RuntimeWarning: invalid value encountered in less_equal
       (eq_alni.degree_of_ordering.values <= 0.01)))
     
 

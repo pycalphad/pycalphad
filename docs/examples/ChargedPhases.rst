@@ -58,7 +58,7 @@ Phases with Electrically Charged Species
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x20ac78477f0>
+    <matplotlib.legend.Legend at 0x15b9e392520>
 
 
 
