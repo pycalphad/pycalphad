@@ -29,7 +29,7 @@ jobs:
           python-version: '3.8'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.2.2
+        uses: pypa/cibuildwheel@v2.3.1
         env:
           # Build all CPython platforms except Python 3.5 and 3.6
           # PyPy wheels not allowed because SciPy (build requirement) is not available
