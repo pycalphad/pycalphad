@@ -58,42 +58,6 @@ def point_sample(comp_count, pdof=10):
         pts = np.atleast_2d([1] * len(comp_count))
     return pts
 
-def make_callable(model, variables, mode=None):
-    """
-    Take a SymPy object and create a callable function.
-
-    Parameters
-    ----------
-    model, SymPy object
-        Abstract representation of function
-    variables, list
-        Input variables, ordered in the way the return function will expect
-    mode, ['numpy', 'numba', 'sympy'], optional
-        Method to use when 'compiling' the function. SymPy mode is
-        slow and should only be used for debugging. If Numba is installed,
-        it can offer speed-ups when calling the energy function many
-        times on multi-core CPUs.
-
-    Returns
-    -------
-    Function that takes arguments in the same order as 'variables'
-    and returns the energy according to 'model'.
-
-    Examples
-    --------
-    None yet.
-    """
-    energy = None
-    if mode is None:
-        mode = 'numpy'
-
-    if mode == 'sympy':
-        energy = lambda *vs: model.subs(dict(zip(variables, vs))).n(real=True)
-    else:
-        energy = lambdify(tuple(variables), model, dummify=True,
-                          modules=mode)
-
-    return energy
 
 def sizeof_fmt(num, suffix='B'):
     """
@@ -390,7 +354,7 @@ def instantiate_models(dbf, comps, phases, model=None, parameters=None, symbols_
     model : Model class, a dict of phase names to Model, or a Iterable of both
         Model class to use for each phase.
     parameters : dict, optional
-        Maps SymPy Symbol to numbers, for overriding the values of parameters in
+        Maps SymEngine Symbol to numbers, for overriding the values of parameters in
         the Database.
     symbols_only : bool
         If True, symbols will be extracted from the parameters dict and used to

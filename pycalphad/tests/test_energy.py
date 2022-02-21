@@ -6,7 +6,6 @@ correct abstract syntax tree for the energy.
 import pytest
 from symengine import S
 from pycalphad import Database, Model, ReferenceState
-from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
     CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB
 from pycalphad.core.errors import DofError
@@ -21,6 +20,11 @@ CUMG_DBF = Database(CUMG_TDB)
 FE_MN_S_DBF = Database(FE_MN_S_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
+
+
+def make_callable(model, variables, mode=None):
+    energy = lambda *vs: model.subs(dict(zip(variables, vs))).n(real=True)
+    return energy
 
 
 def test_sympify_safety():

@@ -77,7 +77,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     model : a dict of phase names to Model
         Model class to use for each phase.
     parameters : dict, optional
-        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+        Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.
     kwargs
         Passed to `calculate`.
 
@@ -177,7 +177,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Job scheduler for performing the computation.
         If None, return a Dask graph of the computation instead of actually doing it.
     parameters : dict, optional
-        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+        Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.
     solver : pycalphad.core.solver.SolverBase
         Instance of a solver that is used to calculate local equilibria.
         Defaults to a pycalphad.core.solver.Solver.
