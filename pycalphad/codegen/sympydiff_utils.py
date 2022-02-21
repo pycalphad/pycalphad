@@ -53,7 +53,7 @@ def _get_lambidfy_options(user_options):
 def build_functions(symengine_graph, variables, parameters=None, wrt=None,
                     include_obj=True, include_grad=False, include_hess=False,
                     func_options=None, grad_options=None, hess_options=None):
-    """Build function, gradient, and Hessian callables of the symenginey_graph.
+    """Build function, gradient, and Hessian callables of the symengine_graph.
 
     Parameters
     ----------
