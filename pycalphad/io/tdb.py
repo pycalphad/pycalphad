@@ -239,6 +239,10 @@ def _tdb_grammar(): #pylint: disable=R0914
         Optional(Suppress(';') + int_number, default=0) + \
         Suppress(')') + func_expr.setParseAction(_make_piecewise_ast) + \
         Optional(Suppress(reference_key)) + LineEnd()
+    # ZEROVOLUME_SPECIES
+    cmd_zerovolume = TCCommand('ZEROVOLUME_SPECIES') + SkipTo(LineEnd())
+    # DIFFUSION
+    cmd_diffusion = TCCommand('DIFFUSION') + SkipTo(LineEnd())
     # Now combine the grammar together
     all_commands = cmd_element | \
                     cmd_species | \
@@ -255,7 +259,9 @@ def _tdb_grammar(): #pylint: disable=R0914
                     cmd_templim | \
                     cmd_phase | \
                     cmd_constituent | \
-                    cmd_parameter
+                    cmd_parameter | \
+                    cmd_zerovolume | \
+                    cmd_diffusion
     return all_commands
 
 def _process_typedef(targetdb, typechar, line):
@@ -397,7 +403,9 @@ _TDB_PROCESSOR = {
     'CONSTITUENT': \
         lambda db, name, c: db.add_phase_constituents(
             name.split(':')[0].upper(), c),
-    'PARAMETER': _process_parameter
+    'PARAMETER': _process_parameter,
+    'ZEROVOLUME_SPECIES': _unimplemented,
+    'DIFFUSION': _unimplemented,
 }
 
 def to_interval(relational):

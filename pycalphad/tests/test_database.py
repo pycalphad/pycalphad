@@ -801,6 +801,17 @@ def test_long_constituent_line_writes_correctly():
     assert len(dbf.elements) == len(reloaded_dbf.elements)
     assert len(dbf.phases['LIQUID'].constituents[0]) == len(reloaded_dbf.phases['LIQUID'].constituents[0])
 
+def test_database_passes_with_diffusion_commands():
+    "DIFFUSION and ZEROVOLUME_SPECIES commands do not raise errors while parsing (doesn't test implementation)."
+    tdb_string = """
+     ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
+     ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+
+     ZEROVOLUME_SPECIES VA !
+     DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 !
+    """
+
+    dbf = Database.from_string(tdb_string, fmt='tdb')
 
 def test_tc_printer_no_division_symbols():
     "TCPrinter does not produce division symbols in string output of symbolic expressions."
