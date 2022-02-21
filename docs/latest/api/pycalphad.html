@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html" /><link rel="prev" title="API Documentation" href="modules.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad package - pycalphad 0.9.3.dev8+gea19942d documentation</title>
+        <title>pycalphad package - pycalphad 0.9.3.dev9+g6c87e40d documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev8+gea19942d documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev9+g6c87e40d documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev8+gea19942d documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev9+g6c87e40d documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -246,7 +246,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.light_dataset">pycalphad.core.light_dataset module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.lower_convex_hull">pycalphad.core.lower_convex_hull module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.minimizer">pycalphad.core.minimizer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.patched_piecewise">pycalphad.core.patched_piecewise module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#pycalphad-core-patched-piecewise-module">pycalphad.core.patched_piecewise module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.phase_rec">pycalphad.core.phase_rec module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.solver">pycalphad.core.solver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.starting_point">pycalphad.core.starting_point module</a></li>
@@ -706,17 +706,9 @@ If not specified, randomly generated and saved to self.solution</p></li>
 <p>Classes and constants for representing thermodynamic variables.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.ChemicalPotential">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">ChemicalPotential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">assumptions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#ChemicalPotential"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.ChemicalPotential" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">ChemicalPotential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#ChemicalPotential"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.ChemicalPotential" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>Chemical potentials are symbols with built-in assumptions of being real.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.ChemicalPotential.default_assumptions">
-<span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.ChemicalPotential.default_assumptions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.ChemicalPotential.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.ChemicalPotential.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 </dd></dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.MU">
@@ -728,14 +720,6 @@ If not specified, randomly generated and saved to self.solution</p></li>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">MassFraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#MassFraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.MassFraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>Weight fractions are symbols with built-in assumptions of being real and nonnegative.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.MassFraction.default_assumptions">
-<span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.MassFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.MassFraction.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.MassFraction.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.MoleFraction">
@@ -743,14 +727,6 @@ If not specified, randomly generated and saved to self.solution</p></li>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>MoleFractions are symbols with built-in assumptions of being real
 and nonnegative.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.MoleFraction.default_assumptions">
-<span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.MoleFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.MoleFraction.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.MoleFraction.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 </dd></dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.NP">
@@ -763,14 +739,6 @@ and nonnegative.</p>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>Phase fractions are symbols with built-in assumptions of being real
 and nonnegative. The constructor handles formatting of the name.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.PhaseFraction.default_assumptions">
-<span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.PhaseFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.PhaseFraction.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.PhaseFraction.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.SiteFraction">
@@ -778,14 +746,6 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
 <p>Site fractions are symbols with built-in assumptions of being real
 and nonnegative. The constructor handles formatting of the name.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.SiteFraction.default_assumptions">
-<span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.SiteFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.SiteFraction.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.SiteFraction.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.Species">
@@ -840,17 +800,9 @@ and nonnegative. The constructor handles formatting of the name.</p>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.StateVariable">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">StateVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">assumptions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#StateVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.StateVariable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.core.symbol.Symbol</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">StateVariable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#StateVariable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.StateVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">symengine.lib.symengine_wrapper.Symbol</span></code></p>
 <p>State variables are symbols with built-in assumptions of being real.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.StateVariable.default_assumptions">
-<span class="sig-name descname"><span class="pre">default_assumptions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#pycalphad.variables.StateVariable.default_assumptions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.variables.StateVariable.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.StateVariable.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 </dd></dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.variables.W">

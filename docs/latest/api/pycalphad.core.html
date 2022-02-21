@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.io package" href="pycalphad.io.html" /><link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.core package - pycalphad 0.9.3.dev8+gea19942d documentation</title>
+        <title>pycalphad.core package - pycalphad 0.9.3.dev9+g6c87e40d documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev8+gea19942d documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.9.3.dev9+g6c87e40d documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev8+gea19942d documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.9.3.dev9+g6c87e40d documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -732,43 +732,8 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">solve_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.solve_state" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 </section>
-<section id="module-pycalphad.core.patched_piecewise">
-<span id="pycalphad-core-patched-piecewise-module"></span><h2>pycalphad.core.patched_piecewise module<a class="headerlink" href="#module-pycalphad.core.patched_piecewise" title="Permalink to this headline">¶</a></h2>
-<p>Copied from Piecewise SymPy. The only modification is in <cite>piecewise_eval</cite> where</p>
-<dl class="simple">
-<dt><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a></dt><dd><dl class="simple">
-<dt>for e, c in _args:</dt><dd><dl class="simple">
-<dt>if not c.is_Atom and not isinstance(c, Relational):</dt><dd><p>free = c.free_symbols</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
-<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
-<p>is changed to</p>
-<dl class="simple">
-<dt><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></dt><dd><dl class="simple">
-<dt>for e, c in _args:</dt><dd><dl class="simple">
-<dt>if not c.is_Atom and not isinstance(c, Relational):</dt><dd><p>free = c.expr_free_symbols</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
-<p><a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
-<p>See the following links:
-<a class="reference external" href="https://github.com/sympy/sympy/issues/14933">https://github.com/sympy/sympy/issues/14933</a>
-<a class="reference external" href="https://github.com/pycalphad/pycalphad/pull/180">https://github.com/pycalphad/pycalphad/pull/180</a></p>
-<dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.patched_piecewise.exprcondpair_new">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.patched_piecewise.</span></span><span class="sig-name descname"><span class="pre">exprcondpair_new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cond</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/patched_piecewise.html#exprcondpair_new"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.patched_piecewise.exprcondpair_new" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.patched_piecewise.piecewise_eval">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.patched_piecewise.</span></span><span class="sig-name descname"><span class="pre">piecewise_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/patched_piecewise.html#piecewise_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.patched_piecewise.piecewise_eval" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<section id="pycalphad-core-patched-piecewise-module">
+<h2>pycalphad.core.patched_piecewise module<a class="headerlink" href="#pycalphad-core-patched-piecewise-module" title="Permalink to this headline">¶</a></h2>
 </section>
 <section id="module-pycalphad.core.phase_rec">
 <span id="pycalphad-core-phase-rec-module"></span><h2>pycalphad.core.phase_rec module<a class="headerlink" href="#module-pycalphad.core.phase_rec" title="Permalink to this headline">¶</a></h2>
@@ -1330,10 +1295,6 @@ there, then the constant value is used.</p>
 <dt class="sig sig-object py" id="pycalphad.core.utils.wrap_symbol">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">wrap_symbol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#wrap_symbol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.wrap_symbol" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.utils.wrap_symbol_symengine">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">wrap_symbol_symengine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#wrap_symbol_symengine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.wrap_symbol_symengine" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 </section>
 <section id="module-pycalphad.core">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.core" title="Permalink to this headline">¶</a></h2>
@@ -1409,7 +1370,7 @@ there, then the constant value is used.</p>
 <li><a class="reference internal" href="#module-pycalphad.core.light_dataset">pycalphad.core.light_dataset module</a></li>
 <li><a class="reference internal" href="#module-pycalphad.core.lower_convex_hull">pycalphad.core.lower_convex_hull module</a></li>
 <li><a class="reference internal" href="#module-pycalphad.core.minimizer">pycalphad.core.minimizer module</a></li>
-<li><a class="reference internal" href="#module-pycalphad.core.patched_piecewise">pycalphad.core.patched_piecewise module</a></li>
+<li><a class="reference internal" href="#pycalphad-core-patched-piecewise-module">pycalphad.core.patched_piecewise module</a></li>
 <li><a class="reference internal" href="#module-pycalphad.core.phase_rec">pycalphad.core.phase_rec module</a></li>
 <li><a class="reference internal" href="#module-pycalphad.core.solver">pycalphad.core.solver module</a></li>
 <li><a class="reference internal" href="#module-pycalphad.core.starting_point">pycalphad.core.starting_point module</a></li>
