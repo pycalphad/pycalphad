@@ -1,6 +1,22 @@
 What's New
 ==========
 
+0.10.0 (2022-02-21)
+------------------
+
+This is a major release containing performance improvements, bug fixes, and breaking changes for custom models.
+Note that, if you use custom Models with pycalphad, you will need to change all your sympy imports to symengine.
+It should be a drop-in replacement in most cases; if you have any issues, please file a GitHub issue or contact us.
+
+* BLD: Support for Python 3.10 ( :issue:`374` )
+* ENH: Use SymEngine everywhere and remove SymPy support ( :issue:`376` )
+* ENH: Minimizer: refactor and convergence improvements ( :issue:`373` )
+* ENH: General charge-constrained phases support ( :issue:`386` )
+* FIX: tdb: Silently drop (for now) DIFFUSION and ZEROVOLUME_SPECIES commands ( :issue:`397` )
+* FIX: tdb: writer line length bugs ( :issue:`392` )
+* MAINT: plot: Create new axes with specified projection without deprecated functionality ( :issue:`370` )
+
+
 0.9.2 (2021-08-12)
 ------------------
 
