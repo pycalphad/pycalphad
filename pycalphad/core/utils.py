@@ -6,8 +6,7 @@ import warnings
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from sympy.utilities.lambdify import lambdify
-from sympy import Symbol
+from symengine import lambdify, Symbol
 import numpy as np
 import operator
 import functools
@@ -89,7 +88,7 @@ def make_callable(model, variables, mode=None):
         mode = 'numpy'
 
     if mode == 'sympy':
-        energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
+        energy = lambda *vs: model.subs(dict(zip(variables, vs))).n(real=True)
     else:
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=mode)
@@ -465,13 +464,3 @@ def wrap_symbol(obj):
     else:
         return Symbol(obj)
 
-
-def wrap_symbol_symengine(obj):
-    from symengine import Symbol, sympify
-    from sympy import Symbol as Symbol_sympy
-    if isinstance(obj, Symbol):
-        return obj
-    elif isinstance(obj, Symbol_sympy):
-        return sympify(obj)
-    else:
-        return Symbol(obj)

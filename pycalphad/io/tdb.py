@@ -4,17 +4,13 @@ Thermo-Calc TDB format.
 """
 
 from pyparsing import CaselessKeyword, CharsNotIn, Group
-from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
+from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
-from sympy import sympify, And, Or, Not, Intersection, Union, EmptySet, Interval, Piecewise
-from sympy import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, Complement, S
-from sympy import Mul, Pow, Rational
-from sympy.abc import _clash
-from sympy.printing.str import StrPrinter
-from sympy.core.mul import _keep_coeff
-from sympy.printing.precedence import precedence
+from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
+from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
+from symengine import Symbol, LessThan, StrictLessThan, S
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
 from pycalphad.io.grammar import float_number, chemical_formula
@@ -39,16 +35,6 @@ _AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Constant, ast.Div,
                   ast.Expression, ast.Load, ast.Mult, ast.Name, ast.Num,
                   ast.Pow, ast.Sub, ast.UAdd, ast.UnaryOp, ast.USub]
 
-# Avoid symbol names clashing with objects in sympy (gh-233)
-clashing_namespace = {}
-clashing_namespace.update(_clash)
-clashing_namespace['CC'] = Symbol('CC')
-clashing_namespace['FF'] = Symbol('FF')
-clashing_namespace['T'] = v.T
-clashing_namespace['P'] = v.P
-clashing_namespace['R'] = v.R
-
-
 def _sympify_string(math_string):
     "Convert math string into SymPy object."
     # drop pound symbols ('#') since they denote function names
@@ -71,8 +57,7 @@ def _sympify_string(math_string):
         if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
-
-    return sympify(expr_string, locals=clashing_namespace)
+    return sympify(expr_string).xreplace(v.supported_variables_in_databases).n()
 
 def _parse_action(func):
     """
@@ -152,7 +137,7 @@ def _make_piecewise_ast(toks):
             )
         cur_tok = cur_tok + 2
     expr_cond_pairs.append((0, True))
-    return Piecewise(*expr_cond_pairs, evaluate=False)
+    return Piecewise(*expr_cond_pairs)
 
 class TCCommand(CaselessKeyword): #pylint: disable=R0903
     """
@@ -425,7 +410,10 @@ _TDB_PROCESSOR = {
 
 def to_interval(relational):
     if isinstance(relational, And):
-        return Intersection(*[to_interval(i) for i in relational.args])
+        result = UniversalSet()
+        for i in relational.args:
+            result = result.intersection(to_interval(i))
+        return result
     elif isinstance(relational, Or):
         return Union(*[to_interval(i) for i in relational.args])
     elif isinstance(relational, Not):
@@ -440,179 +428,90 @@ def to_interval(relational):
     free_symbol = list(relational.free_symbols)[0]
     lhs = relational.args[0]
     rhs = relational.args[1]
-    if isinstance(relational, GreaterThan):
-        if lhs == free_symbol:
-            return Interval(rhs, S.Infinity, left_open=False)
+    if isinstance(relational, LessThan):
+        if rhs == free_symbol:
+            return Interval(lhs, S.Infinity, left_open=False, right_open=True)
         else:
-            return Interval(S.NegativeInfinity, rhs, right_open=False)
-    elif isinstance(relational, StrictGreaterThan):
-        if lhs == free_symbol:
-            return Interval(rhs, S.Infinity, left_open=True)
-        else:
-            return Interval(S.NegativeInfinity, rhs, right_open=True)
-    elif isinstance(relational, LessThan):
-        if lhs != free_symbol:
-            return Interval(rhs, S.Infinity, left_open=False)
-        else:
-            return Interval(S.NegativeInfinity, rhs, right_open=False)
+            return Interval(S.NegativeInfinity, rhs, left_open=True, right_open=False)
     elif isinstance(relational, StrictLessThan):
-        if lhs != free_symbol:
-            return Interval(rhs, S.Infinity, left_open=True)
+        if rhs == free_symbol:
+            return Interval(lhs, S.Infinity, left_open=True, right_open=False)
         else:
-            return Interval(S.NegativeInfinity, rhs, right_open=True)
+            return Interval(S.NegativeInfinity, rhs, left_open=False, right_open=True)
     else:
         raise ValueError('Unsupported Relational: {}'.format(relational.__class__.__name__))
 
-class TCPrinter(StrPrinter):
+
+class TCPrinter(object):
     """
     Prints Thermo-Calc style function expressions.
     """
+    def doprint(self, expr):
+        return self._print_Piecewise(expr)
+
+    def _stringify_expr(self, expr):
+        if isinstance(expr, Add):
+            terms = self._stringify_expr(expr.args[0])
+            for arg in expr.args[1:]:
+                adding_term = self._stringify_expr(arg)
+                if adding_term[0] == '-':
+                    terms += adding_term
+                else:
+                    terms += ' + ' + adding_term
+            return terms
+        elif isinstance(expr, Mul):
+            terms = self._stringify_expr(expr.args[0])
+            for arg in expr.args[1:]:
+                terms += '*' + self._stringify_expr(arg)
+            return terms
+        elif isinstance(expr, Pow):
+            if int(expr.args[1]) != float(expr.args[1]):
+                raise ValueError('Exponent must be integer to be TDB compatible')
+            exponent = int(expr.args[1])
+            if exponent < 0:
+                exponent = '('+str(exponent)+')'
+            else:
+                exponent = str(exponent)
+            terms = self._stringify_expr(expr.args[0]) + '**' + exponent
+            return terms
+        else:
+            return str(expr)
+
     def _print_Piecewise(self, expr):
         # Filter out default zeros since they are implicit in a TDB
-        filtered_args = [i for i in expr.args if not ((i.cond == S.true) and (i.expr == S.Zero))]
-        exprs = [self._print(arg.expr) for arg in filtered_args]
+        filtered_args = [(x, cond) for x, cond in zip(*[iter(expr.args)]*2) if not ((cond == S.true) and (x == S.Zero))]
+        exprs = [self._stringify_expr(x) for x, cond in filtered_args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
         # to_interval() is used instead of sympy.Relational.as_set() for performance reasons
-        intervals = [to_interval(i.cond) for i in filtered_args]
-        if (len(intervals) > 1) and not Intersection(*intervals) is EmptySet:
+        intervals = [to_interval(cond) for x, cond in filtered_args]
+        intersected_intervals = UniversalSet()
+        for i in intervals:
+            intersected_intervals = intersected_intervals.intersection(i)
+        if (len(intervals) > 1) and (intersected_intervals != EmptySet):
             raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
-        if not isinstance(Union(*intervals), Interval):
+        continuous_interval = Interval(intervals[0].args[0], intervals[-1].args[1], False, True)
+        # XXX: Wait, should this be the intersection or the union of continuous_interval?
+        if Union(*intervals).union(continuous_interval) != continuous_interval:
             raise ValueError('Piecewise intervals must be continuous')
-        if not all([arg.cond.free_symbols == {v.T} for arg in filtered_args]):
+        if not all([cond.free_symbols == {v.T} for x, cond in filtered_args]):
             raise ValueError('Only temperature-dependent piecewise conditions are supported')
         # Sort expressions based on intervals
-        sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].start)]
+        sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].args[0])]
         exprs = [exprs[idx] for idx in sortindices]
-        intervals = [intervals[idx] for idx in sortindices]
-
+        # Infinity is implicit in TDB, so we shouldn't print it; ',' means use default value
+        as_str = lambda x: ',' if (x == S.Infinity) or (x == S.NegativeInfinity) else str(x)
         if len(exprs) > 1:
-            result = '{1} {0}; {2} Y'.format(exprs[0], self._print(intervals[0].start),
-                                             self._print(intervals[0].end))
+            result = '{1} {0}; {2} Y'.format(exprs[0], as_str(intervals[0].args[0]),
+                                             as_str(intervals[0].args[1]))
             result += 'Y'.join([' {0}; {1} '.format(expr,
-                                                   self._print(i.end)) for i, expr in zip(intervals[1:], exprs[1:])])
+                                                   as_str(i.args[1])) for i, expr in zip(intervals[1:], exprs[1:])])
             result += 'N'
         else:
-            result = '{0} {1}; {2} N'.format(self._print(intervals[0].start), exprs[0],
-                                             self._print(intervals[0].end))
+            result = '{0} {1}; {2} N'.format(as_str(intervals[0].args[0]), exprs[0],
+                                             as_str(intervals[0].args[1]))
 
         return result
-
-    def _print_Mul(self, expr):
-        "Copied from sympy StrPrinter and modified to remove division."
-
-        prec = precedence(expr)
-
-        c, e = expr.as_coeff_Mul()
-        if c < 0:
-            expr = _keep_coeff(-c, e)
-            sign = "-"
-        else:
-            sign = ""
-
-        a = []  # items in the numerator
-        b = []  # items that are in the denominator (if any)
-
-        if self.order not in ('old', 'none'):
-            args = expr.as_ordered_factors()
-        else:
-            # use make_args in case expr was something like -x -> x
-            args = Mul.make_args(expr)
-
-        # Gather args for numerator/denominator
-        for item in args:
-            if item.is_commutative and item.is_Pow and item.exp.is_Rational and item.exp.is_negative:
-                if item.exp != -1:
-                    b.append(Pow(item.base, -item.exp, evaluate=False))
-                else:
-                    b.append(Pow(item.base, -item.exp))
-            elif item.is_Rational and item is not S.Infinity:
-                if item.p != 1:
-                    a.append(Rational(item.p))
-                if item.q != 1:
-                    b.append(Rational(item.q))
-            else:
-                a.append(item)
-
-        a = a or [S.One]
-
-        a_str = [self.parenthesize(x, prec) for x in a]
-        b_str = [self.parenthesize(x, prec) for x in b]
-
-        if len(b) == 0:
-            return sign + '*'.join(a_str)
-        elif len(b) == 1:
-            # Thermo-Calc's parser can't handle division operators
-            return sign + '*'.join(a_str) + "*%s" % self.parenthesize(b[0]**(-1), prec)
-        else:
-            # TODO: Make this Thermo-Calc compatible by removing division operation
-            return sign + '*'.join(a_str) + "/(%s)" % '*'.join(b_str)
-
-    def _print_Pow(self, expr, rational=False):
-        "Copied from sympy StrPrinter to remove TC-incompatible Pow simplifications."
-        PREC = precedence(expr)
-
-        e = self.parenthesize(expr.exp, PREC)
-        if self.printmethod == '_sympyrepr' and expr.exp.is_Rational and expr.exp.q != 1:
-            # the parenthesized exp should be '(Rational(a, b))' so strip parens,
-            # but just check to be sure.
-            if e.startswith('(Rational'):
-                return '%s**%s' % (self.parenthesize(expr.base, PREC), e[1:-1])
-        return '%s**%s' % (self.parenthesize(expr.base, PREC), e)
-
-    def _print_Infinity(self, expr):
-        # Use "default value" though TC's Database Checker complains about this
-        return ","
-
-    def _print_Symbol(self, expr):
-        if isinstance(expr, v.StateVariable):
-            return expr.name
-        else:
-            # Thermo-Calc likes symbol references to be marked with a '#' at the end
-            return expr.name + "#"
-
-    def _print_Function(self, expr):
-        func_translations = {'log': 'ln', 'exp': 'exp'}
-        if expr.func.__name__.lower() in func_translations:
-            return func_translations[expr.func.__name__.lower()] + "(%s)" % self.stringify(expr.args, ", ")
-        else:
-            raise TypeError("Unable to represent function: %s" %
-                             expr.func.__name__)
-
-    def blacklisted(self, expr):
-        raise TypeError("Unable to represent expression: %s" %
-                        expr.__class__.__name__)
-
-
-    # blacklist all Matrix printing
-    _print_SparseMatrix = \
-    _print_MutableSparseMatrix = \
-    _print_ImmutableSparseMatrix = \
-    _print_Matrix = \
-    _print_DenseMatrix = \
-    _print_MutableDenseMatrix = \
-    _print_ImmutableMatrix = \
-    _print_ImmutableDenseMatrix = \
-    blacklisted
-    # blacklist other operations
-    _print_Derivative = \
-    _print_Integral = \
-    blacklisted
-    # blacklist some logical operations
-    # These should never show up outside a piecewise function
-    # Piecewise handles them directly
-    _print_And = \
-    _print_Or = \
-    _print_Not = \
-    blacklisted
-    # blacklist some python expressions
-    _print_list = \
-    _print_tuple = \
-    _print_Tuple = \
-    _print_dict = \
-    _print_Dict = \
-    blacklisted
-
 
 def reflow_text(text, linewidth=80):
     """

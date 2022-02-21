@@ -5,12 +5,13 @@ from io import StringIO
 import pytest
 import hashlib
 import os
+import pickle
 from copy import deepcopy
 from pyparsing import ParseException
-from sympy import Symbol, Piecewise, And
+from symengine import Symbol, Piecewise, And, S
 from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
-from pycalphad.io.tdb import expand_keyword, reflow_text
+from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
 
@@ -55,6 +56,12 @@ def test_database_ne():
     assert test_dbf != None
     assert None != test_dbf
     assert 42 != test_dbf
+
+def test_database_pickle():
+    "Database pickle roundtrip."
+    test_dbf = Database(ALCRNI_TDB)
+    new_dbf = pickle.loads(pickle.dumps(test_dbf))
+    assert test_dbf == new_dbf
 
 def test_database_diffusion():
     "Diffusion database support."
@@ -542,19 +549,19 @@ def test_database_parameter_with_species_that_is_not_a_stoichiometric_formula():
     import tinydb
     silica = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SILICA'],),))
     assert len(silica) == 1
-    assert silica[0]['parameter'].args[0][0] == 10
+    assert silica[0]['parameter'].args[0] == float(10)
 
     nasb_6oh = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['NASB_6OH'],),))
     assert len(nasb_6oh) == 1
-    assert nasb_6oh[0]['parameter'].args[0][0] == 100
+    assert nasb_6oh[0]['parameter'].args[0] == float(100)
 
     alcl2oh_3water = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['ALCL2OH.3WATER'],),))
     assert len(alcl2oh_3water) == 1
-    assert alcl2oh_3water[0]['parameter'].args[0][0] == 1000
+    assert alcl2oh_3water[0]['parameter'].args[0] == float(1000)
 
     sbminus3 = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SB-3'],),))
     assert len(sbminus3) == 1
-    assert sbminus3[0]['parameter'].args[0][0] == 10000
+    assert sbminus3[0]['parameter'].args[0] == float(10000)
 
 
 def test_database_sympy_namespace_clash():
@@ -678,6 +685,7 @@ def test_tdb_parser_raises_unterminated_parameters():
     """
     with pytest.raises(ParseException):
         Database(UNTERMINATED_PARAM_STR)
+
 
 def test_load_database_when_given_in_lowercase():
     "Test loading a database coerced to lowercase loads correctly."
@@ -804,3 +812,9 @@ def test_database_passes_with_diffusion_commands():
     """
 
     dbf = Database.from_string(tdb_string, fmt='tdb')
+
+def test_tc_printer_no_division_symbols():
+    "TCPrinter does not produce division symbols in string output of symbolic expressions."
+    test_expr = Piecewise((S('VV0000/T + T*VV0004 + T**2*VV0001 + T**3*VV0002 + T*LOG(T)*VV0003'), v.T>0))
+    result = TCPrinter().doprint(test_expr)
+    assert '/' not in result

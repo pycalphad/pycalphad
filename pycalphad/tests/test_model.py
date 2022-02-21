@@ -5,6 +5,7 @@ from pycalphad import Database, Model, variables as v, equilibrium
 from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
 from pycalphad.core.errors import DofError
 import numpy as np
+import pickle
 import pytest
 
 ALCRNI_DBF = Database(ALCRNI_TDB)
@@ -40,6 +41,12 @@ def test_export_import():
     test_model = Model(Database.from_string(ALNIPT_DBF.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb'), ['PT', 'NI', 'VA'], 'FCC_L12')
     ref_model = Model(ALNIPT_DBF, ['NI', 'PT', 'VA'], 'FCC_L12')
     assert test_model == ref_model
+
+def test_model_pickle():
+    "Model pickle roundtrip."
+    test_model = Model(ALNIPT_DBF, ['NI', 'PT', 'VA'], 'FCC_L12')
+    new_model = pickle.loads(pickle.dumps(test_model))
+    assert test_model == new_model
 
 def test_custom_model_contributions():
     "Building a custom model using contributions."
