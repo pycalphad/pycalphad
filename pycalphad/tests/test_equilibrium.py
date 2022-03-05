@@ -6,7 +6,7 @@ correct solution for thermodynamic equilibrium.
 import warnings
 import os
 import pytest
-from sympy import Symbol
+from symengine import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
@@ -264,7 +264,7 @@ def test_eq_ternary_edge_case_mass():
     result_chempots = eq.MU.values.flatten()
     assert_allclose(result_chempots[:2], [-86994.575, -184582.17], atol=0.1)  # from Thermo-Calc 2017b
     assert result_chempots[2] < -300000  # Estimated
-    assert np.all(np.abs(mass_error) < 1e-10)
+    assert np.all(np.abs(mass_error) < 1.5e-10)
 
 @pytest.mark.solver
 def test_eq_ternary_inside_mass():
@@ -300,7 +300,7 @@ def test_eq_issue43_chempots_misc_gap():
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
                      verbose=True)
     chempots = np.array([-206144.57, -272150.79, -64253.652])
-    assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.1246, 1e-9, 1-(.1246+1e-9)], rtol=2e-5)
+    assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.1246, 1e-9, 1-(.1246+1e-9)], rtol=3e-5)
     assert_allclose(np.squeeze(eq.MU.values), chempots, rtol=1e-5)
     assert_allclose(np.squeeze(eq.GM.values), -81933.259)
 

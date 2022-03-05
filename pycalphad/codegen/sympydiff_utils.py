@@ -1,5 +1,5 @@
 """
-This module defines functions for compiling symbolic SymPy or SymEngine
+This module defines functions for compiling symbolic SymEngine
 expressions into fast callable functions.
 
 The SymEngine ``lambdify`` function is used to compile the functions using a
@@ -28,7 +28,7 @@ functions or PhaseRecords. The following issues track this behavior:
 
 """
 from pycalphad.core.cache import cacheit
-from pycalphad.core.utils import wrap_symbol_symengine
+from pycalphad.core.utils import wrap_symbol
 from symengine import sympify, lambdify, zoo, oo
 from collections import namedtuple
 
@@ -50,28 +50,28 @@ def _get_lambidfy_options(user_options):
 
 
 @cacheit
-def build_functions(sympy_graph, variables, parameters=None, wrt=None,
+def build_functions(symengine_graph, variables, parameters=None, wrt=None,
                     include_obj=True, include_grad=False, include_hess=False,
                     func_options=None, grad_options=None, hess_options=None):
-    """Build function, gradient, and Hessian callables of the sympy_graph.
+    """Build function, gradient, and Hessian callables of the symengine_graph.
 
     Parameters
     ----------
-    sympy_graph : sympy.core.expr.Expr
-        SymPy expression to compile,
+    symengine_graph : symengine.Basic
+        symengine expression to compile,
         :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`,
-        which will corresponds to ``sympy_graph(variables+parameters)``
-    variables : List[sympy.core.symbol.Symbol]
-        Free variables in the sympy_graph. By convention these are usually all
+        which will corresponds to ``symengine_graph(variables+parameters)``
+    variables : List[symengine.Symbol]
+        Free variables in the symengine_graph. By convention these are usually all
         instances of StateVariables.
-    parameters : Optional[List[sympy.core.symbol.Symbol]]
-        Free variables in the sympy_graph. These are typically external
+    parameters : Optional[List[symengine.Symbol]]
+        Free variables in the symengine_graph. These are typically external
         parameters that are controlled by the user.
-    wrt : Optional[List[sympy.core.symbol.Symbol]]
+    wrt : Optional[List[symengine.Symbol]]
         Variables to differentiate *with respect to* for the gradient and
         Hessian callables. If None, will fall back to ``variables``.
     include_obj : Optional[bool]
-        Whether to build the sympy_graph callable,
+        Whether to build the symengine_graph callable,
         :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`
     include_grad : Optional[bool]
         Whether to build the gradient callable,
@@ -100,7 +100,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
     if parameters is None:
         parameters = []
     else:
-        parameters = [wrap_symbol_symengine(p) for p in parameters]
+        parameters = [wrap_symbol(p) for p in parameters]
     variables = tuple(variables)
     parameters = tuple(parameters)
     func, grad, hess = None, None, None
@@ -110,7 +110,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
     # replacement is assumed to be cheap enough that it's safer to replace the
     # complex values and pay the minor time penalty.
     inp = sympify(variables + parameters)
-    graph = sympify(sympy_graph).xreplace({zoo: oo})
+    graph = sympify(symengine_graph).xreplace({zoo: oo})
     func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
     if include_grad or include_hess:
         grad_graphs = list(graph.diff(w).xreplace({zoo: oo}) for w in wrt)
@@ -128,13 +128,13 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
 
     Parameters
     ----------
-    variables : List[sympy.core.symbol.Symbol]
-        Free variables in the sympy_graph. By convention these are usually all
+    variables : List[symengine.Symbol]
+        Free variables in the symengine_graph. By convention these are usually all
         instances of StateVariables.
-    constraints : List[sympy.core.expr.Expr]
-        List of SymPy expression to compile
-    parameters : Optional[List[sympy.core.symbol.Symbol]]
-        Free variables in the sympy_graph. These are typically external
+    constraints : List[symengine.Basic]
+        List of SymEngine expression to compile
+    parameters : Optional[List[symengine.Symbol]]
+        Free variables in the symengine_graph. These are typically external
         parameters that are controlled by the user.
     func_options : None, optional
         Options to pass to ``lambdify`` when compiling the function.
@@ -155,7 +155,7 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     if parameters is None:
         parameters = []
     else:
-        parameters = [wrap_symbol_symengine(p) for p in parameters]
+        parameters = [wrap_symbol(p) for p in parameters]
     variables = tuple(variables)
     wrt = variables
     parameters = tuple(parameters)

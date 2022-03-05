@@ -25,7 +25,7 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
     models : dict
         Dictionary of {phase_name: Model subclass}
     parameter_symbols : list, optional
-        List of string or SymPy Symbols that will be overridden in the callables.
+        List of string or SymEngine Symbols that will be overridden in the callables.
     output : str, optional
         Output property of the particular Model to sample. Defaults to 'GM'
     build_gradients : bool, optional
@@ -166,7 +166,7 @@ def build_phase_records(dbf, comps, phases, state_variables, models, output='GM'
     models : Mapping[str, Model]
         Mapping of phase names to model instances
     parameters : dict, optional
-        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+        Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.
     callables : dict, optional
         Pre-computed callables. If None are passed, they will be built.
         Maps {'output' -> {'function' -> {'phase_name' -> AutowrapFunction()}}

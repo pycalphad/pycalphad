@@ -116,14 +116,6 @@ pycalphad.core.minimizer module
    :undoc-members:
    :show-inheritance:
 
-pycalphad.core.patched\_piecewise module
-----------------------------------------
-
-.. automodule:: pycalphad.core.patched_piecewise
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pycalphad.core.phase\_rec module
 --------------------------------
 

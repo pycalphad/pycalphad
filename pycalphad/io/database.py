@@ -73,7 +73,7 @@ class Database(object): #pylint: disable=R0902
     phases : dict
         Phase objects indexed by their system-local name.
     symbols : dict
-        SymPy objects indexed by their name (FUNCTIONs in Thermo-Calc).
+        SymEngine objects indexed by their name (FUNCTIONs in Thermo-Calc).
     references : dict
         Reference objects indexed by their system-local identifier.
 
@@ -143,6 +143,17 @@ class Database(object): #pylint: disable=R0902
                 self._parameters.insert_multiple(value)
             else:
                 setattr(self, key, value)
+
+    def __deepcopy__(self, memo):
+        copy = type(self)()
+        memo[id(self)] = copy
+        for key, value in self.__dict__.items():
+            if key == '_parameters':
+                copy._parameters = TinyDB(storage=MemoryStorage)
+                copy._parameters.insert_multiple(value.all())
+            else:
+                setattr(copy, key, value)
+        return copy
 
     @staticmethod
     def register_format(fmt, read=None, write=None):
@@ -356,7 +367,7 @@ class Database(object): #pylint: disable=R0902
         local_name : string
             System-local name of the phase.
         global_name : object
-            Abstract representation of symbol, e.g., in SymPy format.
+            Abstract representation of symbol, e.g., in SymEngine format.
 
         Examples
         --------
@@ -380,7 +391,7 @@ class Database(object): #pylint: disable=R0902
         param_order : int
             Polynomial order of the parameter.
         param : object
-            Abstract representation of the parameter, e.g., in SymPy format.
+            Abstract representation of the parameter, e.g., in SymEngine format.
         ref : str, optional
             Reference for the parameter.
         diffusing_species : str, optional

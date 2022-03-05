@@ -4,9 +4,8 @@ correct abstract syntax tree for the energy.
 """
 
 import pytest
-from sympy import S
-from pycalphad import Database, Model, ReferenceState, equilibrium
-from pycalphad.core.utils import make_callable
+from symengine import S
+from pycalphad import Database, Model, ReferenceState
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
     CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB
 from pycalphad.tests.fixtures import load_database, select_database
@@ -24,6 +23,12 @@ CUMG_DBF = Database(CUMG_TDB)
 FE_MN_S_DBF = Database(FE_MN_S_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
+
+
+def make_callable(model, variables, mode=None):
+    energy = lambda *vs: model.subs(dict(zip(variables, vs))).n(real=True)
+    return energy
+
 
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
@@ -56,7 +61,7 @@ def calculate_output(model, variables, output, mode='sympy'):
     # our optimization functions are working.
     prop = make_callable(getattr(model, output), list(variables.keys()), mode=mode)
     # Unpack all the values in the dict and use them to call the function
-    return prop(*(list(variables.values())))
+    return prop(*[float(x) for x in variables.values()])
 
 
 def check_output(model, variables, output, known_value, mode='sympy'):
@@ -100,8 +105,8 @@ def test_degenerate_ordered():
                 v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}
     a1_subs = {v.T: 500, v.SiteFraction('FCC_A1', 0, 'CR'): 0.33,
                v.SiteFraction('FCC_A1', 0, 'NI'): 0.67}
-    l12_energy = mod_l12.energy.xreplace(l12_subs)
-    a1_energy = mod_a1.energy.xreplace(a1_subs)
+    l12_energy = mod_l12.energy.xreplace(l12_subs).n(real=True)
+    a1_energy = mod_a1.energy.xreplace(a1_subs).n(real=True)
     np.testing.assert_almost_equal(l12_energy, a1_energy)
 
 def test_degenerate_zero_ordering():
@@ -112,7 +117,7 @@ def test_degenerate_zero_ordering():
                 v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
                 v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}
     #print({x: mod.models[x].subs(sub_dict) for x in mod.models})
-    desired = mod.models['ord'].xreplace(sub_dict).evalf()
+    desired = mod.models['ord'].xreplace(sub_dict).n(real=True)
     assert abs(desired - 0) < 1e-5, "%r != %r" % (desired, 0)
 
 # BINARY TESTS
@@ -414,7 +419,7 @@ def test_ionic_liquid_energy_anion_sublattice():
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1e-12,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1e-12,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_Sneg2}), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **em_FE_Sneg2}).n(real=True), dtype=np.complex_)
     assert np.isclose(out, -148395.0, atol=0.1)
 
     em_FE_VA = {
@@ -423,7 +428,7 @@ def test_ionic_liquid_energy_anion_sublattice():
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.0,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1e-12,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_VA}), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **em_FE_VA}).n(real=True), dtype=np.complex_)
     assert np.isclose(out, -87735.077, atol=0.1)
 
     em_FE_S = {
@@ -432,7 +437,7 @@ def test_ionic_liquid_energy_anion_sublattice():
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1e-12,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1.0,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_S}), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **em_FE_S}).n(real=True), dtype=np.complex_)
     assert np.isclose(out, -102463.52, atol=0.1)
 
     # Test some ficticious "nice" mixing cases
@@ -442,7 +447,7 @@ def test_ionic_liquid_energy_anion_sublattice():
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.33333333,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 0.33333333,
     }
-    out = np.array(mod.ast.subs({**potentials, **mix_equal}), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **mix_equal}).n(real=True), dtype=np.complex_)
     assert np.isclose(out, -130358.2, atol=0.1)
 
     mix_unequal = {
@@ -451,7 +456,7 @@ def test_ionic_liquid_energy_anion_sublattice():
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.25,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 0.25,
     }
-    out = np.array(mod.ast.subs({**potentials, **mix_unequal}), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **mix_unequal}).n(real=True), dtype=np.complex_)
     assert np.isclose(out, -138484.11, atol=0.1)
 
     # Test the energies for the two equilibrium internal DOF for the conditions
@@ -461,7 +466,7 @@ def test_ionic_liquid_energy_anion_sublattice():
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.00545E-04,
         v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 6.00994E-01,
     }
-    out = np.array(mod.ast.subs({**potentials, **eq_sf_1}), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **eq_sf_1}).n(real=True), dtype=np.complex_)
     assert np.isclose(out, -141545.37, atol=0.1)
 
     eq_sf_2 = {
@@ -470,7 +475,7 @@ def test_ionic_liquid_energy_anion_sublattice():
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.45273E-04,
         v.Y('IONIC_LIQ', 1, v.Species('S')): 9.84476E-01,
     }
-    out = np.array(mod.ast.subs({**potentials, **eq_sf_2}), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **eq_sf_2}).n(real=True), dtype=np.complex_)
     assert np.isclose(out, -104229.18, atol=0.1)
 
 
@@ -747,7 +752,7 @@ def test_MQMQA_SUBQ_entropy_only(load_database):
     assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.2, 1e-5)
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
-    
+
 
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
@@ -839,7 +844,7 @@ def test_MQMQA_SUBQ_Q_mixing_1000K_FACTSAGE(load_database):
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
 
-               
+
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_400K(load_database):
     dbf = load_database()
@@ -1160,8 +1165,8 @@ def test_QKTO_binary_mixing(load_database):
     assert PD in mod.constituents[0]
 
     subs_dict = {  # Thermochimica site fractions
-        v.Y("LIQN", 0, RU): 0.40,  
-        v.Y("LIQN", 0, PD): 0.60,  
+        v.Y("LIQN", 0, RU): 0.40,
+        v.Y("LIQN", 0, PD): 0.60,
         v.T: 2500.00,
     }
 
@@ -1188,8 +1193,8 @@ def test_QKTO_multicomponent_extrapolation_binary_mixing(load_database):
 
     subs_dict = {  # Thermochimica site fractions
         v.Y("LIQN", 0, MO): 0.025,
-        v.Y("LIQN", 0, TC): 0.5,  
-        v.Y("LIQN", 0, RU): 0.4,  
+        v.Y("LIQN", 0, TC): 0.5,
+        v.Y("LIQN", 0, RU): 0.4,
         v.Y("LIQN", 0, PD): 0.075,
         v.T: 2500.00,
     }
@@ -1219,8 +1224,8 @@ def test_QKTO_multicomponent_extrapolation(load_database):
 
     subs_dict = {  # Thermochimica site fractions
         v.Y("HCPN", 0, MO): 0.025,
-        v.Y("HCPN", 0, TC): 0.500,  
-        v.Y("HCPN", 0, RU): 0.400,  
+        v.Y("HCPN", 0, TC): 0.500,
+        v.Y("HCPN", 0, RU): 0.400,
         v.Y("HCPN", 0, PD): 0.075,
         v.T: 1500.00,
     }
