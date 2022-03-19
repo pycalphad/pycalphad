@@ -130,7 +130,7 @@ class IntervalCP(IntervalBase):
 
     def expr(self, indices, T_min=298.15):
         """Return an expression for the energy in this temperature interval"""
-        raise NotImplementedError
+        raise NotImplementedError("Heat capacity descriptions of the Gibbs energy are not implemented.")
 
 
 @dataclass
