@@ -2,7 +2,7 @@ import itertools
 from typing import List, Tuple
 from collections import OrderedDict
 from functools import partial
-from sympy import log, S, Symbol
+from symengine import log, S, Symbol
 from tinydb import where
 from pycalphad.model import _MAX_PARAM_NESTING
 import pycalphad.variables as v
@@ -42,8 +42,8 @@ class ModelMQMQA(Model):
     """
     Symbolic implementation of the modified quasichemical model in the
     quadruplet approximation developed by Pelton _et al._ [1]_. The formulation
-    here largely follows the derivation by Poschmann _et al._ [2]_. 
-    
+    here largely follows the derivation by Poschmann _et al._ [2]_.
+
     Following pycalphad convention, ``ModelMQMQA.G`` defines the energy for one
     "formula unit" of this phase. The MQMQA formulations by Pelton _et al._ and
     Poschmann _et al._ do not formally define the energy per formula unit in
@@ -52,8 +52,8 @@ class ModelMQMQA(Model):
     mole of quadruplets. In terms of the equations from Poschmann _et al._,
     which are largely followed in this class, that means
     :math:`\\sum_{ab/xy} n_{ab/xy} = 1` and therefore
-    :math:`n_{ab/xy} = X_{ij/kl}` by definition. 
-    
+    :math:`n_{ab/xy} = X_{ij/kl}` by definition.
+
     This class is only semantically a subclass of ``Model``. It implements the
     API expected for a Model in a self-contained way without any need to rely
     on the Model superclass, but it is created as a subclass to satisfy various
@@ -116,7 +116,7 @@ class ModelMQMQA(Model):
         quad_species = [get_species(A, B, X, Y) for (A, B), (X, Y) in quads]
         self.constituents = [sorted(quad_species)]
 
-        # Convert string symbol names to sympy Symbol objects
+        # Convert string symbol names to symengine Symbol objects
         # This makes xreplace work with the symbols dict
         symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
 
@@ -210,7 +210,7 @@ class ModelMQMQA(Model):
     def _n_ik(self, i, k):
         """
         Return the amount of pair, n_i/k, for the pair i/k.
-        
+
         Follows Poschmann Eq. 5 except that including zeta here (as by
         Poschmann) seems to break the tests when the coordination numbers
         vary across quadruplets.
@@ -242,7 +242,7 @@ class ModelMQMQA(Model):
     def _X_ik_star(self, i: v.Species, k: v.Species):
         """
         Return the endmember fraction, X^*_i/k, for a the pair i/k.
-        
+
         Follows Lambotte JCT 2011 Eq. A.5, but this is simply Poschmann Eq. 6
         with n^*_ik instead of n_ik.
 
@@ -490,7 +490,7 @@ class ModelMQMQA(Model):
     def normalization(self):
         """
         Total number of moles of this phase.
-        
+
         Divide by this normalization factor to convert from J/mole-formula to J/mole-atoms
         """
         return sum(self._n_i(self._dbe, i) for i in self.cations + self.anions if "VA" not in i.constituents)
@@ -703,12 +703,12 @@ class ModelMQMQA(Model):
 
         Parameters
         ----------
-        obj : SymPy object
-        symbols : dict mapping sympy.Symbol to SymPy object
+        obj : symengine object
+        symbols : dict mapping symengine.Symbol to symengine object
 
         Returns
         -------
-        SymPy object
+        symengine object
         """
         try:
             # Need to do more substitutions to catch symbols that are functions

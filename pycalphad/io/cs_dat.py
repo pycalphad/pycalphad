@@ -8,7 +8,7 @@ import numpy as np
 import itertools
 from dataclasses import dataclass
 from collections import deque
-from sympy import S, log, Piecewise, And, integrate
+from symengine import S, log, Piecewise, And
 from pycalphad import Database, variables as v
 from .grammar import parse_chemical_formula
 
@@ -90,7 +90,7 @@ class IntervalBase:
         raise NotImplementedError("Subclasses of IntervalBase must define an expression for the energy")
 
     def cond(self, T_min=298.15):
-        return (T_min <= v.T) & (v.T < self.T_max)
+        return And((T_min <= v.T), (v.T < self.T_max))
 
     def expr_cond_pair(self, *args, T_min=298.15, **kwargs):
         """Return an (expr, cond) tuple used to construct Piecewise expressions"""
@@ -130,24 +130,7 @@ class IntervalCP(IntervalBase):
 
     def expr(self, indices, T_min=298.15):
         """Return an expression for the energy in this temperature interval"""
-        if self.H_trans != 0:
-            raise NotImplementedError("H_trans not supported")
-        Cp = S.Zero
-        # Construct the heat capacity
-        Cp += sum([C*CP_TERMS[i] for C, i in zip(self.CP_coefficients, indices)])
-        # Additional terms
-        Cp += sum([addit_term.expr() for addit_term in self.additional_coeff_pairs])
-        # P-T molar volume terms, not supported
-        if len(self.PTVm_terms) > 0:
-            raise NotImplementedError("P-T molar volume terms are not supported")
-
-        # We need to transform these into Gibbs energies, i.e.
-        # Construct the H(T) and S(T) functions
-        # \[ H(T) = H298 + \int_{298.15}^{T} Cp dT \]
-        H_ = self.H298 + integrate(Cp, (v.T, 298.15, v.T))
-        # \[ S(T) = S298 + \int_{298.15}^{T} Cp/T dT \]
-        S_ = self.S298 + integrate(Cp/v.T, (v.T, 298.15, v.T))
-        return H_ - v.T*S_  # G = H - TS
+        raise NotImplementedError
 
 
 @dataclass
@@ -166,7 +149,7 @@ class Endmember():
             T_min = interval.T_max
         # a (expr, True) condition must be at the end
         expr_cond_pairs.append((S.Zero, S.true))
-        return Piecewise(*expr_cond_pairs, evaluate=False)
+        return Piecewise(*expr_cond_pairs)
 
     def constituents(self, pure_elements: List[str]) -> Dict[str, float]:
         return {el: amnt for el, amnt in zip(pure_elements, self.stoichiometry_pure_elements) if amnt != 0.0}
@@ -198,7 +181,7 @@ class EndmemberQKTO(Endmember):
         # so we're avoiding the complexity of non-unity factors for now.
         if not np.isclose(self.stoichiometric_factor, 1.0):
             raise ValueError(f"QKTO endmembers with stoichiometric factors other than 1 are not yet supported. Got {self.stoichiometric_factor} for {self}")
-        
+
 
 @dataclass
 class EndmemberMagnetic(Endmember):
@@ -393,7 +376,7 @@ class ExcessQKTO(ExcessBase):
         exponents = [exponent - 1 for exponent in self.exponents]  # For some reason, an exponent of 1 really means an exponent of zero...
         self._database_add_parameter(
             dbf, "QKT", phase_name, const_array,
-            self.expr(excess_coefficient_idxs), exponents, 
+            self.expr(excess_coefficient_idxs), exponents,
             force_insert=False)
 
 @dataclass
@@ -665,7 +648,7 @@ class SUBQExcessQuadruplet:
         constituent_array = [[A, B], [X, Y]]
         mixing_code = self.mixing_code
         exponents = self.mixing_exponents
-        
+
         addtl_cation_mixing_const = linear_species[self.additional_cation_mixing_const]
         addtl_anion_mixing_const = linear_species[self.additional_anion_mixing_const]
         if addtl_cation_mixing_const is not None and addtl_anion_mixing_const is not None:

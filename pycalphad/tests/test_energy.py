@@ -12,7 +12,6 @@ from pycalphad.tests.fixtures import load_database, select_database
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
-from sympy import Abs
 from pycalphad.models.model_mqmqa import ModelMQMQA
 
 DBF = Database(ALCRNI_TDB)
