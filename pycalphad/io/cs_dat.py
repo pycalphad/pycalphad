@@ -2,7 +2,7 @@
 Support for reading ChemSage DAT files.
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import re
 import numpy as np
 import itertools
@@ -118,6 +118,7 @@ class IntervalG(IntervalBase):
         return energy
 
 
+# TODO: not yet supported
 @dataclass
 class IntervalCP(IntervalBase):
     # Fixed term heat capacity interval with extended terms
@@ -158,11 +159,12 @@ class Endmember():
         return [[sp] for sp in self.species_name.split(':')]
 
     def species(self, pure_elements) -> List[v.Species]:
+        """Return an unordered list of Species objects detected in this endmember"""
         if len(self.species_name.split(':')) > 1:
             # If given in sublattice notation, assume species are pure elements
             # i.e. multi-sublattice models cannot have associates
             all_species = self.species_name.split(':')
-            return np.unique([v.Species(sp_str) for sp_str in all_species]).tolist()  # TODO: `unique` does sorting, is this the correct behavior?
+            return np.unique([v.Species(sp_str) for sp_str in all_species]).tolist()
         else:
             # We only have one sublattice, this can be a non-pure element species
             return [v.Species(self.species_name, constituents=self.constituents(pure_elements))]
@@ -371,9 +373,8 @@ class ExcessQKTO(ExcessBase):
             self._parameter_queue.append(new_parameter)
 
     def insert(self, dbf: Database, phase_name: str, phase_constituents: List[str], excess_coefficient_idxs: List[int]):
-        # TODO: does this use the chemical groups in the generalized Kohler-Toop formalism?
         const_array = self.constituent_array(phase_constituents)
-        exponents = [exponent - 1 for exponent in self.exponents]  # For some reason, an exponent of 1 really means an exponent of zero...
+        exponents = [exponent - 1 for exponent in self.exponents]  # For some reason, an exponent of 1 really means an exponent of zero
         self._database_add_parameter(
             dbf, "QKT", phase_name, const_array,
             self.expr(excess_coefficient_idxs), exponents,
@@ -400,10 +401,21 @@ class PhaseBase:
 
 @dataclass
 class Phase_Stoichiometric(PhaseBase):
+    magnetic_afm_factor: Optional[float]
+    magnetic_structure_factor: Optional[float]
+
     def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
-        # TODO: magnetic model hints? Are these why there are four numbers for
-        # magnetic endmembers instead of two for solution phases? Add a raise in
-        # the parser instead of parsing these into nothing to find the examples.
+        model_hints = {}
+        if self.magnetic_afm_factor is not None or self.magnetic_structure_factor is not None:
+            # This follows the Redlich-Kister Muggianu IHJ model. The ChemSage
+            # docs don't incidate that it's an IHJ model, but Eriksson and Hack,
+            # Met. Trans. B 21B (1990) 1013 says that it follows IHJ.
+            model_hints['ihj_magnetic_structure_factor'] = self.magnetic_structure_factor
+            # The TDB syntax would define the AFM factor for FCC as -3
+            # while ChemSage defines +0.333. This is likely because the
+            # model divides by the AFM factor (-1/3). We convert the AFM
+            # factor to the version used in the TDB/Model.
+            model_hints['ihj_magnetic_afm_factor'] = -1/self.magnetic_afm_factor
 
         assert len(self.endmembers) == 1  # stoichiometric phase
 
@@ -414,7 +426,7 @@ class Phase_Stoichiometric(PhaseBase):
         constituent_array = [[el] for el in sorted(constituent_dict.keys())]
         subl_stoich_ratios = [constituent_dict[el] for el in sorted(constituent_dict.keys())]
 
-        dbf.add_phase(self.phase_name, {}, subl_stoich_ratios)
+        dbf.add_phase(self.phase_name, model_hints=model_hints, sublattices=subl_stoich_ratios)
         dbf.add_phase_constituents(self.phase_name, constituent_array)
         self.endmembers[0].insert(dbf, self.phase_name, constituent_array, gibbs_coefficient_idxs)
 
@@ -425,8 +437,9 @@ class Phase_CEF(PhaseBase):
     constituent_array: List[List[str]]
     endmember_constituent_idxs: List[List[int]]
     excess_parameters: List[ExcessBase]
-    magnetic_afm_factor: float
-    magnetic_structure_factor: float
+    magnetic_afm_factor: Optional[float]
+    magnetic_structure_factor: Optional[float]
+
     def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
         model_hints = {}
         if self.magnetic_afm_factor is not None and self.magnetic_structure_factor is not None:
@@ -499,11 +512,10 @@ class Phase_CEF(PhaseBase):
             # add the species to the database
             for subl in self.constituent_array:
                 for const in subl:
-                    dbf.species.add(_parse_species_postfix_charge(const))  # TODO: masses
+                    dbf.species.add(_parse_species_postfix_charge(const))
         dbf.add_phase_constituents(self.phase_name, self.constituent_array)
 
         # Now that all the species are in the database, we are free to add the parameters
-        # First for endmembers
         if self.endmember_constituent_idxs is None:
             # we have to guess at the constituent array
             for endmember in self.endmembers:
@@ -515,11 +527,6 @@ class Phase_CEF(PhaseBase):
                 em_const_array = [[self.constituent_array[i][sp_idx - 1]] for i, sp_idx in enumerate(const_idxs)]
                 endmember.insert(dbf, self.phase_name, em_const_array, gibbs_coefficient_idxs)
 
-        # Now for excess parameters
-        # TODO: We add them last since they depend on the phase's constituent
-        # array. As discussed in ExcessRKM.insert, we use the built constituent
-        # order above, but some models (e.g. SUBL) define the phase models
-        # internally and this is thrown away by the parser currently.
         for excess_param in self.excess_parameters:
             excess_param.insert(dbf, self.phase_name, self.constituent_array, excess_coefficient_idxs)
 
@@ -592,7 +599,7 @@ class SUBQQuadrupletCoordinations:
         """Add a Z_i_AB:XY parameter for each species defined in the quadruplet"""
         linear_species = [''] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.quadruplet_idxs)
-        constituent_array = [[A, B], [X, Y]]  # TODO: do we need to sort these?
+        constituent_array = [[A, B], [X, Y]]
         self._database_add_parameter(dbf, "MQMZ", phase_name, constituent_array, self.quadruplet_coordinations, force_insert=False)
 
 
@@ -644,7 +651,6 @@ class SUBQExcessQuadruplet:
     def insert(self, dbf: Database, phase_name: str, As: List[str], Xs: List[str], excess_coeff_indices: List[int]):
         linear_species = [None] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.mixing_const)
-        # TODO: do we need to sort these?
         constituent_array = [[A, B], [X, Y]]
         mixing_code = self.mixing_code
         exponents = self.mixing_exponents
@@ -716,7 +722,6 @@ class Phase_SUBQ(PhaseBase):
         dbf.species.update(map(_species, anion_el_chg_pairs))
 
         # Second: add the phase and phase constituents
-        # TODO: can model hints give us the map we need from the mangled species names to the real species
         model_hints = {
             "mqmqa": {
                 "type": self.phase_type,
@@ -730,8 +735,6 @@ class Phase_SUBQ(PhaseBase):
         dbf.add_phase_constituents(self.phase_name, [cations, anions])
 
         # Third: add the endmember (pair) Gibbs energies
-        # We assume that every pair that can exist is defined
-        # TODO: can there be other order dependence based on how they are listed in the DAT?
         num_pairs = len(list(itertools.product(cations, anions)))
         assert len(self.endmembers) == num_pairs
 
@@ -788,7 +791,6 @@ def parse_additional_terms(toks: TokenParser) -> List[AdditionalCoefficientPair]
 
 
 def parse_PTVm_terms(toks: TokenParser) -> PTVmTerms:
-    # TODO: is this correct? Is there a better mapping?
     # parse molar volume terms, there seem to always be 11 terms (at least in the one file I have)
     return PTVmTerms(toks.parseN(11, float))
 
@@ -797,7 +799,6 @@ def parse_interval_Gibbs(toks: TokenParser, num_gibbs_coeffs, has_additional_ter
     temperature_max = toks.parse(float)
     coefficients = toks.parseN(num_gibbs_coeffs, float)
     additional_coeff_pairs = parse_additional_terms(toks) if has_additional_terms else []
-    # TODO: parsing for constant molar volumes
     PTVm_terms = parse_PTVm_terms(toks) if has_PTVm_terms else []
     return IntervalG(temperature_max, coefficients, additional_coeff_pairs, PTVm_terms)
 
@@ -812,7 +813,6 @@ def parse_interval_heat_capacity(toks: TokenParser, num_gibbs_coeffs, H298, S298
     temperature_max = toks.parse(float)
     CP_coefficients = toks.parseN(4, float)
     additional_coeff_pairs = parse_additional_terms(toks) if has_additional_terms else []
-    # TODO: parsing for constant molar volumes
     PTVm_terms = parse_PTVm_terms(toks) if has_PTVm_terms else []
     return IntervalCP(temperature_max, H298, S298, CP_coefficients, H_trans, additional_coeff_pairs, PTVm_terms)
 
@@ -851,11 +851,6 @@ def parse_endmember(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, is_s
     if has_magnetic:
         curie_temperature = toks.parse(float)
         magnetic_moment = toks.parse(float)
-        if is_stoichiometric:
-            # two more terms
-            # TODO: not clear what these are for, throwing them out for now.
-            toks.parse(float)
-            toks.parse(float)
         return EndmemberMagnetic(species_name, gibbs_eq_type, stoichiometry_pure_elements, intervals, curie_temperature, magnetic_moment)
     return Endmember(species_name, gibbs_eq_type, stoichiometry_pure_elements, intervals)
 
@@ -863,7 +858,6 @@ def parse_endmember(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, is_s
 def parse_endmember_qkto(toks: TokenParser, num_pure_elements: int, num_gibbs_coeffs: int):
     # add an extra "pure element" to parse the charge
     em = parse_endmember(toks, num_pure_elements, num_gibbs_coeffs)
-    # TODO: needs special QKTO endmember to store these, the stoichiometric factors and chemical groups should be parsed into model hints or something...
     stoichiometric_factor = toks.parse(float)
     chemical_group = toks.parse(int)
     return EndmemberQKTO(em.species_name, em.gibbs_eq_type, em.stoichiometry_pure_elements, em.intervals, stoichiometric_factor, chemical_group)
@@ -877,8 +871,7 @@ def parse_endmember_aqueous(toks: TokenParser, num_pure_elements: int, num_gibbs
 
 def parse_endmember_subq(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, zeta=None):
     em = parse_endmember(toks, num_pure_elements, num_gibbs_coeffs)
-    # TODO: is 5 correct? I only have two SUBQ/SUBG databases and they seem equivalent
-    # I think the first four are the actual stoichiometries of each element in the quadruplet, but I'm unclear.
+    # The first two entries are the stoichiometry of the pair (the cation and anion). It's unclear to what the last three are for.
     stoichiometry_quadruplet = toks.parseN(5, float)
     if zeta is None:
         # This is SUBQ we need to parse it. If zeta is passed, that means we're in SUBG mode
@@ -971,7 +964,6 @@ def parse_excess_parameters_pitz(toks, num_excess_coeffs):
         num_interacting_species = toks.parse(int)
         if num_interacting_species == 0:
             break
-        # TODO: check if this is correct for this model
         # there are always 3 ints, regardless of the above "number of interacting species", if the number of interactings species is 2, we'll just throw the third number away for now
         if num_interacting_species == 2:
             interacting_species_idxs = toks.parseN(num_interacting_species, int)
@@ -980,7 +972,6 @@ def parse_excess_parameters_pitz(toks, num_excess_coeffs):
             interacting_species_idxs = toks.parseN(num_interacting_species, int)
         else:
             raise ValueError(f"Invalid number of interacting species for Pitzer model, got {num_interacting_species} (expected 2 or 3).")
-        # TODO: not sure exactly if this value is parameter order, but it seems to be something like that
         parameter_order = None
         excess_terms.append(ExcessRKM(interacting_species_idxs, parameter_order, toks.parseN(num_excess_coeffs, float)))
     return excess_terms
@@ -1107,10 +1098,14 @@ def parse_phase(toks, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs, nu
 
 def parse_stoich_phase(toks, num_pure_elements, num_gibbs_coeffs):
     endmember = parse_endmember(toks, num_pure_elements, num_gibbs_coeffs, is_stoichiometric=True)
-
-
+    if isinstance(endmember, EndmemberMagnetic):
+        magnetic_afm_factor = toks.parse(float)
+        magnetic_structure_factor = toks.parse(float)
+    else:
+        magnetic_afm_factor = None
+        magnetic_structure_factor = None
     phase_name = endmember.species_name
-    return Phase_Stoichiometric(phase_name, None, [endmember])
+    return Phase_Stoichiometric(phase_name, None, [endmember], magnetic_afm_factor=magnetic_afm_factor, magnetic_structure_factor=magnetic_structure_factor)
 
 
 def parse_cs_dat(instring):
