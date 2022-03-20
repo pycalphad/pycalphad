@@ -710,7 +710,7 @@ def test_MQMQA_site_fraction_energy(load_database):
 @select_database("Fe-O-S-Sb-entroponly.dat")
 def test_MQMQA_SUBQ_entropy_only(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -756,7 +756,7 @@ def test_MQMQA_SUBQ_entropy_only(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -801,7 +801,7 @@ def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K_FACTSAGE(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -847,7 +847,7 @@ def test_MQMQA_SUBQ_Q_mixing_1000K_FACTSAGE(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_400K(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -893,7 +893,7 @@ def test_MQMQA_SUBQ_Q_mixing_400K(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -923,7 +923,7 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_1000K(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -953,7 +953,7 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_1000K(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Fe_O_S(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -988,7 +988,7 @@ def test_MQMQA_SUBQ_Q_mixing_Fe_O_S(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Fe_O_S_2(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -1024,7 +1024,7 @@ def test_MQMQA_SUBQ_Q_mixing_Fe_O_S_2(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_S(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -1057,7 +1057,7 @@ def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_S(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_O(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -1090,7 +1090,7 @@ def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_O(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Fe2_Fe3_Sb_S(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
@@ -1122,7 +1122,7 @@ def test_MQMQA_SUBQ_Q_mixing_Fe2_Fe3_Sb_S(load_database):
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Fe2_Fe3_Sb_O(load_database):
     dbf = load_database()
-    # TODO: demonstration of bad species mangling
+
     FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
     FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
     SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
