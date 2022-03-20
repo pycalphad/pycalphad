@@ -706,53 +706,6 @@ def test_MQMQA_site_fraction_energy(load_database):
     assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.15384615384,1e-5)
 
 
-# TODO: remove this test and the database once real version (below) works
-@select_database("Fe-O-S-Sb-entroponly.dat")
-def test_MQMQA_SUBQ_entropy_only(load_database):
-    dbf = load_database()
-
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
-    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
-    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
-    mod = ModelMQMQA(dbf, ["FE", "SB", "O", "S"], "SLAG-LIQ")
-
-    assert FE2 in mod.cations
-    assert FE3 in mod.cations
-    assert SB3 in mod.cations
-    assert O in mod.anions
-    assert S in mod.anions
-
-    subs_dict = {  # Thermochimica site fractions
-        mod._X_ijkl(FE2,FE2,O,O): 1.4011E-43,
-        mod._X_ijkl(FE2,FE3,O,O): 2.4245E-22,
-        mod._X_ijkl(FE2,SB3,O,O): 2.4245E-22,
-        mod._X_ijkl(FE3,FE3,O,O): 6.2500E-02,
-        mod._X_ijkl(FE3,SB3,O,O): 0.12500,
-        mod._X_ijkl(SB3,SB3,O,O): 6.2500E-02,
-        mod._X_ijkl(FE2,FE2,O,S): 6.6397E-36,
-        mod._X_ijkl(FE2,FE3,O,S): 2.3603E-18,
-        mod._X_ijkl(FE2,SB3,O,S): 2.3603E-18,
-        mod._X_ijkl(FE3,FE3,O,S): 0.12500,
-        mod._X_ijkl(FE3,SB3,O,S): 0.25000,
-        mod._X_ijkl(SB3,SB3,O,S): 0.12500,
-        mod._X_ijkl(FE2,FE2,S,S): 7.8662E-29,
-        mod._X_ijkl(FE2,FE3,S,S): 5.7447E-15,
-        mod._X_ijkl(FE2,SB3,S,S): 5.7447E-15,
-        mod._X_ijkl(FE3,FE3,S,S): 6.2500E-02,
-        mod._X_ijkl(FE3,SB3,S,S): 0.12500,
-        mod._X_ijkl(SB3,SB3,S,S): 6.2500E-02,
-        v.T: 1000.0,
-    }
-
-    check_energy(mod, subs_dict, -5.76315E+03, mode="sympy")  # Thermochimica energy
-    assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.2, 1e-5)
-    assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.2, 1e-5)
-    assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
-    assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
-
-
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     dbf = load_database()
