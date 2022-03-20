@@ -632,7 +632,6 @@ class ModelMQMQA(Model):
                         mixing_term *= Y_mk / Xi_ijk * (1 - self._Y_ik(A, X) / Xi_ijk)**(r_alpha - 1)
                     else:  # not in nu or gamma
                         mixing_term *= Y_mk * (1 - Xi_ijk - Xi_jik)**(r_alpha - 1)
-            # TODO: test anion mixing
             elif A == B and X != Y:
                 if mixing_code == "G":
                     # Poschmann Eq. 23 (anions mixing)
@@ -659,8 +658,7 @@ class ModelMQMQA(Model):
                     else:  # not in nu or gamma
                         mixing_term *= Y_im * (1 - Xi_ikl - Xi_ilk)**(r_alpha - 1)
             else:
-            # TODO: implement and test reciprocal quadruplet energetics
-                raise ValueError(f"Unsupported mixing configuration for quadruplet {(A, B, X, Y)}")
+                mixing_term = S.One  # No mixing, this is a modification to the formation energy of this quadruplet
             g = param["parameter"] * mixing_term
 
             # Poschmann Eq. 17
