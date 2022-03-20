@@ -577,11 +577,7 @@ class Model(object):
         return q_ij * i_term**exp_i * j_term**exp_j
 
     def _alpha_ij_L(self, phase, sublattice_index, i, j, L_ij, parameter_order):
-        # TODO: I'm not yet sure whether there is implied sorting of i and j,
-        # such that L_{BA} in the database is silently sorted to L_{AB}, as in
-        # Thermo-Calc. This currently assumes that `i` and `j` are in the
-        # "correct" order (and therefore the sign of the excess parameter for
-        # odd order terms is also "correct").
+        # Use the parameter-sorted order for i and j, noting that L_{ij} != L_{ji} for odd-ordered terms.
         Xi_ij = self._Xi_ij(phase, sublattice_index, i, j)
         Xi_ji = self._Xi_ij(phase, sublattice_index, j, i)
         sigma_ij = self._sigma_ij(phase, sublattice_index, i, j)
@@ -604,7 +600,7 @@ class Model(object):
             for subl_idx, subl_comps in enumerate(param["constituent_array"]):
                 mixing_term *= Mul(*[v.SiteFraction(phase.name, subl_idx, comp) for comp in subl_comps])
                 if len(subl_comps) == 2:
-                    # TODO: The structure of exponents (a `List[int]`) currently assumes only one sublattice has mixing
+                    # Note: The structure of exponents (a `List[int]`) currently assumes only one sublattice has mixing
                     assert len(subl_comps) == len(param["exponents"])
                     i, j = subl_comps
                     p, q = param["exponents"]
@@ -615,11 +611,11 @@ class Model(object):
                     # ternary parameters, but the simple flavor of ternary
                     # parameters (Pelton 2001 Eq. 17) seems to be used in the
                     # Quasichemical Kohler-Toop model implemented in DAT files.
-                    # TODO: The structure of exponents (a `List[int]`) currently assumes only one sublattice has mixing
+                    # Note: The structure of exponents (a `List[int]`) currently assumes only one sublattice has mixing
                     exponents = param["exponents"]
                     assert len(subl_comps) == len(exponents)
                     mixing_term *= Mul(*[v.SiteFraction(phase.name, subl_idx, comp)**expn for comp, expn in zip(subl_comps, exponents)])
-                    # Note, the following normalization is not in the paper 
+                    # Note, the following normalization is not in the paper
                     # either, but the equation in the paper clearly states that
                     # this type of "simple" ternary is discouraged and doesn't
                     # talk about how to extrapolate into multi-component.
@@ -629,7 +625,7 @@ class Model(object):
                     raise ValueError(f"Unsupported number of components are mixing, got {len(subl_comps)} ({subl_comps}), expected 2 or 3.")
             kohler_toop_xs += mixing_term
         return kohler_toop_xs
-            
+
 
     def redlich_kister_sum(self, phase, param_search, param_query):
         """
