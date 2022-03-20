@@ -521,7 +521,6 @@ class ModelMQMQA(Model):
     enthalpy = HM = property(lambda self: self.GM - v.T * self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T * self.GM.diff(v.T, v.T))
     # pylint: enable=C0103
-    # TODO: these should probably raise or be undefined because they are meaningless.
     mixing_energy = GM_MIX = property(lambda self: self.GM - self.reference_model.GM)
     mixing_enthalpy = HM_MIX = property(lambda self: self.GM_MIX - v.T * self.GM_MIX.diff(v.T))
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
@@ -748,4 +747,4 @@ class ModelMQMQA(Model):
 
     @property
     def reference_model(self):
-        raise NotImplementedError()
+        raise NotImplementedError("Endmember reference models do not have a physical meaning for MQMQA models")
