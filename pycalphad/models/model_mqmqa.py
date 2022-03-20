@@ -182,7 +182,7 @@ class ModelMQMQA(Model):
                 return False
         return True
 
-    def _mixing_test(self, constituent_array):
+    def _array_validity(self, constituent_array):
         """Return True if the constituent array is satisfies all components."""
         for subl in constituent_array:
             for constituent in subl:
@@ -587,7 +587,7 @@ class ModelMQMQA(Model):
         params = dbe._parameters.search(
             (where("phase_name") == self.phase_name) &
             (where("parameter_type") == "MQMX") &
-            (where("constituent_array").test(self._mixing_test))  # TODO: this is really `array_validity`?
+            (where("constituent_array").test(self._array_validity))
         )
 
         cations = self.cations
@@ -602,7 +602,7 @@ class ModelMQMQA(Model):
             exponents = param["exponents"]
             mixing_code = param["mixing_code"]
             m = param["additional_mixing_constituent"]
-            p_alpha = exponents[0]  # TODO: verify with a test that these always [0] and [1] even for anions?
+            p_alpha = exponents[0]
             q_alpha = exponents[1]
             r_alpha = param["additional_mixing_exponent"]
             # Poschmann Eq. 23-26
@@ -721,26 +721,6 @@ class ModelMQMQA(Model):
             # Can't use xreplace on a float
             pass
         return obj
-
-    def _array_validity(self, constituent_array):
-        """
-        Return True if the constituent_array contains only active species of the current Model instance.
-        """
-        if len(constituent_array) != len(self.constituents):
-            return False
-        for param_sublattice, model_sublattice in zip(constituent_array, self.constituents):
-            if not (set(param_sublattice).issubset(model_sublattice) or (param_sublattice[0] == v.Species("*"))):
-                return False
-        return True
-
-    def _interaction_test(self, constituent_array):
-        """
-        Return True if the constituent_array is valid and has more than one
-        species in at least one sublattice.
-        """
-        if not self._array_validity(constituent_array):
-            return False
-        return any([len(sublattice) > 1 for sublattice in constituent_array])
 
     def _build_reference_model(self, preserve_ideal=True):
         raise NotImplementedError()
