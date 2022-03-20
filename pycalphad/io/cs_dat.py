@@ -311,15 +311,8 @@ class ExcessRKM(ExcessBase):
         """
         Requires all Species in dbf.species to be defined.
         """
-        # TODO: sorting of interaction. For any excess interaction of order
-        # v>0 the order of species matters due to a (X_A - X_B)^v term. Usually
-        # CALPHAD implementations sort the elements in alphabetic order, but
-        # this sorting is not enforced in the ChemSage DAT format. The question
-        # is whether ChemSage would convert these to alphabetic order (and flip)
-        # the sign of the interaction appropriately, or whether the order of
-        # X_A - X_B is preserved even if A comes after B alphabetically. For now,
-        # we'll just leave the order as intended, though the pycalphad Model
-        # implementation may flip the order on us, needs to be checked.
+        # Note: Thermochimica does _not_ sort species alphabetically (as is done by TDB formats),
+        # so a constituent array of ("A", "B") != ("B", "A") for odd order terms.
         const_array = self.constituent_array(phase_constituents)
         dbf.add_parameter('L', phase_name, const_array, self.parameter_order, self.expr(excess_coefficient_idxs), force_insert=False)
 
@@ -499,15 +492,6 @@ class Phase_CEF(PhaseBase):
                 for subl, const_subl in zip(endmember.constituent_array(), constituents):
                     const_subl.extend(subl)
             self.constituent_array = constituents  # Be careful to preserve ordering here, since the mapping from species indices to species depends on the order of this
-
-        # TODO:
-        # constituent array now has all the constituents in every sublattice,
-        # e.g. it could be [['A', 'B'], ['D', 'B']]
-        # the question is whether the parameters are in typical Calphad
-        # alphabetically sorted or if they are in ChemSage pure element order
-        # for now, we assume that the ChemSage order is the one that is used.
-        # This can easily be tested by having a single phase L1 model in
-        # ChemSage/Thermochimica.
         else:
             # add the species to the database
             for subl in self.constituent_array:
