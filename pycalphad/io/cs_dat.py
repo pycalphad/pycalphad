@@ -905,9 +905,11 @@ def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_
         mixing_type = toks.parse(int)
         if mixing_type == 0:
             break
-        elif mixing_type == -9:
-            # some garbage, like 1 2 3K 1 2K 1 3K 2 3 6, 90 of them
-            toks.parseN(90, str)
+        elif mixing_type < 0:
+            # For mixing type -N, there are N*10 tokens.
+            # The tokens look something like `1 2 3K 1 2K 1 3K 2 3 6`
+            # Their meaning is not yet clear.
+            toks.parseN(-mixing_type*10, str)
             break
         excess_parameters.append(parse_subq_excess(toks, mixing_type, num_excess_coeffs))
 
