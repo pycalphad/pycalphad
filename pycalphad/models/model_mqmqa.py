@@ -339,11 +339,12 @@ class ModelMQMQA(Model):
 
     def _Chi_mix(self, dbe, A, B, X, Y):
         """
-        (:math:`\\chi_{ij/k}`) following Poschmann Eq. 21 (SUBG-type model) or Eq. 22, for SUBG-type and (newer) SUBQ-type models, respectively.
+        (:math:`\\chi_{ij/k}`) following Poschmann Eq. 21 (SUBG-type model) or Eq. 22 (SUBQ-type models), respectively.
         """
         cations = self.cations
         anions = self.anions
         X_ijkl = self._X_ijkl
+        soln_type = dbe.phases[self.phase_name].model_hints["mqmqa"]["type"]
 
         mixing_term_numerator = S.Zero
         mixing_term_denominator = S.Zero
@@ -351,26 +352,56 @@ class ModelMQMQA(Model):
         if A == B and X == Y:
             raise ValueError(f"Excess energies for pairs are not defined. Got quadruplet {(A, B, X, Y)}")
         elif A != B and X == Y:  # Mixing on first sublattice
-            # TODO: add support for SUBQ type where there is a loop over the anions
             nu = list(filter(self._chemical_group_filter(dbe, A, B, "cations"), cations))
             gamma = list(filter(self._chemical_group_filter(dbe, B, A, "cations"), cations))
             for idx, i in enumerate([A] + nu):  # enumerate to avoid double counting
                 for j in ([A] + nu)[idx:]:
-                    mixing_term_numerator += X_ijkl(i, j, X, Y)
+                    if soln_type == "SUBG":
+                        mixing_term_numerator += X_ijkl(i, j, X, Y)
+                    elif soln_type == "SUBQ":
+                        # Eq. 22 loop over anions
+                        for k in anions:
+                            for l in anions:
+                                mixing_term_numerator += X_ijkl(i, j, k, l) * ((X == k) + (X == l)) / 2
+                    else:
+                        raise ValueError(f"Unknown solution type: {soln_type}")
             for idx, i in enumerate([A, B] + nu + gamma):  # enumerate to avoid double counting
                 for j in ([A, B] + nu + gamma)[idx:]:
-                    mixing_term_denominator += X_ijkl(i, j, X, Y)
+                    if soln_type == "SUBG":
+                        mixing_term_denominator += X_ijkl(i, j, X, Y)
+                    elif soln_type == "SUBQ":
+                        # Eq. 22 loop over anions
+                        for k in anions:
+                            for l in anions:
+                                mixing_term_denominator += X_ijkl(i, j, k, l) * ((X == k) + (X == l)) / 2
+                    else:
+                        raise ValueError(f"Unknown solution type: {soln_type}")
             return mixing_term_numerator / mixing_term_denominator
         elif A == B and X != Y: # Mixing on second sublattice
-            # TODO: add support for SUBQ type where there is a loop over the cations
             nu = list(filter(self._chemical_group_filter(dbe, X, Y, "anions"), anions))
             gamma = list(filter(self._chemical_group_filter(dbe, Y, X, "anions"), anions))
             for idx, k in enumerate([X] + nu):  # enumerate to avoid double counting
                 for l in ([X] + nu)[idx:]:
-                    mixing_term_numerator += X_ijkl(A, B, k, l)
+                    if soln_type == "SUBG":
+                        mixing_term_numerator += X_ijkl(A, B, k, l)
+                    elif soln_type == "SUBQ":
+                        # Eq. 22 loop over cations
+                        for i in cations:
+                            for j in cations:
+                                mixing_term_numerator += X_ijkl(i, j, k, l) * ((A == i) + (A == j)) / 2
+                    else:
+                        raise ValueError(f"Unknown solution type: {soln_type}")
             for idx, k in enumerate([X, Y] + nu + gamma):  # enumerate to avoid double counting
                 for l in ([X, Y] + nu + gamma)[idx:]:
-                    mixing_term_denominator += X_ijkl(A, B, k, l)
+                    if soln_type == "SUBG":
+                        mixing_term_denominator += X_ijkl(A, B, k, l)
+                    elif soln_type == "SUBQ":
+                        # Eq. 22 loop over cations
+                        for i in cations:
+                            for j in cations:
+                                mixing_term_denominator += X_ijkl(i, j, k, l) * ((A == i) + (A == j)) / 2
+                    else:
+                        raise ValueError(f"Unknown solution type: {soln_type}")
             return mixing_term_numerator / mixing_term_denominator
         else:
             raise ValueError(f"Computing Chi_mix is not supported for reciprocal quadruplets. Got quadruplet {(A, B, X, Y)}.")
