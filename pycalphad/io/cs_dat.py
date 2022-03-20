@@ -401,7 +401,7 @@ class Phase_Stoichiometric(PhaseBase):
         model_hints = {}
         if self.magnetic_afm_factor is not None or self.magnetic_structure_factor is not None:
             # This follows the Redlich-Kister Muggianu IHJ model. The ChemSage
-            # docs don't incidate that it's an IHJ model, but Eriksson and Hack,
+            # docs don't indicate that it's an IHJ model, but Eriksson and Hack,
             # Met. Trans. B 21B (1990) 1013 says that it follows IHJ.
             model_hints['ihj_magnetic_structure_factor'] = self.magnetic_structure_factor
             # The TDB syntax would define the AFM factor for FCC as -3
@@ -437,7 +437,7 @@ class Phase_CEF(PhaseBase):
         model_hints = {}
         if self.magnetic_afm_factor is not None and self.magnetic_structure_factor is not None:
             # This follows the Redlich-Kister Muggianu IHJ model. The ChemSage
-            # docs don't incidate that it's an IHJ model, but Eriksson and Hack,
+            # docs don't indicate that it's an IHJ model, but Eriksson and Hack,
             # Met. Trans. B 21B (1990) 1013 says that it follows IHJ.
             model_hints['ihj_magnetic_structure_factor'] = self.magnetic_structure_factor
             # The TDB syntax would define the AFM factor for FCC as -3
