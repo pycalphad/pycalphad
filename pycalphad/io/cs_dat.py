@@ -1025,7 +1025,7 @@ def parse_phase_cef(toks, phase_name, phase_type, num_pure_elements, num_gibbs_c
         constituent_array = None  # implictly defined by the endmembers
         endmember_constituent_idxs = None
     else:
-        raise NotImplemented(f"Phase type {phase_type} does not have method defined for determing the sublattice ratios")
+        raise NotImplementedError(f"Phase type {phase_type} does not have method defined for determing the sublattice ratios")
 
     # excess terms
     if sanitized_phase_type in ('IDMX',):
