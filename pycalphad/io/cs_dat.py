@@ -514,7 +514,6 @@ class SUBQPair(Endmember):
     def insert(self, dbf: Database, phase_name: str, constituent_array: List[str], gibbs_coefficient_idxs: List[int]):
         # Here the constituent array should be the pair name using the corrected
         # names, i.e. CU1.0CL1.0
-        pass
         dbf.add_parameter(
             'MQMG', phase_name, constituent_array, param_order=None,
             param=self.expr(gibbs_coefficient_idxs), zeta=self.zeta,
