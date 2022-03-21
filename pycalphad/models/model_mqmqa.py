@@ -1,5 +1,5 @@
 import itertools
-from typing import List, Tuple
+from typing import List, Union
 from collections import OrderedDict
 from functools import partial
 from symengine import log, S, Symbol
@@ -11,18 +11,15 @@ from pycalphad import Model
 from pycalphad.core.errors import DofError
 
 
-def get_species(i, j, k, l) -> v.Species:
-    """Return a Species for a pair or quadruplet given by constituents
+def _get_species(i, j, k, l) -> v.Species:
+    """Return a Species for quadruplet given by constituents
 
     Canonicalizes the Species by sorting among the cation and anion sublattices.
 
     Parameters
     ----------
-    constituents : List[Tuple[str, v.Species]]
+    constituents : List[Union[str, v.Species]]
 
-    Examples
-    --------
-        get_species('A_1.0', 'B_1.0')
     """
     constituents = [i, j, k, l]
     if all(isinstance(c, v.Species) for c in constituents):
@@ -113,7 +110,7 @@ class ModelMQMQA(Model):
             itertools.combinations_with_replacement(self.anions, 2),
         ))
         self._quadruplets = [(A, B, X, Y) for (A, B), (X, Y) in quads]
-        quad_species = [get_species(A, B, X, Y) for (A, B), (X, Y) in quads]
+        quad_species = [_get_species(A, B, X, Y) for (A, B), (X, Y) in quads]
         self.constituents = [sorted(quad_species)]
 
         # Convert string symbol names to symengine Symbol objects
@@ -205,7 +202,7 @@ class ModelMQMQA(Model):
         """
         Shorthand for creating a site fraction object v.Y for a quadruplet (ij/kl)
         """
-        return v.Y(self.phase_name, 0, get_species(i, j, k, l))
+        return v.Y(self.phase_name, 0, _get_species(i, j, k, l))
 
     def _n_ik(self, i, k):
         """
