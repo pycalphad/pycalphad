@@ -545,7 +545,7 @@ class SUBQExcessQuadruplet:
     mixing_code: str  # G, Q, B, or R
     mixing_const: List[int]  # exactly four
     mixing_exponents: List[int]  # exactly four
-    junk: List[float]  # exactly twelve
+    metadata: List[float]  # exactly twelve
     additional_cation_mixing_const: int
     additional_anion_mixing_const: int
     excess_coeffs: List[float]
@@ -807,11 +807,11 @@ def parse_subq_excess(toks, mixing_type, num_excess_coeffs):
     mixing_code = toks.parse(str)
     mixing_const = toks.parseN(4, int)
     mixing_exponents = toks.parseN(4, int)
-    junk = toks.parseN(12, float)
+    metadata = toks.parseN(12, float)  # TODO: not sure what this metadata is - could it be more parameters? They are usually all zeros.
     additional_cation_mixing_const = toks.parse(int)
     additional_anion_mixing_exponent = toks.parse(int)
     excess_coeffs = toks.parseN(num_excess_coeffs, float)
-    return SUBQExcessQuadruplet(mixing_type, mixing_code, mixing_const, mixing_exponents, junk, additional_cation_mixing_const, additional_anion_mixing_exponent, excess_coeffs)
+    return SUBQExcessQuadruplet(mixing_type, mixing_code, mixing_const, mixing_exponents, metadata, additional_cation_mixing_const, additional_anion_mixing_exponent, excess_coeffs)
 
 
 def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs):
