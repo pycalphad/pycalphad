@@ -345,33 +345,14 @@ class ExcessQKTO(ExcessBase):
         energy += sum([C*EXCESS_TERMS[i] for C, i in zip(self.coefficients, indices)])
         return energy
 
-    @staticmethod  # So it can be in the style of a Database() method
-    def _database_add_parameter(
-        self, param_type, phase_name, constituent_array,
-        parameter, exponents,
-        ref=None, force_insert=True
-        ):
-        species_dict = {s.name: s for s in self.species}
-        new_parameter = {
-            'phase_name': phase_name,
-            'constituent_array': tuple(tuple(species_dict.get(s.upper(), v.Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
-            'parameter_type': param_type,
-            'parameter': parameter,
-            'exponents': exponents,
-            'reference': ref,
-        }
-        if force_insert:
-            self._parameters.insert(new_parameter)
-        else:
-            self._parameter_queue.append(new_parameter)
-
     def insert(self, dbf: Database, phase_name: str, phase_constituents: List[str], excess_coefficient_idxs: List[int]):
         const_array = self.constituent_array(phase_constituents)
         exponents = [exponent - 1 for exponent in self.exponents]  # For some reason, an exponent of 1 really means an exponent of zero
-        self._database_add_parameter(
-            dbf, "QKT", phase_name, const_array,
-            self.expr(excess_coefficient_idxs), exponents,
-            force_insert=False)
+        dbf.add_parameter(
+            "QKT", phase_name, const_array, param_order=None,
+            param=self.expr(excess_coefficient_idxs), exponents=exponents,
+            force_insert=False,
+            )
 
 @dataclass
 class PhaseBase:
@@ -530,30 +511,16 @@ class SUBQPair(Endmember):
     stoichiometry_quadruplet: List[float]
     zeta: float
 
-    @staticmethod  # So it can be in the style of a Database() method
-    def _database_add_parameter(
-        self, param_type, phase_name, constituent_array, parameter, zeta, stoichiometry,
-        ref=None, force_insert=True
-        ):
-        species_dict = {s.name: s for s in self.species}
-        new_parameter = {
-            'phase_name': phase_name,
-            'constituent_array': tuple(tuple(species_dict.get(s.upper(), v.Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
-            'parameter_type': param_type,
-            'parameter': parameter,
-            'zeta': zeta,
-            'stoichiometry': stoichiometry,
-            'reference': ref,
-        }
-        if force_insert:
-            self._parameters.insert(new_parameter)
-        else:
-            self._parameter_queue.append(new_parameter)
-
     def insert(self, dbf: Database, phase_name: str, constituent_array: List[str], gibbs_coefficient_idxs: List[int]):
         # Here the constituent array should be the pair name using the corrected
         # names, i.e. CU1.0CL1.0
-        self._database_add_parameter(dbf, 'MQMG', phase_name, constituent_array, self.expr(gibbs_coefficient_idxs), self.zeta, self.stoichiometry_quadruplet, force_insert=False)
+        pass
+        dbf.add_parameter(
+            'MQMG', phase_name, constituent_array, param_order=None,
+            param=self.expr(gibbs_coefficient_idxs), zeta=self.zeta,
+            stoichiometry=self.stoichiometry_quadruplet,
+            force_insert=False,
+            )
 
 
 @dataclass
@@ -561,30 +528,15 @@ class SUBQQuadrupletCoordinations:
     quadruplet_idxs: List[int]  # exactly four
     quadruplet_coordinations: List[float]  # exactly four
 
-    @staticmethod  # So it can be in the style of a Database() method
-    def _database_add_parameter(
-        self, param_type, phase_name, constituent_array, coordinations,
-        ref=None, force_insert=True
-        ):
-        species_dict = {s.name: s for s in self.species}
-        new_parameter = {
-            'phase_name': phase_name,
-            'constituent_array': tuple(tuple(species_dict.get(s.upper(), v.Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
-            'parameter_type': param_type,
-            'coordinations': coordinations,
-            'reference': ref,
-        }
-        if force_insert:
-            self._parameters.insert(new_parameter)
-        else:
-            self._parameter_queue.append(new_parameter)
-
     def insert(self, dbf: Database, phase_name: str, As: List[str], Xs: List[str]):
         """Add a Z_i_AB:XY parameter for each species defined in the quadruplet"""
         linear_species = [''] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.quadruplet_idxs)
         constituent_array = [[A, B], [X, Y]]
-        self._database_add_parameter(dbf, "MQMZ", phase_name, constituent_array, self.quadruplet_coordinations, force_insert=False)
+        dbf.add_parameter(
+            "MQMZ", phase_name, constituent_array, param_order=None, param=None,
+            coordinations=self.quadruplet_coordinations, force_insert=False,
+            )
 
 
 @dataclass
@@ -605,39 +557,13 @@ class SUBQExcessQuadruplet:
         energy += sum([C*EXCESS_TERMS[i] for C, i in zip(self.excess_coeffs, indices)])
         return energy
 
-    @staticmethod  # So it can be in the style of a Database() method
-    def _database_add_parameter(
-        self, param_type, phase_name, mixing_code, constituent_array, exponents, param,
-        additional_mixing_constituent=None, additional_mixing_exponent=0,
-        ref=None, force_insert=True
-        ):
-        species_dict = {s.name: s for s in self.species}
-        if additional_mixing_constituent is not None:
-            additional_mixing_constituent = species_dict.get(additional_mixing_constituent.upper(), v.Species(additional_mixing_constituent))
-        else:
-            additional_mixing_constituent = v.Species(None)
-        new_parameter = {
-            'phase_name': phase_name,
-            'constituent_array': tuple(tuple(species_dict.get(s.upper(), v.Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
-            'parameter_type': param_type,
-            'exponents': exponents,
-            'parameter': param,
-            'additional_mixing_constituent': additional_mixing_constituent,
-            'additional_mixing_exponent': additional_mixing_exponent,
-            "mixing_code" : mixing_code,
-            'reference': ref,
-        }
-        if force_insert:
-            self._parameters.insert(new_parameter)
-        else:
-            self._parameter_queue.append(new_parameter)
-
     def insert(self, dbf: Database, phase_name: str, As: List[str], Xs: List[str], excess_coeff_indices: List[int]):
         linear_species = [None] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.mixing_const)
         constituent_array = [[A, B], [X, Y]]
         mixing_code = self.mixing_code
         exponents = self.mixing_exponents
+        expr = self.expr(excess_coeff_indices)
 
         addtl_cation_mixing_const = linear_species[self.additional_cation_mixing_const]
         addtl_anion_mixing_const = linear_species[self.additional_anion_mixing_const]
@@ -652,11 +578,19 @@ class SUBQExcessQuadruplet:
         else:
             addtl_mixing_const = None
             addtl_mixing_expon = 0
+        species_dict = {s.name: s for s in dbf.species}
+        if addtl_mixing_const is not None:
+            additional_mixing_constituent = species_dict.get(addtl_mixing_const.upper(), v.Species(addtl_mixing_const))
+        else:
+            additional_mixing_constituent = v.Species(None)
 
-        expr = self.expr(excess_coeff_indices)
-
-        # Use local API to insert into the database, since there's no Database.add_parameter API for this yet
-        self._database_add_parameter(dbf, "MQMX", phase_name, mixing_code, constituent_array, exponents, expr, addtl_mixing_const, addtl_mixing_expon)
+        dbf.add_parameter(
+            "MQMX", phase_name, constituent_array, param_order=None, param=expr,
+            mixing_code=mixing_code, exponents=exponents,
+            additional_mixing_constituent=additional_mixing_constituent,
+            additional_mixing_exponent=addtl_mixing_expon,
+            force_insert=False,
+            )
 
 
 def _species(el_chg):
