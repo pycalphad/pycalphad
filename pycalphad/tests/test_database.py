@@ -818,3 +818,9 @@ def test_tc_printer_no_division_symbols():
     test_expr = Piecewise((S('VV0000/T + T*VV0004 + T**2*VV0001 + T**3*VV0002 + T*LOG(T)*VV0003'), v.T>0))
     result = TCPrinter().doprint(test_expr)
     assert '/' not in result
+
+def test_tc_printer_exp():
+    "TCPrinter prints the exponential function when the argument is not an integer."
+    test_expr = S('exp(-300T**(-1))')
+    result = TCPrinter()._stringify_expr(test_expr)
+    assert result == 'exp(-300*T**(-1))'
