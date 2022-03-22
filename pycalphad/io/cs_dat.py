@@ -4,6 +4,7 @@ Support for reading ChemSage DAT files.
 
 from typing import Dict, List, Optional, Tuple
 import re
+import warnings
 import numpy as np
 import itertools
 from dataclasses import dataclass
@@ -59,8 +60,6 @@ class Header:
     gibbs_coefficient_idxs: List[int]
     excess_coefficient_idxs: List[int]
 
-
-import warnings
 
 @dataclass
 class AdditionalCoefficientPair:
