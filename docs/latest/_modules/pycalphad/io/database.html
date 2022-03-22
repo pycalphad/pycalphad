@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.io.database - pycalphad 0.10.1.dev1+gb47aef84 documentation</title>
+        <title>pycalphad.io.database - pycalphad 0.10.1.dev2+g2ea3c67a documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.1.dev1+gb47aef84 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.1.dev2+g2ea3c67a documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev1+gb47aef84 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev2+g2ea3c67a documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -593,9 +593,11 @@
 <span class="sd">        None yet.</span>
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_structure_dict</span><span class="p">[</span><span class="n">local_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_name</span></div>
-<div class="viewcode-block" id="Database.add_parameter"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.add_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="c1">#pylint: disable=R0913</span>
-                      <span class="n">constituent_array</span><span class="p">,</span> <span class="n">param_order</span><span class="p">,</span>
-                      <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_insert</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Database.add_parameter"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.add_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span> <span class="n">param_order</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">diffusing_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_insert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">):</span>
         <span class="sd">"""</span>
 <span class="sd">        Add a parameter.</span>
 
@@ -617,6 +619,8 @@
 <span class="sd">            (If kinetic parameter) Diffusing species for this parameter.</span>
 <span class="sd">        force_insert : bool, optional</span>
 <span class="sd">            If True, inserts into the database immediately. False is a delayed insert (for performance).</span>
+<span class="sd">        kwargs : Any</span>
+<span class="sd">            Additional metadata to insert into the parameter dictionary</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -632,6 +636,7 @@
             <span class="s1">'diffusing_species'</span><span class="p">:</span> <span class="n">Species</span><span class="p">(</span><span class="n">diffusing_species</span><span class="p">),</span>
             <span class="s1">'reference'</span><span class="p">:</span> <span class="n">ref</span>
         <span class="p">}</span>
+        <span class="n">new_parameter</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">force_insert</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">new_parameter</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -710,7 +715,6 @@
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">insert_multiple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_queue</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_queue</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">return</span> <span class="n">result</span></div></div>
-
 </pre></div>
         </article>
       </div>

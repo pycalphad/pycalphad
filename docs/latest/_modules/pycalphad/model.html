@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.model - pycalphad 0.10.1.dev1+gb47aef84 documentation</title>
+        <title>pycalphad.model - pycalphad 0.10.1.dev2+g2ea3c67a documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.10.1.dev1+gb47aef84 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.10.1.dev2+g2ea3c67a documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev1+gb47aef84 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev2+g2ea3c67a documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -236,6 +236,41 @@
 <span class="c1"># other symbols</span>
 <span class="n">_MAX_PARAM_NESTING</span> <span class="o">=</span> <span class="mi">32</span>
 
+
+<span class="k">def</span> <span class="nf">_toop_filter</span><span class="p">(</span><span class="n">chemical_group_dict</span><span class="p">,</span> <span class="n">symmetric_species</span><span class="p">,</span> <span class="n">asymmetric_species</span><span class="p">):</span>
+    <span class="sd">"""</span>
+<span class="sd">    Return a function ``f(m)`` that returns ``True`` if m is symmetric with</span>
+<span class="sd">    the symmetric_species and asymmetric with the asymmetric_species.</span>
+
+<span class="sd">    I.e. returns True if "j" is the asymmetric (Toop-like) species in the i-j-m ternary</span>
+<span class="sd">    """</span>
+    <span class="k">def</span> <span class="nf">_f</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="n">symmetric_species</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="n">asymmetric_species</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">chemical_group_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">==</span> <span class="n">chemical_group_dict</span><span class="p">[</span><span class="n">symmetric_species</span><span class="p">]</span> <span class="ow">and</span> <span class="n">chemical_group_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">!=</span> <span class="n">chemical_group_dict</span><span class="p">[</span><span class="n">asymmetric_species</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># This chemical group should be mixed</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">_f</span>
+
+
+<span class="k">def</span> <span class="nf">_kohler_filter</span><span class="p">(</span><span class="n">chemical_group_dict</span><span class="p">,</span> <span class="n">symmetric_species_1</span><span class="p">,</span> <span class="n">symmetric_species_2</span><span class="p">):</span>
+    <span class="sd">"""</span>
+<span class="sd">    Return a function ``f(m)`` that returns ``True`` if m is symmetric with</span>
+<span class="sd">    the symmetric_species_1 and with symmetric_species_2.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span> <span class="nf">_f</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="n">symmetric_species_1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="n">symmetric_species_2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">chemical_group_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">==</span> <span class="n">chemical_group_dict</span><span class="p">[</span><span class="n">symmetric_species_1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">chemical_group_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">==</span> <span class="n">chemical_group_dict</span><span class="p">[</span><span class="n">symmetric_species_2</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># This chemical group should be mixed</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">_f</span>
 
 <div class="viewcode-block" id="ReferenceState"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.ReferenceState">[docs]</a><span class="k">class</span> <span class="nc">ReferenceState</span><span class="p">():</span>
     <span class="sd">"""</span>
@@ -337,6 +372,24 @@
                      <span class="p">(</span><span class="s1">'xsmix'</span><span class="p">,</span> <span class="s1">'excess_mixing_energy'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'mag'</span><span class="p">,</span> <span class="s1">'magnetic_energy'</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">'2st'</span><span class="p">,</span> <span class="s1">'twostate_energy'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'ein'</span><span class="p">,</span> <span class="s1">'einstein_energy'</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">'ord'</span><span class="p">,</span> <span class="s1">'atomic_ordering_energy'</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">target_cls</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_dispatch_on</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">instance</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">target_cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">instance</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_dispatch_on</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
+        <span class="n">target_cls</span> <span class="o">=</span> <span class="bp">cls</span>
+        <span class="k">if</span> <span class="s1">'mqmqa'</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="kn">from</span> <span class="nn">pycalphad.models.model_mqmqa</span> <span class="kn">import</span> <span class="n">ModelMQMQA</span>
+            <span class="n">target_cls</span> <span class="o">=</span> <span class="n">ModelMQMQA</span>
+        <span class="k">return</span> <span class="n">target_cls</span>
+
+    <span class="k">def</span> <span class="nf">__getnewargs_ex__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,),</span> <span class="p">{</span><span class="s1">'parameters'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_arg</span><span class="p">})</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span> <span class="o">=</span> <span class="n">dbe</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_endmember_reference_model</span> <span class="o">=</span> <span class="kc">None</span>
@@ -725,6 +778,92 @@
             <span class="n">return_dict</span><span class="p">[</span><span class="n">comp</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp</span> <span class="o">+</span> <span class="n">correction_term</span>
         <span class="k">return</span> <span class="n">return_dict</span>
 
+    <span class="k">def</span> <span class="nf">_Xi_ij</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="c1"># Species of the same chemical group may use a Kohler-type or</span>
+        <span class="c1"># Muggianu-type approximation (the choice does not affect this function).</span>
+        <span class="c1"># Species of different chemical groups use a Toop-type approximation.</span>
+        <span class="n">toop_filter</span> <span class="o">=</span> <span class="n">_toop_filter</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">'chemical_groups'</span><span class="p">],</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">toop_correction</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+        <span class="n">active_subl_comps</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="n">sublattice_index</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="n">toop_filter</span><span class="p">,</span> <span class="n">active_subl_comps</span><span class="p">):</span>
+            <span class="n">toop_correction</span> <span class="o">+=</span> <span class="n">v</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">toop_correction</span>
+
+    <span class="k">def</span> <span class="nf">_sigma_ij</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="c1"># Compute the correction for Kohler-type approximation between species i and j</span>
+        <span class="c1"># We don't yet have a way to flag whether the ij interaction, if the</span>
+        <span class="c1"># species are of the same chemical group (they are "symmetric", by</span>
+        <span class="c1"># Pelton) uses a Kohler-type or Muggianu-type approximation. Since</span>
+        <span class="c1"># there exists the _Muggianu_correction_dict already, we assume that</span>
+        <span class="c1"># callers of this function are only interested in a Kohler-type</span>
+        <span class="c1"># approximation for species of the same type. Species of different</span>
+        <span class="c1"># chemical groups use a Toop-type approximation.</span>
+        <span class="n">kohler_filter</span> <span class="o">=</span> <span class="n">_kohler_filter</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">'chemical_groups'</span><span class="p">],</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">kohler_correction</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+        <span class="n">active_subl_comps</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="n">sublattice_index</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="n">kohler_filter</span><span class="p">,</span> <span class="n">active_subl_comps</span><span class="p">):</span>
+            <span class="n">kohler_correction</span> <span class="o">+=</span> <span class="n">v</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span>  <span class="n">kohler_correction</span>
+
+    <span class="k">def</span> <span class="nf">_alpha_ij_Q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">q_ij</span><span class="p">,</span> <span class="n">exp_i</span><span class="p">,</span> <span class="n">exp_j</span><span class="p">):</span>
+        <span class="n">Xi_ij</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xi_ij</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">Xi_ji</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xi_ij</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">sigma_ij</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_ij</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="c1"># same for both</span>
+        <span class="n">i_term</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">Xi_ij</span> <span class="o">-</span> <span class="n">Xi_ji</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma_ij</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">j_term</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">Xi_ji</span> <span class="o">-</span> <span class="n">Xi_ij</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma_ij</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">q_ij</span> <span class="o">*</span> <span class="n">i_term</span><span class="o">**</span><span class="n">exp_i</span> <span class="o">*</span> <span class="n">j_term</span><span class="o">**</span><span class="n">exp_j</span>
+
+    <span class="k">def</span> <span class="nf">_alpha_ij_L</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">L_ij</span><span class="p">,</span> <span class="n">parameter_order</span><span class="p">):</span>
+        <span class="c1"># Use the parameter-sorted order for i and j, noting that L_{ij} != L_{ji} for odd-ordered terms.</span>
+        <span class="n">Xi_ij</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xi_ij</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">Xi_ji</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xi_ij</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">sigma_ij</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_ij</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">sublattice_index</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">mixing_term</span> <span class="o">=</span> <span class="p">(</span><span class="n">Xi_ij</span> <span class="o">-</span> <span class="n">Xi_ji</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma_ij</span>
+        <span class="k">return</span> <span class="n">L_ij</span> <span class="o">*</span> <span class="n">mixing_term</span><span class="o">**</span><span class="n">parameter_order</span>
+
+<div class="viewcode-block" id="Model.kohler_toop_excess_sum"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.kohler_toop_excess_sum">[docs]</a>    <span class="k">def</span> <span class="nf">kohler_toop_excess_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="n">param_query</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s2">"phase_name"</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s2">"parameter_type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"QKT"</span><span class="p">)</span> <span class="o">&amp;</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'constituent_array'</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="n">param_search</span><span class="p">(</span><span class="n">param_query</span><span class="p">)</span>
+        <span class="n">kohler_toop_xs</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">mixing_term</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span>
+            <span class="k">for</span> <span class="n">subl_idx</span><span class="p">,</span> <span class="n">subl_comps</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">"constituent_array"</span><span class="p">]):</span>
+                <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Mul</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subl_idx</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">subl_comps</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subl_comps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="c1"># Note: The structure of exponents (a `List[int]`) currently assumes only one sublattice has mixing</span>
+                    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">subl_comps</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">"exponents"</span><span class="p">])</span>
+                    <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">subl_comps</span>
+                    <span class="n">p</span><span class="p">,</span> <span class="n">q</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">"exponents"</span><span class="p">]</span>
+                    <span class="n">alpha_ij_Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_ij_Q</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">subl_idx</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">"parameter"</span><span class="p">],</span> <span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+                    <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">alpha_ij_Q</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">subl_comps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="c1"># Pelton's 2001 paper lays out several different flavors of</span>
+                    <span class="c1"># ternary parameters, but the simple flavor of ternary</span>
+                    <span class="c1"># parameters (Pelton 2001 Eq. 17) seems to be used in the</span>
+                    <span class="c1"># Quasichemical Kohler-Toop model implemented in DAT files.</span>
+                    <span class="c1"># Note: The structure of exponents (a `List[int]`) currently assumes only one sublattice has mixing</span>
+                    <span class="n">exponents</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">"exponents"</span><span class="p">]</span>
+                    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">subl_comps</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">exponents</span><span class="p">)</span>
+                    <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Mul</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subl_idx</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span><span class="o">**</span><span class="n">expn</span> <span class="k">for</span> <span class="n">comp</span><span class="p">,</span> <span class="n">expn</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">subl_comps</span><span class="p">,</span> <span class="n">exponents</span><span class="p">)])</span>
+                    <span class="c1"># Note, the following normalization is not in the paper</span>
+                    <span class="c1"># either, but the equation in the paper clearly states that</span>
+                    <span class="c1"># this type of "simple" ternary is discouraged and doesn't</span>
+                    <span class="c1"># talk about how to extrapolate into multi-component.</span>
+                    <span class="n">mixing_term</span> <span class="o">/=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subl_idx</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">subl_comps</span><span class="p">])</span><span class="o">**</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">exponents</span><span class="p">))</span>
+                    <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">param</span><span class="p">[</span><span class="s2">"parameter"</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported number of components are mixing, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">subl_comps</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">subl_comps</span><span class="si">}</span><span class="s2">), expected 2 or 3."</span><span class="p">)</span>
+            <span class="n">kohler_toop_xs</span> <span class="o">+=</span> <span class="n">mixing_term</span>
+        <span class="k">return</span> <span class="n">kohler_toop_xs</span></div>
+
+
 <div class="viewcode-block" id="Model.redlich_kister_sum"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.redlich_kister_sum">[docs]</a>    <span class="k">def</span> <span class="nf">redlich_kister_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">param_query</span><span class="p">):</span>
         <span class="sd">"""</span>
 <span class="sd">        Construct parameter in Redlich-Kister polynomial basis, using</span>
@@ -923,6 +1062,7 @@
                 <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'constituent_array'</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_interaction_test</span><span class="p">))</span>
             <span class="p">)</span>
         <span class="n">excess_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">param_query</span><span class="p">)</span>
+        <span class="n">excess_term</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kohler_toop_excess_sum</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">excess_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
 
 <div class="viewcode-block" id="Model.magnetic_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.magnetic_energy">[docs]</a>    <span class="k">def</span> <span class="nf">magnetic_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>

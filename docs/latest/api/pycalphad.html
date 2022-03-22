@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html" /><link rel="prev" title="API Documentation" href="modules.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad package - pycalphad 0.10.1.dev1+gb47aef84 documentation</title>
+        <title>pycalphad package - pycalphad 0.10.1.dev2+g2ea3c67a documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev1+gb47aef84 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev2+g2ea3c67a documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev1+gb47aef84 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev2+g2ea3c67a documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -295,7 +295,7 @@
 calculations under specified conditions.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.model.Model">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Models use an abstract representation of the function
 for calculation of values under specified conditions.</p>
@@ -540,6 +540,10 @@ where m is the arity of the interaction parameter</p>
 <dd><p>Returns the ideal mixing energy in symbolic form.</p>
 </dd></dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.model.Model.kohler_toop_excess_sum">
+<span class="sig-name descname"><span class="pre">kohler_toop_excess_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.kohler_toop_excess_sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.kohler_toop_excess_sum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.magnetic_energy">
 <span class="sig-name descname"><span class="pre">magnetic_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.magnetic_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.magnetic_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the energy from magnetic ordering in symbolic form.
@@ -675,7 +679,7 @@ The approach follows W. Xiong et al, Calphad, 2012.</p>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.model.TestModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.model.</span></span><span class="sig-name descname"><span class="pre">TestModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#TestModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.TestModel" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.model.</span></span><span class="sig-name descname"><span class="pre">TestModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#TestModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.TestModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.model.Model" title="pycalphad.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.model.Model</span></code></a></p>
 <p>Test Model object for global minimization.</p>
 <p>Equation 15.2 in:

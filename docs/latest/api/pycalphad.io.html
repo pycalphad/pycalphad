@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.plot package" href="pycalphad.plot.html" /><link rel="prev" title="pycalphad.core package" href="pycalphad.core.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.io package - pycalphad 0.10.1.dev1+gb47aef84 documentation</title>
+        <title>pycalphad.io package - pycalphad 0.10.1.dev2+g2ea3c67a documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev1+gb47aef84 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev2+g2ea3c67a documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev1+gb47aef84 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev2+g2ea3c67a documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -290,7 +290,7 @@ associated with structured thermodynamic/kinetic data.</p>
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.io.database.Database.add_parameter">
-<span class="sig-name descname"><span class="pre">add_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constituent_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffusing_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_insert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_parameter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constituent_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffusing_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_insert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -303,6 +303,7 @@ associated with structured thermodynamic/kinetic data.</p>
 <li><p><strong>ref</strong> (<em>str</em><em>, </em><em>optional</em>) – Reference for the parameter.</p></li>
 <li><p><strong>diffusing_species</strong> (<em>str</em><em>, </em><em>optional</em>) – (If kinetic parameter) Diffusing species for this parameter.</p></li>
 <li><p><strong>force_insert</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, inserts into the database immediately. False is a delayed insert (for performance).</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – Additional metadata to insert into the parameter dictionary</p></li>
 </ul>
 </dd>
 </dl>
