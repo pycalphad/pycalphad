@@ -6,8 +6,7 @@ from pycalphad.io.database import Database
 @pytest.fixture(scope="session")
 def load_database(request):
     """
-    Helper fixture to load a database (parameterized by the value of `request`) exactly
-    one time, returning a function that gives copies of the database for safety.
+    Helper fixture to load a database (parameterized by the value of `request`).
     """
     db = Database(str(files(pycalphad.tests.databases).joinpath(request.param)))
     def _load_database():
