@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
 
     <meta name="generator" content="sphinx-4.4.0, furo 2021.10.09"/>
-        <title>pycalphad.model - pycalphad 0.9.3.dev12+g0b246ad9 documentation</title>
+        <title>pycalphad.model - pycalphad 0.10.1.dev1+gb47aef84 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.9.3.dev12+g0b246ad9 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.10.1.dev1+gb47aef84 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.9.3.dev12+g0b246ad9 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev1+gb47aef84 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -223,14 +223,14 @@
 <span class="sd">"""</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="k">import</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Abs</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span>
-<span class="kn">from</span> <span class="nn">tinydb</span> <span class="k">import</span> <span class="n">where</span>
+<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Abs</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span>
+<span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="k">import</span> <span class="n">DofError</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_components</span><span class="p">,</span> <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">wrap_symbol</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="kn">import</span> <span class="n">DofError</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">unpack_components</span><span class="p">,</span> <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">wrap_symbol</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="c1"># Maximum number of levels deep we check for symbols that are functions of</span>
 <span class="c1"># other symbols</span>
@@ -254,7 +254,7 @@
 <span class="sd">        pycalphad Species variable</span>
 
 <span class="sd">    """</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">reference_phase</span><span class="p">,</span> <span class="n">fixed_statevars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">reference_phase</span><span class="p">,</span> <span class="n">fixed_statevars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -274,7 +274,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">reference_phase</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fixed_statevars</span> <span class="o">=</span> <span class="n">fixed_statevars</span> <span class="k">if</span> <span class="n">fixed_statevars</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_statevars</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">s</span> <span class="o">=</span> <span class="s2">"ReferenceState('</span><span class="si">{}</span><span class="s2">', '</span><span class="si">{}</span><span class="s2">', </span><span class="si">{}</span><span class="s2">)"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_statevars</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -337,7 +337,7 @@
                      <span class="p">(</span><span class="s1">'xsmix'</span><span class="p">,</span> <span class="s1">'excess_mixing_energy'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'mag'</span><span class="p">,</span> <span class="s1">'magnetic_energy'</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">'2st'</span><span class="p">,</span> <span class="s1">'twostate_energy'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'ein'</span><span class="p">,</span> <span class="s1">'einstein_energy'</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">'ord'</span><span class="p">,</span> <span class="s1">'atomic_ordering_energy'</span><span class="p">)]</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span> <span class="o">=</span> <span class="n">dbe</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_endmember_reference_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -454,7 +454,7 @@
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">obj</span></div>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
@@ -462,10 +462,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Model.moles"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.moles">[docs]</a>    <span class="k">def</span> <span class="nf">moles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">per_formula_unit</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -588,7 +588,7 @@
             <span class="n">mod_endmember_only</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">'idmix'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ord'</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">)</span> <span class="o">!=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="n">f</span><span class="s2">"</span><span class="si">{self.phase_name}</span><span class="s2"> is a partitioned model with an ordering energy "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s2"> is a partitioned model with an ordering energy "</span>
                     <span class="s2">"contribution. The choice of endmembers for the endmember "</span>
                     <span class="s2">"reference model used by `_MIX` properties is ambiguous for "</span>
                     <span class="s2">"partitioned models. The `Model.set_reference_state` method is a "</span>
@@ -1168,9 +1168,9 @@
 
         <span class="k">if</span> <span class="n">site_ratio_normalization</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="n">f</span><span class="s1">'Couldn</span><span class="se">\'</span><span class="s1">t find </span><span class="si">{species_name}</span><span class="s1"> in a substitutional sublattice '</span>
-                <span class="n">f</span><span class="s1">'(indices: </span><span class="si">{substitutional_sublattice_idxs}</span><span class="s1">) '</span>
-                <span class="n">f</span><span class="s1">'of the constituents </span><span class="si">{constituent_array}</span><span class="s1">'</span>
+                <span class="sa">f</span><span class="s1">'Couldn</span><span class="se">\'</span><span class="s1">t find </span><span class="si">{</span><span class="n">species_name</span><span class="si">}</span><span class="s1"> in a substitutional sublattice '</span>
+                <span class="sa">f</span><span class="s1">'(indices: </span><span class="si">{</span><span class="n">substitutional_sublattice_idxs</span><span class="si">}</span><span class="s1">) '</span>
+                <span class="sa">f</span><span class="s1">'of the constituents </span><span class="si">{</span><span class="n">constituent_array</span><span class="si">}</span><span class="s1">'</span>
                 <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span>
@@ -1275,10 +1275,10 @@
         <span class="n">num_disordered_interstitial_subls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">disordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">num_ordered_interstitial_subls</span> <span class="o">!=</span> <span class="n">num_disordered_interstitial_subls</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="n">f</span><span class="s1">'Number of interstitial sublattices for the disordered phase '</span>
-                <span class="n">f</span><span class="s1">'(</span><span class="si">{num_disordered_interstitial_subls}</span><span class="s1">) and the ordered phase '</span>
-                <span class="n">f</span><span class="s1">'(</span><span class="si">{num_ordered_interstitial_subls}</span><span class="s1">) do not match. Got '</span>
-                <span class="n">f</span><span class="s1">'substitutional sublattice indices of </span><span class="si">{substitutional_sublattice_idxs}</span><span class="s1">.'</span>
+                <span class="sa">f</span><span class="s1">'Number of interstitial sublattices for the disordered phase '</span>
+                <span class="sa">f</span><span class="s1">'(</span><span class="si">{</span><span class="n">num_disordered_interstitial_subls</span><span class="si">}</span><span class="s1">) and the ordered phase '</span>
+                <span class="sa">f</span><span class="s1">'(</span><span class="si">{</span><span class="n">num_ordered_interstitial_subls</span><span class="si">}</span><span class="s1">) do not match. Got '</span>
+                <span class="sa">f</span><span class="s1">'substitutional sublattice indices of </span><span class="si">{</span><span class="n">substitutional_sublattice_idxs</span><span class="si">}</span><span class="s1">.'</span>
                 <span class="p">)</span>
         <span class="c1"># We also validate that no physical properties have ordered</span>
         <span class="c1"># contributions because the underlying physical property needs to</span>
@@ -1293,12 +1293,12 @@
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="n">f</span><span class="s2">"The order-disorder model for </span><span class="se">\"</span><span class="si">{self.phase_name}</span><span class="se">\"</span><span class="s2"> has a contribution from "</span>
-                    <span class="n">f</span><span class="s2">"the physical property model `{dict(self.contributions)[contrib]}`. "</span>
-                    <span class="n">f</span><span class="s2">"Partitioned physical properties are not correctly substituted into the "</span>
-                    <span class="n">f</span><span class="s2">"disordered part of the energy. THE GIBBS ENERGY CALCULATED FOR THIS PHASE "</span>
-                    <span class="n">f</span><span class="s2">"MAY BE INCORRECT. Please see the discussion in "</span>
-                    <span class="n">f</span><span class="s2">"https://github.com/pycalphad/pycalphad/pull/311 for more details."</span>
+                    <span class="sa">f</span><span class="s2">"The order-disorder model for </span><span class="se">\"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="se">\"</span><span class="s2"> has a contribution from "</span>
+                    <span class="sa">f</span><span class="s2">"the physical property model `</span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contributions</span><span class="p">)[</span><span class="n">contrib</span><span class="p">]</span><span class="si">}</span><span class="s2">`. "</span>
+                    <span class="sa">f</span><span class="s2">"Partitioned physical properties are not correctly substituted into the "</span>
+                    <span class="sa">f</span><span class="s2">"disordered part of the energy. THE GIBBS ENERGY CALCULATED FOR THIS PHASE "</span>
+                    <span class="sa">f</span><span class="s2">"MAY BE INCORRECT. Please see the discussion in "</span>
+                    <span class="sa">f</span><span class="s2">"https://github.com/pycalphad/pycalphad/pull/311 for more details."</span>
                     <span class="p">)</span>
 
         <span class="c1"># Save all of the ordered energy contributions</span>
@@ -1467,7 +1467,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
 <span class="sd">    """</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kmax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kmax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">'VA'</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Vacancies are unsupported in TestModel'</span><span class="p">)</span>
