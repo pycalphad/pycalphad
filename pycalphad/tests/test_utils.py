@@ -6,15 +6,18 @@ import pytest
 from pycalphad import Database, Model
 from pycalphad.core.utils import filter_phases, unpack_components, instantiate_models
 
-from pycalphad.tests.datasets import ALNIPT_TDB, ALCRNI_TDB, ALCOCRNI_TDB
+from pycalphad.tests.datasets import ALNIPT_TDB, ALCRNI_TDB
+from pycalphad.tests.fixtures import select_database, load_database
 
 ALNIPT_DBF = Database(ALNIPT_TDB)
 ALCRNI_DBF = Database(ALCRNI_TDB)
-ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
 
-def test_filter_phases_removes_disordered_phases_from_order_disorder():
+
+@select_database("alcocrni.tdb")
+def test_filter_phases_removes_disordered_phases_from_order_disorder(load_database):
     """Databases with order-disorder models should have the disordered phases be filtered if candidate_phases kwarg is not passed to filter_phases.
     If candidate_phases kwarg is passed, disordered phases just are filtered if respective ordered phases are inactive"""
+    dbf = load_database()
     all_phases = set(ALNIPT_DBF.phases.keys())
     filtered_phases = set(filter_phases(ALNIPT_DBF, unpack_components(ALNIPT_DBF, ['AL', 'NI', 'PT', 'VA'])))
     assert all_phases.difference(filtered_phases) == {'FCC_A1'}
@@ -26,7 +29,7 @@ def test_filter_phases_removes_disordered_phases_from_order_disorder():
     filtered_phases = set(filter_phases(ALCRNI_DBF, comps, ['FCC_A1']))
     assert filtered_phases == {'FCC_A1'}
     # Test that phases are removed if there are no ordered/disorder model hints on the disordered configuration
-    filtered_phases = set(filter_phases(ALCOCRNI_DBF, unpack_components(ALCOCRNI_DBF, ['AL', 'NI', 'VA']), ['BCC_A2', 'BCC_B2']))
+    filtered_phases = set(filter_phases(dbf, unpack_components(dbf, ['AL', 'NI', 'VA']), ['BCC_A2', 'BCC_B2']))
     assert filtered_phases == {'BCC_B2'}
 
 

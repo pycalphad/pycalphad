@@ -1,25 +1,25 @@
-from pycalphad import Database, variables as v
+from pycalphad import variables as v
 from pycalphad.plot.binary.compsets import BinaryCompset, CompsetPair
 from pycalphad.plot.binary.map import map_binary
 from pycalphad.plot.binary.zpf_boundary_sets import TwoPhaseRegion, ZPFBoundarySets
-from pycalphad.tests.datasets import *
-
-ALFE_DBF = Database(ALFE_TDB)
+from pycalphad.tests.fixtures import select_database, load_database
 
 
-def test_binary_mapping():
+@select_database("alfe.tdb")
+def test_binary_mapping(load_database):
     """
     Binary mapping should return a ZPFBoundarySets object
     """
+    dbf = load_database()
     my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2',
                  'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: (1200, 1300, 50), v.P: 101325, v.X('AL'): (0, 1, 0.2)}
-    zpf_boundaries = map_binary(ALFE_DBF, comps, my_phases, conds)
+    zpf_boundaries = map_binary(dbf, comps, my_phases, conds)
     num_boundaries = len(zpf_boundaries.all_compsets)
     assert num_boundaries > 0
     # calling binplot again can add more boundaries
-    map_binary(ALFE_DBF, comps, my_phases, conds, boundary_sets=zpf_boundaries)
+    map_binary(dbf, comps, my_phases, conds, boundary_sets=zpf_boundaries)
     assert len(zpf_boundaries.all_compsets) == 2*num_boundaries
 
 

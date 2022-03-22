@@ -2,7 +2,8 @@
 The test_model module contains unit tests for the Model object.
 """
 from pycalphad import Database, Model, variables as v, equilibrium
-from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
+from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
+from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.errors import DofError
 import numpy as np
 import pickle
@@ -10,7 +11,6 @@ import pytest
 
 ALCRNI_DBF = Database(ALCRNI_TDB)
 ALNIPT_DBF = Database(ALNIPT_TDB)
-ALFE_DBF = Database(ALFE_TDB)
 
 def test_model_eq():
     "Model equality comparison."
@@ -61,12 +61,14 @@ def test_custom_model_contributions():
     CustomModel(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')
 
 
-def test_degree_of_ordering():
+@select_database("alfe.tdb")
+def test_degree_of_ordering(load_database):
     "Degree of ordering should be calculated properly."
+    dbf = load_database()
     my_phases = ['B2_BCC']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 300, v.P: 101325, v.X('AL'): 0.25}
-    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, output='degree_of_ordering', verbose=True)
+    eqx = equilibrium(dbf, comps, my_phases, conds, output='degree_of_ordering', verbose=True)
     print('Degree of ordering: {}'.format(eqx.degree_of_ordering.sel(vertex=0).values.flatten()))
     assert np.isclose(eqx.degree_of_ordering.sel(vertex=0).values.flatten(), np.array([0.6666]), atol=1e-4)
 

@@ -3,9 +3,8 @@ Test variables module.
 """
 
 import numpy as np
-from pycalphad import Database
 from pycalphad import variables as v
-from .datasets import CUO_TDB
+from pycalphad.tests.fixtures import select_database, load_database
 
 
 def test_species_parse_unicode_strings():
@@ -13,10 +12,11 @@ def test_species_parse_unicode_strings():
     s = v.Species(u"MG")
 
 
-def test_mole_and_mass_fraction_conversions():
+@select_database("cuo.tdb")
+def test_mole_and_mass_fraction_conversions(load_database):
     """Test mole <-> mass conversions work as expected."""
     # Passing database as a mass dict works
-    dbf = Database(CUO_TDB)
+    dbf = load_database()
     mole_fracs = {v.X('O'): 0.5}
     mass_fracs = v.get_mass_fractions(mole_fracs, v.Species('CU'), dbf)
     assert np.isclose(mass_fracs[v.W('O')], 0.20113144)  # TC

@@ -10,12 +10,11 @@ from numpy.testing import assert_allclose
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.utils import instantiate_models
 from pycalphad import ConditionError
-from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB, CUMG_PARAMETERS_TDB, ZRLAYALO_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ZRLAYALO_TDB
+from pycalphad.tests.fixtures import select_database, load_database
 
 
 DBF = Database(TDB_TEST_STRING)
-ALFE_DBF = Database(ALFE_TDB)
-CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
 ZRLAYALO_DBF = Database(ZRLAYALO_TDB)
 
 
@@ -58,23 +57,29 @@ def test_issue116():
     assert result_three_values.shape[:3] == (1, 1, 1)
 
 
-def test_calculate_some_phases_filtered():
+@select_database("alfe.tdb")
+def test_calculate_some_phases_filtered(load_database):
     """
     Phases are filtered out from calculate() when some cannot be built.
     """
+    dbf = load_database()
     # should not raise; AL13FE4 should be filtered out
-    calculate(ALFE_DBF, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], T=1200, P=101325)
+    calculate(dbf, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], T=1200, P=101325)
 
 
-def test_calculate_raises_with_no_active_phases_passed():
+@select_database("alfe.tdb")
+def test_calculate_raises_with_no_active_phases_passed(load_database):
     """Passing inactive phases to calculate() raises a ConditionError."""
+    dbf = load_database()
     # Phase cannot be built without FE
     with pytest.raises(ConditionError):
-        calculate(ALFE_DBF, ['AL', 'VA'], ['AL13FE4'], T=1200, P=101325)
+        calculate(dbf, ['AL', 'VA'], ['AL13FE4'], T=1200, P=101325)
 
 
-def test_calculate_with_parameters_vectorized():
+@select_database("cumg_parameters.tdb")
+def test_calculate_with_parameters_vectorized(load_database):
     # Second set of parameter values are directly copied from the TDB
+    dbf = load_database()
     parameters = {'VV0000': [-33134.699474175846, -32539.5], 'VV0001': [7734.114029426941, 8236.3],
                   'VV0002': [-13498.542175596054, -14675.0], 'VV0003': [-26555.048975092268, -24441.2],
                   'VV0004': [20777.637577083482, 20149.6], 'VV0005': [41915.70425630003, 46500.0],
@@ -83,8 +88,8 @@ def test_calculate_with_parameters_vectorized():
                   'VV0010': [20468.91829601273, 21240.0], 'VV0011': [19601.617855958328, 14321.1],
                   'VV0012': [-4546.9325861738, -4923.18], 'VV0013': [-1640.6354331231278, -1962.8],
                   'VV0014': [-35682.950005357634, -31626.6]}
-    res = calculate(CUMG_PARAMETERS_DBF, ['CU', 'MG'], ['HCP_A3'], parameters=parameters, T=743.15, P=1e5)
-    res_noparams = calculate(CUMG_PARAMETERS_DBF, ['CU', 'MG'], ['HCP_A3'], parameters=None, T=743.15, P=1e5)
+    res = calculate(dbf, ['CU', 'MG'], ['HCP_A3'], parameters=parameters, T=743.15, P=1e5)
+    res_noparams = calculate(dbf, ['CU', 'MG'], ['HCP_A3'], parameters=None, T=743.15, P=1e5)
     param_values = []
     for symbol in sorted(parameters.keys()):
         param_values.append(parameters[symbol])
@@ -112,18 +117,20 @@ def test_single_model_instance_raises():
         calculate(DBF, comps, ['LIQUID', 'L12_FCC'], T=1400.0, output='_fail_', model=mod)
 
 
-def test_missing_phase_records_passed_to_calculate_raises():
+@select_database("alfe.tdb")
+def test_missing_phase_records_passed_to_calculate_raises(load_database):
     "calculate should raise an error if all the active phases are not included in the phase_records"
+    dbf = load_database()
     my_phases = ['LIQUID', 'FCC_A1']
     subset_phases = ['FCC_A1']
     comps = ['AL', 'FE', 'VA']
 
-    models = instantiate_models(ALFE_DBF, comps, subset_phases)
+    models = instantiate_models(dbf, comps, subset_phases)
     # Dummy conditions are just needed to get all the state variables into the PhaseRecord objects
-    phase_records = build_phase_records(ALFE_DBF, comps, subset_phases, [v.T, v.P, v.N], models)
+    phase_records = build_phase_records(dbf, comps, subset_phases, [v.T, v.P, v.N], models)
 
     with pytest.raises(ValueError):
-        calculate(ALFE_DBF, comps, my_phases, T=1200, P=101325, N=1, phase_records=phase_records)
+        calculate(dbf, comps, my_phases, T=1200, P=101325, N=1, phase_records=phase_records)
 
 
 def test_no_neutral_endmembers_single():

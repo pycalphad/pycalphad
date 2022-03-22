@@ -6,17 +6,15 @@ correct abstract syntax tree for the energy.
 import pytest
 from symengine import S
 from pycalphad import Database, Model, ReferenceState
-from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
+from pycalphad.tests.datasets import ALCRNI_TDB, FE_MN_S_TDB, \
     CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB
-from pycalphad.tests.fixtures import load_database, select_database
+from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
 from pycalphad.models.model_mqmqa import ModelMQMQA
 
 DBF = Database(ALCRNI_TDB)
-ALFE_DBF = Database(ALFE_TDB)
-FEMN_DBF = Database(FEMN_TDB)
 CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
 CUMG_DBF = Database(CUMG_TDB)
 FE_MN_S_DBF = Database(FE_MN_S_TDB)
@@ -157,9 +155,11 @@ def test_binary_dilute():
              v.SiteFraction('LIQUID', 0, 'NI'): 1.0-1e-12}, \
         5.52773e3, mode='sympy')
 
-def test_binary_xiong_twostate_einstein():
+
+@select_database("femn.tdb")
+def test_binary_xiong_twostate_einstein(load_database):
     "Phase with Xiong magnetic, two-state and Einstein energy contributions."
-    femn_dbf = Database(FEMN_TDB)
+    femn_dbf = load_database()
     mod = Model(femn_dbf, ['FE', 'MN', 'VA'], 'LIQUID')
     check_energy(mod, {v.T: 10, v.SiteFraction('LIQUID', 0, 'FE'): 1,
                                 v.SiteFraction('LIQUID', 0, 'MN'): 0,
@@ -233,28 +233,34 @@ def test_zero_site_fraction():
         5.52773e3, mode='sympy')
 
 
-def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero():
+@select_database("femn.tdb")
+def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero(load_database):
     """The referenced energy for the pure elements in a unary Model with twostate and Einstein contributions referenced to that phase is zero."""
-    m = Model(FEMN_DBF, ['FE', 'VA'], 'LIQUID')
+    dbf = load_database()
+    m = Model(dbf, ['FE', 'VA'], 'LIQUID')
     statevars = {v.T: 298.15, v.SiteFraction('LIQUID', 0, 'FE'): 1, v.SiteFraction('LIQUID', 1, 'VA'): 1}
     refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
-    m.shift_reference_state(refstates, FEMN_DBF)
+    m.shift_reference_state(refstates, dbf)
     check_output(m, statevars, 'GMR', 0.0)
 
 
-def test_underspecified_refstate_raises():
+@select_database("femn.tdb")
+def test_underspecified_refstate_raises(load_database):
     """A Model cannot be shifted to a new reference state unless references for all pure elements are specified."""
-    m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
+    dbf = load_database()
+    m = Model(dbf, ['FE', 'MN', 'VA'], 'LIQUID')
     refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
     with pytest.raises(DofError):
-        m.shift_reference_state(refstates, FEMN_DBF)
+        m.shift_reference_state(refstates, dbf)
 
 
-def test_reference_energy_of_binary_twostate_einstein_is_zero():
+@select_database("femn.tdb")
+def test_reference_energy_of_binary_twostate_einstein_is_zero(load_database):
     """The referenced energy for the pure elements in a binary Model with twostate and Einstein contributions referenced to that phase is zero."""
-    m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
+    dbf = load_database()
+    m = Model(dbf, ['FE', 'MN', 'VA'], 'LIQUID')
     refstates = [ReferenceState(v.Species('FE'), 'LIQUID'), ReferenceState(v.Species('MN'), 'LIQUID')]
-    m.shift_reference_state(refstates, FEMN_DBF)
+    m.shift_reference_state(refstates, dbf)
 
     statevars_FE = {v.T: 298.15,
              v.SiteFraction('LIQUID', 0, 'FE'): 1, v.SiteFraction('LIQUID', 0, 'MN'): 0,
@@ -308,12 +314,14 @@ def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     check_output(m, statevars_mix, 'HM_MIX', 2000.0)
 
 
-def test_reference_energy_for_different_phase():
+@select_database("alfe.tdb")
+def test_reference_energy_for_different_phase(load_database):
     """The referenced energy a different phase should be correct."""
-    m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'AL2FE')
+    dbf = load_database()
+    m = Model(dbf, ['AL', 'FE', 'VA'], 'AL2FE')
     # formation reference states
     refstates = [ReferenceState('AL', 'FCC_A1'), ReferenceState('FE', 'BCC_A2')]
-    m.shift_reference_state(refstates, ALFE_DBF)
+    m.shift_reference_state(refstates, dbf)
 
     statevars = {v.T: 300, v.SiteFraction('AL2FE', 0, 'AL'): 1, v.SiteFraction('AL2FE', 1, 'FE'): 1}
     check_output(m, statevars, 'GMR', -28732.525)  # Checked in Thermo-Calc
@@ -340,9 +348,11 @@ def test_magnetic_endmember_mixing_energy_is_zero():
     check_output(m, statevars, 'GM_MIX', 0.0)
 
 
-def test_order_disorder_mixing_energy_is_nan():
+@select_database("alfe.tdb")
+def test_order_disorder_mixing_energy_is_nan(load_database):
     """The endmember-referenced mixing energy is undefined and the energy should be NaN."""
-    m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'B2_BCC')
+    dbf = load_database()
+    m = Model(dbf, ['AL', 'FE', 'VA'], 'B2_BCC')
     statevars = {
                     v.T: 300,
                     v.SiteFraction('B2_BCC', 0, 'AL'): 1, v.SiteFraction('B2_BCC', 0, 'FE'): 0,

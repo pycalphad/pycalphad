@@ -13,7 +13,8 @@ from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
 from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
-from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, DIFFUSION_TDB
+from pycalphad.tests.fixtures import select_database, load_database
 
 
 #
@@ -33,24 +34,27 @@ FUNCTION A_VERY_LONG_FUNCTION_NAME  298.15 -42; 6000 N !
 FUNCTION COMPAT 298.15 +9001; 6000 N !
 """
 
-def test_database_eq():
+@select_database("rose.tdb")
+def test_database_eq(load_database):
     "Database equality comparison."
     test_dbf = Database(ALCRNI_TDB)
     assert test_dbf == test_dbf
     assert test_dbf == REFERENCE_DBF
-    assert not (test_dbf == Database(ROSE_TDB))
+    assert not (test_dbf == load_database())
     # literals which don't have __dict__
     assert not (test_dbf == 42)
     assert not (test_dbf == None)
     assert not (42 == test_dbf)
     assert not (None == test_dbf)
 
-def test_database_ne():
+
+@select_database("rose.tdb")
+def test_database_ne(load_database):
     "Database inequality comparison."
     test_dbf = Database(ALCRNI_TDB)
     assert not (test_dbf != test_dbf)
     assert not (test_dbf != REFERENCE_DBF)
-    assert test_dbf != Database(ROSE_TDB)
+    assert test_dbf != load_database()
     # literals which don't have __dict__
     assert test_dbf != 42
     assert test_dbf != None
@@ -75,11 +79,13 @@ def test_load_from_string():
     test_model = Model(Database.from_string(ALCRNI_TDB, fmt='tdb'), ['CR', 'NI'], 'L12_FCC')
     assert test_model == REFERENCE_MOD
 
-def test_export_import():
+
+@select_database("alfe.tdb")
+def test_export_import(load_database):
     "Equivalence of re-imported database to original."
     test_dbf = Database(ALNIPT_TDB)
     assert Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb') == test_dbf
-    test_dbf = Database(ALFE_TDB)
+    test_dbf = load_database()
     assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
 
 def test_incompatible_db_warns_by_default():
@@ -687,8 +693,10 @@ def test_tdb_parser_raises_unterminated_parameters():
         Database(UNTERMINATED_PARAM_STR)
 
 
-def test_load_database_when_given_in_lowercase():
+@select_database("alfe.tdb")
+def test_load_database_when_given_in_lowercase(load_database):
     "Test loading a database coerced to lowercase loads correctly."
+    ALFE_TDB = load_database().to_string(fmt='tdb')
     dbf = Database.from_string(ALFE_TDB, fmt='tdb')
     dbf_lower = Database.from_string(ALFE_TDB.lower(), fmt='tdb')
 

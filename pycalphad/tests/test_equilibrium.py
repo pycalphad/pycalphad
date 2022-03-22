@@ -19,101 +19,99 @@ from pycalphad.tests.fixtures import load_database, select_database
 
 warnings.simplefilter("always", UserWarning) # so we can test warnings
 
-ROSE_DBF = Database(ROSE_TDB)
-ALFE_DBF = Database(ALFE_TDB)
-ALNIFCC4SL_DBF = Database(ALNIFCC4SL_TDB)
-ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
-ISSUE43_DBF = Database(ISSUE43_TDB)
-TOUGH_CHEMPOT_DBF = Database(ALNI_TOUGH_CHEMPOT_TDB)
-NI_AL_DUPIN_2001_DBF = Database(NI_AL_DUPIN_2001_TDB)
-CUO_DBF = Database(CUO_TDB)
-PBSN_DBF = Database(PBSN_TDB)
-AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
-CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
-AL2O3_ND2O3_ZRO2_DBF = Database(AL2O3_ND2O3_ZRO2_TDB)
-ALFEO_DBF = Database(ALFEO_TDB)
-
 
 @pytest.mark.solver
-def test_rose_nine():
+@select_database("rose.tdb")
+def test_rose_nine(load_database):
     "Nine-component rose diagram point equilibrium calculation."
+    dbf = load_database()
     my_phases_rose = ['TEST']
     comps = ['H', 'HE', 'LI', 'BE', 'B', 'C', 'N', 'O', 'F']
     conds = dict({v.T: 1000, v.P: 101325})
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
-    eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, verbose=True)
+    eqx = equilibrium(dbf, comps, my_phases_rose, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -5.8351e3, atol=0.1)
 
 
 @pytest.mark.solver
-def test_eq_binary():
+@select_database("alfe.tdb")
+def test_eq_binary(load_database):
     "Binary phase diagram point equilibrium calculation with magnetism."
+    dbf = load_database()
     my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2',
                  'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
-    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True)
+    eqx = equilibrium(dbf, comps, my_phases, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
 
-def test_phase_records_passed_to_equilibrium():
+@select_database("alfe.tdb")
+def test_phase_records_passed_to_equilibrium(load_database):
     "Pre-built phase records can be passed to equilibrium."
+    dbf = load_database()
     my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
 
-    models = instantiate_models(ALFE_DBF, comps, my_phases)
-    phase_records = build_phase_records(ALFE_DBF, comps, my_phases, conds, models)
+    models = instantiate_models(dbf, comps, my_phases)
+    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
 
     # With models passed
-    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records)
+    eqx = equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
 
-def test_missing_models_with_phase_records_passed_to_equilibrium_raises():
+@select_database("alfe.tdb")
+def test_missing_models_with_phase_records_passed_to_equilibrium_raises(load_database):
+    dbf = load_database()
     "equilibrium should raise an error if all the active phases are not included in the phase_records"
     my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
 
-    models = instantiate_models(ALFE_DBF, comps, my_phases)
-    phase_records = build_phase_records(ALFE_DBF, comps, my_phases, conds, models)
+    models = instantiate_models(dbf, comps, my_phases)
+    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
 
     with pytest.raises(ValueError):
         # model=models NOT passed
-        equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True, phase_records=phase_records)
+        equilibrium(dbf, comps, my_phases, conds, verbose=True, phase_records=phase_records)
 
 
-def test_missing_phase_records_passed_to_equilibrium_raises():
+@select_database("alfe.tdb")
+def test_missing_phase_records_passed_to_equilibrium_raises(load_database):
     "equilibrium should raise an error if all the active phases are not included in the phase_records"
+    dbf = load_database()
     my_phases = ['LIQUID', 'FCC_A1']
     subset_phases = ['FCC_A1']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
 
-    models = instantiate_models(ALFE_DBF, comps, my_phases)
-    phase_records = build_phase_records(ALFE_DBF, comps, my_phases, conds, models)
+    models = instantiate_models(dbf, comps, my_phases)
+    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
 
-    models_subset = instantiate_models(ALFE_DBF, comps, subset_phases)
-    phase_records_subset = build_phase_records(ALFE_DBF, comps, subset_phases, conds, models_subset)
+    models_subset = instantiate_models(dbf, comps, subset_phases)
+    phase_records_subset = build_phase_records(dbf, comps, subset_phases, conds, models_subset)
 
     # Under-specified models
     with pytest.raises(ValueError):
-        equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True, model=models_subset, phase_records=phase_records)
+        equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models_subset, phase_records=phase_records)
 
     # Under-specified phase_records
     with pytest.raises(ValueError):
-        equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records_subset)
+        equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records_subset)
 
 
 @pytest.mark.solver
-def test_eq_single_phase():
+@select_database("alfe.tdb")
+def test_eq_single_phase(load_database):
     "Equilibrium energy should be the same as for a single phase with no miscibility gaps."
-    res = calculate(ALFE_DBF, ['AL', 'FE'], 'LIQUID', T=[1400, 2500], P=101325,
+    dbf = load_database()
+    res = calculate(dbf, ['AL', 'FE'], 'LIQUID', T=[1400, 2500], P=101325,
                     points={'LIQUID': [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7],
                                        [0.7, 0.3], [0.8, 0.2]]})
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
+    eq = equilibrium(dbf, ['AL', 'FE'], 'LIQUID',
                      {v.T: [1400, 2500], v.P: 101325,
                       v.X('AL'): [0.1, 0.2, 0.3, 0.7, 0.8]}, verbose=True)
     assert_allclose(np.squeeze(eq.GM), np.squeeze(res.GM), atol=0.1)
@@ -128,43 +126,52 @@ def test_eq_b2_without_all_comps():
                 verbose=True)
 
 
-def test_eq_underdetermined_comps():
+@select_database("alfe.tdb")
+def test_eq_underdetermined_comps(load_database):
     """
     The number of composition conditions should yield exactly one dependent component.
     This is the underdetermined case.
     """
+    dbf = load_database()
     with pytest.raises(ValueError):
-        equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325})
+        equilibrium(dbf, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325})
 
 
-def test_eq_overdetermined_comps():
+@select_database("alfe.tdb")
+def test_eq_overdetermined_comps(load_database):
     """
     The number of composition conditions should yield exactly one dependent component.
     This is the overdetermined case.
     """
+    dbf = load_database()
     with pytest.raises(ValueError):
-        equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
-                                                   v.X('FE'): 0.2, v.X('AL'): 0.8})
+        equilibrium(dbf, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
+                                                  v.X('FE'): 0.2, v.X('AL'): 0.8})
 
 @pytest.mark.solver
-def test_dilute_condition():
+@select_database("alfe.tdb")
+def test_dilute_condition(load_database):
     """
     'Zero' and dilute composition conditions are correctly handled.
     """
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-12}, verbose=True)
+    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-12}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.841)
     assert_allclose(np.squeeze(eq.MU.values), [-385499.682936,  -64415.837878], atol=1.0)
 
+
 @pytest.mark.solver
-def test_eq_illcond_hessian():
+@select_database("alfe.tdb")
+def test_eq_illcond_hessian(load_database):
     """
     Check equilibrium of a system with an ill-conditioned Hessian.
     This is difficult to reproduce so we only include some known examples here (gh-23).
     """
+    dbf = load_database()
     # This set of conditions is known to trigger the issue
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'LIQUID',
+    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'LIQUID',
                      {v.X('FE'): 0.73999999999999999, v.T: 401.5625, v.P: 1e5})
     assert_allclose(np.squeeze(eq.GM.values), -16507.22325998)
     # chemical potentials were checked in TC and accurate to 1 J/mol
@@ -172,14 +179,17 @@ def test_eq_illcond_hessian():
     # once again, py33 converges to a slightly different value versus every other python
     assert_allclose(np.squeeze(eq.MU.values), [-55611.954141,  -2767.72322], atol=0.1)
 
+
 @pytest.mark.solver
-def test_eq_illcond_magnetic_hessian():
+@select_database("alfe.tdb")
+def test_eq_illcond_magnetic_hessian(load_database):
     """
     Check equilibrium of a system with an ill-conditioned Hessian due to magnetism (Tc->0).
     This is difficult to reproduce so we only include some known examples here.
     """
+    dbf = load_database()
     # This set of conditions is known to trigger the issue
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
+    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
                      {v.X('AL'): 0.8, v.T: 300, v.P: 1e5}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -31414.46677)
     # These chemical potentials have a strong dependence on MIN_SITE_FRACTION
@@ -188,12 +198,14 @@ def test_eq_illcond_magnetic_hessian():
     assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], rtol=1e-4)
 
 
-def test_eq_composition_cond_sorting():
+@select_database("alfe.tdb")
+def test_eq_composition_cond_sorting(load_database):
     """
     Composition conditions are correctly constructed when the dependent component does not
     come last in alphabetical order (gh-21).
     """
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'FE'], 'LIQUID',
                      {v.T: 2000, v.P: 101325, v.X('FE'): 0.2})
     # Values computed by Thermo-Calc
     tc_energy = -143913.3
@@ -202,59 +214,77 @@ def test_eq_composition_cond_sorting():
     assert_allclose(np.squeeze(eq.GM.values), tc_energy)
     assert_allclose(np.squeeze(eq.MU.values), [tc_mu_al, tc_mu_fe], rtol=1e-6)
 
-def test_eq_output_property():
+
+@select_database("alfe.tdb")
+def test_eq_output_property(load_database):
     """
     Extra properties can be specified to `equilibrium`.
     """
-    equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
+    dbf = load_database()
+    equilibrium(dbf, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
                 {v.X('AL'): 0.25, v.T: (300, 2000, 500), v.P: 101325},
                 output=['heat_capacity', 'degree_of_ordering'])
 
-def test_eq_on_endmember():
+
+@select_database("alfe.tdb")
+def test_eq_on_endmember(load_database):
     """
     When the composition condition is right on top of an end-member
     the convex hull is still correctly constructed (gh-28).
     """
-    equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
+    dbf = load_database()
+    equilibrium(dbf, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
                 {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, verbose=True)
 
+
 @pytest.mark.solver
-def test_eq_four_sublattice():
+@select_database("alnifcc4sl.tdb")
+def test_eq_four_sublattice(load_database):
     """
     Balancing mass in a multi-sublattice phase in a single-phase configuration.
     """
-    eq = equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], 'FCC_L12',
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'NI', 'VA'], 'FCC_L12',
                      {v.T: 1073, v.X('NI'): 0.7601, v.P: 101325})
     assert_allclose(np.squeeze(eq.X.sel(vertex=0).values), [1-.7601, .7601])
     # Not a strict equality here because we can't yet reach TC's value of -87260.6
     assert eq.GM.values < -87256.3
 
-def test_eq_missing_component():
+
+@select_database("alnifcc4sl.tdb")
+def test_eq_missing_component(load_database):
     """
     Specifying a non-existent component raises an error.
     """
+    dbf = load_database()
     # No Co or Cr in this database ; Co component specification should cause failure
     with pytest.raises(EquilibriumError):
-        equilibrium(ALNIFCC4SL_DBF, ['AL', 'CO', 'CR', 'VA'], ['LIQUID'],
+        equilibrium(dbf, ['AL', 'CO', 'CR', 'VA'], ['LIQUID'],
                     {v.T: 1523, v.X('AL'): 0.88811111111111107,
                      v.X('CO'): 0.11188888888888888, v.P: 101325})
 
-def test_eq_missing_component():
+
+@select_database("alnifcc4sl.tdb")
+def test_eq_missing_component(load_database):
     """
     Specifying a condition involving a non-existent component raises an error.
     """
+    dbf = load_database()
     # No Co or Cr in this database ; Co condition specification should cause failure
     with pytest.raises(ConditionError):
-        equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['LIQUID'],
+        equilibrium(dbf, ['AL', 'NI', 'VA'], ['LIQUID'],
                     {v.T: 1523, v.X('AL'): 0.88811111111111107,
                      v.X('CO'): 0.11188888888888888, v.P: 101325})
 
+
 @pytest.mark.solver
-def test_eq_ternary_edge_case_mass():
+@select_database("alcocrni.tdb")
+def test_eq_ternary_edge_case_mass(load_database):
     """
     Equilibrium along an edge of composition space will still balance mass.
     """
-    eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.8881111111,
                       v.X('CO'): 0.1118888888, v.P: 101325}, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
@@ -265,12 +295,15 @@ def test_eq_ternary_edge_case_mass():
     assert result_chempots[2] < -300000  # Estimated
     assert np.all(np.abs(mass_error) < 1.5e-10)
 
+
 @pytest.mark.solver
-def test_eq_ternary_inside_mass():
+@select_database("alcocrni.tdb")
+def test_eq_ternary_inside_mass(load_database):
     """
     Equilibrium in interior of composition space will still balance mass.
     """
-    eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.44455555555555554,
                       v.X('CO'): 0.22277777777777777, v.P: 101325}, verbose=True)
     assert_allclose(eq.GM.values, -105871.54, atol=0.1)  # Thermo-Calc: -105871.54
@@ -279,23 +312,28 @@ def test_eq_ternary_inside_mass():
 
 
 @pytest.mark.solver
-def test_eq_ternary_edge_misc_gap():
+@select_database("alcocrni.tdb")
+def test_eq_ternary_edge_misc_gap(load_database):
     """
     Equilibrium at edge of miscibility gap will still balance mass.
     """
-    eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.33366666666666667,
                       v.X('CO'): 0.44455555555555554, v.P: 101325}, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.33366666666666667, 0.44455555555555554, 0.22177777777777785]
     assert np.all(np.abs(mass_error) < 0.001)
 
+
 @pytest.mark.solver
-def test_eq_issue43_chempots_misc_gap():
+@select_database("issue43.tdb")
+def test_eq_issue43_chempots_misc_gap(load_database):
     """
     Equilibrium for complex ternary miscibility gap (gh-43).
     """
-    eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], 'GAMMA_PRIME',
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'NI', 'CR', 'VA'], 'GAMMA_PRIME',
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
                      verbose=True)
     chempots = np.array([-206144.57, -272150.79, -64253.652])
@@ -303,24 +341,29 @@ def test_eq_issue43_chempots_misc_gap():
     assert_allclose(np.squeeze(eq.MU.values), chempots, rtol=1e-5)
     assert_allclose(np.squeeze(eq.GM.values), -81933.259)
 
+
 @pytest.mark.solver
-def test_eq_issue43_chempots_tricky_potentials():
+@select_database("issue43.tdb")
+def test_eq_issue43_chempots_tricky_potentials(load_database):
     """
     Ternary equilibrium with difficult convergence for chemical potentials (gh-43).
     """
-    eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
                      {v.X('AL'): .1246, v.X('CR'): 0.6, v.T: 1273, v.P: 101325},
                      verbose=True)
     chempots = np.array([-135620.9960449, -47269.29002414, -92304.23688281])
     assert_allclose(eq.GM.values, -70680.53695)
     assert_allclose(np.squeeze(eq.MU.values), chempots)
 
+
 @pytest.mark.solver
-def test_eq_large_vacancy_hessian():
+@select_database("alni_dupin_2001.tdb")
+def test_eq_large_vacancy_hessian(load_database):
     """
     Vacancy contribution to phase matrix must be included to get the correct answer.
     """
-    dbf = NI_AL_DUPIN_2001_DBF
+    dbf = load_database()
     comps = ['AL', 'NI', 'VA']
     phases = ['BCC_B2']
     eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 1804, v.N: 1, v.X('AL'): 0.4798})
@@ -328,12 +371,14 @@ def test_eq_large_vacancy_hessian():
     assert_allclose(eq.MU.values.flatten(), [-167636.23822714, -142072.78317111])
     assert_allclose(eq.X.sel(vertex=0).values.flatten(), [0.4798, 0.5202])
 
+
 @pytest.mark.solver
-def test_eq_stepsize_reduction():
+@select_database("alni_tough_chempot.tdb")
+def test_eq_stepsize_reduction(load_database):
     """
     Step size reduction required for convergence.
     """
-    dbf = TOUGH_CHEMPOT_DBF
+    dbf = load_database()
     eq = equilibrium(dbf, ['AL', 'NI', 'VA'], list(dbf.phases.keys()),
                      {v.P: 101325, v.T: 780, v.X('NI'): 0.625}, verbose=True)
     assert not np.isnan(np.squeeze(eq.GM.values))
@@ -354,73 +399,95 @@ def test_eq_issue62_last_component_not_va():
     equilibrium(Database(test_tdb), ['AL', 'CO', 'CR', 'W', 'VA'], ['FCC_A1'],
                 {"T": 1248, "P": 101325, v.X("AL"): 0.081, v.X("CR"): 0.020, v.X("W"): 0.094})
 
-def test_eq_avoid_phase_cycling():
+
+@select_database("alfe.tdb")
+def test_eq_avoid_phase_cycling(load_database):
     """
     Converge without getting stuck in an add/remove phase cycle.
     """
+    dbf = load_database()
     # This set of conditions is known to trigger the issue
     my_phases_alfe = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
-    equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], my_phases_alfe, {v.X('AL'): 0.44,
-                                                               v.T: 1600, v.P: 101325}, verbose=True)
+    equilibrium(dbf, ['AL', 'FE', 'VA'], my_phases_alfe, {v.X('AL'): 0.44,
+                                                          v.T: 1600, v.P: 101325}, verbose=True)
+
 
 @pytest.mark.solver
-def test_eq_issue76_dilute_potentials():
+@select_database("alfe.tdb")
+def test_eq_issue76_dilute_potentials(load_database):
     """
     Convergence for two-phase mixtures at dilute composition (gh-76).
     """
+    dbf = load_database()
     my_phases = ['LIQUID', 'FCC_A1']
     Tvector = np.arange(900.0, 950.0, 1.0)
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], my_phases,
+    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], my_phases,
                      {v.X('FE'): 1.5e-3, v.T: Tvector, v.P: 101325}, verbose=True)
     # Spot check at one temperature, plus monotonic decrease of chemical potential
     np.testing.assert_allclose(eq.GM.sel(T=930, P=101325).values, -37799.510894)
     assert np.all(np.diff(eq.MU.sel(component='FE').values <= 0))
 
-def test_eq_model_phase_name():
+
+@select_database("alfe.tdb")
+def test_eq_model_phase_name(load_database):
     """
     Phase name is set in PhaseRecord when using Model-based JIT compilation.
     """
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'LIQUID',
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'LIQUID',
                      {v.X('FE'): 0.3, v.T: 1000, v.P: 101325}, model=Model)
     assert eq.Phase.sel(vertex=0).isel(T=0, P=0, X_FE=0) == 'LIQUID'
 
-def test_unused_equilibrium_kwarg_warns():
+
+@select_database("alfe.tdb")
+def test_unused_equilibrium_kwarg_warns(load_database):
     "Check that an unused keyword argument raises a warning"
+    dbf = load_database()
     with warnings.catch_warnings(record=True) as w:
-        equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, unused_kwarg='should raise a warning')
+        equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, unused_kwarg='should raise a warning')
         assert len(w) >= 1
         categories = [warning.__dict__['_category_name'] for warning in w]
         assert 'UserWarning' in categories
         expected_string_fragment = 'keyword arguments were passed, but unused'
         assert any([expected_string_fragment in str(warning.message) for warning in w])
 
-def test_eq_unary_issue78():
+
+@select_database("alfe.tdb")
+def test_eq_unary_issue78(load_database):
     "Unary equilibrium calculations work with property calculations."
-    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM')
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM')
     np.testing.assert_allclose(eq.SM, 68.143273)
-    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
+    eq = equilibrium(dbf, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
     np.testing.assert_allclose(eq.GM, 1000)
     np.testing.assert_allclose(eq.SM, 0, atol=1e-14)
 
-@pytest.mark.solver
-def test_eq_gas_phase():
-    eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, verbose=True)
-    np.testing.assert_allclose(eq.GM, -110380.61071, atol=0.1)
-    eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e9}, verbose=True)
-    np.testing.assert_allclose(eq.GM, -7.20909E+04, atol=0.1)
 
 @pytest.mark.solver
-def test_eq_ionic_liquid():
-    eq = equilibrium(CUO_DBF, ['CU', 'O', 'VA'], 'IONIC_LIQ', {v.T: 1000, v.P: 1e5, v.X('CU'): 0.6618}, verbose=True)
+@select_database("cuo.tdb")
+def test_eq_gas_phase(load_database):
+    dbf = load_database()
+    eq = equilibrium(dbf, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, verbose=True)
+    np.testing.assert_allclose(eq.GM, -110380.61071, atol=0.1)
+    eq = equilibrium(dbf, ['O'], 'GAS', {v.T: 1000, v.P: 1e9}, verbose=True)
+    np.testing.assert_allclose(eq.GM, -7.20909E+04, atol=0.1)
+
+
+@pytest.mark.solver
+@select_database("cuo.tdb")
+def test_eq_ionic_liquid(load_database):
+    dbf = load_database()
+    eq = equilibrium(dbf, ['CU', 'O', 'VA'], 'IONIC_LIQ', {v.T: 1000, v.P: 1e5, v.X('CU'): 0.6618}, verbose=True)
     np.testing.assert_allclose(eq.GM, -9.25057E+04, atol=0.1)
 
 
-def test_eq_parameter_override():
+@select_database("al_parameter.tdb")
+def test_eq_parameter_override(load_database):
     """
     Check that overriding parameters works in equilibrium().
     """
     comps = ["AL"]
-    dbf = AL_PARAMETER_DBF
+    dbf = load_database()
     phases = ['FCC_A1']
     conds = {v.P: 101325, v.T: 500}
 
@@ -433,12 +500,13 @@ def test_eq_parameter_override():
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
 
-def test_eq_build_callables_with_parameters():
+@select_database("al_parameter.tdb")
+def test_eq_build_callables_with_parameters(load_database):
     """
     Check build_callables() compatibility with the parameters kwarg.
     """
     comps = ["AL"]
-    dbf = AL_PARAMETER_DBF
+    dbf = load_database()
     phases = ['FCC_A1']
     conds = {v.P: 101325, v.T: 500, v.N: 1}
     conds_statevars = get_state_variables(conds=conds)
@@ -458,72 +526,86 @@ def test_eq_build_callables_with_parameters():
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
 
-def test_eq_some_phases_filtered():
+@select_database("alfe.tdb")
+def test_eq_some_phases_filtered(load_database):
     """
     Phases are filtered out from equilibrium() when some cannot be built.
     """
+    dbf = load_database()
     # should not raise; AL13FE4 should be filtered out
-    equilibrium(ALFE_DBF, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], {v.T: 1200, v.P: 101325})
+    equilibrium(dbf, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], {v.T: 1200, v.P: 101325})
 
 
-def test_equilibrium_result_dataset_can_serialize_to_netcdf():
+@select_database("alfe.tdb")
+def test_equilibrium_result_dataset_can_serialize_to_netcdf(load_database):
     """
     The xarray Dataset returned by equilibrium should serializable to a netcdf file.
     """
+    dbf = load_database()
     fname = 'eq_result_netcdf_test.nc'
-    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325})
+    eq = equilibrium(dbf, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325})
     eq.to_netcdf(fname)
     os.remove(fname)  # cleanup
 
 
-def test_equilibrium_raises_with_no_active_phases_passed():
+@select_database("alnifcc4sl.tdb")
+def test_equilibrium_raises_with_no_active_phases_passed(load_database):
     """Passing inactive phases to equilibrium raises a ConditionError."""
     # the only phases passed are the disordered phases, which are inactive
+    dbf = load_database()
     with pytest.raises(ConditionError):
-        equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['FCC_A1', 'BCC_A2'], {v.T: 300, v.P: 101325})
+        equilibrium(dbf, ['AL', 'NI', 'VA'], ['FCC_A1', 'BCC_A2'], {v.T: 300, v.P: 101325})
 
 
-def test_equilibrium_raises_when_no_phases_can_be_active():
+@select_database("alfe.tdb")
+def test_equilibrium_raises_when_no_phases_can_be_active(load_database):
     """Equliibrium raises when the components passed cannot give any active phases"""
     # all phases contain AL and/or FE in a sublattice, so no phases can be active
+    dbf = load_database()
     with pytest.raises(ConditionError):
-        equilibrium(ALFE_DBF, ['VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325})
+        equilibrium(dbf, ['VA'], list(dbf.phases.keys()), {v.T: 300, v.P: 101325})
 
 
 # Defer test until inclusion of NP conditions, so test can be rewritten properly
 # As is, the "correct" test temperature is very sensitive to platform-specific numerical settings
 @pytest.mark.skip("Skip until NP conditions are complete.")
-def test_dataset_can_hold_maximum_phases_allowed_by_gibbs_phase_rule():
+@select_database("pbsn.tdb")
+def test_dataset_can_hold_maximum_phases_allowed_by_gibbs_phase_rule(load_database):
     """Creating datasets from equilibrium results should work when there are the maximum number of phases that can exist by Gibbs phase rule."""
+    dbf = load_database()
     comps = ['PB', 'SN', 'VA']
-    phases = list(PBSN_DBF.phases.keys())
+    phases = list(dbf.phases.keys())
     # "Exact" invariant temperature is very sensitive to solver convergence criteria
-    eq_res = equilibrium(PBSN_DBF, comps, phases, {v.P: 101325, v.T: 454.56201, v.X('SN'): 0.738})
+    eq_res = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 454.56201, v.X('SN'): 0.738})
     assert eq_res.vertex.size == 3  # C+1
     assert np.sum(~np.isnan(eq_res.NP.values)) == 3
     assert np.sum(eq_res.Phase.values != '') == 3
 
 
-def test_equilibrium_raises_with_invalid_solver():
+@select_database("cuo.tdb")
+def test_equilibrium_raises_with_invalid_solver(load_database):
     """
     SolverBase instances passed to equilibrium should raise an error.
     """
+    dbf = load_database()
     with pytest.raises(NotImplementedError):
-        equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())
+        equilibrium(dbf, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())
 
 
-def test_equilibrium_no_opt_solver():
+@select_database("pbsn.tdb")
+def test_equilibrium_no_opt_solver(load_database):
     """Passing in a solver with `ignore_convergence = True` gives a result."""
 
     class NoOptSolver(Solver):
         ignore_convergence = True
 
+    dbf = load_database()
     comps = ['PB', 'SN', 'VA']
-    phases = list(PBSN_DBF.phases.keys())
+    phases = list(dbf.phases.keys())
     conds = {v.T: 300, v.P: 101325, v.X('SN'): 0.50}
-    ipopt_solver_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=Solver(), verbose=True)
+    ipopt_solver_eq_res = equilibrium(dbf, comps, phases, conds, solver=Solver(), verbose=True)
     # NoOptSolver's results are pdens-dependent
-    no_opt_eq_res = equilibrium(PBSN_DBF, comps, phases, conds,
+    no_opt_eq_res = equilibrium(dbf, comps, phases, conds,
                                 solver=NoOptSolver(), calc_opts={'pdens': 50}, verbose=True)
 
     ipopt_GM = ipopt_solver_eq_res.GM.values.squeeze()
@@ -557,11 +639,13 @@ def test_eq_ideal_chempot_cond():
 
 
 @pytest.mark.solver
-def test_eq_tricky_chempot_cond():
+@select_database("issue43.tdb")
+def test_eq_tricky_chempot_cond(load_database):
     """
     Chemical potential condition with difficult convergence for chemical potentials.
     """
-    eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
+    dbf = load_database()
+    eq = equilibrium(dbf, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
                      {v.MU('AL'): -135620.9960449, v.MU('CR'): -47269.29002414, v.T: 1273, v.P: 101325},
                      verbose=True)
     chempots = np.array([-135620.9960449, -47269.29002414, -92304.23688281])
@@ -570,37 +654,44 @@ def test_eq_tricky_chempot_cond():
     assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.19624727,  0.38996739,  0.41378534])
     assert_allclose(np.squeeze(eq.MU.values), chempots)
 
+
 @pytest.mark.solver
-def test_eq_magnetic_chempot_cond():
+@select_database("alfe.tdb")
+def test_eq_magnetic_chempot_cond(load_database):
     """
     Chemical potential condition with an ill-conditioned Hessian due to magnetism (Tc->0).
     This is difficult to reproduce so we only include some known examples here.
     """
+    dbf = load_database()
     # This set of conditions is known to trigger the issue
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
+    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
                      {v.MU('FE'): -123110, v.T: 300, v.P: 1e5}, verbose=True)
     # Checked in Thermo-Calc 2017b
     assert_allclose(np.squeeze(eq.GM.values), -35427.064, atol=0.1)
     assert_allclose(np.squeeze(eq.MU.values), [-8490.6849, -123110], atol=0.1)
 
-def test_eq_calculation_with_parameters():
+
+@select_database("cumg_parameters.tdb")
+def test_eq_calculation_with_parameters(load_database):
+    dbf = load_database()
     parameters = {'VV0000': -33134.699474175846, 'VV0001': 7734.114029426941, 'VV0002': -13498.542175596054,
                   'VV0003': -26555.048975092268, 'VV0004': 20777.637577083482, 'VV0005': 41915.70425630003,
                   'VV0006': -34525.21964215504, 'VV0007': 95457.14639216446, 'VV0008': 21139.578967453144,
                   'VV0009': 19047.833726419598, 'VV0010': 20468.91829601273, 'VV0011': 19601.617855958328,
                   'VV0012': -4546.9325861738, 'VV0013': -1640.6354331231278, 'VV0014': -35682.950005357634}
-    eq = equilibrium(CUMG_PARAMETERS_DBF, ['CU', 'MG'], ['HCP_A3'],
+    eq = equilibrium(dbf, ['CU', 'MG'], ['HCP_A3'],
                      {v.X('CU'): 0.0001052, v.P: 101325.0, v.T: 743.15, v.N: 1},
                      parameters=parameters, verbose=True)
     assert_allclose(eq.GM.values, -30374.196034, atol=0.1)
 
 
 @pytest.mark.solver
-def test_eq_alni_low_temp():
+@select_database("alni_dupin_2001.tdb")
+def test_eq_alni_low_temp(load_database):
     """
     Low temperature Al-Ni keeps correct stable set at equilibrium.
     """
-    dbf = NI_AL_DUPIN_2001_DBF
+    dbf = load_database()
     comps = ['AL', 'NI', 'VA']
     phases = sorted(dbf.phases.keys())
     eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 300, v.N: 1, v.X('AL'): 0.4})
@@ -615,11 +706,12 @@ def test_eq_alni_low_temp():
 
 
 @pytest.mark.solver
-def test_eq_alni_high_temp():
+@select_database("alni_dupin_2001.tdb")
+def test_eq_alni_high_temp(load_database):
     """
     Avoid 'jitter' in high-temperature phase equilibria with dilute site fractions.
     """
-    dbf = NI_AL_DUPIN_2001_DBF
+    dbf = load_database()
     comps = ['AL', 'NI', 'VA']
     phases = sorted(dbf.phases.keys())
     eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 1600, v.N: 1, v.X('AL'): 0.65})
@@ -635,11 +727,12 @@ def test_eq_alni_high_temp():
 
 
 @pytest.mark.solver
-def test_eq_issue259():
+@select_database("alfe.tdb")
+def test_eq_issue259(load_database):
     """
     Chemical potential condition for phase with internal degrees of freedom.
     """
-    dbf = ALFE_DBF
+    dbf = load_database()
     comps = ['AL', 'FE', 'VA']
     eq = equilibrium(dbf, comps, ['B2_BCC'], {v.P: 101325, v.N: 1, v.T: 1013, v.MU('AL'): -95906})
     assert_allclose(eq.GM.values, -65786.260)
@@ -904,9 +997,10 @@ def test_MQMQA_ternary_equilibrium_xs_symm_123(load_database):
     assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25023, 0.19915, 0.30039, 4.0755E-02, 0.11934, 9.0136E-02], atol=1e-5)  # Thermochimica result
 
 @pytest.mark.solver
-def test_eq_charge_halite():
+@select_database("alfeo.tdb")
+def test_eq_charge_halite(load_database):
     """Halite (with charged species) is correctly calculated and charged balanced in equilibrium"""
-    alfeo = ALFEO_DBF
+    alfeo = load_database()
     comps = ['FE', 'AL', 'O', 'VA']
     phases = ['HALITE']
     conds = {v.P: 101325, v.N: 1, v.T: 500, v.X('FE'): 0.2, v.MU('O'): -200000}
@@ -915,9 +1009,10 @@ def test_eq_charge_halite():
 
 
 @pytest.mark.solver
-def test_eq_charge_alfeo():
+@select_database("alfeo.tdb")
+def test_eq_charge_alfeo(load_database):
     """Phases with charged species are correctly calculated and charged balanced in equilibrium"""
-    alfeo = ALFEO_DBF
+    alfeo = load_database()
     comps = ['AL', 'FE', 'O', 'VA']
     phases = list(alfeo.phases.keys())
     conds = {v.P: 101325, v.N: 1, v.T: 500, v.X('FE'): 0.2, v.X('O'): 0.6}
@@ -928,14 +1023,16 @@ def test_eq_charge_alfeo():
 
 
 @pytest.mark.solver
-def test_eq_charge_ndzro():
+@select_database("al2o3_nd2o3_zro2.tdb")
+def test_eq_charge_ndzro(load_database):
     """Nd-Zr-O system (with charged species) are correctly calculated and charged balanced in equilibrium"""
+    dbf = load_database()
     comps = ['ND', 'ZR', 'O', 'VA']
     phases = ['ND2O3_A', 'PYRO']
     conds = {v.P: 101325, v.N: 1, v.T: 1400, v.X('ND'): 0.25, v.X('O'): 0.625}
     # Higher point density is required for convergence. Lower point densities
     # Can result in either no phases, or only FLUO phase (incorrect)
-    res = equilibrium(AL2O3_ND2O3_ZRO2_DBF, comps, phases, conds, verbose=True)
+    res = equilibrium(dbf, comps, phases, conds, verbose=True)
     # Values below checked with Thermo-Calc
     assert np.isclose(-432325.423784, res.GM.values.squeeze())
     assert np.all(res.Phase.values.squeeze() == np.array(['ND2O3_A', 'PYRO', '', '']))

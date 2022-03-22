@@ -2,7 +2,6 @@ from importlib_resources import files
 import pytest
 import pycalphad.tests.databases
 from pycalphad.io.database import Database
-from copy import deepcopy
 
 @pytest.fixture(scope="session")
 def load_database(request):
@@ -12,7 +11,7 @@ def load_database(request):
     """
     db = Database(str(files(pycalphad.tests.databases).joinpath(request.param)))
     def _load_database():
-        return deepcopy(db)
+        return db
     return _load_database
 
 
