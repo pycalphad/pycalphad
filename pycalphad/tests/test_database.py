@@ -823,4 +823,4 @@ def test_tc_printer_exp():
     "TCPrinter prints the exponential function when the argument is not an integer."
     test_expr = S('exp(-300T**(-1))')
     result = TCPrinter()._stringify_expr(test_expr)
-    assert result == 'exp(-300*T**(-1))'
+    assert result == 'exp(-300 * T**(-1))'

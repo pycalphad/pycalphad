@@ -462,7 +462,7 @@ class TCPrinter(object):
         elif isinstance(expr, Mul):
             terms = self._stringify_expr(expr.args[0])
             for arg in expr.args[1:]:
-                terms += '*' + self._stringify_expr(arg)
+                terms += ' * ' + self._stringify_expr(arg)
             return terms
         elif isinstance(expr, Pow):
             if expr.args[0] == E:
