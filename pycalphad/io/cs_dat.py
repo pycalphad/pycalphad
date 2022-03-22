@@ -825,7 +825,20 @@ def parse_endmember(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, is_s
     if toks[0] == '#':
         # special case for stoichiometric phases, this is a dummy species, skip it
         _ = toks.parse(str)
-    gibbs_eq_type = toks.parse(int)
+    try:
+        gibbs_eq_type = toks.parse(int)
+    except TokenParserError:
+        # There may be two floats that come after the species name on the same
+        # line. The meaning is not yet clear, but they are often zero. If they
+        # are zero, we will throw them away. This drops into some private APIs
+        # for TokenParser until there's another way to handle these values.
+        f1 = toks.parse(float)
+        if f1 != 0.0:
+            raise TokenParserError(f"Non-zero values are not yet supported after species {species_name}. Got {f1} at line number {toks._line_number + 1} for line:\n    {toks._current_line}")
+        f2 = toks.parse(float)
+        if f2 != 0.0:
+            raise TokenParserError(f"Non-zero values are not yet supported after species {species_name}. Got {f2} at line number {toks._line_number + 1} for line:\n    {toks._current_line}")
+        gibbs_eq_type = toks.parse(int)
     # Determine how to parse the type of thermodynamic option
     has_magnetic = gibbs_eq_type > 12
     gibbs_eq_type_reduced = (gibbs_eq_type - 12) if has_magnetic else gibbs_eq_type
