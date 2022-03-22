@@ -35,15 +35,48 @@ def _parse_species_postfix_charge(formula) -> v.Species:
     constituents = dict(parse_chemical_formula(formula)[0])
     return v.Species(name, constituents=constituents, charge=charge)
 
+class TokenParserError(Exception):
+    """Exception raised when the TokenParser hits a parsing error."""
+    pass
 
-class TokenParser(deque):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.token_index = 0
+class TokenParser():
+    def __init__(self, string):
+        self._line_number = 1  # user facing, so make it one-indexed
+        self._lines_deque = deque(string.split("\n"))
+        self._current_line = self._lines_deque.popleft()
+        self._tokens_deque = deque(self._current_line.split())
+    
+    def __getitem__(self, i: int):
+        # Instantiate a new TokenParser for the current state so we can look ahead without messing up our line numbers
+        lines = "\n".join(deque([" ".join(self._tokens_deque)]) + self._lines_deque)
+        tmp_parser = TokenParser(lines)
+        if i > 0:
+            for _ in range(i - 1):
+                token = tmp_parser._next()
+        return tmp_parser._next()
+
+    def _next(self):
+        try:
+            token = self._tokens_deque.popleft()
+        except IndexError as e:
+            # If we're out of tokens, get the next line and try to grab a token again
+            self._current_line = self._lines_deque.popleft()
+            self._line_number += 1
+            self._tokens_deque.extend(self._current_line.split())
+            # call next instead of popleft() on the deque in case self._current_line has no tokens
+            token = self._next()
+        return token
 
     def parse(self, cls: type):
-        self.token_index += 1
-        return cls(self.popleft())
+        next_token = self._next()
+        try:
+            obj = cls(next_token)
+        except ValueError as e:
+            # Return the token and re-raise with a ParseError 
+            self._tokens_deque.appendleft(next_token)
+            raise TokenParserError(f"Error at line number {self._line_number + 1}: {e.args} for line:\n    {self._current_line}") from e
+        else:
+            return obj
 
     def parseN(self, N: int, cls: type):
         if N < 1:
@@ -616,7 +649,7 @@ def _process_chemical_group_override_string(s):
     >>> assert overrides['non_mixing_element_index'] == 5
 
     """
-    override_tokens = TokenParser(s.upper().replace("K", " K").replace("T", " T ").split())
+    override_tokens = TokenParser(s.upper().replace("K", " K").replace("T", " T "))
     override_dict = {}
     ternary_element_indices = override_tokens.parseN(3, int)
     override_dict["ternary_element_indices"] = ternary_element_indices
@@ -735,9 +768,9 @@ class Phase_Aqueous(PhaseBase):
 
 def tokenize(instring, startline=0, force_upper=False):
     if force_upper:
-        return TokenParser('\n'.join(instring.upper().splitlines()[startline:]).split())
+        return TokenParser('\n'.join(instring.upper().splitlines()[startline:]))
     else:
-        return TokenParser('\n'.join(instring.splitlines()[startline:]).split())
+        return TokenParser('\n'.join(instring.splitlines()[startline:]))
 
 
 def parse_header(toks: TokenParser) -> Header:
@@ -1091,12 +1124,10 @@ def parse_cs_dat(instring):
     # num_const = 0 is gas phase that isn't present, so skip it
     solution_phases = [parse_phase(toks, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs, num_const) for num_const in header.list_soln_species_count if num_const != 0]
     stoichiometric_phases = [parse_stoich_phase(toks, num_pure_elements, num_gibbs_coeffs) for _ in range(header.num_stoich_phases)]
-    # Comment block at the end surrounded by "#####..." tokens
-    # This might be a convention rather than required, but is an easy enough check to change.
-    if len(toks) > 0:
-        assert toks[0].startswith('#')
-        assert toks[-1].startswith('#')
-    return header, solution_phases, stoichiometric_phases, toks
+    # By convention there are sometimes comments at the end that we ignore.
+    # Any remaining lines after the number of prescribed phases and
+    # stoichiometric compounds are not parsed.
+    return header, solution_phases, stoichiometric_phases
 
 
 def read_cs_dat(dbf: Database, fd):
@@ -1110,7 +1141,7 @@ def read_cs_dat(dbf: Database, fd):
     fd : file-like
         File descriptor.
     """
-    header, solution_phases, stoichiometric_phases, remaining_tokens = parse_cs_dat(fd.read().upper())
+    header, solution_phases, stoichiometric_phases = parse_cs_dat(fd.read().upper())
     # add elements and their reference states
     for el, mass in zip(header.pure_elements, header.pure_elements_mass):
         if 'E(' not in str(el):
