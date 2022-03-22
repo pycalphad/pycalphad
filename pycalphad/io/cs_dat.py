@@ -214,7 +214,7 @@ class EndmemberQKTO(Endmember):
         # Most databases in the wild use stoichiometric factors of unity,
         # so we're avoiding the complexity of non-unity factors for now.
         if not np.isclose(self.stoichiometric_factor, 1.0):
-            raise ValueError(f"QKTO endmembers with stoichiometric factors other than 1 are not yet supported. Got {self.stoichiometric_factor} for {self}")
+            raise ValueError(f"QKTO endmembers with stoichiometric factors other than 1 are not yet supported. For {phase_name}: got {self.stoichiometric_factor} for {self}")
 
 
 @dataclass
