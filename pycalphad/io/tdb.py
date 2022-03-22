@@ -10,7 +10,7 @@ from pyparsing import delimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
-from symengine import Symbol, LessThan, StrictLessThan, S
+from symengine import Symbol, LessThan, StrictLessThan, S, E
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
 from pycalphad.io.grammar import float_number, chemical_formula
@@ -462,17 +462,17 @@ class TCPrinter(object):
         elif isinstance(expr, Mul):
             terms = self._stringify_expr(expr.args[0])
             for arg in expr.args[1:]:
-                terms += '*' + self._stringify_expr(arg)
+                terms += ' * ' + self._stringify_expr(arg)
             return terms
         elif isinstance(expr, Pow):
-            if int(expr.args[1]) != float(expr.args[1]):
-                raise ValueError('Exponent must be integer to be TDB compatible')
-            exponent = int(expr.args[1])
-            if exponent < 0:
-                exponent = '('+str(exponent)+')'
+            if expr.args[0] == E:
+                # This is the exponential function
+                terms = 'exp(' + self._stringify_expr(expr.args[1]) + ')'
             else:
-                exponent = str(exponent)
-            terms = self._stringify_expr(expr.args[0]) + '**' + exponent
+                argument = self._stringify_expr(expr.args[0])
+                if isinstance(expr.args[0], (Add, Mul)):
+                    argument = '( ' + argument + ' )'
+                terms = argument + '**' + '(' + self._stringify_expr(expr.args[1]) + ')'
             return terms
         else:
             return str(expr)
