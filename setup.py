@@ -30,14 +30,15 @@ setup(
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     # Do NOT include pycalphad._dev here. It is for local development and should not be distributed.
-    packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests'],
+    packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests', 'pycalphad.tests.databases', 'pycalphad.models'],
     ext_modules=cythonize(
         CYTHON_EXTENSION_MODULES,
         include_path=CYTHON_EXTENSION_INCLUDES,
         compiler_directives=CYTHON_COMPILER_DIRECTIVES,
     ),
     package_data={
-        'pycalphad/core': ['*.pxd'],
+        'pycalphad.core': ['*.pxd'],
+        'pycalphad.tests.databases': ['*'],
     },
     # This include is for the compiler to find the *.h files during the build_ext phase
     # the include must contain a symengine directory with header files
@@ -54,6 +55,7 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
+        'importlib_resources',  # drop when pycalphad drops support for Python<3.9
         'matplotlib>=3.3',
         'numpy>=1.13',
         'pyparsing>=2.4',

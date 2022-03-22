@@ -18,6 +18,41 @@ from collections import OrderedDict
 _MAX_PARAM_NESTING = 32
 
 
+def _toop_filter(chemical_group_dict, symmetric_species, asymmetric_species):
+    """
+    Return a function ``f(m)`` that returns ``True`` if m is symmetric with
+    the symmetric_species and asymmetric with the asymmetric_species.
+
+    I.e. returns True if "j" is the asymmetric (Toop-like) species in the i-j-m ternary
+    """
+    def _f(species):
+        if species == symmetric_species:
+            return False
+        elif species == asymmetric_species:
+            return False
+        elif chemical_group_dict[species] == chemical_group_dict[symmetric_species] and chemical_group_dict[species] != chemical_group_dict[asymmetric_species]:
+            return True  # This chemical group should be mixed
+        else:
+            return False
+    return _f
+
+
+def _kohler_filter(chemical_group_dict, symmetric_species_1, symmetric_species_2):
+    """
+    Return a function ``f(m)`` that returns ``True`` if m is symmetric with
+    the symmetric_species_1 and with symmetric_species_2.
+    """
+    def _f(species):
+        if species == symmetric_species_1:
+            return False
+        elif species == symmetric_species_2:
+            return False
+        elif chemical_group_dict[species] == chemical_group_dict[symmetric_species_1] and chemical_group_dict[species] == chemical_group_dict[symmetric_species_2]:
+            return True  # This chemical group should be mixed
+        else:
+            return False
+    return _f
+
 class ReferenceState():
     """
     Define the phase and any fixed state variables as a reference state for a component.
@@ -118,6 +153,24 @@ class Model(object):
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
                      ('ord', 'atomic_ordering_energy')]
+
+    def __new__(cls, *args, **kwargs):
+        target_cls = cls._dispatch_on(*args, **kwargs)
+        instance = object.__new__(target_cls)
+        return instance
+
+    @classmethod
+    def _dispatch_on(cls, dbe, comps, phase_name, parameters=None):
+        phase = dbe.phases[phase_name.upper()]
+        target_cls = cls
+        if 'mqmqa' in phase.model_hints.keys():
+            from pycalphad.models.model_mqmqa import ModelMQMQA
+            target_cls = ModelMQMQA
+        return target_cls
+
+    def __getnewargs_ex__(self):
+        return ((self._dbe, self.components, self.phase_name,), {'parameters': self._parameters_arg})
+
     def __init__(self, dbe, comps, phase_name, parameters=None):
         self._dbe = dbe
         self._endmember_reference_model = None
@@ -506,6 +559,92 @@ class Model(object):
             return_dict[comp] = comp + correction_term
         return return_dict
 
+    def _Xi_ij(self, phase, sublattice_index, i, j):
+        # Species of the same chemical group may use a Kohler-type or
+        # Muggianu-type approximation (the choice does not affect this function).
+        # Species of different chemical groups use a Toop-type approximation.
+        toop_filter = _toop_filter(phase.model_hints['chemical_groups'], i, j)
+        toop_correction = S.Zero
+        active_subl_comps = phase.constituents[sublattice_index].intersection(self.components)
+        for k in filter(toop_filter, active_subl_comps):
+            toop_correction += v.Y(self.phase_name, sublattice_index, k)
+        return v.Y(self.phase_name, sublattice_index, i) + toop_correction
+
+    def _sigma_ij(self, phase, sublattice_index, i, j):
+        # Compute the correction for Kohler-type approximation between species i and j
+        # We don't yet have a way to flag whether the ij interaction, if the
+        # species are of the same chemical group (they are "symmetric", by
+        # Pelton) uses a Kohler-type or Muggianu-type approximation. Since
+        # there exists the _Muggianu_correction_dict already, we assume that
+        # callers of this function are only interested in a Kohler-type
+        # approximation for species of the same type. Species of different
+        # chemical groups use a Toop-type approximation.
+        kohler_filter = _kohler_filter(phase.model_hints['chemical_groups'], i, j)
+        kohler_correction = S.Zero
+        active_subl_comps = phase.constituents[sublattice_index].intersection(self.components)
+        for k in filter(kohler_filter, active_subl_comps):
+            kohler_correction += v.Y(self.phase_name, sublattice_index, k)
+        return 1 -  kohler_correction
+
+    def _alpha_ij_Q(self, phase, sublattice_index, i, j, q_ij, exp_i, exp_j):
+        Xi_ij = self._Xi_ij(phase, sublattice_index, i, j)
+        Xi_ji = self._Xi_ij(phase, sublattice_index, j, i)
+        sigma_ij = self._sigma_ij(phase, sublattice_index, i, j) # same for both
+        i_term = (1 + (Xi_ij - Xi_ji) / sigma_ij) / 2
+        j_term = (1 + (Xi_ji - Xi_ij) / sigma_ij) / 2
+        return q_ij * i_term**exp_i * j_term**exp_j
+
+    def _alpha_ij_L(self, phase, sublattice_index, i, j, L_ij, parameter_order):
+        # Use the parameter-sorted order for i and j, noting that L_{ij} != L_{ji} for odd-ordered terms.
+        Xi_ij = self._Xi_ij(phase, sublattice_index, i, j)
+        Xi_ji = self._Xi_ij(phase, sublattice_index, j, i)
+        sigma_ij = self._sigma_ij(phase, sublattice_index, i, j)
+        mixing_term = (Xi_ij - Xi_ji) / sigma_ij
+        return L_ij * mixing_term**parameter_order
+
+    def kohler_toop_excess_sum(self, dbe):
+        phase = dbe.phases[self.phase_name]
+        param_query = (
+            (where("phase_name") == phase.name) &
+            (where("parameter_type") == "QKT") &
+            (where('constituent_array').test(self._array_validity))
+        )
+        param_search = dbe.search
+
+        params = param_search(param_query)
+        kohler_toop_xs = S.Zero
+        for param in params:
+            mixing_term = S.One
+            for subl_idx, subl_comps in enumerate(param["constituent_array"]):
+                mixing_term *= Mul(*[v.SiteFraction(phase.name, subl_idx, comp) for comp in subl_comps])
+                if len(subl_comps) == 2:
+                    # Note: The structure of exponents (a `List[int]`) currently assumes only one sublattice has mixing
+                    assert len(subl_comps) == len(param["exponents"])
+                    i, j = subl_comps
+                    p, q = param["exponents"]
+                    alpha_ij_Q = self._alpha_ij_Q(phase, subl_idx, i, j, param["parameter"], p, q)
+                    mixing_term *= alpha_ij_Q
+                elif len(subl_comps) == 3:
+                    # Pelton's 2001 paper lays out several different flavors of
+                    # ternary parameters, but the simple flavor of ternary
+                    # parameters (Pelton 2001 Eq. 17) seems to be used in the
+                    # Quasichemical Kohler-Toop model implemented in DAT files.
+                    # Note: The structure of exponents (a `List[int]`) currently assumes only one sublattice has mixing
+                    exponents = param["exponents"]
+                    assert len(subl_comps) == len(exponents)
+                    mixing_term *= Mul(*[v.SiteFraction(phase.name, subl_idx, comp)**expn for comp, expn in zip(subl_comps, exponents)])
+                    # Note, the following normalization is not in the paper
+                    # either, but the equation in the paper clearly states that
+                    # this type of "simple" ternary is discouraged and doesn't
+                    # talk about how to extrapolate into multi-component.
+                    mixing_term /= Add(*[v.SiteFraction(phase.name, subl_idx, comp) for comp in subl_comps])**(sum(exponents))
+                    mixing_term *= param["parameter"]
+                else:
+                    raise ValueError(f"Unsupported number of components are mixing, got {len(subl_comps)} ({subl_comps}), expected 2 or 3.")
+            kohler_toop_xs += mixing_term
+        return kohler_toop_xs
+
+
     def redlich_kister_sum(self, phase, param_search, param_query):
         """
         Construct parameter in Redlich-Kister polynomial basis, using
@@ -704,6 +843,7 @@ class Model(object):
                 (where('constituent_array').test(self._interaction_test))
             )
         excess_term = self.redlich_kister_sum(phase, param_search, param_query)
+        excess_term += self.kohler_toop_excess_sum(dbe)
         return excess_term / self._site_ratio_normalization
 
     def magnetic_energy(self, dbe):

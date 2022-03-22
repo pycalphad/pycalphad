@@ -166,7 +166,7 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     # replacement is assumed to be cheap enough that it's safer to replace the
     # complex values and pay the minor time penalty.
     inp = sympify(variables + parameters)
-    graph = sympify([f.xreplace({zoo: oo}) for f in constraints])
+    graph = sympify([sympify(f).xreplace({zoo: oo}) for f in constraints])
     constraint_func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
 
     grad_graphs = list(list(c.diff(w).xreplace({zoo: oo}) for w in wrt) for c in graph)

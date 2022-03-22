@@ -374,9 +374,11 @@ class Database(object): #pylint: disable=R0902
         None yet.
         """
         self._structure_dict[local_name] = global_name
-    def add_parameter(self, param_type, phase_name, #pylint: disable=R0913
-                      constituent_array, param_order,
-                      param, ref=None, diffusing_species=None, force_insert=True):
+
+    def add_parameter(
+        self, param_type, phase_name, constituent_array, param_order, param, ref=None,
+        diffusing_species=None, force_insert=True, **kwargs,
+        ):
         """
         Add a parameter.
 
@@ -398,6 +400,8 @@ class Database(object): #pylint: disable=R0902
             (If kinetic parameter) Diffusing species for this parameter.
         force_insert : bool, optional
             If True, inserts into the database immediately. False is a delayed insert (for performance).
+        kwargs : Any
+            Additional metadata to insert into the parameter dictionary
 
         Examples
         --------
@@ -413,6 +417,7 @@ class Database(object): #pylint: disable=R0902
             'diffusing_species': Species(diffusing_species),
             'reference': ref
         }
+        new_parameter.update(kwargs)
         if force_insert:
             self._parameters.insert(new_parameter)
         else:
@@ -491,4 +496,3 @@ class Database(object): #pylint: disable=R0902
         result = self._parameters.insert_multiple(self._parameter_queue)
         self._parameter_queue = []
         return result
-
