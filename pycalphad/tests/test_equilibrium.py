@@ -13,7 +13,6 @@ from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError,
 from pycalphad.codegen.callables import build_callables, build_phase_records
 from pycalphad.core.solver import SolverBase, Solver
 from pycalphad.core.utils import get_state_variables, instantiate_models
-from pycalphad.models.model_mqmqa import ModelMQMQA
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 from pycalphad.tests.fixtures import load_database, select_database
@@ -708,9 +707,8 @@ def test_eq_associate():
 def test_MQMQA_energy_K_F_NI(load_database):
     dbf = load_database()
     comps = ['K', 'F', 'NI']
-    model = {'LIQUID2': ModelMQMQA}
     pts = np.asarray([[0.16011913, 0.62837421, 0.21150666]])
-    calc_res = calculate(dbf, comps, 'LIQUID2', T=1450, N=1, P=101325, points=pts, model=model)
+    calc_res = calculate(dbf, comps, 'LIQUID2', T=1450, N=1, P=101325, points=pts)
     assert np.isclose(calc_res.GM.values.squeeze(), -332679.167, 1e-5)
     assert np.all(np.isclose(calc_res.X.values.squeeze(), [0.58334, 0.250, 0.16667], 1e-3))
 
@@ -720,8 +718,7 @@ def test_MQMQA_equilibrium_K_F_NI(load_database):
     comps = ['K', 'F', 'NI']  # other pure element component names that you want
     phases = ['F2(G)', 'KF_S1(S)', 'NIF2_S1(S)', 'NIK2F4_S1(S)', 'LIQUID2', 'NIKF3_S1(S)']
     conds = {v.N: 1, v.P: 101325, v.T: 1450, v.X('NI'): 0.16667, v.X('F'): 0.58334}
-    model = {'LIQUID2': ModelMQMQA}
-    eq = equilibrium(dbf , comps, phases, conds, model=model)
+    eq = equilibrium(dbf , comps, phases, conds)
     print(eq.Phase.values.squeeze())
     print(eq.NP.values.squeeze())
     print("Y", eq.Y.values.squeeze())
@@ -736,7 +733,7 @@ def test_MQMQA_equilibrium_K_F_NI(load_database):
 def test_MQMQA_equilibrium_ideal(load_database):
     dbf_0 = load_database()
     comps = ['CU', 'NI', 'VA']
-    eq = equilibrium(dbf_0, comps, ['IDEALLIQUID'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'IDEALLIQUID': ModelMQMQA})
+    eq = equilibrium(dbf_0, comps, ['IDEALLIQUID'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
     assert np.isclose(eq.GM.values.squeeze(), -2.07631E+04)  # Thermochimica result
     assert np.all(eq.Phase.squeeze() == ['IDEALLIQUID', '', ''])
     assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25, 0.5, 0.25])  # Thermochimica result
@@ -747,7 +744,7 @@ def test_MQMQA_equilibrium_mixed_quad_energy(load_database):
     """Assign a quadruplet energy"""
     dbf_1 = load_database()
     comps = ['CU', 'NI', 'VA']
-    eq = equilibrium(dbf_1, comps, ['L_SUBG_0'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'L_SUBG_0': ModelMQMQA})
+    eq = equilibrium(dbf_1, comps, ['L_SUBG_0'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -761,7 +758,7 @@ def test_MQMQA_equilibrium_binary_G_mixing(load_database):
     """Binary mixing with mixing code `G`"""
     dbf_2 = load_database()
     comps = ['CU', 'NI', 'VA']
-    eq = equilibrium(dbf_2, comps, ['L_SUBG_1'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'L_SUBG_1': ModelMQMQA})
+    eq = equilibrium(dbf_2, comps, ['L_SUBG_1'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -775,7 +772,7 @@ def test_MQMQA_equilibrium_binary_Q_mixing(load_database):
     """Binary mixing with mixing code `Q`"""
     dbf_3 = load_database()
     comps = ['CU', 'NI', 'VA']
-    eq = equilibrium(dbf_3, comps, ['L_SUBG_2'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'L_SUBG_2': ModelMQMQA})
+    eq = equilibrium(dbf_3, comps, ['L_SUBG_2'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -788,7 +785,7 @@ def test_MQMQA_equilibrium_multiple_binary_excess_terms(load_database):
     """Multiple excess terms"""
     dbf = load_database()
     comps = ['CU', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['MULTI_XS_0'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'MULTI_XS_0': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['MULTI_XS_0'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -802,7 +799,7 @@ def test_MQMQA_equilibrium_multiple_binary_excess_terms_25(load_database):
     """Multiple excess terms"""
     dbf = load_database()
     comps = ['CU', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['MULTI_XS_0'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.25}, model={'MULTI_XS_0': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['MULTI_XS_0'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.25})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -815,7 +812,7 @@ def test_MQMQA_equilibrium_binary_excess_different_chemical_groups(load_database
     """Binary excess terms with different chemical groups"""
     dbf = load_database()
     comps = ['CU', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['XS_DIFF_CG'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'XS_DIFF_CG': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['XS_DIFF_CG'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -828,7 +825,7 @@ def test_MQMQA_equilibrium_binary_excess_same_chemical_groups(load_database):
     """Binary excess terms with the same chemical group"""
     dbf = load_database()
     comps = ['CU', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['XS_SAME_CG'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5}, model={'XS_SAME_CG': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['XS_SAME_CG'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -842,7 +839,7 @@ def test_MQMQA_ternary_equilibrium_ideal(load_database):
     """Ternary ideal"""
     dbf = load_database()
     comps = ['CU', 'MG', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['TERN_IDEAL'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3}, model={'TERN_IDEAL': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['TERN_IDEAL'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -856,7 +853,7 @@ def test_MQMQA_ternary_equilibrium_xs_symm_111(load_database):
     """Ternary with all the same chemical groups (1, 1, and 1)"""
     dbf = load_database()
     comps = ['CU', 'MG', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['TERN_XS_111'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3}, model={'TERN_XS_111': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['TERN_XS_111'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -870,7 +867,7 @@ def test_MQMQA_ternary_equilibrium_xs_symm_121(load_database):
     """Ternary with all the same chemical groups (1, 2, and 1)"""
     dbf = load_database()
     comps = ['CU', 'MG', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['TERN_XS_121'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3}, model={'TERN_XS_121': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['TERN_XS_121'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -884,7 +881,7 @@ def test_MQMQA_ternary_equilibrium_xs_symm_122(load_database):
     """Ternary with all the same chemical groups (1, 2, and 2)"""
     dbf = load_database()
     comps = ['CU', 'MG', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['TERN_XS_122'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3}, model={'TERN_XS_122': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['TERN_XS_122'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
@@ -898,7 +895,7 @@ def test_MQMQA_ternary_equilibrium_xs_symm_123(load_database):
     """Ternary with all the same chemical groups (1, 2, and 3). Note that the results is the same as the (111) case."""
     dbf = load_database()
     comps = ['CU', 'MG', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['TERN_XS_123'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3}, model={'TERN_XS_123': ModelMQMQA})
+    eq = equilibrium(dbf, comps, ['TERN_XS_123'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())

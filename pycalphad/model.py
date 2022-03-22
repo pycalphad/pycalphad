@@ -153,6 +153,24 @@ class Model(object):
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
                      ('ord', 'atomic_ordering_energy')]
+
+    def __new__(cls, *args, **kwargs):
+        target_cls = cls._dispatch_on(*args, **kwargs)
+        instance = object.__new__(target_cls)
+        return instance
+
+    @classmethod
+    def _dispatch_on(cls, dbe, comps, phase_name, parameters=None):
+        phase = dbe.phases[phase_name.upper()]
+        target_cls = cls
+        if 'mqmqa' in phase.model_hints.keys():
+            from pycalphad.models.model_mqmqa import ModelMQMQA
+            target_cls = ModelMQMQA
+        return target_cls
+
+    def __getnewargs_ex__(self):
+        return ((self._dbe, self.components, self.phase_name,), {'parameters': self._parameters_arg})
+
     def __init__(self, dbe, comps, phase_name, parameters=None):
         self._dbe = dbe
         self._endmember_reference_model = None
