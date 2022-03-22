@@ -600,6 +600,47 @@ def _species(el_chg):
     return v.Species(name, constituents=constituents, charge=chg)
 
 
+def _process_chemical_group_override_string(s):
+    """
+    Parse strings for special MQMQA (SUBG/SUBQ) parameters that indicate Kohler/Toop
+    mixing special cases that are not expressed in the specified chemical groups
+    ("chemical group overrides").
+
+    Examples
+    --------
+    >>> overrides = _process_chemical_group_override_string('3 1 4T3 3 1K 3 4T4 1 4 5')
+    >>> assert overrides['ternary_element_indices'] == [3, 1, 4]
+    >>> assert [bx['interaction_type'] for bx in overrides['binary_interactions']] == ['T', 'K', 'T']
+    >>> assert [bx.get('toop_element_index') for bx in overrides['binary_interactions']] == [3, None, 4]
+    >>> assert [bx['interacting_element_indices'] for bx in overrides['binary_interactions']] == [[3, 1], [3, 4], [1, 4]]
+    >>> assert overrides['non_mixing_element_index'] == 5
+
+    """
+    override_tokens = TokenParser(s.upper().replace("K", " K").replace("T", " T ").split())
+    override_dict = {}
+    ternary_element_indices = override_tokens.parseN(3, int)
+    override_dict["ternary_element_indices"] = ternary_element_indices
+    override_dict["binary_interactions"] = []
+    for _ in range(3):
+        # Parse the extrapolation type of each binary interaction in the ternary,
+        # with the appropriate metadata according to the interaction type
+        binary_interaction_dict = {}
+        interaction_type = override_tokens.parse(str)
+        binary_interaction_dict["interaction_type"] = interaction_type
+        if interaction_type == "K":
+            # Kohler, no special handling
+            pass
+        elif interaction_type == "T":
+            # Toop, parse which element is the odd-element-out
+            binary_interaction_dict["toop_element_index"] = override_tokens.parse(int)
+        else:
+            raise ValueError(f"Unknown extrapolation type {interaction_type} encountered while processing override string.")
+        binary_interaction_dict["interacting_element_indices"] = override_tokens.parseN(2, int)
+        override_dict["binary_interactions"].append(binary_interaction_dict)
+    override_dict["non_mixing_element_index"] = override_tokens.parse(int)
+    return override_dict
+
+
 @dataclass
 class Phase_SUBQ(PhaseBase):
     num_pairs: int
@@ -615,7 +656,8 @@ class Phase_SUBQ(PhaseBase):
     subl_const_idx_pairs: List[Tuple[int, int]]
     quadruplets: List[SUBQQuadrupletCoordinations]
     excess_parameters: List[SUBQExcessQuadruplet]
-    phase_type= List[str]
+    chemical_group_overrides: List[str]
+
     def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
         # First: get the pair and quadruplet species added to the database:
         # Here we rename the species names according to their charges, to avoid creating duplicate pairs/quadruplets
@@ -667,6 +709,16 @@ class Phase_SUBQ(PhaseBase):
         # Fifth: add excess parameters
         for excess_param in self.excess_parameters:
             excess_param.insert(dbf, self.phase_name, cations, anions, excess_coefficient_idxs)
+
+        # Process chemical group overrides - for now we simply warn with the affected species if any overrides are detected.
+        for override_string in self.chemical_group_overrides:
+            override_dict = _process_chemical_group_override_string(override_string)
+            overriden_species_indices = override_dict["ternary_element_indices"] + [override_dict["non_mixing_element_index"]]
+            dummy_xs = ExcessBase(overriden_species_indices)
+            override_constituents = []
+            for subl_constituents in dummy_xs.constituent_array([self.subl_1_const, self.subl_2_const]):
+                override_constituents.extend(subl_constituents)
+            warnings.warn(f"Phase {self.phase_name} overrides the ternary extrapolation models for the system {override_constituents}. Use caution as extrapolated energies may be incorrect.")
 
 
 # TODO: not yet supported
@@ -835,6 +887,7 @@ def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_
     subl_const_idx_pairs = [(s1i, s2i) for s1i, s2i in zip(subl_1_pair_idx, subl_2_pair_idx)]
     quadruplets = [parse_quadruplet(toks) for _ in range(num_quadruplets)]
     excess_parameters = []
+    chemical_group_overrides = []
     while True:
         mixing_type = toks.parse(int)
         if mixing_type == 0:
@@ -842,12 +895,13 @@ def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_
         elif mixing_type < 0:
             # For mixing type -N, there are N*10 tokens.
             # The tokens look something like `1 2 3K 1 2K 1 3K 2 3 6`
-            # Their meaning is not yet clear.
-            toks.parseN(-mixing_type*10, str)
+            for _ in range(-mixing_type):
+                # For each entry, simply parse the whole string
+                chemical_group_overrides.append(" ".join(toks.parseN(10, str)))
             break
         excess_parameters.append(parse_subq_excess(toks, mixing_type, num_excess_coeffs))
 
-    return Phase_SUBQ(phase_name, phase_type, endmembers, num_pairs, num_quadruplets, num_subl_1_const, num_subl_2_const, subl_1_const, subl_2_const, subl_1_charges, subl_1_chemical_groups, subl_2_charges, subl_2_chemical_groups, subl_const_idx_pairs, quadruplets, excess_parameters)
+    return Phase_SUBQ(phase_name, phase_type, endmembers, num_pairs, num_quadruplets, num_subl_1_const, num_subl_2_const, subl_1_const, subl_2_const, subl_1_charges, subl_1_chemical_groups, subl_2_charges, subl_2_chemical_groups, subl_const_idx_pairs, quadruplets, excess_parameters, chemical_group_overrides)
 
 
 def parse_excess_magnetic_parameters(toks):
