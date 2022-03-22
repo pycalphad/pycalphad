@@ -241,13 +241,6 @@ class ExcessBase:
         -------
         List[List[int]] - a list of species index lists
 
-        Examples
-        --------
-        >>> assert ExcessRKM([1, 2, 3, 4], 0, [0])._map_const_idxs_to_subl_idxs([2, 3]) == [[0, 1], [0, 1]]
-        >>> assert ExcessRKM([1, 3, 4], 0, [0])._map_const_idxs_to_subl_idxs([2, 3]) == [[0], [0, 1]]
-        >>> assert ExcessRKM([1, 2], 0, [0])._map_const_idxs_to_subl_idxs([4]) == [[0, 1]]
-        >>> assert ExcessRKM([1, 2, 3], 0, [0])._map_const_idxs_to_subl_idxs([3]) == [[0, 1, 2]]
-        >>> assert ExcessRKM([1, 2, 3, 4], 0, [0])._map_const_idxs_to_subl_idxs([1, 1, 2]) == [[0], [0], [0, 1]]
         """
         cum_num_subl_species = np.cumsum(num_subl_species)
         # initialize an empty sublattice model
@@ -283,7 +276,7 @@ class ExcessBase:
         Examples
         --------
         >>> phase_constituents = [['A'], ['A', 'B'], ['A', 'B', 'C']]
-        >>> ex = ExcessBase([1, 2, 4, 6], 0, [0])
+        >>> ex = ExcessBase([1, 2, 4, 6])
         >>> ix_const_arr = ex.constituent_array(phase_constituents)
         >>> assert ix_const_arr == [['A'], ['A'], ['A', 'C']]
         """
@@ -297,6 +290,15 @@ class ExcessBase:
 
 @dataclass
 class ExcessRKM(ExcessBase):
+    """
+    Examples
+    --------
+    >>> assert ExcessRKM([1, 2, 3, 4], 0, [0])._map_const_idxs_to_subl_idxs([2, 3]) == [[0, 1], [0, 1]]
+    >>> assert ExcessRKM([1, 3, 4], 0, [0])._map_const_idxs_to_subl_idxs([2, 3]) == [[0], [0, 1]]
+    >>> assert ExcessRKM([1, 2], 0, [0])._map_const_idxs_to_subl_idxs([4]) == [[0, 1]]
+    >>> assert ExcessRKM([1, 2, 3], 0, [0])._map_const_idxs_to_subl_idxs([3]) == [[0, 1, 2]]
+    >>> assert ExcessRKM([1, 2, 3, 4], 0, [0])._map_const_idxs_to_subl_idxs([1, 1, 2]) == [[0], [0], [0, 1]]
+    """
     parameter_order: int
     coefficients: List[float]
 
