@@ -7,14 +7,10 @@ import pytest
 import numpy as np
 from symengine.lib.symengine_wrapper import LambdaDouble, LLVMDouble
 from symengine import zoo
-from pycalphad import Database, Model, variables as v
+from pycalphad import Model, variables as v
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.codegen.sympydiff_utils import build_functions, build_constraint_functions
-from pycalphad.tests.datasets import C_FE_BROSHE_TDB
 from pycalphad.tests.fixtures import select_database, load_database
-
-
-C_FE_DBF = Database(C_FE_BROSHE_TDB)
 
 
 @select_database("alnipt.tdb")
@@ -82,9 +78,11 @@ def test_phase_records_are_picklable(load_database):
 
 
 @pytest.mark.xfail
-def test_complex_infinity_can_build_callables_successfully():
+@select_database("cefe_broshe.tdb")
+def test_complex_infinity_can_build_callables_successfully(load_database):
     """Test that functions that containing complex infinity can be built with codegen."""
-    mod = Model(C_FE_DBF, ['C'], 'DIAMOND_A4')
+    dbf = load_database()
+    mod = Model(dbf, ['C'], 'DIAMOND_A4')
     mod_vars = [v.N, v.P, v.T] + mod.site_fractions
 
     # Test builds functions only, since functions takes about 1 second to run.

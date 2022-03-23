@@ -15,7 +15,6 @@ from pycalphad.variables import Species
 from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 import pycalphad.tests.databases
-from pycalphad.tests.datasets import DIFFUSION_TDB
 from pycalphad.tests.fixtures import select_database, load_database
 
 
@@ -69,8 +68,10 @@ def test_database_pickle():
     new_dbf = pickle.loads(pickle.dumps(test_dbf))
     assert test_dbf == new_dbf
 
+
 def test_database_diffusion():
     "Diffusion database support."
+    DIFFUSION_TDB = open(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")), "r").read()
     assert Database(DIFFUSION_TDB).phases == \
            Database.from_string(Database(DIFFUSION_TDB).to_string(fmt='tdb'), fmt='tdb').phases
     # Won't work until sympy/sympy#10560 is fixed to prevent precision loss
