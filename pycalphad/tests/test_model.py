@@ -2,7 +2,6 @@
 The test_model module contains unit tests for the Model object.
 """
 from pycalphad import Database, Model, variables as v, equilibrium
-from pycalphad.tests.datasets import ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
 from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.errors import DofError
 import numpy as np
@@ -86,14 +85,29 @@ def test_degree_of_ordering(load_database):
 
 def test_detect_pure_vacancy_phases():
     "Detecting a pure vacancy phase"
+    ZRO2_CUBIC_BCC_TDB = """
+        ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+        ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+        ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
+        ELEMENT CU   FCC_A1                    6.3546E+01  5.0041E+03  3.3150E+01!
+        ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+        ELEMENT ZR   HCP_A3                    9.1224E+01  5.5663E+03  3.9181E+01!
+
+        PHASE BCC_A2  %  2 1   3 !
+            CONSTITUENT BCC_A2  :AL,CU,ZR : O,VA% :  !
+
+        PHASE ZRO2_CUBIC  %  2 1   2 !
+            CONSTITUENT ZRO2_CUBIC  :VA,ZR% : O%,VA :  !
+    """
     dbf = Database(ZRO2_CUBIC_BCC_TDB)
     with pytest.raises(DofError):
         Model(dbf,['AL','CU','VA'],'ZRO2_CUBIC')
 
 
-def test_constituents_not_in_model():
+@select_database("parameter_filter_test.tdb")
+def test_constituents_not_in_model(load_database):
     """Test that parameters with constituent arrays not matching the phase model are filtered out correctly"""
-    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    dbf = load_database()
     modA = Model(dbf, ['A', 'B'], 'ALPHA')
     modB = Model(dbf, ['B', 'C'], 'BETA')
     assert v.SiteFraction('ALPHA', 0, 'B') not in modA.ast.free_symbols

@@ -248,21 +248,6 @@ $ CU-MG NIMS
 """
 
 
-ZRO2_CUBIC_BCC_TDB = """
- ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
- ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
- ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
- ELEMENT CU   FCC_A1                    6.3546E+01  5.0041E+03  3.3150E+01!
- ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
- ELEMENT ZR   HCP_A3                    9.1224E+01  5.5663E+03  3.9181E+01!
-
- PHASE BCC_A2  %  2 1   3 !
-    CONSTITUENT BCC_A2  :AL,CU,ZR : O,VA% :  !
-
- PHASE ZRO2_CUBIC  %  2 1   2 !
-    CONSTITUENT ZRO2_CUBIC  :VA,ZR% : O%,VA :  !
-"""
-
 C_FE_BROSHE_TDB = """$ Database has pressure dependence, which is useful for testing.
 $ Database file written 2014- 6- 9
 $ From database: User data 2014.06.09
@@ -1348,33 +1333,6 @@ $ From database: SSUB4
   N REF3 !
 """
 
-TDB_PARAMETER_FILTERS_TEST = """
-ELEMENT A BLANK 0 0 0 !
-ELEMENT B BLANK 0 0 0 !
-ELEMENT C BLANK 0 0 0 !
-
-TYPE_DEFINITION % SEQ * !
-DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
-
-PHASE ALPHA %  2 0.5 0.5 !
-CONSTITUENT ALPHA :A: A,B :  !
-
-PARAMETER G(ALPHA,A:A;0) 1 -10; 10000 N !
-PARAMETER G(ALPHA,A:B;0) 1 -10; 10000 N !
-
-$ _array_validitiy should filter this parameter because B is not in the first sublattice
-PARAMETER G(ALPHA,B:A;0) 1 1e5; 10000 N !
-
-PHASE BETA % 2 0.5 0.5 !
-CONSTITUENT BETA :B: B,C :  !
-
-PARAMETER G(BETA,B:B;0) 1 -10; 10000 N !
-PARAMETER G(BETA,B:B,C;0) 1 -10; 10000 N !
-$ _array_validity should filter this parameter because D is not in the sublattice model
-PARAMETER G(BETA,B:D;0) 1 1e5; 10000 N !
-$ _array_validity should filter this parameter because there are 3 sublattices
-PARAMETER G(BETA,B:B:C;0) 1 1e5; 10000 N !
-"""
 
 AL_C_FE_B2_TDB = """
 $ B2 phase from Connetable et al., Calphad 2008, 32 (2), 361–370.
