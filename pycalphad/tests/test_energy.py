@@ -6,20 +6,11 @@ correct abstract syntax tree for the energy.
 import pytest
 from symengine import S
 from pycalphad import Database, Model, ReferenceState
-from pycalphad.tests.datasets import FE_MN_S_TDB, \
-    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB
 from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
 from pycalphad.models.model_mqmqa import ModelMQMQA
-
-
-CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
-CUMG_DBF = Database(CUMG_TDB)
-FE_MN_S_DBF = Database(FE_MN_S_TDB)
-VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
-AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
 
 
 def make_callable(model, variables, mode=None):
@@ -311,11 +302,13 @@ def test_reference_energy_of_binary_twostate_einstein_is_zero(load_database):
     check_output(m, statevars_CR, 'GMR', 0.0)
 
 
-def test_magnetic_reference_energy_is_zero():
+@select_database("crfe_bcc_magnetic.tdb")
+def test_magnetic_reference_energy_is_zero(load_database):
     """The referenced energy binary magnetic Model is zero."""
-    m = Model(CRFE_DBF, ['CR', 'FE', 'VA'], 'BCC_A2')
+    dbf = load_database()
+    m = Model(dbf, ['CR', 'FE', 'VA'], 'BCC_A2')
     refstates = [ReferenceState('CR', 'BCC_A2'), ReferenceState('FE', 'BCC_A2')]
-    m.shift_reference_state(refstates, CRFE_DBF)
+    m.shift_reference_state(refstates, dbf)
 
     statevars_FE = {v.T: 300,
              v.SiteFraction('BCC_A2', 0, 'CR'): 0, v.SiteFraction('BCC_A2', 0, 'FE'): 1,
@@ -330,6 +323,19 @@ def test_magnetic_reference_energy_is_zero():
 
 def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
+    
+    VA_INTERACTION_TDB = """
+    ELEMENT AL   FCC_A1                    26.981539   4577.296    28.3215!
+    ELEMENT VA   BLANK                     0.0 0.0 0.0 !
+
+    PHASE FCC_A1  %  2 1 1 !
+    CONSTITUENT FCC_A1  :AL,VA:VA:  !
+    PARAMETER G(FCC_A1,AL:VA;0)      0.01   100;       6000 N !
+    PARAMETER G(FCC_A1,VA:VA;0)      0.01   500;       6000 N !
+    PARAMETER G(FCC_A1,AL,VA:VA;0)      0.01   4000;       6000 N !
+
+    """
+    VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
     m = Model(VA_INTERACTION_DBF, ['AL', 'VA'], 'FCC_A1')
     refstates = [ReferenceState('AL', 'FCC_A1')]
     m.shift_reference_state(refstates, VA_INTERACTION_DBF)
@@ -365,9 +371,11 @@ def test_reference_energy_for_different_phase(load_database):
     check_output(m, statevars, 'GMR', -28732.525)  # Checked in Thermo-Calc
 
 
-def test_endmember_mixing_energy_is_zero():
+@select_database("cumg.tdb")
+def test_endmember_mixing_energy_is_zero(load_database):
     """The mixing energy for an endmember in a multi-sublattice model should be zero."""
-    m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
+    dbf = load_database()
+    m = Model(dbf, ['CU', 'MG', 'VA'], 'CU2MG')
     statevars = {
                     v.T: 300,
                     v.SiteFraction('CU2MG', 0, 'CU'): 1, v.SiteFraction('CU2MG', 0, 'MG'): 0,
@@ -376,9 +384,11 @@ def test_endmember_mixing_energy_is_zero():
     check_output(m, statevars, 'GM_MIX', 0.0)
 
 
-def test_magnetic_endmember_mixing_energy_is_zero():
+@select_database("crfe_bcc_magnetic.tdb")
+def test_magnetic_endmember_mixing_energy_is_zero(load_database):
     """The mixing energy for an endmember with a magnetic contribution should be zero."""
-    m = Model(CRFE_DBF, ['CR', 'FE', 'VA'], 'BCC_A2')
+    dbf = load_database()
+    m = Model(dbf, ['CR', 'FE', 'VA'], 'BCC_A2')
     statevars = {
                     v.T: 300,
                     v.SiteFraction('BCC_A2', 0, 'CR'): 0, v.SiteFraction('BCC_A2', 0, 'FE'): 1,
@@ -399,9 +409,11 @@ def test_order_disorder_mixing_energy_is_nan(load_database):
     check_output(m, statevars, 'GM_MIX', np.nan)
 
 
-def test_changing_model_ast_also_changes_mixing_energy():
+@select_database("cumg.tdb")
+def test_changing_model_ast_also_changes_mixing_energy(load_database):
     """If a models contribution is modified, the mixing energy should update accordingly."""
-    m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
+    dbf = load_database()
+    m = Model(dbf, ['CU', 'MG', 'VA'], 'CU2MG')
     m.models['mag'] = 1000
     statevars = {
                     v.T: 300,
@@ -448,11 +460,12 @@ def test_shift_reference_state_model_contribs_take_effect():
     check_output(m, statevars, 'GMR', idmix_val-1000.0)
 
 
-def test_ionic_liquid_energy_anion_sublattice():
+@select_database("femns.tdb")
+def test_ionic_liquid_energy_anion_sublattice(load_database):
     """Test that having anions, vacancies, and neutral species in the anion sublattice of a two sublattice ionic liquid produces the correct Gibbs energy"""
-
+    dbf = load_database()
     # Uses the sublattice model (FE+2)(S-2, VA, S)
-    mod = Model(FE_MN_S_DBF, ['FE', 'S', 'VA'], 'IONIC_LIQ')
+    mod = Model(dbf, ['FE', 'S', 'VA'], 'IONIC_LIQ')
 
     # Same potentials for all test cases here
     potentials = {v.P: 101325, v.T: 1600}
@@ -698,9 +711,11 @@ def test_order_disorder_interstitial_sublattice():
 
 @pytest.mark.skip("Skip until partitioned physical properties are supported "
                   "in the disordered energy contribution.")
-def test_order_disorder_magnetic_ordering():
+@select_database("alcfe_b2.tdb")
+def test_order_disorder_magnetic_ordering(load_database):
     """Test partitioned order-disorder models with magnetic ordering contributions"""
-    mod = Model(AL_C_FE_B2_DBF, ['AL', 'C', 'FE', 'VA'], 'B2_BCC')
+    dbf = load_database()
+    mod = Model(dbf, ['AL', 'C', 'FE', 'VA'], 'B2_BCC')
     subs_dict = {
         v.Y('B2_BCC', 0, v.Species('AL')): 0.23632422,
         v.Y('B2_BCC', 0, v.Species('FE')): 0.09387751,
