@@ -78,7 +78,7 @@ def test_phase_records_are_picklable(load_database):
 
 
 @pytest.mark.xfail
-@select_database("cefe_broshe.tdb")
+@select_database("cfe_broshe.tdb")
 def test_complex_infinity_can_build_callables_successfully(load_database):
     """Test that functions that containing complex infinity can be built with codegen."""
     dbf = load_database()

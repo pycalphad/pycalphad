@@ -71,7 +71,7 @@ def test_database_pickle():
 
 def test_database_diffusion():
     "Diffusion database support."
-    DIFFUSION_TDB = open(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")), "r").read()
+    DIFFUSION_TDB = open(str(files(pycalphad.tests.databases).joinpath("diffusion.tdb")), "r").read()
     assert Database(DIFFUSION_TDB).phases == \
            Database.from_string(Database(DIFFUSION_TDB).to_string(fmt='tdb'), fmt='tdb').phases
     # Won't work until sympy/sympy#10560 is fixed to prevent precision loss
