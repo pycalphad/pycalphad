@@ -7,18 +7,17 @@ import pytest
 import numpy as np
 from symengine.lib.symengine_wrapper import LambdaDouble, LLVMDouble
 from symengine import zoo
-from pycalphad import Database, Model, variables as v
+from pycalphad import Model, variables as v
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.codegen.sympydiff_utils import build_functions, build_constraint_functions
-from pycalphad.tests.datasets import ALNIPT_TDB, C_FE_BROSHE_TDB
+from pycalphad.tests.fixtures import select_database, load_database
 
 
-ALNIPT_DBF = Database(ALNIPT_TDB)
-C_FE_DBF = Database(C_FE_BROSHE_TDB)
-
-def test_build_functions_options():
+@select_database("alnipt.tdb")
+def test_build_functions_options(load_database):
     """The correct SymEngine backend can be chosen for build_functions"""
-    mod = Model(ALNIPT_DBF, ['AL'], 'LIQUID')
+    dbf = load_database()
+    mod = Model(dbf, ['AL'], 'LIQUID')
     int_cons = mod.get_internal_constraints()
 
     backend = 'lambda'
@@ -58,11 +57,13 @@ def test_build_functions_options():
     assert isinstance(cfs_llvm.cons_hess, LLVMDouble)
 
 
-def test_phase_records_are_picklable():
+@select_database("alnipt.tdb")
+def test_phase_records_are_picklable(load_database):
+    dbf = load_database()
     dof = np.array([300, 1.0])
 
-    mod = Model(ALNIPT_DBF, ['AL'], 'LIQUID')
-    prxs = build_phase_records(ALNIPT_DBF, [v.Species('AL')], ['LIQUID'], [v.T], {'LIQUID': mod}, build_gradients=True, build_hessians=True)
+    mod = Model(dbf, ['AL'], 'LIQUID')
+    prxs = build_phase_records(dbf, [v.Species('AL')], ['LIQUID'], [v.T], {'LIQUID': mod}, build_gradients=True, build_hessians=True)
     prx_liquid = prxs['LIQUID']
 
     out = np.array([0.0])
@@ -77,9 +78,11 @@ def test_phase_records_are_picklable():
 
 
 @pytest.mark.xfail
-def test_complex_infinity_can_build_callables_successfully():
+@select_database("cfe_broshe.tdb")
+def test_complex_infinity_can_build_callables_successfully(load_database):
     """Test that functions that containing complex infinity can be built with codegen."""
-    mod = Model(C_FE_DBF, ['C'], 'DIAMOND_A4')
+    dbf = load_database()
+    mod = Model(dbf, ['C'], 'DIAMOND_A4')
     mod_vars = [v.N, v.P, v.T] + mod.site_fractions
 
     # Test builds functions only, since functions takes about 1 second to run.

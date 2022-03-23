@@ -6,22 +6,11 @@ correct abstract syntax tree for the energy.
 import pytest
 from symengine import S
 from pycalphad import Database, Model, ReferenceState
-from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, FE_MN_S_TDB, ALFE_TDB, \
-    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, AL_C_FE_B2_TDB
-from pycalphad.tests.fixtures import load_database, select_database
+from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
 from pycalphad.models.model_mqmqa import ModelMQMQA
-
-DBF = Database(ALCRNI_TDB)
-ALFE_DBF = Database(ALFE_TDB)
-FEMN_DBF = Database(FEMN_TDB)
-CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
-CUMG_DBF = Database(CUMG_TDB)
-FE_MN_S_DBF = Database(FE_MN_S_TDB)
-VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
-AL_C_FE_B2_DBF = Database(AL_C_FE_B2_TDB)
 
 
 def make_callable(model, variables, mode=None):
@@ -80,24 +69,29 @@ def check_energy(model, variables, known_value, mode='sympy'):
     check_output(model, variables, 'GM', known_value, mode=mode)
 
 # PURE COMPONENT TESTS
-def test_pure_sympy():
+@select_database("alcrni.tdb")
+def test_pure_sympy(load_database):
     "Pure component end-members in sympy mode."
-    check_energy(Model(DBF, ['AL'], 'LIQUID'), \
+    dbf = load_database()
+    check_energy(Model(dbf, ['AL'], 'LIQUID'), \
             {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
         -1.28565e5, mode='sympy')
-    check_energy(Model(DBF, ['AL'], 'B2'), \
+    check_energy(Model(dbf, ['AL'], 'B2'), \
             {v.T: 1400, v.SiteFraction('B2', 0, 'AL'): 1,
              v.SiteFraction('B2', 1, 'AL'): 1}, \
         -6.57639e4, mode='sympy')
-    check_energy(Model(DBF, ['AL'], 'L12_FCC'), \
+    check_energy(Model(dbf, ['AL'], 'L12_FCC'), \
             {v.T: 800, v.SiteFraction('L12_FCC', 0, 'AL'): 1,
              v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
         -3.01732e4, mode='sympy')
 
-def test_degenerate_ordered():
+
+@select_database("alcrni.tdb")
+def test_degenerate_ordered(load_database):
     "Degenerate sublattice configuration has same energy as disordered phase."
-    mod_l12 = Model(DBF, ['CR', 'NI'], 'L12_FCC')
-    mod_a1 = Model(DBF, ['CR', 'NI'], 'FCC_A1')
+    dbf = load_database()
+    mod_l12 = Model(dbf, ['CR', 'NI'], 'L12_FCC')
+    mod_a1 = Model(dbf, ['CR', 'NI'], 'FCC_A1')
     l12_subs = {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
                 v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
                 v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
@@ -108,9 +102,12 @@ def test_degenerate_ordered():
     a1_energy = mod_a1.energy.xreplace(a1_subs).n(real=True)
     np.testing.assert_almost_equal(l12_energy, a1_energy)
 
-def test_degenerate_zero_ordering():
+
+@select_database("alcrni.tdb")
+def test_degenerate_zero_ordering(load_database):
     "Degenerate sublattice configuration has zero ordering energy."
-    mod = Model(DBF, ['CR', 'NI'], 'L12_FCC')
+    dbf = load_database()
+    mod = Model(dbf, ['CR', 'NI'], 'L12_FCC')
     sub_dict = {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
                 v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
                 v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
@@ -119,20 +116,26 @@ def test_degenerate_zero_ordering():
     desired = mod.models['ord'].xreplace(sub_dict).n(real=True)
     assert abs(desired - 0) < 1e-5, "%r != %r" % (desired, 0)
 
+
 # BINARY TESTS
-def test_binary_magnetic():
+@select_database("alcrni.tdb")
+def test_binary_magnetic(load_database):
     "Two-component phase with IHJ magnetic model."
+    dbf = load_database()
     # disordered case
-    check_energy(Model(DBF, ['CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
             {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
              v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
              v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
              v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}, \
         -1.68840e4, mode='sympy')
 
-def test_binary_magnetic_reimported():
+
+@select_database("alcrni.tdb")
+def test_binary_magnetic_reimported(load_database):
     "Export and re-import a TDB before the calculation."
-    dbf_imported = Database.from_string(DBF.to_string(fmt='tdb'), fmt='tdb')
+    dbf = load_database()
+    dbf_imported = Database.from_string(dbf.to_string(fmt='tdb'), fmt='tdb')
     check_energy(Model(dbf_imported, ['CR', 'NI'], 'L12_FCC'),
                 {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
                 v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
@@ -140,26 +143,34 @@ def test_binary_magnetic_reimported():
                 v.SiteFraction('L12_FCC', 1, 'NI'): 0.67},
                 -1.68840e4, mode='sympy')
 
-def test_binary_magnetic_ordering():
+
+@select_database("alcrni.tdb")
+def test_binary_magnetic_ordering(load_database):
     "Two-component phase with IHJ magnetic model and ordering."
+    dbf = load_database()
     # ordered case
-    check_energy(Model(DBF, ['CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
             {v.T: 300, v.SiteFraction('L12_FCC', 0, 'CR'): 4.86783e-2,
              v.SiteFraction('L12_FCC', 0, 'NI'): 9.51322e-1,
              v.SiteFraction('L12_FCC', 1, 'CR'): 9.33965e-1,
              v.SiteFraction('L12_FCC', 1, 'NI'): 6.60348e-2}, \
         -9.23953e3, mode='sympy')
 
-def test_binary_dilute():
+
+@select_database("alcrni.tdb")
+def test_binary_dilute(load_database):
     "Dilute binary solution phase."
-    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
+    dbf = load_database()
+    check_energy(Model(dbf, ['CR', 'NI'], 'LIQUID'), \
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
              v.SiteFraction('LIQUID', 0, 'NI'): 1.0-1e-12}, \
         5.52773e3, mode='sympy')
 
-def test_binary_xiong_twostate_einstein():
+
+@select_database("femn.tdb")
+def test_binary_xiong_twostate_einstein(load_database):
     "Phase with Xiong magnetic, two-state and Einstein energy contributions."
-    femn_dbf = Database(FEMN_TDB)
+    femn_dbf = load_database()
     mod = Model(femn_dbf, ['FE', 'MN', 'VA'], 'LIQUID')
     check_energy(mod, {v.T: 10, v.SiteFraction('LIQUID', 0, 'FE'): 1,
                                 v.SiteFraction('LIQUID', 0, 'MN'): 0,
@@ -174,27 +185,36 @@ def test_binary_xiong_twostate_einstein():
                        v.SiteFraction('LIQUID', 1, 'VA'): 1},
                  -86332.217, mode='sympy')
 
+
 # TERNARY TESTS
-def test_ternary_rkm_solution():
+@select_database("alcrni.tdb")
+def test_ternary_rkm_solution(load_database):
     "Solution phase with ternary interaction parameters."
-    check_energy(Model(DBF, ['AL', 'CR', 'NI'], 'LIQUID'), \
+    dbf = load_database()
+    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'LIQUID'), \
             {v.T: 1500, v.SiteFraction('LIQUID', 0, 'AL'): 0.44,
              v.SiteFraction('LIQUID', 0, 'CR'): 0.20,
              v.SiteFraction('LIQUID', 0, 'NI'): 0.36}, \
         -1.16529e5, mode='sympy')
 
-def test_ternary_symmetric_param():
+
+@select_database("alcrni.tdb")
+def test_ternary_symmetric_param(load_database):
     "Generate the other two ternary parameters if only the zeroth is specified."
-    check_energy(Model(DBF, ['AL', 'CR', 'NI'], 'FCC_A1'), \
+    dbf = load_database()
+    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'FCC_A1'), \
             {v.T: 300, v.SiteFraction('FCC_A1', 0, 'AL'): 1.97135e-1,
              v.SiteFraction('FCC_A1', 0, 'CR'): 1.43243e-2,
              v.SiteFraction('FCC_A1', 0, 'NI'): 7.88541e-1},
                  -37433.794, mode='sympy')
 
-def test_ternary_ordered_magnetic():
+
+@select_database("alcrni.tdb")
+def test_ternary_ordered_magnetic(load_database):
     "Ternary ordered solution phase with IHJ magnetic model."
+    dbf = load_database()
     # ordered case
-    check_energy(Model(DBF, ['AL', 'CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'L12_FCC'), \
             {v.T: 300, v.SiteFraction('L12_FCC', 0, 'AL'): 5.42883e-8,
              v.SiteFraction('L12_FCC', 0, 'CR'): 2.07934e-6,
              v.SiteFraction('L12_FCC', 0, 'NI'): 9.99998e-1,
@@ -203,10 +223,13 @@ def test_ternary_ordered_magnetic():
              v.SiteFraction('L12_FCC', 1, 'NI'): 4.55313e-10}, \
         -40717.204, mode='sympy')
 
+
 # QUATERNARY TESTS
-def test_quaternary():
+@select_database("alcrni.tdb")
+def test_quaternary(load_database):
     "Quaternary ordered solution phase."
-    check_energy(Model(DBF, ['AL', 'CR', 'NI', 'VA'], 'B2'), \
+    dbf = load_database()
+    check_energy(Model(dbf, ['AL', 'CR', 'NI', 'VA'], 'B2'), \
             {v.T: 500, v.SiteFraction('B2', 0, 'AL'): 4.03399e-9,
              v.SiteFraction('B2', 0, 'CR'): 2.65798e-4,
              v.SiteFraction('B2', 0, 'NI'): 9.99734e-1,
@@ -217,44 +240,56 @@ def test_quaternary():
              v.SiteFraction('B2', 1, 'VA'): 1e-12}, \
         -42368.27, mode='sympy')
 
+
 # SPECIAL CASES
-def test_case_sensitivity():
+@select_database("alcrni.tdb")
+def test_case_sensitivity(load_database):
     "Case sensitivity of component and phase names."
-    check_energy(Model(DBF, ['Cr', 'nI'], 'Liquid'), \
+    dbf = load_database()
+    check_energy(Model(dbf, ['Cr', 'nI'], 'Liquid'), \
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
              v.SiteFraction('liquid', 0, 'ni'): 1}, \
         5.52773e3, mode='sympy')
 
-def test_zero_site_fraction():
+
+@select_database("alcrni.tdb")
+def test_zero_site_fraction(load_database):
     "Energy of a binary solution phase where one site fraction is zero."
-    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
+    dbf = load_database()
+    check_energy(Model(dbf, ['CR', 'NI'], 'LIQUID'), \
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 0,
              v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
         5.52773e3, mode='sympy')
 
 
-def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero():
+@select_database("femn.tdb")
+def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero(load_database):
     """The referenced energy for the pure elements in a unary Model with twostate and Einstein contributions referenced to that phase is zero."""
-    m = Model(FEMN_DBF, ['FE', 'VA'], 'LIQUID')
+    dbf = load_database()
+    m = Model(dbf, ['FE', 'VA'], 'LIQUID')
     statevars = {v.T: 298.15, v.SiteFraction('LIQUID', 0, 'FE'): 1, v.SiteFraction('LIQUID', 1, 'VA'): 1}
     refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
-    m.shift_reference_state(refstates, FEMN_DBF)
+    m.shift_reference_state(refstates, dbf)
     check_output(m, statevars, 'GMR', 0.0)
 
 
-def test_underspecified_refstate_raises():
+@select_database("femn.tdb")
+def test_underspecified_refstate_raises(load_database):
     """A Model cannot be shifted to a new reference state unless references for all pure elements are specified."""
-    m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
+    dbf = load_database()
+    m = Model(dbf, ['FE', 'MN', 'VA'], 'LIQUID')
     refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
     with pytest.raises(DofError):
-        m.shift_reference_state(refstates, FEMN_DBF)
+        m.shift_reference_state(refstates, dbf)
 
 
-def test_reference_energy_of_binary_twostate_einstein_is_zero():
+@select_database("femn.tdb")
+def test_reference_energy_of_binary_twostate_einstein_is_zero(load_database):
     """The referenced energy for the pure elements in a binary Model with twostate and Einstein contributions referenced to that phase is zero."""
-    m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
+    dbf = load_database()
+    m = Model(dbf, ['FE', 'MN', 'VA'], 'LIQUID')
     refstates = [ReferenceState(v.Species('FE'), 'LIQUID'), ReferenceState(v.Species('MN'), 'LIQUID')]
-    m.shift_reference_state(refstates, FEMN_DBF)
+    m.shift_reference_state(refstates, dbf)
 
     statevars_FE = {v.T: 298.15,
              v.SiteFraction('LIQUID', 0, 'FE'): 1, v.SiteFraction('LIQUID', 0, 'MN'): 0,
@@ -267,11 +302,13 @@ def test_reference_energy_of_binary_twostate_einstein_is_zero():
     check_output(m, statevars_CR, 'GMR', 0.0)
 
 
-def test_magnetic_reference_energy_is_zero():
+@select_database("crfe_bcc_magnetic.tdb")
+def test_magnetic_reference_energy_is_zero(load_database):
     """The referenced energy binary magnetic Model is zero."""
-    m = Model(CRFE_DBF, ['CR', 'FE', 'VA'], 'BCC_A2')
+    dbf = load_database()
+    m = Model(dbf, ['CR', 'FE', 'VA'], 'BCC_A2')
     refstates = [ReferenceState('CR', 'BCC_A2'), ReferenceState('FE', 'BCC_A2')]
-    m.shift_reference_state(refstates, CRFE_DBF)
+    m.shift_reference_state(refstates, dbf)
 
     statevars_FE = {v.T: 300,
              v.SiteFraction('BCC_A2', 0, 'CR'): 0, v.SiteFraction('BCC_A2', 0, 'FE'): 1,
@@ -286,6 +323,19 @@ def test_magnetic_reference_energy_is_zero():
 
 def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
+    
+    VA_INTERACTION_TDB = """
+    ELEMENT AL   FCC_A1                    26.981539   4577.296    28.3215!
+    ELEMENT VA   BLANK                     0.0 0.0 0.0 !
+
+    PHASE FCC_A1  %  2 1 1 !
+    CONSTITUENT FCC_A1  :AL,VA:VA:  !
+    PARAMETER G(FCC_A1,AL:VA;0)      0.01   100;       6000 N !
+    PARAMETER G(FCC_A1,VA:VA;0)      0.01   500;       6000 N !
+    PARAMETER G(FCC_A1,AL,VA:VA;0)      0.01   4000;       6000 N !
+
+    """
+    VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
     m = Model(VA_INTERACTION_DBF, ['AL', 'VA'], 'FCC_A1')
     refstates = [ReferenceState('AL', 'FCC_A1')]
     m.shift_reference_state(refstates, VA_INTERACTION_DBF)
@@ -308,20 +358,24 @@ def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     check_output(m, statevars_mix, 'HM_MIX', 2000.0)
 
 
-def test_reference_energy_for_different_phase():
+@select_database("alfe.tdb")
+def test_reference_energy_for_different_phase(load_database):
     """The referenced energy a different phase should be correct."""
-    m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'AL2FE')
+    dbf = load_database()
+    m = Model(dbf, ['AL', 'FE', 'VA'], 'AL2FE')
     # formation reference states
     refstates = [ReferenceState('AL', 'FCC_A1'), ReferenceState('FE', 'BCC_A2')]
-    m.shift_reference_state(refstates, ALFE_DBF)
+    m.shift_reference_state(refstates, dbf)
 
     statevars = {v.T: 300, v.SiteFraction('AL2FE', 0, 'AL'): 1, v.SiteFraction('AL2FE', 1, 'FE'): 1}
     check_output(m, statevars, 'GMR', -28732.525)  # Checked in Thermo-Calc
 
 
-def test_endmember_mixing_energy_is_zero():
+@select_database("cumg.tdb")
+def test_endmember_mixing_energy_is_zero(load_database):
     """The mixing energy for an endmember in a multi-sublattice model should be zero."""
-    m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
+    dbf = load_database()
+    m = Model(dbf, ['CU', 'MG', 'VA'], 'CU2MG')
     statevars = {
                     v.T: 300,
                     v.SiteFraction('CU2MG', 0, 'CU'): 1, v.SiteFraction('CU2MG', 0, 'MG'): 0,
@@ -330,9 +384,11 @@ def test_endmember_mixing_energy_is_zero():
     check_output(m, statevars, 'GM_MIX', 0.0)
 
 
-def test_magnetic_endmember_mixing_energy_is_zero():
+@select_database("crfe_bcc_magnetic.tdb")
+def test_magnetic_endmember_mixing_energy_is_zero(load_database):
     """The mixing energy for an endmember with a magnetic contribution should be zero."""
-    m = Model(CRFE_DBF, ['CR', 'FE', 'VA'], 'BCC_A2')
+    dbf = load_database()
+    m = Model(dbf, ['CR', 'FE', 'VA'], 'BCC_A2')
     statevars = {
                     v.T: 300,
                     v.SiteFraction('BCC_A2', 0, 'CR'): 0, v.SiteFraction('BCC_A2', 0, 'FE'): 1,
@@ -340,9 +396,11 @@ def test_magnetic_endmember_mixing_energy_is_zero():
     check_output(m, statevars, 'GM_MIX', 0.0)
 
 
-def test_order_disorder_mixing_energy_is_nan():
+@select_database("alfe.tdb")
+def test_order_disorder_mixing_energy_is_nan(load_database):
     """The endmember-referenced mixing energy is undefined and the energy should be NaN."""
-    m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'B2_BCC')
+    dbf = load_database()
+    m = Model(dbf, ['AL', 'FE', 'VA'], 'B2_BCC')
     statevars = {
                     v.T: 300,
                     v.SiteFraction('B2_BCC', 0, 'AL'): 1, v.SiteFraction('B2_BCC', 0, 'FE'): 0,
@@ -351,9 +409,11 @@ def test_order_disorder_mixing_energy_is_nan():
     check_output(m, statevars, 'GM_MIX', np.nan)
 
 
-def test_changing_model_ast_also_changes_mixing_energy():
+@select_database("cumg.tdb")
+def test_changing_model_ast_also_changes_mixing_energy(load_database):
     """If a models contribution is modified, the mixing energy should update accordingly."""
-    m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
+    dbf = load_database()
+    m = Model(dbf, ['CU', 'MG', 'VA'], 'CU2MG')
     m.models['mag'] = 1000
     statevars = {
                     v.T: 300,
@@ -400,11 +460,12 @@ def test_shift_reference_state_model_contribs_take_effect():
     check_output(m, statevars, 'GMR', idmix_val-1000.0)
 
 
-def test_ionic_liquid_energy_anion_sublattice():
+@select_database("femns.tdb")
+def test_ionic_liquid_energy_anion_sublattice(load_database):
     """Test that having anions, vacancies, and neutral species in the anion sublattice of a two sublattice ionic liquid produces the correct Gibbs energy"""
-
+    dbf = load_database()
     # Uses the sublattice model (FE+2)(S-2, VA, S)
-    mod = Model(FE_MN_S_DBF, ['FE', 'S', 'VA'], 'IONIC_LIQ')
+    mod = Model(dbf, ['FE', 'S', 'VA'], 'IONIC_LIQ')
 
     # Same potentials for all test cases here
     potentials = {v.P: 101325, v.T: 1600}
@@ -650,9 +711,11 @@ def test_order_disorder_interstitial_sublattice():
 
 @pytest.mark.skip("Skip until partitioned physical properties are supported "
                   "in the disordered energy contribution.")
-def test_order_disorder_magnetic_ordering():
+@select_database("alcfe_b2.tdb")
+def test_order_disorder_magnetic_ordering(load_database):
     """Test partitioned order-disorder models with magnetic ordering contributions"""
-    mod = Model(AL_C_FE_B2_DBF, ['AL', 'C', 'FE', 'VA'], 'B2_BCC')
+    dbf = load_database()
+    mod = Model(dbf, ['AL', 'C', 'FE', 'VA'], 'B2_BCC')
     subs_dict = {
         v.Y('B2_BCC', 0, v.Species('AL')): 0.23632422,
         v.Y('B2_BCC', 0, v.Species('FE')): 0.09387751,

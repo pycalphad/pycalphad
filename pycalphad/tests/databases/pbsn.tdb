@@ -1,0 +1,88 @@
+$ PBSN
+$
+$ TDB-file for the thermodynamic assessment of the Pb-Sn system
+$
+$--------------------------------------------------------------------------
+$ 2011.12.1
+$
+$ TDB file created by T.Abe, K.Hashimoto and Y.Sawada
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ e-mail: abe.taichi@nims.go.jp
+$ Copyright (C) NIMS 2011
+$
+$
+$ PARAMETERS ARE TAKEN FROM
+$ A thermodynamic analysis of the Pb-Sn system and
+$ the calculation of the Pb-Sn phase diagram,
+$ T.L.Ngai, Y.A.Chang, CALPHAD, 5 (1981) 267-276.
+$
+$ ------------------------------------------------------------------------------
+$
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT PB   FCC_A1                    2.0720E+02  6.8785E+03  6.4785E+01!
+ ELEMENT SN   BCT_A5                    1.1871E+02  6.3220E+03  5.1195E+01!
+$
+$-------------------------------------------------------------------------------
+$ FUNCTIONS FOR PURE AND OTHERS
+$-------------------------------------------------------------------------------
+FUNCTION GHSERPB  298.15
+   -7650.085+101.715188*T-24.5242231*T*LN(T)-3.65895E-3*T**2-0.24395E-6*T**3;
+                                                                     600.65 Y
+   -10531.115+154.258155*T-32.4913959*T*LN(T)+1.54613E-3*T**2
+   +805.644E23*T**(-9);                                             1200.00 Y
+   +4157.596+53.154045*T-18.9640637*T*LN(T)-2.882943E-3*T**2+0.098144E-6*T**3
+   -2696755*T**(-1)+805.644E23*T**(-9);                             5000.00 N !
+FUNCTION GPBLIQ  298.15
+   +4672.157-7.750257*T-6.0144E-19*T**7+GHSERPB#;                    600.65 Y
+   +4853.112-8.066587*T-8.05644E25*T**(-9)+GHSERPB#;                5000.00 N !
+FUNCTION GPBBCT  298.15  +489+3.52*T+GHSERPB#;                      5000.00 N !
+
+FUNCTION GHSERSN    100  -7958.517+122.750027*T-25.858*T*LN(T)
+    +5.1185E-04*T**2-3.192767E-06*T**3+18440*T**(-1);                   250 Y
+    -5855.135+65.427891*T-15.961*T*LN(T)-.0188702*T**2+3.121167E-06*T**3
+    -61960*T**(-1);                                                  505.08 Y
+    +2524.724+3.989845*T-8.2590486*T*LN(T)-.016814429*T**2
+    +2.623131E-06*T**3-1081244*T**(-1)-1.2307E+25*T**(-9);              800 Y
+    -8256.959+138.981456*T-28.4512*T*LN(T)-1.2307E+25*T**(-9);          3000 N !
+ FUNCTION GSNLIQ     100
+    +7104.222-14.09088*T+1.49316649E-18*T**7+GHSERSN#;               505.06 Y
+    +6970.705-13.813302*T+1.24912E+25*T**(-9)+GHSERSN#;                3000 N !
+ FUNCTION GSNFCC     298.15  +4150-5.2*T+GHSERSN#;                     3000 N !
+
+$-------------------------------------------------------------------------------
+ TYPE_DEFINITION % SEQ *!
+ DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+ DEFAULT_COMMAND DEF_SYS_ELEMENT VA /- !
+
+$-------------------------------------------------------------------------------
+$ PARAMETERS FOR LIQUID PHASE
+$-------------------------------------------------------------------------------
+ PHASE LIQUID:L %  1  1.0  !
+    CONSTITUENT LIQUID:L :PB,SN :  !
+   PARAMETER G(LIQUID,PB;0)     298.15   +GPBLIQ#;                      5000 N !
+   PARAMETER G(LIQUID,SN;0)     298.15   +GSNLIQ#;                      4000 N !
+   PARAMETER G(LIQUID,PB,SN;0)  298.15   +5125+1.46424*T;               6000 N !
+   PARAMETER G(LIQUID,PB,SN;1)  298.15   +293.82;                       6000 N !
+
+$-------------------------------------------------------------------------------
+$ FUNCTIONS FOR FCC_A1
+$-------------------------------------------------------------------------------
+ PHASE FCC_A1  %  2 1   1 !
+    CONSTITUENT FCC_A1  :PB,SN : VA :  !
+   PARAMETER G(FCC_A1,PB:VA;0)     298.15  +GHSERPB#;                   5000 N !
+   PARAMETER G(FCC_A1,SN:VA;0)     298.15  +GSNFCC#;                    4000 N !
+   PARAMETER G(FCC_A1,PB,SN:VA;0)  298.15  +5132.41+1.56312*T;          6000 N !
+
+$-------------------------------------------------------------------------------
+$ FUNCTIONS FOR BCT_A5
+$-------------------------------------------------------------------------------
+ PHASE BCT_A5  %  2 1   3 !
+    CONSTITUENT BCT_A5  :PB,SN : VA% :  !
+   PARAMETER G(BCT_A5,PB:VA;0)      298.15  +GPBBCT#;                   4000 N !
+   PARAMETER G(BCT_A5,SN:VA;0)      298.15  +GHSERSN#;                  6000 N !
+   PARAMETER G(BCT_A5,PB,SN:VA;0)   298.15  +17117.78-11.8066*T;        6000 N !
+
+$PB-SN

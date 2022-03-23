@@ -3,6 +3,7 @@ The test_database module contains tests for the Database object.
 """
 from io import StringIO
 import pytest
+from importlib_resources import files
 import hashlib
 import os
 import pickle
@@ -13,7 +14,8 @@ from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
 from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
-from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
+import pycalphad.tests.databases
+from pycalphad.tests.fixtures import select_database, load_database
 
 
 #
@@ -24,7 +26,7 @@ from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB,
 # Underneath it's calling many of the same routines, so we can't guarantee
 # the Database is correct; that's okay, other tests check correctness.
 # We're only checking consistency and exercising error checking here.
-REFERENCE_DBF = Database(ALCRNI_TDB)
+REFERENCE_DBF = Database(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
 REFERENCE_MOD = Model(REFERENCE_DBF, ['CR', 'NI'], 'L12_FCC')
 
 INVALID_TDB_STR="""$ Note: database that invalidates the minimum compatibility subset for TDBs in different softwares
@@ -33,24 +35,27 @@ FUNCTION A_VERY_LONG_FUNCTION_NAME  298.15 -42; 6000 N !
 FUNCTION COMPAT 298.15 +9001; 6000 N !
 """
 
-def test_database_eq():
+@select_database("rose.tdb")
+def test_database_eq(load_database):
     "Database equality comparison."
-    test_dbf = Database(ALCRNI_TDB)
+    test_dbf = Database(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
     assert test_dbf == test_dbf
     assert test_dbf == REFERENCE_DBF
-    assert not (test_dbf == Database(ROSE_TDB))
+    assert not (test_dbf == load_database())
     # literals which don't have __dict__
     assert not (test_dbf == 42)
     assert not (test_dbf == None)
     assert not (42 == test_dbf)
     assert not (None == test_dbf)
 
-def test_database_ne():
+
+@select_database("rose.tdb")
+def test_database_ne(load_database):
     "Database inequality comparison."
-    test_dbf = Database(ALCRNI_TDB)
+    test_dbf = Database(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
     assert not (test_dbf != test_dbf)
     assert not (test_dbf != REFERENCE_DBF)
-    assert test_dbf != Database(ROSE_TDB)
+    assert test_dbf != load_database()
     # literals which don't have __dict__
     assert test_dbf != 42
     assert test_dbf != None
@@ -59,12 +64,14 @@ def test_database_ne():
 
 def test_database_pickle():
     "Database pickle roundtrip."
-    test_dbf = Database(ALCRNI_TDB)
+    test_dbf = Database(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
     new_dbf = pickle.loads(pickle.dumps(test_dbf))
     assert test_dbf == new_dbf
 
+
 def test_database_diffusion():
     "Diffusion database support."
+    DIFFUSION_TDB = open(str(files(pycalphad.tests.databases).joinpath("diffusion.tdb")), "r").read()
     assert Database(DIFFUSION_TDB).phases == \
            Database.from_string(Database(DIFFUSION_TDB).to_string(fmt='tdb'), fmt='tdb').phases
     # Won't work until sympy/sympy#10560 is fixed to prevent precision loss
@@ -72,14 +79,17 @@ def test_database_diffusion():
 
 def test_load_from_string():
     "Test database loading from a string."
-    test_model = Model(Database.from_string(ALCRNI_TDB, fmt='tdb'), ['CR', 'NI'], 'L12_FCC')
+    test_model = Model(Database.from_string(open(files(pycalphad.tests.databases).joinpath("alcrni.tdb"), "r").read()
+                                            , fmt='tdb'), ['CR', 'NI'], 'L12_FCC')
     assert test_model == REFERENCE_MOD
 
-def test_export_import():
+
+@select_database("alfe.tdb")
+def test_export_import(load_database):
     "Equivalence of re-imported database to original."
-    test_dbf = Database(ALNIPT_TDB)
+    test_dbf = Database(str(files(pycalphad.tests.databases).joinpath("alnipt.tdb")))
     assert Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb') == test_dbf
-    test_dbf = Database(ALFE_TDB)
+    test_dbf = load_database()
     assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
 
 def test_incompatible_db_warns_by_default():
@@ -154,27 +164,33 @@ def _testwritetdb():
     yield fname  # run the test
     os.remove(fname)
 
-def test_to_file_defaults_to_raise_if_exists(_testwritetdb):
+
+@select_database("alnipt.tdb")
+def test_to_file_defaults_to_raise_if_exists(load_database, _testwritetdb):
     "Attempting to use Database.to_file should raise by default if it exists"
     fname = _testwritetdb
-    test_dbf = Database(ALNIPT_TDB)
+    test_dbf = load_database()
     test_dbf.to_file(fname)  # establish the initial file
     with pytest.raises(FileExistsError):
         test_dbf.to_file(fname)  # test if_exists behavior
 
-def test_to_file_raises_with_bad_if_exists_argument(_testwritetdb):
+
+@select_database("alnipt.tdb")
+def test_to_file_raises_with_bad_if_exists_argument(load_database, _testwritetdb):
     "Database.to_file should raise if a bad behavior string is passed to if_exists"
     fname = _testwritetdb
-    test_dbf = Database(ALNIPT_TDB)
+    test_dbf = load_database()
     test_dbf.to_file(fname)  # establish the initial file
     with pytest.raises(FileExistsError):
         test_dbf.to_file(fname, if_exists='TEST_BAD_ARGUMENT')  # test if_exists behavior
 
-def test_to_file_overwrites_with_if_exists_argument(_testwritetdb):
+
+@select_database("alnipt.tdb")
+def test_to_file_overwrites_with_if_exists_argument(load_database, _testwritetdb):
     "Database.to_file should overwrite if 'overwrite' is passed to if_exists"
     import time
     fname = _testwritetdb
-    test_dbf = Database(ALNIPT_TDB)
+    test_dbf = load_database()
     test_dbf.to_file(fname)  # establish the initial file
     inital_modification_time = os.path.getmtime(fname)
     time.sleep(1)  # this test can fail intermittently without waiting.
@@ -182,15 +198,16 @@ def test_to_file_overwrites_with_if_exists_argument(_testwritetdb):
     overwrite_modification_time = os.path.getmtime(fname)
     assert overwrite_modification_time > inital_modification_time
 
+
 def test_unspecified_format_from_string():
     "from_string: Unspecified string format raises ValueError."
     with pytest.raises(ValueError):
-        Database.from_string(ALCRNI_TDB)
+        Database.from_string(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
 
 def test_unknown_format_from_string():
     "from_string: Unknown import string format raises NotImplementedError."
     with pytest.raises(NotImplementedError):
-        Database.from_string(ALCRNI_TDB, fmt='_fail_')
+        Database.from_string(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")), fmt='_fail_')
 
 def test_unknown_format_to_string():
     "to_string: Unknown export file format raises NotImplementedError."
@@ -199,18 +216,18 @@ def test_unknown_format_to_string():
 
 def test_load_from_stringio():
     "Test database loading from a file-like object."
-    test_tdb = Database(StringIO(ALCRNI_TDB))
+    test_tdb = Database(StringIO(open(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")), "r").read()))
     assert test_tdb == REFERENCE_DBF
 
 def test_load_from_stringio_from_file():
     "Test database loading from a file-like object with the from_file method."
-    test_tdb = Database.from_file(StringIO(ALCRNI_TDB), fmt='tdb')
+    test_tdb = Database.from_file(StringIO(open(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")), "r").read()), fmt='tdb')
     assert test_tdb == REFERENCE_DBF
 
 def test_unspecified_format_from_file():
     "from_file: Unspecified format for file descriptor raises ValueError."
     with pytest.raises(ValueError):
-        Database.from_file(StringIO(ALCRNI_TDB))
+        Database.from_file(StringIO(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb"))))
 
 def test_unspecified_format_to_file():
     "to_file: Unspecified format for file descriptor raises ValueError."
@@ -220,7 +237,7 @@ def test_unspecified_format_to_file():
 def test_unknown_format_from_file():
     "from_string: Unknown import file format raises NotImplementedError."
     with pytest.raises(NotImplementedError):
-        Database.from_string(ALCRNI_TDB, fmt='_fail_')
+        Database.from_string(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")), fmt='_fail_')
 
 def test_unknown_format_to_file():
     "to_file: Unknown export file format raises NotImplementedError."
@@ -687,8 +704,10 @@ def test_tdb_parser_raises_unterminated_parameters():
         Database(UNTERMINATED_PARAM_STR)
 
 
-def test_load_database_when_given_in_lowercase():
+@select_database("alfe.tdb")
+def test_load_database_when_given_in_lowercase(load_database):
     "Test loading a database coerced to lowercase loads correctly."
+    ALFE_TDB = load_database().to_string(fmt='tdb')
     dbf = Database.from_string(ALFE_TDB, fmt='tdb')
     dbf_lower = Database.from_string(ALFE_TDB.lower(), fmt='tdb')
 

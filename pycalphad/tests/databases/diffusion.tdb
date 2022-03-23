@@ -1,0 +1,98 @@
+$--------------------------------------------------------------
+$$ 			Version MGMOB1
+$$   MODIFIED FOR TESTING PURPOSES -- NOT FOR RESEARCH
+$--------------------------------------------------------------
+$
+$ OPTIMIZED USING THERMO-CALC TCMG2 THERMODYNAMIC DATABASE
+$
+$
+$=======================ELEMENT DATA===========================
+$$ ELEMENT STABLE ELEMENT  REFERENCE	  MASS	      H298-H0	   S298
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT AG   FCC_A1                    1.0787E+02  5.7446E+03  4.2551E+01!
+ ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01!
+ ELEMENT BE   HCP_A3                    9.0122E+00  0.0000E+00  0.0000E+00!
+ ELEMENT CA   FCC_A1                    4.0078E+01  6.1965E+03  4.1589E+01!
+ ELEMENT CD   HCP_A3                    1.1241E+02  6.2509E+03  5.1798E+01!
+ ELEMENT CE   FCC_A1                    1.4011E+02  0.0000E+00  0.0000E+00!
+ ELEMENT EU   BCC_A2                    1.5197E+02  0.0000E+00  8.0793E+01!
+ ELEMENT FE   BCC_A2                    5.5847E+01  4.4890E+03  2.7280E+01!
+ ELEMENT GA   ORTHORHOMBIC_CMCA         6.9723E+01  5.5731E+03  4.0828E+01!
+ ELEMENT GD   HCP_A3                    1.5725E+02  0.0000E+00  0.0000E+00!
+ ELEMENT IN   TETRAGONAL_A6             1.1482E+02  6.6100E+03  5.7650E+01!
+ ELEMENT LA   DOUBLE_HCP(ABAC)          1.3891E+02  0.0000E+00  0.0000E+00!
+ ELEMENT MG   HCP_A3                    2.4305E+01  4.9980E+03  3.2671E+01!
+ ELEMENT MN   CBCC_A12                  5.4938E+01  4.9960E+03  3.2008E+01!
+ ELEMENT ND   DHCP                      1.4424E+02  0.0000E+00  0.0000E+00!
+ ELEMENT NI   FCC_A1                    5.8690E+01  4.7870E+03  2.9796E+01!
+ ELEMENT PR   DOUBLE_HCP(ABAC)          1.4091E+02  0.0000E+00  0.0000E+00!
+ ELEMENT SB   RHOMBOHEDRAL_A7           1.2175E+02  5.8702E+03  4.5522E+01!
+ ELEMENT SM   RHOMBOHEDRAL              1.5036E+02  0.0000E+00  0.0000E+00!
+ ELEMENT SN   BCT_A5                    1.1871E+02  6.3220E+03  5.1195E+01!
+ ELEMENT U    ORTHORHOMBIC(A20)         2.3803E+02  0.0000E+00  0.0000E+00!
+ ELEMENT Y    HCP_A3                    8.8906E+01  0.0000E+00  0.0000E+00!
+ ELEMENT ZN   HCP_A3                    6.5390E+01  5.6568E+03  4.1631E+01!
+$
+$=======================PHASE DATA=============================
+$PHASE NAME   TYPE NR OF SUBL. IN EACH SUBL.
+ PHASE HCP_A3  XH  2 1   .5 !
+$====================CONSTITUENT DATA==========================
+ CONST HCP_A3 : AG,AL,CE,LA,MG%,MN,SN,ZN : VA% : !
+$=======================SYSTEM DATA============================
+ TYPE_DEFINITION X SEQ * !
+ TYPE_DEFINITION H GES A_P_D HCP_A3 MAGNETIC  -3.0    2.80000E-01 !
+ DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+ DEFAULT_COMMAND DEF_SYS_EL VA /- !
+$======================VOLUME DATA=============================
+$Molar volume set to 1E-5
+$VS: volume counted per mole of volume carrying species
+$ PARAM VS(HCP_A3) 0 1.0E-5; 6000 N !
+$====================ZERO VOLUME DATA==========================
+$ ZEROVOLUME_SPECIES VA !
+$===================DIFFUSION FORMULA==========================
+$ GIVEN GENERAL FORM: D=AEXP(-Q/RT)
+$ DEFINE MQ=-Q+RTLN(A)
+$
+$===================SELF DIFFUSIVITY===========================
+ PARA MQ(HCP_A3&AG,*:VA),, -1.3991E5+R*T*LN(6.13E-4);,,N  !
+
+ PARA MQ(HCP_A3&AL,*:VA),, -1.5705E5+R*T*LN(1.47E-3);,,N  !
+ PARA MQ(HCP_A3&AL,MG:VA),, -1.5231E5+R*T*LN(5.74E-4);,,N  !
+ PARA MQ(HCP_A3&AL,AL,MG:VA),, -7.0918E5+1.167E3*T;,,N  !
+
+ PARA MQ(HCP_A3&BE,*:VA),, -1.5700E5+R*T*LN(8.06E-4);,,N  !
+
+ PARA MQ(HCP_A3&CD,*:VA),, -1.4070E5+R*T*LN(1.29E-4);,,N  !
+
+ PARA MQ(HCP_A3&CE,*:VA),, -1.7580E5+R*T*LN(4.50E-2);,,N  !
+
+ PARA MQ(HCP_A3&FE,*:VA),, -8.8800E4+R*T*LN(4.00E-2);,,N  !
+
+ PARA MQ(HCP_A3&GA,*:VA),, -1.3430E5+R*T*LN(1.20E-4);,,N  !
+
+ PARA MQ(HCP_A3&IN,*:VA),, -1.1882E5+R*T*LN(5.20E-6);,,N  !
+
+ PARA MQ(HCP_A3&LA,*:VA),, -1.0220E5+R*T*LN(2.20E-6);,,N  !
+
+ PARA MQ(HCP_A3&MG,*:VA),,  -125077.2+R*T*LN(2.48E-5);,,N  !
+ PARA MQ(HCP_A3&MG,MG:VA),, -125077.2+R*T*LN(2.48E-5);,,N  !
+ PARA MQ(HCP_A3&MG,AL:VA),, -9.4176E5+R*T*LN(5.01E-4);,,N  !
+ PARA MQ(HCP_A3&MG,MG,AL:VA),, -2.8842E5+1.967E3*T;,,N  !
+ PARA MQ(HCP_A3&MG,ZN:VA),, -8.2169E7+R*T*LN(1.29E-11);,,N  !
+ PARA MQ(HCP_A3&MG,MG,ZN:VA),, 8.2831E7+3.785E3*T;,,N  !
+
+ PARA MQ(HCP_A3&MN,*:VA),, -1.5400E5+R*T*LN(0.76E-4);,,N  !
+
+ PARA MQ(HCP_A3&NI,*:VA),, -9.5900E4+R*T*LN(5.00E-10);,,N  !
+
+ PARA MQ(HCP_A3&SB,*:VA),, -1.3730E5+R*T*LN(2.57E-4);,,N  !
+
+ PARA MQ(HCP_A3&SN,*:VA),, -1.5132E5+R*T*LN(4.56E-4);,,N  !
+
+ PARA MQ(HCP_A3&ZN,*:VA),,  -1.2552E5+R*T*LN(9.38E-5);,,N  !
+ PARA MQ(HCP_A3&ZN,MG:VA),,  -1.2552E5+R*T*LN(9.38E-5);,,N  !
+ PARA MQ(HCP_A3&ZN,ZN,MG:VA),,  -2.5024E6+3.350E3*T;,,N  !
+ PARA MQ(HCP_A3&ZN,AL,MG:VA),, 3.5434E3+9.763E1*T;,,N  !
+
+ PARA MQ(HCP_A3&U,*:VA),, -1.1470E5+R*T*LN(2.50E-9);,,N  !
