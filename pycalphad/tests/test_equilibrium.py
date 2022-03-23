@@ -14,7 +14,6 @@ from pycalphad.codegen.callables import build_callables, build_phase_records
 from pycalphad.core.solver import SolverBase, Solver
 from pycalphad.core.utils import get_state_variables, instantiate_models
 import pycalphad.variables as v
-from pycalphad.tests.datasets import *
 from pycalphad.tests.fixtures import load_database, select_database
 
 warnings.simplefilter("always", UserWarning) # so we can test warnings
@@ -741,11 +740,12 @@ def test_eq_issue259(load_database):
     assert_allclose(eq.MU.values.flatten(), [-95906., -52877.592122])
 
 @pytest.mark.solver
-def test_eq_needs_metastable_starting():
+@select_database("mc_fecocrnbti.tdb")
+def test_eq_needs_metastable_starting(load_database):
     """
     Complex multi-component system with many phases near the starting hyperplane.
     """
-    dbf = Database(MC_FECOCRNBTI_TDB)
+    dbf = load_database()
     phases = list(set(dbf.phases.keys()) - {'GP_MAT'})
     mass_fracs = {v.W('CR'): 28./100, v.W('FE'): 21./100, v.W('NB'): 1./100, v.W('TI'): 1.3/100}
     conds = v.get_mole_fractions(mass_fracs, 'CO', dbf)
