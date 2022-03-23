@@ -117,12 +117,14 @@ def test_eq_single_phase(load_database):
     assert_allclose(np.squeeze(eq.GM), np.squeeze(res.GM), atol=0.1)
 
 
-def test_eq_b2_without_all_comps():
+@select_database("alnipt.tdb")
+def test_eq_b2_without_all_comps(load_database):
     """
     All-vacancy endmembers are correctly excluded from the computation when fewer than
     all components in a Database are selected for the calculation.
     """
-    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200},
+    dbf = load_database()
+    equilibrium(dbf, ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200},
                 verbose=True)
 
 

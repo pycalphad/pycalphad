@@ -2,54 +2,66 @@
 The test_model module contains unit tests for the Model object.
 """
 from pycalphad import Database, Model, variables as v, equilibrium
-from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
+from pycalphad.tests.datasets import ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
 from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.errors import DofError
 import numpy as np
 import pickle
 import pytest
 
-ALCRNI_DBF = Database(ALCRNI_TDB)
-ALNIPT_DBF = Database(ALNIPT_TDB)
 
-def test_model_eq():
+@select_database("alcrni.tdb")
+def test_model_eq(load_database):
     "Model equality comparison."
-    test_model = Model(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')
+    dbf = load_database()
+    test_model = Model(dbf, ['AL', 'CR'], 'L12_FCC')
     assert test_model == test_model
-    assert test_model == Model(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')
-    assert not (test_model == Model(ALCRNI_DBF, ['NI', 'CR'], 'L12_FCC'))
+    assert test_model == Model(dbf, ['AL', 'CR'], 'L12_FCC')
+    assert not (test_model == Model(dbf, ['NI', 'CR'], 'L12_FCC'))
     # literals which don't have __dict__
     assert not (test_model == 42)
     assert not (test_model == None)
     assert not (42 == test_model)
     assert not (None == test_model)
 
-def test_model_ne():
+
+@select_database("alcrni.tdb")
+def test_model_ne(load_database):
     "Model inequality comparison."
-    test_model = Model(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')
+    dbf = load_database()
+    test_model = Model(dbf, ['AL', 'CR'], 'L12_FCC')
     assert not (test_model != test_model)
-    assert not (test_model != Model(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC'))
-    assert test_model != Model(ALCRNI_DBF, ['NI', 'CR'], 'L12_FCC')
+    assert not (test_model != Model(dbf, ['AL', 'CR'], 'L12_FCC'))
+    assert test_model != Model(dbf, ['NI', 'CR'], 'L12_FCC')
     # literals which don't have __dict__
     assert test_model != 42
     assert test_model != None
     assert 42 != test_model
     assert None != test_model
 
-def test_export_import():
+
+@select_database("alnipt.tdb")
+def test_export_import(load_database):
     "Equivalence of Model using re-imported database."
-    test_model = Model(Database.from_string(ALNIPT_DBF.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb'), ['PT', 'NI', 'VA'], 'FCC_L12')
-    ref_model = Model(ALNIPT_DBF, ['NI', 'PT', 'VA'], 'FCC_L12')
+    dbf = load_database()
+    test_model = Model(Database.from_string(dbf.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb'), ['PT', 'NI', 'VA'], 'FCC_L12')
+    ref_model = Model(dbf, ['NI', 'PT', 'VA'], 'FCC_L12')
     assert test_model == ref_model
 
-def test_model_pickle():
+
+@select_database("alnipt.tdb")
+def test_model_pickle(load_database):
     "Model pickle roundtrip."
-    test_model = Model(ALNIPT_DBF, ['NI', 'PT', 'VA'], 'FCC_L12')
+    dbf = load_database()
+    test_model = Model(dbf, ['NI', 'PT', 'VA'], 'FCC_L12')
     new_model = pickle.loads(pickle.dumps(test_model))
     assert test_model == new_model
 
-def test_custom_model_contributions():
+
+@select_database("alcrni.tdb")
+def test_custom_model_contributions(load_database):
     "Building a custom model using contributions."
+    dbf = load_database()
     class CustomModel(Model):
         contributions = [('zzz', 'test'), ('xxx', 'test2'), ('yyy', 'test3')]
         def test(self, dbe):
@@ -58,7 +70,7 @@ def test_custom_model_contributions():
             return 0
         def test3(self, dbe):
             return 0
-    CustomModel(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')
+    CustomModel(dbf, ['AL', 'CR'], 'L12_FCC')
 
 
 @select_database("alfe.tdb")

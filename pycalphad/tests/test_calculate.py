@@ -10,41 +10,50 @@ from numpy.testing import assert_allclose
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.utils import instantiate_models
 from pycalphad import ConditionError
-from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ZRLAYALO_TDB
 from pycalphad.tests.fixtures import select_database, load_database
 
 
-DBF = Database(TDB_TEST_STRING)
-ZRLAYALO_DBF = Database(ZRLAYALO_TDB)
-
-
-def test_surface():
+@select_database("alcrni.tdb")
+def test_surface(load_database):
     "Bare minimum: calculation produces a result."
-    calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC',
+    dbf = load_database()
+    calculate(dbf, ['AL', 'CR', 'NI'], 'L12_FCC',
                 T=1273., mode='numpy')
 
-def test_unknown_model_attribute():
-    "Sampling an unknown model attribute raises exception."
-    with pytest.raises(AttributeError):
-        calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC', T=1400.0, output='_fail_')
 
-def test_statevar_upcast():
+@select_database("alcrni.tdb")
+def test_unknown_model_attribute(load_database):
+    "Sampling an unknown model attribute raises exception."
+    dbf = load_database()
+    with pytest.raises(AttributeError):
+        calculate(dbf, ['AL', 'CR', 'NI'], 'L12_FCC', T=1400.0, output='_fail_')
+
+
+@select_database("alcrni.tdb")
+def test_statevar_upcast(load_database):
     "Integer state variable values are cast to float."
-    calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC',
+    dbf = load_database()
+    calculate(dbf, ['AL', 'CR', 'NI'], 'L12_FCC',
                 T=1273, mode='numpy')
 
-def test_points_kwarg_multi_phase():
+
+@select_database("alcrni.tdb")
+def test_points_kwarg_multi_phase(load_database):
     "Multi-phase calculation works when internal dof differ (gh-41)."
-    calculate(DBF, ['AL', 'CR', 'NI'], ['L12_FCC', 'LIQUID'],
+    dbf = load_database()
+    calculate(dbf, ['AL', 'CR', 'NI'], ['L12_FCC', 'LIQUID'],
                 T=1273, points={'L12_FCC': [0.20, 0.05, 0.75, 0.05, 0.20, 0.75]}, mode='numpy')
 
-def test_issue116():
+
+@select_database("alcrni.tdb")
+def test_issue116(load_database):
     "Calculate gives correct result when a state variable is left as default (gh-116)."
-    result_one = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400)
+    dbf = load_database()
+    result_one = calculate(dbf, ['AL', 'CR', 'NI'], 'LIQUID', T=400)
     result_one_values = result_one.GM.values
-    result_two = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325)
+    result_two = calculate(dbf, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325)
     result_two_values = result_two.GM.values
-    result_three = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325, N=1)
+    result_three = calculate(dbf, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325, N=1)
     result_three_values = result_three.GM.values
     np.testing.assert_array_equal(np.squeeze(result_one_values), np.squeeze(result_two_values))
     np.testing.assert_array_equal(np.squeeze(result_one_values), np.squeeze(result_three_values))
@@ -99,22 +108,25 @@ def test_calculate_with_parameters_vectorized(load_database):
     assert_allclose(res.GM.isel(samples=1).values, res_noparams.GM.values)
 
 
-def test_incompatible_model_instance_raises():
+@select_database("alcrni.tdb")
+def test_incompatible_model_instance_raises(load_database):
     "Calculate raises when an incompatible Model instance built with a different phase is passed."
+    dbf = load_database()
     comps = ['AL', 'CR', 'NI']
     phase_name = 'L12_FCC'
-    mod = Model(DBF, comps, 'LIQUID')  # Model instance does not match the phase
+    mod = Model(dbf, comps, 'LIQUID')  # Model instance does not match the phase
     with pytest.raises(ValueError):
-        calculate(DBF, comps, phase_name, T=1400.0, output='_fail_', model=mod)
+        calculate(dbf, comps, phase_name, T=1400.0, output='_fail_', model=mod)
 
 
-def test_single_model_instance_raises():
+@select_database("alcrni.tdb")
+def test_single_model_instance_raises(load_database):
     "Calculate raises when a single Model instance is passed with multiple phases."
+    dbf = load_database()
     comps = ['AL', 'CR', 'NI']
-    phase_name = 'L12_FCC'
-    mod = Model(DBF, comps, 'L12_FCC')  # Model instance does not match the phase
+    mod = Model(dbf, comps, 'L12_FCC')  # Model instance does not match the phase
     with pytest.raises(ValueError):
-        calculate(DBF, comps, ['LIQUID', 'L12_FCC'], T=1400.0, output='_fail_', model=mod)
+        calculate(dbf, comps, ['LIQUID', 'L12_FCC'], T=1400.0, output='_fail_', model=mod)
 
 
 @select_database("alfe.tdb")
@@ -153,16 +165,18 @@ def test_no_neutral_endmembers_single():
     np.testing.assert_allclose(np.squeeze(calc_res.Y.values), np.array([1/3, 2/3, 1]))
 
 
-def test_pyrochlore_infeasible():
+@select_database("zrlayalo.tdb")
+def test_pyrochlore_infeasible(load_database):
     "calculate raises an error when it is impossible to satisfy a phase's constraints"
-    dbf = ZRLAYALO_DBF
+    dbf = load_database()
     with pytest.raises(ValueError):
         calculate(dbf, ['LA', 'Y', 'O'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
 
 
-def test_pyrochlore_complex():
+@select_database("zrlayalo.tdb")
+def test_pyrochlore_complex(load_database):
     "calculate generates feasible points for complex charged phase"
-    dbf = ZRLAYALO_DBF
+    dbf = load_database()
     # PYROCHLORE
     # 2   2   6   1   1
     # LA+3,Y+3,ZR+4 : LA+3,Y+3,ZR+4 : O-2,VA : O-2 :  O-2,VA :  !
@@ -181,9 +195,10 @@ def test_pyrochlore_complex():
     assert cons_infeasibility < 1e-10
 
 
-def test_pyrochlore_no_freedom():
+@select_database("zrlayalo.tdb")
+def test_pyrochlore_no_freedom(load_database):
     "calculate generates at least one feasible point for a phase with no degrees of freedom"
-    dbf = ZRLAYALO_DBF
+    dbf = load_database()
     # PYROCHLORE
     # 2   2   6   1   1
     # LA+3,Y+3,ZR+4 : LA+3,Y+3,ZR+4 : O-2 : O-2 :  O-2 :  !
