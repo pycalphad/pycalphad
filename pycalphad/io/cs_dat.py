@@ -123,6 +123,10 @@ class IntervalBase:
         raise NotImplementedError("Subclasses of IntervalBase must define an expression for the energy")
 
     def cond(self, T_min=298.15):
+        if T_min == self.T_max:
+            # To avoid an impossible, always False condition an open interval
+            # is assumed. We choose 10000 K as the dummy (as in TDBs).
+            return And((T_min <= v.T), (v.T < 10000))
         return And((T_min <= v.T), (v.T < self.T_max))
 
     def expr_cond_pair(self, *args, T_min=298.15, **kwargs):
