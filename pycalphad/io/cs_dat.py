@@ -16,9 +16,10 @@ from .grammar import parse_chemical_formula
 # From ChemApp Documentation, section 11.1 "The format of a ChemApp data-file"
 # We use a leading zero term because the data file's indices are 1-indexed and
 # this prevents us from needing to shift the indicies.
-GIBBS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2, v.T**3, 1/v.T)
-CP_TERMS = (S.Zero, S.One, v.T, v.T**2, v.T**(-2))
-EXCESS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2, v.T**3, 1/v.T, v.P, v.P**2)
+# Exponents are in floating point so that round-trip write/read passes equality checks
+GIBBS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2.0, v.T**3.0, v.T**(-1.0))
+CP_TERMS = (S.Zero, S.One, v.T, v.T**2.0, v.T**(-2.0))
+EXCESS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2.0, v.T**3.0, v.T**(-1.0), v.P, v.P**2.0)
 
 
 def _parse_species_postfix_charge(formula) -> v.Species:
@@ -400,8 +401,9 @@ class PhaseBase:
         This method should call:
 
         * `dbf.add_phase`
+        * `dbf.structure_entry`
         * `dbf.add_phase_constituents`
-        * `dbf.add_parameter` (likely multiple times)
+        * `dbf.add_parameter` for all parameters
 
         """
         raise NotImplementedError(f"Subclass {type(self).__name__} of PhaseBase must implement `insert` to add the phase, constituents and parameters to the Database.")
@@ -435,6 +437,7 @@ class Phase_Stoichiometric(PhaseBase):
         subl_stoich_ratios = [constituent_dict[el] for el in sorted(constituent_dict.keys())]
 
         dbf.add_phase(self.phase_name, model_hints=model_hints, sublattices=subl_stoich_ratios)
+        dbf.add_structure_entry(self.phase_name, self.phase_name)
         dbf.add_phase_constituents(self.phase_name, constituent_array)
         self.endmembers[0].insert(dbf, self.phase_name, constituent_array, gibbs_coefficient_idxs)
 
@@ -480,6 +483,7 @@ class Phase_CEF(PhaseBase):
             model_hints["chemical_groups"] = chemical_groups
 
         dbf.add_phase(self.phase_name, model_hints=model_hints, sublattices=self.subl_ratios)
+        dbf.add_structure_entry(self.phase_name, self.phase_name)
 
         # This does two things:
         # 1. set the self.constituent_array
@@ -725,6 +729,7 @@ class Phase_SUBQ(PhaseBase):
             }
         }
         dbf.add_phase(self.phase_name, model_hints, sublattices=[1.0])
+        dbf.add_structure_entry(self.phase_name, self.phase_name)
         dbf.add_phase_constituents(self.phase_name, [cations, anions])
 
         # Third: add the endmember (pair) Gibbs energies
@@ -1165,7 +1170,7 @@ def read_cs_dat(dbf: Database, fd):
                 'mass': mass,
                 # the following metadata is not given in DAT files,
                 # but is standard for our Database files
-                'phase': None,
+                'phase': 'BLANK',
                 'H298': 0.0,
                 'S298': 0.0,
             }
