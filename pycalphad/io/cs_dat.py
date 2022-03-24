@@ -232,7 +232,7 @@ class EndmemberMagnetic(Endmember):
         super().insert(dbf, phase_name, pure_elements, gibbs_coefficient_idxs)
 
         # also add magnetic parameters
-        dbf.add_parameter('BMAG', phase_name, self.constituent_array(),
+        dbf.add_parameter('BMAGN', phase_name, self.constituent_array(),
                           0, self.magnetic_moment, force_insert=False)
         dbf.add_parameter('TC', phase_name, self.constituent_array(),
                           0, self.curie_temperature, force_insert=False)
@@ -369,7 +369,7 @@ class ExcessRKMMagnetic(ExcessBase):
         # See the comment about sorting in ExcessRKM
         const_array = self.constituent_array(phase_constituents)
         dbf.add_parameter('TC', phase_name, const_array, self.parameter_order, self.curie_temperature, force_insert=False)
-        dbf.add_parameter('BMAG', phase_name, const_array, self.parameter_order, self.magnetic_moment, force_insert=False)
+        dbf.add_parameter('BMAGN', phase_name, const_array, self.parameter_order, self.magnetic_moment, force_insert=False)
 
 
 @dataclass
