@@ -20,7 +20,7 @@ from .grammar import parse_chemical_formula
 GIBBS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2.0, v.T**3.0, v.T**(-1.0))
 CP_TERMS = (S.Zero, S.One, v.T, v.T**2.0, v.T**(-2.0))
 EXCESS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2.0, v.T**3.0, v.T**(-1.0), v.P, v.P**2.0)
-
+DEFAULT_T_MIN = 0.01  # The same as for TDBs when no minimum temperature is given.
 
 def _parse_species_postfix_charge(formula) -> v.Species:
     name = formula
@@ -122,14 +122,14 @@ class IntervalBase:
     def expr(self):
         raise NotImplementedError("Subclasses of IntervalBase must define an expression for the energy")
 
-    def cond(self, T_min=298.15):
+    def cond(self, T_min=DEFAULT_T_MIN):
         if T_min == self.T_max:
             # To avoid an impossible, always False condition an open interval
             # is assumed. We choose 10000 K as the dummy (as in TDBs).
             return And((T_min <= v.T), (v.T < 10000))
         return And((T_min <= v.T), (v.T < self.T_max))
 
-    def expr_cond_pair(self, *args, T_min=298.15, **kwargs):
+    def expr_cond_pair(self, *args, T_min=DEFAULT_T_MIN, **kwargs):
         """Return an (expr, cond) tuple used to construct Piecewise expressions"""
         expr = self.expr(*args, **kwargs)
         cond = self.cond(T_min)
@@ -166,7 +166,7 @@ class IntervalCP(IntervalBase):
     additional_coeff_pairs: List[AdditionalCoefficientPair]
     PTVm_terms: List[PTVmTerms]
 
-    def expr(self, indices, T_min=298.15):
+    def expr(self, indices, T_min=DEFAULT_T_MIN):
         """Return an expression for the energy in this temperature interval"""
         raise NotImplementedError("Heat capacity descriptions of the Gibbs energy are not implemented.")
 
@@ -180,7 +180,7 @@ class Endmember():
 
     def expr(self, indices):
         """Return a Piecewise (in temperature) energy expression for this endmember (i.e. only the data from the energy intervals)"""
-        T_min = 298.15
+        T_min = DEFAULT_T_MIN
         expr_cond_pairs = []
         for interval in self.intervals:
             expr_cond_pairs.append(interval.expr_cond_pair(indices, T_min=T_min))
