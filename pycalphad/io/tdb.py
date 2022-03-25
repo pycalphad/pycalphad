@@ -422,9 +422,9 @@ def to_interval(relational):
         return Interval(S.NegativeInfinity, S.Infinity, left_open=True, right_open=True)
 
     if len(relational.free_symbols) != 1:
-        raise ValueError('Relational must only have one free symbol')
+        raise ValueError(f'Relational must only have one free symbol. Got {len(relational.free_symbols)} ({relational.free_symbols}) for relational {relational}')
     if len(relational.args) != 2:
-        raise ValueError('Relational must only have two arguments')
+        raise ValueError(f'Relational must only have two arguments. Got {len(relational.args)} ({relational.args}) for relational {relational}')
     free_symbol = list(relational.free_symbols)[0]
     lhs = relational.args[0]
     rhs = relational.args[1]

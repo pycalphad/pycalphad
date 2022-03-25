@@ -16,10 +16,11 @@ from .grammar import parse_chemical_formula
 # From ChemApp Documentation, section 11.1 "The format of a ChemApp data-file"
 # We use a leading zero term because the data file's indices are 1-indexed and
 # this prevents us from needing to shift the indicies.
-GIBBS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2, v.T**3, 1/v.T)
-CP_TERMS = (S.Zero, S.One, v.T, v.T**2, v.T**(-2))
-EXCESS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2, v.T**3, 1/v.T, v.P, v.P**2)
-
+# Exponents are in floating point so that round-trip write/read passes equality checks
+GIBBS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2.0, v.T**3.0, v.T**(-1.0))
+CP_TERMS = (S.Zero, S.One, v.T, v.T**2.0, v.T**(-2.0))
+EXCESS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2.0, v.T**3.0, v.T**(-1.0), v.P, v.P**2.0)
+DEFAULT_T_MIN = 0.01  # The same as for TDBs when no minimum temperature is given.
 
 def _parse_species_postfix_charge(formula) -> v.Species:
     name = formula
@@ -121,10 +122,14 @@ class IntervalBase:
     def expr(self):
         raise NotImplementedError("Subclasses of IntervalBase must define an expression for the energy")
 
-    def cond(self, T_min=298.15):
+    def cond(self, T_min=DEFAULT_T_MIN):
+        if T_min == self.T_max:
+            # To avoid an impossible, always False condition an open interval
+            # is assumed. We choose 10000 K as the dummy (as in TDBs).
+            return And((T_min <= v.T), (v.T < 10000))
         return And((T_min <= v.T), (v.T < self.T_max))
 
-    def expr_cond_pair(self, *args, T_min=298.15, **kwargs):
+    def expr_cond_pair(self, *args, T_min=DEFAULT_T_MIN, **kwargs):
         """Return an (expr, cond) tuple used to construct Piecewise expressions"""
         expr = self.expr(*args, **kwargs)
         cond = self.cond(T_min)
@@ -161,7 +166,7 @@ class IntervalCP(IntervalBase):
     additional_coeff_pairs: List[AdditionalCoefficientPair]
     PTVm_terms: List[PTVmTerms]
 
-    def expr(self, indices, T_min=298.15):
+    def expr(self, indices, T_min=DEFAULT_T_MIN):
         """Return an expression for the energy in this temperature interval"""
         raise NotImplementedError("Heat capacity descriptions of the Gibbs energy are not implemented.")
 
@@ -175,7 +180,7 @@ class Endmember():
 
     def expr(self, indices):
         """Return a Piecewise (in temperature) energy expression for this endmember (i.e. only the data from the energy intervals)"""
-        T_min = 298.15
+        T_min = DEFAULT_T_MIN
         expr_cond_pairs = []
         for interval in self.intervals:
             expr_cond_pairs.append(interval.expr_cond_pair(indices, T_min=T_min))
@@ -227,7 +232,7 @@ class EndmemberMagnetic(Endmember):
         super().insert(dbf, phase_name, pure_elements, gibbs_coefficient_idxs)
 
         # also add magnetic parameters
-        dbf.add_parameter('BMAG', phase_name, self.constituent_array(),
+        dbf.add_parameter('BMAGN', phase_name, self.constituent_array(),
                           0, self.magnetic_moment, force_insert=False)
         dbf.add_parameter('TC', phase_name, self.constituent_array(),
                           0, self.curie_temperature, force_insert=False)
@@ -364,7 +369,7 @@ class ExcessRKMMagnetic(ExcessBase):
         # See the comment about sorting in ExcessRKM
         const_array = self.constituent_array(phase_constituents)
         dbf.add_parameter('TC', phase_name, const_array, self.parameter_order, self.curie_temperature, force_insert=False)
-        dbf.add_parameter('BMAG', phase_name, const_array, self.parameter_order, self.magnetic_moment, force_insert=False)
+        dbf.add_parameter('BMAGN', phase_name, const_array, self.parameter_order, self.magnetic_moment, force_insert=False)
 
 
 @dataclass
@@ -400,8 +405,9 @@ class PhaseBase:
         This method should call:
 
         * `dbf.add_phase`
+        * `dbf.structure_entry`
         * `dbf.add_phase_constituents`
-        * `dbf.add_parameter` (likely multiple times)
+        * `dbf.add_parameter` for all parameters
 
         """
         raise NotImplementedError(f"Subclass {type(self).__name__} of PhaseBase must implement `insert` to add the phase, constituents and parameters to the Database.")
@@ -435,6 +441,7 @@ class Phase_Stoichiometric(PhaseBase):
         subl_stoich_ratios = [constituent_dict[el] for el in sorted(constituent_dict.keys())]
 
         dbf.add_phase(self.phase_name, model_hints=model_hints, sublattices=subl_stoich_ratios)
+        dbf.add_structure_entry(self.phase_name, self.phase_name)
         dbf.add_phase_constituents(self.phase_name, constituent_array)
         self.endmembers[0].insert(dbf, self.phase_name, constituent_array, gibbs_coefficient_idxs)
 
@@ -480,6 +487,7 @@ class Phase_CEF(PhaseBase):
             model_hints["chemical_groups"] = chemical_groups
 
         dbf.add_phase(self.phase_name, model_hints=model_hints, sublattices=self.subl_ratios)
+        dbf.add_structure_entry(self.phase_name, self.phase_name)
 
         # This does two things:
         # 1. set the self.constituent_array
@@ -725,6 +733,7 @@ class Phase_SUBQ(PhaseBase):
             }
         }
         dbf.add_phase(self.phase_name, model_hints, sublattices=[1.0])
+        dbf.add_structure_entry(self.phase_name, self.phase_name)
         dbf.add_phase_constituents(self.phase_name, [cations, anions])
 
         # Third: add the endmember (pair) Gibbs energies
@@ -1165,7 +1174,7 @@ def read_cs_dat(dbf: Database, fd):
                 'mass': mass,
                 # the following metadata is not given in DAT files,
                 # but is standard for our Database files
-                'phase': None,
+                'phase': 'BLANK',
                 'H298': 0.0,
                 'S298': 0.0,
             }
