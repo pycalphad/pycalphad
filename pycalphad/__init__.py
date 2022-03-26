@@ -33,3 +33,13 @@ except ImportError:
         from importlib_metadata import version
     __version__ = version("pycalphad")
     del version
+
+
+# Import any plugins (packages starting with "pycalphad_")
+# Trigger code that registers extensions (e.g. Database formats)
+import importlib
+import pkgutil
+_discovered_plugins = {}
+for _finder, _name, _ispkg in pkgutil.iter_modules():
+    if _name.startswith("pycalphad_"):
+        _discovered_plugins[_name] = importlib.import_module(_name)
