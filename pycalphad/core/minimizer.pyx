@@ -861,32 +861,3 @@ cdef bint change_phases(SystemSpecification spec, SystemState state):
     else:
         phases_changed = True
     return phases_changed
-
-
-cpdef find_solution(list compsets, int num_statevars, int num_components,
-                    double prescribed_system_amount, double[::1] initial_chemical_potentials,
-                    int[::1] free_chemical_potential_indices, int[::1] fixed_chemical_potential_indices,
-                    int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
-                    int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
-    cdef CompositionSet compset
-    cdef double[::1] x, eq_soln
-    cdef int[::1] fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
-    cdef bint converged = False
-    cdef SystemSpecification spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
-                                                        initial_chemical_potentials, prescribed_elemental_amounts,
-                                                        prescribed_element_indices,
-                                                        free_chemical_potential_indices, free_statevar_indices,
-                                                        fixed_chemical_potential_indices, fixed_statevar_indices,
-                                                        fixed_stable_compset_indices)
-    cdef SystemState state = spec.get_new_state(compsets)
-
-    converged = spec.run_loop(state, 1000)
-
-    # Convert moles of formula units to phase fractions
-    phase_amt = np.array(state.phase_amt) * np.sum(state.phase_compositions, axis=1)
-
-    x = state.dof[0]
-    for cs_dof in state.dof[1:]:
-        x = np.r_[x, cs_dof[num_statevars:]]
-    x = np.r_[x, phase_amt]
-    return converged, x, np.array(state.chemical_potentials)
