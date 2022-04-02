@@ -425,7 +425,7 @@ cdef class SystemState:
     cdef int[::1] metastable_phase_iterations
     cdef int[::1] times_compset_removed
     cdef double mass_residual
-    cdef double[::1] phase_amt, chemical_potentials, delta_statevars
+    cdef double[::1] phase_amt, chemical_potentials, previous_chemical_potentials, delta_statevars
     cdef double[:, ::1] phase_compositions, delta_ms
     cdef double[1] largest_statevar_change, largest_phase_amt_change, largest_y_change
     cdef int[::1] free_stable_compset_indices
@@ -449,6 +449,7 @@ cdef class SystemState:
         # Phase fractions need to be converted to moles of formula
         self.phase_amt = np.array([compset.NP for compset in compsets])
         self.chemical_potentials = np.zeros(spec.num_components)
+        self.previous_chemical_potentials = np.zeros(spec.num_components)
         self.delta_ms = np.zeros((len(compsets), spec.num_components))
         self.delta_statevars = np.zeros(spec.num_statevars)
         self.phase_compositions = np.zeros((len(compsets), spec.num_components))
@@ -476,14 +477,14 @@ cdef class SystemState:
     def __getstate__(self):
         return (self.compsets, self.cs_states, self.dof, self.iteration, self.iterations_since_last_phase_change,
                 self.metastable_phase_iterations, self.times_compset_removed, self.mass_residual,
-                np.array(self.phase_amt), np.array(self.chemical_potentials),
+                np.array(self.phase_amt), np.array(self.chemical_potentials), np.array(self.previous_chemical_potentials),
                 np.array(self.delta_ms), np.array(self.phase_compositions),
                 self.largest_statevar_change[0], self.largest_phase_amt_change[0], self.largest_y_change[0],
                 np.array(self.free_stable_compset_indices), self.system_amount, np.array(self.mole_fractions))
     def __setstate__(self, state):
         (self.compsets, self.cs_states, self.dof, self.iteration, self.iterations_since_last_phase_change,
          self.metastable_phase_iterations, self.times_compset_removed, self.mass_residual,
-         self.phase_amt, self.chemical_potentials,
+         self.phase_amt, self.chemical_potentials, self.previous_chemical_potentials,
          self.delta_ms, self.phase_compositions, self.largest_statevar_change[0],
          self.largest_phase_amt_change[0], self.largest_y_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
 
@@ -524,6 +525,7 @@ cdef class SystemState:
             # TODO: Use better dof storage
             # Calculate key phase quantities starting here
             x = self.dof[idx]
+            compset.update(x[spec.num_statevars:], self.phase_amt[idx] * np.sum(self.phase_compositions[idx, :]), x[:spec.num_statevars])
             csst.energy = 0
             csst.mass_jac[:,:] = 0
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
@@ -598,6 +600,7 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
     cdef double[::1] equilibrium_soln
     cdef int chempot_idx, comp_idx, num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
 
+    state.previous_chemical_potentials[:] = state.chemical_potentials[:]
     state.recompute(spec)
 
     num_stable_phases = state.free_stable_compset_indices.shape[0]
@@ -841,7 +844,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef CompositionSet compset
     cdef double allowed_mass_residual, largest_chemical_potential_difference, step_size
     cdef double[::1] x, eq_soln
-    cdef double[::1] previous_chemical_potentials = np.empty(num_components)
     cdef int[::1] fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
     cdef bint converged = False
     cdef bint phases_changed
@@ -859,8 +861,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         if (state.mass_residual > 10) and (np.any(np.abs(state.chemical_potentials) > 1.0e10)):
             state.chemical_potentials[:] = spec.initial_chemical_potentials
 
-        previous_chemical_potentials[:] = state.chemical_potentials[:]
-
         eq_soln = solve_state(spec, state)
 
         advance_state(spec, state, eq_soln, step_size)
@@ -872,7 +872,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         # adjust the condition based on the absolute value of the differences.
         largest_chemical_potential_difference = -np.inf
         for comp_idx in range(num_components):
-            largest_chemical_potential_difference = max(largest_chemical_potential_difference, state.chemical_potentials[comp_idx] - previous_chemical_potentials[comp_idx])
+            largest_chemical_potential_difference = max(largest_chemical_potential_difference, state.chemical_potentials[comp_idx] - state.previous_chemical_potentials[comp_idx])
 
         if ((state.mass_residual > 1e-2) and (largest_chemical_potential_difference > 1.0)) or (iteration == 0):
             # When mass residual is not satisfied, do not allow phases to leave the system
