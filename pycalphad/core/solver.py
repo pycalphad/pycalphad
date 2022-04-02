@@ -27,8 +27,9 @@ class SolverBase(object):
 
 
 class Solver(SolverBase):
-    def __init__(self, verbose=False, **options):
+    def __init__(self, verbose=False, remove_metastable=True, **options):
         self.verbose = verbose
+        self.remove_metastable = remove_metastable
 
 
     def get_system_spec(self, composition_sets, conditions):
@@ -103,6 +104,19 @@ class Solver(SolverBase):
         spec = self.get_system_spec(composition_sets, conditions)
         state = spec.get_new_state(composition_sets)
         converged = spec.run_loop(state, 1000)
+
+        if self.remove_metastable:
+            phase_idx = 0
+            compsets_to_remove = []
+            for compset in composition_sets:
+                # Mark unstable phases for removal
+                if compset.NP <= 0.0 and not compset.fixed:
+                    compsets_to_remove.append(int(phase_idx))
+                phase_idx += 1
+            # Watch removal order here, as the indices of composition_sets are changing!
+            for idx in reversed(compsets_to_remove):
+                del composition_sets[idx]
+
         phase_amt = [compset.NP for compset in composition_sets]
 
         x = composition_sets[0].dof
