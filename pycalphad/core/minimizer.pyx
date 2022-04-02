@@ -466,6 +466,11 @@ cdef class SystemState:
         cdef CompositionSet compset
         cdef int idx, comp_idx
         self.compsets = compsets
+        for compset in compsets:
+            compset.fixed = False
+        for idx in spec.fixed_stable_compset_indices:
+            compset = compsets[idx]
+            compset.fixed = True
         self.cs_states = [CompsetState(spec, compset) for compset in compsets]
         self.dof = [np.array(compset.dof) for compset in compsets]
         self.iteration = 0
