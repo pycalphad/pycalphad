@@ -324,6 +324,42 @@ cdef class SystemSpecification:
     def __setstate__(self, state):
         self.__init__(*state)
 
+    cpdef bint check_convergence(self, SystemState state, bint phases_changed):
+        # convergence criteria
+        cdef double ALLOWED_DELTA_Y = 8e-09
+        cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
+        cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
+        cdef double ALLOWED_MASS_RESIDUAL
+        cdef bint is_converged = False
+        if self.prescribed_elemental_amounts.shape[0] > 0:
+            ALLOWED_MASS_RESIDUAL = min(1e-8, np.min(self.prescribed_elemental_amounts)/10)
+            # Also adjust mass residual if we are near the edge of composition space
+            ALLOWED_MASS_RESIDUAL = min(ALLOWED_MASS_RESIDUAL, (1-np.sum(self.prescribed_elemental_amounts))/10)
+        else:
+            ALLOWED_MASS_RESIDUAL = 1e-8
+        cdef bint solution_is_feasible = (
+            (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
+            (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
+            (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR) and
+            (state.mass_residual < ALLOWED_MASS_RESIDUAL)
+        )
+        if solution_is_feasible and (state.iterations_since_last_phase_change >= 5):
+            phases_changed = phases_changed or change_phases(self, state)
+            if phases_changed:
+                state.iterations_since_last_phase_change = 0
+            else:
+                is_converged = True
+
+        state.iterations_since_last_phase_change += 1
+
+        for idx in range(len(state.compsets)):
+            if idx in state.free_stable_compset_indices:
+                state.metastable_phase_iterations[idx] = 0
+            else:
+                state.metastable_phase_iterations[idx] += 1
+
+        return is_converged
+
 cdef class CompsetState:
     cdef double[::1] x
     cdef double energy
@@ -385,7 +421,9 @@ cdef class SystemState:
     cdef list compsets
     cdef list cs_states
     cdef object dof
-    cdef int iteration, num_statevars
+    cdef int iteration, num_statevars, iterations_since_last_phase_change
+    cdef int[::1] metastable_phase_iterations
+    cdef int[::1] times_compset_removed
     cdef double mass_residual
     cdef double[::1] phase_amt, chemical_potentials, delta_statevars
     cdef double[:, ::1] phase_compositions, delta_ms
@@ -404,6 +442,9 @@ cdef class SystemState:
         self.cs_states = [CompsetState(spec, compset) for compset in compsets]
         self.dof = [np.array(compset.dof) for compset in compsets]
         self.iteration = 0
+        self.iterations_since_last_phase_change = 0
+        self.metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
+        self.times_compset_removed = np.zeros(len(compsets), dtype=np.int32)
         self.mass_residual = 1e10
         # Phase fractions need to be converted to moles of formula
         self.phase_amt = np.array([compset.NP for compset in compsets])
@@ -433,13 +474,15 @@ cdef class SystemState:
             # Convert phase fractions to formula units
             self.phase_amt[idx] /= np.sum(self.phase_compositions[idx])
     def __getstate__(self):
-        return (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual,
+        return (self.compsets, self.cs_states, self.dof, self.iteration, self.iterations_since_last_phase_change,
+                self.metastable_phase_iterations, self.times_compset_removed, self.mass_residual,
                 np.array(self.phase_amt), np.array(self.chemical_potentials),
                 np.array(self.delta_ms), np.array(self.phase_compositions),
                 self.largest_statevar_change[0], self.largest_phase_amt_change[0], self.largest_y_change[0],
                 np.array(self.free_stable_compset_indices), self.system_amount, np.array(self.mole_fractions))
     def __setstate__(self, state):
-        (self.compsets, self.cs_states, self.dof, self.iteration, self.mass_residual,
+        (self.compsets, self.cs_states, self.dof, self.iteration, self.iterations_since_last_phase_change,
+         self.metastable_phase_iterations, self.times_compset_removed, self.mass_residual,
          self.phase_amt, self.chemical_potentials,
          self.delta_ms, self.phase_compositions, self.largest_statevar_change[0],
          self.largest_phase_amt_change[0], self.largest_y_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
@@ -737,16 +780,16 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             phases_changed = True
     return phases_changed
 
-cdef bint change_phases(SystemSpecification spec, SystemState state, int[::1] metastable_phase_iterations, int[::1] times_compset_removed):
+cdef bint change_phases(SystemSpecification spec, SystemState state):
     cdef int idx
     cdef double[::1] driving_forces = state.driving_forces()
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
     compsets_to_remove = set(current_free_stable_compset_indices).intersection(set(np.nonzero(np.array(phase_amt) < 1e-9)[0]))
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
-    newly_metastable_compsets = set(np.nonzero((np.array(metastable_phase_iterations) < 5))[0]) - \
+    newly_metastable_compsets = set(np.nonzero((np.array(state.metastable_phase_iterations) < 5))[0]) - \
                                 set(current_free_stable_compset_indices)
-    add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(times_compset_removed) < 4)
+    add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(state.times_compset_removed) < 4)
     compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
     max_allowed_to_add = spec.max_num_free_stable_phases + len(compsets_to_remove) - len(current_free_stable_compset_indices)
     # We must obey the Gibbs phase rule
@@ -771,7 +814,7 @@ cdef bint change_phases(SystemSpecification spec, SystemState state, int[::1] me
                                                dtype=np.int32)
     removed_compset_indices = set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)
     for idx in removed_compset_indices:
-        times_compset_removed[idx] += 1
+        state.times_compset_removed[idx] += 1
     for idx in range(len(state.compsets)):
         if idx in new_free_stable_compset_indices:
             # Force some amount of newly stable phases
@@ -794,14 +837,12 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                     int[::1] free_chemical_potential_indices, int[::1] fixed_chemical_potential_indices,
                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                     int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
-    cdef int iteration, idx, comp_idx, iterations_since_last_phase_change
+    cdef int iteration, idx, comp_idx
     cdef CompositionSet compset
     cdef double allowed_mass_residual, largest_chemical_potential_difference, step_size
     cdef double[::1] x, eq_soln
     cdef double[::1] previous_chemical_potentials = np.empty(num_components)
     cdef int[::1] fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
-    cdef int[::1] metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
-    cdef int[::1] times_compset_removed = np.zeros(len(compsets), dtype=np.int32)
     cdef bint converged = False
     cdef bint phases_changed
     cdef SystemSpecification spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
@@ -812,19 +853,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                                                         fixed_stable_compset_indices)
     cdef SystemState state = SystemState(spec, compsets)
 
-    # convergence criteria
-    cdef double ALLOWED_DELTA_Y = 8e-09
-    cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
-    cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
-
-    if spec.prescribed_elemental_amounts.shape[0] > 0:
-        allowed_mass_residual = min(1e-8, np.min(spec.prescribed_elemental_amounts)/10)
-        # Also adjust mass residual if we are near the edge of composition space
-        allowed_mass_residual = min(allowed_mass_residual, (1-np.sum(spec.prescribed_elemental_amounts))/10)
-    else:
-        allowed_mass_residual = 1e-8
-    state.mass_residual = 1e10
-    iterations_since_last_phase_change = 0
     step_size = 1.0
     for iteration in range(1000):
         state.iteration = iteration
@@ -855,26 +883,9 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
 
         phases_changed = remove_and_consolidate_phases(spec, state)
 
-        solution_is_feasible = (
-            (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
-            (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
-            (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR) and
-            (state.mass_residual < allowed_mass_residual)
-        )
-        if solution_is_feasible and (iterations_since_last_phase_change >= 5):
-            phases_changed = phases_changed or change_phases(spec, state, metastable_phase_iterations, times_compset_removed)
-            if phases_changed:
-                iterations_since_last_phase_change = 0
-            else:
-                converged = True
-                break
-        iterations_since_last_phase_change += 1
-
-        for idx in range(len(state.compsets)):
-            if idx in state.free_stable_compset_indices:
-                metastable_phase_iterations[idx] = 0
-            else:
-                metastable_phase_iterations[idx] += 1
+        converged = spec.check_convergence(state, phases_changed)
+        if converged:
+            break
 
     #if not converged:
     #    raise ValueError('Not converged')
