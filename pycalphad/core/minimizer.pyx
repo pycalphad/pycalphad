@@ -752,18 +752,6 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
     cdef CompositionSet compset, compset2
     cdef bint phases_changed = False
 
-    # In most cases, the chemical potentials should be decreasing and the
-    # largest_chemical_potential_difference could be negative. The following check
-    # against the differences will only prevent phases from being removed if the
-    # chemical potentials _increase_ by more than 1 J. It may make more sense to
-    # adjust the condition based on the absolute value of the differences.
-    if ((state.mass_residual > 1e-2) and (state.largest_chemical_potential_difference > 1.0)) or (state.iteration == 0):
-        # When mass residual is not satisfied, do not allow phases to leave the system
-        # However, if the chemical potentials are changing very little, phases may leave the system
-        for j in range(state.phase_amt.shape[0]):
-            if state.phase_amt[j] < 0:
-                state.phase_amt[j] = 1e-8
-
     compset_indices_to_remove = set()
     for i in range(len(state.free_stable_compset_indices)):
         idx = state.free_stable_compset_indices[i]
