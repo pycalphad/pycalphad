@@ -829,16 +829,18 @@ cdef bint change_phases(SystemSpecification spec, SystemState state):
             # We are at the maximum number of allowed phases, yet there is still positive driving force
             # Destabilize one phase and add only one phase
             possible_phases_to_destabilize = set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove
-            # Arbitrarily pick the lowest index to destabilize
-            idx_to_remove = sorted(possible_phases_to_destabilize)[0]
+            # Destabilize the one that has been removed the least
+            destabilize_indices = np.take(state.times_compset_removed, sorted(possible_phases_to_destabilize))
+            destabilize_sort_array = np.argsort(destabilize_indices)
+            destabilize_ordered_by_removal = np.take(sorted(possible_phases_to_destabilize), destabilize_sort_array)
+            idx_to_remove = destabilize_ordered_by_removal[0]
             compsets_to_remove.add(idx_to_remove)
             phase_amt[idx_to_remove] = 0
-            # TODO: This should be ordered by driving force
-            compsets_to_add = {sorted(compsets_to_add)[0]}
-        elif max_allowed_to_add < len(compsets_to_add):
-            # Only add a number of phases within the limit
-            # TODO: This should be ordered by driving force
-            compsets_to_add = set(sorted(compsets_to_add)[:max_allowed_to_add])
+        df_to_add = np.take(driving_forces, sorted(compsets_to_add))
+        df_sort_array = np.argsort(df_to_add)
+        compsets_to_add_ordered_by_df = np.take(sorted(compsets_to_add), df_sort_array)
+        # Choose compset with least amount (but still positive) driving force
+        compsets_to_add = {compsets_to_add_ordered_by_df[0]}
     new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
                                                       | compsets_to_add
                                                       ),
