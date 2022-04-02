@@ -360,6 +360,33 @@ cdef class SystemSpecification:
 
         return is_converged
 
+    cpdef bint pre_solve_hook(self, SystemState state):
+        return True
+
+    cpdef bint post_solve_hook(self, SystemState state):
+        return True
+
+    cpdef bint run_loop(self, SystemState state, int max_iterations):
+        cdef double step_size = 1.0
+        cdef converged = False
+        cdef iteration
+        for iteration in range(max_iterations):
+            state.iteration = iteration
+            if not self.pre_solve_hook(state):
+                break
+            eq_soln = solve_state(self, state)
+            advance_state(self, state, eq_soln, step_size)
+            if not self.post_solve_hook(state):
+                break
+            phases_changed = remove_and_consolidate_phases(self, state)
+            converged = self.check_convergence(state, phases_changed)
+            if converged:
+                break
+        return converged
+
+    cpdef SystemState get_new_state(self, list compsets):
+        return SystemState(self, compsets)
+
 cdef class CompsetState:
     cdef double[::1] x
     cdef double energy
@@ -860,33 +887,20 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                     int[::1] free_chemical_potential_indices, int[::1] fixed_chemical_potential_indices,
                     int[::1] prescribed_element_indices, double[::1] prescribed_elemental_amounts,
                     int[::1] free_statevar_indices, int[::1] fixed_statevar_indices):
-    cdef int iteration, idx, comp_idx
     cdef CompositionSet compset
-    cdef double step_size
     cdef double[::1] x, eq_soln
     cdef int[::1] fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
     cdef bint converged = False
-    cdef bint phases_changed
     cdef SystemSpecification spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
                                                         initial_chemical_potentials, prescribed_elemental_amounts,
                                                         prescribed_element_indices,
                                                         free_chemical_potential_indices, free_statevar_indices,
                                                         fixed_chemical_potential_indices, fixed_statevar_indices,
                                                         fixed_stable_compset_indices)
-    cdef SystemState state = SystemState(spec, compsets)
+    cdef SystemState state = spec.get_new_state(compsets)
 
-    step_size = 1.0
-    for iteration in range(1000):
-        state.iteration = iteration
-        eq_soln = solve_state(spec, state)
-        advance_state(spec, state, eq_soln, step_size)
-        phases_changed = remove_and_consolidate_phases(spec, state)
-        converged = spec.check_convergence(state, phases_changed)
-        if converged:
-            break
+    converged = spec.run_loop(state, 1000)
 
-    #if not converged:
-    #    raise ValueError('Not converged')
     # Convert moles of formula units to phase fractions
     phase_amt = np.array(state.phase_amt) * np.sum(state.phase_compositions, axis=1)
 
