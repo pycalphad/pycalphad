@@ -29,13 +29,16 @@ functions or PhaseRecords. The following issues track this behavior:
 """
 from pycalphad.core.cache import cacheit
 from pycalphad.core.utils import wrap_symbol
-from symengine import sympify, lambdify, zoo, oo
+from symengine import sympify, lambdify, zoo, oo, have_llvm
 from collections import namedtuple
 
 BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
 ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac', 'cons_hess'])
 
-LAMBDIFY_DEFAULT_BACKEND = 'llvm'
+if have_llvm:
+    LAMBDIFY_DEFAULT_BACKEND = 'llvm'
+else:
+    LAMBDIFY_DEFAULT_BACKEND = 'lambda'
 LAMBDIFY_DEFAULT_CSE = True
 LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL = 0
 
