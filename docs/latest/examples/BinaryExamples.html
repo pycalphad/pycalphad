@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html" /><link rel="prev" title="Examples" href="index.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.10.1.dev5+g304a48fb documentation</title>
+        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.10.1.dev6+g6bcc9023 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev5+g304a48fb documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev6+g6bcc9023 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev5+g304a48fb documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev6+g6bcc9023 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -161,7 +161,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Calculating-Energy-Surfaces-of-Binary-Systems">Calculating Energy Surfaces of Binary Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
@@ -217,52 +217,284 @@
           </label>
         </div>
         <article role="main">
-          <section id="plotting-isobaric-binary-phase-diagrams-with-binplot">
-<h1>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code><a class="headerlink" href="#plotting-isobaric-binary-phase-diagrams-with-binplot" title="Permalink to this headline">¶</a></h1>
-<p>These are a few examples of how to use Thermo-Calc TDB files to
-calculate isobaric binary phase diagrams. As long as the TDB file is
-present, each cell in these examples is self contained and can
-completely reproduce the figure shown.</p>
+          
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Plotting-Isobaric-Binary-Phase-Diagrams-with-binplot">
+<h1>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code><a class="headerlink" href="#Plotting-Isobaric-Binary-Phase-Diagrams-with-binplot" title="Permalink to this headline">¶</a></h1>
+<p>These are a few examples of how to use Thermo-Calc TDB files to calculate isobaric binary phase diagrams. As long as the TDB file is present, each cell in these examples is self contained and can completely reproduce the figure shown.</p>
 <section id="binplot">
 <h2>binplot<a class="headerlink" href="#binplot" title="Permalink to this headline">¶</a></h2>
-<p>The phase diagrams are computed with <code class="docutils literal notranslate"><span class="pre">binplot</span></code>, which has four
-required arguments: 1. The Database object 2. A list of active
-components (vacancies (<code class="docutils literal notranslate"><span class="pre">VA</span></code>), which are present in many databases,
-must be included explictly). 3. A list of phases to consider in the
-calculation 4. A dictionary conditions to consider, with keys of
-pycalphad StateVariables and values of scalars, 1D arrays, or
-<code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code> ranges</p>
-<p>Note that, at the time of writing, invariant reactions (three-phase
-‘regions’ on binary diagrams) are not yet automatically detected so they
-are not drawn on the diagram.</p>
-<p>Also note that the <a class="reference external" href="https://ipython.readthedocs.io/en/stable/interactive/magics.html">magic
-variable</a>
-<code class="docutils literal notranslate"><span class="pre">%matplotlib</span> <span class="pre">inline</span></code> should only be used in Jupyter notebooks.</p>
+<p>The phase diagrams are computed with <code class="docutils literal notranslate"><span class="pre">binplot</span></code>, which has four required arguments: 1. The Database object 2. A list of active components (vacancies (<code class="docutils literal notranslate"><span class="pre">VA</span></code>), which are present in many databases, must be included explictly). 3. A list of phases to consider in the calculation 4. A dictionary conditions to consider, with keys of pycalphad StateVariables and values of scalars, 1D arrays, or <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code> ranges</p>
+<p>Note that, at the time of writing, invariant reactions (three-phase ‘regions’ on binary diagrams) are not yet automatically detected so they are not drawn on the diagram.</p>
+<p>Also note that the <a class="reference external" href="https://ipython.readthedocs.io/en/stable/interactive/magics.html">magic variable</a> <code class="docutils literal notranslate"><span class="pre">%matplotlib</span> <span class="pre">inline</span></code> should only be used in Jupyter notebooks.</p>
 </section>
-<section id="tdb-files">
-<h2>TDB files<a class="headerlink" href="#tdb-files" title="Permalink to this headline">¶</a></h2>
-<p>The TDB files should be located in the current working directory of the
-notebook. If you are running using a Jupyter notebook, the default
-working directory is the directory that that notebook is saved in.</p>
+<section id="TDB-files">
+<h2>TDB files<a class="headerlink" href="#TDB-files" title="Permalink to this headline">¶</a></h2>
+<p>The TDB files should be located in the current working directory of the notebook. If you are running using a Jupyter notebook, the default working directory is the directory that that notebook is saved in.</p>
 <p>To check the working directory, run:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>TDB files can be found in the literature. The <a class="reference external" href="https://avdwgroup.engin.brown.edu">Thermodynamic DataBase
-DataBase</a> (TDBDB) has indexed many
-available databases and links to the original papers and/or TDB files
-where possible.</p>
-<section id="al-zn-s-mey-1993">
-<h3>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#al-zn-s-mey-1993" title="Permalink to this headline">¶</a></h3>
-<p>The miscibility gap in the fcc phase is included in the Al-Zn diagram,
-shown below.</p>
-<p>The format for specifying a range of a state variable is (<em>start</em>,
-<em>stop</em>, <em>step</em>).</p>
+<p>TDB files can be found in the literature. The <a class="reference external" href="https://avdwgroup.engin.brown.edu">Thermodynamic DataBase DataBase</a> (TDBDB) has indexed many available databases and links to the original papers and/or TDB files where possible.</p>
+<section id="Al-Zn-(S.-Mey,-1993)">
+<h3>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#Al-Zn-(S.-Mey,-1993)" title="Permalink to this headline">¶</a></h3>
+<p>The miscibility gap in the fcc phase is included in the Al-Zn diagram, shown below.</p>
+<p>The format for specifying a range of a state variable is (<em>start</em>, <em>stop</em>, <em>step</em>).</p>
 <ol class="upperalpha simple" start="19">
 <li><p>an Mey, Zeitschrift für Metallkunde 84(7) (1993) 451-455.</p></li>
 </ol>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
@@ -281,13 +513,25 @@ shown below.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/BinaryExamples_files%5CBinaryExamples_4_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_4_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_BinaryExamples_4_0.png" src="../_images/examples_BinaryExamples_4_0.png"/>
+</div>
+</div>
 </section>
-<section id="al-mg-y-zhong-2005">
-<h3>Al-Mg (Y. Zhong, 2005)<a class="headerlink" href="#al-mg-y-zhong-2005" title="Permalink to this headline">¶</a></h3>
-<p>Y. Zhong, M. Yang, Z.-K. Liu, CALPHAD 29 (2005) 303-311
-doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.08.004">10.1016/j.calphad.2005.08.004</a></p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<section id="Al-Mg-(Y.-Zhong,-2005)">
+<h3>Al-Mg (Y. Zhong, 2005)<a class="headerlink" href="#Al-Mg-(Y.-Zhong,-2005)" title="Permalink to this headline">¶</a></h3>
+<ol class="upperalpha simple" start="25">
+<li><p>Zhong, M. Yang, Z.-K. Liu, CALPHAD 29 (2005) 303-311 doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.08.004">10.1016/j.calphad.2005.08.004</a></p></li>
+</ol>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
@@ -305,15 +549,26 @@ doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.0
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/BinaryExamples_files%5CBinaryExamples_6_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_6_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_BinaryExamples_6_0.png" src="../_images/examples_BinaryExamples_6_0.png"/>
+</div>
+</div>
 </section>
-<section id="al-ni-dupin-2001">
-<h3>Al-Ni (Dupin, 2001)<a class="headerlink" href="#al-ni-dupin-2001" title="Permalink to this headline">¶</a></h3>
-<p>Components and conditions can also be stored as variables and passed to
-binplot.</p>
-<p>N. Dupin, I. Ansara, B. Sundman, CALPHAD 25(2) (2001) 279-298
-doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00049-9">10.1016/S0364-5916(01)00049-9</a></p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<section id="Al-Ni-(Dupin,-2001)">
+<h3>Al-Ni (Dupin, 2001)<a class="headerlink" href="#Al-Ni-(Dupin,-2001)" title="Permalink to this headline">¶</a></h3>
+<p>Components and conditions can also be stored as variables and passed to binplot.</p>
+<ol class="upperalpha simple" start="14">
+<li><p>Dupin, I. Ansara, B. Sundman, CALPHAD 25(2) (2001) 279-298 doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00049-9">10.1016/S0364-5916(01)00049-9</a></p></li>
+</ol>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
@@ -341,12 +596,23 @@ doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/BinaryExamples_files%5CBinaryExamples_8_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_8_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_BinaryExamples_8_0.png" src="../_images/examples_BinaryExamples_8_0.png"/>
+</div>
+</div>
 </section>
-<section id="al-fe-m-seiersten-1991">
-<h3>Al-Fe (M. Seiersten, 1991)<a class="headerlink" href="#al-fe-m-seiersten-1991" title="Permalink to this headline">¶</a></h3>
+<section id="Al-Fe-(M.-Seiersten,-1991)">
+<h3>Al-Fe (M. Seiersten, 1991)<a class="headerlink" href="#Al-Fe-(M.-Seiersten,-1991)" title="Permalink to this headline">¶</a></h3>
 <p>Removing tielines</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
@@ -366,13 +632,23 @@ doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/BinaryExamples_files%5CBinaryExamples_10_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_10_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_BinaryExamples_10_0.png" src="../_images/examples_BinaryExamples_10_0.png"/>
+</div>
+</div>
 </section>
-<section id="nb-re-liu-2013">
-<h3>Nb-Re (Liu, 2013)<a class="headerlink" href="#nb-re-liu-2013" title="Permalink to this headline">¶</a></h3>
-<p>X.L. Liu, C.Z. Hargather, Z.-K. Liu, CALPHAD 41 (2013) 119-127
-doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.02.006">10.1016/j.calphad.2013.02.006</a></p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<section id="Nb-Re-(Liu,-2013)">
+<h3>Nb-Re (Liu, 2013)<a class="headerlink" href="#Nb-Re-(Liu,-2013)" title="Permalink to this headline">¶</a></h3>
+<p>X.L. Liu, C.Z. Hargather, Z.-K. Liu, CALPHAD 41 (2013) 119-127 doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.02.006">10.1016/j.calphad.2013.02.006</a></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
@@ -391,21 +667,27 @@ doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.0
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/BinaryExamples_files%5CBinaryExamples_12_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_12_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_BinaryExamples_12_0.png" src="../_images/examples_BinaryExamples_12_0.png"/>
+</div>
+</div>
 </section>
 </section>
 </section>
-<section id="calculating-energy-surfaces-of-binary-systems">
-<h1>Calculating Energy Surfaces of Binary Systems<a class="headerlink" href="#calculating-energy-surfaces-of-binary-systems" title="Permalink to this headline">¶</a></h1>
-<p>It is very common in CALPHAD modeling to directly examine the Gibbs
-energy surface of all the constituent phases in a system.</p>
-<p>Below we show how the Gibbs energy of all phases may be calculated as a
-function of composition at a given temperature (2800 K).</p>
-<p>Note that the chi phase has additional, internal degrees of freedom
-which allow it to take on multiple states for a given overall
-composition. Only the low-energy states are relevant to calculating the
-equilibrium phase diagram.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<section id="Calculating-Energy-Surfaces-of-Binary-Systems">
+<h1>Calculating Energy Surfaces of Binary Systems<a class="headerlink" href="#Calculating-Energy-Surfaces-of-Binary-Systems" title="Permalink to this headline">¶</a></h1>
+<p>It is very common in CALPHAD modeling to directly examine the Gibbs energy surface of all the constituent phases in a system.</p>
+<p>Below we show how the Gibbs energy of all phases may be calculated as a function of composition at a given temperature (2800 K).</p>
+<p>Note that the chi phase has additional, internal degrees of freedom which allow it to take on multiple states for a given overall composition. Only the low-energy states are relevant to calculating the equilibrium phase diagram.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
@@ -434,7 +716,14 @@ equilibrium phase diagram.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/BinaryExamples_files%5CBinaryExamples_14_0.png" src="examples/BinaryExamples_files%5CBinaryExamples_14_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_BinaryExamples_14_0.png" src="../_images/examples_BinaryExamples_14_0.png"/>
+</div>
+</div>
 </section>
 
         </article>
@@ -470,7 +759,7 @@ equilibrium phase diagram.</p>
               and
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>. |
-            <a class="muted-link" href="../_sources/examples/BinaryExamples.rst.txt"
+            <a class="muted-link" href="../_sources/examples/BinaryExamples.nblink.txt"
                rel="nofollow">
               Show Source
             </a>
@@ -492,17 +781,17 @@ equilibrium phase diagram.</p>
             <ul>
 <li><a class="reference internal" href="#">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a><ul>
 <li><a class="reference internal" href="#binplot">binplot</a></li>
-<li><a class="reference internal" href="#tdb-files">TDB files</a><ul>
-<li><a class="reference internal" href="#al-zn-s-mey-1993">Al-Zn (S. Mey, 1993)</a></li>
-<li><a class="reference internal" href="#al-mg-y-zhong-2005">Al-Mg (Y. Zhong, 2005)</a></li>
-<li><a class="reference internal" href="#al-ni-dupin-2001">Al-Ni (Dupin, 2001)</a></li>
-<li><a class="reference internal" href="#al-fe-m-seiersten-1991">Al-Fe (M. Seiersten, 1991)</a></li>
-<li><a class="reference internal" href="#nb-re-liu-2013">Nb-Re (Liu, 2013)</a></li>
+<li><a class="reference internal" href="#TDB-files">TDB files</a><ul>
+<li><a class="reference internal" href="#Al-Zn-(S.-Mey,-1993)">Al-Zn (S. Mey, 1993)</a></li>
+<li><a class="reference internal" href="#Al-Mg-(Y.-Zhong,-2005)">Al-Mg (Y. Zhong, 2005)</a></li>
+<li><a class="reference internal" href="#Al-Ni-(Dupin,-2001)">Al-Ni (Dupin, 2001)</a></li>
+<li><a class="reference internal" href="#Al-Fe-(M.-Seiersten,-1991)">Al-Fe (M. Seiersten, 1991)</a></li>
+<li><a class="reference internal" href="#Nb-Re-(Liu,-2013)">Nb-Re (Liu, 2013)</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li><a class="reference internal" href="#Calculating-Energy-Surfaces-of-Binary-Systems">Calculating Energy Surfaces of Binary Systems</a></li>
 </ul>
 
           </div>
@@ -517,5 +806,8 @@ equilibrium phase diagram.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/scripts/main.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>
