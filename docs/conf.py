@@ -24,6 +24,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    'nbsphinx_link',
 ]
 autosummary_generate = True
 numpydoc_class_members_toctree = True
