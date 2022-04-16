@@ -23,7 +23,7 @@ jobs:
       - run: pip install -U -r requirements-dev.txt
       - run: pip install -U --no-build-isolation --editable .
       - run: sudo wget https://github.com/jgm/pandoc/releases/download/2.18/pandoc-2.18-1-amd64.deb
-      - run: sudo dpkg -i pandoc-1.15.1-1-amd64.deb
+      - run: sudo dpkg -i pandoc-2.18-1-amd64.deb
       # Build documentation
       - run: sphinx-build -b html docs docs/_build/html
       # Upload documentation html directory
