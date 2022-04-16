@@ -11,7 +11,7 @@
 |logo| pycalphad: Computational Thermodynamics
 ==============================================
 
-.. figure:: examples/BinaryExamples_files/BinaryExamples_9_1.png
+.. figure:: AlNi.png
     :width: 565px
     :align: center
     :height: 416px

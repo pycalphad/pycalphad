@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Custom Models in pycalphad: Viscosity" href="ViscosityModel.html" /><link rel="prev" title="Calculate and Plot Activity" href="PlotActivity.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni) - pycalphad 0.10.1.dev5+g304a48fb documentation</title>
+        <title>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni) - pycalphad 0.10.1.dev6+g6bcc9023 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev5+g304a48fb documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev6+g6bcc9023 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev5+g304a48fb documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev6+g6bcc9023 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -161,7 +161,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#Calculating-Energy-Surfaces-of-Binary-Systems">Calculating Energy Surfaces of Binary Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
@@ -217,105 +217,372 @@
           </label>
         </div>
         <article role="main">
-          <section id="equilibrium-properties-and-partial-ordering-al-fe-and-al-ni">
-<h1>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)<a class="headerlink" href="#equilibrium-properties-and-partial-ordering-al-fe-and-al-ni" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only needed in a Jupyter Notebook</span>
+          
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Equilibrium-Properties-and-Partial-Ordering-(Al-Fe-and-Al-Ni)">
+<h1>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)<a class="headerlink" href="#Equilibrium-Properties-and-Partial-Ordering-(Al-Fe-and-Al-Ni)" title="Permalink to this headline">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only needed in a Jupyter Notebook</span>
 <span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="c1"># Optional plot styling</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="n">matplotlib</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">'bmh'</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">equilibrium</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">Model</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </pre></div>
 </div>
-<section id="al-fe-heat-capacity-and-degree-of-ordering">
-<h2>Al-Fe (Heat Capacity and Degree of Ordering)<a class="headerlink" href="#al-fe-heat-capacity-and-degree-of-ordering" title="Permalink to this headline">¶</a></h2>
-<p>Here we compute equilibrium thermodynamic properties in the Al-Fe
-system. We know that only B2 and liquid are stable in the temperature
-range of interest, but we just as easily could have included all the
-phases in the calculation using <code class="docutils literal notranslate"><span class="pre">my_phases</span> <span class="pre">=</span> <span class="pre">list(db.phases.keys())</span></code>.
-Notice that the syntax for specifying a range is <code class="docutils literal notranslate"><span class="pre">(min,</span> <span class="pre">max,</span> <span class="pre">step)</span></code>.
-We can also directly specify a list of temperatures using the list
-syntax, e.g., <code class="docutils literal notranslate"><span class="pre">[300,</span> <span class="pre">400,</span> <span class="pre">500,</span> <span class="pre">1400]</span></code>.</p>
-<p>We explicitly indicate that we want to compute equilibrium values of the
-<code class="docutils literal notranslate"><span class="pre">heat_capacity</span></code> and <code class="docutils literal notranslate"><span class="pre">degree_of_ordering</span></code> properties. These are both
-defined in the default <code class="docutils literal notranslate"><span class="pre">Model</span></code> class. For a complete list, see the
-documentation. <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> will always return the Gibbs energy,
-chemical potentials, phase fractions and site fractions, regardless of
-the value of <code class="docutils literal notranslate"><span class="pre">output</span></code>.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'alfe_sei.TDB'</span><span class="p">)</span>
+</div>
+<section id="Al-Fe-(Heat-Capacity-and-Degree-of-Ordering)">
+<h2>Al-Fe (Heat Capacity and Degree of Ordering)<a class="headerlink" href="#Al-Fe-(Heat-Capacity-and-Degree-of-Ordering)" title="Permalink to this headline">¶</a></h2>
+<p>Here we compute equilibrium thermodynamic properties in the Al-Fe system. We know that only B2 and liquid are stable in the temperature range of interest, but we just as easily could have included all the phases in the calculation using <code class="docutils literal notranslate"><span class="pre">my_phases</span> <span class="pre">=</span> <span class="pre">list(db.phases.keys())</span></code>. Notice that the syntax for specifying a range is <code class="docutils literal notranslate"><span class="pre">(min,</span> <span class="pre">max,</span> <span class="pre">step)</span></code>. We can also directly specify a list of temperatures using the list syntax, e.g., <code class="docutils literal notranslate"><span class="pre">[300,</span> <span class="pre">400,</span> <span class="pre">500,</span> <span class="pre">1400]</span></code>.</p>
+<p>We explicitly indicate that we want to compute equilibrium values of the <code class="docutils literal notranslate"><span class="pre">heat_capacity</span></code> and <code class="docutils literal notranslate"><span class="pre">degree_of_ordering</span></code> properties. These are both defined in the default <code class="docutils literal notranslate"><span class="pre">Model</span></code> class. For a complete list, see the documentation. <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> will always return the Gibbs energy, chemical potentials, phase fractions and site fractions, regardless of the value of <code class="docutils literal notranslate"><span class="pre">output</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'alfe_sei.TDB'</span><span class="p">)</span>
 <span class="n">my_phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'LIQUID'</span><span class="p">,</span> <span class="s1">'B2_BCC'</span><span class="p">]</span>
 <span class="n">eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="p">[</span><span class="s1">'AL'</span><span class="p">,</span> <span class="s1">'FE'</span><span class="p">,</span> <span class="s1">'VA'</span><span class="p">],</span> <span class="n">my_phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'AL'</span><span class="p">):</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">},</span>
                  <span class="n">output</span><span class="o">=</span><span class="p">[</span><span class="s1">'heat_capacity'</span><span class="p">,</span> <span class="s1">'degree_of_ordering'</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">eq</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
-<span class="n">Dimensions</span><span class="p">:</span>             <span class="p">(</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">34</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">5</span><span class="p">)</span>
-<span class="n">Coordinates</span><span class="p">:</span>
-  <span class="o">*</span> <span class="n">N</span>                   <span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span>
-  <span class="o">*</span> <span class="n">P</span>                   <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
-  <span class="o">*</span> <span class="n">T</span>                   <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">300.0</span> <span class="mf">350.0</span> <span class="mf">400.0</span> <span class="o">...</span> <span class="mf">1.9e+03</span> <span class="mf">1.95e+03</span>
-  <span class="o">*</span> <span class="n">X_AL</span>                <span class="p">(</span><span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.25</span>
-  <span class="o">*</span> <span class="n">vertex</span>              <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int32</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
-  <span class="o">*</span> <span class="n">component</span>           <span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U2</span> <span class="s1">'AL'</span> <span class="s1">'FE'</span>
-<span class="n">Dimensions</span> <span class="n">without</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">internal_dof</span>
-<span class="n">Data</span> <span class="n">variables</span><span class="p">:</span>
-    <span class="n">NP</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="n">nan</span> <span class="o">...</span> <span class="n">nan</span> <span class="n">nan</span>
-    <span class="n">GM</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">2.858e+04</span> <span class="o">...</span> <span class="o">-</span><span class="mf">1.413e+05</span>
-    <span class="n">MU</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">7.274e+04</span> <span class="o">...</span> <span class="o">-</span><span class="mf">1.</span><span class="o">...</span>
-    <span class="n">X</span>                   <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.25</span> <span class="o">...</span> <span class="n">nan</span>
-    <span class="n">Y</span>                   <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.5</span> <span class="o">......</span>
-    <span class="n">Phase</span>               <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U6</span> <span class="s1">'B2_BCC'</span> <span class="s1">''</span> <span class="s1">''</span> <span class="o">...</span> <span class="s1">''</span> <span class="s1">''</span>
-    <span class="n">degree_of_ordering</span>  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.6666</span> <span class="n">nan</span> <span class="o">...</span> <span class="n">nan</span> <span class="n">nan</span>
-    <span class="n">heat_capacity</span>       <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">25.45</span> <span class="mf">26.93</span> <span class="o">...</span> <span class="mf">42.44</span> <span class="mf">42.44</span>
-<span class="n">Attributes</span><span class="p">:</span>
-    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.9.3</span><span class="o">.</span><span class="n">dev40</span><span class="o">+</span><span class="n">g1bf356e4</span><span class="o">.</span><span class="n">d20220219</span>
-    <span class="n">created</span><span class="p">:</span>  <span class="mi">2022</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span><span class="n">T19</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mf">13.281597</span>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;xarray.Dataset&gt;
+Dimensions:             (N: 1, P: 1, T: 34, X_AL: 1, vertex: 3, component: 2, internal_dof: 5)
+Coordinates:
+  * N                   (N) float64 1.0
+  * P                   (P) float64 1.013e+05
+  * T                   (T) float64 300.0 350.0 400.0 ... 1.9e+03 1.95e+03
+  * X_AL                (X_AL) float64 0.25
+  * vertex              (vertex) int32 0 1 2
+  * component           (component) &lt;U2 'AL' 'FE'
+Dimensions without coordinates: internal_dof
+Data variables:
+    NP                  (N, P, T, X_AL, vertex) float64 1.0 nan nan ... nan nan
+    GM                  (N, P, T, X_AL) float64 -2.858e+04 ... -1.413e+05
+    MU                  (N, P, T, X_AL, component) float64 -7.274e+04 ... -1....
+    X                   (N, P, T, X_AL, vertex, component) float64 0.25 ... nan
+    Y                   (N, P, T, X_AL, vertex, internal_dof) float64 0.5 ......
+    Phase               (N, P, T, X_AL, vertex) &lt;U6 'B2_BCC' '' '' ... '' ''
+    degree_of_ordering  (N, P, T, X_AL, vertex) float64 0.6666 nan ... nan nan
+    heat_capacity       (N, P, T, X_AL) float64 25.45 26.93 ... 42.44 42.44
+Attributes:
+    engine:   pycalphad 0.9.3.dev40+g1bf356e4.d20220219
+    created:  2022-02-19T19:18:13.281597
+</pre></div></div>
+</div>
+<p>We also compute degree of ordering at fixed temperature as a function of composition.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<p>We also compute degree of ordering at fixed temperature as a function of
-composition.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq2</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="p">[</span><span class="s1">'AL'</span><span class="p">,</span> <span class="s1">'FE'</span><span class="p">,</span> <span class="s1">'VA'</span><span class="p">],</span> <span class="s1">'B2_BCC'</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'AL'</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">700</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">},</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq2</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="p">[</span><span class="s1">'AL'</span><span class="p">,</span> <span class="s1">'FE'</span><span class="p">,</span> <span class="s1">'VA'</span><span class="p">],</span> <span class="s1">'B2_BCC'</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'AL'</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">700</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">},</span>
                   <span class="n">output</span><span class="o">=</span><span class="s1">'degree_of_ordering'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">eq2</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
-<span class="n">Dimensions</span><span class="p">:</span>             <span class="p">(</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">5</span><span class="p">)</span>
-<span class="n">Coordinates</span><span class="p">:</span>
-  <span class="o">*</span> <span class="n">N</span>                   <span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span>
-  <span class="o">*</span> <span class="n">P</span>                   <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
-  <span class="o">*</span> <span class="n">T</span>                   <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">700.0</span>
-  <span class="o">*</span> <span class="n">X_AL</span>                <span class="p">(</span><span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-10</span> <span class="mf">0.01</span> <span class="mf">0.02</span> <span class="mf">0.03</span> <span class="o">...</span> <span class="mf">0.97</span> <span class="mf">0.98</span> <span class="mf">0.99</span>
-  <span class="o">*</span> <span class="n">vertex</span>              <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int32</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
-  <span class="o">*</span> <span class="n">component</span>           <span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U2</span> <span class="s1">'AL'</span> <span class="s1">'FE'</span>
-<span class="n">Dimensions</span> <span class="n">without</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">internal_dof</span>
-<span class="n">Data</span> <span class="n">variables</span><span class="p">:</span>
-    <span class="n">NP</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="n">nan</span> <span class="o">...</span> <span class="n">nan</span> <span class="n">nan</span>
-    <span class="n">GM</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">2.447e+04</span> <span class="o">...</span> <span class="o">-</span><span class="mf">1.949e+04</span>
-    <span class="n">MU</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">2.443e+05</span> <span class="o">...</span> <span class="o">-</span><span class="mf">1.</span><span class="o">...</span>
-    <span class="n">X</span>                   <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-10</span> <span class="o">...</span> <span class="n">nan</span>
-    <span class="n">Y</span>                   <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">9.807</span><span class="n">e</span><span class="o">-...</span>
-    <span class="n">Phase</span>               <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U6</span> <span class="s1">'B2_BCC'</span> <span class="s1">''</span> <span class="s1">''</span> <span class="o">...</span> <span class="s1">''</span> <span class="s1">''</span>
-    <span class="n">degree_of_ordering</span>  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.009636</span> <span class="n">nan</span> <span class="o">...</span> <span class="n">nan</span> <span class="n">nan</span>
-<span class="n">Attributes</span><span class="p">:</span>
-    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.9.3</span><span class="o">.</span><span class="n">dev40</span><span class="o">+</span><span class="n">g1bf356e4</span><span class="o">.</span><span class="n">d20220219</span>
-    <span class="n">created</span><span class="p">:</span>  <span class="mi">2022</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span><span class="n">T19</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mf">13.601354</span>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;xarray.Dataset&gt;
+Dimensions:             (N: 1, P: 1, T: 1, X_AL: 100, vertex: 3, component: 2, internal_dof: 5)
+Coordinates:
+  * N                   (N) float64 1.0
+  * P                   (P) float64 1.013e+05
+  * T                   (T) float64 700.0
+  * X_AL                (X_AL) float64 1e-10 0.01 0.02 0.03 ... 0.97 0.98 0.99
+  * vertex              (vertex) int32 0 1 2
+  * component           (component) &lt;U2 'AL' 'FE'
+Dimensions without coordinates: internal_dof
+Data variables:
+    NP                  (N, P, T, X_AL, vertex) float64 1.0 nan nan ... nan nan
+    GM                  (N, P, T, X_AL) float64 -2.447e+04 ... -1.949e+04
+    MU                  (N, P, T, X_AL, component) float64 -2.443e+05 ... -1....
+    X                   (N, P, T, X_AL, vertex, component) float64 1e-10 ... nan
+    Y                   (N, P, T, X_AL, vertex, internal_dof) float64 9.807e-...
+    Phase               (N, P, T, X_AL, vertex) &lt;U6 'B2_BCC' '' '' ... '' ''
+    degree_of_ordering  (N, P, T, X_AL, vertex) float64 0.009636 nan ... nan nan
+Attributes:
+    engine:   pycalphad 0.9.3.dev40+g1bf356e4.d20220219
+    created:  2022-02-19T19:18:13.601354
+</pre></div></div>
+</div>
+<section id="Plots">
+<h3>Plots<a class="headerlink" href="#Plots" title="Permalink to this headline">¶</a></h3>
+<p>Next we plot the degree of ordering versus temperature. We can see that the decrease in the degree of ordering is relatively steady and continuous. This is indicative of a second-order transition from partially ordered B2 to disordered bcc (A2).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<section id="plots">
-<h3>Plots<a class="headerlink" href="#plots" title="Permalink to this headline">¶</a></h3>
-<p>Next we plot the degree of ordering versus temperature. We can see that
-the decrease in the degree of ordering is relatively steady and
-continuous. This is indicative of a second-order transition from
-partially ordered B2 to disordered bcc (A2).</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Fe: Degree of bcc ordering vs T [X(AL)=0.25]'</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Fe: Degree of bcc ordering vs T [X(AL)=0.25]'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Temperature (K)'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Degree of ordering'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">))</span>
@@ -327,15 +594,21 @@ partially ordered B2 to disordered bcc (A2).</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_8_0.png" src="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_8_0.png"/>
-<p>For the heat capacity curve shown below we notice a sharp increase in
-the heat capacity around 750 K. This is indicative of a magnetic phase
-transition and, indeed, the temperature at the peak of the curve
-coincides with 75% of 1043 K, the Curie temperature of pure Fe. (Pure
-bcc Al is paramagnetic so it has an effective Curie temperature of 0 K.)</p>
-<p>We also observe a sharp jump in the heat capacity near 1800 K,
-corresponding to the melting of the bcc phase.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Fe: Heat capacity vs T [X(AL)=0.25]'</span><span class="p">)</span>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_EquilibriumWithOrdering_8_0.png" src="../_images/examples_EquilibriumWithOrdering_8_0.png"/>
+</div>
+</div>
+<p>For the heat capacity curve shown below we notice a sharp increase in the heat capacity around 750 K. This is indicative of a magnetic phase transition and, indeed, the temperature at the peak of the curve coincides with 75% of 1043 K, the Curie temperature of pure Fe. (Pure bcc Al is paramagnetic so it has an effective Curie temperature of 0 K.)</p>
+<p>We also observe a sharp jump in the heat capacity near 1800 K, corresponding to the melting of the bcc phase.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Fe: Heat capacity vs T [X(AL)=0.25]'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Temperature (K)'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Heat Capacity (J/mol-atom-K)'</span><span class="p">)</span>
 <span class="c1"># np.squeeze is used to remove all dimensions of size 1</span>
@@ -345,12 +618,20 @@ corresponding to the melting of the bcc phase.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_10_0.png" src="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_10_0.png"/>
-<p>To understand more about what’s happening around 700 K, we plot the
-degree of ordering versus composition. Note that this plot excludes all
-other phases except <code class="docutils literal notranslate"><span class="pre">B2_BCC</span></code>. We observe the presence of disordered
-bcc (A2) until around 13% Al or Fe, when the phase begins to order.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Fe: Degree of bcc ordering vs X(AL) [T=700 K]'</span><span class="p">)</span>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_EquilibriumWithOrdering_10_0.png" src="../_images/examples_EquilibriumWithOrdering_10_0.png"/>
+</div>
+</div>
+<p>To understand more about what’s happening around 700 K, we plot the degree of ordering versus composition. Note that this plot excludes all other phases except <code class="docutils literal notranslate"><span class="pre">B2_BCC</span></code>. We observe the presence of disordered bcc (A2) until around 13% Al or Fe, when the phase begins to order.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Fe: Degree of bcc ordering vs X(AL) [T=700 K]'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'X(AL)'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Degree of ordering'</span><span class="p">)</span>
 <span class="c1"># Select all points in the datasets where B2_BCC is stable, dropping the others</span>
@@ -359,48 +640,66 @@ bcc (A2) until around 13% Al or Fe, when the phase begins to order.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_12_0.png" src="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_12_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_EquilibriumWithOrdering_12_0.png" src="../_images/examples_EquilibriumWithOrdering_12_0.png"/>
+</div>
+</div>
 </section>
 </section>
-<section id="al-ni-degree-of-ordering">
-<h2>Al-Ni (Degree of Ordering)<a class="headerlink" href="#al-ni-degree-of-ordering" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">db_alni</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'NI_AL_DUPIN_2001.TDB'</span><span class="p">)</span>
+<section id="Al-Ni-(Degree-of-Ordering)">
+<h2>Al-Ni (Degree of Ordering)<a class="headerlink" href="#Al-Ni-(Degree-of-Ordering)" title="Permalink to this headline">¶</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">db_alni</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'NI_AL_DUPIN_2001.TDB'</span><span class="p">)</span>
 <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'LIQUID'</span><span class="p">,</span> <span class="s1">'FCC_L12'</span><span class="p">]</span>
 <span class="n">eq_alni</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">db_alni</span><span class="p">,</span> <span class="p">[</span><span class="s1">'AL'</span><span class="p">,</span> <span class="s1">'NI'</span><span class="p">,</span> <span class="s1">'VA'</span><span class="p">],</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'AL'</span><span class="p">):</span> <span class="mf">0.10</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2500</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">},</span>
                       <span class="n">output</span><span class="o">=</span><span class="s1">'degree_of_ordering'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">eq_alni</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
-<span class="n">Dimensions</span><span class="p">:</span>             <span class="p">(</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">110</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">5</span><span class="p">)</span>
-<span class="n">Coordinates</span><span class="p">:</span>
-  <span class="o">*</span> <span class="n">N</span>                   <span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span>
-  <span class="o">*</span> <span class="n">P</span>                   <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
-  <span class="o">*</span> <span class="n">T</span>                   <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">300.0</span> <span class="mf">320.0</span> <span class="mf">340.0</span> <span class="o">...</span> <span class="mf">2.46e+03</span> <span class="mf">2.48e+03</span>
-  <span class="o">*</span> <span class="n">X_AL</span>                <span class="p">(</span><span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.1</span>
-  <span class="o">*</span> <span class="n">vertex</span>              <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int32</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
-  <span class="o">*</span> <span class="n">component</span>           <span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U2</span> <span class="s1">'AL'</span> <span class="s1">'NI'</span>
-<span class="n">Dimensions</span> <span class="n">without</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">internal_dof</span>
-<span class="n">Data</span> <span class="n">variables</span><span class="p">:</span>
-    <span class="n">NP</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.3637</span> <span class="mf">0.6363</span> <span class="o">...</span> <span class="n">nan</span>
-    <span class="n">GM</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">2.526e+04</span> <span class="o">...</span> <span class="o">-</span><span class="mf">1.944e+05</span>
-    <span class="n">MU</span>                  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">1.719e+05</span> <span class="o">...</span> <span class="o">-</span><span class="mf">1.</span><span class="o">...</span>
-    <span class="n">X</span>                   <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.25</span> <span class="o">...</span> <span class="n">nan</span>
-    <span class="n">Y</span>                   <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">2.229</span><span class="n">e</span><span class="o">-...</span>
-    <span class="n">Phase</span>               <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U7</span> <span class="s1">'FCC_L12'</span> <span class="s1">'FCC_L12'</span> <span class="o">...</span> <span class="s1">''</span>
-    <span class="n">degree_of_ordering</span>  <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">6.377e-15</span> <span class="o">...</span> <span class="n">nan</span>
-<span class="n">Attributes</span><span class="p">:</span>
-    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.9.3</span><span class="o">.</span><span class="n">dev40</span><span class="o">+</span><span class="n">g1bf356e4</span><span class="o">.</span><span class="n">d20220219</span>
-    <span class="n">created</span><span class="p">:</span>  <span class="mi">2022</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span><span class="n">T19</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mf">16.761326</span>
-</pre></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;xarray.Dataset&gt;
+Dimensions:             (N: 1, P: 1, T: 110, X_AL: 1, vertex: 3, component: 2, internal_dof: 5)
+Coordinates:
+  * N                   (N) float64 1.0
+  * P                   (P) float64 1.013e+05
+  * T                   (T) float64 300.0 320.0 340.0 ... 2.46e+03 2.48e+03
+  * X_AL                (X_AL) float64 0.1
+  * vertex              (vertex) int32 0 1 2
+  * component           (component) &lt;U2 'AL' 'NI'
+Dimensions without coordinates: internal_dof
+Data variables:
+    NP                  (N, P, T, X_AL, vertex) float64 0.3637 0.6363 ... nan
+    GM                  (N, P, T, X_AL) float64 -2.526e+04 ... -1.944e+05
+    MU                  (N, P, T, X_AL, component) float64 -1.719e+05 ... -1....
+    X                   (N, P, T, X_AL, vertex, component) float64 0.25 ... nan
+    Y                   (N, P, T, X_AL, vertex, internal_dof) float64 2.229e-...
+    Phase               (N, P, T, X_AL, vertex) &lt;U7 'FCC_L12' 'FCC_L12' ... ''
+    degree_of_ordering  (N, P, T, X_AL, vertex) float64 1.0 6.377e-15 ... nan
+Attributes:
+    engine:   pycalphad 0.9.3.dev40+g1bf356e4.d20220219
+    created:  2022-02-19T19:18:16.761326
+</pre></div></div>
 </div>
 <section id="id1">
 <h3>Plots<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>In the plot below we observe two phases designated <code class="docutils literal notranslate"><span class="pre">FCC_L12</span></code>. This is
-indicative of a miscibility gap. The ordered gamma-prime phase steadily
-decreases in amount with increasing temperature until it completely
-disappears around 750 K, leaving only the disordered gamma phase.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
+<p>In the plot below we observe two phases designated <code class="docutils literal notranslate"><span class="pre">FCC_L12</span></code>. This is indicative of a miscibility gap. The ordered gamma-prime phase steadily decreases in amount with increasing temperature until it completely disappears around 750 K, leaving only the disordered gamma phase.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
 <span class="n">phase_handles</span><span class="p">,</span> <span class="n">phasemap</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Ni: Phase fractions vs T [X(AL)=0.1]'</span><span class="p">)</span>
@@ -415,15 +714,29 @@ disappears around 750 K, leaving only the disordered gamma phase.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">phase_handles</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">'lower right'</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">Legend</span> <span class="n">at</span> <span class="mh">0x1ebe70d6dc0</span><span class="o">&gt;</span>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<img alt="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_16_1.png" src="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_16_1.png"/>
-<p>In the plot below we see that the degree of ordering does not change at
-all in each phase. There is a very abrupt disappearance of the
-completely ordered gamma-prime phase, leaving the completely disordered
-gamma phase. This is a first-order phase transition.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Ni: Degree of fcc ordering vs T [X(AL)=0.1]'</span><span class="p">)</span>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;matplotlib.legend.Legend at 0x1ebe70d6dc0&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_EquilibriumWithOrdering_16_1.png" src="../_images/examples_EquilibriumWithOrdering_16_1.png"/>
+</div>
+</div>
+<p>In the plot below we see that the degree of ordering does not change at all in each phase. There is a very abrupt disappearance of the completely ordered gamma-prime phase, leaving the completely disordered gamma phase. This is a first-order phase transition.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Al-Ni: Degree of fcc ordering vs T [X(AL)=0.1]'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Temperature (K)'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Degree of ordering'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">))</span>
@@ -443,11 +756,25 @@ gamma phase. This is a first-order phase transition.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<pre class="literal-block">C:UsersrotisAppDataLocalTemp/ipykernel_7844/3149017277.py:7: RuntimeWarning: invalid value encountered in greater
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+C:\Users\rotis\AppData\Local\Temp/ipykernel_7844/3149017277.py:7: RuntimeWarning: invalid value encountered in greater
   (eq_alni.degree_of_ordering.values &gt; 0.01)))
-C:UsersrotisAppDataLocalTemp/ipykernel_7844/3149017277.py:10: RuntimeWarning: invalid value encountered in less_equal
-  (eq_alni.degree_of_ordering.values &lt;= 0.01)))</pre>
-<img alt="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_18_1.png" src="examples/EquilibriumWithOrdering_files%5CEquilibriumWithOrdering_18_1.png"/>
+C:\Users\rotis\AppData\Local\Temp/ipykernel_7844/3149017277.py:10: RuntimeWarning: invalid value encountered in less_equal
+  (eq_alni.degree_of_ordering.values &lt;= 0.01)))
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_EquilibriumWithOrdering_18_1.png" src="../_images/examples_EquilibriumWithOrdering_18_1.png"/>
+</div>
+</div>
 </section>
 </section>
 </section>
@@ -485,7 +812,7 @@ C:UsersrotisAppDataLocalTemp/ipykernel_7844/3149017277.py:10: RuntimeWarning: in
               and
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>. |
-            <a class="muted-link" href="../_sources/examples/EquilibriumWithOrdering.rst.txt"
+            <a class="muted-link" href="../_sources/examples/EquilibriumWithOrdering.nblink.txt"
                rel="nofollow">
               Show Source
             </a>
@@ -506,11 +833,11 @@ C:UsersrotisAppDataLocalTemp/ipykernel_7844/3149017277.py:10: RuntimeWarning: in
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a><ul>
-<li><a class="reference internal" href="#al-fe-heat-capacity-and-degree-of-ordering">Al-Fe (Heat Capacity and Degree of Ordering)</a><ul>
-<li><a class="reference internal" href="#plots">Plots</a></li>
+<li><a class="reference internal" href="#Al-Fe-(Heat-Capacity-and-Degree-of-Ordering)">Al-Fe (Heat Capacity and Degree of Ordering)</a><ul>
+<li><a class="reference internal" href="#Plots">Plots</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#al-ni-degree-of-ordering">Al-Ni (Degree of Ordering)</a><ul>
+<li><a class="reference internal" href="#Al-Ni-(Degree-of-Ordering)">Al-Ni (Degree of Ordering)</a><ul>
 <li><a class="reference internal" href="#id1">Plots</a></li>
 </ul>
 </li>
@@ -530,5 +857,8 @@ C:UsersrotisAppDataLocalTemp/ipykernel_7844/3149017277.py:10: RuntimeWarning: in
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/scripts/main.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

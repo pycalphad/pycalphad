@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Heat Capacity of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html" /><link rel="prev" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.10.1.dev5+g304a48fb documentation</title>
+        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.10.1.dev6+g6bcc9023 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev5+g304a48fb documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev6+g6bcc9023 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev5+g304a48fb documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev6+g6bcc9023 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -161,7 +161,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#Calculating-Energy-Surfaces-of-Binary-Systems">Calculating Energy Surfaces of Binary Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
@@ -217,45 +217,283 @@
           </label>
         </div>
         <article role="main">
-          <section id="custom-models-in-pycalphad-viscosity">
-<h1>Custom Models in pycalphad: Viscosity<a class="headerlink" href="#custom-models-in-pycalphad-viscosity" title="Permalink to this headline">¶</a></h1>
-<section id="viscosity-model-background">
-<h2>Viscosity Model Background<a class="headerlink" href="#viscosity-model-background" title="Permalink to this headline">¶</a></h2>
-<p>We are going to take a CALPHAD-based property model from the literature
-and use it to predict the viscosity of Al-Cu-Zr liquids.</p>
-<p>For a binary alloy liquid under small undercooling, Gąsior suggested an
-entropy model of the form</p>
+          
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Custom-Models-in-pycalphad:-Viscosity">
+<h1>Custom Models in pycalphad: Viscosity<a class="headerlink" href="#Custom-Models-in-pycalphad:-Viscosity" title="Permalink to this headline">¶</a></h1>
+<section id="Viscosity-Model-Background">
+<h2>Viscosity Model Background<a class="headerlink" href="#Viscosity-Model-Background" title="Permalink to this headline">¶</a></h2>
+<p>We are going to take a CALPHAD-based property model from the literature and use it to predict the viscosity of Al-Cu-Zr liquids.</p>
+<p>For a binary alloy liquid under small undercooling, Gąsior suggested an entropy model of the form</p>
 <div class="math-wrapper"><div class="math notranslate nohighlight">
 \[\eta = (\sum_i x_i \eta_i ) (1 - 2\frac{S_{ex}}{R})\]</div></div>
-<p>where <span class="math notranslate nohighlight">\(\eta_i\)</span> is the viscosity of the element <span class="math notranslate nohighlight">\(i\)</span>,
-<span class="math notranslate nohighlight">\(x_i\)</span> is the mole fraction, <span class="math notranslate nohighlight">\(S_{ex}\)</span> is the excess entropy,
-and <span class="math notranslate nohighlight">\(R\)</span> is the gas constant.</p>
+<p>where <span class="math notranslate nohighlight">\(\eta_i\)</span> is the viscosity of the element <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(x_i\)</span> is the mole fraction, <span class="math notranslate nohighlight">\(S_{ex}\)</span> is the excess entropy, and <span class="math notranslate nohighlight">\(R\)</span> is the gas constant.</p>
 <p>For more details on this model, see</p>
 <ol class="arabic simple">
-<li><p>M.E. Trybula, T. Gancarz, W. Gąsior, <em>Density, surface tension and
-viscosity of liquid binary Al-Zn and ternary Al-Li-Zn alloys</em>, Fluid
-Phase Equilibria 421 (2016) 39-48,
-<a class="reference external" href="http://dx.doi.org/10.1016/j.fluid.2016.03.013">doi:10.1016/j.fluid.2016.03.013</a>.</p></li>
-<li><p>Władysław Gąsior, <em>Viscosity modeling of binary alloys: Comparative
-studies</em>, Calphad 44 (2014) 119-128,
-<a class="reference external" href="http://dx.doi.org/10.1016/j.calphad.2013.10.007">doi:10.1016/j.calphad.2013.10.007</a>.</p></li>
-<li><p>Chenyang Zhou, Cuiping Guo, Changrong Li, Zhenmin Du, <em>Thermodynamic
-assessment of the phase equilibria and prediction of glass-forming
-ability of the Al–Cu–Zr system</em>, Journal of Non-Crystalline Solids
-461 (2017) 47-60,
-<a class="reference external" href="https://doi.org/10.1016/j.jnoncrysol.2016.09.031">doi:10.1016/j.jnoncrysol.2016.09.031</a>.</p></li>
+<li><p>M.E. Trybula, T. Gancarz, W. Gąsior, <em>Density, surface tension and viscosity of liquid binary Al-Zn and ternary Al-Li-Zn alloys</em>, Fluid Phase Equilibria 421 (2016) 39-48, <a class="reference external" href="http://dx.doi.org/10.1016/j.fluid.2016.03.013">doi:10.1016/j.fluid.2016.03.013</a>.</p></li>
+<li><p>Władysław Gąsior, <em>Viscosity modeling of binary alloys: Comparative studies</em>, Calphad 44 (2014) 119-128, <a class="reference external" href="http://dx.doi.org/10.1016/j.calphad.2013.10.007">doi:10.1016/j.calphad.2013.10.007</a>.</p></li>
+<li><p>Chenyang Zhou, Cuiping Guo, Changrong Li, Zhenmin Du, <em>Thermodynamic assessment of the phase equilibria and prediction of glass-forming ability of the Al–Cu–Zr system</em>, Journal of Non-Crystalline Solids 461 (2017) 47-60, <a class="reference external" href="https://doi.org/10.1016/j.jnoncrysol.2016.09.031">doi:10.1016/j.jnoncrysol.2016.09.031</a>.</p></li>
 </ol>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>
+</pre></div>
+</div>
+</div>
 </section>
-<section id="tdb-parameters">
-<h2>TDB Parameters<a class="headerlink" href="#tdb-parameters" title="Permalink to this headline">¶</a></h2>
-<p>We can calculate the excess entropy of the liquid using the Al-Cu-Zr
-thermodynamic database from Zhou et al.</p>
-<p>We add three new parameters to describe the viscosity (in Pa-s) of the
-pure elements Al, Cu, and Zr:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> $ Viscosity test parameters
+<section id="TDB-Parameters">
+<h2>TDB Parameters<a class="headerlink" href="#TDB-Parameters" title="Permalink to this headline">¶</a></h2>
+<p>We can calculate the excess entropy of the liquid using the Al-Cu-Zr thermodynamic database from Zhou et al.</p>
+<p>We add three new parameters to describe the viscosity (in Pa-s) of the pure elements Al, Cu, and Zr:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span> $ Viscosity test parameters
  PARAMETER ETA(LIQUID,AL;0) 2.98150E+02  +0.000281*EXP(12300/(8.3145*T));   6.00000E+03
 N REF:0 !
  PARAMETER ETA(LIQUID,CU;0) 2.98150E+02  +0.000657*EXP(21500/(8.3145*T));   6.00000E+03
@@ -264,47 +502,60 @@ PARAMETER ETA(LIQUID,ZR;0) 2.98150E+02  +4.74E-3 - 4.97E-6*(T-2128) ;   6.00000E
   N REF:0 !
 </pre></div>
 </div>
-<p>Great! However, if we try to load the database now, we will get an
-error. This is because <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters are not supported by default
-in pycalphad, so we need to tell pycalphad’s TDB parser that “ETA”
-should be on the list of supported parameter types.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+<p>Great! However, if we try to load the database now, we will get an error. This is because <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters are not supported by default in pycalphad, so we need to tell pycalphad’s TDB parser that “ETA” should be on the list of supported parameter types.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
     <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'alcuzr-viscosity.tdb'</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </pre></div>
 </div>
-<pre class="literal-block">Failed while parsing:     PARAMETER ETA(LIQUID,AL;0) 2.98150E+02 +0.000281*EXP(12300/(8.3145*T)); 6.00000E+03 N REF:0
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Failed while parsing:     PARAMETER ETA(LIQUID,AL;0) 2.98150E+02 +0.000281*EXP(12300/(8.3145*T)); 6.00000E+03 N REF:0
 Tokens: None
-Expected {{"ELEMENT" W:(ABCD...) W:(ABCD...) Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') LineEnd} | {"SPECIES" W:(ABCD...) [Suppress:("%")] Group:({{W:(ABCD...) [Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')]}}...) [{Suppress:("/") W:(+-01...)}] LineEnd} | {"TYPE_DEFINITION" Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {"FUNCTION" W:(ABCD...) {{Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:([W:(Yy)])}}... Suppress:([W:(Nn)])} [Suppress:(W:(ABCD...))] LineEnd} | {"ASSESSED_SYSTEMS" SkipTo:(LineEnd)} | {"DEFINE_SYSTEM_DEFAULT" SkipTo:(LineEnd)} | {"DEFAULT_COMMAND" SkipTo:(LineEnd)} | {"DATABASE_INFO" SkipTo:(LineEnd)} | {"VERSION_DATE" SkipTo:(LineEnd)} | {"REFERENCE_FILE" SkipTo:(LineEnd)} | {"ADD_REFERENCES" SkipTo:(LineEnd)} | {"LIST_OF_REFERENCES" SkipTo:(LineEnd)} | {"TEMPERATURE_LIMITS" SkipTo:(LineEnd)} | {"PHASE" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0123...)) Group:({Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')}...) Suppress:(SkipTo:(LineEnd))} | {"CONSTITUENT" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(":") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) Suppress:(":") LineEnd} | {"PARAMETER" {"BMAGN" | "DF" | "DQ" | "ELRS" | "G" | "GD" | "L" | "MF" | "MQ" | "NT" | "SIGM" | "TC" | "THCD" | "THETA" | "V0" | "VA" | "VC" | "VISC" | "VK" | "VS" | "XI"} Suppress:("(") W:(ABCD...) [{Suppress:("&amp;") W:(ABCD...)}] Suppress:(",") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) [{Suppress:(";") W:(0123...)}] Suppress:(")") {{Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:([W:(Yy)])}}... Suppress:([W:(Nn)])} [Suppress:(W:(ABCD...))] LineEnd}}, found '('  (at char 17), (line:1, col:18)</pre>
-<section id="adding-the-eta-parameter-to-the-tdb-parser">
-<h3>Adding the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameter to the TDB parser<a class="headerlink" href="#adding-the-eta-parameter-to-the-tdb-parser" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pycalphad.io.tdb_keywords</span>
+Expected {{"ELEMENT" W:(ABCD...) W:(ABCD...) Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') LineEnd} | {"SPECIES" W:(ABCD...) [Suppress:("%")] Group:({{W:(ABCD...) [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')]}}...) [{Suppress:("/") W:(+-01...)}] LineEnd} | {"TYPE_DEFINITION" Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {"FUNCTION" W:(ABCD...) {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:([W:(Yy)])}}... Suppress:([W:(Nn)])} [Suppress:(W:(ABCD...))] LineEnd} | {"ASSESSED_SYSTEMS" SkipTo:(LineEnd)} | {"DEFINE_SYSTEM_DEFAULT" SkipTo:(LineEnd)} | {"DEFAULT_COMMAND" SkipTo:(LineEnd)} | {"DATABASE_INFO" SkipTo:(LineEnd)} | {"VERSION_DATE" SkipTo:(LineEnd)} | {"REFERENCE_FILE" SkipTo:(LineEnd)} | {"ADD_REFERENCES" SkipTo:(LineEnd)} | {"LIST_OF_REFERENCES" SkipTo:(LineEnd)} | {"TEMPERATURE_LIMITS" SkipTo:(LineEnd)} | {"PHASE" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0123...)) Group:({Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')}...) Suppress:(SkipTo:(LineEnd))} | {"CONSTITUENT" W:(ABCD...) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(":") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) Suppress:(":") LineEnd} | {"PARAMETER" {"BMAGN" | "DF" | "DQ" | "ELRS" | "G" | "GD" | "L" | "MF" | "MQ" | "NT" | "SIGM" | "TC" | "THCD" | "THETA" | "V0" | "VA" | "VC" | "VISC" | "VK" | "VS" | "XI"} Suppress:("(") W:(ABCD...) [{Suppress:("&amp;") W:(ABCD...)}] Suppress:(",") Group:(Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...) [: Group:({{[Suppress:(",")] {W:(ABCD...) [Suppress:("%")]}}}...)]...) [{Suppress:(";") W:(0123...)}] Suppress:(")") {{Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)') | [","]...} {{SkipTo:(";") Suppress:(";") [Suppress:(",")]... [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')] Suppress:([W:(Yy)])}}... Suppress:([W:(Nn)])} [Suppress:(W:(ABCD...))] LineEnd}}, found '('  (at char 17), (line:1, col:18)
+</pre></div></div>
+</div>
+<section id="Adding-the-ETA-parameter-to-the-TDB-parser">
+<h3>Adding the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameter to the TDB parser<a class="headerlink" href="#Adding-the-ETA-parameter-to-the-TDB-parser" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pycalphad.io.tdb_keywords</span>
 <span class="n">pycalphad</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">tdb_keywords</span><span class="o">.</span><span class="n">TDB_PARAM_TYPES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'ETA'</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
 <p>Now the database will load:</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'alcuzr-viscosity.tdb'</span><span class="p">)</span>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'alcuzr-viscosity.tdb'</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 </section>
 </section>
-<section id="writing-the-custom-viscosity-model">
-<h2>Writing the Custom Viscosity Model<a class="headerlink" href="#writing-the-custom-viscosity-model" title="Permalink to this headline">¶</a></h2>
-<p>Now that we have our <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters in the database, we need to
-write a <code class="docutils literal notranslate"><span class="pre">Model</span></code> class to tell pycalphad how to compute viscosity. All
-custom models are subclasses of the pycalphad <code class="docutils literal notranslate"><span class="pre">Model</span></code> class.</p>
-<p>When the <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code> is constructed, the <code class="docutils literal notranslate"><span class="pre">build_phase</span></code> method
-is run and we need to construct the viscosity model after doing all the
-other initialization using a new method <code class="docutils literal notranslate"><span class="pre">build_viscosity</span></code>. The
-implementation of <code class="docutils literal notranslate"><span class="pre">build_viscosity</span></code> needs to do four things: 1. Query
-the Database for all the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters 2. Compute their weighted
-sum 3. Compute the excess entropy of the liquid 4. Plug all the values
-into the Gąsior equation and return the result</p>
-<p>Since the <code class="docutils literal notranslate"><span class="pre">build_phase</span></code> method sets the attribute <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> to the
-<code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code>, we can access the property using <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> as
-the output in pycalphad caluclations.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
+<section id="Writing-the-Custom-Viscosity-Model">
+<h2>Writing the Custom Viscosity Model<a class="headerlink" href="#Writing-the-Custom-Viscosity-Model" title="Permalink to this headline">¶</a></h2>
+<p>Now that we have our <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters in the database, we need to write a <code class="docutils literal notranslate"><span class="pre">Model</span></code> class to tell pycalphad how to compute viscosity. All custom models are subclasses of the pycalphad <code class="docutils literal notranslate"><span class="pre">Model</span></code> class.</p>
+<p>When the <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code> is constructed, the <code class="docutils literal notranslate"><span class="pre">build_phase</span></code> method is run and we need to construct the viscosity model after doing all the other initialization using a new method <code class="docutils literal notranslate"><span class="pre">build_viscosity</span></code>. The implementation of <code class="docutils literal notranslate"><span class="pre">build_viscosity</span></code> needs to do four things: 1. Query the Database for all the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters 2. Compute their weighted sum 3. Compute the excess entropy of the liquid 4. Plug all the values into the Gąsior equation and return the result</p>
+<p>Since the <code class="docutils literal notranslate"><span class="pre">build_phase</span></code> method sets the attribute <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> to the <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code>, we can access the property using <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> as the output in pycalphad caluclations.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="k">class</span> <span class="nc">ViscosityModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
@@ -339,22 +590,34 @@ the output in pycalphad caluclations.</p>
         <span class="k">return</span> <span class="n">result</span>
 </pre></div>
 </div>
+</div>
 </section>
-<section id="performing-calculations">
-<h2>Performing Calculations<a class="headerlink" href="#performing-calculations" title="Permalink to this headline">¶</a></h2>
-<p>Now we can create an instance of <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code> for the liquid phase
-using the <code class="docutils literal notranslate"><span class="pre">Database</span></code> object we created earlier. We can verify this
-model has a <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> attribute containing a symbolic expression for
-the viscosity.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mod</span> <span class="o">=</span> <span class="n">ViscosityModel</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">'CU'</span><span class="p">,</span> <span class="s1">'ZR'</span><span class="p">],</span> <span class="s1">'LIQUID'</span><span class="p">)</span>
+<section id="Performing-Calculations">
+<h2>Performing Calculations<a class="headerlink" href="#Performing-Calculations" title="Permalink to this headline">¶</a></h2>
+<p>Now we can create an instance of <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code> for the liquid phase using the <code class="docutils literal notranslate"><span class="pre">Database</span></code> object we created earlier. We can verify this model has a <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> attribute containing a symbolic expression for the viscosity.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mod</span> <span class="o">=</span> <span class="n">ViscosityModel</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">'CU'</span><span class="p">,</span> <span class="s1">'ZR'</span><span class="p">],</span> <span class="s1">'LIQUID'</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">viscosity</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mf">0.000657</span><span class="o">*</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="mf">2.71828182845905</span><span class="o">**</span><span class="p">(</span><span class="mf">2585.84400745685</span><span class="o">*</span><span class="n">T</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">))</span> <span class="o">+</span> <span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="mf">0.00474</span> <span class="o">-</span> <span class="mf">4.97e-06</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mf">2128.0</span> <span class="o">+</span> <span class="n">T</span><span class="p">)))</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.240543628600637</span><span class="o">*</span><span class="p">(</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="mf">392.8485</span> <span class="o">-</span> <span class="mf">51.3121</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span><span class="o">*</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="mf">75.3798</span> <span class="o">-</span> <span class="mf">9.6125</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mf">270.5305</span> <span class="o">+</span> <span class="mf">36.8512</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">-</span> <span class="n">LIQUID0ZR</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span><span class="o">*</span><span class="n">LIQUID0CU</span><span class="o">*</span><span class="n">LIQUID0ZR</span><span class="o">*</span><span class="p">(</span><span class="mf">105.895</span> <span class="o">-</span> <span class="mf">13.6488</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">T</span><span class="p">)))</span><span class="o">/</span><span class="p">(</span><span class="n">LIQUID0CU</span> <span class="o">+</span> <span class="n">LIQUID0ZR</span><span class="p">))</span>
-</pre></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(0.000657*LIQUID0CU*2.71828182845905**(2585.84400745685*T**(-1.0)) + LIQUID0ZR*(0.00474 - 4.97e-06*(-2128.0 + T)))*(1 + 0.240543628600637*(LIQUID0CU*LIQUID0ZR*(392.8485 - 51.3121*log(T)) + (LIQUID0CU - LIQUID0ZR)*LIQUID0CU*LIQUID0ZR*(75.3798 - 9.6125*log(T)) + (LIQUID0CU - LIQUID0ZR)**2*LIQUID0CU*LIQUID0ZR*(-270.5305 + 36.8512*log(T)) + (LIQUID0CU - LIQUID0ZR)**3*LIQUID0CU*LIQUID0ZR*(105.895 - 13.6488*log(T)))/(LIQUID0CU + LIQUID0ZR))
+</pre></div></div>
 </div>
 <p>Finally we calculate and plot the viscosity.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span>
@@ -375,9 +638,20 @@ the viscosity.</p>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Viscosity at </span><span class="si">{}</span><span class="s1">K'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
 </pre></div>
 </div>
-<img alt="examples/ViscosityModel_files%5CViscosityModel_14_0.png" src="examples/ViscosityModel_files%5CViscosityModel_14_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_ViscosityModel_14_0.png" src="../_images/examples_ViscosityModel_14_0.png"/>
+</div>
+</div>
 <p>We repeat the calculation for Al-Cu.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span>
@@ -395,7 +669,14 @@ the viscosity.</p>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Viscosity at </span><span class="si">{}</span><span class="s1">K'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
 </pre></div>
 </div>
-<img alt="examples/ViscosityModel_files%5CViscosityModel_16_0.png" src="examples/ViscosityModel_files%5CViscosityModel_16_0.png"/>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_ViscosityModel_16_0.png" src="../_images/examples_ViscosityModel_16_0.png"/>
+</div>
+</div>
 </section>
 </section>
 
@@ -432,7 +713,7 @@ the viscosity.</p>
               and
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>. |
-            <a class="muted-link" href="../_sources/examples/ViscosityModel.rst.txt"
+            <a class="muted-link" href="../_sources/examples/ViscosityModel.nblink.txt"
                rel="nofollow">
               Show Source
             </a>
@@ -453,13 +734,13 @@ the viscosity.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Custom Models in pycalphad: Viscosity</a><ul>
-<li><a class="reference internal" href="#viscosity-model-background">Viscosity Model Background</a></li>
-<li><a class="reference internal" href="#tdb-parameters">TDB Parameters</a><ul>
-<li><a class="reference internal" href="#adding-the-eta-parameter-to-the-tdb-parser">Adding the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameter to the TDB parser</a></li>
+<li><a class="reference internal" href="#Viscosity-Model-Background">Viscosity Model Background</a></li>
+<li><a class="reference internal" href="#TDB-Parameters">TDB Parameters</a><ul>
+<li><a class="reference internal" href="#Adding-the-ETA-parameter-to-the-TDB-parser">Adding the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameter to the TDB parser</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#writing-the-custom-viscosity-model">Writing the Custom Viscosity Model</a></li>
-<li><a class="reference internal" href="#performing-calculations">Performing Calculations</a></li>
+<li><a class="reference internal" href="#Writing-the-Custom-Viscosity-Model">Writing the Custom Viscosity Model</a></li>
+<li><a class="reference internal" href="#Performing-Calculations">Performing Calculations</a></li>
 </ul>
 </li>
 </ul>
@@ -476,6 +757,8 @@ the viscosity.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/scripts/main.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

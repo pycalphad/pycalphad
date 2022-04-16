@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="What’s New" href="../CHANGES.html" /><link rel="prev" title="pycalphad.plot package" href="pycalphad.plot.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.plot.binary package - pycalphad 0.10.1.dev5+g304a48fb documentation</title>
+        <title>pycalphad.plot.binary package - pycalphad 0.10.1.dev6+g6bcc9023 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev5+g304a48fb documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev6+g6bcc9023 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev5+g304a48fb documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev6+g6bcc9023 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -161,7 +161,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html#Calculating-Energy-Surfaces-of-Binary-Systems">Calculating Energy Surfaces of Binary Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/ChargedPhases.html">Phases with Electrically Charged Species</a></li>
@@ -517,11 +517,7 @@ algorithmic improvement of constructing a convex hull to find the next
 potential two phase region.</p>
 <p>For each temperature, proceed along increasing composition, skipping two
 over two phase regions, once calculated.
-[1] J. Snider, I. Griva, X. Sun, M. Emelianenko, Set based framework for</p>
-<blockquote>
-<div><p>Gibbs energy minimization, Calphad. 48 (2015) 18-26.
-doi: 10.1016/j.calphad.2014.09.005</p>
-</div></blockquote>
+[1] J. Snider, I. Griva, X. Sun, M. Emelianenko, Set based framework for Gibbs energy minimization, Calphad. 48 (2015) 18-26. doi: 10.1016/j.calphad.2014.09.005</p>
 </dd></dl>
 </section>
 <section id="module-pycalphad.plot.binary.plot">
@@ -646,14 +642,10 @@ compsets belong in this TwoPhaseRegion.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>A new CompsetPair object belongs in the this region if, when compared to
-the most recently added CompsetPair:
-1. All the phases are the same (in the same order)
-2. The composition discrepancies between BinaryCompsets of the same</p>
-<blockquote>
-<div><p>phase are below Xtol</p>
-</div></blockquote>
-<ol class="arabic simple" start="3">
+<p>A new CompsetPair object belongs in the this region if, when compared to the most recently added CompsetPair:</p>
+<ol class="arabic simple">
+<li><p>All the phases are the same (in the same order)</p></li>
+<li><p>The composition discrepancies between BinaryCompsets of the same phase are below Xtol</p></li>
 <li><p>The temperature discrepancy between the CompsetPairs is below Ttol</p></li>
 </ol>
 </dd></dl>
@@ -885,5 +877,6 @@ function returns a tuple of scatter_dict and a tineline_collection.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/scripts/main.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>
 </html>
