@@ -47,9 +47,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
 
     For each temperature, proceed along increasing composition, skipping two
     over two phase regions, once calculated.
-    [1] J. Snider, I. Griva, X. Sun, M. Emelianenko, Set based framework for
-        Gibbs energy minimization, Calphad. 48 (2015) 18-26.
-        doi: 10.1016/j.calphad.2014.09.005
+    [1] J. Snider, I. Griva, X. Sun, M. Emelianenko, Set based framework for Gibbs energy minimization, Calphad. 48 (2015) 18-26. doi: 10.1016/j.calphad.2014.09.005
 
     """
 

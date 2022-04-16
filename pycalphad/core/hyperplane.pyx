@@ -69,6 +69,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     """
     Find chemical potentials which approximate the tangent hyperplane
     at the given composition.
+    
     Parameters
     ----------
     compositions : ndarray

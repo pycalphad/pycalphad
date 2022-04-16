@@ -183,7 +183,7 @@ class TriangularAxes(Axes):
             Spacing in points from the axes bounding box including ticks
             and tick labels.
 
-        loc : {'bottom', 'center', 'top'}, default: :rc:`yaxis.labellocation`
+        loc : {'bottom', 'center', 'top'}, default: `yaxis.labellocation`
             The label position. This is a high-level alternative for passing
             parameters *y* and *horizontalalignment*.
 
