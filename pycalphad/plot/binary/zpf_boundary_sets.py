@@ -42,11 +42,10 @@ class TwoPhaseRegion():
 
         Notes
         -----
-        A new CompsetPair object belongs in the this region if, when compared to
-        the most recently added CompsetPair:
+        A new CompsetPair object belongs in the this region if, when compared to the most recently added CompsetPair:
+
         1. All the phases are the same (in the same order)
-        2. The composition discrepancies between BinaryCompsets of the same
-            phase are below Xtol
+        2. The composition discrepancies between BinaryCompsets of the same phase are below Xtol
         3. The temperature discrepancy between the CompsetPairs is below Ttol
 
         """
