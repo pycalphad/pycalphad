@@ -815,7 +815,7 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
     cdef SystemState state = SystemState(spec, compsets)
 
     # convergence criteria
-    cdef double ALLOWED_DELTA_Y = 8e-09
+    cdef double ALLOWED_DELTA_Y = 5e-09
     cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
     cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
 
@@ -836,8 +836,6 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
         previous_chemical_potentials[:] = state.chemical_potentials[:]
 
         eq_soln = solve_state(spec, state)
-
-        advance_state(spec, state, eq_soln, step_size)
 
         # In most cases, the chemical potentials should be decreasing and the
         # largest_chemical_potential_difference could be negative. The following check
@@ -877,6 +875,9 @@ cpdef find_solution(list compsets, int num_statevars, int num_components,
                 metastable_phase_iterations[idx] = 0
             else:
                 metastable_phase_iterations[idx] += 1
+
+        if not phases_changed:
+            advance_state(spec, state, eq_soln, step_size)
 
     #if not converged:
     #    raise ValueError('Not converged')
