@@ -319,7 +319,7 @@ cdef class SystemSpecification:
 
     cpdef bint check_convergence(self, SystemState state, bint phases_changed):
         # convergence criteria
-        cdef double ALLOWED_DELTA_Y = 8e-09
+        cdef double ALLOWED_DELTA_Y = 5e-09
         cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
         cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
         cdef double ALLOWED_MASS_RESIDUAL
@@ -361,14 +361,16 @@ cdef class SystemSpecification:
 
     cpdef bint run_loop(self, SystemState state, int max_iterations):
         cdef double step_size = 1.0
-        cdef converged = False
-        cdef iteration
+        cdef bint converged = False
+        cdef bint phases_changed = False
+        cdef size_t iteration
         for iteration in range(max_iterations):
             state.iteration = iteration
             if not self.pre_solve_hook(state):
                 break
             eq_soln = solve_state(self, state)
-            advance_state(self, state, eq_soln, step_size)
+            if not phases_changed:
+                advance_state(self, state, eq_soln, step_size)
             if not self.post_solve_hook(state):
                 break
             phases_changed = remove_and_consolidate_phases(self, state)
@@ -661,17 +663,19 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
     cdef double[::1] new_y, x
     cdef CompsetState csst
 
+    cdef double MIN_PHASE_AMOUNT = 1e-16
+
     # 1. Step in phase amounts
     # Determine largest allowable step size such that the smallest phase amount is zero
     phase_amt_step_size = step_size
     for i in range(state.free_stable_compset_indices.shape[0]):
         compset_idx = state.free_stable_compset_indices[i]
-        if state.phase_amt[compset_idx] + equilibrium_soln[soln_index_offset + i] < 0:
+        if state.phase_amt[compset_idx] + equilibrium_soln[soln_index_offset + i] < MIN_PHASE_AMOUNT:
             # Assuming:
             # 1. NP>0 (the phase would not be a free_stable_compset if not) and
             # 2. delta_NP<0 (must be true if assumption #1 is true and this condition is true)
-            # The largest allowable step size satisfies the equation: (NP + step_size * delta_NP = 0)
-            phase_amt_step_size = min(phase_amt_step_size, -state.phase_amt[compset_idx] / equilibrium_soln[soln_index_offset + i])
+            # The largest allowable step size satisfies the equation: (NP + step_size * delta_NP = MIN_PHASE_AMOUNT)
+            phase_amt_step_size = min(phase_amt_step_size, (MIN_PHASE_AMOUNT - state.phase_amt[compset_idx]) / equilibrium_soln[soln_index_offset + i])
     # Update the phase amounts using the largest allowable step size
     state.largest_phase_amt_change[0] = 0
     for i in range(state.free_stable_compset_indices.shape[0]):

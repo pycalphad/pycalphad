@@ -10,3 +10,4 @@ furo<=2021.10.09  # TODO: >2021.11.16 when available
 ipython  # for pygments syntax highlighting
 pytest-cov
 sphinx
+nbsphinx-link

@@ -2,7 +2,7 @@ What's New
 ==========
 
 0.10.0 (2022-02-21)
-------------------
+-------------------
 
 This is a major release containing performance improvements, bug fixes, and breaking changes for custom models.
 Note that, if you use custom Models with pycalphad, you will need to change all your sympy imports to symengine.
@@ -258,6 +258,7 @@ This is a major release with bug fixes and performance improvements.
 ------------------
 
 This is a minor feature release with one breaking change.
+
 * There is now support for the Xiong magnetic model (Xiong et al, Calphad, 2012), two-state liquid-amorphous model,
   and Einstein model in the Model class. TDB support has been extended where necessary.
 * ENH/BRK: Model: Add 'contributions' class attribute to make it easier for users to define custom energetic
