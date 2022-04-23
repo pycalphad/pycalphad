@@ -18,6 +18,7 @@ cdef class SystemState:
     cdef double[:, :, ::1] _phase_amounts_per_mole_atoms
     cdef void recompute(self, SystemSpecification spec)
     cdef double[::1] driving_forces(self)
+    cdef void increment_phase_metastability_counters(self)
 
 cdef class SystemSpecification:
     cdef int num_statevars, num_components, max_num_free_stable_phases
