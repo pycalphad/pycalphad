@@ -317,13 +317,12 @@ cdef class SystemSpecification:
     def __setstate__(self, state):
         self.__init__(*state)
 
-    cpdef bint check_convergence(self, SystemState state, bint phases_changed):
+    cpdef bint check_convergence(self, SystemState state):
         # convergence criteria
         cdef double ALLOWED_DELTA_Y = 5e-09
         cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
         cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
         cdef double ALLOWED_MASS_RESIDUAL
-        cdef bint is_converged = False
         if self.prescribed_elemental_amounts.shape[0] > 0:
             ALLOWED_MASS_RESIDUAL = min(1e-8, np.min(self.prescribed_elemental_amounts)/10)
             # Also adjust mass residual if we are near the edge of composition space
@@ -337,21 +336,9 @@ cdef class SystemSpecification:
             (state.mass_residual < ALLOWED_MASS_RESIDUAL)
         )
         if solution_is_feasible and (state.iterations_since_last_phase_change >= 5):
-            phases_changed = phases_changed or change_phases(self, state)
-            if phases_changed:
-                state.iterations_since_last_phase_change = 0
-            else:
-                is_converged = True
-
-        state.iterations_since_last_phase_change += 1
-
-        for idx in range(len(state.compsets)):
-            if idx in state.free_stable_compset_indices:
-                state.metastable_phase_iterations[idx] = 0
-            else:
-                state.metastable_phase_iterations[idx] += 1
-
-        return is_converged
+            return True
+        else:
+            return False
 
     cpdef bint pre_solve_hook(self, SystemState state):
         return True
@@ -369,14 +356,23 @@ cdef class SystemSpecification:
             if not self.pre_solve_hook(state):
                 break
             eq_soln = solve_state(self, state)
-            if not phases_changed:
-                advance_state(self, state, eq_soln, step_size)
             if not self.post_solve_hook(state):
                 break
             phases_changed = remove_and_consolidate_phases(self, state)
-            converged = self.check_convergence(state, phases_changed)
+            converged = self.check_convergence(state)
             if converged:
-                break
+                phases_changed = phases_changed or change_phases(self, state)
+                if phases_changed:
+                    # TODO: this preserves old logic about phase changes, but should we
+                    # reset the counter `if phases_changed and not converged` -
+                    # i.e. phases were changed by remove_and_consolidate_phases?
+                    state.iterations_since_last_phase_change = 0
+                else:
+                    break
+            state.iterations_since_last_phase_change += 1
+            state.increment_phase_metastability_counters()
+            if not phases_changed:
+                advance_state(self, state, eq_soln, step_size)
         return converged
 
     cpdef SystemState get_new_state(self, list compsets):
@@ -604,6 +600,14 @@ cdef class SystemState:
             compset.phase_record.obj(self._phase_energies_per_mole_atoms[idx, :], x)
             self._driving_forces[idx] -= self._phase_energies_per_mole_atoms[idx, 0]
         return self._driving_forces
+
+    cdef void increment_phase_metastability_counters(self):
+        cdef int idx
+        for idx in range(len(self.compsets)):
+            if idx in self.free_stable_compset_indices:
+                self.metastable_phase_iterations[idx] = 0
+            else:
+                self.metastable_phase_iterations[idx] += 1
 
 
 cpdef solve_state(SystemSpecification spec, SystemState state):
