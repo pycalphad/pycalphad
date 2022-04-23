@@ -27,7 +27,7 @@ cdef class SystemSpecification:
     cdef int[::1] prescribed_element_indices
     cdef int[::1] free_chemical_potential_indices, free_statevar_indices
     cdef int[::1] fixed_chemical_potential_indices, fixed_statevar_indices, fixed_stable_compset_indices
-    cpdef bint check_convergence(self, SystemState state, bint phases_changed)
+    cpdef bint check_convergence(self, SystemState state)
     cpdef bint pre_solve_hook(self, SystemState state)
     cpdef bint post_solve_hook(self, SystemState state)
     cpdef bint run_loop(self, SystemState state, int max_iterations)

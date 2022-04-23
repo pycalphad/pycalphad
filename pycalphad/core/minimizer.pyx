@@ -317,7 +317,7 @@ cdef class SystemSpecification:
     def __setstate__(self, state):
         self.__init__(*state)
 
-    cpdef bint check_convergence(self, SystemState state, bint phases_changed):
+    cpdef bint check_convergence(self, SystemState state):
         # convergence criteria
         cdef double ALLOWED_DELTA_Y = 5e-09
         cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
@@ -359,7 +359,7 @@ cdef class SystemSpecification:
             if not self.post_solve_hook(state):
                 break
             phases_changed = remove_and_consolidate_phases(self, state)
-            converged = self.check_convergence(state, phases_changed)
+            converged = self.check_convergence(state)
             if converged:
                 phases_changed = phases_changed or change_phases(self, state)
                 if phases_changed:
