@@ -428,3 +428,102 @@ def wrap_symbol(obj):
     else:
         return Symbol(obj)
 
+
+def recursive_tuplify(x):
+    """Recursively convert a nested list to a tuple"""
+    def _tuplify(y):
+        if isinstance(y, list) or isinstance(y, tuple):
+            return tuple(_tuplify(i) if isinstance(i, (list, tuple)) else i for i in y)
+        else:
+            return y
+    return tuple(map(_tuplify, x))
+
+
+def canonical_sort_key(x):
+    """
+    Wrap strings in tuples so they'll sort.
+
+    Parameters
+    ----------
+    x : list
+        List of strings to sort
+
+    Returns
+    -------
+    tuple
+        tuple of strings that can be sorted
+    """
+    return [tuple(i) if isinstance(i, (tuple, list)) else (i,) for i in x]
+
+
+def generate_symmetric_group(configuration, symmetry):
+    """
+    For a particular configuration and list of sublattices that are symmetric,
+    generate all the symmetrically equivalent configurations.
+
+    Parameters
+    ----------
+    configuration : Sequence[Any]
+        Typically a constituent array. The length should correspond to the number of
+        sublattices in the phase.
+    symmetry : Union[None, Sequence[Sequence[int]]]
+        A list of lists giving the indices of symmetrically equivalent sublattices.
+        For example: a symmetry of `[[0, 1, 2, 3]]` means that the first four
+        sublattices are symmetric to each other. If multiple sublattices are given, the
+        sublattices are internally equivalent and the sublattices themselves are assumed
+        interchangeble. That is, for a symmetry of `[[0, 1], [2, 3]]`, sublattices
+        0 and 1 are equivalent to each other (i.e. `[0, 1] == [1, 0]`) and similarly for
+        sublattices 2 and 3. It also implies that the sublattices are interchangeable,
+        (i.e. `[[0, 1], [2, 3]] == [[2, 3], [0, 1]]`), but note that constituents cannot
+        change sublattices (i.e. `[[0, 1], [2, 3]] != [[0, 3], [2, 1]]`).
+        If `symmetry=None` is given, no new configurations are generated.
+
+    Returns
+    -------
+    tuple
+        Tuple of configuration tuples that are all symmetrically equivalent.
+
+    Notes
+    -----
+    In the general case, equivalency between sublattices, for example
+    (`[[0, 1], [2, 3]] == [[2, 3], [0, 1]]`), is not necessarily required. It
+    could be that sublattices 0 and 1 represent equivalent substitutional
+    sublattices, while 2 and 3 represent equivalent interstitial sites.
+    Interchanging sublattices between substitutional sublattices is allowed, but
+    the substitutional sites would not be interchangeable with the interstitial
+    sites. To achieve this kind of effect with this function, you would need to
+    call it once with the equivalent substitutional sublattices, then for each
+    generated configuration, call this function again, giving the unique
+    configurations for symmetric interstitial sublattices.
+    """
+    # recursively casting sequences to tuples ensures that the generated configurations are hashable
+    configuration = recursive_tuplify(configuration)
+    sublattice_indices = list(range(len(configuration)))
+    if symmetry is None:
+        return [configuration]
+    seen_subl_indices = sorted([i for equiv_subl in symmetry for i in equiv_subl])
+    # fixed_subl_indices were not given, they are assumed to be inequivalent and constant
+    fixed_subl_indices = sorted(set(sublattice_indices) - set(seen_subl_indices))
+
+    # permute within each sublattice, i.e. [0, 1] -> [[0, 1], [1, 0]]
+    intra_sublattice_permutations = (itertools.permutations(equiv_subl) for equiv_subl in symmetry)
+    # product, combining all internal sublattice permutations, i.e.
+    # [[0, 1], [1, 0]] and [[2, 3], [3, 2]] become [ ([0, 1], [2, 3]), ... ]
+    sublattice_products = itertools.product(*intra_sublattice_permutations)
+    # finally, swap sets of equivalent sublattices, i.e.
+    # [ ([0, 1], [2, 3]), ... ] -> [[ ([0, 1], [2, 3]),  ([2, 3], [0, 1]) ], ... ]
+    inter_sublattice_permutations = (itertools.permutations(x) for x in sublattice_products)
+
+    symmetrically_distinct_configurations = set()
+    # chain.from_iterable calls flatten out nested permutation lists, i.e.
+    # ([0, 1], [2, 3]) -> [0, 1, 2, 3]
+    for proposed_distinct_indices in itertools.chain.from_iterable(inter_sublattice_permutations):
+        new_config = list(configuration[i] for i in itertools.chain.from_iterable(proposed_distinct_indices))
+        # The configuration only contains indices for symmetric sublattices. For the
+        # inequivalent sublattices, we need to insert them at their proper indices.
+        # Indices _must_ be in sorted order because we are changing the array size on insertion.
+        for fixed_idx in fixed_subl_indices:
+            new_config.insert(fixed_idx, configuration[fixed_idx])
+        symmetrically_distinct_configurations.add(tuple(new_config))
+    return sorted(symmetrically_distinct_configurations, key=canonical_sort_key)
+
