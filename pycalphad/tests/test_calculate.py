@@ -240,3 +240,15 @@ def test_charged_infeasible_minimum_norm():
     # Check that the point sample didn't get 'stuck' in part of the space
     assert np.any(np.logical_and(output[:, 1] > 0.05, output[:, 1] < 0.15))
     assert np.any(np.logical_and(output[:, 1] > 0.25, output[:, 1] < 0.35))
+
+
+@select_database("Al-Fe_sundman2009.tdb")
+def test_BCC_phase_with_symmetry_option_B(load_database):
+    """Loading a database with option B and F generates new ordering parameters."""
+    # This database has a BCC_4SL:B phase and a BCC_NOB phase that
+    # does _not_ use option B and gives all parameters manually.
+    # After applying the symmetry relationships, energies should be equal
+    dbf = load_database()
+    bcc_4sl_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_4SL", T=300, N=1, P=101325, pdens=10)
+    bcc_no_B_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_NOB", T=300, N=1, P=101325, pdens=10)
+    assert np.allclose(bcc_4sl_calc_res.GM.values.squeeze(), bcc_no_B_calc_res.GM.values.squeeze())

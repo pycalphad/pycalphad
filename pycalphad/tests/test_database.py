@@ -8,11 +8,12 @@ import hashlib
 import os
 import pickle
 from copy import deepcopy
+import numpy as np
 from pyparsing import ParseException
 from symengine import Symbol, Piecewise, And, S
-from pycalphad import Database, Model, variables as v
+from pycalphad import Database, Model, calculate, variables as v
 from pycalphad.variables import Species
-from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
+from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter, remove_phase_symmetry_ordering_parameters
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 import pycalphad.tests.databases
 from pycalphad.tests.fixtures import select_database, load_database
@@ -843,3 +844,25 @@ def test_tc_printer_exp():
     test_expr = S('exp(-300T**(-1))')
     result = TCPrinter()._stringify_expr(test_expr)
     assert result == 'exp(-300 * T**(-1))'
+
+
+@select_database("Al-Fe_sundman2009.tdb")
+def test_database_symmetry_options_are_generated(load_database):
+    """Loading a database with option B and F generates new ordering parameters."""
+    # Tests for the correctness of which configurations are generated is done
+    # by testing generate_symmetric_group
+    # This test aims to see that the parameters are loaded (resulting in a
+    # particular number of parameters) and that removing those parameters is
+    # possible.
+    dbf = load_database()
+    assert len(dbf._parameters) == 375  # number after adding automatically
+
+    # number after removing the automatically generated parameters
+    # needed for writing out the same database
+    remove_phase_symmetry_ordering_parameters(dbf)
+    assert len(dbf._parameters) == 213
+
+    # The parameters should be filtered out when when writing such that a
+    # read/write is a no-op
+    read_dbf = Database.from_string(dbf.to_string(fmt="tdb"), fmt="tdb")
+    assert len(read_dbf._parameters) == 375
