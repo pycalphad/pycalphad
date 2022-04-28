@@ -596,7 +596,10 @@ def add_phase_symmetry_ordering_parameters(dbf):
 
 
 def remove_phase_symmetry_ordering_parameters(dbf):
-    dbf._parameters.remove(where("_generated_by_symmetry_option") == True)
+    for phase_name, phase_obj in dbf.phases.items():
+        for symmetry_hint in KNOWN_SUBLATTICE_SYMMETRY_RELATIONS:
+            if phase_obj.model_hints.get(symmetry_hint, False):
+                dbf._parameters.remove((where("phase_name") == phase_name) & (where("_generated_by_symmetry_option") == True))
 
 
 def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
