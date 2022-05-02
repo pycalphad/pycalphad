@@ -41,11 +41,11 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
     comp_conds_indices = sorted([idx for idx, x in enumerate(sorted(result_array.coords['component']))
                                  if 'X_'+x in comp_conds])
-    comp_conds_indices = np.array(comp_conds_indices, dtype=np.uint64)
+    comp_conds_indices = np.array(comp_conds_indices, dtype=np.uintp)
     pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
     pot_conds_indices = sorted([idx for idx, x in enumerate(sorted(result_array.coords['component']))
                                 if 'MU_'+x in pot_conds])
-    pot_conds_indices = np.array(pot_conds_indices, dtype=np.uint64)
+    pot_conds_indices = np.array(pot_conds_indices, dtype=np.uintp)
 
     if len(set(pot_conds_indices) & set(comp_conds_indices)) > 0:
         raise ValueError('Cannot specify component chemical potential and amount simultaneously')
