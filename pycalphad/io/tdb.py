@@ -595,11 +595,16 @@ def add_phase_symmetry_ordering_parameters(dbf):
                             dbf._parameters.insert(new_param)
 
 
-def remove_phase_symmetry_ordering_parameters(dbf):
-    for phase_name, phase_obj in dbf.phases.items():
-        for symmetry_hint in KNOWN_SUBLATTICE_SYMMETRY_RELATIONS:
-            if phase_obj.model_hints.get(symmetry_hint, False):
-                dbf._parameters.remove((where("phase_name") == phase_name) & (where("_generated_by_symmetry_option") == True))
+def _symmetry_added_parameter(dbf, param):
+    """
+    Return true if parameter belongs to a phase with an active symmetry
+    option and the parameter was added by a symmetry option.
+    """
+    phase_obj = dbf.phases[param["phase_name"]]
+    for symm_hint in set(KNOWN_SUBLATTICE_SYMMETRY_RELATIONS.keys()).intersection(phase_obj.model_hints.keys()):
+            if phase_obj.model_hints[symm_hint] and param.get("_generated_by_symmetry_option", False):
+                return True
+    return False
 
 
 def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
@@ -656,7 +661,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             _apply_new_symbol_names(dbf, symbol_name_map)
         elif if_incompatible == 'warn':
             warnings.warn('Ignoring that the following function names are beyond the 8 character TDB limit: {}. Use the keyword argument \'if_incompatible\' to control this behavior.'.format(long_function_names))
-    remove_phase_symmetry_ordering_parameters(dbf)  # remove automatically generated parameters
+
     # Begin constructing the written database
     writetime = datetime.datetime.now()
     maxlen = 78
@@ -773,6 +778,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
     paramtuple = namedtuple('ParamTuple', ['phase_name', 'parameter_type', 'complexity', 'constituent_array',
                                            'parameter_order', 'diffusing_species', 'parameter', 'reference'])
     for param in dbf._parameters.all():
+        if _symmetry_added_parameter(dbf, param):
+            continue  # skip this parameter
         if groupby == 'subsystem':
             components = set()
             for subl in param['constituent_array']:
@@ -917,7 +924,7 @@ def read_tdb(dbf, fd):
     del dbf._typedefs_queue
 
     dbf.process_parameter_queue()
-    
+
     # Add phase option B/F parameters
     # Must occur after adding model hints and parameters
     add_phase_symmetry_ordering_parameters(dbf)

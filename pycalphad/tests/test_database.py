@@ -13,7 +13,7 @@ from pyparsing import ParseException
 from symengine import Symbol, Piecewise, And, S
 from pycalphad import Database, Model, calculate, variables as v
 from pycalphad.variables import Species
-from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter, remove_phase_symmetry_ordering_parameters
+from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 import pycalphad.tests.databases
 from pycalphad.tests.fixtures import select_database, load_database
@@ -856,11 +856,6 @@ def test_database_symmetry_options_are_generated(load_database):
     # possible.
     dbf = load_database()
     assert len(dbf._parameters) == 375  # number after adding automatically
-
-    # number after removing the automatically generated parameters
-    # needed for writing out the same database
-    remove_phase_symmetry_ordering_parameters(dbf)
-    assert len(dbf._parameters) == 213
 
     # The parameters should be filtered out when when writing such that a
     # read/write is a no-op
