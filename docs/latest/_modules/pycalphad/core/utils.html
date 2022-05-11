@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.core.utils - pycalphad 0.10.1.dev8+g56201bfb documentation</title>
+        <title>pycalphad.core.utils - pycalphad 0.10.1.dev9+gb1a3393b documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.1.dev8+g56201bfb documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.1.dev9+gb1a3393b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev8+g56201bfb documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev9+gb1a3393b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -646,6 +646,105 @@
         <span class="k">return</span> <span class="n">obj</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="recursive_tuplify"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.recursive_tuplify">[docs]</a><span class="k">def</span> <span class="nf">recursive_tuplify</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">"""Recursively convert a nested list to a tuple"""</span>
+    <span class="k">def</span> <span class="nf">_tuplify</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_tuplify</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">else</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">y</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_tuplify</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="canonical_sort_key"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.canonical_sort_key">[docs]</a><span class="k">def</span> <span class="nf">canonical_sort_key</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">"""</span>
+<span class="sd">    Wrap strings in tuples so they'll sort.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : list</span>
+<span class="sd">        List of strings to sort</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        tuple of strings that can be sorted</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="k">else</span> <span class="p">(</span><span class="n">i</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="generate_symmetric_group"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.generate_symmetric_group">[docs]</a><span class="k">def</span> <span class="nf">generate_symmetric_group</span><span class="p">(</span><span class="n">configuration</span><span class="p">,</span> <span class="n">symmetry</span><span class="p">):</span>
+    <span class="sd">"""</span>
+<span class="sd">    For a particular configuration and list of sublattices that are symmetric,</span>
+<span class="sd">    generate all the symmetrically equivalent configurations.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    configuration : Sequence[Any]</span>
+<span class="sd">        Typically a constituent array. The length should correspond to the number of</span>
+<span class="sd">        sublattices in the phase.</span>
+<span class="sd">    symmetry : Union[None, Sequence[Sequence[int]]]</span>
+<span class="sd">        A list of lists giving the indices of symmetrically equivalent sublattices.</span>
+<span class="sd">        For example: a symmetry of `[[0, 1, 2, 3]]` means that the first four</span>
+<span class="sd">        sublattices are symmetric to each other. If multiple sublattices are given, the</span>
+<span class="sd">        sublattices are internally equivalent and the sublattices themselves are assumed</span>
+<span class="sd">        interchangeble. That is, for a symmetry of `[[0, 1], [2, 3]]`, sublattices</span>
+<span class="sd">        0 and 1 are equivalent to each other (i.e. `[0, 1] == [1, 0]`) and similarly for</span>
+<span class="sd">        sublattices 2 and 3. It also implies that the sublattices are interchangeable,</span>
+<span class="sd">        (i.e. `[[0, 1], [2, 3]] == [[2, 3], [0, 1]]`), but note that constituents cannot</span>
+<span class="sd">        change sublattices (i.e. `[[0, 1], [2, 3]] != [[0, 3], [2, 1]]`).</span>
+<span class="sd">        If `symmetry=None` is given, no new configurations are generated.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Tuple of configuration tuples that are all symmetrically equivalent.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    In the general case, equivalency between sublattices, for example</span>
+<span class="sd">    (`[[0, 1], [2, 3]] == [[2, 3], [0, 1]]`), is not necessarily required. It</span>
+<span class="sd">    could be that sublattices 0 and 1 represent equivalent substitutional</span>
+<span class="sd">    sublattices, while 2 and 3 represent equivalent interstitial sites.</span>
+<span class="sd">    Interchanging sublattices between substitutional sublattices is allowed, but</span>
+<span class="sd">    the substitutional sites would not be interchangeable with the interstitial</span>
+<span class="sd">    sites. To achieve this kind of effect with this function, you would need to</span>
+<span class="sd">    call it once with the equivalent substitutional sublattices, then for each</span>
+<span class="sd">    generated configuration, call this function again, giving the unique</span>
+<span class="sd">    configurations for symmetric interstitial sublattices.</span>
+<span class="sd">    """</span>
+    <span class="c1"># recursively casting sequences to tuples ensures that the generated configurations are hashable</span>
+    <span class="n">configuration</span> <span class="o">=</span> <span class="n">recursive_tuplify</span><span class="p">(</span><span class="n">configuration</span><span class="p">)</span>
+    <span class="n">sublattice_indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">configuration</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">symmetry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">configuration</span><span class="p">]</span>
+    <span class="n">seen_subl_indices</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">equiv_subl</span> <span class="ow">in</span> <span class="n">symmetry</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">equiv_subl</span><span class="p">])</span>
+    <span class="c1"># fixed_subl_indices were not given, they are assumed to be inequivalent and constant</span>
+    <span class="n">fixed_subl_indices</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sublattice_indices</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">seen_subl_indices</span><span class="p">))</span>
+
+    <span class="c1"># permute within each sublattice, i.e. [0, 1] -&gt; [[0, 1], [1, 0]]</span>
+    <span class="n">intra_sublattice_permutations</span> <span class="o">=</span> <span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">equiv_subl</span><span class="p">)</span> <span class="k">for</span> <span class="n">equiv_subl</span> <span class="ow">in</span> <span class="n">symmetry</span><span class="p">)</span>
+    <span class="c1"># product, combining all internal sublattice permutations, i.e.</span>
+    <span class="c1"># [[0, 1], [1, 0]] and [[2, 3], [3, 2]] become [ ([0, 1], [2, 3]), ... ]</span>
+    <span class="n">sublattice_products</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">intra_sublattice_permutations</span><span class="p">)</span>
+    <span class="c1"># finally, swap sets of equivalent sublattices, i.e.</span>
+    <span class="c1"># [ ([0, 1], [2, 3]), ... ] -&gt; [[ ([0, 1], [2, 3]),  ([2, 3], [0, 1]) ], ... ]</span>
+    <span class="n">inter_sublattice_permutations</span> <span class="o">=</span> <span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sublattice_products</span><span class="p">)</span>
+
+    <span class="n">symmetrically_distinct_configurations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="c1"># chain.from_iterable calls flatten out nested permutation lists, i.e.</span>
+    <span class="c1"># ([0, 1], [2, 3]) -&gt; [0, 1, 2, 3]</span>
+    <span class="k">for</span> <span class="n">proposed_distinct_indices</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">inter_sublattice_permutations</span><span class="p">):</span>
+        <span class="n">new_config</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">configuration</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">proposed_distinct_indices</span><span class="p">))</span>
+        <span class="c1"># The configuration only contains indices for symmetric sublattices. For the</span>
+        <span class="c1"># inequivalent sublattices, we need to insert them at their proper indices.</span>
+        <span class="c1"># Indices _must_ be in sorted order because we are changing the array size on insertion.</span>
+        <span class="k">for</span> <span class="n">fixed_idx</span> <span class="ow">in</span> <span class="n">fixed_subl_indices</span><span class="p">:</span>
+            <span class="n">new_config</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">fixed_idx</span><span class="p">,</span> <span class="n">configuration</span><span class="p">[</span><span class="n">fixed_idx</span><span class="p">])</span>
+        <span class="n">symmetrically_distinct_configurations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">new_config</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">symmetrically_distinct_configurations</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">canonical_sort_key</span><span class="p">)</span></div>
 
 </pre></div>
         </article>

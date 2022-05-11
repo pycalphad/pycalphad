@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.io.database - pycalphad 0.10.1.dev8+g56201bfb documentation</title>
+        <title>pycalphad.io.database - pycalphad 0.10.1.dev9+gb1a3393b documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.1.dev8+g56201bfb documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.1.dev9+gb1a3393b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev8+g56201bfb documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev9+gb1a3393b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -229,16 +229,12 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="kn">import</span> <span class="n">Species</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="kn">import</span> <span class="n">fhash</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">recursive_tuplify</span>
 
 
 <div class="viewcode-block" id="DatabaseExportError"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.DatabaseExportError">[docs]</a><span class="k">class</span> <span class="nc">DatabaseExportError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">"""Raised when a database cannot be written."""</span>
     <span class="k">pass</span></div>
-
-
-<span class="k">def</span> <span class="nf">_to_tuple</span><span class="p">(</span><span class="n">lst</span><span class="p">):</span>
-    <span class="s2">"Convert nested list to nested tuple. Source: Martijn Pieters on StackOverflow"</span>
-    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_to_tuple</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Phase"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Phase">[docs]</a><span class="k">class</span> <span class="nc">Phase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1">#pylint: disable=R0903</span>
@@ -273,7 +269,7 @@
         <span class="k">return</span> <span class="s1">'Phase(</span><span class="si">{0!r}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
     <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sublattices</span><span class="p">),</span>
-                     <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_to_tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">items</span><span class="p">())))))</span></div>
+                     <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">recursive_tuplify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">items</span><span class="p">())))))</span></div>
 
 <span class="n">DatabaseFormat</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">'DatabaseFormat'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'read'</span><span class="p">,</span> <span class="s1">'write'</span><span class="p">])</span>
 <span class="n">format_registry</span> <span class="o">=</span> <span class="p">{}</span>

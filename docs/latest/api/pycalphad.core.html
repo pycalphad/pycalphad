@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.io package" href="pycalphad.io.html" /><link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.core package - pycalphad 0.10.1.dev8+g56201bfb documentation</title>
+        <title>pycalphad.core package - pycalphad 0.10.1.dev9+gb1a3393b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev8+g56201bfb documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev9+gb1a3393b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev8+g56201bfb documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev9+gb1a3393b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -1008,6 +1008,22 @@ cover the same state variable space as specified in the conditions.</p></li>
 <span id="pycalphad-core-utils-module"></span><h2>pycalphad.core.utils module<a class="headerlink" href="#module-pycalphad.core.utils" title="Permalink to this headline">¶</a></h2>
 <p>The utils module handles helper routines for equilibrium calculation.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.core.utils.canonical_sort_key">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">canonical_sort_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#canonical_sort_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.canonical_sort_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap strings in tuples so they’ll sort.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>list</em>) – List of strings to sort</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple of strings that can be sorted</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.utils.endmember_matrix">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">endmember_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dof</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vacancy_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#endmember_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.endmember_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accept the number of components in each sublattice.
@@ -1073,6 +1089,47 @@ in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p>
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">generate_dof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_comps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#generate_dof"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.generate_dof" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accept a Phase object and a set() of the active components.
 Return a tuple of variable names and the sublattice degrees of freedom.</p>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.core.utils.generate_symmetric_group">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">generate_symmetric_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetry</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#generate_symmetric_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.generate_symmetric_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a particular configuration and list of sublattices that are symmetric,
+generate all the symmetrically equivalent configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>configuration</strong> (<em>Sequence</em><em>[</em><em>Any</em><em>]</em>) – Typically a constituent array. The length should correspond to the number of
+sublattices in the phase.</p></li>
+<li><p><strong>symmetry</strong> (<em>Union</em><em>[</em><em>None</em><em>, </em><em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>]</em><em>]</em>) – A list of lists giving the indices of symmetrically equivalent sublattices.
+For example: a symmetry of <cite>[[0, 1, 2, 3]]</cite> means that the first four
+sublattices are symmetric to each other. If multiple sublattices are given, the
+sublattices are internally equivalent and the sublattices themselves are assumed
+interchangeble. That is, for a symmetry of <cite>[[0, 1], [2, 3]]</cite>, sublattices
+0 and 1 are equivalent to each other (i.e. <cite>[0, 1] == [1, 0]</cite>) and similarly for
+sublattices 2 and 3. It also implies that the sublattices are interchangeable,
+(i.e. <cite>[[0, 1], [2, 3]] == [[2, 3], [0, 1]]</cite>), but note that constituents cannot
+change sublattices (i.e. <cite>[[0, 1], [2, 3]] != [[0, 3], [2, 1]]</cite>).
+If <cite>symmetry=None</cite> is given, no new configurations are generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Tuple of configuration tuples that are all symmetrically equivalent.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>In the general case, equivalency between sublattices, for example
+(<cite>[[0, 1], [2, 3]] == [[2, 3], [0, 1]]</cite>), is not necessarily required. It
+could be that sublattices 0 and 1 represent equivalent substitutional
+sublattices, while 2 and 3 represent equivalent interstitial sites.
+Interchanging sublattices between substitutional sublattices is allowed, but
+the substitutional sites would not be interchangeable with the interstitial
+sites. To achieve this kind of effect with this function, you would need to
+call it once with the equivalent substitutional sublattices, then for each
+generated configuration, call this function again, giving the unique
+configurations for symmetric interstitial sublattices.</p>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.utils.get_pure_elements">
@@ -1170,6 +1227,11 @@ are zero for that case.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span> <span class="o">=</span> <span class="n">point_sample</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">pdof</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># 7 d.o.f, returns a 140x7 ndarray</span>
 </pre></div>
 </div>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.core.utils.recursive_tuplify">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">recursive_tuplify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#recursive_tuplify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.recursive_tuplify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively convert a nested list to a tuple</p>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.utils.sizeof_fmt">
