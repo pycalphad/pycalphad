@@ -11,12 +11,14 @@ import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
 from symengine import Symbol, LessThan, StrictLessThan, S, E
+from tinydb import where
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
 from pycalphad.io.grammar import float_number, chemical_formula
 from pycalphad.variables import Species
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
+from pycalphad.core.utils import generate_symmetric_group
 from collections import defaultdict, namedtuple
 import ast
 import sys
@@ -572,6 +574,43 @@ def _apply_new_symbol_names(dbf, symbol_name_map):
         dbf._parameters.update({'parameter': S(p['parameter']).xreplace({Symbol(s): Symbol(v) for s, v in symbol_name_map.items()})}, doc_ids=[p.doc_id])
 
 
+KNOWN_SUBLATTICE_SYMMETRY_RELATIONS = {
+    # Keys should correspond to the model hints added via the `phase_options` dict
+    "symmetry_FCC_4SL": [[0, 1, 2, 3]],
+    "symmetry_BCC_4SL": [[0, 1], [2, 3]],
+}
+
+
+def add_phase_symmetry_ordering_parameters(dbf):
+    for phase_name, phase_obj in dbf.phases.items():
+        if phase_obj.model_hints.get("ordered_phase", "") == phase_name:
+            for symmetry_hint, symmetry in KNOWN_SUBLATTICE_SYMMETRY_RELATIONS.items():
+                if phase_obj.model_hints.get(symmetry_hint, False):
+                    for param in dbf.search(where("phase_name") == phase_name):
+                        const_array = param["constituent_array"]
+                        for symm_unique_const_array in set(generate_symmetric_group(const_array, symmetry)) - {const_array}:
+                            new_param = {key: val for key, val in param.items()}
+                            new_param["constituent_array"] = symm_unique_const_array
+                            new_param["_generated_by_symmetry_option"] = True  # flag to be able to remove it later and preserve the phase option
+                            dbf._parameters.insert(new_param)
+
+
+def _symmetry_added_parameter(dbf, param):
+    """
+    Return true if parameter belongs to a phase with an active symmetry
+    option and the parameter was added by a symmetry option.
+    """
+    phase_obj = dbf.phases.get(param["phase_name"])
+    if phase_obj is None:
+        # Phase isn't in the database at all, so it's impossible for this parameter
+        # to get added by symmetry
+        return False
+    for symm_hint in set(KNOWN_SUBLATTICE_SYMMETRY_RELATIONS.keys()).intersection(phase_obj.model_hints.keys()):
+            if phase_obj.model_hints[symm_hint] and param.get("_generated_by_symmetry_option", False):
+                return True
+    return False
+
+
 def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
     """
     Write a TDB file from a pycalphad Database object.
@@ -626,6 +665,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             _apply_new_symbol_names(dbf, symbol_name_map)
         elif if_incompatible == 'warn':
             warnings.warn('Ignoring that the following function names are beyond the 8 character TDB limit: {}. Use the keyword argument \'if_incompatible\' to control this behavior.'.format(long_function_names))
+
     # Begin constructing the written database
     writetime = datetime.datetime.now()
     maxlen = 78
@@ -742,6 +782,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
     paramtuple = namedtuple('ParamTuple', ['phase_name', 'parameter_type', 'complexity', 'constituent_array',
                                            'parameter_order', 'diffusing_species', 'parameter', 'reference'])
     for param in dbf._parameters.all():
+        if _symmetry_added_parameter(dbf, param):
+            continue  # skip this parameter
         if groupby == 'subsystem':
             components = set()
             for subl in param['constituent_array']:
@@ -887,6 +929,9 @@ def read_tdb(dbf, fd):
 
     dbf.process_parameter_queue()
 
+    # Add phase option B/F parameters
+    # Must occur after adding model hints and parameters
+    add_phase_symmetry_ordering_parameters(dbf)
 
 
 Database.register_format("tdb", read=read_tdb, write=write_tdb)

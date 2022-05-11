@@ -10,16 +10,12 @@ from collections import namedtuple
 import os
 from pycalphad.variables import Species
 from pycalphad.core.cache import fhash
+from pycalphad.core.utils import recursive_tuplify
 
 
 class DatabaseExportError(Exception):
     """Raised when a database cannot be written."""
     pass
-
-
-def _to_tuple(lst):
-    "Convert nested list to nested tuple. Source: Martijn Pieters on StackOverflow"
-    return tuple(_to_tuple(i) if isinstance(i, list) else i for i in lst)
 
 
 class Phase(object): #pylint: disable=R0903
@@ -54,7 +50,7 @@ class Phase(object): #pylint: disable=R0903
         return 'Phase({0!r})'.format(self.__dict__)
     def __hash__(self):
         return hash((self.name, self.constituents, tuple(self.sublattices),
-                     tuple(sorted(_to_tuple(self.model_hints.items())))))
+                     tuple(sorted(recursive_tuplify(self.model_hints.items())))))
 
 DatabaseFormat = namedtuple('DatabaseFormat', ['read', 'write'])
 format_registry = {}
