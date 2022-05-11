@@ -87,7 +87,7 @@ def test_generating_symmetric_group_works_without_symmetry():
 
 
 def test_generating_symmetric_group_bcc_4sl():
-    """Binary BCC 4SL ordered symmetric configurations can can be generated"""
+    """Binary BCC 4SL ordered symmetric configurations can be generated"""
     bcc_4sl_symmetry = [[0, 1], [2, 3]]
 
     config_D03_A3B = ["A", "A", "A", "B"]
@@ -117,7 +117,7 @@ def test_generating_symmetric_group_bcc_4sl():
 
 
 def test_generating_symmetric_group_fcc_4sl():
-    """Binary FCC 4SL ordered symmetric configurations can can be generated"""
+    """Binary FCC 4SL ordered symmetric configurations can be generated"""
     fcc_4sl_symmetry = [[0, 1, 2, 3]]
 
     config_L1_2_A3B = ["A", "A", "A", "B"]
