@@ -600,7 +600,11 @@ def _symmetry_added_parameter(dbf, param):
     Return true if parameter belongs to a phase with an active symmetry
     option and the parameter was added by a symmetry option.
     """
-    phase_obj = dbf.phases[param["phase_name"]]
+    phase_obj = dbf.phases.get(param["phase_name"])
+    if phase_obj is None:
+        # Phase isn't in the database at all, so it's impossible for this parameter
+        # to get added by symmetry
+        return False
     for symm_hint in set(KNOWN_SUBLATTICE_SYMMETRY_RELATIONS.keys()).intersection(phase_obj.model_hints.keys()):
             if phase_obj.model_hints[symm_hint] and param.get("_generated_by_symmetry_option", False):
                 return True
