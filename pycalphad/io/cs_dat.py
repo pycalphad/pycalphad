@@ -1192,7 +1192,8 @@ def reflow_text(text, linewidth=80):
                     line = "  " + line[linebreak_idx:]
             output_lines.append(line)
         line_counter += 1
-    return "\n".join(output_lines)
+    # CRLF for FactSage compatibility
+    return "\r\n".join(output_lines)
 
 
 def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
