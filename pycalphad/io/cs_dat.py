@@ -1173,7 +1173,7 @@ def reflow_text(text, linewidth=80):
     for line in lines:
         # Don't break lines below set width, or first (comment) line of DAT
         if len(line) <= linewidth or line_counter == 0:
-            output_lines.append(line)
+            output_lines.append(line.rstrip())
         else:
             while len(line) > linewidth:
                 linebreak_idx = linewidth - 1
@@ -1190,7 +1190,7 @@ def reflow_text(text, linewidth=80):
                     # Always put some leading spaces at the start of a new line
                     # Otherwise TC may misunderstand the expression
                     line = "  " + line[linebreak_idx:]
-            output_lines.append(line)
+            output_lines.append(line.rstrip())
         line_counter += 1
     # CRLF for FactSage compatibility
     return "\r\n".join(output_lines)
