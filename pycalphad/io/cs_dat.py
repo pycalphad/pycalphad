@@ -46,7 +46,7 @@ class TokenParser():
         self._lines_deque = deque(string.split("\n"))
         self._current_line = self._lines_deque.popleft()
         self._tokens_deque = deque(self._current_line.split())
-    
+
     def __getitem__(self, i: int):
         # Instantiate a new TokenParser for the current state so we can look ahead without messing up our line numbers
         lines = "\n".join(deque([" ".join(self._tokens_deque)]) + self._lines_deque)
@@ -73,7 +73,7 @@ class TokenParser():
         try:
             obj = cls(next_token)
         except ValueError as e:
-            # Return the token and re-raise with a ParseError 
+            # Return the token and re-raise with a ParseError
             self._tokens_deque.appendleft(next_token)
             raise TokenParserError(f"Error at line number {self._line_number + 1}: {e.args} for line:\n    {self._current_line}") from e
         else:
@@ -1150,6 +1150,35 @@ def parse_cs_dat(instring):
     # Any remaining lines after the number of prescribed phases and
     # stoichiometric compounds are not parsed.
     return header, solution_phases, stoichiometric_phases
+
+
+def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
+    """
+    Write a DAT file from a pycalphad Database object.
+
+    The goal is to produce DATs that conform to the most restrictive subset of database specifications. FactSage requires
+    fixed value widths and a maximum line length of 80 characters. FactSage 8.0 (and earlier) format will be produced.
+    The default is to warn the user when attempting to write an incompatible database and the user must choose whether to
+    warn and write the file anyway or to fix the incompatibility.
+
+    Other DAT compatibility issues required by FactSage or other software should be reported to the issue tracker.
+
+    Parameters
+    ----------
+    dbf : Database
+        A pycalphad Database.
+    fd : file-like
+        File descriptor.
+    if_incompatible : string, optional ['raise', 'warn', 'fix']
+        Strategy if the database does not conform to the most restrictive database specification.
+        The 'warn' option (default) will write out the incompatible database with a warning.
+        The 'raise' option will raise a DatabaseExportError.
+        The 'ignore' option will write out the incompatible database silently.
+        The 'fix' option will rectify the incompatibilities e.g. through name mangling.
+    """
+    # Before writing anything, check that the TDB is valid and take the appropriate action if not
+    if if_incompatible not in ['warn', 'raise', 'ignore', 'fix']:
+        raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
 
 
 def read_cs_dat(dbf: Database, fd):
