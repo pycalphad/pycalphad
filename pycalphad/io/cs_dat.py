@@ -1249,4 +1249,4 @@ def read_cs_dat(dbf: Database, fd):
     # process all the parameters that got added with dbf.add_parameter
     dbf.process_parameter_queue()
 
-Database.register_format("dat", read=read_cs_dat, write=None)
+Database.register_format("dat", read=read_cs_dat, write=write_cs_dat)
