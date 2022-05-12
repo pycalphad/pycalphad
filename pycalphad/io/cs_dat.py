@@ -1153,6 +1153,48 @@ def parse_cs_dat(instring):
     return header, solution_phases, stoichiometric_phases
 
 
+def reflow_text(text, linewidth=80):
+    """
+    Add line breaks to ensure text doesn't exceed a certain line width.
+
+    Parameters
+    ----------
+    text : str
+    linewidth : int, optional
+
+    Returns
+    -------
+    reflowed_text : str
+    """
+    lines = text.split("\n")
+    linebreak_chars = [" ", "$"]
+    output_lines = []
+    line_counter = 0
+    for line in lines:
+        # Don't break lines below set width, or first (comment) line of DAT
+        if len(line) <= linewidth or line_counter == 0:
+            output_lines.append(line)
+        else:
+            while len(line) > linewidth:
+                linebreak_idx = linewidth - 1
+                while linebreak_idx > 0 and line[linebreak_idx] not in linebreak_chars:
+                    linebreak_idx -= 1
+                # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
+                if linebreak_idx <= 2:
+                    raise ValueError(f"Unable to reflow the following line of length {len(line)} below the maximum length of {linewidth}: \n{line}")
+                output_lines.append(line[:linebreak_idx])
+                if "$" in line:
+                    # previous line was a comment
+                    line = "$ " + line[linebreak_idx:]
+                else:
+                    # Always put some leading spaces at the start of a new line
+                    # Otherwise TC may misunderstand the expression
+                    line = "  " + line[linebreak_idx:]
+            output_lines.append(line)
+        line_counter += 1
+    return "\n".join(output_lines)
+
+
 def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     """
     Write a DAT file from a pycalphad Database object.
