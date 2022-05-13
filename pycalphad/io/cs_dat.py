@@ -1354,6 +1354,31 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     output += '   6   1   2   3   4   5   6\n'
     output += '   6   1   2   3   4   5   6\n'
 
+    # Loop over solution phases and write parameters depending on phase model
+    for i in range(len(solution_phases)):
+        # Grab info for current phase... a dict might be smarter but would mess up the easiest miscibility gap implementation
+        phase_name = solution_phases[i]
+        phase_model = solution_phase_types[i]
+        species = solution_phase_species[i]
+        if len(species) == 0:
+            continue
+        output += f' {phase_model}\n'
+        output += f' {phase_name}\n'
+
+        # For MQMQA phases, get parameters
+        if phase_model in ['SUBG','SUBQ']:
+            detect_query = (
+                (where("phase_name") == phase_name) & \
+                (where("parameter_type") == "MQMG")
+            )
+            params = dbf._parameters.search(detect_query)
+            # Write zeta for SUBG
+            if phase_model == 'SUBG':
+                zeta = params[0]['zeta']
+                output += f'{zeta:9.5f}\n'
+            # Need number of endmembers and number of non-default coordination sets next
+            
+
 
 
 
