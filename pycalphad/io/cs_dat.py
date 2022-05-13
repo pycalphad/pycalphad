@@ -1259,10 +1259,15 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     supported_phase_types = ['IDMX','RKMP','QKTO','SUBL','SUBG','SUBQ']
     # Get numbers of solution phases (and type/species for each) and pure condensed phases
     solution_phases = []
+    stoichiometric_phases = []
     solution_phase_types = []
     solution_phase_species = []
-    for phase in dbf.phases:
-        print(phase)
+    for phase_name in dbf.phases:
+        # print(phase_name)
+        # print(dbf.phases[phase_name])
+        # If all sublattices are singly occupied, it is a stoichiometric phase
+        if all([len(subl) == 1 for subl in dbf.phases[phase_name].constituents]):
+            stoichiometric_phases.append(phase_name)
     # Number of elements, phases, species line
     output += f"{ len(dbf.elements):4}"
     # List of elements lines
