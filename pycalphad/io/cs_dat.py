@@ -1284,6 +1284,15 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     # Save MQMQA sub-type (SUBG or SUBQ)
                     solution_phase_types.append(type)
                     # Determine species for phase
+                    constituents = [[i.name for i in set] for set in dbf.phases[phase_name].constituents]
+                    # Species will be quadruplets for counting purposes
+                    species = []
+                    for i in range(len(constituents[0])):
+                        for j in range(i,len(constituents[0])):
+                            for k in range(len(constituents[1])):
+                                for l in range(k,len(constituents[1])):
+                                    species.append(f'{constituents[0][i]},{constituents[0][j]}/{constituents[1][k]},{constituents[1][l]}')
+                    solution_phase_species.append(species)
                     continue
             detect_query = (
                 (where("phase_name") == phase_name) & \
@@ -1294,6 +1303,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 # This phase is QKTO
                 solution_phases.append(phase_name)
                 solution_phase_types.append("QKTO")
+                species = [[i.name for i in set] for set in dbf.phases[phase_name].constituents][0]
+                solution_phase_species.append(species)
                 continue
                 # TODO: should also check model_hints in case this is also magnetic
 
@@ -1304,7 +1315,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     if 'GAS_IDEAL' in [phase_name.upper() for phase_name in dbf.phases]:
         # Use first 'gas_ideal' found
         gas_name = [phase_name for phase_name in dbf.phases if phase_name.upper() == 'GAS_IDEAL'][0]
-        species = [[i.name for i in set] for set in dbf.phases[gas_name].constituents]
+        species = [[i.name for i in set] for set in dbf.phases[gas_name].constituents][0]
         solution_phase_species.insert(0,species)
     else:
         # If there isn't really an ideal gas phase, add empty list of species
@@ -1315,7 +1326,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     print(f'solution_phase_species: {solution_phase_species}')
     print(f'stoichiometric_phases: {stoichiometric_phases}')
     # Number of elements, phases, species line
-    output += f"{ len(dbf.elements):4}"
+    solution_phase_species_counts = ' '.join([f'{len(species):4}' for species in solution_phase_species])
+    output += f" {len(dbf.elements):4} {len(solution_phases):4} {solution_phase_species_counts} {len(stoichiometric_phases):4}"
     # List of elements lines
     for i in range(len(elements)):
         if np.mod(i,3) == 0:
