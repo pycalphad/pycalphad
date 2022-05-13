@@ -1348,6 +1348,11 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         output += f"{mass}"
     output += "\n"
 
+    # Two lines to list Gibbs energy parameters used. Hardcoded for now.
+    # TODO: Detect these for database.
+    # TODO: Implement heat capacity model parameter lists.
+    output += '   6   1   2   3   4   5   6\n'
+    output += '   6   1   2   3   4   5   6\n'
 
 
 
