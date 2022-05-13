@@ -1307,6 +1307,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         species = [[i.name for i in set] for set in dbf.phases[gas_name].constituents]
         solution_phase_species.insert(0,species)
     else:
+        # If there isn't really an ideal gas phase, add empty list of species
         solution_phase_species.insert(0,[])
 
     print(f'solution_phases: {solution_phases}')
