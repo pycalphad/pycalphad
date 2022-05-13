@@ -1268,6 +1268,21 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         # If all sublattices are singly occupied, it is a stoichiometric phase
         if all([len(subl) == 1 for subl in dbf.phases[phase_name].constituents]):
             stoichiometric_phases.append(phase_name)
+        else:
+            if dbf.phases[phase_name].model_hints:
+                # Check for a MQMQA phase
+                try:
+                    type = dbf.phases[phase_name].model_hints['mqmqa']['type']
+                except KeyError:
+                    # Not MQMQA, and that's ok
+                    pass
+                else:
+                    # This is an MQMQA-type phase
+                    solution_phases.append(phase_name)
+                    # Save MQMQA sub-type (SUBG or SUBQ)
+                    solution_phase_types.append(type)
+                    # Determine species for phase
+                    continue
     # Number of elements, phases, species line
     output += f"{ len(dbf.elements):4}"
     # List of elements lines
