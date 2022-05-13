@@ -1296,6 +1296,23 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 solution_phase_types.append("QKTO")
                 continue
                 # TODO: should also check model_hints in case this is also magnetic
+
+    # DAT *always* includes ideal gas phase (gas_ideal) in header (in first solution phase position), even if not used
+    solution_phases.insert(0,'gas_ideal')
+    solution_phase_types.insert(0,'IDMX')
+    # I think phase names will always be capitalized, but don't want to assume this
+    if 'GAS_IDEAL' in [phase_name.upper() for phase_name in dbf.phases]:
+        # Use first 'gas_ideal' found
+        gas_name = [phase_name for phase_name in dbf.phases if phase_name.upper() == 'GAS_IDEAL'][0]
+        species = [[i.name for i in set] for set in dbf.phases[gas_name].constituents]
+        solution_phase_species.insert(0,species)
+    else:
+        solution_phase_species.insert(0,[])
+
+    print(f'solution_phases: {solution_phases}')
+    print(f'solution_phase_types: {solution_phase_types}')
+    print(f'solution_phase_species: {solution_phase_species}')
+    print(f'stoichiometric_phases: {stoichiometric_phases}')
     # Number of elements, phases, species line
     output += f"{ len(dbf.elements):4}"
     # List of elements lines
