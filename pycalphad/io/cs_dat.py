@@ -1232,6 +1232,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         The 'ignore' option will write out the incompatible database silently.
         The 'fix' option will rectify the incompatibilities e.g. through name mangling.
     """
+    # Needed for database queries
+    from tinydb import where
     # Before writing anything, check that the TDB is valid and take the appropriate action if not
     if if_incompatible not in ['warn', 'raise', 'ignore', 'fix']:
         raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
@@ -1283,6 +1285,17 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     solution_phase_types.append(type)
                     # Determine species for phase
                     continue
+            detect_query = (
+                (where("phase_name") == phase_name) & \
+                (where("parameter_type") == "QKT")
+            )
+            params = list(dbf._parameters.search(detect_query))
+            if len(params) > 0:
+                # This phase is QKTO
+                solution_phases.append(phase_name)
+                solution_phase_types.append("QKTO")
+                continue
+                # TODO: should also check model_hints in case this is also magnetic
     # Number of elements, phases, species line
     output += f"{ len(dbf.elements):4}"
     # List of elements lines
