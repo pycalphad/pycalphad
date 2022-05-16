@@ -1433,18 +1433,19 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     fd.write(reflow_text(output, linewidth=maxlen))
 
 def parse_gibbs_coefficients_piecewise(piecewise_equation):
-    print(piecewise_equation)
-    # TODO: Actually determine equation type
-    eq_type = 4
+    # Set eq_type to 1 by default
+    # TODO: detect magnatic parameters and set eq_type
+    eq_type = 1
     # Pattern is (equation, temperature interval)*n_intervals, then two extra parameters
     number_of_intervals = int((len(piecewise_equation) - 2) / 2)
+    # If one interval has extra parameters, must use equation type that supports them
+    has_extra_parameters = False
     gibbs_parameters = ''
     for interval in range(number_of_intervals):
         # Initialize all standard coefficients to 0
-        coefficients = ['0.00000000' for _ in range(6)]
+        coefficients = ['0.00000000     ' for _ in range(6)]
         # Arrays for extra parameters
-        extra_coeffs = []
-        extra_orders = []
+        extra_parameters = []
         equation = piecewise_equation[interval*2].as_coefficients_dict()
         # Check order in temperature and put coefficient in matching slot
         for t_order in equation:
@@ -1463,7 +1464,7 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
             else:
                 coeff_string = f'{coeff: .16f}'[:10] + '     '
 
-            # Compare order to known orders for coefficients
+            # Compare order to standard orders for coefficients
             if   str(t_order) == '1':
                 coefficients[0] = coeff_string
             elif str(t_order) == 'T':
@@ -1476,6 +1477,15 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
                 coefficients[4] = coeff_string
             elif str(t_order) == 'T**(-1.0)':
                 coefficients[5] = coeff_string
+            # These are common extra parameters
+            elif str(t_order) == 'log(T)':
+                has_extra_parameters = True
+                extra_parameters.append((coeff_string,'99.00'))
+            elif str(t_order) == 'T**0.5':
+                has_extra_parameters = True
+                extra_parameters.append((coeff_string,' 0.50'))
+            else:
+                print(f'WARNING: Skipped parameter with order {t_order} and coefficient {coeff_string}')
 
         coefficients_string = '     '.join(coefficients)
         # Get temperature range part of equation
@@ -1486,9 +1496,22 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
         max_t = float(temperature_range.args[0].args[1])
         # Trailing 0 padding for temperatures is weird
         max_t_string = f'{max_t:.3f}'.ljust(9,'0')
+
         # Put the line together
         gibbs_parameters += f'  {max_t_string}     {"".join(coefficients[:4])}\n'
         gibbs_parameters += f' {"".join(coefficients[4:6])}\n'
+
+        # Add extra parameters if necessary
+        if has_extra_parameters:
+            # Base parameter set to 4 if there are extra parameters
+            eq_type = 4
+            if extra_parameters:
+                extra_parameters_string = ''
+                for parameter in extra_parameters:
+                    extra_parameters_string += f' {parameter[0]} {parameter[1]}'
+                gibbs_parameters += f' {len(extra_parameters)}{extra_parameters_string}\n'
+            else:
+                gibbs_parameters += f' 1 0.00000000       0.00\n'
 
     return eq_type, number_of_intervals, gibbs_parameters
 
