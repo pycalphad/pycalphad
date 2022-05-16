@@ -1324,10 +1324,10 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         # If there isn't really an ideal gas phase, add empty list of species
         solution_phase_species.insert(0,[])
 
-    print(f'solution_phases: {solution_phases}')
-    print(f'solution_phase_types: {solution_phase_types}')
-    print(f'solution_phase_species: {solution_phase_species}')
-    print(f'stoichiometric_phases: {stoichiometric_phases}')
+    # print(f'solution_phases: {solution_phases}')
+    # print(f'solution_phase_types: {solution_phase_types}')
+    # print(f'solution_phase_species: {solution_phase_species}')
+    # print(f'stoichiometric_phases: {stoichiometric_phases}')
 
     # Number of elements, phases, species line
     solution_phase_species_counts = ' '.join([f'{len(species):4}' for species in solution_phase_species])
@@ -1399,7 +1399,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
         # Write endmember data
         for endmember in endmember_params:
-            print(endmember)
+            # print(endmember)
             # Generate species names and stoichiometries
             name = ''
             stoichiometry = [0 for _ in elements_ordered]
@@ -1410,21 +1410,19 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         if species.constituents[element] != 1:
                             name += f'{species.constituents[element]:.2g}'
                         stoichiometry[elements_ordered.index(element)] += species.constituents[element]
-                    print(species.constituents)
-            print(f'{name}: {stoichiometry}')
+                    # print(species.constituents)
+            # print(f'{name}: {stoichiometry}')
             output += f' {name}\n'
 
-            # Write equation type and number of intervals
-            import inspect
-            # print(inspect.getmembers(endmember['parameter']))
-            print(endmember['parameter'].args)
-            print(len(endmember['parameter'].args))
-            # TODO: Actually determine equation type
-            eq_type = 4
-            # Pattern is (equation, temperature interval)*n_intervals, then two extra parameters
-            number_of_intervals = int((len(endmember['parameter'].args) - 2) / 2)
+            # Writeable stoichiometry
             stoichiometry_string = ''.join([f'{stoich:7.1f}' for stoich in stoichiometry])
+
+            # Write equation type and number of intervals
+            gibbs_equation = endmember['parameter'].args
+            eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
+
             output += f'{eq_type:4} {number_of_intervals:2}{stoichiometry_string}\n'
+            output += gibbs_parameters
 
 
 
@@ -1433,6 +1431,66 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
 
     fd.write(reflow_text(output, linewidth=maxlen))
+
+def parse_gibbs_coefficients_piecewise(piecewise_equation):
+    print(piecewise_equation)
+    # TODO: Actually determine equation type
+    eq_type = 4
+    # Pattern is (equation, temperature interval)*n_intervals, then two extra parameters
+    number_of_intervals = int((len(piecewise_equation) - 2) / 2)
+    gibbs_parameters = ''
+    for interval in range(number_of_intervals):
+        # Initialize all standard coefficients to 0
+        coefficients = ['0.00000000' for _ in range(6)]
+        # Arrays for extra parameters
+        extra_coeffs = []
+        extra_orders = []
+        equation = piecewise_equation[interval*2].as_coefficients_dict()
+        # Check order in temperature and put coefficient in matching slot
+        for t_order in equation:
+            # The formatting is inconsistent, so unfortunately each value range is custom
+            coeff = float(equation[t_order])
+            if abs(coeff) < 0.1:
+                coeff_string = f'{coeff*10: .7E}'[:15]
+                if coeff < 0:
+                    coeff_string = '-.' + coeff_string[1] + coeff_string[3:] + ' '
+                else:
+                    coeff_string = '0.' + coeff_string[1] + coeff_string[3:] + ' '
+            elif abs(coeff) < 1:
+                coeff_string = f'{coeff: .16f}'[:10] + '     '
+                if coeff < 0:
+                    coeff_string = ' -' + coeff_string[2:]
+            else:
+                coeff_string = f'{coeff: .16f}'[:10] + '     '
+
+            # Compare order to known orders for coefficients
+            if   str(t_order) == '1':
+                coefficients[0] = coeff_string
+            elif str(t_order) == 'T':
+                coefficients[1] = coeff_string
+            elif str(t_order) == 'T*log(T)':
+                coefficients[2] = coeff_string
+            elif str(t_order) == 'T**2.0':
+                coefficients[3] = coeff_string
+            elif str(t_order) == 'T**3.0':
+                coefficients[4] = coeff_string
+            elif str(t_order) == 'T**(-1.0)':
+                coefficients[5] = coeff_string
+
+        coefficients_string = '     '.join(coefficients)
+        # Get temperature range part of equation
+        temperature_range = piecewise_equation[interval*2 + 1]
+
+        # This is rough, not sure how to reliably extract bounds from pairs of inequalities
+        # This method is certain to break if order ever varies
+        max_t = float(temperature_range.args[0].args[1])
+        # Trailing 0 padding for temperatures is weird
+        max_t_string = f'{max_t:.3f}'.ljust(9,'0')
+        # Put the line together
+        gibbs_parameters += f'  {max_t_string}     {"".join(coefficients[:4])}\n'
+        gibbs_parameters += f' {"".join(coefficients[4:6])}\n'
+
+    return eq_type, number_of_intervals, gibbs_parameters
 
 
 def read_cs_dat(dbf: Database, fd):
