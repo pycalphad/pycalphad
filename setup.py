@@ -14,14 +14,18 @@ def read(fname):
 CYTHON_COMPILER_DIRECTIVES = {
     "language_level": 3,
 }
+CYTHON_DEFINE_MACROS = []
+if os.getenv('CYTHON_TRACE', False):
+    CYTHON_COMPILER_DIRECTIVES['linetrace'] = True
+    CYTHON_DEFINE_MACROS += [('CYTHON_TRACE', '1')]
 
 CYTHON_EXTENSION_INCLUDES = ['.', np.get_include()]
 CYTHON_EXTENSION_MODULES = [
-    Extension('pycalphad.core.hyperplane', sources=['pycalphad/core/hyperplane.pyx']),
-    Extension('pycalphad.core.eqsolver', sources=['pycalphad/core/eqsolver.pyx']),
-    Extension('pycalphad.core.phase_rec', sources=['pycalphad/core/phase_rec.pyx']),
-    Extension('pycalphad.core.composition_set', sources=['pycalphad/core/composition_set.pyx']),
-    Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx']),
+    Extension('pycalphad.core.hyperplane', sources=['pycalphad/core/hyperplane.pyx'], define_macros=CYTHON_DEFINE_MACROS),
+    Extension('pycalphad.core.eqsolver', sources=['pycalphad/core/eqsolver.pyx'], define_macros=CYTHON_DEFINE_MACROS),
+    Extension('pycalphad.core.phase_rec', sources=['pycalphad/core/phase_rec.pyx'], define_macros=CYTHON_DEFINE_MACROS),
+    Extension('pycalphad.core.composition_set', sources=['pycalphad/core/composition_set.pyx'], define_macros=CYTHON_DEFINE_MACROS),
+    Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx'], define_macros=CYTHON_DEFINE_MACROS),
 ]
 
 setup(
