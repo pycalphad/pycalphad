@@ -935,6 +935,34 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
 
+@select_database("KF-NIF2_switched.dat")
+def coordination_numb_correction(load_database):
+    dbf = load_database()
+#This test makes sure that the order in which the species are entered in the dat file
+#does not affect how the coordinatino numbers are read 
+#In this specific test the Ni is entered before the K species
+#Previously PyCalphad would alphabetically express the quadruplets and because of this if the coordination
+#numbers of a binary quadruplet in the database were not expressed in alphabetic order then it would think 
+#it's a different quadruplet and a default coordination number would be calculated
+#A "correction" has been added to the cs.dat file
+    F = v.Species('F-1.0',constituents={'F':1.0}, charge=-1)
+    K = v.Species('K+1.0',constituents={'K':1.0}, charge=1)
+    NI = v.Species('NI+2.0',constituents={'NI':1.0}, charge=2)
+    mod = ModelMQMQA(dbf, ["K", "NI", "F"], "LIQUID2")
+
+    assert K not in mod.cations
+    assert NI not in mod.cations
+    assert F in mod.anions
+
+    subs_dict={mod._X_ijkl(NI,NI,F,F):0.36820754040431064,
+              mod._X_ijkl(K,NI,F,F):0.52716983838275622,
+              mod._X_ijkl(K,K,F,F):0.10462262121293306,
+              v.T: 1600}
+
+    check_energy(mod, subs_dict, -3.35720E+05, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("K").subs(subs_dict)), 0.2, 1e-5)
+    assert np.isclose(float(mod.moles("NI").subs(subs_dict)), 0.2, 1e-5)
+    assert np.isclose(float(mod.moles("F").subs(subs_dict)), 0.6, 1e-5)
 
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_1000K(load_database):

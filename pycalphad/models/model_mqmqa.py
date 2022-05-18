@@ -499,6 +499,7 @@ class ModelMQMQA(Model):
             (where("parameter_type") == "MQMZ") & \
             (where("constituent_array").test(lambda x: x == ((A, B), (X, Y))))
         )
+#        print('Z is required',Zs,A,B,X,Y)
         if len(Zs) == 0:
             return self._calc_Z(dbe, species, A, B, X, Y)
         elif len(Zs) == 1:
@@ -575,6 +576,7 @@ class ModelMQMQA(Model):
                 for y in self.anions:
                     X_ax += self._X_ijkl(a,b,x,y) * ((a == i) + (b == i)) * ((x == k) + (y == k)) / (2 * self.Z(dbe, a, a,b,x,y))
             G_ax = param["parameter"]
+#            print('reference energy my man',G_ax,X_ax)
             terms += X_ax * G_ax / param["stoichiometry"][0]
         return terms
 
@@ -705,7 +707,6 @@ class ModelMQMQA(Model):
                         anion_factor += X_ijkl(A,B,X,m) / Z(X, A,B,X,m)
                 anion_factor *= Z(X, A,B,X,Y) / 2
             energy += 0.5 * g * (X_ijkl(A,B,X,Y) + cation_factor + anion_factor)
-
         return energy
 
     def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=("GM", "HM", "SM", "CPM"), fmt_str="{}R"):

@@ -573,10 +573,15 @@ class SUBQQuadrupletCoordinations:
         """Add a Z_i_AB:XY parameter for each species defined in the quadruplet"""
         linear_species = [''] + As + Xs  # the leading '' element pads for one-indexed quadruplet_idxs
         A, B, X, Y = tuple(linear_species[idx] for idx in self.quadruplet_idxs)
-        constituent_array = [[A, B], [X, Y]]
+        true_Z=self.quadruplet_coordinations
+        if A!=sorted((A, B))[0]:
+            true_Z[0],true_Z[1]=true_Z[1],true_Z[0]
+        if X!=sorted((X, Y))[0]:
+            true_Z[2],true_Z[3]=true_Z[3],true_Z[2]
+        constituent_array = [sorted((A, B)), sorted((X, Y))]
         dbf.add_parameter(
             "MQMZ", phase_name, constituent_array, param_order=None, param=None,
-            coordinations=self.quadruplet_coordinations, force_insert=False,
+            coordinations=true_Z, force_insert=False,
             )
 
 
