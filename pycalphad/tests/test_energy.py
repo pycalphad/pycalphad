@@ -936,7 +936,7 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
 
 @select_database("KF-NIF2_switched.dat")
-def coordination_numb_correction(load_database):
+def test_coordination_numb_correction(load_database):
     dbf = load_database()
 #This test makes sure that the order in which the species are entered in the dat file
 #does not affect how the coordinatino numbers are read 
@@ -950,8 +950,8 @@ def coordination_numb_correction(load_database):
     NI = v.Species('NI+2.0',constituents={'NI':1.0}, charge=2)
     mod = ModelMQMQA(dbf, ["K", "NI", "F"], "LIQUID2")
 
-    assert K not in mod.cations
-    assert NI not in mod.cations
+    assert K in mod.cations
+    assert NI  in mod.cations
     assert F in mod.anions
 
     subs_dict={mod._X_ijkl(NI,NI,F,F):0.36820754040431064,
