@@ -936,15 +936,15 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
 
 @select_database("KF-NIF2_switched.dat")
-def test_coordination_numb_correction(load_database):
+def test_DAT_coordination_numbers_are_order_invariant(load_database):
+    """Coordination number parameters should have the coordinations sorted in the correct order.
+    
+    This test confirms that if database cation ordering is not alphabetical in
+    the source database (in particular, for coordination numbers), the energy
+    will be correctly computed.
+    """
     dbf = load_database()
-#This test makes sure that the order in which the species are entered in the dat file
-#does not affect how the coordinatino numbers are read 
-#In this specific test the Ni is entered before the K species
-#Previously PyCalphad would alphabetically express the quadruplets and because of this if the coordination
-#numbers of a binary quadruplet in the database were not expressed in alphabetic order then it would think 
-#it's a different quadruplet and a default coordination number would be calculated
-#A "correction" has been added to the cs.dat file
+
     F = v.Species('F-1.0',constituents={'F':1.0}, charge=-1)
     K = v.Species('K+1.0',constituents={'K':1.0}, charge=1)
     NI = v.Species('NI+2.0',constituents={'NI':1.0}, charge=2)
