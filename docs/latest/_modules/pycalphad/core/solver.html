@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.core.solver - pycalphad 0.10.1.dev10+g0586c8d8 documentation</title>
+        <title>pycalphad.core.solver - pycalphad 0.10.1.dev11+gd69040e2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.1.dev10+g0586c8d8 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.1.dev11+gd69040e2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev10+g0586c8d8 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev11+gd69040e2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -219,8 +219,7 @@
           <h1>Source code for pycalphad.core.solver</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.minimizer</span> <span class="kn">import</span> <span class="n">find_solution</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.minimizer</span> <span class="kn">import</span> <span class="n">SystemSpecification</span>
 
 <span class="n">SolverResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">'SolverResult'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'converged'</span><span class="p">,</span> <span class="s1">'x'</span><span class="p">,</span> <span class="s1">'chemical_potentials'</span><span class="p">])</span>
 
@@ -247,12 +246,14 @@
 
 
 <div class="viewcode-block" id="Solver"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver">[docs]</a><span class="k">class</span> <span class="nc">Solver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">remove_metastable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_metastable</span> <span class="o">=</span> <span class="n">remove_metastable</span>
 
-<div class="viewcode-block" id="Solver.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Solver.get_system_spec"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver.get_system_spec">[docs]</a>    <span class="k">def</span> <span class="nf">get_system_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
         <span class="sd">"""</span>
-<span class="sd">        Minimize the energy under the specified conditions using the given candidate composition sets.</span>
+<span class="sd">        Create a SystemSpecification object for the specified conditions.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -263,7 +264,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        SolverResult</span>
+<span class="sd">        SystemSpecification</span>
 
 <span class="sd">        """</span>
         <span class="n">compsets</span> <span class="o">=</span> <span class="n">composition_sets</span>
@@ -294,11 +295,56 @@
                 <span class="n">fixed_statevar_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">statevar_idx</span><span class="p">)</span>
         <span class="n">free_statevar_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_statevars</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">fixed_statevar_indices</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="n">fixed_statevar_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fixed_statevar_indices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-        <span class="n">converged</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">chemical_potentials</span> <span class="o">=</span> \
-            <span class="n">find_solution</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">num_statevars</span><span class="p">,</span> <span class="n">num_components</span><span class="p">,</span> <span class="n">prescribed_system_amount</span><span class="p">,</span>
-                          <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">free_chemical_potential_indices</span><span class="p">,</span> <span class="n">fixed_chemical_potential_indices</span><span class="p">,</span>
-                          <span class="n">prescribed_element_indices</span><span class="p">,</span> <span class="n">prescribed_elemental_amounts</span><span class="p">,</span>
-                          <span class="n">free_statevar_indices</span><span class="p">,</span> <span class="n">fixed_statevar_indices</span><span class="p">)</span>
+        <span class="n">fixed_stable_compset_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">compset</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">compsets</span><span class="p">)</span> <span class="k">if</span> <span class="n">compset</span><span class="o">.</span><span class="n">fixed</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">SystemSpecification</span><span class="p">(</span><span class="n">num_statevars</span><span class="p">,</span> <span class="n">num_components</span><span class="p">,</span> <span class="n">prescribed_system_amount</span><span class="p">,</span>
+                                   <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">prescribed_elemental_amounts</span><span class="p">,</span>
+                                   <span class="n">prescribed_element_indices</span><span class="p">,</span>
+                                   <span class="n">free_chemical_potential_indices</span><span class="p">,</span> <span class="n">free_statevar_indices</span><span class="p">,</span>
+                                   <span class="n">fixed_chemical_potential_indices</span><span class="p">,</span> <span class="n">fixed_statevar_indices</span><span class="p">,</span>
+                                   <span class="n">fixed_stable_compset_indices</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">spec</span></div>
+
+<div class="viewcode-block" id="Solver.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
+        <span class="sd">"""</span>
+<span class="sd">        Minimize the energy under the specified conditions using the given candidate composition sets.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        composition_sets : List[pycalphad.core.composition_set.CompositionSet]</span>
+<span class="sd">            List of CompositionSet objects in the starting point. Modified in place.</span>
+<span class="sd">        conditions : OrderedDict[str, float]</span>
+<span class="sd">            Conditions to satisfy.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SolverResult</span>
+
+<span class="sd">        """</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_system_spec</span><span class="p">(</span><span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">get_new_state</span><span class="p">(</span><span class="n">composition_sets</span><span class="p">)</span>
+        <span class="n">converged</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">run_loop</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_metastable</span><span class="p">:</span>
+            <span class="n">phase_idx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">compsets_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">compset</span> <span class="ow">in</span> <span class="n">composition_sets</span><span class="p">:</span>
+                <span class="c1"># Mark unstable phases for removal</span>
+                <span class="k">if</span> <span class="n">compset</span><span class="o">.</span><span class="n">NP</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">compset</span><span class="o">.</span><span class="n">fixed</span><span class="p">:</span>
+                    <span class="n">compsets_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">phase_idx</span><span class="p">))</span>
+                <span class="n">phase_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1"># Watch removal order here, as the indices of composition_sets are changing!</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">compsets_to_remove</span><span class="p">):</span>
+                <span class="k">del</span> <span class="n">composition_sets</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="n">phase_amt</span> <span class="o">=</span> <span class="p">[</span><span class="n">compset</span><span class="o">.</span><span class="n">NP</span> <span class="k">for</span> <span class="n">compset</span> <span class="ow">in</span> <span class="n">composition_sets</span><span class="p">]</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">composition_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dof</span>
+        <span class="n">state_variables</span> <span class="o">=</span> <span class="n">composition_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">state_variables</span>
+        <span class="n">num_statevars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">state_variables</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">compset</span> <span class="ow">in</span> <span class="n">composition_sets</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">compset</span><span class="o">.</span><span class="n">dof</span><span class="p">[</span><span class="n">num_statevars</span><span class="p">:]]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">phase_amt</span><span class="p">]</span>
+        <span class="n">chemical_potentials</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">'Chemical Potentials'</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">)</span>

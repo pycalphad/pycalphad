@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.io package" href="pycalphad.io.html" /><link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.core package - pycalphad 0.10.1.dev10+g0586c8d8 documentation</title>
+        <title>pycalphad.core package - pycalphad 0.10.1.dev11+gd69040e2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev10+g0586c8d8 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.1.dev11+gd69040e2 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.1.dev10+g0586c8d8 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.1.dev11+gd69040e2 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -433,41 +433,6 @@ Note that modifying these may yield unpredictable results.</p>
 <dt class="sig sig-object py" id="pycalphad.core.eqsolver.add_nearly_stable">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.eqsolver.</span></span><span class="sig-name descname"><span class="pre">add_nearly_stable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.eqsolver.add_nearly_stable" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.eqsolver.solve_and_update">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.eqsolver.</span></span><span class="sig-name descname"><span class="pre">solve_and_update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.eqsolver.solve_and_update" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>solve_and_update(composition_sets, conditions, solver, remove_metastable=True)</p>
-</div></blockquote>
-<p>Use the solver to find a solution satisfying the conditions from the starting point
-given by the composition sets.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>composition_sets</strong> (<em>List</em><em>[</em><a class="reference internal" href="#pycalphad.core.composition_set.CompositionSet" title="pycalphad.core.composition_set.CompositionSet"><em>CompositionSet</em></a><em>]</em>) – </p></li>
-<li><p><strong>conditions</strong> (<em>OrderedDict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – </p></li>
-<li><p><strong>solver</strong> (<a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><em>pycalphad.core.solver.SolverBase</em></a>) – </p></li>
-<li><p><strong>remove_metastable</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em>) – If True (the default), remove metastable compsets from the compositions_sets.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.eqsolver.update_composition_sets">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.eqsolver.</span></span><span class="sig-name descname"><span class="pre">update_composition_sets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.eqsolver.update_composition_sets" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>update_composition_sets(composition_sets, solver_result, remove_metastable=True)</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>composition_sets</strong> (<em>List</em><em>[</em><a class="reference internal" href="#pycalphad.core.composition_set.CompositionSet" title="pycalphad.core.composition_set.CompositionSet"><em>CompositionSet</em></a><em>]</em>) – </p></li>
-<li><p><strong>solver_result</strong> (<a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult"><em>pycalphad.core.solver.SolverResult</em></a>) – </p></li>
-<li><p><strong>remove_metastable</strong> (<em>Optional</em><em>[</em><em>bool</em><em>]</em>) – If True (the default), remove metastable compsets from the compositions_sets.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
 </section>
 <section id="module-pycalphad.core.equilibrium">
 <span id="pycalphad-core-equilibrium-module"></span><h2>pycalphad.core.equilibrium module<a class="headerlink" href="#module-pycalphad.core.equilibrium" title="Permalink to this headline">¶</a></h2>
@@ -711,19 +676,43 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemSpecification">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">SystemSpecification</span></span><a class="headerlink" href="#pycalphad.core.minimizer.SystemSpecification" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemSpecification.check_convergence">
+<span class="sig-name descname"><span class="pre">check_convergence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.SystemSpecification.check_convergence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemSpecification.get_new_state">
+<span class="sig-name descname"><span class="pre">get_new_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.SystemSpecification.get_new_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemSpecification.post_solve_hook">
+<span class="sig-name descname"><span class="pre">post_solve_hook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.SystemSpecification.post_solve_hook" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemSpecification.pre_solve_hook">
+<span class="sig-name descname"><span class="pre">pre_solve_hook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.SystemSpecification.pre_solve_hook" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemSpecification.run_loop">
+<span class="sig-name descname"><span class="pre">run_loop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.SystemSpecification.run_loop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemState">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">SystemState</span></span><a class="headerlink" href="#pycalphad.core.minimizer.SystemState" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.SystemState.chemical_potentials">
+<span class="sig-name descname"><span class="pre">chemical_potentials</span></span><a class="headerlink" href="#pycalphad.core.minimizer.SystemState.chemical_potentials" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.minimizer.advance_state">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">advance_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.advance_state" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.minimizer.find_solution">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">find_solution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.find_solution" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pycalphad.core.minimizer.construct_equilibrium_system">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.minimizer.</span></span><span class="sig-name descname"><span class="pre">construct_equilibrium_system</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.minimizer.construct_equilibrium_system" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.minimizer.solve_state">
@@ -894,8 +883,24 @@ Then outp.shape = (M,N)</p>
 <span id="pycalphad-core-solver-module"></span><h2>pycalphad.core.solver module<a class="headerlink" href="#module-pycalphad.core.solver" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.solver.Solver">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.solver.</span></span><span class="sig-name descname"><span class="pre">Solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#Solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.Solver" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.solver.</span></span><span class="sig-name descname"><span class="pre">Solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_metastable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#Solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.Solver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.solver.SolverBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.solver.Solver.get_system_spec">
+<span class="sig-name descname"><span class="pre">get_system_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">composition_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#Solver.get_system_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.Solver.get_system_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a SystemSpecification object for the specified conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>composition_sets</strong> (<em>List</em><em>[</em><a class="reference internal" href="#pycalphad.core.composition_set.CompositionSet" title="pycalphad.core.composition_set.CompositionSet"><em>pycalphad.core.composition_set.CompositionSet</em></a><em>]</em>) – List of CompositionSet objects in the starting point. Modified in place.</p></li>
+<li><p><strong>conditions</strong> (<em>OrderedDict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Conditions to satisfy.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pycalphad.core.minimizer.SystemSpecification" title="pycalphad.core.minimizer.SystemSpecification">SystemSpecification</a></p>
+</dd>
+</dl>
+</dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.core.solver.Solver.solve">
 <span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">composition_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#Solver.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.solver.Solver.solve" title="Permalink to this definition">¶</a></dt>
