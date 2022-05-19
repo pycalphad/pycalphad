@@ -615,9 +615,6 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
     cdef double[::1] equilibrium_soln
     cdef int chempot_idx, comp_idx, num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
 
-    if (state.mass_residual > 10) and (np.any(np.abs(state.chemical_potentials) > 1.0e10)):
-        state.chemical_potentials[:] = spec.initial_chemical_potentials
-
     state.previous_chemical_potentials[:] = state.chemical_potentials[:]
     state.recompute(spec)
 
