@@ -27,9 +27,9 @@ jobs:
         run: pycalphad-dev\Scripts\Activate.ps1
         if: ${{ runner.os == 'Windows' }}
       - run: pip install build
-      - run: python -m build --wheel -C--define=CYTHON_TRACE
+      - run: python -m build --wheel
         env:
-          CYTHON_TRACE: 1
+          CYTHON_COVERAGE: 1
       - run: pip install dist/*.whl
         shell: bash  # support cross-platform paths
       - run: pip check
