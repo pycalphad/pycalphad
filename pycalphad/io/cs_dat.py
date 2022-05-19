@@ -1409,11 +1409,13 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Writeable stoichiometry
             stoichiometry_string = ''.join([f'{stoich:7.1f}' for stoich in stoichiometry])
 
-            # Write equation type and number of intervals
+            # Determine equation type and number of intervals
             gibbs_equation = endmember['parameter'].args
             eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
+            # Write equation type and stoichiometry line
             output += f'{eq_type:4} {number_of_intervals:2}{stoichiometry_string}\n'
+            # Write Gibbs parameters line
             output += gibbs_parameters
 
             # Write stoichiometric factor and chemical group
@@ -1433,7 +1435,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             excess_params = list(dbf._parameters.search(detect_query))
 
             for param in excess_params:
-                print(param)
                 # Constituents participating in this mixing term
                 param_constituents = param['constituent_array'][0]
                 n_param_constituents = len(param_constituents)
@@ -1460,7 +1461,41 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Write end-of-excess '0'
             output += f'   0\n'
 
+    # Loop over stoichiometric
+    for phase_name in stoichiometric_phases:
+        # Write phase name
+        output += f' {phase_name}\n'
 
+        # Get Gibbs energy parameters
+        detect_query = (
+            (where("phase_name") == phase_name) & \
+            (where("parameter_type") == "G")
+        )
+        stoichiometric_phase_params = list(dbf._parameters.search(detect_query))
+
+        # Calculate stoichiometry of phase
+        endmember = stoichiometric_phase_params[0]
+        stoichiometry = [0 for _ in elements_ordered]
+        species_index = 0
+        for speciesList in endmember['constituent_array']:
+            for species in speciesList:
+                for element in species.constituents:
+                    # Get stoichiometric coefficient of sublattice
+                    sublattice_coefficient = dbf.phases[phase_name].sublattices[species_index]
+                    stoichiometry[elements_ordered.index(element)] += species.constituents[element]*sublattice_coefficient
+                    species_index += 1
+
+        # Writeable stoichiometry
+        stoichiometry_string = ''.join([f'{stoich:7.1f}' for stoich in stoichiometry])
+
+        # Determine equation type and number of intervals
+        gibbs_equation = endmember['parameter'].args
+        eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
+
+        # Write equation type and stoichiometry line
+        output += f'{eq_type:4} {number_of_intervals:2}{stoichiometry_string}\n'
+        # Write Gibbs parameters line
+        output += gibbs_parameters
 
 
 
