@@ -492,6 +492,8 @@ class ModelMQMQA(Model):
 
     def Z(self, dbe, species: v.Species, A: v.Species, B: v.Species, X: v.Species, Y: v.Species):
         # Canonicalize the order of cations and anions in alphabetical order
+        # Note that the coordination number parameters (the constituents and
+        # the values) _must_ obey this canonical sorted order.
         A, B = sorted((A, B))
         X, Y = sorted((X, Y))
         Zs = dbe._parameters.search(
