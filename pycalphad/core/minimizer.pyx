@@ -609,14 +609,10 @@ cdef class SystemState:
             else:
                 self.metastable_phase_iterations[idx] += 1
 
-
-cpdef solve_state(SystemSpecification spec, SystemState state):
+cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, int num_reserved_rows):
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln
-    cdef int chempot_idx, comp_idx, num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
-
-    state.previous_chemical_potentials[:] = state.chemical_potentials[:]
-    state.recompute(spec)
+    cdef int num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
 
     num_stable_phases = state.free_stable_compset_indices.shape[0]
     num_fixed_phases = spec.fixed_stable_compset_indices.shape[0]
@@ -624,15 +620,23 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
     num_free_variables = spec.free_chemical_potential_indices.shape[0] + num_stable_phases + \
                          spec.free_statevar_indices.shape[0]
 
-    equilibrium_matrix = np.zeros((num_stable_phases + num_fixed_phases + num_fixed_components + 1, num_free_variables), order='F')
-    equilibrium_soln = np.zeros(num_stable_phases + num_fixed_phases + num_fixed_components + 1)
-    # TODO: can we move this error check outside?
-    if (num_stable_phases + num_fixed_phases + num_fixed_components + 1) != num_free_variables:
+    equilibrium_matrix = np.zeros((num_stable_phases + num_fixed_phases + num_fixed_components + num_reserved_rows + 1,
+                                   num_free_variables), order='F')
+    equilibrium_rhs = np.zeros(equilibrium_matrix.shape[0])
+    if (equilibrium_matrix.shape[0] != equilibrium_matrix.shape[1]):
         raise ValueError('Conditions do not obey Gibbs Phase Rule')
+    fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, spec, state)
+    return np.asarray(equilibrium_matrix), np.asarray(equilibrium_rhs)
 
-    equilibrium_matrix[:,:] = 0
-    equilibrium_soln[:] = 0
-    fill_equilibrium_system(equilibrium_matrix, equilibrium_soln, spec, state)
+cpdef solve_state(SystemSpecification spec, SystemState state):
+    cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
+    cdef double[::1] equilibrium_soln
+    cdef int chempot_idx, comp_idx
+
+    state.previous_chemical_potentials[:] = state.chemical_potentials[:]
+    state.recompute(spec)
+
+    equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 0)
 
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
           &equilibrium_soln[0], 1e-16)
