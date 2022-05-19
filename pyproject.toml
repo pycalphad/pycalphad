@@ -26,9 +26,16 @@ source = [
 ]
 
 [tool.coverage.run]
+plugins = [
+    "Cython.Coverage",
+]
 # Only consider coverage for these packages:
 source_pkgs = [
     "pycalphad"
+]
+omit = [
+    "pycalphad/core/*.pxd", # workaround for https://github.com/nedbat/coveragepy/issues/972
+    "stringsource",
 ]
 
 [tool.setuptools_scm]

@@ -126,62 +126,6 @@ def add_nearly_stable(object composition_sets, dict phase_records,
             composition_sets.append(compset)
     return phases_added
 
-cpdef update_composition_sets(composition_sets, solver_result, remove_metastable=True):
-    """
-        update_composition_sets(composition_sets, solver_result, remove_metastable=True)
-
-    Parameters
-    ----------
-    composition_sets : List[CompositionSet]
-    solver_result : pycalphad.core.solver.SolverResult
-    remove_metastable : Optional[bool]
-        If True (the default), remove metastable compsets from the compositions_sets.
-
-    """
-    cdef CompositionSet compset
-    x = solver_result.x
-    compset = composition_sets[0]
-    num_compsets = len(composition_sets)
-    num_state_variables = len(compset.phase_record.state_variables)
-    var_offset = num_state_variables
-    num_vars = sum([compset.phase_record.phase_dof for compset in composition_sets]) + num_compsets + num_state_variables
-    phase_idx = 0
-    compsets_to_remove = []
-    for compset in composition_sets:
-        phase_amt = x[num_vars - num_compsets + phase_idx]
-        # Mark unstable phases for removal
-        if phase_amt == 0.0 and not compset.fixed:
-            compsets_to_remove.append(int(phase_idx))
-        compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                       phase_amt, x[:num_state_variables])
-        var_offset += compset.phase_record.phase_dof
-        phase_idx += 1
-    if remove_metastable:
-        # Watch removal order here, as the indices of composition_sets are changing!
-        for idx in reversed(compsets_to_remove):
-            del composition_sets[idx]
-
-
-cpdef solve_and_update(composition_sets, conditions, solver, remove_metastable=True):
-    """
-        solve_and_update(composition_sets, conditions, solver, remove_metastable=True)
-
-    Use the solver to find a solution satisfying the conditions from the starting point
-    given by the composition sets.
-
-    Parameters
-    ----------
-    composition_sets : List[CompositionSet]
-    conditions : OrderedDict[str, float]
-    solver : pycalphad.core.solver.SolverBase
-    remove_metastable : Optional[bool]
-        If True (the default), remove metastable compsets from the compositions_sets.
-
-    """
-    result = solver.solve(composition_sets, conditions)
-    update_composition_sets(composition_sets, result, remove_metastable=remove_metastable)
-    return result
-
 
 def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
     """
@@ -226,7 +170,7 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
     cdef np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
-    iter_solver = solver if solver is not None else Solver(verbose=verbose)
+    iter_solver = solver if solver is not None else Solver(verbose=verbose, remove_metastable=True)
 
     # Factored out via profiling
     prop_MU_values = properties.MU
@@ -292,7 +236,7 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             if len(composition_sets) == 0:
                 changed_phases = False
                 break
-            result = solve_and_update(composition_sets, cur_conds, iter_solver)
+            result = iter_solver.solve(composition_sets, cur_conds)
 
             chemical_potentials[:] = result.chemical_potentials
             changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
@@ -302,7 +246,7 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             if not changed_phases:
                 break
         if changed_phases:
-            result = solve_and_update(composition_sets, cur_conds, iter_solver)
+            result = iter_solver.solve(composition_sets, cur_conds)
             chemical_potentials[:] = result.chemical_potentials
         if not iter_solver.ignore_convergence:
             converged = result.converged

@@ -28,6 +28,8 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
       - run: pip install build
       - run: python -m build --wheel
+        env:
+          CYTHON_COVERAGE: 1
       - run: pip install dist/*.whl
         shell: bash  # support cross-platform paths
       - run: pip check

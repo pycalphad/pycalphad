@@ -1,4 +1,4 @@
-import os
+import os, sys
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 import numpy as np
@@ -14,14 +14,18 @@ def read(fname):
 CYTHON_COMPILER_DIRECTIVES = {
     "language_level": 3,
 }
+CYTHON_DEFINE_MACROS = []
+if os.getenv('CYTHON_COVERAGE', False):
+    CYTHON_COMPILER_DIRECTIVES["linetrace"] = True
+    CYTHON_DEFINE_MACROS.append(('CYTHON_TRACE_NOGIL', '1'))
 
 CYTHON_EXTENSION_INCLUDES = ['.', np.get_include()]
 CYTHON_EXTENSION_MODULES = [
-    Extension('pycalphad.core.hyperplane', sources=['pycalphad/core/hyperplane.pyx']),
-    Extension('pycalphad.core.eqsolver', sources=['pycalphad/core/eqsolver.pyx']),
-    Extension('pycalphad.core.phase_rec', sources=['pycalphad/core/phase_rec.pyx']),
-    Extension('pycalphad.core.composition_set', sources=['pycalphad/core/composition_set.pyx']),
-    Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx']),
+    Extension('pycalphad.core.hyperplane', sources=['pycalphad/core/hyperplane.pyx'], define_macros=CYTHON_DEFINE_MACROS),
+    Extension('pycalphad.core.eqsolver', sources=['pycalphad/core/eqsolver.pyx'], define_macros=CYTHON_DEFINE_MACROS),
+    Extension('pycalphad.core.phase_rec', sources=['pycalphad/core/phase_rec.pyx'], define_macros=CYTHON_DEFINE_MACROS),
+    Extension('pycalphad.core.composition_set', sources=['pycalphad/core/composition_set.pyx'], define_macros=CYTHON_DEFINE_MACROS),
+    Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx'], define_macros=CYTHON_DEFINE_MACROS),
 ]
 
 setup(
@@ -37,7 +41,7 @@ setup(
         compiler_directives=CYTHON_COMPILER_DIRECTIVES,
     ),
     package_data={
-        'pycalphad.core': ['*.pxd'],
+        'pycalphad.core': ['*.pxd'] + (['*.pyx', '*.c', '*.h', '*.cpp', '*.hpp'] if os.getenv('CYTHON_COVERAGE', False) else []),
         'pycalphad.tests.databases': ['*'],
     },
     # This include is for the compiler to find the *.h files during the build_ext phase
@@ -54,6 +58,7 @@ setup(
         # conda-forge Anaconda channel. For example, conda-forge/symengine
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
+        'Cython' if os.getenv('CYTHON_COVERAGE', False) else '', # required for Cython test coverage
         'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
         'importlib_resources',  # drop when pycalphad drops support for Python<3.9
         'matplotlib>=3.3',
