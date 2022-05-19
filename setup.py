@@ -55,7 +55,7 @@ setup(
         # conda-forge Anaconda channel. For example, conda-forge/symengine
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
-        'Cython' if 'CYTHON_TRACE' in ''.join(sys.argv) else '', # required for Cython test coverage
+        'Cython' if os.getenv('CYTHON_TRACE', False) else '', # required for Cython test coverage
         'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
         'importlib_resources',  # drop when pycalphad drops support for Python<3.9
         'matplotlib>=3.3',
