@@ -1545,7 +1545,12 @@ def parse_gibbs_coefficients(equation):
         # TODO: Add other supported extra parameters (i.e. T**X)
         # TODO: Handle non-supported parameters properly
         else:
-            print(f'WARNING: Skipped parameter with order {t_order} and coefficient {coeff_string}')
+            if coeff == 1:
+                # This indicates the constant term had order/coefficient flipped
+                coeff_string = format_coefficient(float(t_order))
+                coefficients[0] = coeff_string
+            else:
+                print(f'WARNING: Skipped parameter with order {t_order} and coefficient {coeff_string}')
 
     return coefficients, extra_parameters, has_extra_parameters
 
