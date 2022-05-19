@@ -38,7 +38,7 @@ setup(
         compiler_directives=CYTHON_COMPILER_DIRECTIVES,
     ),
     package_data={
-        'pycalphad.core': ['*.pxd'],
+        'pycalphad.core': ['*.pxd', '*.pyx'],
         'pycalphad.tests.databases': ['*'],
     },
     # This include is for the compiler to find the *.h files during the build_ext phase
