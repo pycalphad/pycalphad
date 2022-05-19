@@ -649,7 +649,7 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
 
     state.largest_chemical_potential_difference = -np.inf
     for comp_idx in range(spec.num_components):
-        state.largest_chemical_potential_difference = max(state.largest_chemical_potential_difference, state.chemical_potentials[comp_idx] - state.previous_chemical_potentials[comp_idx])
+        state.largest_chemical_potential_difference = max(state.largest_chemical_potential_difference, abs(state.chemical_potentials[comp_idx] - state.previous_chemical_potentials[comp_idx]))
 
     return equilibrium_soln
 
