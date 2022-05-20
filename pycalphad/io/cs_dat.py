@@ -1599,7 +1599,7 @@ def format_coefficient(coeff):
     # The formatting is inconsistent, so unfortunately each value range is custom
     if   coeff == 0:
         coeff_string = '0.00000000     '
-    elif abs(coeff) < 0.1:
+    elif abs(coeff) < 0.1 or abs(coeff) >= 1e8:
         coeff_string = f'{coeff*10: .7E}'[:15]
         if coeff < 0:
             coeff_string = '-.' + coeff_string[1] + coeff_string[3:] + ' '
