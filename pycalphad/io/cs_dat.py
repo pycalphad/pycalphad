@@ -1270,6 +1270,12 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     solution_phase_types = []
     solution_phase_species = []
 
+    # DAT *always* includes ideal gas phase (gas_ideal) in header (in first solution phase position), even if not used
+    solution_phases.insert(0,'GAS_IDEAL')
+    solution_phase_types.insert(0,'IDMX')
+    # If there isn't really an ideal gas phase, need empty list of species, so just insert this right away
+    solution_phase_species.insert(0,[])
+
     # Loop over phases and find stoichiometric and supported solution phases
     # TODO: append phase (and info) again for miscibility gaps (from an argument?)
     # Also this gets the species names but only really needs a count at this point
@@ -1280,8 +1286,13 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         if all([len(subl) == 1 for subl in dbf.phases[phase_name].constituents]):
             stoichiometric_phases.append(phase_name)
         else:
+            # Check if an ideal gas phase
+            if phase_name.upper() == 'GAS_IDEAL':
+                # Replace blank species list in first position with actual ideal gas species
+                solution_phase_species[0] = [[i.name for i in set] for set in dbf.phases[phase_name].constituents][0]
+                continue
+            # Check if a MQMQA phase
             if dbf.phases[phase_name].model_hints:
-                # Check for a MQMQA phase
                 try:
                     type = dbf.phases[phase_name].model_hints['mqmqa']['type']
                 except KeyError:
@@ -1316,18 +1327,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 solution_phase_species.append(species)
                 continue
 
-    # DAT *always* includes ideal gas phase (gas_ideal) in header (in first solution phase position), even if not used
-    solution_phases.insert(0,'GAS_IDEAL')
-    solution_phase_types.insert(0,'IDMX')
-    # I think phase names will always be capitalized, but don't want to assume this
-    if 'GAS_IDEAL' in [phase_name.upper() for phase_name in dbf.phases]:
-        # Use first 'gas_ideal' found
-        gas_name = [phase_name for phase_name in dbf.phases if phase_name.upper() == 'GAS_IDEAL'][0]
-        species = [[i.name for i in set] for set in dbf.phases[gas_name].constituents][0]
-        solution_phase_species.insert(0,species)
-    else:
-        # If there isn't really an ideal gas phase, add empty list of species
-        solution_phase_species.insert(0,[])
 
     # Number of elements, phases, species line
     solution_phase_species_counts = ' '.join([f'{len(species):4}' for species in solution_phase_species])
