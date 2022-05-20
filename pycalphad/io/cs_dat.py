@@ -1597,7 +1597,9 @@ def parse_gibbs_coefficients(equation):
 
 def format_coefficient(coeff):
     # The formatting is inconsistent, so unfortunately each value range is custom
-    if abs(coeff) < 0.1:
+    if   coeff == 0:
+        coeff_string = '0.00000000     '
+    elif abs(coeff) < 0.1:
         coeff_string = f'{coeff*10: .7E}'[:15]
         if coeff < 0:
             coeff_string = '-.' + coeff_string[1] + coeff_string[3:] + ' '
