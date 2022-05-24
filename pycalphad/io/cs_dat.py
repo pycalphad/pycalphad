@@ -1289,7 +1289,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Check if an ideal gas phase
             if phase_name.upper() == 'GAS_IDEAL':
                 # Replace blank species list in first position with actual ideal gas species
-                solution_phase_species[0] = [[i.name for i in set] for set in dbf.phases[phase_name].constituents][0]
+                solution_phase_species[0] = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
                 continue
             # Check if a MQMQA phase
             if dbf.phases[phase_name].model_hints:
@@ -1304,7 +1304,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     # Save MQMQA sub-type (SUBG or SUBQ)
                     solution_phase_types.append(type)
                     # Determine species for phase
-                    constituents = [[i.name for i in set] for set in dbf.phases[phase_name].constituents]
+                    constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
                     # Species will be quadruplets for counting purposes
                     species = []
                     for i in range(len(constituents[0])):
@@ -1324,14 +1324,26 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 # This phase is QKTO
                 solution_phases.append(phase_name)
                 solution_phase_types.append("QKTO")
-                species = [[i.name for i in set] for set in dbf.phases[phase_name].constituents][0]
+                species = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
                 solution_phase_species.append(species)
                 continue
-            # Otherwise RKMP phase
-            solution_phases.append(phase_name)
-            solution_phase_types.append("RKMP")
-            species = [[i.name for i in set] for set in dbf.phases[phase_name].constituents][0]
-            solution_phase_species.append(species)
+
+            # Everything else is a CEF variant
+            nSublattices = len(dbf.phases[phase_name].sublattices)
+            if nSublattices > 1:
+                # If multiple sublattices, identify type
+                solution_phases.append(phase_name)
+                solution_phase_types.append("SUBL")
+                constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
+                # Make species from products of constituents
+                species = [':'.join([con.capitalize() for con in end]) for end in list(itertools.product(*constituents))]
+                solution_phase_species.append(species)
+            else:
+                # Otherwise RKMP phase
+                solution_phases.append(phase_name)
+                solution_phase_types.append("RKMP")
+                species = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
+                solution_phase_species.append(species)
 
 
     # Number of elements, phases, species line
@@ -1488,7 +1500,10 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 for species in constituent_set:
                     for element in species.constituents:
                         name = element.capitalize()
-                        indices.append(1 + endmember_names.index(name))
+                        try:
+                            indices.append(1 + endmember_names.index(name))
+                        except ValueError:
+                            print(f'Can\'t find endmember {name}')
                 # Store all exponents (orders) for constituents
                 orders = []
                 # Sum coefficients that are for the same order (abnormal case of repeated order)
@@ -1518,9 +1533,92 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
             output += f'   0\n'
+        elif phase_model == 'SUBL':
+            print('endmember_params')
+            print(endmember_params)
+            print()
+            # Make list of constituents
+            constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
+            flat_constituents = [constituent for sublattice in constituents for constituent in sublattice]
+            print(constituents)
+            print(flat_constituents)
+            # Match endmembers to constituents they are composed of
+            constituent_mapping = [[] for _ in range(len(constituents))]
+            for endmember in endmember_params:
+                sublattice = 0
+                for speciesList in endmember['constituent_array']:
+                    for species in speciesList:
+                        for element in species.constituents:
+                            constituent_mapping[sublattice].append(constituents[sublattice].index(element) + 1)
+                            sublattice += 1
+            print(constituent_mapping)
+
+            # Get excess mixing parameters
+            detect_query = (
+                (where("phase_name") == phase_name) & \
+                (where("parameter_type") == "L")
+            )
+            excess_params = list(dbf._parameters.search(detect_query))
+
+            # Get sublattice info
+            sublattices = dbf.phases[phase_name].sublattices
+            nSublattices = len(sublattices)
+            # Write sublattice information
+            output += f'{nSublattices:4}\n'
+            output += f'  {"      ".join([f"{weight:.5f}" for weight in sublattices])}\n'
+            output += f'{"".join([f"{len(sub):4}" for sub in constituents])}\n'
+
+            for sub in constituents:
+                output += f'  {"".join([f"{constituent.capitalize():25}" for constituent in sub])}\n'
+            for sub in constituent_mapping:
+                output += f'{"".join([f"{constituent:4}" for constituent in sub])}\n'
+
+            # For SUBL we have to collect all terms for each set of constituents
+            unique_constituent_sets = set([param['constituent_array'] for param in excess_params])
+            print(unique_constituent_sets)
+            for constituent_set in unique_constituent_sets:
+                # Get indices of participating constituents in phase (order of printed endmembers)
+                indices = []
+                for sublattice in constituent_set:
+                    for species in sublattice:
+                        for constituent in species.constituents:
+                            try:
+                                indices.append(1 + flat_constituents.index(constituent))
+                            except ValueError:
+                                print(f'Can\'t find constituent {constituent}')
+                # Store all exponents (orders) for constituents
+                orders = []
+                # Sum coefficients that are for the same order (abnormal case of repeated order)
+                equations = []
+                for param in excess_params:
+                    # Constituents participating in this mixing term
+                    param_constituents = param['constituent_array']
+                    # Check if param belongs to current constituent_set
+                    if param_constituents != constituent_set:
+                        continue
+                    order = param['parameter_order'] + 1
+                    equation = param['parameter']
+                    if order in orders:
+                        equations[orders.index(order)] += equation
+                    else:
+                        orders.append(order)
+                        equations.append(equation)
+
+                # Now write excess mixing terms for current constituent_set
+                output += f'{len(indices):4}\n'
+                output += f'{"".join([f"{ind:4}" for ind in indices])}{max(orders):4}\n'
+                for order in range(1,max(orders)+1):
+                    if order in orders:
+                        order_index = orders.index(order)
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(equations[order_index].as_coefficients_dict())
+                        coefficients_string = ''.join(coefficients)
+                        output += f' {coefficients_string}\n'
+            # Write end-of-excess '0'
+            output += f'   0\n'
 
     # Loop over stoichiometric
     for phase_name in stoichiometric_phases:
+        # TODO: detect dummies and format accordingly
         # Write phase name
         output += f' {phase_name}\n'
 
