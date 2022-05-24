@@ -1534,14 +1534,9 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Write end-of-excess '0'
             output += f'   0\n'
         elif phase_model == 'SUBL':
-            print('endmember_params')
-            print(endmember_params)
-            print()
             # Make list of constituents
             constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
             flat_constituents = [constituent for sublattice in constituents for constituent in sublattice]
-            print(constituents)
-            print(flat_constituents)
             # Match endmembers to constituents they are composed of
             constituent_mapping = [[] for _ in range(len(constituents))]
             for endmember in endmember_params:
@@ -1551,7 +1546,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         for element in species.constituents:
                             constituent_mapping[sublattice].append(constituents[sublattice].index(element) + 1)
                             sublattice += 1
-            print(constituent_mapping)
 
             # Get excess mixing parameters
             detect_query = (
@@ -1568,14 +1562,15 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             output += f'  {"      ".join([f"{weight:.5f}" for weight in sublattices])}\n'
             output += f'{"".join([f"{len(sub):4}" for sub in constituents])}\n'
 
+            # Write constituent names
             for sub in constituents:
                 output += f'  {"".join([f"{constituent.capitalize():25}" for constituent in sub])}\n'
+            # Write constituent-to-endmember pairing arrays
             for sub in constituent_mapping:
                 output += f'{"".join([f"{constituent:4}" for constituent in sub])}\n'
 
             # For SUBL we have to collect all terms for each set of constituents
             unique_constituent_sets = set([param['constituent_array'] for param in excess_params])
-            print(unique_constituent_sets)
             for constituent_set in unique_constituent_sets:
                 # Get indices of participating constituents in phase (order of printed endmembers)
                 indices = []
