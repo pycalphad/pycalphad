@@ -4,6 +4,14 @@ pycalphad.io package
 Submodules
 ----------
 
+pycalphad.io.cs\_dat module
+---------------------------
+
+.. automodule:: pycalphad.io.cs_dat
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pycalphad.io.database module
 ----------------------------
 
