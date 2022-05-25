@@ -1,6 +1,22 @@
 What's New
 ==========
 
+0.10.1 (2022-05-25)
+-------------------
+
+This is a minor release containing several new features, but fixes, and some
+breaking changes to internal APIs for interacting with ``Solver`` objects and
+the Gibbs eneryg minimizer.
+
+* ENH: Internal API refactor to enable a ``CompositionSet``-based solver API ( :issue:`415` )
+* ENH: Enable option B and option F support for TDBs ( :issue:`412` )
+* FIX: Make minimizer state more internally consistent, fixing a bug when changing phases in the minimizer ( :issue:`410` )
+* ENH: pycalphad will now discover and import plugin packages (installed packages that have names prefixed with ``pycalphad-``)  ( :issue:`406` )
+* ENH: Implementation of a reader for ChemSage DAT files and various bug fixes ( :issue:`389`, :issue:`405`, :issue:`416` )
+* ENH: Add support for the modified quasichemical model in the quadruplet approximation ( :issue:`389` )
+* FIX: TCPrinter: Special-case printing for exponential function ( :issue:`400` )
+
+
 0.10.0 (2022-02-21)
 -------------------
 
