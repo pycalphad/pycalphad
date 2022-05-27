@@ -1537,15 +1537,9 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Make list of constituents
             constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
             flat_constituents = [constituent for sublattice in constituents for constituent in sublattice]
-            # Match endmembers to constituents they are composed of
-            constituent_mapping = [[] for _ in range(len(constituents))]
-            for endmember in endmember_params:
-                sublattice = 0
-                for speciesList in endmember['constituent_array']:
-                    for species in speciesList:
-                        for element in species.constituents:
-                            constituent_mapping[sublattice].append(constituents[sublattice].index(element) + 1)
-                            sublattice += 1
+
+            # Get constituent mapping
+            constituent_mapping = make_constituent_mapping(constituents, endmember_params)
 
             # Get excess mixing parameters
             detect_query = (
@@ -1758,6 +1752,18 @@ def format_coefficient(coeff):
         coeff_string = f'{coeff: .16f}'[:10] + '     '
 
     return coeff_string
+
+def make_constituent_mapping(constituents, endmember_params):
+    # Match endmembers to constituents they are composed of
+    constituent_mapping = [[] for _ in range(len(constituents))]
+    for endmember in endmember_params:
+        sublattice = 0
+        for speciesList in endmember['constituent_array']:
+            for species in speciesList:
+                for element in species.constituents:
+                    constituent_mapping[sublattice].append(constituents[sublattice].index(element) + 1)
+                    sublattice += 1
+    return constituent_mapping
 
 def read_cs_dat(dbf: Database, fd):
     """
