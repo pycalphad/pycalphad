@@ -1345,6 +1345,11 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 species = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
                 solution_phase_species.append(species)
 
+            # Check if magnetic
+            if dbf.phases[phase_name].model_hints:
+                if 'ihj_magnetic_structure_factor' in dbf.phases[phase_name].model_hints:
+                    solution_phase_types[-1] += ('M')
+
 
     # Number of elements, phases, species line
     solution_phase_species_counts = ' '.join([f'{len(species):4}' for species in solution_phase_species])
@@ -1382,6 +1387,12 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             continue
         output += f' {phase_name}\n'
         output += f' {phase_model}\n'
+
+        # Write magnetic parameters for phase
+        if phase_model in ('RKMPM', 'SUBLM'):
+            ihj_magnetic_structure_factor = dbf.phases[phase_name].model_hints['ihj_magnetic_structure_factor']
+            ihj_magnetic_afm_factor = -1/dbf.phases[phase_name].model_hints['ihj_magnetic_afm_factor']
+            output += f'  {ihj_magnetic_afm_factor:.5f}     {ihj_magnetic_structure_factor:.5f}\n'
 
         # Get endmembers and other parameters depending on phase model
         if phase_model in ('SUBG', 'SUBQ'):
@@ -1488,7 +1499,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
             # Write end-of-excess '0'
             output += f'   0\n'
-        elif phase_model == 'RKMP':
+        elif phase_model in ('RKMP','RKMPM'):
             # Get excess mixing parameters
             detect_query = (
                 (where("phase_name") == phase_name) & \
@@ -1537,7 +1548,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
             output += f'   0\n'
-        elif phase_model == 'SUBL':
+        elif phase_model in ('SUBL','SUBLM'):
             # Make list of constituents
             constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
             flat_constituents = [constituent for sublattice in constituents for constituent in sublattice]
