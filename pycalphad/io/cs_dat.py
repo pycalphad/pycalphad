@@ -1426,7 +1426,11 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         name += element.capitalize()
                         if species.constituents[element] != 1:
                             name += f'{species.constituents[element]:.2g}'
-                        stoichiometry[elements_ordered.index(element)] += species.constituents[element]
+                        try:
+                            stoichiometry[elements_ordered.index(element)] += species.constituents[element]
+                        except ValueError:
+                            if element.capitalize() != 'Va':
+                                print(f'Constituent {element} not found in element list')
             output += f' {name}\n'
             endmember_names.append(name)
 
