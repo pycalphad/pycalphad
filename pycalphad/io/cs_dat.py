@@ -1425,6 +1425,13 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             )
             endmember_params = dbf._parameters.search(detect_query)
 
+        # Get sublattice weights
+        if phase_model in ('SUBL','SUBLM'):
+            sublattice_weights = itertools.cycle(dbf.phases[phase_name].sublattices)
+            print(dbf.phases[phase_name].sublattices)
+        else:
+            sublattice_weights = itertools.cycle([1])
+
         # Write endmember data
         endmember_names = []
         for endmember in endmember_params:
@@ -1437,8 +1444,9 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         name += element.capitalize()
                         if species.constituents[element] != 1:
                             name += f'{species.constituents[element]:.2g}'
+                        weight = next(sublattice_weights)
                         try:
-                            stoichiometry[elements_ordered.index(element)] += species.constituents[element]
+                            stoichiometry[elements_ordered.index(element)] += species.constituents[element] * weight
                         except ValueError:
                             if element.capitalize() != 'Va':
                                 print(f'Constituent {element} not found in element list')
