@@ -1523,10 +1523,64 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 # Write magnetic parameters line
                 output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
 
+        # Do constituent mapping for sublattice phases
+        if phase_model in ('SUBL','SUBLM'):
+            # Make list of constituents
+            constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
+            flat_constituents = [constituent for sublattice in constituents for constituent in sublattice]
 
+            # Get constituent mapping
+            constituent_mapping = make_constituent_mapping(constituents, endmember_params)
+
+            # Get sublattice info
+            sublattices = dbf.phases[phase_name].sublattices
+            nSublattices = len(sublattices)
+            # Write sublattice information
+            output += f'{nSublattices:4}\n'
+            output += f'  {"      ".join([f"{weight:.5f}" for weight in sublattices])}\n'
+            output += f'{"".join([f"{len(sub):4}" for sub in constituents])}\n'
+
+            # Write constituent names
+            for sub in constituents:
+                output += f'  {"".join([f"{constituent.capitalize():25}" for constituent in sub])}\n'
+            # Write constituent-to-endmember pairing arrays
+            for sub in constituent_mapping:
+                output += f'{"".join([f"{constituent:4}" for constituent in sub])}\n'
 
         # Write magnetic excess mixing data
         # TODO: magenetic terms
+        if phase_model in ('RKMPM', 'SUBLM'):
+            # Get excess magnetic parameters
+            for tc in tcs:
+                tc_value = tc['parameter']
+                tc_constituents = tc['constituent_array']
+                tcs.remove(tc)
+                bmagn_value = 0
+                for bmagn in bmagns:
+                    # Look for matching bmagn
+                    if bmagn['constituent_array'] != tc_constituents:
+                        continue
+                    bmagn_value = bmagn['parameter']
+                    bmagns.remove(bmagn)
+                    break
+                # Get indices of participating constituents in phase (order of printed endmembers)
+                indices = []
+                for sublattice in tc_constituents:
+                    for species in sublattice:
+                        for constituent in species.constituents:
+                            try:
+                                indices.append(1 + flat_constituents.index(constituent))
+                            except ValueError:
+                                print(f'Can\'t find constituent {constituent}')
+                # Now write excess magnetic terms for current constituent_set
+                output += f'{len(indices):4}\n'
+                # TODO: Get order properly if possible
+                order = 1
+                output += f'{"".join([f"{ind:4}" for ind in indices])}{order:4}\n'
+                # Write excess magnetic parameters line
+                output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
+            # Write end-of-magnetic-excess '0'
+            output += f'   0\n'
 
         # Write excess mixing data
         if   phase_model == 'QKTO':
@@ -1612,34 +1666,12 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Write end-of-excess '0'
             output += f'   0\n'
         elif phase_model in ('SUBL','SUBLM'):
-            # Make list of constituents
-            constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
-            flat_constituents = [constituent for sublattice in constituents for constituent in sublattice]
-
-            # Get constituent mapping
-            constituent_mapping = make_constituent_mapping(constituents, endmember_params)
-
             # Get excess mixing parameters
             detect_query = (
                 (where("phase_name") == phase_name) & \
                 (where("parameter_type") == "L")
             )
             excess_params = list(dbf._parameters.search(detect_query))
-
-            # Get sublattice info
-            sublattices = dbf.phases[phase_name].sublattices
-            nSublattices = len(sublattices)
-            # Write sublattice information
-            output += f'{nSublattices:4}\n'
-            output += f'  {"      ".join([f"{weight:.5f}" for weight in sublattices])}\n'
-            output += f'{"".join([f"{len(sub):4}" for sub in constituents])}\n'
-
-            # Write constituent names
-            for sub in constituents:
-                output += f'  {"".join([f"{constituent.capitalize():25}" for constituent in sub])}\n'
-            # Write constituent-to-endmember pairing arrays
-            for sub in constituent_mapping:
-                output += f'{"".join([f"{constituent:4}" for constituent in sub])}\n'
 
             # For SUBL we have to collect all terms for each set of constituents
             unique_constituent_sets = set([param['constituent_array'] for param in excess_params])
