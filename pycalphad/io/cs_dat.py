@@ -1428,7 +1428,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         # Get sublattice weights
         if phase_model in ('SUBL','SUBLM'):
             sublattice_weights = itertools.cycle(dbf.phases[phase_name].sublattices)
-            print(dbf.phases[phase_name].sublattices)
         else:
             sublattice_weights = itertools.cycle([1])
 
