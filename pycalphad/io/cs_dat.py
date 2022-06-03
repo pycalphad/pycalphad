@@ -1394,6 +1394,19 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             ihj_magnetic_afm_factor = -1/dbf.phases[phase_name].model_hints['ihj_magnetic_afm_factor']
             output += f'  {ihj_magnetic_afm_factor:.5f}     {ihj_magnetic_structure_factor:.5f}\n'
 
+            # Get all magentic parameters for phase
+            detect_query = (
+                (where("phase_name") == phase_name) & \
+                (where("parameter_type") == "TC")
+            )
+            tcs = dbf._parameters.search(detect_query)
+
+            detect_query = (
+                (where("phase_name") == phase_name) & \
+                (where("parameter_type") == "BMAGN")
+            )
+            bmagns = dbf._parameters.search(detect_query)
+
         # Get endmembers and other parameters depending on phase model
         if phase_model in ('SUBG', 'SUBQ'):
             # Get parameters for endmembers
@@ -1477,6 +1490,40 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # It looks like these aren't actually read/supported currently, so just writing "  1.00000      1" for now
             if phase_model == 'QKTO':
                 output += '  1.00000      1\n'
+
+            # Get magnetic parameters for endmember
+            if phase_model in ('RKMPM', 'SUBLM'):
+                tc_value = 0
+                bmagn_value = 0
+                caps_name = name.upper()
+                # Find tc for endmember
+                for tc in tcs:
+                    # These will have length 1 constituent arrays, I think (longer are for mixing)
+                    if len(tc['constituent_array'][0]) > 1:
+                        continue
+                    # Check if endmember name matches
+                    if str(tc['constituent_array'][0][0]) != caps_name:
+                        continue
+                    tc_value = tc['parameter']
+                    # Delete parameter from array: thus at the end only mixing terms will remain
+                    tcs.remove(tc)
+                    break
+                # Find bmagn for endmember
+                for bmagn in bmagns:
+                    # These will have length 1 constituent arrays, I think (longer are for mixing)
+                    if len(bmagn['constituent_array'][0]) > 1:
+                        continue
+                    # Check if endmember name matches
+                    if str(bmagn['constituent_array'][0][0]) != caps_name:
+                        continue
+                    bmagn_value = bmagn['parameter']
+                    # Delete parameter from array: thus at the end only mixing terms will remain
+                    bmagns.remove(bmagn)
+                    break
+                # Write magnetic parameters line
+                output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
+
+
 
         # Write magnetic excess mixing data
         # TODO: magenetic terms
@@ -1791,6 +1838,25 @@ def format_coefficient(coeff):
             coeff_string = ' -' + coeff_string[2:]
     else:
         coeff_string = f'{coeff: .16f}'[:10] + '     '
+
+    return coeff_string
+
+def format_coefficient_mag(coeff):
+    # The formatting is inconsistent, so unfortunately each value range is custom
+    if   coeff == 0:
+        coeff_string = '0.000000     '
+    elif abs(coeff) < 0.1 or abs(coeff) >= 1e8:
+        coeff_string = f'{coeff*10: .5E}'[:13]
+        if coeff < 0:
+            coeff_string = '-.' + coeff_string[1] + coeff_string[3:] + ' '
+        else:
+            coeff_string = '0.' + coeff_string[1] + coeff_string[3:] + ' '
+    elif abs(coeff) < 1:
+        coeff_string = f'{coeff: .16f}'[:8] + '     '
+        if coeff < 0:
+            coeff_string = ' -' + coeff_string[2:]
+    else:
+        coeff_string = f'{coeff: .16f}'[:8] + '     '
 
     return coeff_string
 
