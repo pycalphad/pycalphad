@@ -1416,7 +1416,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Write number of endmembers and number of non-default coordination sets next
             number_of_endmembers = len(endmember_params)
             number_of_non_default_quadruplets = len(quadruplet_params)
-            output += f'{number_of_endmembers:4} {number_of_non_default_quadruplets:3}'
+            output += f'{number_of_endmembers:4} {number_of_non_default_quadruplets:3}\n'
         elif phase_model in ('IDMX', 'RKMP', 'RKMPM', 'QKTO', 'SUBL', 'SUBLM', 'PITZ'):
             # Get species for CEF phases
             detect_query = (
