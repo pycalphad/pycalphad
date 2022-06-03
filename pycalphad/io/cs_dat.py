@@ -1563,15 +1563,28 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     bmagn_value = bmagn['parameter']
                     bmagns.remove(bmagn)
                     break
-                # Get indices of participating constituents in phase (order of printed endmembers)
-                indices = []
-                for sublattice in tc_constituents:
-                    for species in sublattice:
-                        for constituent in species.constituents:
+
+                # Index calculation depends on model
+                if   phase_model == 'RKMPM':
+                    # Get indices of participating constituents in phase (order of printed endmembers)
+                    indices = []
+                    for species in constituent_set:
+                        for element in species.constituents:
+                            name = element.capitalize()
                             try:
-                                indices.append(1 + flat_constituents.index(constituent))
+                                indices.append(1 + endmember_names.index(name))
                             except ValueError:
-                                print(f'Can\'t find constituent {constituent}')
+                                print(f'Can\'t find endmember {name}')
+                elif phase_model == 'SUBLM':
+                    # Get indices of participating constituents in phase (order of printed endmembers)
+                    indices = []
+                    for sublattice in tc_constituents:
+                        for species in sublattice:
+                            for constituent in species.constituents:
+                                try:
+                                    indices.append(1 + flat_constituents.index(constituent))
+                                except ValueError:
+                                    print(f'Can\'t find constituent {constituent}')
                 # Now write excess magnetic terms for current constituent_set
                 output += f'{len(indices):4}\n'
                 # TODO: Get order properly if possible
