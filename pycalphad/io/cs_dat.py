@@ -1739,13 +1739,23 @@ def parse_gibbs_coefficients(equation):
             extra_parameters.append((coeff_string,' 0.50'))
         # TODO: Add other supported extra parameters (i.e. T**X)
         # TODO: Handle non-supported parameters properly
+        elif coeff == 1:
+            # This indicates the constant term had order/coefficient flipped
+            coeff_string = format_coefficient(float(t_order))
+            coefficients[0] = coeff_string
         else:
-            if coeff == 1:
-                # This indicates the constant term had order/coefficient flipped
-                coeff_string = format_coefficient(float(t_order))
-                coefficients[0] = coeff_string
-            else:
-                print(f'WARNING: Skipped parameter with order {t_order} and coefficient {coeff_string}')
+            # Try parsing as T**x polynomial
+            splitOrder = str(t_order).split('**')
+            if len(splitOrder) == 2:
+                if splitOrder[0] == 'T':
+                    try:
+                        orderStrip = splitOrder[1].replace('(','').replace(')','')
+                        extra_parameters.append((coeff_string,f'{float(orderStrip):.2f}'))
+                        has_extra_parameters = True
+                        continue
+                    except ValueError:
+                        pass
+            print(f'WARNING: Skipped parameter with order {t_order} and coefficient {coeff_string}')
 
     return coefficients, extra_parameters, has_extra_parameters
 
