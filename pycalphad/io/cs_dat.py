@@ -1440,15 +1440,24 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             for speciesList in endmember['constituent_array']:
                 for species in speciesList:
                     for element in species.constituents:
-                        name += element.capitalize()
-                        if species.constituents[element] != 1:
-                            name += f'{species.constituents[element]:.2g}'
+                        # Get current sublattice weight
                         weight = next(sublattice_weights)
                         try:
                             stoichiometry[elements_ordered.index(element)] += species.constituents[element] * weight
                         except ValueError:
                             if element.capitalize() != 'Va':
                                 print(f'Constituent {element} not found in element list')
+                        else:
+                            # Add element name to endmember name if not vacancy
+                            if element.capitalize() != 'Va':
+                                name += element.capitalize()
+                                stoich = species.constituents[element] * weight
+                                # Add stoichiometric factor to name if not 1
+                                if stoich != 1:
+                                    if stoich % 1 == 0:
+                                        name += f'{int(stoich)}'
+                                    else:
+                                        name += f'{species.constituents[element]:.2g}'
             output += f' {name}\n'
             endmember_names.append(name)
 
