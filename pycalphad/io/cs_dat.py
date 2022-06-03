@@ -1845,7 +1845,7 @@ def format_coefficient_mag(coeff):
     # The formatting is inconsistent, so unfortunately each value range is custom
     if   coeff == 0:
         coeff_string = '0.000000     '
-    elif abs(coeff) < 0.1 or abs(coeff) >= 1e8:
+    elif abs(coeff) < 0.1 or abs(coeff) >= 1e6:
         coeff_string = f'{coeff*10: .5E}'[:13]
         if coeff < 0:
             coeff_string = '-.' + coeff_string[1] + coeff_string[3:] + ' '
