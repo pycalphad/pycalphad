@@ -1430,8 +1430,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             number_of_endmembers = len(endmember_params)
             number_of_non_default_quadruplets = len(quadruplet_params)
             output += f'{number_of_endmembers:4} {number_of_non_default_quadruplets:3}\n'
-            # Set useSpecies flag for consitutuent indexing later
-            useSpecies = True
         elif phase_model in ('IDMX', 'RKMP', 'RKMPM', 'QKTO', 'SUBL', 'SUBLM', 'PITZ'):
             # Get species for CEF phases
             detect_query = (
@@ -1439,8 +1437,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 (where("parameter_type") == "G")
             )
             endmember_params = dbf._parameters.search(detect_query)
-            # Set useSpecies flag for consitutuent indexing later
-            useSpecies = False
 
         # Get sublattice weights
         if phase_model in ('SUBL','SUBLM'):
@@ -1544,7 +1540,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             flat_constituents = [constituent for sublattice in constituents for constituent in sublattice]
 
             # Get constituent mapping
-            constituent_mapping = make_constituent_mapping(constituents, endmember_params, useSpecies = useSpecies)
+            constituent_mapping = make_constituent_mapping(constituents, endmember_params)
 
             # Get sublattice info
             sublattices = dbf.phases[phase_name].sublattices
@@ -1623,11 +1619,10 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     indices = []
                     for sublattice in tc_constituents:
                         for species in sublattice:
-                            for constituent in species.constituents:
-                                try:
-                                    indices.append(1 + flat_constituents.index(constituent))
-                                except ValueError:
-                                    print(f'Can\'t find constituent {constituent}')
+                            try:
+                                indices.append(1 + flat_constituents.index(species.name))
+                            except ValueError:
+                                print(f'Can\'t find constituent {constituent}')
                 # Now write excess magnetic terms for current constituent_set
                 output += f'{len(indices):4}\n'
                 # TODO: Get order properly if possible
@@ -1736,11 +1731,10 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 indices = []
                 for sublattice in constituent_set:
                     for species in sublattice:
-                        for constituent in species.constituents:
-                            try:
-                                indices.append(1 + flat_constituents.index(constituent))
-                            except ValueError:
-                                print(f'Can\'t find constituent {constituent}')
+                        try:
+                            indices.append(1 + flat_constituents.index(species.name))
+                        except ValueError:
+                            print(f'Can\'t find constituent {constituent}')
                 # Store all exponents (orders) for constituents
                 orders = []
                 # Sum coefficients that are for the same order (abnormal case of repeated order)
@@ -1996,21 +1990,15 @@ def format_coefficient_mag(coeff):
 
     return coeff_string
 
-def make_constituent_mapping(constituents, endmember_params, useSpecies = False):
+def make_constituent_mapping(constituents, endmember_params):
     # Match endmembers to constituents they are composed of
     constituent_mapping = [[] for _ in range(len(constituents))]
     for endmember in endmember_params:
         sublattice = 0
         for speciesList in endmember['constituent_array']:
             for species in speciesList:
-                if useSpecies:
-                    constituent_mapping[sublattice].append(constituents[sublattice].index(species.name) + 1)
-                    sublattice += 1
-                else:
-                    for element in species.constituents:
-                        constituent_mapping[sublattice].append(constituents[sublattice].index(element) + 1)
-                        sublattice += 1
-    print()
+                constituent_mapping[sublattice].append(constituents[sublattice].index(species.name) + 1)
+                sublattice += 1
     return constituent_mapping
 
 def read_cs_dat(dbf: Database, fd):
