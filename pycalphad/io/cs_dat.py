@@ -1770,6 +1770,51 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
             output += f'   0\n'
+        elif phase_model in ('SUBG', 'SUBQ'):
+            # Get excess mixing parameters
+            detect_query = (
+                (where("phase_name") == phase_name) & \
+                (where("parameter_type") == "MQMX")
+            )
+            excess_params = list(dbf._parameters.search(detect_query))
+            for param in excess_params:
+                con = []
+                for ion in param['constituent_array']:
+                    for species in ion:
+                        con.append(flat_constituents.index(species.name) + 1)
+                con_string = ''.join([f"{c:4}" for c in con])
+
+                # Determine mixing order by checking number of unique constituents
+                if (con[0] == con[1]) or (con[2] == con[3]):
+                    mix_order = 3
+                else:
+                    mix_order = 4
+                # Write mixing order
+                output += f'{mix_order:4}\n'
+
+                # Write type, constituents, exponents
+                exp_string = ''.join([f"{z:4}" for z in param['exponents']])
+                output += f' {param["mixing_code"]}{con_string}{exp_string}\n'
+
+                # Write lines of apparent nonsense
+                output += '     0.00000000   1.00     0.00000000   1.00     0.00000000   1.00\n'
+                output += '     0.00000000   0.00     0.00000000   0.00     0.00000000   0.00\n'
+
+                # Get extra constituent data
+                additional_index = 0
+                if param["additional_mixing_constituent"].name:
+                    additional_index = flat_constituents.index(param["additional_mixing_constituent"].name) + 1
+
+                # Get mixing coefficients
+                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(param['parameter'].as_coefficients_dict())
+                coefficients_string = ''.join(coefficients)
+
+                # Write extra constituent data and mixing coefficients
+                output += f'{additional_index:4}{param["additional_mixing_exponent"]:4} {coefficients_string}\n'
+
+
+            # Write end-of-excess '0'
+            output += f'   0\n'
 
     # Loop over stoichiometric
     for phase_name in stoichiometric_phases:
