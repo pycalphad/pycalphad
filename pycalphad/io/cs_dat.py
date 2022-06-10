@@ -1560,6 +1560,17 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Write constituent names
             for sub in constituents:
                 output += f'  {"".join([f"{constituent.capitalize():25}" for constituent in sub])}\n'
+
+            # Write charge magnitudes and chemical groups for MQM
+            if phase_model in ('SUBG', 'SUBQ'):
+                for ion in ['cations','anions']:
+                    charges = [abs(species.charge) for species in chemical_groups[ion].keys()]
+                    groups = [chemical_groups[ion][species] for species in chemical_groups[ion].keys()]
+                    # Write charges for ion type
+                    output += f'  {"      ".join([f"{charges[i]:.5f}" for i in range(len(charges))])}\n'
+                    # Write chemical groups for ion type
+                    output += f'   {"".join([f"{groups[i]:4}" for i in range(len(charges))])}\n'
+
             # Write constituent-to-endmember pairing arrays
             for sub in constituent_mapping:
                 output += f'{"".join([f"{constituent:4}" for constituent in sub])}\n'
