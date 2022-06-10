@@ -1450,6 +1450,9 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Generate species names and stoichiometries
             name = ''
             stoichiometry = [0 for _ in elements_ordered]
+            # Overwrite sublattice_weights for MQM phases
+            if phase_model in ('SUBG', 'SUBQ'):
+                sublattice_weights = itertools.cycle(endmember['stoichiometry'])
             for speciesList in endmember['constituent_array']:
                 for species in speciesList:
                     for element in species.constituents:
@@ -1490,6 +1493,9 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # It looks like these aren't actually read/supported currently, so just writing "  1.00000      1" for now
             if phase_model == 'QKTO':
                 output += '  1.00000      1\n'
+            elif phase_model in ('SUBG', 'SUBQ'):
+                stoich_string = '      '.join([f"{n:.5f}" for n in endmember['stoichiometry']])
+                output += f'  {stoich_string}\n'
 
             # Get magnetic parameters for endmember
             if phase_model in ('RKMPM', 'SUBLM'):
