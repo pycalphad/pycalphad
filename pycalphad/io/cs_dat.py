@@ -1575,6 +1575,22 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             for sub in constituent_mapping:
                 output += f'{"".join([f"{constituent:4}" for constituent in sub])}\n'
 
+            # Write quadruplet coordination numbers for MQM
+            if phase_model in ('SUBG', 'SUBQ'):
+                detect_query = (
+                    (where("phase_name") == phase_name) & \
+                    (where("parameter_type") == "MQMZ")
+                )
+                params = dbf._parameters.search(detect_query)
+                for param in params:
+                    con = []
+                    for ion in param['constituent_array']:
+                        for species in ion:
+                            con.append(flat_constituents.index(species.name) + 1)
+                    con_string = ''.join([f"{c:4}" for c in con])
+                    z_string = '      '.join([f"{z:.7f}" for z in param['coordinations']])
+                    output += f'{con_string}  {z_string}\n'
+
         # Write magnetic excess mixing data
         if phase_model in ('RKMPM', 'SUBLM'):
             # Get excess magnetic parameters
