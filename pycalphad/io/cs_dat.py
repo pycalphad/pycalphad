@@ -1548,7 +1548,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 output += f'{"".join([f"{constituent:4}" for constituent in sub])}\n'
 
         # Write magnetic excess mixing data
-        # TODO: magenetic terms
         if phase_model in ('RKMPM', 'SUBLM'):
             # Get excess magnetic parameters
             for tc in tcs:
