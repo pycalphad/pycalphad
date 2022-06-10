@@ -1710,12 +1710,25 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 # Get indices of participating constituents in phase (order of printed endmembers)
                 indices = []
                 for species in constituent_set:
+                    name = ''
                     for element in species.constituents:
-                        name = element.capitalize()
-                        try:
-                            indices.append(1 + endmember_names.index(name))
-                        except ValueError:
-                            print(f'Can\'t find endmember {name}')
+                        # Add element name to endmember name if not vacancy
+                        if element.capitalize() != 'Va':
+                            name += element.capitalize()
+                            stoich = species.constituents[element] * weight
+                            # Add stoichiometric factor to name if not 1
+                            if stoich != 1:
+                                if stoich % 1 == 0:
+                                    name += f'{int(stoich)}'
+                                else:
+                                    name += f'{species.constituents[element]:.2g}'
+                    try:
+                        indices.append(1 + endmember_names.index(name))
+                    except ValueError:
+                        print(f'Endmember {name} not found in phase {phase_name}')
+                        print(f'List of known endmembers: {endmember_names}')
+                        print('Write aborted')
+                        return
                 # Store all exponents (orders) for constituents
                 orders = []
                 # Sum coefficients that are for the same order (abnormal case of repeated order)
