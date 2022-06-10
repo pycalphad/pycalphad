@@ -1880,7 +1880,10 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
 
         # This is rough, not sure how to reliably extract bounds from pairs of inequalities
         # This method is certain to break if order ever varies
-        max_t = float(temperature_range.args[0].args[1])
+        try:
+            max_t = float(temperature_range.args[0].args[1])
+        except RuntimeError:
+            max_t = float(temperature_range.args[1].args[1])
         # Trailing 0 padding for temperatures is weird
         max_t_string = f'{max_t:.3f}'.ljust(9,'0')
 
