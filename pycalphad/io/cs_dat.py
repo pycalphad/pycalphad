@@ -1635,7 +1635,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                             try:
                                 indices.append(1 + flat_constituents.index(species.name))
                             except ValueError:
-                                print(f'Can\'t find constituent {constituent}')
+                                print(f'Can\'t find constituent {species.name}')
                 # Now write excess magnetic terms for current constituent_set
                 output += f'{len(indices):4}\n'
                 # TODO: Get order properly if possible
@@ -1776,7 +1776,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         try:
                             indices.append(1 + flat_constituents.index(species.name))
                         except ValueError:
-                            print(f'Can\'t find constituent {constituent}')
+                            print(f'Can\'t find constituent {species.name}')
                 # Store all exponents (orders) for constituents
                 orders = []
                 # Sum coefficients that are for the same order (abnormal case of repeated order)
