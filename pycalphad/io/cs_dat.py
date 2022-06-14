@@ -1306,7 +1306,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Check if a MQMQA phase
             if dbf.phases[phase_name].model_hints:
                 try:
-                    type = dbf.phases[phase_name].model_hints['mqmqa']['type']
+                    mqm_version = dbf.phases[phase_name].model_hints['mqmqa']['type']
                 except KeyError:
                     # Not MQMQA, and that's ok
                     pass
@@ -1314,7 +1314,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     # This is an MQMQA-type phase
                     solution_phases.append(phase_name)
                     # Save MQMQA sub-type (SUBG or SUBQ)
-                    solution_phase_types.append(type)
+                    solution_phase_types.append(mqm_version)
                     # Determine species for phase
                     constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
                     # Species will be quadruplets for counting purposes
