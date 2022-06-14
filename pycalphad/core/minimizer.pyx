@@ -609,7 +609,7 @@ cdef class SystemState:
             else:
                 self.metastable_phase_iterations[idx] += 1
 
-cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, int num_reserved_rows):
+cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, int num_reserved_rows) except +:
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln
     cdef int num_stable_phases, num_fixed_phases, num_fixed_components, num_free_variables
@@ -627,6 +627,55 @@ cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, 
         raise ValueError('Conditions do not obey Gibbs Phase Rule')
     fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, spec, state)
     return np.asarray(equilibrium_matrix), np.asarray(equilibrium_rhs)
+
+cpdef state_variable_differential(SystemSpecification spec, SystemState state, int target_statevar_index):
+    # Sundman et al 2015, Eq. 74
+    cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
+    cdef double[::1] equilibrium_soln, delta_chemical_potentials, delta_statevars, delta_phase_amounts
+    cdef int[::1] orig_fixed_statevar_indices, orig_free_statevar_indices
+    cdef int chempot_idx, statevar_idx, i
+
+    orig_fixed_statevar_indices = np.array(spec.fixed_statevar_indices)
+    orig_free_statevar_indices = np.array(spec.free_statevar_indices)
+    delta_chemical_potentials = np.zeros(spec.num_components)
+    delta_statevars = np.zeros(spec.num_statevars)
+    delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
+    spec.fixed_statevar_indices = np.setdiff1d(spec.fixed_statevar_indices, np.array(target_statevar_index))
+    spec.free_statevar_indices = np.append(spec.free_statevar_indices, target_statevar_index)
+
+    try:
+        equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 1)
+        equilibrium_soln[:] = 0
+        # target_statevar_index is the last column of the matrix, by construction
+        equilibrium_matrix[-1, -1] = 1
+        equilibrium_soln[-1] = 1
+        lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
+          &equilibrium_soln[0], 1e-16)
+        for i in range(spec.free_chemical_potential_indices.shape[0]):
+            chempot_idx = spec.free_chemical_potential_indices[i]
+            delta_chemical_potentials[chempot_idx] = equilibrium_soln[i]
+        for i in range(state.free_stable_compset_indices.shape[0]):
+            delta_phase_amounts[i] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
+        for i in range(spec.free_statevar_indices.shape[0]):
+            statevar_idx = spec.free_statevar_indices[i]
+            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
+                                                             state.free_stable_compset_indices.shape[0] + i]
+        return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
+    finally:
+        spec.fixed_statevar_indices = orig_fixed_statevar_indices
+        spec.free_statevar_indices = orig_free_statevar_indices
+
+cpdef site_fraction_differential(CompsetState csst, double[::1] delta_chempots, double[::1] delta_statevars):
+    # Sundman et al 2015, Eq. 78
+    cdef double[::1] delta_y = np.zeros(csst.delta_y.shape[0])
+    cdef int chempot_idx, statevar_idex
+
+    for i in range(delta_y.shape[0]):
+        for statevar_idx in range(delta_statevars.shape[0]):
+            delta_y[i] += csst.c_statevars[i, statevar_idx] * delta_statevars[statevar_idx]
+        for chempot_idx in range(delta_chempots.shape[0]):
+            delta_y[i] += csst.c_component[chempot_idx, i] * delta_chempots[chempot_idx]
+    return np.asarray(delta_y)
 
 cpdef solve_state(SystemSpecification spec, SystemState state):
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
