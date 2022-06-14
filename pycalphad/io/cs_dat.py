@@ -13,6 +13,7 @@ from symengine import S, log, Piecewise, And
 from pycalphad import Database, variables as v
 from .grammar import parse_chemical_formula
 import datetime
+import getpass
 
 # From ChemApp Documentation, section 11.1 "The format of a ChemApp data-file"
 # We use a leading zero term because the data file's indices are 1-indexed and
