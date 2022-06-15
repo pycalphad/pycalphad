@@ -1504,16 +1504,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Determine equation type and number of intervals
             # Is this monstrosity necessary? Yes, it would seem so.
             simplified_parameter = endmember['parameter']
-            requires_substitution = True
-            while requires_substitution:
-                requires_substitution = False
-                param_symbols = [s.name for s in simplified_parameter.free_symbols]
-                # Check if any of the symbols in dbf.symbols are still in the parameter
-                common_symbols = [s for s in dbf.symbols if s in param_symbols]
-                if common_symbols:
-                    # Do another round of substitutions if so
-                    simplified_parameter = piecewise_fold(simplify(simplified_parameter.subs(dbf.symbols)))
-                    requires_substitution = True
+            simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols)
             gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
             eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
@@ -1916,16 +1907,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         # Determine equation type and number of intervals
         # Is this monstrosity necessary? Yes, it would seem so.
         simplified_parameter = endmember['parameter']
-        requires_substitution = True
-        while requires_substitution:
-            requires_substitution = False
-            param_symbols = [s.name for s in simplified_parameter.free_symbols]
-            # Check if any of the symbols in dbf.symbols are still in the parameter
-            common_symbols = [s for s in dbf.symbols if s in param_symbols]
-            if common_symbols:
-                # Do another round of substitutions if so
-                simplified_parameter = piecewise_fold(simplify(simplified_parameter.subs(dbf.symbols)))
-                requires_substitution = True
+        simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols)
         gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
         eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
@@ -2084,6 +2066,22 @@ def make_constituent_mapping(constituents, endmember_params):
                 constituent_mapping[sublattice].append(constituents[sublattice].index(species.name) + 1)
                 sublattice += 1
     return constituent_mapping
+
+def iterative_substitution(param,symbols):
+    # Iteratively subsitutes a list of symbols into an equation
+    # Doesn't check for circular dependence
+    subs_param = param
+    requires_substitution = True
+    while requires_substitution:
+        requires_substitution = False
+        param_symbols = [s.name for s in subs_param.free_symbols]
+        # Check if any of the symbols in dbf.symbols are still in the parameter
+        common_symbols = [s for s in symbols if s in param_symbols]
+        if common_symbols:
+            # Do another round of substitutions if so
+            subs_param = piecewise_fold(simplify(subs_param.subs(symbols)))
+            requires_substitution = True
+    return subs_param
 
 def read_cs_dat(dbf: Database, fd):
     """
