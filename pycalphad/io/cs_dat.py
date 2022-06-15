@@ -1777,7 +1777,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 for order in range(1,max(orders)+1):
                     if order in orders:
                         order_index = orders.index(order)
-                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(equations[order_index].as_coefficients_dict())
+                        simplified_parameter = iterative_substitution(equations[order_index],dbf.symbols)
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.args[0].as_coefficients_dict())
                         coefficients_string = ''.join(coefficients)
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
@@ -1825,7 +1826,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 for order in range(1,max(orders)+1):
                     if order in orders:
                         order_index = orders.index(order)
-                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(equations[order_index].as_coefficients_dict())
+                        simplified_parameter = iterative_substitution(equations[order_index],dbf.symbols)
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.args[0].as_coefficients_dict())
                         coefficients_string = ''.join(coefficients)
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
@@ -1942,7 +1944,11 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
 
         # This is rough, not sure how to reliably extract bounds from pairs of inequalities
         # Seems like simplify is always going to put the higher temperature second... may need to revisit
-        max_t = float(temperature_range.args[1].args[1])
+        try:
+            max_t = float(temperature_range.args[1].args[1])
+        except:
+            # Sometimes there might be only a maximum without a minimum
+            max_t = float(temperature_range.args[1])
 
         # Trailing 0 padding for temperatures is weird
         max_t_string = f'{max_t:.3f}'.ljust(9,'0')
