@@ -1401,7 +1401,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         output += f' {phase_name}\n'
         output += f' {phase_model}\n'
 
-        # Write magnetic parameters for phase
+        # Find magnetic parameters for phase
         if phase_model in ('RKMPM', 'SUBLM'):
             ihj_magnetic_structure_factor = dbf.phases[phase_name].model_hints['ihj_magnetic_structure_factor']
             ihj_magnetic_afm_factor = -1/dbf.phases[phase_name].model_hints['ihj_magnetic_afm_factor']
