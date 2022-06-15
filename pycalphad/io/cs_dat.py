@@ -1449,7 +1449,15 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 (where("phase_name") == phase_name) & \
                 (where("parameter_type") == "G")
             )
-            endmember_params = dbf._parameters.search(detect_query)
+            endmember_params = []
+            excess_params = []
+            for endmember in dbf._parameters.search(detect_query):
+                is_endmember = all([len(subl) == 1 for subl in endmember['constituent_array']])
+                if is_endmember:
+                    endmember_params.append(endmember)
+                else:
+                    excess_params.append(endmember)
+
 
         # Get sublattice weights
         if phase_model in ('SUBL','SUBLM'):
@@ -1677,7 +1685,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 (where("phase_name") == phase_name) & \
                 (where("parameter_type") == "QKT")
             )
-            excess_params = list(dbf._parameters.search(detect_query))
+            excess_params += list(dbf._parameters.search(detect_query))
 
             for param in excess_params:
                 # Constituents participating in this mixing term
@@ -1727,7 +1735,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 (where("phase_name") == phase_name) & \
                 (where("parameter_type") == "L")
             )
-            excess_params = list(dbf._parameters.search(detect_query))
+            excess_params += list(dbf._parameters.search(detect_query))
 
             # For RKMP we have to collect all terms for each set of constituents
             unique_constituent_sets = set([param['constituent_array'][0] for param in excess_params])
@@ -1789,7 +1797,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 (where("phase_name") == phase_name) & \
                 (where("parameter_type") == "L")
             )
-            excess_params = list(dbf._parameters.search(detect_query))
+            excess_params += list(dbf._parameters.search(detect_query))
 
             # For SUBL we have to collect all terms for each set of constituents
             unique_constituent_sets = set([param['constituent_array'] for param in excess_params])
