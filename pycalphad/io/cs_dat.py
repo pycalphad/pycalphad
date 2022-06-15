@@ -14,6 +14,7 @@ from pycalphad import Database, variables as v
 from .grammar import parse_chemical_formula
 import datetime
 import getpass
+from sympy import simplify, piecewise_fold, expand
 
 # From ChemApp Documentation, section 11.1 "The format of a ChemApp data-file"
 # We use a leading zero term because the data file's indices are 1-indexed and
@@ -1493,7 +1494,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             stoichiometry_string = ''.join([f'{stoich:7.1f}' for stoich in stoichiometry])
 
             # Determine equation type and number of intervals
-            gibbs_equation = endmember['parameter'].args
+            # Is this monstrosity necessary? Yes, it would seem so.
+            gibbs_equation = expand(simplify(simplify(piecewise_fold(simplify(endmember['parameter'].subs(dbf.symbols)))))).args
             eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
             # Write equation type and stoichiometry line
@@ -1893,7 +1895,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         stoichiometry_string = ''.join([f'{stoich:7.1f}' for stoich in stoichiometry])
 
         # Determine equation type and number of intervals
-        gibbs_equation = endmember['parameter'].args
+        # Is this monstrosity necessary? Yes, it would seem so.
+        gibbs_equation = expand(simplify(simplify(piecewise_fold(simplify(endmember['parameter'].subs(dbf.symbols)))))).args
         eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
         # Write equation type and stoichiometry line
@@ -1909,29 +1912,26 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
 def parse_gibbs_coefficients_piecewise(piecewise_equation):
     # Set eq_type to 1 by default
-    # TODO: detect magnatic parameters and set eq_type
+    # TODO: detect magnetic parameters and set eq_type
     eq_type = 1
-    # Pattern is (equation, temperature interval)*n_intervals, then two extra parameters
-    number_of_intervals = int((len(piecewise_equation) - 2) / 2)
+    # With simplifies in place, each interval is (eq,cond), but the last one is always (0,True) (skip this)
+    number_of_intervals = int((len(piecewise_equation) - 1))
     # If one interval has extra parameters, must use equation type that supports them
     has_extra_parameters = False
     gibbs_parameters = ''
     for interval in range(number_of_intervals):
-        equation = piecewise_equation[interval*2].as_coefficients_dict()
+        equation = piecewise_equation[interval][0].as_coefficients_dict()
         # Parse coefficients from equation
         coefficients, extra_parameters, interval_has_extra_parameters = parse_gibbs_coefficients(equation)
         has_extra_parameters = has_extra_parameters or interval_has_extra_parameters
 
-        coefficients_string = '     '.join(coefficients)
         # Get temperature range part of equation
-        temperature_range = piecewise_equation[interval*2 + 1]
+        temperature_range = piecewise_equation[interval][1]
 
         # This is rough, not sure how to reliably extract bounds from pairs of inequalities
-        # This method is certain to break if order ever varies
-        try:
-            max_t = float(temperature_range.args[0].args[1])
-        except RuntimeError:
+        # Seems like simplify is always going to put the higher temperature second... may need to revisit
             max_t = float(temperature_range.args[1].args[1])
+
         # Trailing 0 padding for temperatures is weird
         max_t_string = f'{max_t:.3f}'.ljust(9,'0')
 
@@ -1967,9 +1967,9 @@ def parse_gibbs_coefficients(equation):
         # Compare order to standard orders for coefficients
         if   str(t_order) == '1':
             coefficients[0] = coeff_string
-        elif str(t_order) == 'T':
+        elif str(t_order) in ('T','T**1.0'):
             coefficients[1] = coeff_string
-        elif str(t_order) == 'T*log(T)':
+        elif str(t_order) in ('T*log(T)','T**1.0*log(T)'):
             coefficients[2] = coeff_string
         elif str(t_order) == 'T**2.0':
             coefficients[3] = coeff_string
