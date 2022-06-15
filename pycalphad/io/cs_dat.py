@@ -1930,7 +1930,7 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
 
         # This is rough, not sure how to reliably extract bounds from pairs of inequalities
         # Seems like simplify is always going to put the higher temperature second... may need to revisit
-            max_t = float(temperature_range.args[1].args[1])
+        max_t = float(temperature_range.args[1].args[1])
 
         # Trailing 0 padding for temperatures is weird
         max_t_string = f'{max_t:.3f}'.ljust(9,'0')
