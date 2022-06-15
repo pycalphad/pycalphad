@@ -1495,7 +1495,18 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
             # Determine equation type and number of intervals
             # Is this monstrosity necessary? Yes, it would seem so.
-            gibbs_equation = expand(simplify(simplify(piecewise_fold(simplify(endmember['parameter'].subs(dbf.symbols)))))).args
+            simplified_parameter = endmember['parameter']
+            requires_substitution = True
+            while requires_substitution:
+                requires_substitution = False
+                param_symbols = [s.name for s in simplified_parameter.free_symbols]
+                # Check if any of the symbols in dbf.symbols are still in the parameter
+                common_symbols = [s for s in dbf.symbols if s in param_symbols]
+                if common_symbols:
+                    # Do another round of substitutions if so
+                    simplified_parameter = piecewise_fold(simplify(simplified_parameter.subs(dbf.symbols)))
+                    requires_substitution = True
+            gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
             eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
             # Write equation type and stoichiometry line
@@ -1896,7 +1907,18 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
         # Determine equation type and number of intervals
         # Is this monstrosity necessary? Yes, it would seem so.
-        gibbs_equation = expand(simplify(simplify(piecewise_fold(simplify(endmember['parameter'].subs(dbf.symbols)))))).args
+        simplified_parameter = endmember['parameter']
+        requires_substitution = True
+        while requires_substitution:
+            requires_substitution = False
+            param_symbols = [s.name for s in simplified_parameter.free_symbols]
+            # Check if any of the symbols in dbf.symbols are still in the parameter
+            common_symbols = [s for s in dbf.symbols if s in param_symbols]
+            if common_symbols:
+                # Do another round of substitutions if so
+                simplified_parameter = piecewise_fold(simplify(simplified_parameter.subs(dbf.symbols)))
+                requires_substitution = True
+        gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
         eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
         # Write equation type and stoichiometry line
