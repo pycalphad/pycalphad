@@ -1494,7 +1494,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                                     if stoich % 1 == 0:
                                         name += f'{int(stoich)}'
                                     else:
-                                        name += f'{species.constituents[element]:.2g}'
+                                        name += f'{stoich:.2g}'
             output += f' {name}\n'
             endmember_names.append(name)
 
