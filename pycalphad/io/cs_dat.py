@@ -1264,9 +1264,9 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             element_order.append(atomic_number_map.index(element.capitalize())+1)
             elements.append(element)
         except ValueError:
-            if element.capitalize() != 'Va':
-                print(f'Constituent {element} not found in element list.')
-                print(f'{element} will be ignored and database write will continue.')
+            if element.capitalize() not in ('Va','/-'):
+                print(f'Element {element} not found in element list.')
+                print(f'{element} will be ignored and database write will attempt to continue.')
 
     element_order = np.argsort(element_order)[::-1]
     elements_ordered = [elements[i] for i in element_order]
