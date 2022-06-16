@@ -1647,7 +1647,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                                     if stoich % 1 == 0:
                                         name += f'{int(stoich)}'
                                     else:
-                                        name += f'{species.constituents[element]:.2g}'
+                                        name += f'{stoich:.2g}'
                         try:
                             indices.append(1 + endmember_names.index(name))
                         except ValueError:
@@ -1702,7 +1702,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                                 if stoich % 1 == 0:
                                     name += f'{int(stoich)}'
                                 else:
-                                    name += f'{species.constituents[element]:.2g}'
+                                    name += f'{stoich:.2g}'
                     try:
                         indices.append(1 + endmember_names.index(name))
                     except ValueError:
@@ -1749,7 +1749,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                                 if stoich % 1 == 0:
                                     name += f'{int(stoich)}'
                                 else:
-                                    name += f'{species.constituents[element]:.2g}'
+                                    name += f'{stoich:.2g}'
                     try:
                         indices.append(1 + endmember_names.index(name))
                     except ValueError:
