@@ -1933,10 +1933,16 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
     # If one interval has extra parameters, must use equation type that supports them
     has_extra_parameters = False
     gibbs_parameters = ''
+    # Make lists of strings to write
+    coefficients = []
+    extra_parameters = []
+    max_t_string = []
     for interval in range(number_of_intervals):
         equation = piecewise_equation[interval][0].as_coefficients_dict()
         # Parse coefficients from equation
-        coefficients, extra_parameters, interval_has_extra_parameters = parse_gibbs_coefficients(equation)
+        c, e_p, interval_has_extra_parameters = parse_gibbs_coefficients(equation)
+        coefficients.append(c)
+        extra_parameters.append(e_p)
         has_extra_parameters = has_extra_parameters or interval_has_extra_parameters
 
         # Get temperature range part of equation
@@ -1951,20 +1957,22 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
             max_t = float(temperature_range.args[1])
 
         # Trailing 0 padding for temperatures is weird
-        max_t_string = f'{max_t:.3f}'.ljust(9,'0')
+        max_t_string.append(f'{max_t:.3f}'.ljust(9,'0'))
 
+    # Now write strings: needs to be separate loop to get has_extra_parameters correctly set
+    for interval in range(number_of_intervals):
         # Put the line together
-        gibbs_parameters += f'  {max_t_string}     {"".join(coefficients)}\n'
+        gibbs_parameters += f'  {max_t_string[interval]}     {"".join(coefficients[interval])}\n'
 
         # Add extra parameters if necessary
         if has_extra_parameters:
             # Base parameter set to 4 if there are extra parameters
             eq_type = 4
-            if extra_parameters:
+            if extra_parameters[interval]:
                 extra_parameters_string = ''
-                for parameter in extra_parameters:
+                for parameter in extra_parameters[interval]:
                     extra_parameters_string += f' {parameter[0]} {parameter[1]}'
-                gibbs_parameters += f' {len(extra_parameters)}{extra_parameters_string}\n'
+                gibbs_parameters += f' {len(extra_parameters[interval])}{extra_parameters_string}\n'
             else:
                 gibbs_parameters += f' 1 0.00000000       0.00\n'
 
