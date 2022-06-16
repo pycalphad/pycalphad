@@ -1508,6 +1508,10 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
             eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
+            # Adjust eq_type for magnetic phases
+            if phase_model in ('RKMPM', 'SUBLM'):
+                eq_type += 12
+
             # Write equation type and stoichiometry line
             output += f'{eq_type:4} {number_of_intervals:2}{stoichiometry_string}\n'
             # Write Gibbs parameters line
@@ -1926,7 +1930,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
 def parse_gibbs_coefficients_piecewise(piecewise_equation):
     # Set eq_type to 1 by default
-    # TODO: detect magnetic parameters and set eq_type
     eq_type = 1
     # With simplifies in place, each interval is (eq,cond), but the last one is always (0,True) (skip this)
     number_of_intervals = int((len(piecewise_equation) - 1))
