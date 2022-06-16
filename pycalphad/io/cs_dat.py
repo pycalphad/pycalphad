@@ -1366,7 +1366,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
     # Number of elements, phases, species line
     solution_phase_species_counts = ' '.join([f'{len(species):4}' for species in solution_phase_species])
-    output += f" {len(dbf.elements):4} {len(solution_phases):4} {solution_phase_species_counts} {len(stoichiometric_phases):4}"
+    output += f" {n_elements:4} {len(solution_phases):4} {solution_phase_species_counts} {len(stoichiometric_phases):4}"
 
     # List of elements lines
     for i in range(n_elements):
