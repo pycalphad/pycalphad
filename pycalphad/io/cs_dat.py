@@ -1506,6 +1506,12 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             simplified_parameter = endmember['parameter']
             simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols)
             gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
+            if not gibbs_equation:
+                # If all ranges have 0 value, simplify returns empty set, so revert
+                simplified_parameter = endmember['parameter'].args
+                gibbs_equation = []
+                for i in range(int(len(simplified_parameter)/2)):
+                    gibbs_equation.append((simplified_parameter[i*2],simplified_parameter[i*2+1]))
             eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
             # Adjust eq_type for magnetic phases
@@ -1915,6 +1921,9 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         simplified_parameter = endmember['parameter']
         simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols)
         gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
+        if not gibbs_equation:
+                # If all ranges have 0 value, simplify returns empty set, so revert
+                gibbs_equation = expand(endmember['parameter']).args
         eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
         # Write equation type and stoichiometry line
@@ -1965,11 +1974,17 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
 
         # This is rough, not sure how to reliably extract bounds from pairs of inequalities
         # Seems like simplify is always going to put the higher temperature second... may need to revisit
+        # Is this try/except abuse? ...maybe
         try:
             max_t = float(temperature_range.args[1].args[1])
-        except:
+        except RuntimeError:
+            # Some ranges didn't get expanded earlier and have to be handled differently.
+            # So far these only come from default G params in TDBs, and the max is in the first argument.
+            max_t = float(temperature_range.args[0].args[1])
+        except IndexError:
             # Sometimes there might be only a maximum without a minimum
             max_t = float(temperature_range.args[1])
+
 
         # Trailing 0 padding for temperatures is weird
         max_t_string.append(f'{max_t:.3f}'.ljust(9,'0'))
