@@ -1501,17 +1501,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Get writeable stoichiometry
             stoichiometry_string = write_stoichiometry(stoichiometry)
 
-            # Determine equation type and number of intervals
-            # Is this monstrosity necessary? Yes, it would seem so.
-            simplified_parameter = endmember['parameter']
-            simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols)
-            gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
-            if not gibbs_equation:
-                # If all ranges have 0 value, simplify returns empty set, so revert
-                simplified_parameter = endmember['parameter'].args
-                gibbs_equation = []
-                for i in range(int(len(simplified_parameter)/2)):
-                    gibbs_equation.append((simplified_parameter[i*2],simplified_parameter[i*2+1]))
+            # Get reference Gibbs energy equation
+            gibbs_equation = simplify_reference_gibbs(endmember['parameter'],dbf.symbols)
             eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
             # Adjust eq_type for magnetic phases
@@ -1916,14 +1907,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         # Get writeable stoichiometry
         stoichiometry_string = write_stoichiometry(stoichiometry)
 
-        # Determine equation type and number of intervals
-        # Is this monstrosity necessary? Yes, it would seem so.
-        simplified_parameter = endmember['parameter']
-        simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols)
-        gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
-        if not gibbs_equation:
-                # If all ranges have 0 value, simplify returns empty set, so revert
-                gibbs_equation = expand(endmember['parameter']).args
+        # Get reference Gibbs energy equation
+        gibbs_equation = simplify_reference_gibbs(endmember['parameter'],dbf.symbols)
         eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
 
         # Write equation type and stoichiometry line
@@ -2119,13 +2104,26 @@ def iterative_substitution(param,symbols):
     while requires_substitution:
         requires_substitution = False
         param_symbols = [s.name for s in subs_param.free_symbols]
-        # Check if any of the symbols in dbf.symbols are still in the parameter
+        # Check if any of the symbols in symbols are still in the parameter
         common_symbols = [s for s in symbols if s in param_symbols]
         if common_symbols:
             # Do another round of substitutions if so
             subs_param = piecewise_fold(simplify(subs_param.subs(symbols)))
             requires_substitution = True
     return subs_param
+
+def simplify_reference_gibbs(equation,symbols):
+    # Determine equation type and number of intervals
+    # Is this monstrosity necessary? Yes, it would seem so.
+    simplified_parameter = iterative_substitution(equation,symbols)
+    gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
+    if not gibbs_equation:
+        # If all ranges have 0 value, simplify returns empty set, so revert
+        simplified_parameter = equation.args
+        gibbs_equation = []
+        for i in range(int(len(simplified_parameter)/2)):
+            gibbs_equation.append((simplified_parameter[i*2],simplified_parameter[i*2+1]))
+    return gibbs_equation
 
 def read_cs_dat(dbf: Database, fd):
     """
