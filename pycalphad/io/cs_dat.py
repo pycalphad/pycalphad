@@ -1551,6 +1551,21 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     # Delete parameter from array: thus at the end only mixing terms will remain
                     bmagns.remove(bmagn)
                     break
+                # Check if magnetic parameters are provided as piecewise
+                if type(tc_value) == type(Piecewise([0,True])):
+                    print(f'Piecewise Curie temperature in species {name} of phase {phase_name} not permitted.')
+                    print(f'Value from first temperature interval will be used.')
+                    print(f'Check original expression to determine if this is acceptable:')
+                    print(tc_value)
+                    print()
+                    tc_value = float(tc_value.args[0])
+                if type(bmagn_value) == type(Piecewise([0,True])):
+                    print(f'Piecewise magnetic moment in species {name} of phase {phase_name} not permitted.')
+                    print(f'Value from first temperature interval will be used.')
+                    print(f'Check original expression to determine if this is acceptable:')
+                    print(bmagn_value)
+                    print()
+                    bmagn_value = float(bmagn_value.args[0])
                 # Write magnetic parameters line
                 output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
 
@@ -1666,6 +1681,21 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 # TODO: Get order properly if possible
                 order = 1
                 output += f'{"".join([f"{ind:4}" for ind in indices])}{order:4}\n'
+                # Check if magnetic parameters are provided as piecewise
+                if type(tc_value) == type(Piecewise([0,True])):
+                    print(f'Piecewise Curie temperature in species {name} of phase {phase_name} not permitted.')
+                    print(f'Value from first temperature interval will be used.')
+                    print(f'Check original expression to determine if this is acceptable:')
+                    print(tc_value)
+                    print()
+                    tc_value = float(tc_value.args[0])
+                if type(bmagn_value) == type(Piecewise([0,True])):
+                    print(f'Piecewise magnetic moment in species {name} of phase {phase_name} not permitted.')
+                    print(f'Value from first temperature interval will be used.')
+                    print(f'Check original expression to determine if this is acceptable:')
+                    print(bmagn_value)
+                    print()
+                    bmagn_value = float(bmagn_value.args[0])
                 # Write excess magnetic parameters line
                 output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
             # Write end-of-magnetic-excess '0'
