@@ -1498,8 +1498,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             output += f' {name}\n'
             endmember_names.append(name)
 
-            # Writeable stoichiometry
-            stoichiometry_string = ''.join([f'{stoich:7.1f}' for stoich in stoichiometry])
+            # Get writeable stoichiometry
+            stoichiometry_string = write_stoichiometry(stoichiometry)
 
             # Determine equation type and number of intervals
             # Is this monstrosity necessary? Yes, it would seem so.
@@ -1907,8 +1907,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     stoichiometry[elements_ordered.index(element)] += species.constituents[element]*sublattice_coefficient
                     species_index += 1
 
-        # Writeable stoichiometry
-        stoichiometry_string = ''.join([f'{stoich:7.1f}' for stoich in stoichiometry])
+        # Get writeable stoichiometry
+        stoichiometry_string = write_stoichiometry(stoichiometry)
 
         # Determine equation type and number of intervals
         # Is this monstrosity necessary? Yes, it would seem so.
@@ -1927,6 +1927,18 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
 
     fd.write(reflow_text(output, linewidth=maxlen))
+
+def write_stoichiometry(stoichiometry):
+    # Create the stoichiometry segment of a species line
+    stoichiometry_string = ''
+    for stoich in stoichiometry:
+        if np.isclose(stoich % 0.1, 0.0) or np.isclose(stoich % 0.1, 0.1):
+            # If stoichiometry fits neatly in one decimal place, use that
+            stoichiometry_string += f'{stoich:7.1f}'
+        else:
+            # Otherwise, ignore the usual spacing and write the digits necessary
+            stoichiometry_string += f'    {stoich:.6f}'
+    return stoichiometry_string
 
 def parse_gibbs_coefficients_piecewise(piecewise_equation):
     # Set eq_type to 1 by default
