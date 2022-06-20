@@ -1518,7 +1518,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
             # Get reference Gibbs energy equation
             gibbs_equation = simplify_reference_gibbs(endmember['parameter'],dbf.symbols)
-            eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
+            eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation,incompatibility)
 
             # Adjust eq_type for magnetic phases
             if phase_model in ('RKMPM', 'SUBLM'):
@@ -1771,7 +1771,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
                 # Parse T coefficients
                 equation = param['parameter'].as_coefficients_dict()
-                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(equation)
+                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(equation,incompatibility)
                 coefficients_string = ''.join(coefficients)
                 output += f' {coefficients_string}\n'
 
@@ -1835,7 +1835,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     if order in orders:
                         order_index = orders.index(order)
                         simplified_parameter = iterative_substitution(equations[order_index],dbf.symbols)
-                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.args[0].as_coefficients_dict())
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.args[0].as_coefficients_dict(),incompatibility)
                         coefficients_string = ''.join(coefficients)
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
@@ -1884,7 +1884,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     if order in orders:
                         order_index = orders.index(order)
                         simplified_parameter = iterative_substitution(equations[order_index],dbf.symbols)
-                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.args[0].as_coefficients_dict())
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.args[0].as_coefficients_dict(),incompatibility)
                         coefficients_string = ''.join(coefficients)
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
@@ -1925,7 +1925,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     additional_index = flat_constituents.index(param["additional_mixing_constituent"].name) + 1
 
                 # Get mixing coefficients
-                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(param['parameter'].as_coefficients_dict())
+                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(param['parameter'].as_coefficients_dict(),incompatibility)
                 coefficients_string = ''.join(coefficients)
 
                 # Write extra constituent data and mixing coefficients
@@ -1965,7 +1965,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
         # Get reference Gibbs energy equation
         gibbs_equation = simplify_reference_gibbs(endmember['parameter'],dbf.symbols)
-        eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation)
+        eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation,incompatibility)
 
         # Write equation type and stoichiometry line
         output += f'{eq_type:4} {number_of_intervals:2}{stoichiometry_string}\n'
@@ -1990,7 +1990,7 @@ def write_stoichiometry(stoichiometry):
             stoichiometry_string += f'    {stoich:.6f}'
     return stoichiometry_string
 
-def parse_gibbs_coefficients_piecewise(piecewise_equation):
+def parse_gibbs_coefficients_piecewise(piecewise_equation,incompatibility):
     # Set eq_type to 1 by default
     eq_type = 1
     # With simplifies in place, each interval is (eq,cond), but the last one is always (0,True) (skip this)
@@ -2005,7 +2005,7 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
     for interval in range(number_of_intervals):
         equation = piecewise_equation[interval][0].as_coefficients_dict()
         # Parse coefficients from equation
-        c, e_p, interval_has_extra_parameters = parse_gibbs_coefficients(equation)
+        c, e_p, interval_has_extra_parameters = parse_gibbs_coefficients(equation,incompatibility)
         coefficients.append(c)
         extra_parameters.append(e_p)
         has_extra_parameters = has_extra_parameters or interval_has_extra_parameters
@@ -2049,7 +2049,7 @@ def parse_gibbs_coefficients_piecewise(piecewise_equation):
 
     return eq_type, number_of_intervals, gibbs_parameters
 
-def parse_gibbs_coefficients(equation):
+def parse_gibbs_coefficients(equation,incompatibility):
     # Initialize all standard coefficients to 0
     coefficients = ['0.00000000     ' for _ in range(6)]
     # Arrays for extra parameters
@@ -2099,7 +2099,7 @@ def parse_gibbs_coefficients(equation):
                         continue
                     except ValueError:
                         pass
-            print(f'WARNING: Skipped parameter with order {t_order} and coefficient {coeff_string}')
+            incompatibility(f'Skipped parameter with order {t_order} and coefficient {coeff_string}')
 
     return coefficients, extra_parameters, has_extra_parameters
 
