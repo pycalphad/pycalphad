@@ -1354,27 +1354,32 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 solution_phase_species.append(species)
                 continue
 
-            # Everything else is a CEF variant
-            nSublattices = len(dbf.phases[phase_name].sublattices)
-            if nSublattices > 1:
-                # If multiple sublattices, identify type
-                solution_phases.append(phase_name)
-                solution_phase_types.append("SUBL")
-                constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
-                # Make species from products of constituents
-                species = [':'.join([con.capitalize() for con in end]) for end in list(itertools.product(*constituents))]
-                solution_phase_species.append(species)
-            else:
-                # Otherwise RKMP phase
-                solution_phases.append(phase_name)
-                solution_phase_types.append("RKMP")
-                species = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
-                solution_phase_species.append(species)
+            # TODO: Actually check for incompatible phase models
+            if True:
+                # Everything else is a CEF variant
+                nSublattices = len(dbf.phases[phase_name].sublattices)
+                if nSublattices > 1:
+                    # If multiple sublattices, identify type
+                    solution_phases.append(phase_name)
+                    solution_phase_types.append("SUBL")
+                    constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
+                    # Make species from products of constituents
+                    species = [':'.join([con.capitalize() for con in end]) for end in list(itertools.product(*constituents))]
+                    solution_phase_species.append(species)
+                else:
+                    # Otherwise RKMP phase
+                    solution_phases.append(phase_name)
+                    solution_phase_types.append("RKMP")
+                    species = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
+                    solution_phase_species.append(species)
 
-            # Check if magnetic
-            if dbf.phases[phase_name].model_hints:
-                if 'ihj_magnetic_structure_factor' in dbf.phases[phase_name].model_hints:
-                    solution_phase_types[-1] += ('M')
+                # Check if magnetic
+                if dbf.phases[phase_name].model_hints:
+                    if 'ihj_magnetic_structure_factor' in dbf.phases[phase_name].model_hints:
+                        solution_phase_types[-1] += ('M')
+            else:
+                # Placeholder for incompatible
+                incompatibility(f'Unknown/unsupported phase model {phase_model} for phase {phase_name}')
 
 
     # Number of elements, phases, species line
