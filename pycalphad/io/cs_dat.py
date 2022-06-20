@@ -1469,6 +1469,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     endmember_params.append(endmember)
                 else:
                     excess_params.append(endmember)
+        else:
+            incompatibility(f'Unknown/unsupported phase model {phase_model} for phase {phase_name}')
 
 
         # Get sublattice weights
