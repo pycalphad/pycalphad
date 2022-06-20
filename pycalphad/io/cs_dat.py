@@ -1277,8 +1277,9 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             elements.append(element)
         except ValueError:
             if element.capitalize() not in ('Va','/-'):
-                print(f'Element {element} not found in element list.')
-                print(f'{element} will be ignored and database write will attempt to continue.')
+                inc_message = f'Element {element} not found in element list.\n'
+                inc_message += f'{element} will be ignored and database write will attempt to continue.'
+                incompatibility(inc_message)
 
     element_order = np.argsort(element_order)[::-1]
     elements_ordered = [elements[i] for i in element_order]
