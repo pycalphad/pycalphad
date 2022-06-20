@@ -1566,18 +1566,18 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     break
                 # Check if magnetic parameters are provided as piecewise
                 if type(tc_value) == type(Piecewise([0,True])):
-                    print(f'Piecewise Curie temperature in species {name} of phase {phase_name} not permitted.')
-                    print(f'Value from first temperature interval will be used.')
-                    print(f'Check original expression to determine if this is acceptable:')
-                    print(tc_value)
-                    print()
+                    inc_message = f'Piecewise Curie temperature in species {name} of phase {phase_name} not permitted.\n'
+                    inc_message += f'Value from first temperature interval will be used.\n'
+                    inc_message += f'Check original expression to determine if this is acceptable:\n'
+                    inc_message += f'{tc_value}'
+                    incompatibility(inc_message)
                     tc_value = float(tc_value.args[0])
                 if type(bmagn_value) == type(Piecewise([0,True])):
-                    print(f'Piecewise magnetic moment in species {name} of phase {phase_name} not permitted.')
-                    print(f'Value from first temperature interval will be used.')
-                    print(f'Check original expression to determine if this is acceptable:')
-                    print(bmagn_value)
-                    print()
+                    inc_message = f'Piecewise magnetic moment in species {name} of phase {phase_name} not permitted.\n'
+                    inc_message += f'Value from first temperature interval will be used.\n'
+                    inc_message += f'Check original expression to determine if this is acceptable:\n'
+                    inc_message += f'{tc_value}'
+                    incompatibility(inc_message)
                     bmagn_value = float(bmagn_value.args[0])
                 # Write magnetic parameters line
                 output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
@@ -1704,7 +1704,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     incompatibility(inc_message)
                     tc_value = float(tc_value.args[0])
                 if type(bmagn_value) == type(Piecewise([0,True])):
-                    inc_message = f'Piecewise Curie temperature in species {name} of phase {phase_name} not permitted.\n'
+                    inc_message = f'Piecewise magnetic moment in species {name} of phase {phase_name} not permitted.\n'
                     inc_message += f'Value from first temperature interval will be used.\n'
                     inc_message += f'Check original expression to determine if this is acceptable:\n'
                     inc_message += f'{tc_value}'
