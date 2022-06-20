@@ -1306,8 +1306,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     # TODO: append phase (and info) again for miscibility gaps (from an argument?)
     # Also this gets the species names but only really needs a count at this point
     for phase_name in dbf.phases:
-        # print(phase_name)
-        # print(dbf.phases[phase_name])
         # If all sublattices are singly occupied, it is a stoichiometric phase
         if all([len(subl) == 1 for subl in dbf.phases[phase_name].constituents]):
             stoichiometric_phases.append(phase_name)
