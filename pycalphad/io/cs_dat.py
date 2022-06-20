@@ -15,6 +15,7 @@ from .grammar import parse_chemical_formula
 import datetime
 import getpass
 from sympy import simplify, piecewise_fold, expand
+from pycalphad.io.database import DatabaseExportError
 
 # From ChemApp Documentation, section 11.1 "The format of a ChemApp data-file"
 # We use a leading zero term because the data file's indices are 1-indexed and
@@ -1228,7 +1229,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         A pycalphad Database.
     fd : file-like
         File descriptor.
-    if_incompatible : string, optional ['raise', 'warn', 'fix']
+    if_incompatible : string, optional ['raise', 'warn', 'ignore', 'fix']
         Strategy if the database does not conform to the most restrictive database specification.
         The 'warn' option (default) will write out the incompatible database with a warning.
         The 'raise' option will raise a DatabaseExportError.
@@ -1239,7 +1240,18 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     from tinydb import where
     # Before writing anything, check that the TDB is valid and take the appropriate action if not
     if if_incompatible not in ['warn', 'raise', 'ignore', 'fix']:
-        raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
+        raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', \'ignore\', or \'fix\'.')
+
+    def incompatibility(inc_message):
+        if   if_incompatible == 'warn':
+            warnings.warn(inc_message)
+        elif if_incompatible == 'raise':
+            raise DatabaseExportError(inc_message)
+        elif if_incompatible == 'ignore':
+            pass
+        elif if_incompatible == 'fix':
+            warnings.warn(inc_message)
+            warnings.warn('No fixes implemented for this incompatibility.')
 
     # Begin constructing the written database
     writetime = datetime.datetime.now()
