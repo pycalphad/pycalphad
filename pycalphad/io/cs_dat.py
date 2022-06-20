@@ -1678,10 +1678,10 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         try:
                             indices.append(1 + endmember_names.index(name))
                         except ValueError:
-                            print(f'Endmember {name} not found in phase {phase_name}')
-                            print(f'List of known endmembers: {endmember_names}')
-                            print('Write aborted')
-                            return
+                            err_message = f'Endmember {name} not found in phase {phase_name}\n'
+                            err_message += f'List of known endmembers: {endmember_names}\n'
+                            err_message += 'Write aborted'
+                            raise ValueError(err_message)
                 elif phase_model == 'SUBLM':
                     # Get indices of participating constituents in phase (order of printed endmembers)
                     indices = []
@@ -1758,10 +1758,10 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     try:
                         indices.append(1 + endmember_names.index(name))
                     except ValueError:
-                        print(f'Endmember {name} not found in phase {phase_name}')
-                        print(f'List of known endmembers: {endmember_names}')
-                        print('Write aborted')
-                        return
+                        err_message = f'Endmember {name} not found in phase {phase_name}\n'
+                        err_message += f'List of known endmembers: {endmember_names}\n'
+                        err_message += 'Write aborted'
+                        raise ValueError(err_message)
                 output += f'{"".join([f"{index:4}" for index in indices])}'
 
                 # Add 1 to stored exponents to match DAT format
@@ -1805,10 +1805,10 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     try:
                         indices.append(1 + endmember_names.index(name))
                     except ValueError:
-                        print(f'Endmember {name} not found in phase {phase_name}')
-                        print(f'List of known endmembers: {endmember_names}')
-                        print('Write aborted')
-                        return
+                        err_message = f'Endmember {name} not found in phase {phase_name}\n'
+                        err_message += f'List of known endmembers: {endmember_names}\n'
+                        err_message += 'Write aborted'
+                        raise ValueError(err_message)
                 # Store all exponents (orders) for constituents
                 orders = []
                 # Sum coefficients that are for the same order (abnormal case of repeated order)
@@ -1857,7 +1857,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                         try:
                             indices.append(1 + flat_constituents.index(species.name))
                         except ValueError:
-                            print(f'Can\'t find constituent {species.name}')
+                            raise ValueError(f'Can\'t find constituent {species.name} in phase {phase_name}')
                 # Store all exponents (orders) for constituents
                 orders = []
                 # Sum coefficients that are for the same order (abnormal case of repeated order)
