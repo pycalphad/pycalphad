@@ -1245,6 +1245,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     def incompatibility(inc_message):
         if   if_incompatible == 'warn':
             warnings.warn(inc_message)
+            print()
         elif if_incompatible == 'raise':
             raise DatabaseExportError(inc_message)
         elif if_incompatible == 'ignore':
@@ -1252,6 +1253,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         elif if_incompatible == 'fix':
             warnings.warn(inc_message)
             warnings.warn('No fixes implemented for this incompatibility.')
+            print()
 
     # Begin constructing the written database
     writetime = datetime.datetime.now()
