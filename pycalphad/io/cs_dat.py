@@ -1644,10 +1644,11 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         # Write magnetic excess mixing data
         if phase_model in ('RKMPM', 'SUBLM'):
             # Get excess magnetic parameters
+            tcs_remove = []
             for tc in tcs:
                 tc_value = tc['parameter']
                 tc_constituents = tc['constituent_array']
-                tcs.remove(tc)
+                tcs_remove.append(tc)
                 bmagn_value = 0
                 for bmagn in bmagns:
                     # Look for matching bmagn
@@ -1712,6 +1713,16 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     bmagn_value = float(bmagn_value.args[0])
                 # Write excess magnetic parameters line
                 output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
+            
+            # Remove 'consumed' tcs
+            for tc in tcs_remove:
+                tcs.remove(tc)
+
+            # Check lists to make sure all magnetic parameters have been consumed
+            if tcs or bmagns:
+                inc_message = f'Not all magnetic parameters were used in phase {phase_name}'
+                incompatibility(inc_message)
+
             # Write end-of-magnetic-excess '0'
             output += f'   0\n'
 
