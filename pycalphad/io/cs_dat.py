@@ -1419,65 +1419,56 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         output += f' {phase_name}\n'
         output += f' {phase_model}\n'
 
+        # Get all parameters for phase
+        param_query = (
+            where("phase_name") == phase_name
+        )
+        all_params = dbf._parameters.search(param_query)
+
+        # Sort parameters into reference, magnetic, excess
+        endmember_params = []
+        quadruplet_params = []
+        excess_params = []
+        tcs = []
+        bmagns = []
+        for param in all_params:
+            if   param['parameter_type'] == 'G':
+                is_endmember = all([len(subl) == 1 for subl in param['constituent_array']])
+                if is_endmember:
+                    endmember_params.append(param)
+                else:
+                    excess_params.append(param)
+            elif param['parameter_type'] == 'MQMG':
+                endmember_params.append(param)
+            elif param['parameter_type'] == 'MQMZ':
+                quadruplet_params.append(param)
+            elif param['parameter_type'] in ('QKT','L','MQMX'):
+                excess_params.append(param)
+            elif param['parameter_type'] == 'TC':
+                tcs.append(param)
+            elif param['parameter_type'] == 'BMAGN':
+                bmagns.append(param)
+            else:
+                # raise, or warn, etc., depending on strategy
+                incompatibility(f"Unknown parameter type {param['parameter_type']} in phase {phase_name}")
+
         # Find magnetic parameters for phase
         if phase_model in ('RKMPM', 'SUBLM'):
             ihj_magnetic_structure_factor = dbf.phases[phase_name].model_hints['ihj_magnetic_structure_factor']
             ihj_magnetic_afm_factor = -1/dbf.phases[phase_name].model_hints['ihj_magnetic_afm_factor']
             output += f'  {ihj_magnetic_afm_factor:.5f}     {ihj_magnetic_structure_factor:.5f}\n'
 
-            # Get all magentic parameters for phase
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "TC")
-            )
-            tcs = dbf._parameters.search(detect_query)
-
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "BMAGN")
-            )
-            bmagns = dbf._parameters.search(detect_query)
-
         # Get endmembers and other parameters depending on phase model
         if phase_model in ('SUBG', 'SUBQ'):
-            # Get parameters for endmembers
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "MQMG")
-            )
-            endmember_params = dbf._parameters.search(detect_query)
             # Write zeta for SUBG
             if phase_model == 'SUBG':
                 # All zetas are the same, so grab the first one
                 zeta = endmember_params[0]['zeta']
                 output += f'{zeta:9.5f}\n'
-            # Get parameters for quadruplets
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "MQMZ")
-            )
-            quadruplet_params = dbf._parameters.search(detect_query)
             # Write number of endmembers and number of non-default coordination sets next
             number_of_endmembers = len(endmember_params)
             number_of_non_default_quadruplets = len(quadruplet_params)
             output += f'{number_of_endmembers:4} {number_of_non_default_quadruplets:3}\n'
-        elif phase_model in ('IDMX', 'RKMP', 'RKMPM', 'QKTO', 'SUBL', 'SUBLM', 'PITZ'):
-            # Get species for CEF phases
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "G")
-            )
-            endmember_params = []
-            excess_params = []
-            for endmember in dbf._parameters.search(detect_query):
-                is_endmember = all([len(subl) == 1 for subl in endmember['constituent_array']])
-                if is_endmember:
-                    endmember_params.append(endmember)
-                else:
-                    excess_params.append(endmember)
-        else:
-            incompatibility(f'Unknown/unsupported phase model {phase_model} for phase {phase_name}')
-
 
         # Get sublattice weights
         if phase_model in ('SUBL','SUBLM'):
@@ -1734,12 +1725,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
 
         # Write excess mixing data
         if   phase_model == 'QKTO':
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "QKT")
-            )
-            excess_params += list(dbf._parameters.search(detect_query))
-
             for param in excess_params:
                 # Constituents participating in this mixing term
                 param_constituents = param['constituent_array'][0]
@@ -1790,13 +1775,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Write end-of-excess '0'
             output += f'   0\n'
         elif phase_model in ('RKMP','RKMPM'):
-            # Get excess mixing parameters
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "L")
-            )
-            excess_params += list(dbf._parameters.search(detect_query))
-
             # For RKMP we have to collect all terms for each set of constituents
             unique_constituent_sets = set([param['constituent_array'][0] for param in excess_params])
             for constituent_set in unique_constituent_sets:
@@ -1860,13 +1838,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Write end-of-excess '0'
             output += f'   0\n'
         elif phase_model in ('SUBL','SUBLM'):
-            # Get excess mixing parameters
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "L")
-            )
-            excess_params += list(dbf._parameters.search(detect_query))
-
             # For SUBL we have to collect all terms for each set of constituents
             unique_constituent_sets = set([param['constituent_array'] for param in excess_params])
             for constituent_set in unique_constituent_sets:
@@ -1916,12 +1887,6 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
             # Write end-of-excess '0'
             output += f'   0\n'
         elif phase_model in ('SUBG', 'SUBQ'):
-            # Get excess mixing parameters
-            detect_query = (
-                (where("phase_name") == phase_name) & \
-                (where("parameter_type") == "MQMX")
-            )
-            excess_params = list(dbf._parameters.search(detect_query))
             for param in excess_params:
                 con = []
                 for ion in param['constituent_array']:
@@ -1968,11 +1933,20 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
         output += f' {phase_name}\n'
 
         # Get Gibbs energy parameters
-        detect_query = (
-            (where("phase_name") == phase_name) & \
-            (where("parameter_type") == "G")
+        # Get all parameters for phase
+        param_query = (
+            where("phase_name") == phase_name
         )
-        stoichiometric_phase_params = list(dbf._parameters.search(detect_query))
+        all_params = dbf._parameters.search(param_query)
+
+        # Collect reference energy parameters
+        stoichiometric_phase_params = []
+        for param in all_params:
+            if   param['parameter_type'] == 'G':
+                stoichiometric_phase_params.append(param)
+            else:
+                # raise, or warn, etc., depending on strategy
+                incompatibility(f"Unknown parameter type {param['parameter_type']} in phase {phase_name}")
 
         # Calculate stoichiometry of phase
         endmember = stoichiometric_phase_params[0]
