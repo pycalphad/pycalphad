@@ -1496,7 +1496,7 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                             stoichiometry[elements_ordered.index(element)] += species.constituents[element] * weight
                         except ValueError:
                             if element.capitalize() != 'Va':
-                                print(f'Constituent {element} not found in element list')
+                                raise ValueError(f'Constituent {element} not found in element list')
                         else:
                             # Add element name to endmember name if not vacancy
                             if element.capitalize() != 'Va':
