@@ -1775,8 +1775,15 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 output += f'{"".join([f"{exp:4}" for exp in exponents])}'
 
                 # Parse T coefficients
-                equation = param['parameter'].as_coefficients_dict()
-                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(equation,incompatibility)
+                simplified_parameter = param['parameter']
+                if type(simplified_parameter) == type(Piecewise([0,True])):
+                    inc_message = f'Piecewise excess term of phase {phase_name} not permitted.\n'
+                    inc_message += f'Value from first temperature interval will be used.\n'
+                    inc_message += f'Check original expression to determine if this is acceptable:\n'
+                    inc_message += f'{simplified_parameter}'
+                    incompatibility(inc_message)
+                    simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols).args[0]
+                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.as_coefficients_dict(),incompatibility)
                 coefficients_string = ''.join(coefficients)
                 output += f' {coefficients_string}\n'
 
@@ -1839,8 +1846,15 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 for order in range(1,max(orders)+1):
                     if order in orders:
                         order_index = orders.index(order)
-                        simplified_parameter = iterative_substitution(equations[order_index],dbf.symbols)
-                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.args[0].as_coefficients_dict(),incompatibility)
+                        simplified_parameter = equations[order_index]
+                        if type(simplified_parameter) == type(Piecewise([0,True])):
+                            inc_message = f'Piecewise excess term of phase {phase_name} not permitted.\n'
+                            inc_message += f'Value from first temperature interval will be used.\n'
+                            inc_message += f'Check original expression to determine if this is acceptable:\n'
+                            inc_message += f'{simplified_parameter}'
+                            incompatibility(inc_message)
+                            simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols).args[0]
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.as_coefficients_dict(),incompatibility)
                         coefficients_string = ''.join(coefficients)
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
@@ -1888,8 +1902,15 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 for order in range(1,max(orders)+1):
                     if order in orders:
                         order_index = orders.index(order)
-                        simplified_parameter = iterative_substitution(equations[order_index],dbf.symbols)
-                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.args[0].as_coefficients_dict(),incompatibility)
+                        simplified_parameter = equations[order_index]
+                        if type(simplified_parameter) == type(Piecewise([0,True])):
+                            inc_message = f'Piecewise excess term of phase {phase_name} not permitted.\n'
+                            inc_message += f'Value from first temperature interval will be used.\n'
+                            inc_message += f'Check original expression to determine if this is acceptable:\n'
+                            inc_message += f'{simplified_parameter}'
+                            incompatibility(inc_message)
+                            simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols).args[0]
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.as_coefficients_dict(),incompatibility)
                         coefficients_string = ''.join(coefficients)
                         output += f' {coefficients_string}\n'
             # Write end-of-excess '0'
