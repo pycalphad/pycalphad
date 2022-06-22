@@ -1338,28 +1338,26 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 solution_phase_species[0] = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
                 continue
             # Check if a MQMQA phase
-            if dbf.phases[phase_name].model_hints:
+            if 'mqmqa' in all_hints:
                 try:
                     mqm_version = dbf.phases[phase_name].model_hints['mqmqa']['type']
                 except KeyError:
-                    # Not MQMQA, and that's ok
-                    pass
-                else:
-                    # This is an MQMQA-type phase
-                    solution_phases.append(phase_name)
-                    # Save MQMQA sub-type (SUBG or SUBQ)
-                    solution_phase_types.append(mqm_version)
-                    # Determine species for phase
-                    constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
-                    # Species will be quadruplets for counting purposes
-                    species = []
-                    for i in range(len(constituents[0])):
-                        for j in range(i,len(constituents[0])):
-                            for k in range(len(constituents[1])):
-                                for l in range(k,len(constituents[1])):
-                                    species.append(f'{constituents[0][i]},{constituents[0][j]}/{constituents[1][k]},{constituents[1][l]}')
-                    solution_phase_species.append(species)
-                    continue
+                    raise DatabaseExportError(f'MQMQA phases must have \'type\' model hint. Missing for phase {phase_name}.')
+                # This is an MQMQA-type phase
+                solution_phases.append(phase_name)
+                # Save MQMQA sub-type (SUBG or SUBQ)
+                solution_phase_types.append(mqm_version)
+                # Determine species for phase
+                constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
+                # Species will be quadruplets for counting purposes
+                species = []
+                for i in range(len(constituents[0])):
+                    for j in range(i,len(constituents[0])):
+                        for k in range(len(constituents[1])):
+                            for l in range(k,len(constituents[1])):
+                                species.append(f'{constituents[0][i]},{constituents[0][j]}/{constituents[1][k]},{constituents[1][l]}')
+                solution_phase_species.append(species)
+                continue
             # Check if QKTO: if phase has any "QKT" parameters, it is QKTO
             detect_query = (
                 (where("phase_name") == phase_name) & \
