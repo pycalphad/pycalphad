@@ -1308,6 +1308,26 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
     # TODO: append phase (and info) again for miscibility gaps (from an argument?)
     # Also this gets the species names but only really needs a count at this point
     for phase_name in dbf.phases:
+        # Not an ordered contribution by default
+        ordered_contribution = False
+        # Look at all model hints
+        all_hints = dbf.phases[phase_name].model_hints
+        for hint in all_hints:
+            if   hint in ('ihj_magnetic_afm_factor','ihj_magnetic_structure_factor','chemical_groups','mqmqa'):
+                # Recognized hint, will be used later
+                pass
+            elif hint == 'ordered_phase':
+                # There is a phase with ordered/disordered contributions
+                # The disordered should be SUBL, and ordered SUBO
+                if dbf.phases[phase_name].model_hints[hint] == phase_name:
+                    # Mark ordered
+                    ordered_contribution = True
+            elif hint == 'disordered_phase':
+                # Just going to skip this, assume the ordered_phase will handle everything
+                pass
+            else:
+                # Anything else should be sent to incompatibility
+                incompatibility(f'Unknown/unsupported model hint {hint} for phase {phase_name}')
         # If all sublattices are singly occupied, it is a stoichiometric phase
         if all([len(subl) == 1 for subl in dbf.phases[phase_name].constituents]):
             stoichiometric_phases.append(phase_name)
@@ -1354,8 +1374,8 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                 solution_phase_species.append(species)
                 continue
 
-            # TODO: Actually check for incompatible phase models
-            if True:
+            # TODO: Check for more incompatible phase models
+            if not ordered_contribution:
                 # Everything else is a CEF variant
                 nSublattices = len(dbf.phases[phase_name].sublattices)
                 if nSublattices > 1:
@@ -1374,12 +1394,11 @@ def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
                     solution_phase_species.append(species)
 
                 # Check if magnetic
-                if dbf.phases[phase_name].model_hints:
-                    if 'ihj_magnetic_structure_factor' in dbf.phases[phase_name].model_hints:
-                        solution_phase_types[-1] += ('M')
+                if 'ihj_magnetic_structure_factor' in all_hints:
+                    solution_phase_types[-1] += ('M')
             else:
                 # Placeholder for incompatible
-                incompatibility(f'Unknown/unsupported phase model {phase_model} for phase {phase_name}')
+                incompatibility(f'Unknown/unsupported phase model for phase {phase_name}')
 
 
     # Number of elements, phases, species line
