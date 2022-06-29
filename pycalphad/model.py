@@ -479,6 +479,29 @@ class Model(object):
         for key, value in self.__class__.contributions:
             self.models[key] = S(getattr(self, value)(dbe))
 
+        self.volume = self.symbol_replace(self.build_volume(dbe), self._symbols)
+    
+    def build_volume(self, dbe):
+        """
+        Generate the change in molar volume of phase compositions
+
+        Parameters
+        ----------
+        dbe: Database
+        """
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
+
+        v0_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'V0') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+        
+        molar_volume = self.redlich_kister_sum(phase, param_search, v0_param_query)
+
+        return molar_volume
+
     def _array_validity(self, constituent_array):
         """
         Return True if the constituent_array contains only active species of the current Model instance.

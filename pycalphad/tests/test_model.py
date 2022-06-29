@@ -83,6 +83,17 @@ def test_degree_of_ordering(load_database):
     print('Degree of ordering: {}'.format(eqx.degree_of_ordering.sel(vertex=0).values.flatten()))
     assert np.isclose(eqx.degree_of_ordering.sel(vertex=0).values.flatten(), np.array([0.6666]), atol=1e-4)
 
+@select_database("co-cr.tdb")
+def test_molar_volume(load_database):
+    "Molar volume should be calculated properly."
+    dbf = load_database()
+    my_phases = ['SIGMA']
+    comps = ['CO', 'CR']
+    conds = {v.T: 1000, v.P: 101325, v.X('CR'): [0.1, 0.2, 0.3, 0.8, 0.9]}
+    eqx = equilibrium(dbf, comps, my_phases, conds, output='volume', verbose=True)
+    print('Molar volume: {}'.format(eqx.volume.values.flatten()))
+    assert np.isclose(eqx.volume.values.flatten(), [0.00020324, 0.00020417, 0.00020523, 0.00021411, 0.00021678], atol=4.7405444092747486e-09).all
+
 def test_detect_pure_vacancy_phases():
     "Detecting a pure vacancy phase"
     ZRO2_CUBIC_BCC_TDB = """
