@@ -308,6 +308,17 @@ cdef class SystemSpecification:
         self.fixed_statevar_indices = fixed_statevar_indices
         self.fixed_stable_compset_indices = fixed_stable_compset_indices
         self.max_num_free_stable_phases = num_components + len(free_statevar_indices) - len(fixed_stable_compset_indices)
+
+        # Assuming the prescribed_elemental_amounts doesn't change, this is
+        # constant and we can keep extra computation (especially calls into
+        # NumPy out of the run loop)
+        if self.prescribed_elemental_amounts.shape[0] > 0:
+            self.ALLOWED_MASS_RESIDUAL = min(1e-8, np.min(self.prescribed_elemental_amounts)/10.0)
+            # Also adjust mass residual if we are near the edge of composition space
+            self.ALLOWED_MASS_RESIDUAL = min(self.ALLOWED_MASS_RESIDUAL, (1-np.sum(self.prescribed_elemental_amounts))/10.0)
+        else:
+            self.ALLOWED_MASS_RESIDUAL = 1e-8
+
     def __getstate__(self):
         return (self.num_statevars, self.num_components, self.prescribed_system_amount,
                 np.array(self.initial_chemical_potentials), np.array(self.prescribed_elemental_amounts),
@@ -322,18 +333,11 @@ cdef class SystemSpecification:
         cdef double ALLOWED_DELTA_Y = 5e-09
         cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
         cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
-        cdef double ALLOWED_MASS_RESIDUAL
-        if self.prescribed_elemental_amounts.shape[0] > 0:
-            ALLOWED_MASS_RESIDUAL = min(1e-8, np.min(self.prescribed_elemental_amounts)/10)
-            # Also adjust mass residual if we are near the edge of composition space
-            ALLOWED_MASS_RESIDUAL = min(ALLOWED_MASS_RESIDUAL, (1-np.sum(self.prescribed_elemental_amounts))/10)
-        else:
-            ALLOWED_MASS_RESIDUAL = 1e-8
         cdef bint solution_is_feasible = (
             (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
             (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
             (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR) and
-            (state.mass_residual < ALLOWED_MASS_RESIDUAL)
+            (state.mass_residual < self.ALLOWED_MASS_RESIDUAL)
         )
         if solution_is_feasible and (state.iterations_since_last_phase_change >= 5):
             return True
@@ -440,6 +444,7 @@ cdef class SystemState:
         cdef CompositionSet compset
         cdef int idx, comp_idx
         self.compsets = compsets
+        cdef double phase_comp_sum
         for compset in compsets:
             compset.fixed = False
         for idx in spec.fixed_stable_compset_indices:
@@ -475,12 +480,15 @@ cdef class SystemState:
         for idx in range(self.phase_amt.shape[0]):
             compset = self.compsets[idx]
             x = self.dof[idx]
+            phase_comp_sum = 0.0
             for comp_idx in range(spec.num_components):
                 compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
                 self.phase_compositions[idx, comp_idx] = masses_tmp[comp_idx, 0]
+                phase_comp_sum += self.phase_compositions[idx, comp_idx]
                 masses_tmp[:,:] = 0
             # Convert phase fractions to formula units
-            self.phase_amt[idx] /= np.sum(self.phase_compositions[idx])
+            self.phase_amt[idx] /= phase_comp_sum
+
     def __getstate__(self):
         return (self.compsets, self.cs_states, self.dof, self.iteration, self.iterations_since_last_phase_change,
                 self.metastable_phase_iterations, self.times_compset_removed, self.mass_residual,
@@ -503,6 +511,7 @@ cdef class SystemState:
         cdef double[::1] x
         cdef int idx, comp_idx, cons_idx, i, j, stable_idx, fixed_idx, component_idx, fixed_component_idx, num_phase_dof
         cdef double mu_c_sum
+        cdef double phase_comp_sum
         self.mole_fractions[:] = 0
         self.delta_ms[:, :] = 0
         self.system_amount = 0
@@ -532,7 +541,10 @@ cdef class SystemState:
             # TODO: Use better dof storage
             # Calculate key phase quantities starting here
             x = self.dof[idx]
-            compset.update(x[spec.num_statevars:], self.phase_amt[idx] * np.sum(self.phase_compositions[idx, :]), x[:spec.num_statevars])
+            phase_comp_sum = 0.0
+            for comp_idx in range(num_components):
+                phase_comp_sum += self.phase_compositions[idx, comp_idx]
+            compset.update(x[spec.num_statevars:], self.phase_amt[idx] * phase_comp_sum, x[:spec.num_statevars])
             csst.energy = 0
             csst.mass_jac[:,:] = 0
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
@@ -760,6 +772,8 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
     cdef int i, j, idx, idx2, cp_idx, comp_idx, dof_idx, phase_idx
     cdef CompositionSet compset, compset2
     cdef bint phases_changed = False
+    cdef double composition_difference
+    cdef double COMPSET_CONSOLIDATE_DISTANCE = 1e-4
 
     compset_indices_to_remove = set()
     for i in range(len(state.free_stable_compset_indices)):
@@ -786,8 +800,15 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             if idx2 in compset_indices_to_remove:
                 continue
             # Detect if these compsets describe the same internal configuration inside a miscibility gap
-            compset_distances = np.abs(np.array(state.phase_compositions[idx]) - np.array(state.phase_compositions[idx2]))
-            if np.all(compset_distances < 1e-4):
+            compsets_should_be_consolidated = True
+            # Detected based on composition, we may miss gaps that have nearly
+            # the same composition, but different site fractions (such as ordering)
+            for comp_idx in range(spec.num_components):
+                composition_difference = abs(state.phase_compositions[idx, comp_idx] - state.phase_compositions[idx2, comp_idx])
+                if composition_difference > COMPSET_CONSOLIDATE_DISTANCE:
+                    compsets_should_be_consolidated = False
+                    break
+            if compsets_should_be_consolidated:
                 compset_indices_to_remove.add(idx2)
                 if idx not in spec.fixed_stable_compset_indices:
                     # ensure that the consolidated phase is stable
