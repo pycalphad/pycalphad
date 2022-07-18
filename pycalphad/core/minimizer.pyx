@@ -830,35 +830,55 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
     return phases_changed
 
 cdef bint change_phases(SystemSpecification spec, SystemState state):
-    cdef int idx
+    cdef int idx, i, cs_idx, least_removed_cs_idx, smallest_df_cs_idx
     cdef double[::1] driving_forces = state.driving_forces()
+    cdef double MIN_PHASE_AMOUNT = 1e-9
+    cdef int MIN_REQUIRED_METASTABLE_PHASE_ITERATIONS_TO_ADD = 5
+    cdef double MIN_DRIVING_FORCE_TO_ADD = 1e-5
+    cdef int MAX_ALLOWED_TIMES_COMPSET_REMOVED = 4
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
-    compsets_to_remove = set(current_free_stable_compset_indices).intersection(set(np.nonzero(np.array(phase_amt) < 1e-9)[0]))
+    compsets_to_remove = set()
+    for i in range(current_free_stable_compset_indices.shape[0]):
+        cs_idx = current_free_stable_compset_indices[i]
+        if phase_amt[cs_idx] < MIN_PHASE_AMOUNT:
+            compsets_to_remove.add(cs_idx)
+
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
-    newly_metastable_compsets = set(np.nonzero((np.array(state.metastable_phase_iterations) < 5))[0]) - \
-                                set(current_free_stable_compset_indices)
-    add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(state.times_compset_removed) < 4)
-    compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
+    compsets_to_add = set()
+    for cs_idx in range(state.metastable_phase_iterations.shape[0]):
+        should_add_compset = (
+            (state.metastable_phase_iterations[cs_idx] >= MIN_REQUIRED_METASTABLE_PHASE_ITERATIONS_TO_ADD)
+            and (driving_forces[cs_idx] > 1e-5)
+            and (state.times_compset_removed[cs_idx] < MAX_ALLOWED_TIMES_COMPSET_REMOVED)
+        )
+        if should_add_compset:
+            compsets_to_add.add(cs_idx)
+    # Finally, remove all currently stable compsets as candidates
+    compsets_to_add -= set(current_free_stable_compset_indices)
     max_allowed_to_add = spec.max_num_free_stable_phases + len(compsets_to_remove) - len(current_free_stable_compset_indices)
     # We must obey the Gibbs phase rule
     if len(compsets_to_add) > 0:
         if max_allowed_to_add < 1:
             # We are at the maximum number of allowed phases, yet there is still positive driving force
             # Destabilize one phase and add only one phase
-            possible_phases_to_destabilize = set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove
+            possible_phases_to_destabilize = sorted(set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove)
             # Destabilize the one that has been removed the least
-            destabilize_indices = np.take(state.times_compset_removed, sorted(possible_phases_to_destabilize))
-            destabilize_sort_array = np.argsort(destabilize_indices)
-            destabilize_ordered_by_removal = np.take(sorted(possible_phases_to_destabilize), destabilize_sort_array)
-            idx_to_remove = destabilize_ordered_by_removal[0]
-            compsets_to_remove.add(idx_to_remove)
-            phase_amt[idx_to_remove] = 0
-        df_to_add = np.take(driving_forces, sorted(compsets_to_add))
-        df_sort_array = np.argsort(df_to_add)
-        compsets_to_add_ordered_by_df = np.take(sorted(compsets_to_add), df_sort_array)
-        # Choose compset with least amount (but still positive) driving force
-        compsets_to_add = {compsets_to_add_ordered_by_df[0]}
+            least_removed_cs_idx = possible_phases_to_destabilize[0]
+            for i in range(1, len(possible_phases_to_destabilize)):
+                cs_idx = possible_phases_to_destabilize[i]
+                if state.times_compset_removed[cs_idx] < state.times_compset_removed[least_removed_cs_idx]:
+                    least_removed_cs_idx = cs_idx
+            compsets_to_remove.add(least_removed_cs_idx)
+            phase_amt[least_removed_cs_idx] = 0
+        # Add the compset with least amount (but still positive) driving force
+        possible_phases_to_add = sorted(compsets_to_add)
+        smallest_df_cs_idx = possible_phases_to_add[0]
+        for i in range(1, len(possible_phases_to_add)):
+            cs_idx = possible_phases_to_add[i]
+            if driving_forces[cs_idx] < driving_forces[smallest_df_cs_idx]:
+                smallest_df_cs_idx = cs_idx
+        compsets_to_add = {smallest_df_cs_idx}
     new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
                                                       | compsets_to_add
                                                       ),
