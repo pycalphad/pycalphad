@@ -92,7 +92,7 @@ cdef int argmax(double* a, int a_shape) nogil:
             result = i
     return result
 
-def add_nearly_stable(object composition_sets, dict phase_records,
+def add_nearly_stable(object composition_sets, object phase_records,
                       object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
                       double[::1] state_variables, double minimum_df, bint verbose):
     cdef double[::1] driving_forces, driving_forces_for_phase

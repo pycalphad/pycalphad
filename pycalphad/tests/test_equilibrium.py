@@ -62,46 +62,6 @@ def test_phase_records_passed_to_equilibrium(load_database):
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
 
-@select_database("alfe.tdb")
-def test_missing_models_with_phase_records_passed_to_equilibrium_raises(load_database):
-    dbf = load_database()
-    "equilibrium should raise an error if all the active phases are not included in the phase_records"
-    my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
-    comps = ['AL', 'FE', 'VA']
-    conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
-
-    models = instantiate_models(dbf, comps, my_phases)
-    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
-
-    with pytest.raises(ValueError):
-        # model=models NOT passed
-        equilibrium(dbf, comps, my_phases, conds, verbose=True, phase_records=phase_records)
-
-
-@select_database("alfe.tdb")
-def test_missing_phase_records_passed_to_equilibrium_raises(load_database):
-    "equilibrium should raise an error if all the active phases are not included in the phase_records"
-    dbf = load_database()
-    my_phases = ['LIQUID', 'FCC_A1']
-    subset_phases = ['FCC_A1']
-    comps = ['AL', 'FE', 'VA']
-    conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
-
-    models = instantiate_models(dbf, comps, my_phases)
-    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
-
-    models_subset = instantiate_models(dbf, comps, subset_phases)
-    phase_records_subset = build_phase_records(dbf, comps, subset_phases, conds, models_subset)
-
-    # Under-specified models
-    with pytest.raises(ValueError):
-        equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models_subset, phase_records=phase_records)
-
-    # Under-specified phase_records
-    with pytest.raises(ValueError):
-        equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records_subset)
-
-
 @pytest.mark.solver
 @select_database("alfe.tdb")
 def test_eq_single_phase(load_database):

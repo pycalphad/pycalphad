@@ -12,7 +12,7 @@ from pycalphad.core.utils import unpack_components, unpack_condition, unpack_pha
 from pycalphad import calculate
 from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.starting_point import starting_point
-from pycalphad.codegen.callables import build_phase_records, build_callables
+from pycalphad.codegen.callables import build_phase_records, build_callables, PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.composition_set import CompositionSet
@@ -124,7 +124,7 @@ def apply_to_dataset(input_dataset, phase_records, function_to_apply, per_phase=
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None, to_xarray=True,
                 parameters=None, solver=None, callables=None,
-                phase_records=None, **kwargs):
+                phase_records=None, phase_record_factory=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -220,21 +220,15 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = set(output)
     output |= {'GM'}
     output = sorted(output)
-    if phase_records is None:
+    if phase_record_factory is None:
         models = instantiate_models(dbf, comps, active_phases, model=model, parameters=parameters)
-        phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
-                                            output='GM', callables=callables,
-                                            parameters=parameters, verbose=verbose,
-                                            build_gradients=True, build_hessians=True)
+        phase_record_factory = PhaseRecordFactory(dbf, comps, conds, models, parameters=parameters)
     else:
         # phase_records were provided, instantiated models must also be provided by the caller
         models = model
         if not isinstance(models, Mapping):
             raise ValueError("A dictionary of instantiated models must be passed to `equilibrium` with the `model` argument if the `phase_records` argument is used.")
         active_phases_without_models = [name for name in active_phases if not isinstance(models.get(name), Model)]
-        active_phases_without_phase_records = [name for name in active_phases if not isinstance(phase_records.get(name), PhaseRecord)]
-        if len(active_phases_without_phase_records) > 0:
-            raise ValueError(f"phase_records must contain a PhaseRecord instance for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
         if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
@@ -251,13 +245,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 60
     grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
-                     phase_records=phase_records, output='GM', parameters=parameters,
+                     phase_records=phase_record_factory, output='GM', parameters=parameters,
                      to_xarray=False, **grid_opts)
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = pure_elements
-    properties = starting_point(conds, state_variables, phase_records, grid)
-    properties = _solve_eq_at_conditions(properties, phase_records, grid,
+    properties = starting_point(conds, state_variables, phase_record_factory, grid)
+    properties = _solve_eq_at_conditions(properties, phase_record_factory, grid,
                                          list(str_conds.keys()), state_variables,
                                          verbose, solver=solver)
 
@@ -268,7 +262,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         if (out is None) or (len(out) == 0):
             continue
         cprop = COMPUTED_PROPERTIES[out](dbf, comps, active_phases, conds, models, out, parameters=None)
-        result_array = cprop.compute(properties, phase_records)
+        result_array = cprop.compute(properties, phase_record_factory)
         prop_dims = list(str_conds.keys())
         if cprop.per_phase:
             prop_dims.append('vertex')
@@ -286,10 +280,15 @@ class ComputedProperty(object):
         self.per_phase = per_phase
         parameters = parameters if parameters is not None else {}
         state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
-
+        # TODO: Special case should be fixed with PhaseRecordFactory
+        if model_attr_name in ('DOO', 'degree_of_ordering'):
+            # Cannot build this gradient (and we do not usually need it)
+            build_gradients = False
+        else:
+            build_gradients = True
         callables = build_callables(dbf, comps, active_phases, models,
                                     parameter_symbols=parameters.keys(), output=model_attr_name,
-                                    additional_statevars=state_variables, build_gradients=True)
+                                    additional_statevars=state_variables, build_gradients=build_gradients)
         self.property_records = {name: (callables[model_attr_name]['callables'][name],
                                         callables[model_attr_name]['grad_callables'][name])
                                  for name in active_phases}
