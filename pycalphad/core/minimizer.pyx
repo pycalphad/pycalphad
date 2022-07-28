@@ -79,7 +79,7 @@ cdef void write_row_stable_phase(double[:] out_row, double* out_rhs, int[::1] fr
     # 1a. This phase row: free stable composition sets = zero contribution
     free_variable_column_offset += free_stable_compset_indices.shape[0]
     # 1a. This phase row: free state variables
-    for i in range(free_statevar_indices.shape[0]):
+    for i in range(free_statevar_indices.shape[0]):   
         statevar_idx = free_statevar_indices[i]
         out_row[free_variable_column_offset + i] = -grad[statevar_idx]
     out_rhs[0] = energy

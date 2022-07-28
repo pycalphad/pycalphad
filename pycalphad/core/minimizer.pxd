@@ -1,5 +1,5 @@
 cdef class SystemState:
-    cdef list compsets
+    cdef public list compsets
     cdef public list cs_states
     cdef object dof
     cdef int iteration, num_statevars, iterations_since_last_phase_change
