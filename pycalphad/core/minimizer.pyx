@@ -496,7 +496,7 @@ cdef class SystemState:
          self.largest_phase_amt_change[0], self.largest_y_change[0], self.free_stable_compset_indices, self.system_amount, self.mole_fractions) = state
 
     @cython.boundscheck(False)
-    cdef void recompute(self, SystemSpecification spec):
+    cpdef void recompute(self, SystemSpecification spec):
         cdef int num_components = spec.num_components
         cdef CompositionSet compset
         cdef CompsetState csst

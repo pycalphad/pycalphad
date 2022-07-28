@@ -12,7 +12,7 @@ from pycalphad.core.utils import unpack_components, unpack_condition, unpack_pha
 from pycalphad import calculate
 from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.starting_point import starting_point
-from pycalphad.codegen.callables import build_phase_records
+from pycalphad.codegen.callables import build_phase_records, build_callables
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.composition_set import CompositionSet
@@ -69,7 +69,7 @@ def dot_derivative(spec, state, property_records):
     for idx, compset in enumerate(state.compsets):
         phase_name = compset.phase_record.phase_name
         proprecord = property_records[phase_name]
-        func_value, grad_value = proprecord.func(compset.dof), proprecord.grad(compset.dof)
+        func_value, grad_value = proprecord[0](compset.dof), proprecord[1](compset.dof)
         delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                      delta_statevars)
 
@@ -85,6 +85,7 @@ def apply_to_dataset(input_dataset, phase_records, function_to_apply, per_phase=
     prop_NP_values = input_dataset.NP
     prop_Phase_values = input_dataset.Phase
     prop_Y_values = input_dataset.Y
+    prop_MU_values = input_dataset.MU
     prop_GM_values = input_dataset.GM
     conds_keys = [str(k) for k in input_dataset.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
     state_variables = list(phase_records.values())[0].state_variables
@@ -115,7 +116,8 @@ def apply_to_dataset(input_dataset, phase_records, function_to_apply, per_phase=
             else:
                 composition_sets.append(compset)
         if not per_phase:
-            output_array[index] = function_to_apply(composition_sets, cur_conds, index)
+            chemical_potentials = prop_MU_values[index]
+            output_array[index] = function_to_apply(composition_sets, cur_conds, chemical_potentials, index)
     return output_array
 
 
@@ -266,7 +268,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         if (out is None) or (len(out) == 0):
             continue
         cprop = COMPUTED_PROPERTIES[out](dbf, comps, active_phases, conds, models, out, parameters=None)
-        result_array = cprop.compute(properties)
+        result_array = cprop.compute(properties, phase_records)
         prop_dims = list(str_conds.keys())
         if cprop.per_phase:
             prop_dims.append('vertex')
@@ -282,39 +284,42 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
 class ComputedProperty(object):
     def __init__(self, dbf, comps, active_phases, conds, models, model_attr_name, parameters=None, per_phase=False):
         self.per_phase = per_phase
-        self.property_phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
-                                                          output=model_attr_name, parameters=parameters,
-                                                          build_gradients=True, build_hessians=False)
+        parameters = parameters if parameters is not None else {}
+        state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
+
+        callables = build_callables(dbf, comps, active_phases, models,
+                                    parameter_symbols=parameters.keys(), output=model_attr_name,
+                                    additional_statevars=state_variables, build_gradients=True)
+        self.property_records = {name: (callables[model_attr_name]['callables'][name],
+                                        callables[model_attr_name]['grad_callables'][name])
+                                 for name in active_phases}
         if self.per_phase:
             self._apply_func = self.calculate_per_phase_property
         else:
             self._apply_func = self.calculate_system_property
 
-    @staticmethod
-    def calculate_system_property(compsets, cur_conds, index):
-        return np.nansum([compset.NP*compset.energy for compset in compsets])
+    def calculate_system_property(self, compsets, cur_conds, chemical_potentials, index):
+        return np.nansum([compset.NP*self.calculate_per_phase_property(compset, cur_conds, index) for compset in compsets])
 
-    @staticmethod
-    def calculate_per_phase_property(compset, cur_conds, index):
-        return compset.energy
+    def calculate_per_phase_property(self, compset, cur_conds, index):
+        out = self.property_records[compset.phase_record.phase_name][0](compset.dof)
+        return out
 
-    def compute(self, input_dataset):
-        return apply_to_dataset(input_dataset, self.property_phase_records, self._apply_func,
+    def compute(self, input_dataset, phase_records):
+        return apply_to_dataset(input_dataset, phase_records, self._apply_func,
                                 per_phase=self.per_phase, fill_value=np.nan, dtype=float)
 
 class DotDerivativeComputedProperty(ComputedProperty):
     def __init__(self, dbf, comps, active_phases, conds, models, model_attr_name, parameters=None):
         super().__init__(dbf, comps, active_phases, conds, models, 'H', parameters=parameters, per_phase=False)
     
-    def calculate_system_property(self, compsets, cur_conds, index):
+    def calculate_system_property(self, compsets, cur_conds, chemical_potentials, index):
         solver = Solver()
         spec = solver.get_system_spec(compsets, cur_conds)
         state = spec.get_new_state(compsets)
-        #converged = spec.run_loop(state, 10)
-        print(compsets)
-        print(cur_conds)
-        return 0
-        #return dot_derivative(spec, state, self.property_phase_records)
+        state.chemical_potentials[:] = chemical_potentials
+        state.recompute(spec)
+        return dot_derivative(spec, state, self.property_records)
 
 COMPUTED_PROPERTIES = defaultdict(lambda: ComputedProperty)
 COMPUTED_PROPERTIES['DOO'] = partial(ComputedProperty, per_phase=True)
