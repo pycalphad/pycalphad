@@ -380,6 +380,7 @@ class Model(object):
     formulaenergy = G = property(lambda self: self.ast * self._site_ratio_normalization)
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
+    formulaenthalpy = H = property(lambda self: self.G - v.T*self.G.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
     mixing_energy = GM_MIX = property(lambda self: self.GM - self.endmember_reference_model.GM)
