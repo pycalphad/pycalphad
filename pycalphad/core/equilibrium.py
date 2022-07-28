@@ -302,6 +302,21 @@ class ComputedProperty(object):
         return apply_to_dataset(input_dataset, self.property_phase_records, self._apply_func,
                                 per_phase=self.per_phase, fill_value=np.nan, dtype=float)
 
+class DotDerivativeComputedProperty(ComputedProperty):
+    def __init__(self, dbf, comps, active_phases, conds, models, model_attr_name, parameters=None):
+        super().__init__(dbf, comps, active_phases, conds, models, 'H', parameters=parameters, per_phase=False)
+    
+    def calculate_system_property(self, compsets, cur_conds, index):
+        solver = Solver()
+        spec = solver.get_system_spec(compsets, cur_conds)
+        state = spec.get_new_state(compsets)
+        #converged = spec.run_loop(state, 10)
+        print(compsets)
+        print(cur_conds)
+        return 0
+        #return dot_derivative(spec, state, self.property_phase_records)
+
 COMPUTED_PROPERTIES = defaultdict(lambda: ComputedProperty)
 COMPUTED_PROPERTIES['DOO'] = partial(ComputedProperty, per_phase=True)
 COMPUTED_PROPERTIES['degree_of_ordering'] = partial(ComputedProperty, per_phase=True)
+COMPUTED_PROPERTIES['heat_capacity'] = DotDerivativeComputedProperty
