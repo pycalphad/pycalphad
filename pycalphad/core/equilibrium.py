@@ -3,7 +3,8 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 import warnings
-from collections import OrderedDict
+from functools import partial
+from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 from datetime import datetime
 import pycalphad.variables as v
@@ -14,6 +15,7 @@ from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.phase_rec import PhaseRecord
+from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
@@ -39,109 +41,47 @@ def _adjust_conditions(conds):
     return new_conds
 
 
-def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, callables=None, model=None,
-                 parameters=None, **kwargs):
-    """
-    WARNING: API/calling convention not finalized.
-    Compute the *equilibrium value* of a property.
-    This function differs from `calculate` in that it computes
-    thermodynamic equilibrium instead of randomly sampling the
-    internal degrees of freedom of a phase.
-    Because of that, it's slower than `calculate`.
-    This plugs in the equilibrium phase and site fractions
-    to compute a thermodynamic property defined in a Model.
-
-    Parameters
-    ----------
-    dbf : Database
-        Thermodynamic database containing the relevant parameters.
-    comps : list
-        Names of components to consider in the calculation.
-    phases : list or dict
-        Names of phases to consider in the calculation.
-    conditions : dict or (list of dict)
-        StateVariables and their corresponding value.
-    output : str
-        Equilibrium model property (e.g., CPM, HM, etc.) to compute.
-        This must be defined as an attribute in the Model class of each phase.
-    data : Dataset
-        Previous result of call to `equilibrium`.
-        Should contain the equilibrium configurations at the conditions of interest.
-        If the databases are not the same as in the original calculation,
-        the results may be meaningless.
-    per_phase : bool, optional
-        If True, compute and return the property for each phase present.
-        If False, return the total system value, weighted by the phase fractions.
-    callables : dict
-        Callable functions to compute 'output' for each phase.
-    model : a dict of phase names to Model
-        Model class to use for each phase.
-    parameters : dict, optional
-        Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.
-    kwargs
-        Passed to `calculate`.
-
-    Returns
-    -------
-    Dataset of property as a function of equilibrium conditions
-    """
-    if data is None:
-        raise ValueError('Required kwarg "data" is not specified')
-    if model is None:
-        raise ValueError('Required kwarg "model" is not specified')
-    active_phases = unpack_phases(phases)
-    conds = _adjust_conditions(conditions)
-    indep_vars = ['N', 'P', 'T']
-    # TODO: Rewrite this to use the coord dict from 'data'
-    str_conds = OrderedDict((str(key), value) for key, value in conds.items())
-    indep_vals = list([float(x) for x in np.atleast_1d(val)]
-                      for key, val in str_conds.items() if key in indep_vars)
-    coord_dict = str_conds.copy()
-    components = [x for x in sorted(comps)]
-    desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
-    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-    pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
-    coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
-    grid_shape = np.meshgrid(*coord_dict.values(),
-                             indexing='ij', sparse=False)[0].shape
-    prop_shape = grid_shape
-    prop_dims = list(str_conds.keys()) + ['vertex']
-
-    result = LightDataset({output: (prop_dims, np.full(prop_shape, np.nan))}, coords=coord_dict)
-    # For each phase select all conditions where that phase exists
-    # Perform the appropriate calculation and then write the result back
-    for phase in active_phases:
-        dof = len(model[phase].site_fractions)
-        current_phase_indices = (data.Phase == phase)
-        if ~np.any(current_phase_indices):
-            continue
-        points = data.Y[np.nonzero(current_phase_indices)][..., :dof]
-        statevar_indices = np.nonzero(current_phase_indices)[:len(indep_vals)]
-        statevars = {key: np.take(np.asarray(vals), idx)
-                     for key, vals, idx in zip(indep_vars, indep_vals, statevar_indices)}
-        statevars.update(kwargs)
-        if statevars.get('mode', None) is None:
-            statevars['mode'] = 'numpy'
-        calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False,
-                            callables=callables, parameters=parameters, model=model, **statevars)
-        result[output][np.nonzero(current_phase_indices)] = calcres[output].values
-    if not per_phase:
-        out = np.nansum(result[output] * data['NP'], axis=-1)
-        dv_output = result.data_vars[output]
-        result.remove(output)
-        # remove the vertex coordinate because we summed over it
-        result.add_variable(output, dv_output[0][:-1], out)
+def apply_to_dataset(input_dataset, phase_records, function_to_apply, per_phase=False, fill_value=np.nan, dtype=float):
+    prop_NP_values = input_dataset.NP
+    prop_Phase_values = input_dataset.Phase
+    prop_Y_values = input_dataset.Y
+    prop_GM_values = input_dataset.GM
+    conds_keys = [str(k) for k in input_dataset.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
+    state_variables = list(phase_records.values())[0].state_variables
+    str_state_variables = [str(k) for k in state_variables]
+    if per_phase:
+        output_array = np.full(prop_NP_values.shape, fill_value, dtype=dtype)
     else:
-        dv_phase = data.data_vars['Phase']
-        dv_np = data.data_vars['NP']
-        result.add_variable('Phase', dv_phase[0], dv_phase[1])
-        result.add_variable('NP', dv_np[0], dv_np[1])
-    return result
+        output_array = np.full(prop_GM_values.shape, fill_value, dtype=dtype)
+
+    for index in np.ndindex(prop_GM_values.shape):
+        cur_conds = OrderedDict(zip(conds_keys,
+                                    [np.asarray(input_dataset.coords[b][a], dtype=np.float_)
+                                     for a, b in zip(index, conds_keys)]))
+        state_variable_values = [cur_conds[key] for key in str_state_variables]
+        state_variable_values = np.array(state_variable_values)
+        composition_sets = []
+        for phase_idx, phase_name in enumerate(prop_Phase_values[index]):
+            if phase_name == '' or phase_name == '_FAKE_':
+                continue
+            phase_record = phase_records[phase_name]
+            sfx = prop_Y_values[index + np.index_exp[phase_idx, :phase_record.phase_dof]]
+            phase_amt = prop_NP_values[index + np.index_exp[phase_idx]]
+            compset = CompositionSet(phase_record)
+            compset.update(sfx, phase_amt, state_variable_values)
+            if per_phase:
+                augmented_index = index + np.index_exp[phase_idx]
+                output_array[augmented_index] = function_to_apply(compset, cur_conds, augmented_index)
+            else:
+                composition_sets.append(compset)
+        if not per_phase:
+            output_array[index] = function_to_apply(composition_sets, cur_conds, index)
+    return output_array
 
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None, to_xarray=True,
-                scheduler='sync', parameters=None, solver=None, callables=None,
+                parameters=None, solver=None, callables=None,
                 phase_records=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
@@ -173,9 +113,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
     to_xarray : bool
         Whether to return an xarray Dataset (True, default) or an EquilibriumResult.
-    scheduler : Dask scheduler, optional
-        Job scheduler for performing the computation.
-        If None, return a Dask graph of the computation instead of actually doing it.
     parameters : dict, optional
         Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.
     solver : pycalphad.core.solver.SolverBase
@@ -288,19 +225,43 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     for out in output:
         if (out is None) or (len(out) == 0):
             continue
-        # TODO: How do we know if a specified property should be per_phase or not?
-        # For now, we make a best guess
-        if (out == 'degree_of_ordering') or (out == 'DOO'):
-            per_phase = True
-        else:
-            per_phase = False
-        eqcal = _eqcalculate(dbf, comps, active_phases, conditions, out,
-                             data=properties, per_phase=per_phase, model=models,
-                             callables=callables, parameters=parameters, **calc_opts)
-        properties = properties.merge(eqcal, inplace=True, compat='equals')
+        cprop = COMPUTED_PROPERTIES[out](dbf, comps, active_phases, conds, models, out, parameters=None)
+        result_array = cprop.compute(properties)
+        prop_dims = list(str_conds.keys())
+        if cprop.per_phase:
+            prop_dims.append('vertex')
+        result = LightDataset({out: (prop_dims, result_array)}, coords=coord_dict)
+        properties.merge(result, inplace=True, compat='equals')
     if to_xarray:
         properties = properties.get_dataset()
     properties.attrs['created'] = datetime.utcnow().isoformat()
     if len(kwargs) > 0:
         warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
     return properties
+
+class ComputedProperty(object):
+    def __init__(self, dbf, comps, active_phases, conds, models, model_attr_name, parameters=None, per_phase=False):
+        self.per_phase = per_phase
+        self.property_phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
+                                                          output=model_attr_name, parameters=parameters,
+                                                          build_gradients=True, build_hessians=False)
+        if self.per_phase:
+            self._apply_func = self.calculate_per_phase_property
+        else:
+            self._apply_func = self.calculate_system_property
+
+    @staticmethod
+    def calculate_system_property(compsets, cur_conds, index):
+        return np.nansum([compset.NP*compset.energy for compset in compsets])
+
+    @staticmethod
+    def calculate_per_phase_property(compset, cur_conds, index):
+        return compset.energy
+
+    def compute(self, input_dataset):
+        return apply_to_dataset(input_dataset, self.property_phase_records, self._apply_func,
+                                per_phase=self.per_phase, fill_value=np.nan, dtype=float)
+
+COMPUTED_PROPERTIES = defaultdict(lambda: ComputedProperty)
+COMPUTED_PROPERTIES['DOO'] = partial(ComputedProperty, per_phase=True)
+COMPUTED_PROPERTIES['degree_of_ordering'] = partial(ComputedProperty, per_phase=True)
