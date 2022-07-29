@@ -151,136 +151,43 @@ def build_phase_records(dbf, comps, phases, state_variables, models, output='GM'
                         callables=None, parameters=None, verbose=False,
                         build_gradients=True, build_hessians=True
                         ):
-    """
-    Combine compiled callables and callables from conditions into PhaseRecords.
-
-    Parameters
-    ----------
-    dbf : Database
-        A Database object
-    comps : List[Union[str, v.Species]]
-        List of active pure elements or species.
-    phases : list
-        List of phase names
-    state_variables : Iterable[v.StateVariable]
-        State variables used to produce the generated functions.
-    models : Mapping[str, Model]
-        Mapping of phase names to model instances
-    parameters : dict, optional
-        Maps SymEngine Symbol to numbers, for overriding the values of parameters in the Database.
-    callables : dict, optional
-        Pre-computed callables. If None are passed, they will be built.
-        Maps {'output' -> {'function' -> {'phase_name' -> AutowrapFunction()}}
-    output : str
-        Output property of the particular Model to sample
-    verbose : bool, optional
-        Print the name of the phase when its callables are built
-    build_gradients : bool
-        Whether or not to build gradient functions. Defaults to False. Only
-        takes effect if callables are not passed.
-    build_hessians : bool
-        Whether or not to build Hessian functions. Defaults to False. Only
-        takes effect if callables are not passed.
-
-    Returns
-    -------
-    dict
-        Dictionary mapping phase names to PhaseRecord instances.
-
-    Notes
-    -----
-    If callables are passed, don't rebuild them. This means that the callables
-    are not checked for incompatibility. Users of build_callables are
-    responsible for ensuring that the state variables, parameters and models
-    used to construct the callables are compatible with the ones used to
-    build the constraints and phase records.
-
-    """
-    comps = sorted(unpack_components(dbf, comps))
-    parameters = parameters if parameters is not None else {}
-    callables = callables if callables is not None else {}
-    _constraints = {
-        'internal_cons_func': {},
-        'internal_cons_jac': {},
-        'internal_cons_hess': {},
-    }
-    phase_records = {}
-    state_variables = sorted(get_state_variables(models=models, conds=state_variables), key=str)
-    param_symbols, param_values = extract_parameters(parameters)
-
-    if callables.get(output) is None:
-        callables = build_callables(dbf, comps, phases, models,
-                                    parameter_symbols=parameters.keys(), output=output,
-                                    additional_statevars=state_variables,
-                                    build_gradients=False,
-                                    build_hessians=False)
-    # Temporary solution. PhaseRecord needs rework: https://github.com/pycalphad/pycalphad/pull/329#discussion_r634579356
-    formulacallables = build_callables(dbf, comps, phases, models,
-                                       parameter_symbols=parameters.keys(), output='G',
-                                       additional_statevars=state_variables,
-                                       build_gradients=build_gradients,
-                                       build_hessians=build_hessians)
-
-    # If a vector of parameters is specified, only pass the first row to the PhaseRecord
-    # Future callers of PhaseRecord.obj_parameters_2d() can pass the full param_values array as an argument
-    if len(param_values.shape) > 1:
-        param_values = param_values[0]
-
-    for name in phases:
-        mod = models[name]
-        site_fracs = mod.site_fractions
-        # build constraint functions
-        cfuncs = build_constraints(mod, state_variables + site_fracs, parameters=param_symbols)
-        _constraints['internal_cons_func'][name] = cfuncs.internal_cons_func
-        _constraints['internal_cons_jac'][name] = cfuncs.internal_cons_jac
-        _constraints['internal_cons_hess'][name] = cfuncs.internal_cons_hess
-        num_internal_cons = cfuncs.num_internal_cons
-
-        phase_records[name.upper()] = PhaseRecord(comps, state_variables, site_fracs, param_values,
-                                                  callables[output]['callables'][name],
-                                                  formulacallables['G']['callables'][name],
-                                                  formulacallables['G']['grad_callables'][name],
-                                                  formulacallables['G']['hess_callables'][name],
-                                                  callables[output]['massfuncs'][name],
-                                                  formulacallables['G']['formulamolefuncs'][name],
-                                                  formulacallables['G']['formulamolegradfuncs'][name],
-                                                  formulacallables['G']['formulamolehessfuncs'][name],
-                                                  _constraints['internal_cons_func'][name],
-                                                  _constraints['internal_cons_jac'][name],
-                                                  _constraints['internal_cons_hess'][name],
-                                                  num_internal_cons)
-
-        if verbose:
-            print(name + ' ')
-    return phase_records
+    return PhaseRecordFactory(dbf, comps, state_variables, models, parameters=parameters)
 
 class PhaseRecordFactory(object):
     def __init__(self, dbf, comps, state_variables, models, parameters=None):
         self.comps = sorted(unpack_components(dbf, comps))
         self.pure_elements = get_pure_elements(dbf, comps)
+        self.nonvacant_elements = sorted([x for x in self.pure_elements if x != 'VA'])
         parameters = parameters if parameters is not None else {}
         self.models = models
         self.state_variables = sorted(get_state_variables(models=models, conds=state_variables), key=str)
+        print(self.state_variables)
         self.param_symbols, self.param_values = extract_parameters(parameters)
 
+        if len(self.param_values.shape) > 1:
+            self.param_values = self.param_values[0]
+
+    @lru_cache
     def get_phase_constraints(self, phase_name):
         mod = self.models[phase_name]
         cfuncs = build_constraints(mod, self.state_variables + mod.site_fractions, parameters=self.param_symbols)
         return cfuncs
 
-    def get_phase_formula_moles(self, phase_name, per_formula_unit=True):
+    @lru_cache
+    def get_phase_formula_moles_element(self, phase_name, element_name, per_formula_unit=True):
         mod = self.models[phase_name]
         # TODO: In principle, we should also check for undefs in mod.moles()
-        mcf, mgf, mhf = zip(*[build_functions(mod.moles(el, per_formula_unit=per_formula_unit),
-                                              self.state_variables + mod.site_fractions,
-                                              include_obj=True, include_grad=True, include_hess=True,
-                                              parameters=self.param_symbols)
-                              for el in self.pure_elements])
-        return mcf, mgf, mhf
+        return build_functions(mod.moles(element_name, per_formula_unit=per_formula_unit),
+                               self.state_variables + mod.site_fractions,
+                               include_obj=True, include_grad=True, include_hess=True,
+                               parameters=self.param_symbols)
 
+    @lru_cache
     def get_phase_property(self, phase_name, property_name, include_grad=True, include_hess=True):
         mod = self.models[phase_name]
         out = getattr(mod, property_name)
+        if out is None:
+            raise AttributeError(f'Model property {property_name} is not defined')
         # Only force undefineds to zero if we're not overriding them
         undefs = {x for x in out.free_symbols if not isinstance(x, v.StateVariable)} - set(self.param_symbols)
         undef_vals = repeat(0., len(undefs))
@@ -294,26 +201,7 @@ class PhaseRecordFactory(object):
 
     @lru_cache
     def get_phase_record(self, phase_name, property_name):
-        mod = self.models[phase_name]
-        cfuncs = self.get_phase_constraints(phase_name)
-        num_internal_cons = cfuncs.num_internal_cons
-        pfe = self.get_phase_formula_energy(phase_name)
-        molarmassfunc = self.get_phase_formula_moles(phase_name, per_formula_unit=False)[0]
-        prop = self.get_phase_property(phase_name, property_name, include_grad=False, include_hess=False)
-        # If a vector of parameters is specified, only pass the first row to the PhaseRecord
-        # Future callers of PhaseRecord.obj_parameters_2d() can pass the full param_values array as an argument
-        if len(self.param_values.shape) > 1:
-            param_values = self.param_values[0]
-        else:
-            param_values = self.param_values
-        return PhaseRecord(self.comps, self.state_variables, mod.site_fractions, param_values,
-                           prop.func,
-                           pfe.func, pfe.grad, pfe.hess, molarmassfunc,
-                           *self.get_phase_formula_moles(phase_name, per_formula_unit=True),
-                           cfuncs.internal_cons_func,
-                           cfuncs.internal_cons_jac,
-                           cfuncs.internal_cons_hess,
-                           num_internal_cons)
+        return PhaseRecord(self, phase_name)
 
     def keys(self):
         return self.models.keys()

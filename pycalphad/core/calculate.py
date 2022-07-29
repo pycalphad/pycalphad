@@ -270,11 +270,18 @@ def _compute_phase_values(components, statevar_dict,
     if parameter_array_length == 0:
         # No parameters specified
         phase_output = np.zeros(dof.shape[0], order='C')
-        phase_record.obj_2d(phase_output, dof)
+        if output == 'GM':
+            phase_record.obj_2d(phase_output, dof)
+        else:
+            phase_record.prop_2d(phase_output, dof, phase_record.function_factory.get_func(output))
     else:
         # Vectorized parameter arrays
         phase_output = np.zeros((dof.shape[0], parameter_array_length), order='C')
-        phase_record.obj_parameters_2d(phase_output, dof, parameter_array)
+        if output == 'GM':
+            phase_record.obj_parameters_2d(phase_output, dof, parameter_array)
+        else:
+            phase_record.prop_parameters_2d(phase_output, dof, parameter_array,
+                                            phase_record.function_factory.get_func(output))
 
     for el_idx in range(len(pure_elements)):
         phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)

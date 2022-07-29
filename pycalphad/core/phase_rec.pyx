@@ -28,6 +28,56 @@ cdef class FastFunction:
         if self.f_ptr != NULL:
             self.f_ptr(out, inp, self.func_data)
 
+cdef class FastFunctionFactory:
+    def __init__(self, phase_record_factory, phase_name):
+        self.phase_record_factory = phase_record_factory
+        self.phase_name = phase_name
+
+    cpdef FastFunction get_func(self, unicode property_name):
+        return FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, property_name).func)
+
+    cpdef FastFunction get_grad(self, unicode property_name):
+        return FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, property_name).grad)
+
+    cpdef FastFunction get_hess(self, unicode property_name):
+        return FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, property_name).hess)
+
+    cpdef FastFunction get_cons_func(self):
+        return FastFunction(self.phase_record_factory.get_phase_constraints(self.phase_name).internal_cons_func)
+
+    cpdef FastFunction get_cons_jac(self):
+        return FastFunction(self.phase_record_factory.get_phase_constraints(self.phase_name).internal_cons_jac)
+
+    cpdef FastFunction get_cons_hess(self):
+        return FastFunction(self.phase_record_factory.get_phase_constraints(self.phase_name).internal_cons_hess)
+
+    cpdef int get_cons_len(self):
+        return self.phase_record_factory.get_phase_constraints(self.phase_name).num_internal_cons
+
+    cpdef FastFunction get_mole_fraction_func(self, unicode element_name):
+        return FastFunction(self.phase_record_factory.get_phase_formula_moles_element(self.phase_name,
+                                element_name, per_formula_unit=False).func)
+
+    cpdef FastFunction get_mole_fraction_grad(self, unicode element_name):
+        return FastFunction(self.phase_record_factory.get_phase_formula_moles_element(self.phase_name,
+                                element_name, per_formula_unit=False).grad)
+
+    cpdef FastFunction get_mole_fraction_hess(self, unicode element_name):
+        return FastFunction(self.phase_record_factory.get_phase_formula_moles_element(self.phase_name,
+                                element_name, per_formula_unit=False).hess)
+
+    cpdef FastFunction get_mole_formula_func(self, unicode element_name):
+        return FastFunction(self.phase_record_factory.get_phase_formula_moles_element(self.phase_name,
+                                element_name, per_formula_unit=True).func)
+
+    cpdef FastFunction get_mole_formula_grad(self, unicode element_name):
+        return FastFunction(self.phase_record_factory.get_phase_formula_moles_element(self.phase_name,
+                                element_name, per_formula_unit=True).grad)
+
+    cpdef FastFunction get_mole_formula_hess(self, unicode element_name):
+        return FastFunction(self.phase_record_factory.get_phase_formula_moles_element(self.phase_name,
+                                element_name, per_formula_unit=True).hess)
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef double* alloc_dof_with_parameters(double[::1] dof, double[::1] parameters) nogil:
@@ -72,91 +122,102 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     between Model implementations. PhaseRecords are immutable after initialization.
     """
     def __reduce__(self):
-            return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
-                                 self.ofunc_,
-                                 self.formulaofunc_, self.formulagfunc_, self.formulahfunc_,
-                                 self.massfuncs_,
-                                 self.formulamolefuncs_, self.formulamolegradfuncs_, self.formulamolehessianfuncs_,
-                                 self.internal_cons_func_, self.internal_cons_jac_, self.internal_cons_hess_,
-                                 self.num_internal_cons)
+            return PhaseRecord, (self.phase_record_factory, self.phase_name)
 
-    def __cinit__(self, object comps, object state_variables, object variables,
-                  double[::1] parameters, object ofunc,
-                  object formulaofunc, object formulagfunc, object formulahfunc,
-                  object massfuncs,
-                  object formulamolefuncs, object formulamolegradfuncs, object formulamolehessianfuncs,
-                  object internal_cons_func, object internal_cons_jac, object internal_cons_hess,
-                  size_t num_internal_cons):
+    def __cinit__(self, object phase_record_factory, str phase_name):
         cdef:
-            int var_idx, el_idx
-        self.components = comps
-        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
-        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-        pure_elements = sorted(set(desired_active_pure_elements))
-        nonvacant_elements = sorted([x for x in set(desired_active_pure_elements) if x != 'VA'])
+            int el_idx
+        self.phase_record_factory = phase_record_factory
+        self.components = phase_record_factory.comps
+        self.phase_name = phase_name
+        self.variables = phase_record_factory.models[phase_name].site_fractions
+        self.state_variables = phase_record_factory.state_variables
+        self.num_statevars = len(phase_record_factory.state_variables)
+        self.pure_elements = phase_record_factory.pure_elements
+        self.nonvacant_elements = phase_record_factory.nonvacant_elements
+        self.parameters = phase_record_factory.param_values
+        
+        self.phase_dof = len(phase_record_factory.models[phase_name].site_fractions)
 
-        self.variables = variables
-        self.state_variables = state_variables
-        self.num_statevars = len(state_variables)
-        self.pure_elements = pure_elements
-        self.nonvacant_elements = nonvacant_elements
-        self.phase_dof = 0
-        self.parameters = parameters
-        self.num_internal_cons = num_internal_cons
+        self.function_factory = FastFunctionFactory(phase_record_factory, phase_name)
 
-        for variable in variables:
-            if not isinstance(variable, v.SiteFraction):
-                continue
-            self.phase_name = <unicode>variable.phase_name
-            self.phase_dof += 1
+        self._obj = self.function_factory.get_func('GM')
+        self._formulaobj = self.function_factory.get_func('G')
+        self._formulagrad = self.function_factory.get_grad('G')
+        self._formulahess = self.function_factory.get_hess('G')
+        self._internal_cons_func = self.function_factory.get_cons_func()
+        self._internal_cons_jac = self.function_factory.get_cons_jac()
+        self._internal_cons_hess = self.function_factory.get_cons_hess()
+        self.num_internal_cons = self.function_factory.get_cons_len()
+        self._masses = np.empty(len(self.nonvacant_elements), dtype='object')
+        for el_idx, el in enumerate(self.nonvacant_elements):
+            self._masses[el_idx] = self.function_factory.get_mole_fraction_func(el)
+        self._masses_ptr = <void**> self._masses.data
+        self._formulamoles = np.empty(len(self.nonvacant_elements), dtype='object')
+        for el_idx, el in enumerate(self.nonvacant_elements):
+            self._formulamoles[el_idx] = self.function_factory.get_mole_formula_func(el)
+        self._formulamoles_ptr = <void**> self._formulamoles.data
+        self._formulamolegrads = np.empty(len(self.nonvacant_elements), dtype='object')
+        for el_idx, el in enumerate(self.nonvacant_elements):
+            self._formulamolegrads[el_idx] = self.function_factory.get_mole_formula_grad(el)
+        self._formulamolegrads_ptr = <void**> self._formulamolegrads.data
+        self._formulamolehessians = np.empty(len(self.nonvacant_elements), dtype='object')
+        for el_idx, el in enumerate(self.nonvacant_elements):
+            self._formulamolehessians[el_idx] = self.function_factory.get_mole_formula_hess(el)
+        self._formulamolehessians_ptr = <void**> self._formulamolehessians.data
 
-        # Used only to reconstitute if pickled (i.e. via __reduce__)
-        self.ofunc_ = ofunc
-        self.formulaofunc_ = formulaofunc
-        self.formulagfunc_ = formulagfunc
-        self.formulahfunc_ = formulahfunc
-        self.internal_cons_func_ = internal_cons_func
-        self.internal_cons_jac_ = internal_cons_jac
-        self.internal_cons_hess_ = internal_cons_hess
-        self.massfuncs_ = massfuncs
-        self.formulamolefuncs_ = formulamolefuncs
-        self.formulamolegradfuncs_ = formulamolegradfuncs
-        self.formulamolehessianfuncs_ = formulamolehessianfuncs
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void prop(self, double[::1] outp, double[::1] dof, FastFunction func) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
+        func.call(&outp[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
-        if ofunc is not None:
-            self._obj = FastFunction(ofunc)
-        if formulaofunc is not None:
-            self._formulaobj = FastFunction(formulaofunc)
-        if formulagfunc is not None:
-            self._formulagrad = FastFunction(formulagfunc)
-        if formulahfunc is not None:
-            self._formulahess = FastFunction(formulahfunc)
-        if internal_cons_func is not None:
-            self._internal_cons_func = FastFunction(internal_cons_func)
-        if internal_cons_jac is not None:
-            self._internal_cons_jac = FastFunction(internal_cons_jac)
-        if internal_cons_hess is not None:
-            self._internal_cons_hess = FastFunction(internal_cons_hess)
-        if massfuncs is not None:
-            self._masses = np.empty(len(nonvacant_elements), dtype='object')
-            for el_idx in range(len(nonvacant_elements)):
-                self._masses[el_idx] = FastFunction(massfuncs[el_idx])
-            self._masses_ptr = <void**> self._masses.data
-        if formulamolefuncs is not None:
-            self._formulamoles = np.empty(len(nonvacant_elements), dtype='object')
-            for el_idx in range(len(nonvacant_elements)):
-                self._formulamoles[el_idx] = FastFunction(formulamolefuncs[el_idx])
-            self._formulamoles_ptr = <void**> self._formulamoles.data
-        if formulamolegradfuncs is not None:
-            self._formulamolegrads = np.empty(len(nonvacant_elements), dtype='object')
-            for el_idx in range(len(nonvacant_elements)):
-                self._formulamolegrads[el_idx] = FastFunction(formulamolegradfuncs[el_idx])
-            self._formulamolegrads_ptr = <void**> self._formulamolegrads.data
-        if formulamolehessianfuncs is not None:
-            self._formulamolehessians = np.empty(len(nonvacant_elements), dtype='object')
-            for el_idx in range(len(nonvacant_elements)):
-                self._formulamolehessians[el_idx] = FastFunction(formulamolehessianfuncs[el_idx])
-            self._formulamolehessians_ptr = <void**> self._formulamolehessians.data
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void prop_2d(self, double[::1] outp, double[:, ::1] dof, FastFunction func) nogil:
+        # dof.shape[1] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
+        cdef int i
+        cdef int num_inps = dof.shape[0]
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
+        for i in range(num_inps):
+           func.call(&outp[i], &dof_concat[i * num_dof])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void prop_parameters_2d(self, double[:, ::1] outp, double[:, ::1] dof,
+                                  double[:, ::1] parameters, FastFunction func) nogil:
+        """
+        Calculate objective function using custom parameters.
+        Note dof and parameters are vectorized separately, i.e., broadcast against each other.
+        Let dof.shape[0] = M and parameters.shape[0] = N
+        Then outp.shape = (M,N)
+        """
+        # dof.shape[1] may be oversized by the caller; do not trust it
+        cdef size_t i, j, dof_idx, param_idx
+        cdef size_t num_dof_inps = dof.shape[0]
+        cdef size_t num_param_inps = parameters.shape[0]
+        # We are trusting parameters.shape[1] to be sized correctly here
+        cdef size_t num_params = parameters.shape[1]
+        cdef size_t num_dof = self.num_statevars + self.phase_dof + num_params
+        cdef size_t dof_offset = self.num_statevars + self.phase_dof
+        cdef double* dof_concat = <double *> malloc(num_param_inps * num_dof * sizeof(double))
+        for i in range(num_dof_inps):
+            # Initialize all parameter arrays with current dof
+            for j in range(num_param_inps):
+                for dof_idx in range(num_dof-num_params):
+                    dof_concat[j * num_dof + dof_idx] = dof[i, dof_idx]
+                for param_idx in range(num_params):
+                    dof_concat[j * num_dof + dof_offset + param_idx] = parameters[j, param_idx]
+            for j in range(num_param_inps):
+                func.call(&outp[i,j], &dof_concat[j * num_dof])
+        free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
