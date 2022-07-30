@@ -1,6 +1,10 @@
 # distutils: language = c++
 
 cimport cython
+from libcpp.map cimport map
+from libcpp.utility cimport pair
+from libcpp.string cimport string
+from cython.operator cimport dereference as deref
 from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
@@ -29,18 +33,55 @@ cdef class FastFunction:
             self.f_ptr(out, inp, self.func_data)
 
 cdef class FastFunctionFactory:
-    def __init__(self, phase_record_factory, phase_name):
+    def __cinit__(self, phase_record_factory, phase_name):
+        cdef int INITIAL_CACHE_SIZE = 100
         self.phase_record_factory = phase_record_factory
         self.phase_name = phase_name
+        self._cache = np.empty(INITIAL_CACHE_SIZE, dtype='object')
+        self._cache_ptr = <void**> self._cache.data
+        self._cache_cur_idx = -1
 
-    cpdef FastFunction get_func(self, unicode property_name):
-        return FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, property_name).func)
+    cdef void* get_func(self, string property_name) nogil except *:
+        cdef pair[string, string] cache_key = pair[string, string](string(<char*>'func'), property_name)
+        cdef map[pair[string, string], int].iterator it
+        it = self._cache_property_map.find(cache_key)
+        if it == self._cache_property_map.end():
+            with gil:
+                self._cache_cur_idx += 1
+                if self._cache_cur_idx > self._cache.shape[0]:
+                    raise ValueError('Cache error')
+                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8')).func)
+                self._cache_property_map[cache_key] = self._cache_cur_idx
+            it = self._cache_property_map.find(cache_key)
+        return <void*>self._cache_ptr[deref(it).second]
 
-    cpdef FastFunction get_grad(self, unicode property_name):
-        return FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, property_name).grad)
+    cdef void* get_grad(self, string property_name) nogil except *:
+        cdef pair[string, string] cache_key = pair[string, string](string(<char*>'grad'), property_name)
+        cdef map[pair[string, string], int].iterator it
+        it = self._cache_property_map.find(cache_key)
+        if it == self._cache_property_map.end():
+            with gil:
+                self._cache_cur_idx += 1
+                if self._cache_cur_idx > self._cache.shape[0]:
+                    raise ValueError('Cache error')
+                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8')).grad)
+                self._cache_property_map[cache_key] = self._cache_cur_idx
+            it = self._cache_property_map.find(cache_key)
+        return <void*>self._cache_ptr[deref(it).second]
 
-    cpdef FastFunction get_hess(self, unicode property_name):
-        return FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, property_name).hess)
+    cdef void* get_hess(self, string property_name) nogil except *:
+        cdef pair[string, string] cache_key = pair[string, string](string(<char*>'hess'), property_name)
+        cdef map[pair[string, string], int].iterator it
+        it = self._cache_property_map.find(cache_key)
+        if it == self._cache_property_map.end():
+            with gil:
+                self._cache_cur_idx += 1
+                if self._cache_cur_idx > self._cache.shape[0]:
+                    raise ValueError('Cache error')
+                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8')).hess)
+                self._cache_property_map[cache_key] = self._cache_cur_idx
+            it = self._cache_property_map.find(cache_key)
+        return <void*>self._cache_ptr[deref(it).second]
 
     cpdef FastFunction get_cons_func(self):
         return FastFunction(self.phase_record_factory.get_phase_constraints(self.phase_name).internal_cons_func)
@@ -141,10 +182,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
         self.function_factory = FastFunctionFactory(phase_record_factory, phase_name)
 
-        self._obj = self.function_factory.get_func('GM')
-        self._formulaobj = self.function_factory.get_func('G')
-        self._formulagrad = self.function_factory.get_grad('G')
-        self._formulahess = self.function_factory.get_hess('G')
         self._internal_cons_func = self.function_factory.get_cons_func()
         self._internal_cons_jac = self.function_factory.get_cons_jac()
         self._internal_cons_hess = self.function_factory.get_cons_hess()
@@ -168,31 +205,31 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void prop(self, double[::1] outp, double[::1] dof, FastFunction func) nogil:
+    cpdef void prop(self, double[::1] outp, double[::1] dof, string property_name) nogil except *:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
-        func.call(&outp[0], &dof_concat[0])
+        (<FastFunction>self.function_factory.get_func(property_name)).call(&outp[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void prop_2d(self, double[::1] outp, double[:, ::1] dof, FastFunction func) nogil:
+    cpdef void prop_2d(self, double[::1] outp, double[:, ::1] dof, string property_name) nogil except *:
         # dof.shape[1] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
         cdef int num_inps = dof.shape[0]
         cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
         for i in range(num_inps):
-           func.call(&outp[i], &dof_concat[i * num_dof])
+           (<FastFunction>self.function_factory.get_func(property_name)).call(&outp[i], &dof_concat[i * num_dof])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void prop_parameters_2d(self, double[:, ::1] outp, double[:, ::1] dof,
-                                  double[:, ::1] parameters, FastFunction func) nogil:
+                                  double[:, ::1] parameters, string property_name) nogil except *:
         """
         Calculate objective function using custom parameters.
         Note dof and parameters are vectorized separately, i.e., broadcast against each other.
@@ -216,77 +253,27 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
                 for param_idx in range(num_params):
                     dof_concat[j * num_dof + dof_offset + param_idx] = parameters[j, param_idx]
             for j in range(num_param_inps):
-                func.call(&outp[i,j], &dof_concat[j * num_dof])
+                (<FastFunction>self.function_factory.get_func(property_name)).call(&outp[i,j], &dof_concat[j * num_dof])
         free(dof_concat)
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
     cpdef void obj(self, double[::1] outp, double[::1] dof) nogil:
-        # dof.shape[0] may be oversized by the caller; do not trust it
-        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
-        self._obj.call(&outp[0], &dof_concat[0])
-        if self.parameters.shape[0] > 0:
-            free(dof_concat)
+        self.prop(outp, dof, <char*>'GM')
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
     cpdef void formulaobj(self, double[::1] outp, double[::1] dof) nogil:
-        # dof.shape[0] may be oversized by the caller; do not trust it
-        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
-        self._formulaobj.call(&outp[0], &dof_concat[0])
-        if self.parameters.shape[0] > 0:
-            free(dof_concat)
+        self.prop(outp, dof, <char*>'G')
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
     cpdef void obj_2d(self, double[::1] outp, double[:, ::1] dof) nogil:
-        # dof.shape[1] may be oversized by the caller; do not trust it
-        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
-        cdef int i
-        cdef int num_inps = dof.shape[0]
-        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
-        for i in range(num_inps):
-            self._obj.call(&outp[i], &dof_concat[i * num_dof])
-        if self.parameters.shape[0] > 0:
-            free(dof_concat)
+        self.prop_2d(outp, dof, <char*>'GM')
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
     cpdef void obj_parameters_2d(self, double[:, ::1] outp, double[:, ::1] dof, double[:, ::1] parameters) nogil:
-        """
-        Calculate objective function using custom parameters.
-        Note dof and parameters are vectorized separately, i.e., broadcast against each other.
-        Let dof.shape[0] = M and parameters.shape[0] = N
-        Then outp.shape = (M,N)
-        """
-        # dof.shape[1] may be oversized by the caller; do not trust it
-        cdef size_t i, j, dof_idx, param_idx
-        cdef size_t num_dof_inps = dof.shape[0]
-        cdef size_t num_param_inps = parameters.shape[0]
-        # We are trusting parameters.shape[1] to be sized correctly here
-        cdef size_t num_params = parameters.shape[1]
-        cdef size_t num_dof = self.num_statevars + self.phase_dof + num_params
-        cdef size_t dof_offset = self.num_statevars + self.phase_dof
-        cdef double* dof_concat = <double *> malloc(num_param_inps * num_dof * sizeof(double))
-        for i in range(num_dof_inps):
-            # Initialize all parameter arrays with current dof
-            for j in range(num_param_inps):
-                for dof_idx in range(num_dof-num_params):
-                    dof_concat[j * num_dof + dof_idx] = dof[i, dof_idx]
-                for param_idx in range(num_params):
-                    dof_concat[j * num_dof + dof_offset + param_idx] = parameters[j, param_idx]
-            for j in range(num_param_inps):
-                self._obj.call(&outp[i,j], &dof_concat[j * num_dof])
-        free(dof_concat)
+        self.prop_parameters_2d(outp, dof, parameters, <char*>'GM')
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void formulagrad(self, double[::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        self._formulagrad.call(&out[0], &dof_concat[0])
+        (<FastFunction>self.function_factory.get_grad(<char*>'G')).call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
@@ -296,7 +283,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void formulahess(self, double[:, ::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        self._formulahess.call(&out[0,0], &dof_concat[0])
+        (<FastFunction>self.function_factory.get_hess(<char*>'G')).call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 

@@ -1,6 +1,9 @@
 # distutils: language = c++
 
 cimport cython
+from libcpp.map cimport map
+from libcpp.utility cimport pair
+from libcpp.string cimport string
 import numpy
 cimport numpy
 
@@ -15,9 +18,13 @@ cdef class FastFunction:
 cdef class FastFunctionFactory:
     cdef object phase_record_factory
     cdef unicode phase_name
-    cpdef FastFunction get_func(self, unicode property_name)
-    cpdef FastFunction get_grad(self, unicode property_name)
-    cpdef FastFunction get_hess(self, unicode property_name)
+    cdef numpy.ndarray _cache
+    cdef map[pair[string, string], int] _cache_property_map
+    cdef int _cache_cur_idx
+    cdef void** _cache_ptr
+    cdef void* get_func(self, string property_name) nogil except *
+    cdef void* get_grad(self, string property_name) nogil except *
+    cdef void* get_hess(self, string property_name) nogil except *
     cpdef FastFunction get_cons_func(self)
     cpdef FastFunction get_cons_jac(self)
     cpdef FastFunction get_cons_hess(self)
@@ -58,10 +65,10 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public int phase_dof
     cdef public int num_statevars
     cdef public unicode phase_name 
-    cpdef void prop(self, double[::1] out, double[::1] dof, FastFunction func) nogil
-    cpdef void prop_2d(self, double[::1] out, double[:, ::1] dof, FastFunction func) nogil
+    cpdef void prop(self, double[::1] out, double[::1] dof, string property_name) nogil except *
+    cpdef void prop_2d(self, double[::1] out, double[:, ::1] dof, string property_name) nogil except *
     cpdef void prop_parameters_2d(self, double[:, ::1] out, double[:, ::1] dof,
-                                  double[:, ::1] parameters, FastFunction func) nogil
+                                  double[:, ::1] parameters, string property_name) nogil except *
     cpdef void obj(self, double[::1] out, double[::1] dof) nogil
     cpdef void formulaobj(self, double[::1] out, double[::1] dof) nogil
     cpdef void obj_2d(self, double[::1] out, double[:, ::1] dof) nogil
