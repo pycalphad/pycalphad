@@ -50,7 +50,7 @@ cdef class FastFunctionFactory:
                 self._cache_cur_idx += 1
                 if self._cache_cur_idx > self._cache.shape[0]:
                     raise ValueError('Cache error')
-                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8')).func)
+                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8'), include_grad=False, include_hess=False).func)
                 self._cache_property_map[cache_key] = self._cache_cur_idx
             it = self._cache_property_map.find(cache_key)
         return <void*>self._cache_ptr[deref(it).second]
@@ -64,7 +64,7 @@ cdef class FastFunctionFactory:
                 self._cache_cur_idx += 1
                 if self._cache_cur_idx > self._cache.shape[0]:
                     raise ValueError('Cache error')
-                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8')).grad)
+                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8'), include_grad=True, include_hess=False).grad)
                 self._cache_property_map[cache_key] = self._cache_cur_idx
             it = self._cache_property_map.find(cache_key)
         return <void*>self._cache_ptr[deref(it).second]
@@ -78,7 +78,7 @@ cdef class FastFunctionFactory:
                 self._cache_cur_idx += 1
                 if self._cache_cur_idx > self._cache.shape[0]:
                     raise ValueError('Cache error')
-                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8')).hess)
+                self._cache[self._cache_cur_idx] = FastFunction(self.phase_record_factory.get_phase_property(self.phase_name, (<bytes>property_name).decode('utf-8'), include_grad=False, include_hess=True).hess)
                 self._cache_property_map[cache_key] = self._cache_cur_idx
             it = self._cache_property_map.find(cache_key)
         return <void*>self._cache_ptr[deref(it).second]
