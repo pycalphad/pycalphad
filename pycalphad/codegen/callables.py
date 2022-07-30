@@ -27,7 +27,6 @@ class PhaseRecordFactory(object):
         parameters = parameters if parameters is not None else {}
         self.models = models
         self.state_variables = sorted(get_state_variables(models=models, conds=state_variables), key=str)
-        print(self.state_variables)
         self.param_symbols, self.param_values = extract_parameters(parameters)
 
         if len(self.param_values.shape) > 1:

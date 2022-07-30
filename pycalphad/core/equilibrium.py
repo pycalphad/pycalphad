@@ -40,7 +40,7 @@ def _adjust_conditions(conds):
     return new_conds
 
 
-def dot_derivative(spec, state, property_of_interest):
+def dot_derivative(spec, state, property_of_interest, statevar_of_interest):
     """
     Sample the internal degrees of freedom of a phase.
 
@@ -51,13 +51,12 @@ def dot_derivative(spec, state, property_of_interest):
     state : SystemState
         another description
     property_of_interest : string
-
+    statevar_of_interest : StateVariable
     Returns
     -------
     dot derivative of property
     """
-    property_of_interest = property_of_interest.encode('utf-8')
-    statevar_of_interest = v.T
+    property_of_interest = str(property_of_interest).encode('utf-8')
     state_variables = state.compsets[0].phase_record.state_variables
     statevar_idx = sorted(state_variables, key=str).index(statevar_of_interest)
     delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
@@ -74,7 +73,7 @@ def dot_derivative(spec, state, property_of_interest):
         delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                      delta_statevars)
 
-        dot_derivative += delta_phase_amounts[idx] * func_value
+        dot_derivative += delta_phase_amounts[idx] * func_value[0]
         dot_derivative += compset.NP * grad_value[statevar_idx] * delta_statevars[statevar_idx]
         naive_derivative += compset.NP * grad_value[statevar_idx] * delta_statevars[statevar_idx]
         dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
@@ -319,7 +318,7 @@ class DotDerivativeComputedProperty(ComputedProperty):
         state = spec.get_new_state(compsets)
         state.chemical_potentials[:] = chemical_potentials
         state.recompute(spec)
-        return dot_derivative(spec, state, self.model_attr_name)
+        return dot_derivative(spec, state, 'H', v.T)
 
 COMPUTED_PROPERTIES = defaultdict(lambda: ComputedProperty)
 COMPUTED_PROPERTIES['DOO'] = ComputedProperty('DOO', per_phase=True)
