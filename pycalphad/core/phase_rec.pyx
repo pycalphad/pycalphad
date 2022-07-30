@@ -256,6 +256,15 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
                 (<FastFunction>self.function_factory.get_func(property_name)).call(&outp[i,j], &dof_concat[j * num_dof])
         free(dof_concat)
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void prop_grad(self, double[::1] out, double[::1] dof, string property_name) nogil except *:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        (<FastFunction>self.function_factory.get_grad(property_name)).call(&out[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
     cpdef void obj(self, double[::1] outp, double[::1] dof) nogil:
         self.prop(outp, dof, <char*>'GM')
 

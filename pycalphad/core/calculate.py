@@ -11,7 +11,7 @@ import numpy as np
 from numpy import broadcast_to
 import pycalphad.variables as v
 from pycalphad import ConditionError
-from pycalphad.codegen.callables import build_phase_records
+from pycalphad.codegen.callables import PhaseRecordFactory
 from pycalphad.core.cache import cacheit
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
@@ -459,20 +459,13 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # Build phase records if they weren't passed
     if phase_records is None:
         models = instantiate_models(dbf, comps, active_phases, model=model, parameters=parameters)
-        phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
-                                            models=models, parameters=parameters,
-                                            output=output, callables=callables,
-                                            build_gradients=False, build_hessians=False,
-                                            verbose=kwargs.pop('verbose', False))
+        phase_records = PhaseRecordFactory(dbf, comps, statevar_dict, models, parameters=parameters)
     else:
         # phase_records were provided, instantiated models must also be provided by the caller
         models = model
         if not isinstance(models, Mapping):
             raise ValueError("A dictionary of instantiated models must be passed to `equilibrium` with the `model` argument if the `phase_records` argument is used.")
         active_phases_without_models = [name for name in active_phases if not isinstance(models.get(name), Model)]
-        active_phases_without_phase_records = [name for name in active_phases if not isinstance(phase_records.get(name), PhaseRecord)]
-        if len(active_phases_without_phase_records) > 0:
-            raise ValueError(f"phase_records must contain a PhaseRecord instance for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
         if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 

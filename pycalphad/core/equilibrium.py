@@ -3,7 +3,6 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 import warnings
-from functools import partial
 from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 from datetime import datetime
@@ -12,9 +11,8 @@ from pycalphad.core.utils import unpack_components, unpack_condition, unpack_pha
 from pycalphad import calculate
 from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.starting_point import starting_point
-from pycalphad.codegen.callables import build_phase_records, build_callables, PhaseRecordFactory
+from pycalphad.codegen.callables import PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
-from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
 from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential
@@ -42,21 +40,23 @@ def _adjust_conditions(conds):
     return new_conds
 
 
-def dot_derivative(spec, state, property_records):
+def dot_derivative(spec, state, property_of_interest):
     """
     Sample the internal degrees of freedom of a phase.
 
     Parameters
     ----------
-    spec : SystemSpecifications
+    spec : SystemSpecification
         some description
-    state : Title
+    state : SystemState
         another description
+    property_of_interest : string
 
     Returns
     -------
     dot derivative of property
     """
+    property_of_interest = property_of_interest.encode('utf-8')
     statevar_of_interest = v.T
     state_variables = state.compsets[0].phase_record.state_variables
     statevar_idx = sorted(state_variables, key=str).index(statevar_of_interest)
@@ -67,9 +67,10 @@ def dot_derivative(spec, state, property_records):
     dot_derivative = 0.0
     naive_derivative = 0.0
     for idx, compset in enumerate(state.compsets):
-        phase_name = compset.phase_record.phase_name
-        proprecord = property_records[phase_name]
-        func_value, grad_value = proprecord[0](compset.dof), proprecord[1](compset.dof)
+        func_value = np.atleast_1d(np.zeros(1))
+        grad_value = np.zeros(compset.dof.shape[0])
+        compset.phase_record.prop(func_value, compset.dof, property_of_interest)
+        compset.phase_record.prop_grad(grad_value, compset.dof, property_of_interest)
         delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                      delta_statevars)
 
@@ -232,6 +233,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
+    phase_record_factory.param_values[:] = list(parameters.values())
+
     if verbose:
         print('[done]', end='\n')
 
@@ -261,7 +264,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     for out in output:
         if (out is None) or (len(out) == 0):
             continue
-        cprop = COMPUTED_PROPERTIES[out](dbf, comps, active_phases, conds, models, out, parameters=None)
+        if isinstance(out, str):
+            cprop = COMPUTED_PROPERTIES[out]
+            if isinstance(cprop, type):
+                cprop = cprop(out)
+        else:
+            cprop = out
+            out = str(cprop)
         result_array = cprop.compute(properties, phase_record_factory)
         prop_dims = list(str_conds.keys())
         if cprop.per_phase:
@@ -276,32 +285,24 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     return properties
 
 class ComputedProperty(object):
-    def __init__(self, dbf, comps, active_phases, conds, models, model_attr_name, parameters=None, per_phase=False):
+    def __init__(self, model_attr_name, per_phase=False):
         self.per_phase = per_phase
-        parameters = parameters if parameters is not None else {}
-        state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
-        # TODO: Special case should be fixed with PhaseRecordFactory
-        if model_attr_name in ('DOO', 'degree_of_ordering'):
-            # Cannot build this gradient (and we do not usually need it)
-            build_gradients = False
-        else:
-            build_gradients = True
-        callables = build_callables(dbf, comps, active_phases, models,
-                                    parameter_symbols=parameters.keys(), output=model_attr_name,
-                                    additional_statevars=state_variables, build_gradients=build_gradients)
-        self.property_records = {name: (callables[model_attr_name]['callables'][name],
-                                        callables[model_attr_name]['grad_callables'][name])
-                                 for name in active_phases}
+        self.model_attr_name = model_attr_name
+
         if self.per_phase:
             self._apply_func = self.calculate_per_phase_property
         else:
             self._apply_func = self.calculate_system_property
 
+    def __str__(self):
+        return self.model_attr_name
+
     def calculate_system_property(self, compsets, cur_conds, chemical_potentials, index):
         return np.nansum([compset.NP*self.calculate_per_phase_property(compset, cur_conds, index) for compset in compsets])
 
     def calculate_per_phase_property(self, compset, cur_conds, index):
-        out = self.property_records[compset.phase_record.phase_name][0](compset.dof)
+        out = np.atleast_1d(np.zeros(1))
+        compset.phase_record.prop(out, compset.dof, self.model_attr_name.encode('utf-8'))
         return out
 
     def compute(self, input_dataset, phase_records):
@@ -309,8 +310,8 @@ class ComputedProperty(object):
                                 per_phase=self.per_phase, fill_value=np.nan, dtype=float)
 
 class DotDerivativeComputedProperty(ComputedProperty):
-    def __init__(self, dbf, comps, active_phases, conds, models, model_attr_name, parameters=None):
-        super().__init__(dbf, comps, active_phases, conds, models, 'H', parameters=parameters, per_phase=False)
+    def __init__(self, model_attr_name):
+        super().__init__(model_attr_name, per_phase=False)
     
     def calculate_system_property(self, compsets, cur_conds, chemical_potentials, index):
         solver = Solver()
@@ -318,9 +319,9 @@ class DotDerivativeComputedProperty(ComputedProperty):
         state = spec.get_new_state(compsets)
         state.chemical_potentials[:] = chemical_potentials
         state.recompute(spec)
-        return dot_derivative(spec, state, self.property_records)
+        return dot_derivative(spec, state, self.model_attr_name)
 
 COMPUTED_PROPERTIES = defaultdict(lambda: ComputedProperty)
-COMPUTED_PROPERTIES['DOO'] = partial(ComputedProperty, per_phase=True)
-COMPUTED_PROPERTIES['degree_of_ordering'] = partial(ComputedProperty, per_phase=True)
-COMPUTED_PROPERTIES['heat_capacity'] = DotDerivativeComputedProperty
+COMPUTED_PROPERTIES['DOO'] = ComputedProperty('DOO', per_phase=True)
+COMPUTED_PROPERTIES['degree_of_ordering'] = COMPUTED_PROPERTIES['DOO']
+COMPUTED_PROPERTIES['heat_capacity'] = DotDerivativeComputedProperty('heat_capacity')

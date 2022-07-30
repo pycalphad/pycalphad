@@ -69,6 +69,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void prop_2d(self, double[::1] out, double[:, ::1] dof, string property_name) nogil except *
     cpdef void prop_parameters_2d(self, double[:, ::1] out, double[:, ::1] dof,
                                   double[:, ::1] parameters, string property_name) nogil except *
+    cpdef void prop_grad(self, double[::1] out, double[::1] dof, string property_name) nogil except *
     cpdef void obj(self, double[::1] out, double[::1] dof) nogil
     cpdef void formulaobj(self, double[::1] out, double[::1] dof) nogil
     cpdef void obj_2d(self, double[::1] out, double[:, ::1] dof) nogil

@@ -10,7 +10,7 @@ from symengine import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
-from pycalphad.codegen.callables import build_callables, build_phase_records
+from pycalphad.codegen.callables import build_phase_records, PhaseRecordFactory
 from pycalphad.core.solver import SolverBase, Solver
 from pycalphad.core.utils import get_state_variables, instantiate_models
 import pycalphad.variables as v
@@ -462,28 +462,24 @@ def test_eq_parameter_override(load_database):
 
 
 @select_database("al_parameter.tdb")
-def test_eq_build_callables_with_parameters(load_database):
+def test_eq_phase_record_factory_with_parameters(load_database):
     """
-    Check build_callables() compatibility with the parameters kwarg.
+    Check PhaseRecordFactory compatibility with the parameters kwarg.
     """
     comps = ["AL"]
     dbf = load_database()
     phases = ['FCC_A1']
     conds = {v.P: 101325, v.T: 500, v.N: 1}
-    conds_statevars = get_state_variables(conds=conds)
     models = {'FCC_A1': Model(dbf, comps, 'FCC_A1', parameters=['VV0000'])}
-    # build callables with a parameter of 20000.0
-    callables = build_callables(dbf, comps, phases,
-                                models=models, parameter_symbols=['VV0000'], additional_statevars=conds_statevars,
-                                build_gradients=True, build_hessians=True)
+    # build PhaseRecordFactory with a parameter of 20000.0
+    prf = PhaseRecordFactory(dbf, comps, conds, models, parameters={'VV0000': 20000})
 
-    # Check that passing callables should skip the build phase, but use the values from 'VV0000' as passed in parameters
-    eq_res = equilibrium(dbf, comps, phases, conds, callables=callables, parameters={'VV0000': 10000})
+    # use the values from 'VV0000' as passed in parameters
+    eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, parameters={'VV0000': 10000})
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
-    # Check that passing callables should skip the build phase,
-    # but use the values from Symbol('VV0000') as passed in parameters
-    eq_res = equilibrium(dbf, comps, phases, conds, callables=callables, parameters={Symbol('VV0000'): 10000})
+    # use the values from Symbol('VV0000') as passed in parameters
+    eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, parameters={Symbol('VV0000'): 10000})
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
 
