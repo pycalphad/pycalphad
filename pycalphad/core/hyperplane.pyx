@@ -239,12 +239,11 @@ cpdef double hyperplane(double[:,::1] compositions,
         lowest_df = 1e10
         min_df = -1
         for i in range(num_points):
-            if driving_forces[i] < 1.0:
-                remaining_point_indices[ici] = remaining_point_indices[i]
-                if driving_forces[i] < lowest_df:
-                    lowest_df = driving_forces[i]
-                    min_df = ici
-                ici += 1
+            remaining_point_indices[ici] = remaining_point_indices[i]
+            if driving_forces[i] < lowest_df:
+                lowest_df = driving_forces[i]
+                min_df = ici
+            ici += 1
         num_points = ici
 
         # Trial simplices will be the current simplex with each vertex
@@ -269,7 +268,9 @@ cpdef double hyperplane(double[:,::1] compositions,
     # Hack to enforce Gibbs phase rule, shape of result is comp+1, shape of hyperplane is comp
     result_fractions[simplex_size:] = 0.0
     result_simplex[simplex_size:] = 0
-
+    with gil:
+        print('num_iterations', iterations)
+        assert np.all(np.array(<double[:num_points]>driving_forces) > -1)
     # 1-D
     free(remaining_point_indices)
     free(included_composition_indices)
