@@ -268,9 +268,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     # Hack to enforce Gibbs phase rule, shape of result is comp+1, shape of hyperplane is comp
     result_fractions[simplex_size:] = 0.0
     result_simplex[simplex_size:] = 0
-    with gil:
-        print('num_iterations', iterations)
-        assert np.all(np.array(<double[:num_points]>driving_forces) > -1)
+
     # 1-D
     free(remaining_point_indices)
     free(included_composition_indices)
