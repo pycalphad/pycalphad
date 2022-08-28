@@ -92,17 +92,13 @@ class ComputableProperty(Protocol):
     def shape(self) -> Tuple[int]:
         ...
 
-# TODO: Move ComputedProperty into variables
-# Make every statevariable a computedproperty
-# Consider allowing * keyword which would produce multiple properties (or do we handle it further down the call stack?)
-# plot ComputableProperties against each other, calculate shape for properties as well
 class ComputedProperty(object):
     def __init__(self, model_attr_name: str, phase_name: Optional[str] = None):
         self.model_attr_name = model_attr_name
         self.phase_name = phase_name
-        # TODO: Add support for '*' and/or multiple phases
-        if self.phase_name == '*':
-            raise NotImplementedError
+
+    def expand_wildcard(self, phase_names):
+        return [self.__class__(self.model_attr_name, phase_name) for phase_name in phase_names]
 
     def __str__(self):
         result = self.model_attr_name
@@ -122,12 +118,21 @@ class ComputedProperty(object):
         if self.phase_name is None:
             return np.nansum([compset.NP*self.compute_per_phase_property(compset, cur_conds) for compset in compsets])
         else:
-            phase_names = [compset.phase_record.phase_name for compset in compsets]
-            try:
-                phase_idx = phase_names.index(self.phase_name)
-            except ValueError:
-                return np.atleast_1d(np.nan)
-            return self.compute_per_phase_property(compsets[phase_idx], cur_conds)
+            tokens = self.phase_name.split('#')
+            phase_name = tokens[0]
+            if len(tokens) > 1:
+                multiplicity = int(tokens[1])
+            else:
+                multiplicity = 1
+            multiplicity_seen = 0
+            for compset in compsets:
+                if compset.phase_record.phase_name != phase_name:
+                    continue
+                multiplicity_seen += 1
+                if multiplicity == multiplicity_seen:
+                    return self.compute_per_phase_property(compset, cur_conds)
+            return np.atleast_1d(np.nan)
+
     def compute_per_phase_property(self, compset: CompositionSet, cur_conds: Dict[str, float]) -> npt.ArrayLike:
         out = np.atleast_1d(np.zeros(1))
         compset.phase_record.prop(out, compset.dof, self.model_attr_name.encode('utf-8'))
