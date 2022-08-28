@@ -1,6 +1,6 @@
 from typing_extensions import runtime
 import warnings
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict, Counter
 from collections.abc import Mapping
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models, get_state_variables
@@ -287,9 +287,24 @@ class Workspace:
                                           list(str_conds.keys()), state_variables,
                                           self.verbose, solver=self.solver)
 
+    def _detect_phase_multiplicity(self):
+        multiplicity = {k: 0 for k in sorted(self.phase_record_factory.keys())}
+        prop_GM_values = self.eq.GM
+        prop_Phase_values = self.eq.Phase
+        for index in np.ndindex(prop_GM_values.shape):
+            cur_multiplicity = Counter()
+            for phase_name in prop_Phase_values[index]:
+                if phase_name == '' or phase_name == '_FAKE_':
+                    continue
+                cur_multiplicity[phase_name] += 1
+            for key, value in cur_multiplicity.items():
+                multiplicity[key] = max(multiplicity[key], value)
+        return multiplicity
+
     def get(self, *args: Tuple[ComputableProperty], values_only=True):
         if self.ndim > 1:
             raise ValueError('Dimension of calculation is greater than one')
+        multiplicity = self._detect_phase_multiplicity()
         args = list(map(make_computable_property, args))
         
         indices_to_delete = []
@@ -312,12 +327,22 @@ class Workspace:
                     components = self.phase_record_factory[args[i].phase_name].nonvacant_elements
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
+            else:
+                # This is a concrete ComputableProperty
+                if hasattr(args[i], 'phase_name') and (args[i].phase_name is not None) \
+                    and not ('#' in args[i].phase_name) and multiplicity[args[i].phase_name] > 1:
+                    # Miscibility gap detected; expand property into multiple composition sets
+                    additional_phase_names = [args[i].phase_name+'#'+str(multi_idx+1)
+                                              for multi_idx in range(multiplicity[args[i].phase_name])]
+                    indices_to_delete.append(i)
+                    additional_args = args[i].expand_wildcard(phase_names=additional_phase_names)
+                    args.extend(additional_args)
             i += 1
         
         # Watch deletion order! Indices will change as items are deleted
         for deletion_index in reversed(indices_to_delete):
             del args[deletion_index]
-
+        print(f'{args=}')
         arr_size = self.eq.GM.size
         results = dict()
 

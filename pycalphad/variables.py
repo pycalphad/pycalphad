@@ -207,13 +207,25 @@ class PhaseFraction(StateVariable):
         self.phase_name = phase_name.upper()
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
+        tokens = self.phase_name.split('#')
+        phase_name = tokens[0]
+        if len(tokens) > 1:
+            multiplicity = int(tokens[1])
+        else:
+            multiplicity = 1
         result = np.atleast_1d(np.zeros(self.shape))
-        # TODO: Handle miscibility gaps
+        multiplicity_seen = 0
         for compset in compsets:
-            if compset.phase_record.phase_name != self.phase_name:
+            if compset.phase_record.phase_name != phase_name:
+                continue
+            multiplicity_seen += 1
+            if multiplicity != multiplicity_seen:
                 continue
             result[0] += compset.NP
         return result
+
+    def expand_wildcard(self, phase_names):
+        return [self.__class__(phase_name) for phase_name in phase_names]
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -259,16 +271,25 @@ class MoleFraction(StateVariable):
             raise ValueError('Both phase_names and components are None')
     
     def compute_property(self, compsets, cur_conds, chemical_potentials):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            phase_name = tokens[0]
+            if len(tokens) > 1:
+                multiplicity = int(tokens[1])
+            else:
+                multiplicity = 1
+        else:
+            phase_name, multiplicity = None, None
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
-        # TODO: Handle miscibility gaps
-        already_set = False
+        multiplicity_seen = 0
         for compset in compsets:
-            if (self.phase_name is not None) and (compset.phase_record.phase_name != self.phase_name):
+            if (self.phase_name is not None) and (compset.phase_record.phase_name != phase_name):
                 continue
-            if already_set and (self.phase_name is not None):
-                raise ValueError('Miscibility gaps are not yet supported')
-            already_set = True
+            if multiplicity is not None:
+                multiplicity_seen += 1
+                if multiplicity != multiplicity_seen:
+                    continue
             el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
             if np.isnan(result[0]):
                 result[0] = 0
