@@ -3,7 +3,7 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 import warnings
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from collections.abc import Mapping
 from datetime import datetime
 import pycalphad.variables as v
@@ -15,10 +15,10 @@ from pycalphad.codegen.callables import PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
-from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
 import numpy as np
+from pycalphad.core.workspace import make_computable_property
 
 
 def _adjust_conditions(conds):
@@ -38,47 +38,6 @@ def _adjust_conditions(conds):
         else:
             new_conds[key] = unpack_condition(value)
     return new_conds
-
-
-def dot_derivative(spec, state, property_of_interest, statevar_of_interest):
-    """
-    Sample the internal degrees of freedom of a phase.
-
-    Parameters
-    ----------
-    spec : SystemSpecification
-        some description
-    state : SystemState
-        another description
-    property_of_interest : string
-    statevar_of_interest : StateVariable
-    Returns
-    -------
-    dot derivative of property
-    """
-    property_of_interest = str(property_of_interest).encode('utf-8')
-    state_variables = state.compsets[0].phase_record.state_variables
-    statevar_idx = sorted(state_variables, key=str).index(statevar_of_interest)
-    delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
-    state_variable_differential(spec, state, statevar_idx)
-
-    # Sundman et al, 2015, Eq. 73
-    dot_derivative = 0.0
-    naive_derivative = 0.0
-    for idx, compset in enumerate(state.compsets):
-        func_value = np.atleast_1d(np.zeros(1))
-        grad_value = np.zeros(compset.dof.shape[0])
-        compset.phase_record.prop(func_value, compset.dof, property_of_interest)
-        compset.phase_record.prop_grad(grad_value, compset.dof, property_of_interest)
-        delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
-                                                     delta_statevars)
-
-        dot_derivative += delta_phase_amounts[idx] * func_value[0]
-        dot_derivative += compset.NP * grad_value[statevar_idx] * delta_statevars[statevar_idx]
-        naive_derivative += compset.NP * grad_value[statevar_idx] * delta_statevars[statevar_idx]
-        dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
-
-    return dot_derivative
 
 
 def apply_to_dataset(input_dataset, phase_records, function_to_apply, per_phase=False, fill_value=np.nan, dtype=float):
@@ -264,7 +223,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         if (out is None) or (len(out) == 0):
             continue
         if isinstance(out, str):
-            cprop = COMPUTED_PROPERTIES[out]
+            cprop = make_computable_property(out)
             if isinstance(cprop, type):
                 cprop = cprop(out)
         else:
@@ -282,45 +241,3 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if len(kwargs) > 0:
         warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
     return properties
-
-class ComputedProperty(object):
-    def __init__(self, model_attr_name, per_phase=False):
-        self.per_phase = per_phase
-        self.model_attr_name = model_attr_name
-
-        if self.per_phase:
-            self._apply_func = self.calculate_per_phase_property
-        else:
-            self._apply_func = self.calculate_system_property
-
-    def __str__(self):
-        return self.model_attr_name
-
-    def calculate_system_property(self, compsets, cur_conds, chemical_potentials, index):
-        return np.nansum([compset.NP*self.calculate_per_phase_property(compset, cur_conds, index) for compset in compsets])
-
-    def calculate_per_phase_property(self, compset, cur_conds, index):
-        out = np.atleast_1d(np.zeros(1))
-        compset.phase_record.prop(out, compset.dof, self.model_attr_name.encode('utf-8'))
-        return out
-
-    def compute(self, input_dataset, phase_records):
-        return apply_to_dataset(input_dataset, phase_records, self._apply_func,
-                                per_phase=self.per_phase, fill_value=np.nan, dtype=float)
-
-class DotDerivativeComputedProperty(ComputedProperty):
-    def __init__(self, model_attr_name):
-        super().__init__(model_attr_name, per_phase=False)
-    
-    def calculate_system_property(self, compsets, cur_conds, chemical_potentials, index):
-        solver = Solver()
-        spec = solver.get_system_spec(compsets, cur_conds)
-        state = spec.get_new_state(compsets)
-        state.chemical_potentials[:] = chemical_potentials
-        state.recompute(spec)
-        return dot_derivative(spec, state, 'H', v.T)
-
-COMPUTED_PROPERTIES = defaultdict(lambda: ComputedProperty)
-COMPUTED_PROPERTIES['DOO'] = ComputedProperty('DOO', per_phase=True)
-COMPUTED_PROPERTIES['degree_of_ordering'] = COMPUTED_PROPERTIES['DOO']
-COMPUTED_PROPERTIES['heat_capacity'] = DotDerivativeComputedProperty('heat_capacity')

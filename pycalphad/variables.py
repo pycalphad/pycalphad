@@ -3,10 +3,9 @@
 Classes and constants for representing thermodynamic variables.
 """
 
-import sys
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
-
+import numpy as np
 
 class Species(object):
     """
@@ -76,6 +75,10 @@ class Species(object):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def cast_from(cls, s: str) -> "Species":
+        return cls(s)
+
     @property
     def escaped_name(self):
         "Name safe to embed in the variable name of complex arithmetic expressions."
@@ -115,6 +118,15 @@ class StateVariable(Symbol):
     def __init__(self, name):
         super().__init__(name.upper())
 
+    @property
+    def shape(self):
+        return (1,)
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        state_variables = compsets[0].phase_record.state_variables
+        statevar_idx = state_variables.index(self)
+        return compsets[0].dof[statevar_idx]
+
     def __reduce__(self):
         return self.__class__, (self.name,)
 
@@ -143,6 +155,18 @@ class SiteFraction(StateVariable):
         self.phase_name = phase_name.upper()
         self.sublattice_index = subl_index
         self.species = Species(species)
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        state_variables = compsets[0].phase_record.state_variables
+        result = np.atleast_1d(np.zeros(self.shape))
+        # TODO: Handle miscibility gaps
+        for compset_idx, compset in enumerate(compsets):
+            if compset.phase_record.phase_name != self.phase_name:
+                continue
+            site_fractions = compset.phase_record.variables
+            sitefrac_idx = site_fractions.index(self)
+            result[0] += compset.dof[len(state_variables)+sitefrac_idx]
+        return result
 
     def __reduce__(self):
         return self.__class__, (self.phase_name, self.sublattice_index, self.species)
@@ -182,6 +206,15 @@ class PhaseFraction(StateVariable):
         super().__init__(varname)
         self.phase_name = phase_name.upper()
 
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        result = np.atleast_1d(np.zeros(self.shape))
+        # TODO: Handle miscibility gaps
+        for compset in compsets:
+            if compset.phase_record.phase_name != self.phase_name:
+                continue
+            result[0] += compset.NP
+        return result
+
     def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
@@ -213,6 +246,37 @@ class MoleFraction(StateVariable):
         super().__init__(varname)
         self.phase_name = phase_name
         self.species = species
+    
+    def expand_wildcard(self, phase_names=None, components=None):
+        if phase_names is not None:
+            return [self.__class__(phase_name, self.species) for phase_name in phase_names]
+        elif components is not None:
+            if self.phase_name is None:
+                return [self.__class__(comp) for comp in components]
+            else:
+                return [self.__class__(self.phase_name, comp) for comp in components]
+        else:
+            raise ValueError('Both phase_names and components are None')
+    
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        result = np.atleast_1d(np.zeros(self.shape))
+        result[:] = np.nan
+        # TODO: Handle miscibility gaps
+        already_set = False
+        for compset in compsets:
+            if (self.phase_name is not None) and (compset.phase_record.phase_name != self.phase_name):
+                continue
+            if already_set and (self.phase_name is not None):
+                raise ValueError('Miscibility gaps are not yet supported')
+            already_set = True
+            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+            if np.isnan(result[0]):
+                result[0] = 0
+            if self.phase_name is None:
+                result[0] += compset.NP * compset.X[el_idx]
+            else:
+                result[0] += compset.X[el_idx]
+        return result
 
     def __reduce__(self):
         if self.phase_name is None:
@@ -376,6 +440,15 @@ class ChemicalPotential(StateVariable):
         super().__init__(varname)
         self.species = species
 
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        phase_record = compsets[0].phase_record
+        el_indices = [(phase_record.nonvacant_elements.index(k), v)
+                       for k, v in self.species.constituents.items()]
+        result = np.atleast_1d(np.zeros(self.shape))
+        for el_idx, multiplicity in el_indices:
+            result[0] += multiplicity * chemical_potentials[el_idx]
+        return result
+
     def _latex(self, printer=None):
         "LaTeX representation."
         return '\mu_{'+self.species.escaped_name+'}'
@@ -385,9 +458,9 @@ class ChemicalPotential(StateVariable):
         return 'MU_%s' % self.species.name
 
 temperature = T = StateVariable('T')
-entropy = S = StateVariable('S')
+entropy = S = StateVariable('S') # TODO: Needs to be a ComputedProperty
 pressure = P = StateVariable('P')
-volume = V = StateVariable('V')
+volume = V = StateVariable('V') # TODO: Needs to be a ComputedProperty
 moles = N = StateVariable('N')
 site_fraction = Y = SiteFraction
 X = MoleFraction
