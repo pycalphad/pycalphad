@@ -45,7 +45,7 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
             new_conds[key] = unpack_condition(value)
     return new_conds
 
-def dot_derivative(spec, state, property_of_interest, statevar_of_interest):
+def dot_derivative(spec, state, cur_conds, property_of_interest: "ComputableProperty", statevar_of_interest: StateVariable):
     """
 
     Parameters
@@ -54,34 +54,41 @@ def dot_derivative(spec, state, property_of_interest, statevar_of_interest):
         some description
     state : SystemState
         another description
+    cur_conds : dict
     property_of_interest : string
     statevar_of_interest : StateVariable
     Returns
     -------
     dot derivative of property
     """
-    property_of_interest = str(property_of_interest).encode('utf-8')
     state_variables = state.compsets[0].phase_record.state_variables
     statevar_idx = sorted(state_variables, key=str).index(statevar_of_interest)
     delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
     state_variable_differential(spec, state, statevar_idx)
 
+    grad_values = property_of_interest.compute_property_gradient(state.compsets, cur_conds, state.chemical_potentials)
+
     # Sundman et al, 2015, Eq. 73
-    dot_derivative = 0.0
-    naive_derivative = 0.0
+    dot_derivative = np.nan
     for idx, compset in enumerate(state.compsets):
-        func_value = np.atleast_1d(np.zeros(1))
-        grad_value = np.zeros(compset.dof.shape[0])
-        compset.phase_record.prop(func_value, compset.dof, property_of_interest)
-        compset.phase_record.prop_grad(grad_value, compset.dof, property_of_interest)
+        if compset.NP == 0 and not (compset.fixed):
+            continue
+        func_value = property_of_interest.compute_per_phase_property(compset, cur_conds)
+        if np.isnan(func_value):
+            continue
+        if np.isnan(dot_derivative):
+            dot_derivative = 0.0
+        grad_value = grad_values[idx]
         delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                      delta_statevars)
 
-        dot_derivative += delta_phase_amounts[idx] * func_value[0]
-        dot_derivative += compset.NP * grad_value[statevar_idx] * delta_statevars[statevar_idx]
-        naive_derivative += compset.NP * grad_value[statevar_idx] * delta_statevars[statevar_idx]
-        dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
-
+        if property_of_interest.phase_name is None:
+            dot_derivative += delta_phase_amounts[idx] * func_value
+            dot_derivative += compset.NP * grad_value[statevar_idx] * delta_statevars[statevar_idx]
+            dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
+        else:
+            dot_derivative += grad_value[statevar_idx] * delta_statevars[statevar_idx]
+            dot_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
     return dot_derivative
 
 @runtime_checkable
@@ -114,6 +121,17 @@ class ComputedProperty(object):
     def dims(self, compsets: List[CompositionSet]):
         return ('phase',)
 
+    @property
+    def multiplicity(self):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            if len(tokens) > 1:
+                return int(tokens[1])
+            else:
+                return 1
+        else:
+            return None
+
     def compute_property(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike) -> npt.ArrayLike:
         if self.phase_name is None:
             return np.nansum([compset.NP*self.compute_per_phase_property(compset, cur_conds) for compset in compsets])
@@ -138,9 +156,34 @@ class ComputedProperty(object):
         compset.phase_record.prop(out, compset.dof, self.model_attr_name.encode('utf-8'))
         return out
 
+    def compute_property_gradient(self, compsets, cur_conds, chemical_potentials):
+        "Compute partial derivatives of property with respect to degrees of freedom of given CompositionSets"
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            phase_name = tokens[0]
+        result = [np.zeros(compset.dof.shape[0]) for compset in compsets]
+        multiplicity_seen = 0
+        for cs_idx, compset in enumerate(compsets):
+            if (self.phase_name is not None) and (compset.phase_record.phase_name != phase_name):
+                continue
+            if self.multiplicity is not None:
+                multiplicity_seen += 1
+                if self.multiplicity != multiplicity_seen:
+                    continue
+            grad = np.zeros((compset.dof.shape[0]))
+            compset.phase_record.prop_grad(grad, compset.dof, self.model_attr_name.encode('utf-8'))
+            result[cs_idx][:] = grad
+        return result
+
 def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableProperty:
     if isa(inp, ComputableProperty):
         return inp
+    dot_tokens = inp.split('.')
+    if len(dot_tokens) == 2:
+        numerator, denominator = dot_tokens
+        numerator = make_computable_property(numerator)
+        denominator = make_computable_property(denominator)
+        return DotDerivativeComputedProperty(numerator, denominator)
     try:
         begin_parens = inp.index('(')
         end_parens = inp.index(')')
@@ -150,7 +193,6 @@ def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableP
 
     specified_prop = inp[:begin_parens].strip()
 
-    # TODO: Add support for '.' in dot derivative
     prop = getattr(v, specified_prop, None)
     if prop is None:
         prop = COMPUTED_PROPERTIES.get(specified_prop, ComputedProperty)
@@ -158,25 +200,21 @@ def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableP
         specified_args = tuple(x.strip() for x in inp[begin_parens+1:end_parens].split(','))
         if not isinstance(prop, type):
             prop_instance = type(prop)(*((specified_prop,)+specified_args))
-            print('first branch')
         else:
             if issubclass(prop, StateVariable):
                 prop_instance = prop(*(specified_args))
             else:
                 prop_instance = prop(*((specified_prop,)+specified_args))
-            print('second branch')
     else:
-        print('third branch')
         if isinstance(prop, type):
             prop = prop(specified_prop)
-            print('three.1')
         prop_instance = prop
-    print(f'returning {prop_instance}')
     return prop_instance
 
 class DotDerivativeComputedProperty:
-    def __init__(self, model_attr_name):
-        pass
+    def __init__(self, numerator: ComputableProperty, denominator: ComputableProperty):
+        self.numerator = make_computable_property(numerator)
+        self.denominator = make_computable_property(denominator)
 
     @property
     def shape(self):
@@ -189,12 +227,15 @@ class DotDerivativeComputedProperty:
         state = spec.get_new_state(compsets)
         state.chemical_potentials[:] = chemical_potentials
         state.recompute(spec)
-        return dot_derivative(spec, state, 'HM', v.T)
+        return dot_derivative(spec, state, cur_conds, self.numerator, self.denominator)
+
+    def __str__(self):
+        return str(self.numerator)+'.'+str(self.denominator)
 
 COMPUTED_PROPERTIES = {}
 COMPUTED_PROPERTIES['DOO'] = ComputedProperty('DOO')
 COMPUTED_PROPERTIES['degree_of_ordering'] = COMPUTED_PROPERTIES['DOO']
-COMPUTED_PROPERTIES['heat_capacity'] = DotDerivativeComputedProperty('heat_capacity')
+COMPUTED_PROPERTIES['heat_capacity'] = DotDerivativeComputedProperty('HM', v.T)
 
 class PhaseName:
     @classmethod
@@ -316,13 +357,11 @@ class Workspace:
         i = 0
         while i < len(args):
             if hasattr(args[i], 'phase_name') and args[i].phase_name == '*':
-                print('hit phase name branch')
                 indices_to_delete.append(i)
                 phase_names = sorted(self.phase_record_factory.keys())
                 additional_args = args[i].expand_wildcard(phase_names=phase_names)
                 args.extend(additional_args)
             elif hasattr(args[i], 'species') and args[i].species == v.Species('*'):
-                print(f'hit species branch with {args[i]=}')
                 indices_to_delete.append(i)
                 internal_to_phase = hasattr(args[i], 'sublattice_index')
                 if internal_to_phase:
@@ -347,7 +386,6 @@ class Workspace:
         # Watch deletion order! Indices will change as items are deleted
         for deletion_index in reversed(indices_to_delete):
             del args[deletion_index]
-        print(f'{args=}')
         arr_size = self.eq.GM.size
         results = dict()
 

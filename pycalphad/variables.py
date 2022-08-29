@@ -269,26 +269,31 @@ class MoleFraction(StateVariable):
                 return [self.__class__(self.phase_name, comp) for comp in components]
         else:
             raise ValueError('Both phase_names and components are None')
+
+    @property
+    def multiplicity(self):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            if len(tokens) > 1:
+                return int(tokens[1])
+            else:
+                return 1
+        else:
+            return None
     
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         if self.phase_name is not None:
             tokens = self.phase_name.split('#')
             phase_name = tokens[0]
-            if len(tokens) > 1:
-                multiplicity = int(tokens[1])
-            else:
-                multiplicity = 1
-        else:
-            phase_name, multiplicity = None, None
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
         multiplicity_seen = 0
         for compset in compsets:
             if (self.phase_name is not None) and (compset.phase_record.phase_name != phase_name):
                 continue
-            if multiplicity is not None:
+            if self.multiplicity is not None:
                 multiplicity_seen += 1
-                if multiplicity != multiplicity_seen:
+                if self.multiplicity != multiplicity_seen:
                     continue
             el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
             if np.isnan(result[0]):
@@ -297,6 +302,40 @@ class MoleFraction(StateVariable):
                 result[0] += compset.NP * compset.X[el_idx]
             else:
                 result[0] += compset.X[el_idx]
+        return result
+
+    def compute_per_phase_property(self, compset, cur_conds):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            phase_name = tokens[0]
+            if (compset.phase_record.phase_name != phase_name):
+                return np.nan
+        el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+        return compset.X[el_idx]
+
+    def compute_property_gradient(self, compsets, cur_conds, chemical_potentials):
+        "Compute partial derivatives of property with respect to degrees of freedom of given CompositionSets"
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            phase_name = tokens[0]
+        result = [np.zeros(compset.dof.shape[0]) for compset in compsets]
+        multiplicity_seen = 0
+        num_components = len(compsets[0].phase_record.nonvacant_elements)
+        for cs_idx, compset in enumerate(compsets):
+            if (self.phase_name is not None) and (compset.phase_record.phase_name != phase_name):
+                continue
+            if self.multiplicity is not None:
+                multiplicity_seen += 1
+                if self.multiplicity != multiplicity_seen:
+                    continue
+            masses = np.zeros((num_components, 1))
+            mass_jac = np.zeros((num_components, compset.dof.shape[0]))
+            for comp_idx in range(num_components):
+                compset.phase_record.formulamole_obj(masses[comp_idx, :], compset.dof, comp_idx)
+                compset.phase_record.formulamole_grad(mass_jac[comp_idx, :], compset.dof, comp_idx)
+            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+            result[cs_idx][:] = (mass_jac[el_idx] * masses.sum() - masses[el_idx,0] * mass_jac.sum(axis=0)) \
+                / (masses.sum(axis=0)**2)
         return result
 
     def __reduce__(self):
