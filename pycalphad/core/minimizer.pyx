@@ -308,6 +308,17 @@ cdef class SystemSpecification:
         self.fixed_statevar_indices = fixed_statevar_indices
         self.fixed_stable_compset_indices = fixed_stable_compset_indices
         self.max_num_free_stable_phases = num_components + len(free_statevar_indices) - len(fixed_stable_compset_indices)
+
+        # Assuming the prescribed_elemental_amounts doesn't change, this is
+        # constant and we can keep extra computation (especially calls into
+        # NumPy out of the run loop)
+        if self.prescribed_elemental_amounts.shape[0] > 0:
+            self.ALLOWED_MASS_RESIDUAL = min(1e-8, np.min(self.prescribed_elemental_amounts)/10.0)
+            # Also adjust mass residual if we are near the edge of composition space
+            self.ALLOWED_MASS_RESIDUAL = min(self.ALLOWED_MASS_RESIDUAL, (1-np.sum(self.prescribed_elemental_amounts))/10.0)
+        else:
+            self.ALLOWED_MASS_RESIDUAL = 1e-8
+
     def __getstate__(self):
         return (self.num_statevars, self.num_components, self.prescribed_system_amount,
                 np.array(self.initial_chemical_potentials), np.array(self.prescribed_elemental_amounts),
@@ -322,18 +333,11 @@ cdef class SystemSpecification:
         cdef double ALLOWED_DELTA_Y = 5e-09
         cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
         cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
-        cdef double ALLOWED_MASS_RESIDUAL
-        if self.prescribed_elemental_amounts.shape[0] > 0:
-            ALLOWED_MASS_RESIDUAL = min(1e-8, np.min(self.prescribed_elemental_amounts)/10)
-            # Also adjust mass residual if we are near the edge of composition space
-            ALLOWED_MASS_RESIDUAL = min(ALLOWED_MASS_RESIDUAL, (1-np.sum(self.prescribed_elemental_amounts))/10)
-        else:
-            ALLOWED_MASS_RESIDUAL = 1e-8
         cdef bint solution_is_feasible = (
             (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
             (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
             (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR) and
-            (state.mass_residual < ALLOWED_MASS_RESIDUAL)
+            (state.mass_residual < self.ALLOWED_MASS_RESIDUAL)
         )
         if solution_is_feasible and (state.iterations_since_last_phase_change >= 5):
             return True
@@ -440,6 +444,7 @@ cdef class SystemState:
         cdef CompositionSet compset
         cdef int idx, comp_idx
         self.compsets = compsets
+        cdef double phase_comp_sum
         for compset in compsets:
             compset.fixed = False
         for idx in spec.fixed_stable_compset_indices:
@@ -475,12 +480,15 @@ cdef class SystemState:
         for idx in range(self.phase_amt.shape[0]):
             compset = self.compsets[idx]
             x = self.dof[idx]
+            phase_comp_sum = 0.0
             for comp_idx in range(spec.num_components):
                 compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
                 self.phase_compositions[idx, comp_idx] = masses_tmp[comp_idx, 0]
+                phase_comp_sum += self.phase_compositions[idx, comp_idx]
                 masses_tmp[:,:] = 0
             # Convert phase fractions to formula units
-            self.phase_amt[idx] /= np.sum(self.phase_compositions[idx])
+            self.phase_amt[idx] /= phase_comp_sum
+
     def __getstate__(self):
         return (self.compsets, self.cs_states, self.dof, self.iteration, self.iterations_since_last_phase_change,
                 self.metastable_phase_iterations, self.times_compset_removed, self.mass_residual,
@@ -503,6 +511,7 @@ cdef class SystemState:
         cdef double[::1] x
         cdef int idx, comp_idx, cons_idx, i, j, stable_idx, fixed_idx, component_idx, fixed_component_idx, num_phase_dof
         cdef double mu_c_sum
+        cdef double phase_comp_sum
         self.mole_fractions[:] = 0
         self.delta_ms[:, :] = 0
         self.system_amount = 0
@@ -532,7 +541,10 @@ cdef class SystemState:
             # TODO: Use better dof storage
             # Calculate key phase quantities starting here
             x = self.dof[idx]
-            compset.update(x[spec.num_statevars:], self.phase_amt[idx] * np.sum(self.phase_compositions[idx, :]), x[:spec.num_statevars])
+            phase_comp_sum = 0.0
+            for comp_idx in range(num_components):
+                phase_comp_sum += self.phase_compositions[idx, comp_idx]
+            compset.update(x[spec.num_statevars:], self.phase_amt[idx] * phase_comp_sum, x[:spec.num_statevars])
             csst.energy = 0
             csst.mass_jac[:,:] = 0
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
@@ -809,6 +821,8 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
     cdef int i, j, idx, idx2, cp_idx, comp_idx, dof_idx, phase_idx
     cdef CompositionSet compset, compset2
     cdef bint phases_changed = False
+    cdef double composition_difference
+    cdef double COMPSET_CONSOLIDATE_DISTANCE = 1e-4
 
     compset_indices_to_remove = set()
     for i in range(len(state.free_stable_compset_indices)):
@@ -835,8 +849,15 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
             if idx2 in compset_indices_to_remove:
                 continue
             # Detect if these compsets describe the same internal configuration inside a miscibility gap
-            compset_distances = np.abs(np.array(state.phase_compositions[idx]) - np.array(state.phase_compositions[idx2]))
-            if np.all(compset_distances < 1e-4):
+            compsets_should_be_consolidated = True
+            # Detected based on composition, we may miss gaps that have nearly
+            # the same composition, but different site fractions (such as ordering)
+            for comp_idx in range(spec.num_components):
+                composition_difference = abs(state.phase_compositions[idx, comp_idx] - state.phase_compositions[idx2, comp_idx])
+                if composition_difference > COMPSET_CONSOLIDATE_DISTANCE:
+                    compsets_should_be_consolidated = False
+                    break
+            if compsets_should_be_consolidated:
                 compset_indices_to_remove.add(idx2)
                 if idx not in spec.fixed_stable_compset_indices:
                     # ensure that the consolidated phase is stable
@@ -858,35 +879,55 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
     return phases_changed
 
 cdef bint change_phases(SystemSpecification spec, SystemState state):
-    cdef int idx
+    cdef int idx, i, cs_idx, least_removed_cs_idx, smallest_df_cs_idx
     cdef double[::1] driving_forces = state.driving_forces()
+    cdef double MIN_PHASE_AMOUNT = 1e-9
+    cdef int MIN_REQUIRED_METASTABLE_PHASE_ITERATIONS_TO_ADD = 5
+    cdef double MIN_DRIVING_FORCE_TO_ADD = 1e-5
+    cdef int MAX_ALLOWED_TIMES_COMPSET_REMOVED = 4
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
-    compsets_to_remove = set(current_free_stable_compset_indices).intersection(set(np.nonzero(np.array(phase_amt) < 1e-9)[0]))
+    compsets_to_remove = set()
+    for i in range(current_free_stable_compset_indices.shape[0]):
+        cs_idx = current_free_stable_compset_indices[i]
+        if phase_amt[cs_idx] < MIN_PHASE_AMOUNT:
+            compsets_to_remove.add(cs_idx)
+
     # Only add phases with positive driving force which have been metastable for at least 5 iterations, which have been removed fewer than 4 times
-    newly_metastable_compsets = set(np.nonzero((np.array(state.metastable_phase_iterations) < 5))[0]) - \
-                                set(current_free_stable_compset_indices)
-    add_criteria = np.logical_and(np.array(driving_forces) > 1e-5, np.array(state.times_compset_removed) < 4)
-    compsets_to_add = set((np.nonzero(add_criteria)[0])) - newly_metastable_compsets
+    compsets_to_add = set()
+    for cs_idx in range(state.metastable_phase_iterations.shape[0]):
+        should_add_compset = (
+            (state.metastable_phase_iterations[cs_idx] >= MIN_REQUIRED_METASTABLE_PHASE_ITERATIONS_TO_ADD)
+            and (driving_forces[cs_idx] > 1e-5)
+            and (state.times_compset_removed[cs_idx] < MAX_ALLOWED_TIMES_COMPSET_REMOVED)
+        )
+        if should_add_compset:
+            compsets_to_add.add(cs_idx)
+    # Finally, remove all currently stable compsets as candidates
+    compsets_to_add -= set(current_free_stable_compset_indices)
     max_allowed_to_add = spec.max_num_free_stable_phases + len(compsets_to_remove) - len(current_free_stable_compset_indices)
     # We must obey the Gibbs phase rule
     if len(compsets_to_add) > 0:
         if max_allowed_to_add < 1:
             # We are at the maximum number of allowed phases, yet there is still positive driving force
             # Destabilize one phase and add only one phase
-            possible_phases_to_destabilize = set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove
+            possible_phases_to_destabilize = sorted(set(current_free_stable_compset_indices) - compsets_to_add - compsets_to_remove)
             # Destabilize the one that has been removed the least
-            destabilize_indices = np.take(state.times_compset_removed, sorted(possible_phases_to_destabilize))
-            destabilize_sort_array = np.argsort(destabilize_indices)
-            destabilize_ordered_by_removal = np.take(sorted(possible_phases_to_destabilize), destabilize_sort_array)
-            idx_to_remove = destabilize_ordered_by_removal[0]
-            compsets_to_remove.add(idx_to_remove)
-            phase_amt[idx_to_remove] = 0
-        df_to_add = np.take(driving_forces, sorted(compsets_to_add))
-        df_sort_array = np.argsort(df_to_add)
-        compsets_to_add_ordered_by_df = np.take(sorted(compsets_to_add), df_sort_array)
-        # Choose compset with least amount (but still positive) driving force
-        compsets_to_add = {compsets_to_add_ordered_by_df[0]}
+            least_removed_cs_idx = possible_phases_to_destabilize[0]
+            for i in range(1, len(possible_phases_to_destabilize)):
+                cs_idx = possible_phases_to_destabilize[i]
+                if state.times_compset_removed[cs_idx] < state.times_compset_removed[least_removed_cs_idx]:
+                    least_removed_cs_idx = cs_idx
+            compsets_to_remove.add(least_removed_cs_idx)
+            phase_amt[least_removed_cs_idx] = 0
+        # Add the compset with least amount (but still positive) driving force
+        possible_phases_to_add = sorted(compsets_to_add)
+        smallest_df_cs_idx = possible_phases_to_add[0]
+        for i in range(1, len(possible_phases_to_add)):
+            cs_idx = possible_phases_to_add[i]
+            if driving_forces[cs_idx] < driving_forces[smallest_df_cs_idx]:
+                smallest_df_cs_idx = cs_idx
+        compsets_to_add = {smallest_df_cs_idx}
     new_free_stable_compset_indices = np.array(sorted((set(current_free_stable_compset_indices) - compsets_to_remove)
                                                       | compsets_to_add
                                                       ),
