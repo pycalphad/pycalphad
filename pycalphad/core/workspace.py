@@ -149,12 +149,9 @@ class Workspace:
                 multiplicity[key] = max(multiplicity[key], value)
         return multiplicity
 
-    def get(self, *args: Tuple[ComputableProperty], values_only=True):
-        if self.ndim > 1:
-            raise ValueError('Dimension of calculation is greater than one')
+    def _expand_property_arguments(self, args: Sequence[ComputableProperty]):
+        "Mutates args"
         multiplicity = self._detect_phase_multiplicity()
-        args = list(map(make_computable_property, args))
-        
         indices_to_delete = []
         i = 0
         while i < len(args):
@@ -188,6 +185,13 @@ class Workspace:
         # Watch deletion order! Indices will change as items are deleted
         for deletion_index in reversed(indices_to_delete):
             del args[deletion_index]
+
+    def get(self, *args: Tuple[ComputableProperty], values_only=True):
+        if self.ndim > 1:
+            raise ValueError('Dimension of calculation is greater than one')
+        args = list(map(make_computable_property, args))
+        self._expand_property_arguments(args)
+
         arr_size = self.eq.GM.size
         results = dict()
 
