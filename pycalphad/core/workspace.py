@@ -1,4 +1,3 @@
-from typing_extensions import runtime
 import warnings
 from collections import OrderedDict, Counter
 from collections.abc import Mapping
@@ -11,15 +10,15 @@ from pycalphad.codegen.callables import PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
-from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
 import numpy as np
 import numpy.typing as npt
-from typing import cast, Dict, Union, List, Optional, Tuple, Protocol, runtime_checkable
+from typing import Dict, Union, List, Optional, Tuple, Protocol, runtime_checkable
 
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
+from pycalphad.core.properties import DotDerivativeDeltas
 
 from runtype import dataclass, isa
 from dataclasses import field
@@ -45,51 +44,7 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
             new_conds[key] = unpack_condition(value)
     return new_conds
 
-def dot_derivative(spec, state, cur_conds, property_of_interest: "ComputableProperty", statevar_of_interest: StateVariable):
-    """
 
-    Parameters
-    ----------
-    spec : SystemSpecification
-        some description
-    state : SystemState
-        another description
-    cur_conds : dict
-    property_of_interest : string
-    statevar_of_interest : StateVariable
-    Returns
-    -------
-    dot derivative of property
-    """
-    state_variables = state.compsets[0].phase_record.state_variables
-    statevar_idx = sorted(state_variables, key=str).index(statevar_of_interest)
-    delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
-    state_variable_differential(spec, state, statevar_idx)
-
-    grad_values = property_of_interest.compute_property_gradient(state.compsets, cur_conds, state.chemical_potentials)
-
-    # Sundman et al, 2015, Eq. 73
-    dot_derivative = np.nan
-    for idx, compset in enumerate(state.compsets):
-        if compset.NP == 0 and not (compset.fixed):
-            continue
-        func_value = property_of_interest.compute_per_phase_property(compset, cur_conds)
-        if np.isnan(func_value):
-            continue
-        if np.isnan(dot_derivative):
-            dot_derivative = 0.0
-        grad_value = grad_values[idx]
-        delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
-                                                     delta_statevars)
-
-        if property_of_interest.phase_name is None:
-            dot_derivative += delta_phase_amounts[idx] * func_value
-            dot_derivative += compset.NP * grad_value[statevar_idx] * delta_statevars[statevar_idx]
-            dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
-        else:
-            dot_derivative += grad_value[statevar_idx] * delta_statevars[statevar_idx]
-            dot_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
-    return dot_derivative
 
 @runtime_checkable
 class ComputableProperty(Protocol):
@@ -99,7 +54,20 @@ class ComputableProperty(Protocol):
     def shape(self) -> Tuple[int]:
         ...
 
-class ComputedProperty(object):
+@runtime_checkable
+class DifferentiableComputableProperty(ComputableProperty, Protocol):
+    "Can be in the numerator of a dot derivative"
+    def dot_derivative(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike,
+                       deltas: DotDerivativeDeltas) -> npt.ArrayLike:
+                       ...
+
+@runtime_checkable
+class ConditionableComputableProperty(ComputableProperty, Protocol):
+    "Can be in the denominator of a dot derivative"
+    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
+        ...
+
+class ModelComputedProperty(object):
     def __init__(self, model_attr_name: str, phase_name: Optional[str] = None):
         self.model_attr_name = model_attr_name
         self.phase_name = phase_name
@@ -115,11 +83,7 @@ class ComputedProperty(object):
 
     @property
     def shape(self):
-        # Need to distinguish between HM, HM(*)
         return (1,)
-
-    def dims(self, compsets: List[CompositionSet]):
-        return ('phase',)
 
     @property
     def multiplicity(self):
@@ -134,7 +98,7 @@ class ComputedProperty(object):
 
     def compute_property(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike) -> npt.ArrayLike:
         if self.phase_name is None:
-            return np.nansum([compset.NP*self.compute_per_phase_property(compset, cur_conds) for compset in compsets])
+            return np.nansum([compset.NP*self._compute_per_phase_property(compset, cur_conds) for compset in compsets])
         else:
             tokens = self.phase_name.split('#')
             phase_name = tokens[0]
@@ -148,15 +112,43 @@ class ComputedProperty(object):
                     continue
                 multiplicity_seen += 1
                 if multiplicity == multiplicity_seen:
-                    return self.compute_per_phase_property(compset, cur_conds)
+                    return self._compute_per_phase_property(compset, cur_conds)
             return np.atleast_1d(np.nan)
 
-    def compute_per_phase_property(self, compset: CompositionSet, cur_conds: Dict[str, float]) -> npt.ArrayLike:
+
+    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas) -> npt.ArrayLike:
+        "Compute dot derivative with self as numerator, with the given deltas"
+        state_variables = compsets[0].phase_record.state_variables
+        grad_values = self._compute_property_gradient(compsets, cur_conds, chemical_potentials)
+
+        # Sundman et al, 2015, Eq. 73
+        dot_derivative = np.nan
+        for idx, compset in enumerate(compsets):
+            if compset.NP == 0 and not (compset.fixed):
+                continue
+            func_value = self._compute_per_phase_property(compset, cur_conds)
+            if np.isnan(func_value):
+                continue
+            if np.isnan(dot_derivative):
+                dot_derivative = 0.0
+            grad_value = grad_values[idx]
+            delta_sitefracs = deltas.delta_sitefracs[idx]
+
+            if self.phase_name is None:
+                dot_derivative += deltas.delta_phase_amounts[idx] * func_value
+                dot_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
+            else:
+                dot_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                dot_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
+        return dot_derivative
+
+    def _compute_per_phase_property(self, compset: CompositionSet, cur_conds: Dict[str, float]) -> npt.ArrayLike:
         out = np.atleast_1d(np.zeros(1))
         compset.phase_record.prop(out, compset.dof, self.model_attr_name.encode('utf-8'))
         return out
 
-    def compute_property_gradient(self, compsets, cur_conds, chemical_potentials):
+    def _compute_property_gradient(self, compsets, cur_conds, chemical_potentials):
         "Compute partial derivatives of property with respect to degrees of freedom of given CompositionSets"
         if self.phase_name is not None:
             tokens = self.phase_name.split('#')
@@ -195,7 +187,7 @@ def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableP
 
     prop = getattr(v, specified_prop, None)
     if prop is None:
-        prop = COMPUTED_PROPERTIES.get(specified_prop, ComputedProperty)
+        prop = ModelComputedProperty
     if begin_parens != end_parens:
         specified_args = tuple(x.strip() for x in inp[begin_parens+1:end_parens].split(','))
         if not isinstance(prop, type):
@@ -212,13 +204,16 @@ def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableP
     return prop_instance
 
 class DotDerivativeComputedProperty:
-    def __init__(self, numerator: ComputableProperty, denominator: ComputableProperty):
+    def __init__(self, numerator: DifferentiableComputableProperty, denominator: ConditionableComputableProperty):
         self.numerator = make_computable_property(numerator)
+        if not isa(self.numerator, DifferentiableComputableProperty):
+            raise TypeError(f'{self.numerator} is not a differentiable property')
         self.denominator = make_computable_property(denominator)
+        if not isa(self.denominator, ConditionableComputableProperty):
+            raise TypeError(f'{self.denominator} cannot be used in the denominator of a dot derivative')
 
     @property
     def shape(self):
-        # Need to distinguish between HM, HM(*)
         return (1,)
     
     def compute_property(self, compsets, cur_conds, chemical_potentials):
@@ -227,15 +222,11 @@ class DotDerivativeComputedProperty:
         state = spec.get_new_state(compsets)
         state.chemical_potentials[:] = chemical_potentials
         state.recompute(spec)
-        return dot_derivative(spec, state, cur_conds, self.numerator, self.denominator)
+        deltas = self.denominator.dot_deltas(spec, state)
+        return self.numerator.dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
 
     def __str__(self):
         return str(self.numerator)+'.'+str(self.denominator)
-
-COMPUTED_PROPERTIES = {}
-COMPUTED_PROPERTIES['DOO'] = ComputedProperty('DOO')
-COMPUTED_PROPERTIES['degree_of_ordering'] = COMPUTED_PROPERTIES['DOO']
-COMPUTED_PROPERTIES['heat_capacity'] = DotDerivativeComputedProperty('HM', v.T)
 
 class PhaseName:
     @classmethod

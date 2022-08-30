@@ -5,6 +5,8 @@ Classes and constants for representing thermodynamic variables.
 
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
+from pycalphad.core.properties import DotDerivativeDeltas
+from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential
 import numpy as np
 
 class Species(object):
@@ -110,7 +112,6 @@ class Species(object):
     def __hash__(self):
         return hash(self.name)
 
-
 class StateVariable(Symbol):
     """
     State variables are symbols with built-in assumptions of being real.
@@ -122,10 +123,70 @@ class StateVariable(Symbol):
     def shape(self):
         return (1,)
 
+    @property
+    def is_global_property(self):
+        return (not hasattr(self, 'phase_name')) or (self.phase_name is None)
+
+    @property
+    def multiplicity(self):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            if len(tokens) > 1:
+                return int(tokens[1])
+            else:
+                return 1
+        else:
+            return None
+
+    @property
+    def phase_name_without_suffix(self):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            return tokens[0]
+        else:
+            return None
+
+    def filtered(self, input_compsets):
+        "Return a generator of CompositionSets applicable to the current property"
+        multiplicity_seen = 0
+
+        for cs_idx, compset in enumerate(input_compsets):
+            if (self.phase_name is not None) and compset.phase_record.phase_name != self.phase_name_without_suffix:
+                continue
+            if (compset.NP == 0) and (not compset.fixed):
+                continue
+            if self.phase_name is not None:
+                multiplicity_seen += 1
+                if self.multiplicity != multiplicity_seen:
+                    continue
+            yield cs_idx, compset
+
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         state_variables = compsets[0].phase_record.state_variables
         statevar_idx = state_variables.index(self)
         return compsets[0].dof[statevar_idx]
+
+    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas):
+        "Compute dot derivative with self as numerator, with the given deltas"
+        state_variables = compsets[0].phase_record.state_variables
+        statevar_idx = state_variables.index(self)
+        return deltas.delta_statevars[statevar_idx]
+
+    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
+        state_variables = state.compsets[0].phase_record.state_variables
+        statevar_idx = sorted(state_variables, key=str).index(self)
+        delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
+        state_variable_differential(spec, state, statevar_idx)
+
+        # Sundman et al, 2015, Eq. 73
+        compsets_delta_sitefracs = []
+        for idx, compset in enumerate(state.compsets):
+            delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
+                                                         delta_statevars)
+            compsets_delta_sitefracs.append(delta_sitefracs)
+        return DotDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+                                   delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
+                                   delta_parameters=None)
 
     def __reduce__(self):
         return self.__class__, (self.name,)
@@ -159,8 +220,7 @@ class SiteFraction(StateVariable):
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         state_variables = compsets[0].phase_record.state_variables
         result = np.atleast_1d(np.zeros(self.shape))
-        # TODO: Handle miscibility gaps
-        for compset_idx, compset in enumerate(compsets):
+        for _, compset in self.filtered(compsets):
             if compset.phase_record.phase_name != self.phase_name:
                 continue
             site_fractions = compset.phase_record.variables
@@ -207,22 +267,19 @@ class PhaseFraction(StateVariable):
         self.phase_name = phase_name.upper()
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
-        tokens = self.phase_name.split('#')
-        phase_name = tokens[0]
-        if len(tokens) > 1:
-            multiplicity = int(tokens[1])
-        else:
-            multiplicity = 1
         result = np.atleast_1d(np.zeros(self.shape))
-        multiplicity_seen = 0
-        for compset in compsets:
-            if compset.phase_record.phase_name != phase_name:
-                continue
-            multiplicity_seen += 1
-            if multiplicity != multiplicity_seen:
-                continue
+        for _, compset in self.filtered(compsets):
             result[0] += compset.NP
         return result
+
+    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas):
+        "Compute dot derivative with self as numerator, with the given deltas"
+        dot_derivative = np.nan
+        for idx, _ in self.filtered(compsets):
+            if np.isnan(dot_derivative):
+                dot_derivative = 0.0
+            dot_derivative += deltas.delta_phase_amounts[idx]
+        return dot_derivative
 
     def expand_wildcard(self, phase_names):
         return [self.__class__(phase_name) for phase_name in phase_names]
@@ -269,32 +326,11 @@ class MoleFraction(StateVariable):
                 return [self.__class__(self.phase_name, comp) for comp in components]
         else:
             raise ValueError('Both phase_names and components are None')
-
-    @property
-    def multiplicity(self):
-        if self.phase_name is not None:
-            tokens = self.phase_name.split('#')
-            if len(tokens) > 1:
-                return int(tokens[1])
-            else:
-                return 1
-        else:
-            return None
     
     def compute_property(self, compsets, cur_conds, chemical_potentials):
-        if self.phase_name is not None:
-            tokens = self.phase_name.split('#')
-            phase_name = tokens[0]
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
-        multiplicity_seen = 0
-        for compset in compsets:
-            if (self.phase_name is not None) and (compset.phase_record.phase_name != phase_name):
-                continue
-            if self.multiplicity is not None:
-                multiplicity_seen += 1
-                if self.multiplicity != multiplicity_seen:
-                    continue
+        for _, compset in self.filtered(compsets):
             el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
             if np.isnan(result[0]):
                 result[0] = 0
@@ -315,19 +351,9 @@ class MoleFraction(StateVariable):
 
     def compute_property_gradient(self, compsets, cur_conds, chemical_potentials):
         "Compute partial derivatives of property with respect to degrees of freedom of given CompositionSets"
-        if self.phase_name is not None:
-            tokens = self.phase_name.split('#')
-            phase_name = tokens[0]
         result = [np.zeros(compset.dof.shape[0]) for compset in compsets]
-        multiplicity_seen = 0
         num_components = len(compsets[0].phase_record.nonvacant_elements)
-        for cs_idx, compset in enumerate(compsets):
-            if (self.phase_name is not None) and (compset.phase_record.phase_name != phase_name):
-                continue
-            if self.multiplicity is not None:
-                multiplicity_seen += 1
-                if self.multiplicity != multiplicity_seen:
-                    continue
+        for cs_idx, compset in self.filtered(compsets):
             masses = np.zeros((num_components, 1))
             mass_jac = np.zeros((num_components, compset.dof.shape[0]))
             for comp_idx in range(num_components):
@@ -337,6 +363,33 @@ class MoleFraction(StateVariable):
             result[cs_idx][:] = (mass_jac[el_idx] * masses.sum() - masses[el_idx,0] * mass_jac.sum(axis=0)) \
                 / (masses.sum(axis=0)**2)
         return result
+
+    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas):
+        "Compute dot derivative with self as numerator, with the given deltas"
+        state_variables = compsets[0].phase_record.state_variables
+        grad_values = self.compute_property_gradient(compsets, cur_conds, chemical_potentials)
+
+        # Sundman et al, 2015, Eq. 73
+        dot_derivative = np.nan
+        for idx, compset in enumerate(compsets):
+            if compset.NP == 0 and not (compset.fixed):
+                continue
+            func_value = self.compute_per_phase_property(compset, cur_conds)
+            if np.isnan(func_value):
+                continue
+            if np.isnan(dot_derivative):
+                dot_derivative = 0.0
+            grad_value = grad_values[idx]
+            delta_sitefracs = deltas.delta_sitefracs[idx]
+
+            if self.phase_name is None:
+                dot_derivative += deltas.delta_phase_amounts[idx] * func_value
+                dot_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
+            else:
+                dot_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                dot_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
+        return dot_derivative
 
     def __reduce__(self):
         if self.phase_name is None:
@@ -507,6 +560,16 @@ class ChemicalPotential(StateVariable):
         result = np.atleast_1d(np.zeros(self.shape))
         for el_idx, multiplicity in el_indices:
             result[0] += multiplicity * chemical_potentials[el_idx]
+        return result
+
+    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas):
+        "Compute dot derivative with self as numerator, with the given deltas"
+        phase_record = compsets[0].phase_record
+        el_indices = [(phase_record.nonvacant_elements.index(k), v)
+                       for k, v in self.species.constituents.items()]
+        result = np.atleast_1d(np.zeros(self.shape))
+        for el_idx, multiplicity in el_indices:
+            result[0] += multiplicity * deltas.delta_chemical_potentials[el_idx]
         return result
 
     def _latex(self, printer=None):
