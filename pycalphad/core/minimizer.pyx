@@ -677,6 +677,49 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
         spec.fixed_statevar_indices = orig_fixed_statevar_indices
         spec.free_statevar_indices = orig_free_statevar_indices
 
+cpdef fixed_component_differential(SystemSpecification spec, SystemState state, int target_component_index):
+    # Based on Sundman et al 2015, Eq. 74, with some modifications
+    cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
+    cdef double[::1] equilibrium_soln, delta_chemical_potentials, delta_statevars, delta_phase_amounts
+    cdef int num_stable_phases = state.free_stable_compset_indices.shape[0]
+    cdef int num_fixed_phases = spec.fixed_stable_compset_indices.shape[0]
+    cdef int num_fixed_components = spec.prescribed_elemental_amounts.shape[0]
+    cdef int chempot_idx, statevar_idx, i
+    cdef bint component_was_fixed = False
+
+    for i in range(spec.prescribed_element_indices.shape[0]):
+        if spec.prescribed_element_indices[i] == target_component_index:
+            component_was_fixed = True
+    if not component_was_fixed:
+        raise ValueError('Target component was not fixed in the present calculation')
+
+    delta_chemical_potentials = np.zeros(spec.num_components)
+    delta_statevars = np.zeros(spec.num_statevars)
+    delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
+
+    equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 0)
+    equilibrium_soln[:] = 0
+
+    # delta mole fractions must sum to zero; we have degrees of freedom to decide how to distribute
+    # for now, redistribute evenly over all other fixed components
+    for i in range(spec.prescribed_element_indices.shape[0]):
+        if spec.prescribed_element_indices[i] == target_component_index:
+            equilibrium_soln[num_stable_phases + num_fixed_phases + i] = 1
+        else:
+            equilibrium_soln[num_stable_phases + num_fixed_phases + i] = -1/(num_fixed_components)
+    lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
+        &equilibrium_soln[0], 1e-16)
+    for i in range(spec.free_chemical_potential_indices.shape[0]):
+        chempot_idx = spec.free_chemical_potential_indices[i]
+        delta_chemical_potentials[chempot_idx] = equilibrium_soln[i]
+    for i in range(state.free_stable_compset_indices.shape[0]):
+        delta_phase_amounts[i] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
+    for i in range(spec.free_statevar_indices.shape[0]):
+        statevar_idx = spec.free_statevar_indices[i]
+        delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
+                                                            state.free_stable_compset_indices.shape[0] + i]
+    return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
+
 cpdef site_fraction_differential(CompsetState csst, double[::1] delta_chempots, double[::1] delta_statevars):
     # Sundman et al 2015, Eq. 78
     cdef double[::1] delta_y = np.zeros(csst.delta_y.shape[0])

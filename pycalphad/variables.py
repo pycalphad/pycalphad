@@ -6,7 +6,7 @@ Classes and constants for representing thermodynamic variables.
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
 from pycalphad.core.properties import DotDerivativeDeltas
-from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential
+from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, fixed_component_differential
 import numpy as np
 
 class Species(object):
@@ -390,6 +390,21 @@ class MoleFraction(StateVariable):
                 dot_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
                 dot_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
         return dot_derivative
+
+    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
+        component_idx = state.compsets[0].phase_record.nonvacant_elements.index(str(self.species))
+        delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
+        fixed_component_differential(spec, state, component_idx)
+
+        # Sundman et al, 2015, Eq. 73
+        compsets_delta_sitefracs = []
+        for idx, compset in enumerate(state.compsets):
+            delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
+                                                         delta_statevars)
+            compsets_delta_sitefracs.append(delta_sitefracs)
+        return DotDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+                                   delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
+                                   delta_parameters=None)
 
     def __reduce__(self):
         if self.phase_name is None:
