@@ -5,7 +5,6 @@ from typing import Any, Dict, Union, List, Optional, Tuple, Protocol, runtime_ch
 import pycalphad.variables as v
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
-from runtype import isa
 
 @dataclass
 class DotDerivativeDeltas:
@@ -137,7 +136,7 @@ class ModelComputedProperty(object):
         return result
 
 def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableProperty:
-    if isa(inp, ComputableProperty):
+    if isinstance(inp, ComputableProperty):
         return inp
     dot_tokens = inp.split('.')
     if len(dot_tokens) == 2:
@@ -175,10 +174,10 @@ def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableP
 class DotDerivativeComputedProperty:
     def __init__(self, numerator: DifferentiableComputableProperty, denominator: ConditionableComputableProperty):
         self.numerator = make_computable_property(numerator)
-        if not isa(self.numerator, DifferentiableComputableProperty):
+        if not isinstance(self.numerator, DifferentiableComputableProperty):
             raise TypeError(f'{self.numerator} is not a differentiable property')
         self.denominator = make_computable_property(denominator)
-        if not isa(self.denominator, ConditionableComputableProperty):
+        if not isinstance(self.denominator, ConditionableComputableProperty):
             raise TypeError(f'{self.denominator} cannot be used in the denominator of a dot derivative')
 
     @property
