@@ -1,39 +1,11 @@
-from dataclasses import dataclass
 import numpy.typing as npt
 import numpy as np
-from typing import Any, Dict, Union, List, Optional, Tuple, Protocol, runtime_checkable
+from typing import Dict, Union, List, Optional
 import pycalphad.variables as v
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
-
-@dataclass
-class DotDerivativeDeltas:
-    delta_chemical_potentials: Optional[Any]
-    delta_statevars: Optional[Any]
-    delta_parameters: Optional[Any]
-    delta_phase_amounts: Optional[Any]
-    delta_sitefracs: Optional[Any]
-
-@runtime_checkable
-class ComputableProperty(Protocol):
-    def compute_property(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike) -> npt.ArrayLike:
-        ...
-    @property
-    def shape(self) -> Tuple[int]:
-        ...
-
-@runtime_checkable
-class DifferentiableComputableProperty(ComputableProperty, Protocol):
-    "Can be in the numerator of a dot derivative"
-    def dot_derivative(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike,
-                       deltas: DotDerivativeDeltas) -> npt.ArrayLike:
-                       ...
-
-@runtime_checkable
-class ConditionableComputableProperty(ComputableProperty, Protocol):
-    "Can be in the denominator of a dot derivative"
-    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
-        ...
+from pycalphad.property_framework.types import ComputableProperty, DotDerivativeDeltas, \
+    DifferentiableComputableProperty, ConditionableComputableProperty
 
 class ModelComputedProperty(object):
     def __init__(self, model_attr_name: str, phase_name: Optional[str] = None):
@@ -135,14 +107,14 @@ class ModelComputedProperty(object):
             result[cs_idx][:] = grad
         return result
 
-def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableProperty:
+def as_property(inp: Union[str, ComputableProperty]) -> ComputableProperty:
     if isinstance(inp, ComputableProperty):
         return inp
     dot_tokens = inp.split('.')
     if len(dot_tokens) == 2:
         numerator, denominator = dot_tokens
-        numerator = make_computable_property(numerator)
-        denominator = make_computable_property(denominator)
+        numerator = as_property(numerator)
+        denominator = as_property(denominator)
         return DotDerivativeComputedProperty(numerator, denominator)
     try:
         begin_parens = inp.index('(')
@@ -173,10 +145,10 @@ def make_computable_property(inp: Union[str, ComputableProperty]) -> ComputableP
 
 class DotDerivativeComputedProperty:
     def __init__(self, numerator: DifferentiableComputableProperty, denominator: ConditionableComputableProperty):
-        self.numerator = make_computable_property(numerator)
+        self.numerator = as_property(numerator)
         if not isinstance(self.numerator, DifferentiableComputableProperty):
             raise TypeError(f'{self.numerator} is not a differentiable property')
-        self.denominator = make_computable_property(denominator)
+        self.denominator = as_property(denominator)
         if not isinstance(self.denominator, ConditionableComputableProperty):
             raise TypeError(f'{self.denominator} cannot be used in the denominator of a dot derivative')
 

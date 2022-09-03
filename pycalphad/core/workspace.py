@@ -16,7 +16,7 @@ import numpy as np
 from typing import Union, List, Optional, Tuple, Sequence, Mapping
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
-from pycalphad.core.properties import ComputableProperty, make_computable_property
+from pycalphad.property_framework import ComputableProperty, as_property
 from runtype import dataclass, isa
 from dataclasses import field
 
@@ -186,24 +186,16 @@ class Workspace:
         for deletion_index in reversed(indices_to_delete):
             del args[deletion_index]
 
-    def get(self, *args: Tuple[ComputableProperty], values_only=True):
-        if self.ndim > 1:
-            raise ValueError('Dimension of calculation is greater than one')
-        args = list(map(make_computable_property, args))
-        self._expand_property_arguments(args)
-
-        arr_size = self.eq.GM.size
-        results = dict()
-
+    def enumerate_composition_sets(self):
+        if self.eq is None:
+            return
         prop_GM_values = self.eq.GM
         prop_Y_values = self.eq.Y
-        prop_MU_values = self.eq.MU
         prop_NP_values = self.eq.NP
         prop_Phase_values = self.eq.Phase
         conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
         state_variables = list(self.phase_record_factory.values())[0].state_variables
         str_state_variables = [str(k) for k in state_variables]
-        local_index = 0
 
         for index in np.ndindex(prop_GM_values.shape):
             cur_conds = OrderedDict(zip(conds_keys,
@@ -221,6 +213,26 @@ class Workspace:
                 compset = CompositionSet(phase_record)
                 compset.update(sfx, phase_amt, state_variable_values)
                 composition_sets.append(compset)
+            yield index, composition_sets
+
+
+    def get(self, *args: Tuple[ComputableProperty], values_only=True):
+        if self.ndim > 1:
+            raise ValueError('Dimension of calculation is greater than one')
+        args = list(map(as_property, args))
+        self._expand_property_arguments(args)
+
+        arr_size = self.eq.GM.size
+        results = dict()
+
+        prop_MU_values = self.eq.MU
+        conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
+        local_index = 0
+
+        for index, composition_sets in self.enumerate_composition_sets():
+            cur_conds = OrderedDict(zip(conds_keys,
+                                        [np.asarray(self.eq.coords[b][a], dtype=np.float_)
+                                        for a, b in zip(index, conds_keys)]))
             chemical_potentials = prop_MU_values[index]
             
             for arg in args:
@@ -237,7 +249,7 @@ class Workspace:
     def plot(self, x: ComputableProperty, *ys: Tuple[ComputableProperty], ax=None):
         import matplotlib.pyplot as plt
         ax = ax if ax is not None else plt.gca()
-        x = make_computable_property(x)
+        x = as_property(x)
         data = self.get(x, *ys, values_only=False)
         
         for y in data.keys():

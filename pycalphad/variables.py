@@ -5,7 +5,7 @@ Classes and constants for representing thermodynamic variables.
 
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
-from pycalphad.core.properties import DotDerivativeDeltas
+from pycalphad.property_framework.types import DotDerivativeDeltas
 from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, fixed_component_differential
 import numpy as np
 

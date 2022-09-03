@@ -85,6 +85,16 @@ class Solver(SolverBase):
                                    fixed_stable_compset_indices)
         return spec
 
+    @staticmethod
+    def _fix_state_variables_in_compsets(composition_sets, conditions):
+        "Ensure state variables in each CompositionSet are set to the fixed value."
+        str_state_variables = [str(k) for k in composition_sets[0].phase_record.state_variables]
+        for compset in composition_sets:
+            for k,v in conditions.items():
+                if str(k) in str_state_variables:
+                    statevar_idx = str_state_variables.index(str(k))
+                    compset.dof[statevar_idx] = v
+
     def solve(self, composition_sets, conditions):
         """
         Minimize the energy under the specified conditions using the given candidate composition sets.
@@ -102,6 +112,7 @@ class Solver(SolverBase):
 
         """
         spec = self.get_system_spec(composition_sets, conditions)
+        self._fix_state_variables_in_compsets(composition_sets, conditions)
         state = spec.get_new_state(composition_sets)
         converged = spec.run_loop(state, 1000)
 

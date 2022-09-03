@@ -18,7 +18,7 @@ from pycalphad.core.solver import Solver
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
 import numpy as np
-from pycalphad.core.workspace import make_computable_property
+from pycalphad.property_framework import as_property
 
 
 def _adjust_conditions(conds):
@@ -223,7 +223,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         if (out is None) or (len(out) == 0):
             continue
         if isinstance(out, str):
-            cprop = make_computable_property(out)
+            cprop = as_property(out)
             if isinstance(cprop, type):
                 cprop = cprop(out)
         else:
