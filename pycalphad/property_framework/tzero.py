@@ -33,13 +33,15 @@ class T0(object):
                                   ' of a previous calculation including the phases.'
                                 )
         if not isinstance(phase_one, CompositionSet):
+            phase_one_orig = phase_one
             phase_one = find_first_compset(phase_one, wks)
             if phase_one is None:
-                raise ValueError(f'{phase_one} is never stable in the specified Workspace')
+                raise ValueError(f'{phase_one_orig} is never stable in the specified Workspace')
         if not isinstance(phase_two, CompositionSet):
+            phase_two_orig = phase_two
             phase_two = find_first_compset(phase_two, wks)
             if phase_two is None:
-                raise ValueError(f'{phase_two} is never stable in the specified Workspace')
+                raise ValueError(f'{phase_two_orig} is never stable in the specified Workspace')
         self._phase_one = phase_one
         self._phase_two = phase_two
         self.solver = Solver()
@@ -80,7 +82,7 @@ class T0(object):
                 t0_step = 0
             else:
                 t0_step = -residual/t0_grad
-            #print('Step: ', t0_step)
+
             conditions[property_to_optimize] = max(min(conditions[property_to_optimize] + t0_step[0],
                                                             self.maximum_value),
                                                         self.minimum_value)
