@@ -66,6 +66,7 @@ setup(
         'pyparsing>=2.4',
         'pytest',
         'pytest-cov',
+        'runtype',
         'scipy',
         'setuptools_scm[toml]>=6.0',
         'symengine==0.9.0',  # python-symengine on conda-forge
