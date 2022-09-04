@@ -5,7 +5,7 @@ import numpy as np
 from pycalphad import calculate, variables as v
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
-from pycalphad.core.equilibrium import _adjust_conditions
+from pycalphad.core.workspace import _adjust_conditions
 from pycalphad.core.starting_point import starting_point
 from pycalphad.core.utils import instantiate_models, get_state_variables, \
     unpack_components, unpack_condition, filter_phases, get_pure_elements

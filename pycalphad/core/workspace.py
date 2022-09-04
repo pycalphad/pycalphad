@@ -1,3 +1,4 @@
+from ast import Str
 import warnings
 from collections import OrderedDict, Counter
 from collections.abc import Mapping
@@ -9,11 +10,11 @@ from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.composition_set import CompositionSet
-from pycalphad.core.solver import Solver
+from pycalphad.core.solver import Solver, SolverBase
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
 import numpy as np
-from typing import Union, List, Optional, Tuple, Sequence, Mapping
+from typing import Dict, Union, List, Optional, Tuple, Type, Sequence, Mapping
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
 from pycalphad.property_framework import ComputableProperty, as_property
@@ -39,6 +40,13 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
             new_conds[key] = unpack_condition(value)
     return new_conds
 
+class PhaseList:
+    @classmethod
+    def cast_from(cls, s: Union[str, Sequence]) -> "PhaseList":
+        if isinstance(s, str):
+            s = [s]
+        return sorted(PhaseName.cast_from(x) for x in s)
+
 class PhaseName:
     @classmethod
     def cast_from(cls, s: str) -> "PhaseName":
@@ -49,23 +57,33 @@ class ConditionValue:
     def cast_from(cls, value: Union[float, Sequence[float]]) -> "ConditionValue":
         return unpack_condition(value)
 
+class ConditionKey:
+    @classmethod
+    def cast_from(cls, key: Union[str, StateVariable]) -> "ConditionKey":
+        return as_property(key)
+
 
 @dataclass(check_types='cast', frozen=False)
 class Workspace:
     dbf: Database
     comps: Sequence[Species]
-    phases: Sequence[PhaseName]
-    conditions: Mapping[StateVariable, ConditionValue]
+    phases: PhaseList
+    conditions: Mapping[ConditionKey, ConditionValue]
     verbose: Optional[bool] = False
-    models: Optional[Union[Model, Mapping[PhaseName, Model]]] = None
+    models: Optional[Union[Model, Type[Model], Mapping[PhaseName, Model]]] = None
     phase_record_factory: Optional[PhaseRecordFactory] = None
-    parameters: Optional[OrderedDict] = field(default_factory=dict)
-    calc_opts: Optional[Mapping] = field(default_factory=dict)
-    solver: Optional[Solver] = None
-    ndim: int = field(init=False, default=0)
-    eq: Optional[LightDataset] = field(init=False, default=None)
+    parameters: Optional[Dict]
+    calc_opts: Optional[Dict]
+    solver: Optional[SolverBase] = None
+    ndim: int = 0
+    eq: Optional[LightDataset] = None
 
     def __post_init__(self):
+        # XXX: Why isn't default_factory working here?
+        if self.parameters is None:
+            self.parameters = dict()
+        if self.calc_opts is None:
+            self.calc_opts = dict()
         self.comps = sorted(unpack_components(self.dbf, self.comps))
         self.phases = unpack_phases(self.phases) or sorted(self.dbf.phases.keys())
         list_of_possible_phases = filter_phases(self.dbf, self.comps)
@@ -258,14 +276,17 @@ class Workspace:
             ax.plot(data[x], data[y], label=str(y))
         ax.legend()
 
-# Upstream bug: Types are not cast before setattr is called, when frozen=False
+# Upstream bug: Values are not cast before setattr is called, when frozen=False
 def _setattr_workaround(self, name, value):
     try:
         field = self.__dataclass_fields__[name]
     except (KeyError, AttributeError):
         pass
     else:
-        if not isa(value, field.type):
-            value = field.type.cast_from(value)
+        if (value is not None) and not isa(value, field.type):
+            try:
+                value = field.type.cast_from(value)
+            except TypeError:
+                pass
     object.__setattr__(self, name, value)
 Workspace.__setattr__ = _setattr_workaround

@@ -475,11 +475,11 @@ def test_eq_phase_record_factory_with_parameters(load_database):
     prf = PhaseRecordFactory(dbf, comps, conds, models, parameters={'VV0000': 20000})
 
     # use the values from 'VV0000' as passed in parameters
-    eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, parameters={'VV0000': 10000})
+    eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, model=models, parameters={'VV0000': 10000})
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
     # use the values from Symbol('VV0000') as passed in parameters
-    eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, parameters={Symbol('VV0000'): 10000})
+    eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, model=models, parameters={Symbol('VV0000'): 10000})
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
 
