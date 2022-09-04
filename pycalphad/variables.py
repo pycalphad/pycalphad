@@ -6,7 +6,8 @@ Classes and constants for representing thermodynamic variables.
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
 from pycalphad.property_framework.types import DotDerivativeDeltas
-from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, fixed_component_differential
+from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, \
+    fixed_component_differential, chemical_potential_differential
 import numpy as np
 
 class Species(object):
@@ -586,6 +587,21 @@ class ChemicalPotential(StateVariable):
         for el_idx, multiplicity in el_indices:
             result[0] += multiplicity * deltas.delta_chemical_potentials[el_idx]
         return result
+
+    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
+        component_idx = state.compsets[0].phase_record.nonvacant_elements.index(str(self.species))
+        delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
+        chemical_potential_differential(spec, state, component_idx)
+
+        # Sundman et al, 2015, Eq. 73
+        compsets_delta_sitefracs = []
+        for idx, compset in enumerate(state.compsets):
+            delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
+                                                         delta_statevars)
+            compsets_delta_sitefracs.append(delta_sitefracs)
+        return DotDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+                                   delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
+                                   delta_parameters=None)
 
     def _latex(self, printer=None):
         "LaTeX representation."
