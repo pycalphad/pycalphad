@@ -72,8 +72,8 @@ class Workspace:
     verbose: Optional[bool] = False
     models: Optional[Union[Model, Type[Model], Mapping[PhaseName, Model]]] = None
     phase_record_factory: Optional[PhaseRecordFactory] = None
-    parameters: Optional[Dict]
-    calc_opts: Optional[Dict]
+    parameters: Optional[Dict] = None
+    calc_opts: Optional[Dict] = None
     solver: Optional[SolverBase] = None
     ndim: int = 0
     eq: Optional[LightDataset] = None
