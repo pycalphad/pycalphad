@@ -2,6 +2,7 @@ from ast import Str
 import warnings
 from collections import OrderedDict, Counter
 from collections.abc import Mapping
+from pycalphad.property_framework.computed_property import DotDerivativeComputedProperty
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models, get_state_variables
 from pycalphad import calculate
@@ -188,6 +189,16 @@ class Workspace:
                     components = self.phase_record_factory[args[i].phase_name].nonvacant_elements
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
+            elif isinstance(args[i], DotDerivativeComputedProperty):
+                numerator_args = [args[i].numerator]
+                self._expand_property_arguments(numerator_args)
+                denominator_args = [args[i].denominator]
+                self._expand_property_arguments(denominator_args)
+                if (len(numerator_args) > 1) or (len(denominator_args) > 1):
+                    for n_arg in numerator_args:
+                        for d_arg in denominator_args:
+                            args.append(DotDerivativeComputedProperty(n_arg, d_arg))
+                    indices_to_delete.append(i)
             else:
                 # This is a concrete ComputableProperty
                 if hasattr(args[i], 'phase_name') and (args[i].phase_name is not None) \
