@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 import numpy.typing as npt
-from typing import Any, Dict, List, Optional, Tuple, Protocol, runtime_checkable
+from typing import Any, Dict, List, Optional, Tuple
+try:
+    from typing import Protocol, runtime_checkable
+except ImportError:
+    from typing_extensions import Protocol, runtime_checkable
 from pycalphad.core.composition_set import CompositionSet
 
 @dataclass
