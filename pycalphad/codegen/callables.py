@@ -5,7 +5,6 @@ from pycalphad.core.utils import get_pure_elements, unpack_components, \
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.constraints import build_constraints
 from itertools import repeat
-import warnings
 from functools import lru_cache
 
 
@@ -32,13 +31,13 @@ class PhaseRecordFactory(object):
         if len(self.param_values.shape) > 1:
             self.param_values = self.param_values[0]
 
-    @lru_cache
+    @lru_cache()
     def get_phase_constraints(self, phase_name):
         mod = self.models[phase_name]
         cfuncs = build_constraints(mod, self.state_variables + mod.site_fractions, parameters=self.param_symbols)
         return cfuncs
 
-    @lru_cache
+    @lru_cache()
     def get_phase_formula_moles_element(self, phase_name, element_name, per_formula_unit=True):
         mod = self.models[phase_name]
         # TODO: In principle, we should also check for undefs in mod.moles()
@@ -47,7 +46,7 @@ class PhaseRecordFactory(object):
                                include_obj=True, include_grad=True, include_hess=True,
                                parameters=self.param_symbols)
 
-    @lru_cache
+    @lru_cache()
     def get_phase_property(self, phase_name, property_name, include_grad=True, include_hess=True):
         mod = self.models[phase_name]
         out = getattr(mod, property_name)
@@ -64,7 +63,7 @@ class PhaseRecordFactory(object):
     def get_phase_formula_energy(self, phase_name):
         return self.get_phase_property(phase_name, 'G', include_grad=True, include_hess=True)
 
-    @lru_cache
+    @lru_cache()
     def get(self, phase_name):
         return PhaseRecord(self, phase_name)
 
