@@ -1,12 +1,13 @@
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 import numpy.typing as npt
 from pycalphad.core.composition_set import CompositionSet
-from pycalphad.core.workspace import Workspace
+if TYPE_CHECKING:
+    from pycalphad.core.workspace import Workspace
 from pycalphad.core.solver import Solver
 from pycalphad.property_framework import as_property, DotDerivativeComputedProperty, ConditionableComputableProperty, \
     ModelComputedProperty
 
-def find_first_compset(phase_name: str, wks: Workspace):
+def find_first_compset(phase_name: str, wks: "Workspace"):
     for _, compsets in wks.enumerate_composition_sets():
         for compset in compsets:
             if compset.phase_record.phase_name == phase_name:
@@ -25,7 +26,7 @@ class T0(object):
     maximum_iterations: int = 50
 
     def __init__(self, phase_one: Union[CompositionSet, str], phase_two: Union[CompositionSet, str],
-                 wks: Optional[Workspace]):
+                 wks: Optional["Workspace"]):
         if wks is None:
             if not isinstance(phase_one, CompositionSet) and not isinstance(phase_two, CompositionSet):
                 raise ValueError('T0 calculation requires a starting point for both phases;'
