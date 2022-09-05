@@ -2,7 +2,8 @@ cdef class SystemState:
     cdef public list compsets
     cdef public list cs_states
     cdef object dof
-    cdef int iteration, num_statevars, iterations_since_last_phase_change
+    cdef public int iteration
+    cdef int num_statevars, iterations_since_last_phase_change
     cdef int[::1] metastable_phase_iterations
     cdef int[::1] times_compset_removed
     cdef double mass_residual, largest_chemical_potential_difference
