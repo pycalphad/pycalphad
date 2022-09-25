@@ -451,7 +451,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # TODO: conditions dict of StateVariable instances should become part of the calculate API
     statevar_strings = [sv for sv in kwargs.keys() if getattr(v, sv) is not None]
     # If we don't do this, sympy will get confused during substitution
-    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
+    statevar_dict = dict((getattr(v, key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
     # Sort after default state variable check to fix gh-116
     statevar_dict = OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     str_statevar_dict = OrderedDict((str(key), unpack_condition(value)) for (key, value) in statevar_dict.items())

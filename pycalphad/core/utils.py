@@ -417,7 +417,7 @@ def get_state_variables(models=None, conds=None):
         for c in conds:
             # StateVariable instances are ok (e.g. P, T, N, V, S),
             # however, subclasses (X, Y, MU, NP) are not ok.
-            if type(c) is v.StateVariable:
+            if isinstance(c, v.IndependentPotential) or (c is v.N):
                 state_vars.add(c)
     return state_vars
 

@@ -611,10 +611,24 @@ class ChemicalPotential(StateVariable):
         "String representation."
         return 'MU_%s' % self.species.name
 
-temperature = T = StateVariable('T')
-entropy = S = StateVariable('S') # TODO: Needs to be a ComputedProperty
-pressure = P = StateVariable('P')
-volume = V = StateVariable('V') # TODO: Needs to be a ComputedProperty
+
+class IndependentPotential(StateVariable):
+    pass
+
+class TemperatureType(IndependentPotential):
+    def __init__(self):
+        super().__init__('T')
+    def __reduce__(self):
+        return self.__class__, ()
+
+class PressureType(IndependentPotential):
+    def __init__(self):
+        super().__init__('P')
+    def __reduce__(self):
+        return self.__class__, ()
+
+temperature = T = TemperatureType()
+pressure = P = PressureType()
 moles = N = StateVariable('N')
 site_fraction = Y = SiteFraction
 X = MoleFraction

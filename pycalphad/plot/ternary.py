@@ -45,7 +45,7 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, eq_kwargs=None, **plot_k
     """
     eq_kwargs = eq_kwargs if eq_kwargs is not None else dict()
     indep_comps = [key for key, value in conds.items() if isinstance(key, v.MoleFraction) and len(np.atleast_1d(value)) > 1]
-    indep_pots = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
+    indep_pots = [key for key, value in conds.items() if isinstance(key, v.StateVariable) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comps) != 2) or (len(indep_pots) != 0):
         raise ValueError('ternplot() requires exactly two composition coordinates')
     full_eq = equilibrium(dbf, comps, phases, conds, **eq_kwargs)
