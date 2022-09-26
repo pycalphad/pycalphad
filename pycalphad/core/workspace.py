@@ -19,7 +19,7 @@ from typing import Dict, Union, List, Optional, Tuple, Type, Sequence, Mapping
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
 from pycalphad.property_framework import ComputableProperty, as_property
-from pycalphad.property_framework.units import ureg, Q_
+from pycalphad.property_framework.units import unit_conversion_context, ureg, Q_
 from runtype import dataclass, isa
 import pint
 from dataclasses import field
@@ -246,20 +246,14 @@ class Workspace:
                 composition_sets.append(compset)
             yield index, composition_sets
 
-
-    def unit_conversion_context(self, compsets: Sequence[CompositionSet], prop: ComputableProperty):
-        context = pint.Context()
-        prop.base_units # these will be something/mol by convention
-        molar_weight = 0.0 # g/mol
-        for compset in compsets:
-            pass
-        return context
-
     def get(self, *args: Tuple[ComputableProperty], values_only=True):
         if self.ndim > 1:
             raise ValueError('Dimension of calculation is greater than one')
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
+        arg_units = {arg: (ureg.Unit(getattr(arg, 'base_units', '')),
+                           ureg.Unit(getattr(arg, 'display_units', '')))
+                     for arg in args}
 
         arr_size = self.eq.GM.size
         results = dict()
@@ -275,15 +269,17 @@ class Workspace:
             chemical_potentials = prop_MU_values[index]
             
             for arg in args:
+                prop_base_units, prop_display_units = arg_units[arg]
+                context = unit_conversion_context(composition_sets, arg)
                 if results.get(arg, None) is None:
                     results[arg] = np.zeros((arr_size,) + arg.shape)
-                results[arg][local_index, :] = arg.compute_property(composition_sets, cur_conds, chemical_potentials)
+                results[arg][local_index, :] = Q_(arg.compute_property(composition_sets, cur_conds, chemical_potentials),
+                                                  prop_base_units).to(prop_display_units, context).magnitude
             local_index += 1
         
         for arg in args:
-            prop_base_units = ureg.Unit(getattr(arg, 'base_units', ''))
-            prop_display_units = ureg.Unit(getattr(arg, 'display_units', ''))
-            results[arg] = (results[arg] * prop_base_units).to(prop_display_units)
+            _, prop_display_units = arg_units[arg]
+            results[arg] = Q_(results[arg], prop_display_units)
 
         if values_only:
             return list(results.values())

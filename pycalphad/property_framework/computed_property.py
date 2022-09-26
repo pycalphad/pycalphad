@@ -164,9 +164,18 @@ class DotDerivativeComputedProperty:
     def base_units(self):
         return str(units.ureg.Unit(self.numerator.base_units) / units.ureg.Unit(self.denominator.base_units))
 
+    _display_units = None
     @property
     def display_units(self):
-        return str(units.ureg.Unit(self.numerator.display_units) / units.ureg.Unit(self.denominator.display_units))
+        if self._display_units is not None:
+            return self._display_units
+        else:
+            return str(units.ureg.Unit(self.numerator.display_units) / units.ureg.Unit(self.denominator.display_units))
+
+    @display_units.setter
+    def display_units(self, val):
+        self._display_units = val
+
 
     @property
     def display_name(self):
