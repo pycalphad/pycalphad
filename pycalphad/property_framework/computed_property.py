@@ -6,9 +6,13 @@ from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
 from pycalphad.property_framework.types import ComputableProperty, DotDerivativeDeltas, \
     DifferentiableComputableProperty, ConditionableComputableProperty
+from pycalphad.property_framework import units
 
 class ModelComputedProperty(object):
     def __init__(self, model_attr_name: str, phase_name: Optional[str] = None):
+        self.base_units = getattr(units, model_attr_name + '_base_units', '')
+        self.display_units = getattr(units, model_attr_name + '_display_units', '')
+        self.display_name = getattr(units, model_attr_name + '_display_name', model_attr_name)
         self.model_attr_name = model_attr_name
         self.phase_name = phase_name
 
@@ -155,6 +159,18 @@ class DotDerivativeComputedProperty:
     @property
     def shape(self):
         return (1,)
+
+    @property
+    def base_units(self):
+        return str(units.ureg.Unit(self.numerator.base_units) / units.ureg.Unit(self.denominator.base_units))
+
+    @property
+    def display_units(self):
+        return str(units.ureg.Unit(self.numerator.display_units) / units.ureg.Unit(self.denominator.display_units))
+
+    @property
+    def display_name(self):
+        return str(self)
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         solver = Solver()

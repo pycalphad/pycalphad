@@ -1,6 +1,6 @@
 from ast import Str
 import warnings
-from collections import OrderedDict, Counter
+from collections import OrderedDict, Counter, defaultdict
 from collections.abc import Mapping
 from pycalphad.property_framework.computed_property import DotDerivativeComputedProperty
 import pycalphad.variables as v
@@ -19,7 +19,9 @@ from typing import Dict, Union, List, Optional, Tuple, Type, Sequence, Mapping
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
 from pycalphad.property_framework import ComputableProperty, as_property
+from pycalphad.property_framework.units import ureg, Q_
 from runtype import dataclass, isa
+import pint
 from dataclasses import field
 
 
@@ -245,6 +247,14 @@ class Workspace:
             yield index, composition_sets
 
 
+    def unit_conversion_context(self, compsets: Sequence[CompositionSet], prop: ComputableProperty):
+        context = pint.Context()
+        prop.base_units # these will be something/mol by convention
+        molar_weight = 0.0 # g/mol
+        for compset in compsets:
+            pass
+        return context
+
     def get(self, *args: Tuple[ComputableProperty], values_only=True):
         if self.ndim > 1:
             raise ValueError('Dimension of calculation is greater than one')
@@ -270,6 +280,11 @@ class Workspace:
                 results[arg][local_index, :] = arg.compute_property(composition_sets, cur_conds, chemical_potentials)
             local_index += 1
         
+        for arg in args:
+            prop_base_units = ureg.Unit(getattr(arg, 'base_units', ''))
+            prop_display_units = ureg.Unit(getattr(arg, 'display_units', ''))
+            results[arg] = (results[arg] * prop_base_units).to(prop_display_units)
+
         if values_only:
             return list(results.values())
         else:
@@ -285,6 +300,14 @@ class Workspace:
             if y == x:
                 continue
             ax.plot(data[x], data[y], label=str(y))
+            y_display_units = ureg.Unit(getattr(y, 'display_units', ''))
+            y_propname = getattr(y, 'display_name', None)
+            if y_propname is not None:
+                ax.set_ylabel(f'{y_propname} [{y_display_units:~P}]')
+        propname = getattr(x, 'display_name', None)
+        x_display_units = ureg.Unit(getattr(x, 'display_units', ''))
+        if propname is not None:
+            ax.set_xlabel(f'{propname} [{x_display_units:~P}]')
         ax.legend()
 
 # Upstream bug: Values are not cast before setattr is called, when frozen=False

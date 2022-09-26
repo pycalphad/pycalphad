@@ -106,6 +106,9 @@ class DormantPhase:
         prop = as_property(prop)
         class _autoproperty:
             shape = prop.shape
+            base_units = prop.base_units
+            display_units = prop.display_units
+            display_name = prop.display_name
             @staticmethod
             def compute_property(equilibrium_compsets: List[CompositionSet], cur_conds: Dict[str, float],
                             chemical_potentials: npt.ArrayLike) -> float:
@@ -169,6 +172,9 @@ class IsolatedPhase:
         prop = as_property(prop)
         class _autoproperty:
             shape = prop.shape
+            base_units = prop.base_units
+            display_units = prop.display_units
+            display_name = prop.display_name
             @staticmethod
             def compute_property(equilibrium_compsets: List[CompositionSet], cur_conds: Dict[str, float],
                             chemical_potentials: npt.ArrayLike) -> float:

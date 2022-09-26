@@ -117,6 +117,13 @@ class StateVariable(Symbol):
     """
     State variables are symbols with built-in assumptions of being real.
     """
+    base_units = ''
+    display_units = ''
+
+    @property
+    def display_name(self):
+        return self.name
+
     def __init__(self, name):
         super().__init__(name.upper())
 
@@ -615,17 +622,28 @@ class ChemicalPotential(StateVariable):
 class IndependentPotential(StateVariable):
     pass
 
+
 class TemperatureType(IndependentPotential):
+    base_units = 'kelvin'
+    display_units = 'kelvin'
+    display_name = 'Temperature'
+
     def __init__(self):
         super().__init__('T')
     def __reduce__(self):
         return self.__class__, ()
 
+
 class PressureType(IndependentPotential):
+    base_units = 'pascal'
+    display_units = 'pascal'
+    display_name = 'Pressure'
+
     def __init__(self):
         super().__init__('P')
     def __reduce__(self):
         return self.__class__, ()
+
 
 temperature = T = TemperatureType()
 pressure = P = PressureType()
