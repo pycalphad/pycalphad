@@ -267,9 +267,9 @@ class Model(object):
                     replace_dict[atom] = args[0]
             return graph.xreplace(replace_dict)
 
-        #for name, value in self.models.items():
-        #    for _ in range(5):
-        #        self.models[name] = unwrap_piecewise(self.models[name])
+        for name, value in self.models.items():
+            for _ in range(5):
+                self.models[name] = unwrap_piecewise(self.models[name])
 
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
