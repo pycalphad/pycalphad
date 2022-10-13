@@ -263,10 +263,8 @@ class Model(object):
             for atom in graph.atoms(Piecewise):
                 args = atom.args
                 # Unwrap temperature-dependent piecewise with zero-defaults
-                if len(args) == 4 and args[2] == 0 and args[3] == True and atom.args[1].free_symbols == {v.T}:
+                if len(args) == 4 and args[2] == 0 and args[3] == True and args[1].free_symbols == {v.T}:
                     replace_dict[atom] = args[0]
-                elif len(args) == 4 and args[0] == 0 and args[2] == 0:
-                    replace_dict[atom] = 0
             return graph.xreplace(replace_dict)
 
         for name, value in self.models.items():
