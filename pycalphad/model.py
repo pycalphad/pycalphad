@@ -1132,7 +1132,7 @@ class Model(object):
         return disord_expr + ordering_expr
 
     def atomic_ordering_energy(self, dbe):
-        """
+        r"""
         Return the atomic ordering contribution in symbolic form.
 
         If the current phase is anything other than the ordered phase in a
