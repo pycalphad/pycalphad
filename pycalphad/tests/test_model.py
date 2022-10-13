@@ -4,6 +4,7 @@ The test_model module contains unit tests for the Model object.
 from pycalphad import Database, Model, variables as v, equilibrium
 from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.errors import DofError
+from symengine import Piecewise
 import numpy as np
 import pickle
 import pytest
@@ -162,3 +163,13 @@ def test_order_disorder_interstital_sublattice_validation():
     # as the substitutional and cannot be distinguished
     with pytest.raises(ValueError):
         Model(DBF_OrderDisorder_broken, ["A", "B", "VA"], "ORD_SUBS_INSTL")
+
+@select_database("FeNi_deep_branching.tdb")
+def test_model_deep_branching(load_database):
+    "Models with very deep piecewise branching are optimized at construction time"
+    dbf = load_database()
+    mod = Model(dbf, ['FE', 'NI', 'VA'], 'ORD_FCC')
+    # All we really care about is that the energy Hessian will calculate without hanging
+    # However, that is a relatively long test. This just checks that the deep branches were cleaned up.
+    # Without optimization/unwrapping, this would be about 57
+    assert len(mod.GM.atoms(Piecewise)) < 30

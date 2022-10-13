@@ -258,6 +258,21 @@ class Model(object):
             # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
             self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
 
+        def unwrap_piecewise(graph):
+            replace_dict = {}
+            for atom in graph.atoms(Piecewise):
+                args = atom.args
+                # Unwrap temperature-dependent piecewise with zero-defaults
+                if len(args) == 4 and args[2] == 0 and args[3] == True and atom.args[1].free_symbols == {v.T}:
+                    replace_dict[atom] = args[0]
+                elif len(args) == 4 and args[0] == 0 and args[2] == 0:
+                    replace_dict[atom] = 0
+            return graph.xreplace(replace_dict)
+
+        for name, value in self.models.items():
+            for _ in range(5):
+                self.models[name] = unwrap_piecewise(self.models[name])
+
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
 
