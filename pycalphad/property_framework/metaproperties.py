@@ -6,6 +6,7 @@ from pycalphad.core.solver import Solver
 if TYPE_CHECKING:
     from pycalphad.core.workspace import Workspace
 from pycalphad.property_framework.computed_property import as_property, ComputableProperty
+from pycalphad.property_framework import units
 import numpy as np
 
 def find_first_compset(phase_name: str, wks: "Workspace"):
@@ -17,6 +18,9 @@ def find_first_compset(phase_name: str, wks: "Workspace"):
 
 class DrivingForce:
     phase_name: str
+    base_units = units.energy_base_units
+    display_units = units.energy_display_units
+    display_name = 'Driving Force'
 
     def __init__(self, phase_name):
         self.phase_name = phase_name

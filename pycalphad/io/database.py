@@ -119,6 +119,10 @@ class Database(object): #pylint: disable=R0902
         else:
             raise ValueError('Invalid number of parameters: '+len(args))
 
+    @classmethod
+    def cast_from(cls, val):
+        return cls(val)
+
     def __hash__(self):
         return fhash(self.__dict__)
 

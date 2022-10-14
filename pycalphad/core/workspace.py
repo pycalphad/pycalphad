@@ -1,12 +1,11 @@
-from ast import Str
 import warnings
 from collections import OrderedDict, Counter, defaultdict
 from collections.abc import Mapping
 from pycalphad.property_framework.computed_property import DotDerivativeComputedProperty
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models, get_state_variables
+from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models
 from pycalphad import calculate
-from pycalphad.core.errors import EquilibriumError, ConditionError
+from pycalphad.core.errors import ConditionError
 from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
@@ -15,14 +14,14 @@ from pycalphad.core.solver import Solver, SolverBase
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
 import numpy as np
-from typing import Dict, Union, List, Optional, Tuple, Type, Sequence, Mapping
+from typing import Optional, Tuple
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
 from pycalphad.property_framework import ComputableProperty, as_property
 from pycalphad.property_framework.units import unit_conversion_context, ureg, Q_
-from runtype import dataclass, isa
-import pint
-from dataclasses import field
+from runtype import isa
+from runtype.pytypes import Dict, List, Sequence, SumType, Mapping, NoneType
+
 
 
 def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
@@ -43,9 +42,14 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
             new_conds[key] = unpack_condition(value)
     return new_conds
 
+class SpeciesList:
+    @classmethod
+    def cast_from(cls, s: Sequence) -> "SpeciesList":
+        return sorted(Species.cast_from(x) for x in s)
+
 class PhaseList:
     @classmethod
-    def cast_from(cls, s: Union[str, Sequence]) -> "PhaseList":
+    def cast_from(cls, s: SumType([str, Sequence[str]])) -> "PhaseList":
         if isinstance(s, str):
             s = [s]
         return sorted(PhaseName.cast_from(x) for x in s)
@@ -57,84 +61,202 @@ class PhaseName:
 
 class ConditionValue:
     @classmethod
-    def cast_from(cls, value: Union[float, Sequence[float]]) -> "ConditionValue":
+    def cast_from(cls, value: SumType([float, Sequence[float]])) -> "ConditionValue":
         return unpack_condition(value)
 
 class ConditionKey:
     @classmethod
-    def cast_from(cls, key: Union[str, StateVariable]) -> "ConditionKey":
+    def cast_from(cls, key: SumType([str, StateVariable])) -> "ConditionKey":
         return as_property(key)
 
+class TypedField:
+    def __init__(self, default_factory=None, dependsOn=None):
+        self.default_factory = default_factory
+        self.dependsOn = dependsOn
 
-@dataclass(check_types='cast', frozen=False)
-class Workspace:
-    dbf: Database
-    comps: Sequence[Species]
-    phases: PhaseList
-    conditions: Mapping[ConditionKey, ConditionValue]
-    verbose: Optional[bool] = False
-    models: Optional[Union[Model, Type[Model], Mapping[PhaseName, Model]]] = None
-    phase_record_factory: Optional[PhaseRecordFactory] = None
-    parameters: Optional[Dict] = None
-    calc_opts: Optional[Dict] = None
-    solver: Optional[SolverBase] = None
-    ndim: int = 0
-    eq: Optional[LightDataset] = None
+    def __set_name__(self, owner, name):
+        self.type = owner.__annotations__.get(name, None)
+        self.public_name = name
+        self.private_name = '_' + name
+        if self.dependsOn is not None:
+            for dependency in self.dependsOn:
+                owner._callbacks[dependency].append(self.on_dependency_update)
 
-    def __post_init__(self):
-        # XXX: Why isn't default_factory working here?
-        if self.parameters is None:
-            self.parameters = dict()
-        if self.calc_opts is None:
-            self.calc_opts = dict()
-        self.comps = sorted(unpack_components(self.dbf, self.comps))
-        self.phases = unpack_phases(self.phases) or sorted(self.dbf.phases.keys())
-        list_of_possible_phases = filter_phases(self.dbf, self.comps)
-        if len(list_of_possible_phases) == 0:
-            raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(self.comps))
-        self.active_phases = filter_phases(self.dbf, self.comps, self.phases)
-        if len(self.active_phases) == 0:
-            raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(self.phases, list_of_possible_phases))
-        if len(set(self.comps) - set(self.dbf.species)) > 0:
-            raise EquilibriumError('Components not found in database: {}'
-                                .format(','.join([c.name for c in (set(self.comps) - set(self.dbf.species))])))
-        self.solver = self.solver if self.solver is not None else Solver(verbose=self.verbose)
-        if isinstance(self.parameters, dict):
-            self.parameters = OrderedDict(sorted(self.parameters.items(), key=str))
+    def __set__(self, obj, value):
+        if (self.type != NoneType) and not isa(value, self.type):
+            try:
+                value = self.type.cast_from(value)
+            except TypeError as e:
+                raise e
+        oldval = getattr(obj, self.private_name, None)
+        setattr(obj, self.private_name, value)
+        for cb in obj._callbacks[self.public_name]:
+            cb(obj, self.public_name, oldval, value)
+
+    def __get__(self, obj, objtype=None):
+        if not hasattr(obj, self.private_name):
+            if self.default_factory is not None:
+                default_value = self.default_factory(obj)
+                setattr(obj, self.private_name, default_value)
+        return getattr(obj, self.private_name)
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        pass
+
+class ComponentsField(TypedField):
+    def __init__(self, dependsOn=None):
+        super().__init__(default_factory=lambda obj: unpack_components(obj.dbf, sorted(x.name for x in obj.dbf.species)),
+                         dependsOn=dependsOn)
+    def __set__(self, obj, value):
+        comps = sorted(unpack_components(obj.dbf, value))
+        self.last_user_specified = comps
+        super().__set__(obj, comps)
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if updated_attribute == 'dbf':
+            if not hasattr(self, 'last_user_specified'):
+                comps = sorted(unpack_components(obj.dbf, self.default_factory(obj)))
+            else:
+                comps = sorted(unpack_components(obj.dbf, self.last_user_specified))
+            self.__set__(obj, comps)
+
+class PhasesField(TypedField):
+    def __init__(self, dependsOn=None):
+        super().__init__(default_factory=lambda obj: filter_phases(obj.dbf, obj.comps),
+                         dependsOn=dependsOn)
+    def __set__(self, obj, value):
+        phases = sorted(unpack_phases(value))
+        self.last_user_specified = phases
+        super().__set__(obj, phases)
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if not hasattr(self, 'last_user_specified'):
+            phases = filter_phases(obj.dbf, obj.comps, self.default_factory(obj))
+        else:
+            phases = filter_phases(obj.dbf, obj.comps, self.last_user_specified)
+        self.__set__(obj, obj.phases)
+
+class DictField(TypedField):
+    def get_proxy(self, obj):
+        class DictProxy:
+            @staticmethod
+            def unwrap():
+                return TypedField.__get__(self, obj)
+            def __getattr__(pxy, name):
+                getobj = TypedField.__get__(self, obj)
+                if getobj == pxy:
+                    raise ValueError('Proxy object points to itself')
+                return getattr(getobj, name)
+            def __getitem__(pxy, item):
+                return TypedField.__get__(self, obj).get(item)
+            def __iter__(pxy):
+                return TypedField.__get__(self, obj).__iter__()
+            def __setitem__(pxy, item, value):
+                conds = TypedField.__get__(self, obj)
+                conds[item] = value
+                self.__set__(obj, conds)
+            def __len__(pxy):
+                return len(TypedField.__get__(self, obj))
+            def __repr__(pxy):
+                return repr(TypedField.__get__(self, obj))
+        return DictProxy()
+
+    def __get__(self, obj, objtype=None):
+        return self.get_proxy(obj)
+
+class ConditionsField(DictField):
+    def __set__(self, obj, value):
+        conditions = value.copy()
         # Temporary solution until constraint system improves
-        if self.conditions.get(v.N) is None:
-            self.conditions[v.N] = 1
-        if np.any(np.array(self.conditions[v.N]) != 1):
-            raise ConditionError('N!=1 is not yet supported, got N={}'.format(self.conditions[v.N]))
+        if conditions.get(v.N) is None:
+            conditions[v.N] = 1
+        if np.any(np.array(conditions[v.N]) != 1):
+            raise ConditionError('N!=1 is not yet supported, got N={}'.format(conditions[v.N]))
         # Modify conditions values to be within numerical limits, e.g., X(AL)=0
         # Also wrap single-valued conditions with lists
-        conds = _adjust_conditions(self.conditions)
+        conds = _adjust_conditions(conditions)
 
         for cond in conds.keys():
-            if isinstance(cond, (v.MoleFraction, v.ChemicalPotential)) and cond.species not in self.comps:
+            if isinstance(cond, (v.MoleFraction, v.ChemicalPotential)) and cond.species not in obj.comps:
                 raise ConditionError('{} refers to non-existent component'.format(cond))
-        self.ndim = 0
-        for cond_val in conds.values():
-            if len(cond_val) > 1:
-                self.ndim += 1
-        str_conds = OrderedDict((str(key), value) for key, value in conds.items())
+        super().__set__(obj, conds)
+
+class ModelsField(DictField):
+    def __init__(self, dependsOn=None):
+        super().__init__(default_factory=lambda obj: instantiate_models(obj.dbf, obj.comps, obj.phases,
+                                                                        model=None, parameters=obj.parameters),
+                         dependsOn=dependsOn)
+    def __set__(self, obj, value):
+        # Unwrap proxy objects before being stored
+        if hasattr(value, 'unwrap'):
+            value = value.unwrap()
+        try:
+            super().__set__(obj, value)
+        except AttributeError:
+            super().__set__(obj, None)
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        self.__set__(obj, obj.models)
+
+class PRFField(TypedField):
+    def __init__(self, dependsOn=None):
+        def make_prf(obj):
+            try:
+                prf = PhaseRecordFactory(obj.dbf, obj.comps, obj.conditions, obj.models, parameters=obj.parameters)
+                prf.param_values[:] = list(obj.parameters.values())
+                return prf
+            except AttributeError:
+                return None
+        super().__init__(default_factory=make_prf, dependsOn=dependsOn)
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        self.__set__(obj, self.default_factory(obj))
+
+class SolverField(TypedField):
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        self.__set__(obj, self.default_factory(obj))
+
+class EquilibriumCalculationField(TypedField):
+    def __get__(self, obj, objtype=None):
+        if (not hasattr(obj, self.private_name)) or (getattr(obj, self.private_name) is None):
+            try:
+                default_value = obj.recompute()
+            except AttributeError:
+                default_value = None
+            setattr(obj, self.private_name, default_value)
+        return getattr(obj, self.private_name)
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        self.__set__(obj, None)
+
+
+class Workspace:
+    _callbacks = defaultdict(lambda: [])
+    dbf: Database = TypedField(lambda _: None)
+    comps: SpeciesList = ComponentsField(dependsOn=['dbf'])
+    phases: PhaseList = PhasesField(dependsOn=['dbf', 'comps'])
+    conditions: Mapping[ConditionKey, ConditionValue] = ConditionsField()
+    verbose: bool = TypedField(lambda _: False)
+    models: Mapping[PhaseName, Model] = ModelsField(dependsOn=['phases'])
+    parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
+    phase_record_factory: Optional[PhaseRecordFactory] = PRFField(dependsOn=['phases', 'conditions', 'models', 'parameters'])
+    calc_opts: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
+    solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), dependsOn=['verbose'])
+    eq: Optional[LightDataset] = EquilibriumCalculationField(dependsOn=['phase_record_factory', 'calc_opts', 'solver'])
+
+    def __init__(self, *args, **kwargs):
+        # Assume positional arguments are specified in class typed-attribute definition order
+        for arg, attrname in zip(args, ['dbf', 'comps', 'phases', 'conditions']):
+            setattr(self, attrname, arg)
+        attributes = list(self.__annotations__.keys())
+        for kwarg_name, kwarg_val in kwargs.items():
+            if kwarg_name not in attributes:
+                raise ValueError(f'{kwarg_name} is not a Workspace attribute')
+            setattr(self, kwarg_name, kwarg_val)
+
+    def recompute(self):
+        str_conds = OrderedDict((str(key), value) for key, value in self.conditions.items())
         components = [x for x in sorted(self.comps)]
         desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
         pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
-
-        if self.phase_record_factory is None:
-            self.models = instantiate_models(self.dbf, self.comps, self.active_phases, model=self.models, parameters=self.parameters)
-            self.phase_record_factory = PhaseRecordFactory(self.dbf, self.comps, conds, self.models, parameters=self.parameters)
-        else:
-            # phase_records were provided, instantiated models must also be provided by the caller
-            if not isinstance(self.models, Mapping):
-                raise ValueError("A dictionary of instantiated models must be passed to `equilibrium` with the `model` argument if the `phase_records` argument is used.")
-            active_phases_without_models = [name for name in self.active_phases if not isinstance(self.models.get(name), Model)]
-            if len(active_phases_without_models) > 0:
-                raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
-
-        self.phase_record_factory.param_values[:] = list(self.parameters.values())
 
         state_variables = list(self.phase_record_factory.values())[0].state_variables
 
@@ -145,16 +267,20 @@ class Workspace:
 
         if 'pdens' not in grid_opts:
             grid_opts['pdens'] = 60
-        grid = calculate(self.dbf, self.comps, self.active_phases, model=self.models, fake_points=True,
-                        phase_records=self.phase_record_factory, output='GM', parameters=self.parameters,
+
+        grid = calculate(self.dbf, self.comps, self.phases, model=self.models.unwrap(), fake_points=True,
+                        phase_records=self.phase_record_factory, output='GM', parameters=self.parameters.unwrap(),
                         to_xarray=False, **grid_opts)
         coord_dict = str_conds.copy()
         coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
         coord_dict['component'] = pure_elements
-        properties = starting_point(conds, state_variables, self.phase_record_factory, grid)
-        self.eq = _solve_eq_at_conditions(properties, self.phase_record_factory, grid,
-                                          list(str_conds.keys()), state_variables,
-                                          self.verbose, solver=self.solver)
+        properties = starting_point(self.conditions, state_variables, self.phase_record_factory, grid)
+        return _solve_eq_at_conditions(properties, self.phase_record_factory, grid,
+                                       list(str_conds.keys()), state_variables,
+                                       self.verbose, solver=self.solver)
+
+    def calculate_equilibrium(self):
+        self.eq = self.recompute()
 
     def _detect_phase_multiplicity(self):
         multiplicity = {k: 0 for k in sorted(self.phase_record_factory.keys())}
@@ -216,6 +342,14 @@ class Workspace:
         # Watch deletion order! Indices will change as items are deleted
         for deletion_index in reversed(indices_to_delete):
             del args[deletion_index]
+
+    @property
+    def ndim(self) -> int:
+        _ndim = 0
+        for cond_val in self.conditions.values():
+            if len(cond_val) > 1:
+                _ndim += 1
+        return _ndim
 
     def enumerate_composition_sets(self):
         if self.eq is None:
@@ -305,18 +439,3 @@ class Workspace:
         if propname is not None:
             ax.set_xlabel(f'{propname} [{x_display_units:~P}]')
         ax.legend()
-
-# Upstream bug: Values are not cast before setattr is called, when frozen=False
-def _setattr_workaround(self, name, value):
-    try:
-        field = self.__dataclass_fields__[name]
-    except (KeyError, AttributeError):
-        pass
-    else:
-        if (value is not None) and not isa(value, field.type):
-            try:
-                value = field.type.cast_from(value)
-            except TypeError:
-                pass
-    object.__setattr__(self, name, value)
-Workspace.__setattr__ = _setattr_workaround
