@@ -35,7 +35,7 @@ from collections import namedtuple
 BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
 ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac', 'cons_hess'])
 
-if have_llvm:
+if False:#have_llvm:
     LAMBDIFY_DEFAULT_BACKEND = 'llvm'
 else:
     LAMBDIFY_DEFAULT_BACKEND = 'lambda'
