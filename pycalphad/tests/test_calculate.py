@@ -276,11 +276,10 @@ CONSTITUENT MU_PHASE
 def test_calculation_jitter(load_database):
     dbf = load_database()
     comps = ['AL', 'NI', 'VA']
-    phases = sorted(dbf.phases.keys())
-    res = calculate(dbf, comps, phases, P=101325, T=1600, N=1, pdens=60)
+    res = calculate(dbf, comps, ['FCC_L12'], P=101325, T=1600, N=1, pdens=60)
     with np.printoptions(threshold=np.inf):
         print('-')
-        print(res.Phase.values)
+        print(res.Y.values)
         print('-')
         print(res.GM.values)
     assert False
