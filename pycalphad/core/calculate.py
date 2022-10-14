@@ -354,7 +354,7 @@ def _compute_phase_values(components, statevar_dict,
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, phase_records=None, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, phase_records=None, _debug=False, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -490,19 +490,20 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             points = _sample_phase_constitution(mod, sampler_dict[phase_name] or point_sample,
                                                 fixedgrid_dict[phase_name], pdens_dict[phase_name])
         points = np.atleast_2d(points)
-        for atom in sorted(mod.GM.atoms(Piecewise), key=str):
+        if _debug:
+            for atom in sorted(mod.GM.atoms(Piecewise), key=str):
+                for point_idx in range(points.shape[-2]):
+                    dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
+                    output_str = str(atom) + f'[{point_idx}] = ('
+                    for arg in atom.args:
+                        val = str(arg.subs(dof))
+                        output_str += val
+                        output_str += ','
+                    output_str += ')'
+                    print(output_str)
             for point_idx in range(points.shape[-2]):
                 dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
-                output_str = str(atom) + f'[{point_idx}] = ('
-                for arg in atom.args:
-                    val = str(arg.subs(dof))
-                    output_str += val
-                    output_str += ','
-                output_str += ')'
-                print(output_str)
-        for point_idx in range(points.shape[-2]):
-            dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
-            print(f'[{point_idx}] = {dof}')
+                print(f'[{point_idx}] = {dof}')
         fp = fake_points and (phase_name == sorted(active_phases)[0])
         phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
                                          points, phase_record, output,
