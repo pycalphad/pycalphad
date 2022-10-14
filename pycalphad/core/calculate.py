@@ -496,10 +496,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                     dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
                     output_str = str(atom) + f'[{point_idx}] = ('
                     for arg in atom.args:
-                        val = str(arg.subs(dof))
-                        output_str += val
+                        val = arg.subs(dof)
+                        output_str += str(val)
                         output_str += ','
-                    output_str += ')'
+                    output_str += ') = ' + str(atom.subs(dof).evalf(real=True))
                     print(output_str)
             for point_idx in range(points.shape[-2]):
                 dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
