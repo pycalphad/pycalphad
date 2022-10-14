@@ -252,3 +252,21 @@ def test_BCC_phase_with_symmetry_option_B(load_database):
     bcc_4sl_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_4SL", T=300, N=1, P=101325, pdens=10)
     bcc_no_B_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_NOB", T=300, N=1, P=101325, pdens=10)
     assert np.allclose(bcc_4sl_calc_res.GM.values.squeeze(), bcc_no_B_calc_res.GM.values.squeeze())
+
+def test_complex_multisublattice():
+    "calculate returns a result without running out of memory for a complex multi-sublattice phase"
+    tdb = """
+ELEMENT CR BCC_A2 51.996 4050.0 23.543 !
+ELEMENT FE BCC_A2 55.847 4489.0 27.28 !
+ELEMENT MO BCC_A2 95.94 4589.0 28.56 !
+ELEMENT NB BCC_A2 92.906 5220.0 36.27 !
+ELEMENT NI FCC_A1 58.69 4787.0 29.796 !
+
+PHASE MU_PHASE %  5 2.0 2.0 2.0 6.0 1.0 !
+CONSTITUENT MU_PHASE
+   :CR,FE,MO,NB,NI:CR,FE,MO,NB,NI:CR,FE,MO,NB,NI:
+   CR,FE,MO,NB,NI:CR,FE,MO,NB,NI: !
+    """
+    dbf = Database(tdb)
+    calc_res = calculate(dbf, ['CR', 'FE', 'MO', 'NB', 'NI'], ['MU_PHASE'], N=1, P=101325, T=300, pdens=60)
+    assert calc_res.GM.size < 100000

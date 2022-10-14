@@ -152,9 +152,12 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
         # These constitution space edges are often the equilibrium points!
         em_pairs = list(itertools.combinations(points, 2))
         lingrid = np.linspace(0, 1, pdens)
-        extra_points = [first_em * lingrid[np.newaxis].T +
-                        second_em * lingrid[::-1][np.newaxis].T
-                        for first_em, second_em in em_pairs]
+        if len(em_pairs) * pdens < 100000:
+            extra_points = [first_em * lingrid[np.newaxis].T +
+                            second_em * lingrid[::-1][np.newaxis].T
+                            for first_em, second_em in em_pairs]
+        else:
+            extra_points = []
         points = np.concatenate(list(itertools.chain([points], extra_points)))
     # Sample composition space for more points
     if sum(sublattice_dof) > len(sublattice_dof):
