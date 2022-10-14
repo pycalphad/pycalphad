@@ -270,3 +270,17 @@ CONSTITUENT MU_PHASE
     dbf = Database(tdb)
     calc_res = calculate(dbf, ['CR', 'FE', 'MO', 'NB', 'NI'], ['MU_PHASE'], N=1, P=101325, T=300, pdens=60)
     assert calc_res.GM.size < 100000
+
+@pytest.mark.solver
+@select_database("alni_dupin_2001.tdb")
+def test_calculation_jitter(load_database):
+    dbf = load_database()
+    comps = ['AL', 'NI', 'VA']
+    phases = sorted(dbf.phases.keys())
+    res = calculate(dbf, comps, phases, P=101325, T=1600, N=1, pdens=60)
+    with np.printoptions(threshold=np.inf):
+        print('-')
+        print(res.Phase.values)
+        print('-')
+        print(res.GM.values)
+    assert False
