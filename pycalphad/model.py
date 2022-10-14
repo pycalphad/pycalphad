@@ -268,7 +268,7 @@ class Model(object):
             return graph.xreplace(replace_dict)
 
         for name, value in self.models.items():
-            print(name, self.models[name].GM.atoms(Piecewise))
+            print(name, self.models[name].atoms(Piecewise))
             for _ in range(5):
                 self.models[name] = unwrap_piecewise(self.models[name])
 
