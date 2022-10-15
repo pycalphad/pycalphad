@@ -83,11 +83,13 @@ class TypedField:
                 owner._callbacks[dependency].append(self.on_dependency_update)
 
     def __set__(self, obj, value):
-        if (self.type != NoneType) and not isa(value, self.type):
+        if (self.type != NoneType) and not isa(value, self.type) and value is not None:
             try:
                 value = self.type.cast_from(value)
             except TypeError as e:
                 raise e
+        elif value is None and self.default_factory is not None:
+            value = self.default_factory(obj)
         oldval = getattr(obj, self.private_name, None)
         setattr(obj, self.private_name, value)
         for cb in obj._callbacks[self.public_name]:
