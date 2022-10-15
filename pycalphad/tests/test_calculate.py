@@ -5,6 +5,7 @@ Model quantities correctly.
 
 import pytest
 from pycalphad import Database, calculate, Model, variables as v
+from itertools import chain
 import numpy as np
 from numpy.testing import assert_allclose
 from pycalphad.codegen.callables import build_phase_records
@@ -274,7 +275,12 @@ CONSTITUENT MU_PHASE
 @pytest.mark.solver
 @select_database("alni_dupin_2001.tdb")
 def test_calculation_jitter(load_database):
+    "Platform-dependent numerical differences stemming from optimizations of the Model object representation (gh-431)"
     dbf = load_database()
     comps = ['AL', 'NI', 'VA']
-    res = calculate(dbf, comps, ['FCC_L12'], P=101325, T=1600, N=1, pdens=60, _debug=True)
-    assert False
+    res = calculate(dbf, comps, ['FCC_L12'], P=101325, T=1600, N=1, pdens=60)
+    points = res.Y.values
+    mod = Model(dbf, comps, 'FCC_L12')
+    for point_idx in range(points.shape[-2]):
+        dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :].flat])))
+        np.testing.assert_allclose(res.GM.values.flat[point_idx], float(mod.GM.subs(dof).evalf(real=True)))

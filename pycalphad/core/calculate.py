@@ -354,7 +354,7 @@ def _compute_phase_values(components, statevar_dict,
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, phase_records=None, _debug=False, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, phase_records=None, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -496,20 +496,6 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast, parameters=parameters,
                                          largest_energy=float(largest_energy), fake_points=fp)
-        if _debug:
-            #for atom in sorted(mod.GM.atoms(Piecewise), key=str):
-            #    for point_idx in range(points.shape[-2]):
-            #        dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
-            #        output_str = str(atom) + f'[{point_idx}] = ('
-            #        for arg in atom.args:
-            #            val = arg.subs(dof)
-            #            output_str += str(val)
-            #            output_str += ','
-            #        output_str += ') = ' + str(atom.subs(dof).evalf(real=True))
-            #        print(output_str)
-            for point_idx in range(points.shape[-2]):
-                dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
-                print(f'[{point_idx}] = {phase_ds.GM.flat[point_idx]} = {mod.GM.subs(dof).evalf(real=True)}')
         all_phase_data.append(phase_ds)
 
     fp_offset = len(nonvacant_elements) if fake_points else 0

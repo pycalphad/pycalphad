@@ -264,7 +264,12 @@ class Model(object):
                 args = atom.args
                 # Unwrap temperature-dependent piecewise with zero-defaults
                 if len(args) == 4 and args[2] == 0 and args[3] == True and args[1].free_symbols == {v.T}:
-                    replace_dict[atom] = args[0]
+                    arg0 = args[0]
+                    try:
+                        arg0 = float(arg0)
+                    except (ValueError, RuntimeError):
+                        pass
+                    replace_dict[atom] = arg0
             return graph.xreplace(replace_dict)
 
         for name, value in self.models.items():
