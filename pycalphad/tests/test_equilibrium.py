@@ -695,7 +695,7 @@ def test_eq_alni_low_temp(load_database):
     dbf = load_database()
     comps = ['AL', 'NI', 'VA']
     phases = sorted(dbf.phases.keys())
-    eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 300, v.N: 1, v.X('AL'): 0.4}, verbose=True)
+    eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 300, v.N: 1, v.X('AL'): 0.4})
     # Verified in TC: https://github.com/pycalphad/pycalphad/pull/329#discussion_r637241358
     assert_allclose(eq.GM.values, -63736.3048)
     assert_allclose(eq.MU.values.flatten(), [-116098.937755,  -28827.882809])
@@ -715,7 +715,7 @@ def test_eq_alni_high_temp(load_database):
     dbf = load_database()
     comps = ['AL', 'NI', 'VA']
     phases = sorted(dbf.phases.keys())
-    eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 1600, v.N: 1, v.X('AL'): 0.65}, verbose=True)
+    eq = equilibrium(dbf, comps, phases, {v.P: 101325, v.T: 1600, v.N: 1, v.X('AL'): 0.65})
     # if MIN_SITE_FRACTION is set to 1e-16: -131048.695
     assert_allclose(eq.GM.values, -131081.998)
     # if MIN_SITE_FRACTION is set to 1e-16: [-106515.007322, -176611.259853]
