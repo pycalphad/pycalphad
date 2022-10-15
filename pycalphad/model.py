@@ -258,28 +258,23 @@ class Model(object):
             # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
             self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
 
-        def unwrap_piecewise(graph):
-            replace_dict = {}
-            for atom in graph.atoms(Piecewise):
-                args = atom.args
-                # Unwrap temperature-dependent piecewise with zero-defaults
-                if len(args) == 4 and args[2] == 0 and args[3] == True and args[1].free_symbols == {v.T}:
-                    arg0 = args[0]
-                    try:
-                        arg0 = float(arg0)
-                    except (ValueError, RuntimeError):
-                        pass
-                    replace_dict[atom] = arg0
-            return graph.xreplace(replace_dict)
-
-        for name, value in self.models.items():
-            if name == 'ord':
-                continue
-            for _ in range(5):
-                self.models[name] = unwrap_piecewise(self.models[name])
-
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
+
+    @staticmethod
+    def unwrap_piecewise(graph):
+        replace_dict = {}
+        for atom in graph.atoms(Piecewise):
+            args = atom.args
+            # Unwrap temperature-dependent piecewise with zero-defaults
+            if len(args) == 4 and args[2] == 0 and args[3] == True and args[1].free_symbols == {v.T}:
+                arg0 = args[0]
+                try:
+                    arg0 = float(arg0)
+                except (ValueError, RuntimeError):
+                    pass
+                replace_dict[atom] = arg0
+        return graph.xreplace(replace_dict)
 
     @staticmethod
     def symbol_replace(obj, symbols):
@@ -300,6 +295,8 @@ class Model(object):
             # of other symbols
             for iteration in range(_MAX_PARAM_NESTING):
                 obj = obj.xreplace(symbols)
+                if iteration < 3:
+                    obj = Model.unwrap_piecewise(obj)
                 undefs = [x for x in obj.free_symbols if not isinstance(x, v.StateVariable)]
                 if len(undefs) == 0:
                     break
