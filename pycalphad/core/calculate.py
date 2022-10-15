@@ -490,25 +490,26 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             points = _sample_phase_constitution(mod, sampler_dict[phase_name] or point_sample,
                                                 fixedgrid_dict[phase_name], pdens_dict[phase_name])
         points = np.atleast_2d(points)
-        if _debug:
-            for atom in sorted(mod.GM.atoms(Piecewise), key=str):
-                for point_idx in range(points.shape[-2]):
-                    dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
-                    output_str = str(atom) + f'[{point_idx}] = ('
-                    for arg in atom.args:
-                        val = arg.subs(dof)
-                        output_str += str(val)
-                        output_str += ','
-                    output_str += ') = ' + str(atom.subs(dof).evalf(real=True))
-                    print(output_str)
-            for point_idx in range(points.shape[-2]):
-                dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
-                print(f'[{point_idx}] = {dof}')
+
         fp = fake_points and (phase_name == sorted(active_phases)[0])
         phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast, parameters=parameters,
                                          largest_energy=float(largest_energy), fake_points=fp)
+        if _debug:
+            #for atom in sorted(mod.GM.atoms(Piecewise), key=str):
+            #    for point_idx in range(points.shape[-2]):
+            #        dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
+            #        output_str = str(atom) + f'[{point_idx}] = ('
+            #        for arg in atom.args:
+            #            val = arg.subs(dof)
+            #            output_str += str(val)
+            #            output_str += ','
+            #        output_str += ') = ' + str(atom.subs(dof).evalf(real=True))
+            #        print(output_str)
+            for point_idx in range(points.shape[-2]):
+                dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :]])))
+                print(f'[{point_idx}] = {phase_ds.GM.flat[point_idx]} = {mod.GM.subs(dof).evalf(real=True)}')
         all_phase_data.append(phase_ds)
 
     fp_offset = len(nonvacant_elements) if fake_points else 0
