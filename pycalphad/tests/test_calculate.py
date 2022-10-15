@@ -278,9 +278,9 @@ def test_calculation_jitter(load_database):
     "Platform-dependent numerical differences stemming from optimizations of the Model object representation (gh-431)"
     dbf = load_database()
     comps = ['AL', 'NI', 'VA']
-    res = calculate(dbf, comps, ['FCC_L12'], P=101325, T=1600, N=1, pdens=60)
+    res = calculate(dbf, comps, ['FCC_A1'], P=101325, T=1600, N=1, pdens=60)
     points = res.Y.values
-    mod = Model(dbf, comps, 'FCC_L12')
+    mod = Model(dbf, comps, 'FCC_A1')
     for point_idx in range(points.shape[-2]):
         dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :].flat])))
         np.testing.assert_allclose(res.GM.values.flat[point_idx], float(mod.GM.subs(dof).evalf(real=True)))
