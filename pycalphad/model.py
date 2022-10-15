@@ -273,6 +273,8 @@ class Model(object):
             return graph.xreplace(replace_dict)
 
         for name, value in self.models.items():
+            if name == 'ord':
+                continue
             for _ in range(5):
                 self.models[name] = unwrap_piecewise(self.models[name])
 

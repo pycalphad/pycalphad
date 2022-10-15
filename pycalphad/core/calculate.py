@@ -480,8 +480,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
-    from symengine import Piecewise
-    from itertools import chain
+
     for phase_name in sorted(active_phases):
         mod = models[phase_name]
         phase_record = phase_records[phase_name]
