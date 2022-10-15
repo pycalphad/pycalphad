@@ -421,7 +421,19 @@ class Workspace:
             return list(results.values())
         else:
             return results
-    
+
+    @staticmethod
+    def _property_axis_label(prop: ComputableProperty) -> str:
+        propname = getattr(prop, 'display_name', None)
+        if propname is not None:
+            result = str(propname)
+            display_units = ureg.Unit(getattr(prop, 'display_units', ''))
+            if str(display_units) != '':
+                result += f' [{display_units:~P}]'
+            return result
+        else:
+            return str(prop)
+
     def plot(self, x: ComputableProperty, *ys: Tuple[ComputableProperty], ax=None):
         import matplotlib.pyplot as plt
         ax = ax if ax is not None else plt.gca()
@@ -431,13 +443,7 @@ class Workspace:
         for y in data.keys():
             if y == x:
                 continue
-            ax.plot(data[x], data[y], label=str(y))
-            y_display_units = ureg.Unit(getattr(y, 'display_units', ''))
-            y_propname = getattr(y, 'display_name', None)
-            if y_propname is not None:
-                ax.set_ylabel(f'{y_propname} [{y_display_units:~P}]')
-        propname = getattr(x, 'display_name', None)
-        x_display_units = ureg.Unit(getattr(x, 'display_units', ''))
-        if propname is not None:
-            ax.set_xlabel(f'{propname} [{x_display_units:~P}]')
+            ax.plot(data[x].magnitude, data[y].magnitude, label=str(y))
+            ax.set_ylabel(self._property_axis_label(y))
+        ax.set_xlabel(self._property_axis_label(x))
         ax.legend()
