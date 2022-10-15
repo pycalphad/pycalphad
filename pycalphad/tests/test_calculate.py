@@ -274,7 +274,7 @@ CONSTITUENT MU_PHASE
 
 @pytest.mark.solver
 @select_database("alni_dupin_2001.tdb")
-def test_calculation_jitter(load_database):
+def test_calculation_symengine_evalf_energy_difference(load_database):
     "Platform-dependent numerical differences stemming from optimizations of the Model object representation (gh-431)"
     dbf = load_database()
     comps = ['AL', 'NI', 'VA']
