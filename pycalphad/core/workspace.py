@@ -25,7 +25,7 @@ from runtype.pytypes import Dict, List, Sequence, SumType, Mapping, NoneType
 
 
 def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
-    "Adjust conditions values to be within the numerical limit of the solver."
+    "Adjust conditions values to be in the base units of the quantity, and within the numerical limit of the solver."
     new_conds = OrderedDict()
     minimum_composition = 1e-10
     for key, value in sorted(conds.items(), key=str):
@@ -40,6 +40,8 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
             new_conds[key] = [max(val, minimum_composition) for val in vals]
         else:
             new_conds[key] = unpack_condition(value)
+        if getattr(key, 'display_units', '') != '':
+            new_conds[key] = Q_(new_conds[key], units=key.display_units).to(key.base_units).magnitude
     return new_conds
 
 class SpeciesList:

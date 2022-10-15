@@ -7,6 +7,7 @@ from pycalphad.core.solver import Solver
 from pycalphad.property_framework.types import ComputableProperty, DotDerivativeDeltas, \
     DifferentiableComputableProperty, ConditionableComputableProperty
 from pycalphad.property_framework import units
+from copy import copy
 
 class ModelComputedProperty(object):
     def __init__(self, model_attr_name: str, phase_name: Optional[str] = None):
@@ -15,6 +16,12 @@ class ModelComputedProperty(object):
         self.display_name = getattr(units, model_attr_name + '_display_name', model_attr_name)
         self.model_attr_name = model_attr_name
         self.phase_name = phase_name
+
+    def __getitem__(self, new_units: str) -> "ModelComputedProperty":
+        "Get ModelComputedProperty with different display units"
+        newobj = copy(self)
+        newobj.display_units = new_units
+        return newobj
 
     def expand_wildcard(self, phase_names):
         return [self.__class__(self.model_attr_name, phase_name) for phase_name in phase_names]
@@ -176,6 +183,11 @@ class DotDerivativeComputedProperty:
     def display_units(self, val):
         self._display_units = val
 
+    def __getitem__(self, new_units: str) -> "DotDerivativeComputedProperty":
+        "Get DotDerivativeComputedProperty with different display units"
+        newobj = copy(self)
+        newobj.display_units = new_units
+        return newobj
 
     @property
     def display_name(self):

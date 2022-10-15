@@ -11,6 +11,9 @@ energy_display_name = GM_display_name = 'Gibbs Energy'
 enthalpy_base_units = HM_base_units = GM_base_units
 enthalpy_display_units = HM_display_units = GM_display_units
 enthalpy_display_name = HM_display_name = 'Enthalpy'
+entropy_base_units = SM_base_units = 'J / mol / K'
+entropy_display_units = SM_display_units = 'J / mol / K'
+entropy_display_name = SM_display_name = 'Entropy'
 
 # g/mol
 # It would be 'better' to pull this information from databases, but it would require significant design changes

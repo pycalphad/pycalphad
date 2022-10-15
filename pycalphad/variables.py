@@ -9,6 +9,7 @@ from pycalphad.property_framework.types import DotDerivativeDeltas
 from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, \
     fixed_component_differential, chemical_potential_differential
 import numpy as np
+from copy import copy
 
 class Species(object):
     """
@@ -211,6 +212,12 @@ class StateVariable(Symbol):
 
     def __hash__(self):
         return hash((self.__class__, self.name))
+
+    def __getitem__(self, new_units: str) -> "StateVariable":
+        "Get StateVariable with different display units"
+        newobj = copy(self)
+        newobj.display_units = new_units
+        return newobj
 
 class SiteFraction(StateVariable):
     """
