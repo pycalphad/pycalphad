@@ -2,6 +2,7 @@ import pint
 import numpy as np
 
 ureg = pint.UnitRegistry()
+ureg.define('atom = 1/avogadro_number * mol')
 Q_ = ureg.Quantity
 
 energy_base_units = GM_base_units = 'J / mol'
