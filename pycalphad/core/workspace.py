@@ -427,7 +427,7 @@ class Workspace:
         if propname is not None:
             result = str(propname)
             display_units = ureg.Unit(getattr(prop, 'display_units', ''))
-            if str(display_units) != '':
+            if len(f'{display_units:~P}') > 0:
                 result += f' [{display_units:~P}]'
             return result
         else:
