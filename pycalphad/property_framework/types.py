@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pint._typing import UnitLike
 import numpy.typing as npt
 from typing import Any, Dict, List, Optional, Tuple
 try:
@@ -17,6 +18,9 @@ class DotDerivativeDeltas:
 
 @runtime_checkable
 class ComputableProperty(Protocol):
+    implementation_units: UnitLike
+    display_units: UnitLike
+
     def compute_property(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike) -> npt.ArrayLike:
         ...
     @property

@@ -121,6 +121,8 @@ class ModelComputedProperty(object):
 def as_property(inp: Union[str, ComputableProperty]) -> ComputableProperty:
     if isinstance(inp, ComputableProperty):
         return inp
+    elif not isinstance(inp, str):
+        raise TypeError(f'{inp} is not a ComputableProperty')
     dot_tokens = inp.split('.')
     if len(dot_tokens) == 2:
         numerator, denominator = dot_tokens
