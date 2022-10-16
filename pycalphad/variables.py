@@ -577,6 +577,10 @@ class ChemicalPotential(StateVariable):
     """
     Chemical potentials are symbols with built-in assumptions of being real.
     """
+    base_units = 'J / mol'
+    display_units = 'J / mol'
+    display_name = property(lambda self: f'Chemical Potential {self.species}')
+
     def __init__(self, species):
         species = Species(species)
         varname = 'MU_' + species.escaped_name.upper()
