@@ -113,15 +113,11 @@ class ComponentsField(TypedField):
                          dependsOn=dependsOn)
     def __set__(self, obj, value):
         comps = sorted(unpack_components(obj.dbf, value))
-        self.last_user_specified = comps
         super().__set__(obj, comps)
-    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
-        if updated_attribute == 'dbf':
-            if not hasattr(self, 'last_user_specified'):
-                comps = sorted(unpack_components(obj.dbf, self.default_factory(obj)))
-            else:
-                comps = sorted(unpack_components(obj.dbf, self.last_user_specified))
-            self.__set__(obj, comps)
+
+    def __get__(self, obj, objtype=None):
+        getobj = super().__get__(obj, objtype=objtype)
+        return sorted(unpack_components(obj.dbf, getobj))
 
 class PhasesField(TypedField):
     def __init__(self, dependsOn=None):
