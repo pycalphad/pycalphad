@@ -6,13 +6,13 @@ import warnings
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from symengine import lambdify, Symbol
+from symengine import Symbol
 import numpy as np
 import operator
 import functools
 import itertools
 import collections
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, KeysView
 
 
 def point_sample(comp_count, pdof=10):
@@ -101,12 +101,14 @@ def unpack_condition(tup):
 def unpack_phases(phases):
     "Convert a phases list/dict into a sorted list."
     active_phases = None
-    if isinstance(phases, (list, tuple, set)):
+    if isinstance(phases, (list, tuple, set, KeysView)):
         active_phases = sorted(phases)
     elif isinstance(phases, dict):
         active_phases = sorted(phases.keys())
     elif type(phases) is str:
         active_phases = [phases]
+    else:
+        raise ValueError('Cannot unpack phases into recognizable input')
     return active_phases
 
 def generate_dof(phase, active_comps):
