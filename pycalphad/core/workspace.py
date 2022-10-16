@@ -259,7 +259,7 @@ class Workspace:
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
         pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
 
-        state_variables = list(self.phase_record_factory.values())[0].state_variables
+        state_variables = self.phase_record_factory.state_variables
 
         # 'calculate' accepts conditions through its keyword arguments
         grid_opts = self.calc_opts.copy()
