@@ -34,7 +34,7 @@ class ModelComputedProperty(object):
 
     @property
     def shape(self):
-        return (1,)
+        return tuple()
 
     @property
     def multiplicity(self):
@@ -64,7 +64,7 @@ class ModelComputedProperty(object):
                 multiplicity_seen += 1
                 if multiplicity == multiplicity_seen:
                     return self._compute_per_phase_property(compset, cur_conds)
-            return np.atleast_1d(np.nan)
+            return np.nan
 
 
     def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas) -> npt.ArrayLike:
@@ -94,10 +94,10 @@ class ModelComputedProperty(object):
                 dot_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
         return dot_derivative
 
-    def _compute_per_phase_property(self, compset: CompositionSet, cur_conds: Dict[str, float]) -> npt.ArrayLike:
+    def _compute_per_phase_property(self, compset: CompositionSet, cur_conds: Dict[str, float]) -> float:
         out = np.atleast_1d(np.zeros(1))
         compset.phase_record.prop(out, compset.dof, self.model_attr_name.encode('utf-8'))
-        return out
+        return out[0]
 
     def _compute_property_gradient(self, compsets, cur_conds, chemical_potentials):
         "Compute partial derivatives of property with respect to degrees of freedom of given CompositionSets"
@@ -165,7 +165,7 @@ class DotDerivativeComputedProperty:
 
     @property
     def shape(self):
-        return (1,)
+        return tuple()
 
     @property
     def base_units(self):

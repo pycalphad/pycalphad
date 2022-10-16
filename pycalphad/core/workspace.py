@@ -408,8 +408,8 @@ class Workspace:
                 context = unit_conversion_context(composition_sets, arg)
                 if results.get(arg, None) is None:
                     results[arg] = np.zeros((arr_size,) + arg.shape)
-                results[arg][local_index, :] = Q_(arg.compute_property(composition_sets, cur_conds, chemical_potentials),
-                                                  prop_base_units).to(prop_display_units, context).magnitude
+                results[arg][local_index, ...] = Q_(arg.compute_property(composition_sets, cur_conds, chemical_potentials),
+                                                    prop_base_units).to(prop_display_units, context).magnitude
             local_index += 1
         
         for arg in args:

@@ -59,7 +59,7 @@ class T0(object):
 
     @property
     def shape(self) -> Tuple[int]:
-        return (1,)
+        return tuple()
 
     def compute_property(self, equilibrium_compsets: List[CompositionSet], cur_conds: Dict[str, float],
                          chemical_potentials: npt.ArrayLike) -> float:
@@ -91,7 +91,7 @@ class T0(object):
             else:
                 t0_step = -residual/t0_grad
 
-            conditions[property_to_optimize] = max(min(conditions[property_to_optimize] + t0_step[0],
+            conditions[property_to_optimize] = max(min(conditions[property_to_optimize] + t0_step,
                                                             self.maximum_value),
                                                         self.minimum_value)
             if residual < self.residual_tol:

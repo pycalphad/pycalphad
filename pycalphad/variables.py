@@ -130,7 +130,7 @@ class StateVariable(Symbol):
 
     @property
     def shape(self):
-        return (1,)
+        return tuple()
 
     @property
     def is_global_property(self):
