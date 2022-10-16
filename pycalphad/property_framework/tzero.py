@@ -25,7 +25,7 @@ class T0(object):
     residual_tol: float = 0.01
     maximum_iterations: int = 50
 
-    base_units = property(lambda self: self.property_to_optimize.base_units)
+    implementation_units = property(lambda self: self.property_to_optimize.implementation_units)
     display_units = property(lambda self: self.property_to_optimize.display_units)
 
     def __init__(self, phase_one: Union[CompositionSet, str], phase_two: Union[CompositionSet, str],

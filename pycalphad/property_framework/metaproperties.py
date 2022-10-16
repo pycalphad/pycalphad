@@ -18,7 +18,7 @@ def find_first_compset(phase_name: str, wks: "Workspace"):
 
 class DrivingForce:
     phase_name: str
-    base_units = units.energy_base_units
+    implementation_units = units.energy_implementation_units
     display_units = units.energy_display_units
     display_name = 'Driving Force'
 
@@ -110,7 +110,7 @@ class DormantPhase:
         prop = as_property(prop)
         class _autoproperty:
             shape = prop.shape
-            base_units = prop.base_units
+            implementation_units = prop.implementation_units
             display_units = prop.display_units
             display_name = prop.display_name
             @staticmethod
@@ -176,7 +176,7 @@ class IsolatedPhase:
         prop = as_property(prop)
         class _autoproperty:
             shape = prop.shape
-            base_units = prop.base_units
+            implementation_units = prop.implementation_units
             display_units = prop.display_units
             display_name = prop.display_name
             @staticmethod

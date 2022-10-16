@@ -11,7 +11,7 @@ from copy import copy
 
 class ModelComputedProperty(object):
     def __init__(self, model_attr_name: str, phase_name: Optional[str] = None):
-        self.base_units = getattr(units, model_attr_name + '_base_units', '')
+        self.implementation_units = getattr(units, model_attr_name + '_implementation_units', '')
         self.display_units = getattr(units, model_attr_name + '_display_units', '')
         self.display_name = getattr(units, model_attr_name + '_display_name', model_attr_name)
         self.model_attr_name = model_attr_name
@@ -168,8 +168,8 @@ class DotDerivativeComputedProperty:
         return tuple()
 
     @property
-    def base_units(self):
-        return str(units.ureg.Unit(self.numerator.base_units) / units.ureg.Unit(self.denominator.base_units))
+    def implementation_units(self):
+        return str(units.ureg.Unit(self.numerator.implementation_units) / units.ureg.Unit(self.denominator.implementation_units))
 
     _display_units = None
     @property

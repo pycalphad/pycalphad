@@ -118,7 +118,7 @@ class StateVariable(Symbol):
     """
     State variables are symbols with built-in assumptions of being real.
     """
-    base_units = ''
+    implementation_units = ''
     display_units = ''
 
     @property
@@ -577,7 +577,7 @@ class ChemicalPotential(StateVariable):
     """
     Chemical potentials are symbols with built-in assumptions of being real.
     """
-    base_units = 'J / mol'
+    implementation_units = 'J / mol'
     display_units = 'J / mol'
     display_name = property(lambda self: f'Chemical Potential {self.species}')
 
@@ -635,7 +635,7 @@ class IndependentPotential(StateVariable):
 
 
 class TemperatureType(IndependentPotential):
-    base_units = 'kelvin'
+    implementation_units = 'kelvin'
     display_units = 'kelvin'
     display_name = 'Temperature'
 
@@ -646,7 +646,7 @@ class TemperatureType(IndependentPotential):
 
 
 class PressureType(IndependentPotential):
-    base_units = 'pascal'
+    implementation_units = 'pascal'
     display_units = 'pascal'
     display_name = 'Pressure'
 

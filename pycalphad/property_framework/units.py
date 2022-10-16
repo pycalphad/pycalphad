@@ -5,13 +5,13 @@ ureg = pint.UnitRegistry()
 ureg.define('atom = 1/avogadro_number * mol')
 Q_ = ureg.Quantity
 
-energy_base_units = GM_base_units = 'J / mol'
+energy_implementation_units = GM_implementation_units = 'J / mol'
 energy_display_units = GM_display_units = 'kJ / mol'
 energy_display_name = GM_display_name = 'Gibbs Energy'
-enthalpy_base_units = HM_base_units = GM_base_units
+enthalpy_implementation_units = HM_implementation_units = GM_implementation_units
 enthalpy_display_units = HM_display_units = GM_display_units
 enthalpy_display_name = HM_display_name = 'Enthalpy'
-entropy_base_units = SM_base_units = 'J / mol / K'
+entropy_implementation_units = SM_implementation_units = 'J / mol / K'
 entropy_display_units = SM_display_units = 'J / mol / K'
 entropy_display_name = SM_display_name = 'Entropy'
 
@@ -50,9 +50,9 @@ def unit_conversion_context(compsets, prop):
     context = pint.Context()
     # these will be something/mol by convention
     # XXX: This is a very rough check
-    if not ('/ mol' in str(prop.base_units)):
+    if not ('/ mol' in str(prop.implementation_units)):
         return context
-    base_units = (ureg.Unit(prop.base_units) * ureg.Unit('mol'))
+    implementation_units = (ureg.Unit(prop.implementation_units) * ureg.Unit('mol'))
     molar_weight = 0.0 # g/mol-atom
     for compset in compsets:
         if compset.NP > 0:
@@ -60,8 +60,8 @@ def unit_conversion_context(compsets, prop):
             grams_per_mol_atoms = (compset.NP / moles_per_fu) * grams_per_fu
             molar_weight += grams_per_mol_atoms
     molar_weight = Q_(molar_weight, 'g/mol')
-    per_moles = ureg.get_dimensionality(ureg.Unit('{} / mol'.format(base_units)))
-    per_mass = ureg.get_dimensionality(ureg.Unit('{} / g'.format(base_units)))
+    per_moles = ureg.get_dimensionality(ureg.Unit('{} / mol'.format(implementation_units)))
+    per_mass = ureg.get_dimensionality(ureg.Unit('{} / g'.format(implementation_units)))
 
     context.add_transformation(
         per_moles,

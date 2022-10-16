@@ -25,7 +25,7 @@ from runtype.pytypes import Dict, List, Sequence, SumType, Mapping, NoneType
 
 
 def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
-    "Adjust conditions values to be in the base units of the quantity, and within the numerical limit of the solver."
+    "Adjust conditions values to be in the implementation units of the quantity, and within the numerical limit of the solver."
     new_conds = OrderedDict()
     minimum_composition = 1e-10
     for key, value in sorted(conds.items(), key=str):
@@ -41,7 +41,7 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
         else:
             new_conds[key] = unpack_condition(value)
         if getattr(key, 'display_units', '') != '':
-            new_conds[key] = Q_(new_conds[key], units=key.display_units).to(key.base_units).magnitude
+            new_conds[key] = Q_(new_conds[key], units=key.display_units).to(key.implementation_units).magnitude
     return new_conds
 
 class SpeciesList:
@@ -386,7 +386,7 @@ class Workspace:
             raise ValueError('Dimension of calculation is greater than one')
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
-        arg_units = {arg: (ureg.Unit(getattr(arg, 'base_units', '')),
+        arg_units = {arg: (ureg.Unit(getattr(arg, 'implementation_units', '')),
                            ureg.Unit(getattr(arg, 'display_units', '')))
                      for arg in args}
 
@@ -404,12 +404,12 @@ class Workspace:
             chemical_potentials = prop_MU_values[index]
             
             for arg in args:
-                prop_base_units, prop_display_units = arg_units[arg]
+                prop_implementation_units, prop_display_units = arg_units[arg]
                 context = unit_conversion_context(composition_sets, arg)
                 if results.get(arg, None) is None:
                     results[arg] = np.zeros((arr_size,) + arg.shape)
                 results[arg][local_index, ...] = Q_(arg.compute_property(composition_sets, cur_conds, chemical_potentials),
-                                                    prop_base_units).to(prop_display_units, context).magnitude
+                                                    prop_implementation_units).to(prop_display_units, context).magnitude
             local_index += 1
         
         for arg in args:
