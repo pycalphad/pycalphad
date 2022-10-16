@@ -129,14 +129,11 @@ class PhasesField(TypedField):
                          dependsOn=dependsOn)
     def __set__(self, obj, value):
         phases = sorted(unpack_phases(value))
-        self.last_user_specified = phases
         super().__set__(obj, phases)
-    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
-        if not hasattr(self, 'last_user_specified'):
-            phases = filter_phases(obj.dbf, obj.comps, self.default_factory(obj))
-        else:
-            phases = filter_phases(obj.dbf, obj.comps, self.last_user_specified)
-        self.__set__(obj, obj.phases)
+
+    def __get__(self, obj, objtype=None):
+        getobj = super().__get__(obj, objtype=objtype)
+        return filter_phases(obj.dbf, obj.comps, getobj)
 
 class DictField(TypedField):
     def get_proxy(self, obj):
