@@ -7,7 +7,7 @@ from pycalphad.core.utils import unpack_components, unpack_condition, unpack_pha
 from pycalphad import calculate
 from pycalphad.core.errors import ConditionError
 from pycalphad.core.starting_point import starting_point
-from pycalphad.codegen.callables import PhaseRecordFactory
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver, SolverBase

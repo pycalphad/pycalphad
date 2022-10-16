@@ -11,7 +11,7 @@ import numpy as np
 from numpy import broadcast_to
 import pycalphad.variables as v
 from pycalphad import ConditionError
-from pycalphad.codegen.callables import PhaseRecordFactory
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.cache import cacheit
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
