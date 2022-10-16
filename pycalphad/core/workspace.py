@@ -198,7 +198,7 @@ class ModelsField(DictField):
             super().__set__(obj, None)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
-        self.__set__(obj, obj.models)
+        self.__set__(obj, self.default_factory(obj))
 
 class PRFField(TypedField):
     def __init__(self, dependsOn=None):

@@ -19,11 +19,14 @@ class T0(object):
     _phase_one: CompositionSet
     _phase_two: CompositionSet
     solver: Solver
-    property_to_optimize: ConditionableComputableProperty = as_property('T')
+    property_to_optimize: ConditionableComputableProperty
     minimum_value: float = 298.15
     maximum_value: float = 6000
     residual_tol: float = 0.01
     maximum_iterations: int = 50
+
+    base_units = property(lambda self: self.property_to_optimize.base_units)
+    display_units = property(lambda self: self.property_to_optimize.display_units)
 
     def __init__(self, phase_one: Union[CompositionSet, str], phase_two: Union[CompositionSet, str],
                  wks: Optional["Workspace"]):
@@ -46,6 +49,10 @@ class T0(object):
         self._phase_one = phase_one
         self._phase_two = phase_two
         self.solver = Solver()
+        # This cannot be a class-level attribute because we cannot assume pycalphad.variables is initialized
+        # if it isn't, we will get back a ModelComputedProperty instead of the TemperatureType we want
+        # We cannot just import pycalphad.variables because of a circular import
+        self.property_to_optimize = as_property('T')
 
     def __str__(self):
         return f'{self.__class__.__name__}({self._phase_one.phase_record.phase_name},{self._phase_two.phase_record.phase_name})'
