@@ -10,7 +10,7 @@ from pyparsing import delimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
-from symengine import Symbol, LessThan, StrictLessThan, S, E
+from symengine import Float, Symbol, LessThan, StrictLessThan, S, E
 from tinydb import where
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
@@ -59,7 +59,7 @@ def _sympify_string(math_string):
         if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
-    return sympify(expr_string).xreplace(v.supported_variables_in_databases).n()
+    return sympify(expr_string).xreplace(get_supported_variables()).n()
 
 def _parse_action(func):
     """
@@ -609,6 +609,10 @@ def _symmetry_added_parameter(dbf, param):
             if phase_obj.model_hints[symm_hint] and param.get("_generated_by_symmetry_option", False):
                 return True
     return False
+
+def get_supported_variables():
+    "When loading databases, these symbols should be replaced by their IndependentPotential counter-parts"
+    return {Symbol(x): getattr(v, x) for x in v.__dict__ if isinstance(getattr(v, x), (v.IndependentPotential, Float))}
 
 
 def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):

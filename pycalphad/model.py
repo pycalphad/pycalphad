@@ -10,6 +10,7 @@ import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
+from pycalphad.io.tdb import get_supported_variables
 import numpy as np
 from collections import OrderedDict
 
@@ -256,7 +257,7 @@ class Model(object):
 
         for name, value in self.models.items():
             # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
-            self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
+            self.models[name] = self.symbol_replace(value, symbols).xreplace(get_supported_variables())
 
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
