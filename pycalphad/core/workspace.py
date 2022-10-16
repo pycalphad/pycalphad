@@ -198,11 +198,11 @@ class PRFField(TypedField):
         def make_prf(obj):
             try:
                 prf = PhaseRecordFactory(obj.dbf, obj.comps, obj.conditions, obj.models, parameters=obj.parameters)
-                prf.param_values[:] = list(obj.parameters.values())
                 return prf
             except AttributeError:
                 return None
         super().__init__(default_factory=make_prf, dependsOn=dependsOn)
+
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         self.__set__(obj, self.default_factory(obj))
 
@@ -231,7 +231,7 @@ class Workspace:
     phases: PhaseList = PhasesField(dependsOn=['dbf', 'comps'])
     conditions: Mapping[ConditionKey, ConditionValue] = ConditionsField()
     verbose: bool = TypedField(lambda _: False)
-    models: Mapping[PhaseName, Model] = ModelsField(dependsOn=['phases'])
+    models: Mapping[PhaseName, Model] = ModelsField(dependsOn=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
     phase_record_factory: Optional[PhaseRecordFactory] = PRFField(dependsOn=['phases', 'conditions', 'models', 'parameters'])
     calc_opts: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
@@ -256,6 +256,7 @@ class Workspace:
         pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
 
         state_variables = self.phase_record_factory.state_variables
+        self.phase_record_factory.update_parameters(self.parameters.unwrap())
 
         # 'calculate' accepts conditions through its keyword arguments
         grid_opts = self.calc_opts.copy()

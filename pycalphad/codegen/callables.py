@@ -31,6 +31,14 @@ class PhaseRecordFactory(object):
         if len(self.param_values.shape) > 1:
             self.param_values = self.param_values[0]
 
+    def update_parameters(self, parameters):
+        new_param_symbols, new_param_values = extract_parameters(parameters)
+        if len(new_param_values.shape) > 1:
+            new_param_values = new_param_values[0]
+        if new_param_symbols != self.param_symbols:
+            raise ValueError('Parameter symbol misatch')
+        self.param_values[:] = new_param_values
+
     @lru_cache()
     def get_phase_constraints(self, phase_name):
         mod = self.models[phase_name]
