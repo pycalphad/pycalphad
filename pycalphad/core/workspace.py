@@ -186,6 +186,9 @@ class ModelsField(DictField):
         if hasattr(value, 'unwrap'):
             value = value.unwrap()
         try:
+            # Expand specified Model type into a dict of instances
+            if isinstance(value, type):
+                value = instantiate_models(obj.dbf, obj.comps, obj.phases, model=value, parameters=obj.parameters)
             super().__set__(obj, value)
         except AttributeError:
             super().__set__(obj, None)
