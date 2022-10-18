@@ -224,6 +224,8 @@ class SiteFraction(StateVariable):
     Site fractions are symbols with built-in assumptions of being real
     and nonnegative. The constructor handles formatting of the name.
     """
+    implementation_units = 'fraction'
+    display_units = 'fraction'
     def __init__(self, phase_name, subl_index, species): #pylint: disable=W0221
         varname = phase_name + str(subl_index) + Species(species).escaped_name
         #pylint: disable=E1121
@@ -276,6 +278,8 @@ class PhaseFraction(StateVariable):
     Phase fractions are symbols with built-in assumptions of being real
     and nonnegative. The constructor handles formatting of the name.
     """
+    implementation_units = 'fraction'
+    display_units = 'fraction'
     def __init__(self, phase_name): #pylint: disable=W0221
         varname = 'NP_' + str(phase_name)
         super().__init__(varname)
@@ -309,6 +313,8 @@ class MoleFraction(StateVariable):
     MoleFractions are symbols with built-in assumptions of being real
     and nonnegative.
     """
+    implementation_units = 'fraction'
+    display_units = 'fraction'
     def __init__(self, *args): #pylint: disable=W0221
         varname = None
         phase_name = None
@@ -441,6 +447,8 @@ class MassFraction(StateVariable):
     """
     Weight fractions are symbols with built-in assumptions of being real and nonnegative.
     """
+    implementation_units = 'fraction'
+    display_units = 'fraction'
     def __init__(self, *args):  # pylint: disable=W0221
         varname = None
         phase_name = None
