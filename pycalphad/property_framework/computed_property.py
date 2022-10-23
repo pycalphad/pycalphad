@@ -41,6 +41,9 @@ class ModelComputedProperty(object):
             return True
         return False
 
+    def __hash__(self):
+        return hash(str(self))
+
     @property
     def shape(self):
         return tuple()
@@ -224,3 +227,6 @@ class DotDerivativeComputedProperty:
         if self.__dict__ == other.__dict__:
             return True
         return False
+
+    def __hash__(self):
+        return hash(str(self))

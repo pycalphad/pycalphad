@@ -40,3 +40,21 @@ def test_tzero_property(load_database):
     my_tzero.maximum_value = 1.0
     t0_composition, = wks.get(my_tzero)
     assert_allclose(t0_composition[0].magnitude, Q_(0.86119, 'fraction').magnitude, atol=my_tzero.residual_tol)
+
+@select_database("alzn_mey.tdb")
+def test_dot_derivative_binary_temperature(load_database):
+    dbf = load_database()
+    wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 300, v.X('ZN'): 0.3})
+    x, y_dot = wks.get('T', 'MU(AL).T')
+    # Checked by finite difference
+    assert_allclose(y_dot.magnitude, -28.775364)
+
+@select_database("alzn_mey.tdb")
+def test_dot_derivative_binary_composition(load_database):
+    dbf = load_database()
+    wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 600, v.X('ZN'): 0.1})
+    x, y_dot = wks.get('X(ZN)', 'MU(AL).X(ZN)')
+    # Checked by finite difference
+    assert_allclose(y_dot.magnitude, -2806.93592)
