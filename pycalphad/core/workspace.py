@@ -29,8 +29,7 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
     new_conds = OrderedDict()
     minimum_composition = 1e-10
     for key, value in sorted(conds.items(), key=str):
-        if key == str(key):
-            key = getattr(v, key, key)
+        key = as_property(key)
         if isinstance(key, v.MoleFraction):
             vals = unpack_condition(value)
             # "Zero" composition is a common pattern. Do not warn for that case.

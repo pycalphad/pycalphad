@@ -34,6 +34,17 @@ def test_workspace_conditions_change_clear_result(load_database):
     assert len(wks.eq.coords['T']) == 1
 
 @select_database("alzn_mey.tdb")
+def test_workspace_conditions_specify_units(load_database):
+    dbf = load_database()
+    wks = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    {v.N: 1, v.P: 1e5, v.T['degC']: (0, 100, 1), v.X('ZN'): 0.3})
+    assert_allclose(wks.conditions[v.T], np.arange(0., 100., 1.) + 273.15)
+    wks.conditions[v.T['degC']] = (10, 300, 5)
+    assert_allclose(wks.conditions[v.T], np.arange(10., 300., 5.) + 273.15)
+    assert_allclose(wks.get(v.T)[0].magnitude, np.arange(10., 300., 5.) + 273.15)
+    assert_allclose(wks.get(v.T['degC'])[0].magnitude, np.arange(10., 300., 5.))
+
+@select_database("alzn_mey.tdb")
 def test_meta_property_creation(load_database):
     dbf = load_database()
     wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
