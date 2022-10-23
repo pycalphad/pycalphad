@@ -653,7 +653,7 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
     delta_statevars = np.zeros(spec.num_statevars)
     delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
     spec.fixed_statevar_indices = np.setdiff1d(spec.fixed_statevar_indices, np.array(target_statevar_index))
-    spec.free_statevar_indices = np.append(spec.free_statevar_indices, np.array(target_statevar_index))
+    spec.free_statevar_indices = np.append(spec.free_statevar_indices, target_statevar_index).astype(np.int32)
 
     try:
         equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 1)
@@ -741,7 +741,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
     delta_statevars = np.zeros(spec.num_statevars)
     delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
     spec.fixed_chemical_potential_indices = np.setdiff1d(spec.fixed_chemical_potential_indices, np.array(target_component_index))
-    spec.free_chemical_potential_indices = np.append(spec.free_chemical_potential_indices, np.array(target_component_index))
+    spec.free_chemical_potential_indices = np.append(spec.free_chemical_potential_indices, target_component_index).astype(np.int32)
 
     try:
         equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 1)
