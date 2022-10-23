@@ -32,6 +32,15 @@ class ModelComputedProperty(object):
             result += f'({self.phase_name})'
         return result
 
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if self.__class__ != other.__class__:
+            return False
+        if self.__dict__ == other.__dict__:
+            return True
+        return False
+
     @property
     def shape(self):
         return tuple()
@@ -206,3 +215,12 @@ class DotDerivativeComputedProperty:
 
     def __str__(self):
         return str(self.numerator)+'.'+str(self.denominator)
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if self.__class__ != other.__class__:
+            return False
+        if self.__dict__ == other.__dict__:
+            return True
+        return False
