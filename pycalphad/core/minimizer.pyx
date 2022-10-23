@@ -640,7 +640,7 @@ cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, 
     fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, spec, state)
     return np.asarray(equilibrium_matrix), np.asarray(equilibrium_rhs)
 
-cpdef state_variable_differential(SystemSpecification spec, SystemState state, np.int32_t target_statevar_index):
+cpdef state_variable_differential(SystemSpecification spec, SystemState state, int target_statevar_index):
     # Sundman et al 2015, Eq. 74
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln, delta_chemical_potentials, delta_statevars, delta_phase_amounts
@@ -653,7 +653,7 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, n
     delta_statevars = np.zeros(spec.num_statevars)
     delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
     spec.fixed_statevar_indices = np.setdiff1d(spec.fixed_statevar_indices, np.array(target_statevar_index))
-    spec.free_statevar_indices = np.append(spec.free_statevar_indices, target_statevar_index)
+    spec.free_statevar_indices = np.append(spec.free_statevar_indices, np.array(target_statevar_index))
 
     try:
         equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 1)
@@ -677,7 +677,7 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, n
         spec.fixed_statevar_indices = orig_fixed_statevar_indices
         spec.free_statevar_indices = orig_free_statevar_indices
 
-cpdef fixed_component_differential(SystemSpecification spec, SystemState state, np.int32_t target_component_index):
+cpdef fixed_component_differential(SystemSpecification spec, SystemState state, int target_component_index):
     # Based on Sundman et al 2015, Eq. 74, with some modifications
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln, delta_chemical_potentials, delta_statevars, delta_phase_amounts
@@ -720,7 +720,7 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
                                                             state.free_stable_compset_indices.shape[0] + i]
     return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
 
-cpdef chemical_potential_differential(SystemSpecification spec, SystemState state, np.int32_t target_component_index):
+cpdef chemical_potential_differential(SystemSpecification spec, SystemState state, int target_component_index):
     # Sundman et al 2015, Eq. 74
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln, delta_chemical_potentials, delta_statevars, delta_phase_amounts
@@ -741,7 +741,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
     delta_statevars = np.zeros(spec.num_statevars)
     delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
     spec.fixed_chemical_potential_indices = np.setdiff1d(spec.fixed_chemical_potential_indices, np.array(target_component_index))
-    spec.free_chemical_potential_indices = np.append(spec.free_chemical_potential_indices, target_component_index)
+    spec.free_chemical_potential_indices = np.append(spec.free_chemical_potential_indices, np.array(target_component_index))
 
     try:
         equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 1)
