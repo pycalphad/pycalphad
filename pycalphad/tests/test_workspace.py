@@ -17,6 +17,23 @@ def test_workspace_creation(load_database):
     assert_allclose(wks.eq.GM, wks2.eq.GM)
 
 @select_database("alzn_mey.tdb")
+def test_workspace_conditions_change_clear_result(load_database):
+    dbf = load_database()
+    wks = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    {v.N: 1, v.P: 1e5, v.T: (300, 1000, 100), v.X('ZN'): 0.3})
+    assert wks._eq is None
+    # Attribute access will trigger calculation
+    assert wks.eq is not None
+    assert wks._eq is wks.eq
+    assert len(wks.eq.coords['T']) == 7
+    # Conditions change should clear previous result
+    wks.conditions[v.T] = 600
+    # Check private member so that calculation is not triggered again
+    assert wks._eq is None
+    # New calculation result will have different shape
+    assert len(wks.eq.coords['T']) == 1
+
+@select_database("alzn_mey.tdb")
 def test_meta_property_creation(load_database):
     dbf = load_database()
     wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
