@@ -3,7 +3,7 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 import warnings
-from collections import OrderedDict
+from collections import Iterable, OrderedDict
 from datetime import datetime
 from pycalphad.core.workspace import Workspace
 from pycalphad.core.light_dataset import LightDataset
@@ -12,9 +12,8 @@ from pycalphad.property_framework import as_property
 
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
-                verbose=False, broadcast=True, calc_opts=None, to_xarray=True,
-                parameters=None, solver=None, callables=None,
-                phase_records=None, phase_record_factory=None, **kwargs):
+                verbose=False, calc_opts=None, to_xarray=True,
+                parameters=None, solver=None, phase_records=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -36,11 +35,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Model class to use for each phase.
     verbose : bool, optional
         Print details of calculations. Useful for debugging.
-    broadcast : bool
-        If True, broadcast conditions against each other. This will compute all combinations.
-        If False, each condition should be an equal-length list (or single-valued).
-        Disabling broadcasting is useful for calculating equilibrium at selected conditions,
-        when those conditions don't comprise a grid.
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
     to_xarray : bool
@@ -65,13 +59,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     --------
     None yet.
     """
-    if not broadcast:
-        raise NotImplementedError('Broadcasting cannot yet be disabled')
-    if phase_record_factory is not None:
-        phase_records = phase_record_factory
     if output is None:
         output = set()
-    elif isinstance(output, str):
+    elif (not isinstance(output, Iterable)) or isinstance(output, str):
         output = [output]
     wks = Workspace(dbf=dbf, comps=comps, phases=phases, conditions=conditions, models=model, parameters=parameters,
                     verbose=verbose, calc_opts=calc_opts, solver=solver, phase_record_factory=phase_records)
@@ -82,13 +72,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     conds_keys = [str(k) for k in properties.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
     output = sorted(set(output) - {'GM', 'MU'})
     for out in output:
-        if (out is None) or (len(out) == 0):
-            continue
-        if isinstance(out, str):
-            cprop = as_property(out)
-        else:
-            cprop = out
-            out = str(cprop)
+        cprop = as_property(out)
+        out = str(cprop)
         result_array = np.zeros(properties.GM.shape) # Will not work for non-scalar properties
         for index, composition_sets in wks.enumerate_composition_sets():
             cur_conds = OrderedDict(zip(conds_keys,
