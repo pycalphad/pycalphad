@@ -108,19 +108,19 @@ class TypedField:
 
 class ComponentsField(TypedField):
     def __init__(self, dependsOn=None):
-        super().__init__(default_factory=lambda obj: unpack_components(obj.dbf, sorted(x.name for x in obj.dbf.species)),
+        super().__init__(default_factory=lambda obj: unpack_components(obj.database, sorted(x.name for x in obj.database.species)),
                          dependsOn=dependsOn)
     def __set__(self, obj, value):
-        comps = sorted(unpack_components(obj.dbf, value))
+        comps = sorted(unpack_components(obj.database, value))
         super().__set__(obj, comps)
 
     def __get__(self, obj, objtype=None):
         getobj = super().__get__(obj, objtype=objtype)
-        return sorted(unpack_components(obj.dbf, getobj))
+        return sorted(unpack_components(obj.database, getobj))
 
 class PhasesField(TypedField):
     def __init__(self, dependsOn=None):
-        super().__init__(default_factory=lambda obj: filter_phases(obj.dbf, obj.comps),
+        super().__init__(default_factory=lambda obj: filter_phases(obj.database, obj.components),
                          dependsOn=dependsOn)
     def __set__(self, obj, value):
         phases = sorted(unpack_phases(value))
@@ -128,7 +128,7 @@ class PhasesField(TypedField):
 
     def __get__(self, obj, objtype=None):
         getobj = super().__get__(obj, objtype=objtype)
-        return filter_phases(obj.dbf, obj.comps, getobj)
+        return filter_phases(obj.database, obj.components, getobj)
 
 class DictField(TypedField):
     def get_proxy(self, obj):
@@ -171,13 +171,13 @@ class ConditionsField(DictField):
         conds = _adjust_conditions(conditions)
 
         for cond in conds.keys():
-            if isinstance(cond, (v.MoleFraction, v.ChemicalPotential)) and cond.species not in obj.comps:
+            if isinstance(cond, (v.MoleFraction, v.ChemicalPotential)) and cond.species not in obj.components:
                 raise ConditionError('{} refers to non-existent component'.format(cond))
         super().__set__(obj, conds)
 
 class ModelsField(DictField):
     def __init__(self, dependsOn=None):
-        super().__init__(default_factory=lambda obj: instantiate_models(obj.dbf, obj.comps, obj.phases,
+        super().__init__(default_factory=lambda obj: instantiate_models(obj.database, obj.components, obj.phases,
                                                                         model=None, parameters=obj.parameters),
                          dependsOn=dependsOn)
     def __set__(self, obj, value):
@@ -187,7 +187,7 @@ class ModelsField(DictField):
         try:
             # Expand specified Model type into a dict of instances
             if isinstance(value, type):
-                value = instantiate_models(obj.dbf, obj.comps, obj.phases, model=value, parameters=obj.parameters)
+                value = instantiate_models(obj.database, obj.components, obj.phases, model=value, parameters=obj.parameters)
             super().__set__(obj, value)
         except AttributeError:
             super().__set__(obj, None)
@@ -199,7 +199,7 @@ class PRFField(TypedField):
     def __init__(self, dependsOn=None):
         def make_prf(obj):
             try:
-                prf = PhaseRecordFactory(obj.dbf, obj.comps, obj.conditions, obj.models, parameters=obj.parameters)
+                prf = PhaseRecordFactory(obj.database, obj.components, obj.conditions, obj.models, parameters=obj.parameters)
                 return prf
             except AttributeError:
                 return None
@@ -228,9 +228,9 @@ class EquilibriumCalculationField(TypedField):
 
 class Workspace:
     _callbacks = defaultdict(lambda: [])
-    dbf: Database = TypedField(lambda _: None)
-    comps: SpeciesList = ComponentsField(dependsOn=['dbf'])
-    phases: PhaseList = PhasesField(dependsOn=['dbf', 'comps'])
+    database: Database = TypedField(lambda _: None)
+    components: SpeciesList = ComponentsField(dependsOn=['database'])
+    phases: PhaseList = PhasesField(dependsOn=['database', 'components'])
     conditions: Mapping[ConditionKey, ConditionValue] = ConditionsField()
     verbose: bool = TypedField(lambda _: False)
     models: Mapping[PhaseName, Model] = ModelsField(dependsOn=['phases', 'parameters'])
@@ -242,7 +242,7 @@ class Workspace:
 
     def __init__(self, *args, **kwargs):
         # Assume positional arguments are specified in class typed-attribute definition order
-        for arg, attrname in zip(args, ['dbf', 'comps', 'phases', 'conditions']):
+        for arg, attrname in zip(args, ['database', 'components', 'phases', 'conditions']):
             setattr(self, attrname, arg)
         attributes = list(self.__annotations__.keys())
         for kwarg_name, kwarg_val in kwargs.items():
@@ -252,7 +252,7 @@ class Workspace:
 
     def recompute(self):
         str_conds = OrderedDict((str(key), value) for key, value in self.conditions.items())
-        components = [x for x in sorted(self.comps)]
+        components = [x for x in sorted(self.components)]
         desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
         pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
@@ -268,7 +268,7 @@ class Workspace:
         if 'pdens' not in grid_opts:
             grid_opts['pdens'] = 60
 
-        grid = calculate(self.dbf, self.comps, self.phases, model=self.models.unwrap(), fake_points=True,
+        grid = calculate(self.database, self.components, self.phases, model=self.models.unwrap(), fake_points=True,
                         phase_records=self.phase_record_factory, output='GM', parameters=self.parameters.unwrap(),
                         to_xarray=False, **grid_opts)
         coord_dict = str_conds.copy()

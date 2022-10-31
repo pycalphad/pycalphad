@@ -63,7 +63,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         output = set()
     elif (not isinstance(output, Iterable)) or isinstance(output, str):
         output = [output]
-    wks = Workspace(dbf=dbf, comps=comps, phases=phases, conditions=conditions, models=model, parameters=parameters,
+    wks = Workspace(database=dbf, components=comps, phases=phases, conditions=conditions, models=model, parameters=parameters,
                     verbose=verbose, calc_opts=calc_opts, solver=solver, phase_record_factory=phase_records)
 
     # Compute equilibrium values of any additional user-specified properties

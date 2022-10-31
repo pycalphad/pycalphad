@@ -10,7 +10,7 @@ import pytest
 @select_database("alzn_mey.tdb")
 def test_workspace_creation(load_database):
     dbf = load_database()
-    wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
     wks2 = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1', 'HCP_A3', 'LIQUID'],
                      {v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
@@ -47,7 +47,7 @@ def test_workspace_conditions_specify_units(load_database):
 @select_database("alzn_mey.tdb")
 def test_meta_property_creation(load_database):
     dbf = load_database()
-    wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
     my_tzero = T0('FCC_A1', 'HCP_A3', wks=wks)
     assert isinstance(my_tzero, ComputableProperty)
@@ -55,7 +55,7 @@ def test_meta_property_creation(load_database):
 @select_database("alzn_mey.tdb")
 def test_tzero_property(load_database):
     dbf = load_database()
-    wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 600, v.X('ZN'): (0.01,1-0.01,0.01)})
     my_tzero = T0('FCC_A1', 'HCP_A3', wks=wks)
     assert isinstance(my_tzero, ComputableProperty)
@@ -72,7 +72,7 @@ def test_tzero_property(load_database):
 @select_database("alzn_mey.tdb")
 def test_dot_derivative_binary_temperature(load_database):
     dbf = load_database()
-    wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 300, v.X('ZN'): 0.3})
     x, y_dot = wks.get('T', 'MU(AL).T')
     # Checked by finite difference
@@ -81,7 +81,7 @@ def test_dot_derivative_binary_temperature(load_database):
 @select_database("alzn_mey.tdb")
 def test_dot_derivative_binary_composition(load_database):
     dbf = load_database()
-    wks = Workspace(dbf=dbf, comps=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 600, v.X('ZN'): 0.1})
     x, y_dot = wks.get('X(ZN)', 'MU(AL).X(ZN)')
     # Checked by finite difference

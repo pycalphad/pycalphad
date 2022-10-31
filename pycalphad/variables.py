@@ -609,9 +609,9 @@ class ChemicalPotential(StateVariable):
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]
-        result = np.atleast_1d(np.zeros(self.shape))
+        result = np.zeros(self.shape)
         for el_idx, multiplicity in el_indices:
-            result[0] += multiplicity * deltas.delta_chemical_potentials[el_idx]
+            result += multiplicity * deltas.delta_chemical_potentials[el_idx]
         return result
 
     def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
