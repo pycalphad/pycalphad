@@ -6,6 +6,7 @@ import warnings
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.property_framework.units import Q_
 from symengine import Symbol
 import numpy as np
 import operator
@@ -93,6 +94,8 @@ def unpack_condition(tup):
             return np.arange(tup[0], tup[1], tup[2], dtype=np.float_)
         else:
             raise ValueError('Condition tuple is length {}'.format(len(tup)))
+    elif isinstance(tup, Q_):
+        return tup
     elif isinstance(tup, Iterable):
         return [float(x) for x in tup]
     else:

@@ -40,7 +40,7 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
         else:
             new_conds[key] = unpack_condition(value)
         if getattr(key, 'display_units', '') != '':
-            new_conds[key] = Q_(new_conds[key], units=key.display_units).to(key.implementation_units).magnitude
+            new_conds[key] = Q_(new_conds[key], units=key.display_units).to(key.implementation_units)
     return new_conds
 
 class SpeciesList:
@@ -167,8 +167,10 @@ class ConditionsField(DictField):
         conditions = value.copy()
         # Temporary solution until constraint system improves
         if conditions.get(v.N) is None:
-            conditions[v.N] = 1
-        if np.any(np.array(conditions[v.N]) != 1):
+            conditions[v.N] = Q_([1.0], 'mol')
+        elif not isinstance(conditions[v.N], Q_):
+            conditions[v.N] = Q_(np.atleast_1d(conditions[v.N]), 'mol')
+        if np.any(conditions[v.N] != Q_(1.0, 'mol')):
             raise ConditionError('N!=1 is not yet supported, got N={}'.format(conditions[v.N]))
         # Modify conditions values to be within numerical limits, e.g., X(AL)=0
         # Also wrap single-valued conditions with lists
@@ -255,7 +257,9 @@ class Workspace:
             setattr(self, kwarg_name, kwarg_val)
 
     def recompute(self):
-        str_conds = OrderedDict((str(key), value) for key, value in self.conditions.items())
+        # Assumes implementation units from this point
+        unitless_conds = OrderedDict((key, value.to(key.implementation_units).magnitude) for key, value in self.conditions.items())
+        str_conds = OrderedDict((str(key), value) for key, value in unitless_conds.items())
         components = [x for x in sorted(self.components)]
         desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
@@ -278,7 +282,7 @@ class Workspace:
         coord_dict = str_conds.copy()
         coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
         coord_dict['component'] = pure_elements
-        properties = starting_point(self.conditions, state_variables, self.phase_record_factory, grid)
+        properties = starting_point(unitless_conds, state_variables, self.phase_record_factory, grid)
         return _solve_eq_at_conditions(properties, self.phase_record_factory, grid,
                                        list(str_conds.keys()), state_variables,
                                        self.verbose, solver=self.solver)

@@ -1,6 +1,7 @@
 
 import time
 from copy import deepcopy
+from collections import OrderedDict
 import numpy as np
 from pycalphad import calculate, variables as v
 from pycalphad.codegen.callables import build_phase_records
@@ -9,6 +10,7 @@ from pycalphad.core.workspace import _adjust_conditions
 from pycalphad.core.starting_point import starting_point
 from pycalphad.core.utils import instantiate_models, get_state_variables, \
     unpack_components, unpack_condition, filter_phases, get_pure_elements
+from pycalphad.property_framework.units import Q_
 from .compsets import get_compsets, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
 
@@ -55,7 +57,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     calc_kwargs = calc_kwargs or {}
     # implicitly add v.N to conditions
     if v.N not in conds:
-        conds[v.N] = [1.0]
+        conds[v.N] = Q_([1.0], 'mol')
     if 'pdens' not in calc_kwargs:
         calc_kwargs['pdens'] = 50
 
@@ -96,6 +98,10 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     curr_conds = {key: unpack_condition(val) for key, val in conds.items()}
     str_conds = sorted([str(k) for k in curr_conds.keys()])
     grid_conds = _adjust_conditions(curr_conds)
+    # Assumes implementation units from this point
+    print(grid_conds)
+    unitless_conds = OrderedDict((key, value.to(key.implementation_units).magnitude)
+                                 for key, value in grid_conds.items())
     for T_idx in range(temperature_grid.size):
         T = temperature_grid[T_idx]
         iter_equilibria = 0
@@ -106,7 +112,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
         Xmax_visited = 0.0
         hull_time = time.time()
         grid = calculate(dbf, comps, phases, fake_points=True, output='GM',
-                         T=T, P=grid_conds[v.P], N=1, model=models,
+                         T=T, P=unitless_conds[v.P], N=1, model=models,
                          parameters=parameters, to_xarray=False, **calc_kwargs)
         hull = starting_point(eq_conds, statevars, prxs, grid)
         convex_hull_time += time.time() - hull_time
