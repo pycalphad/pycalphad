@@ -108,7 +108,7 @@ class TypedField:
 
 class ComponentsField(TypedField):
     def __init__(self, dependsOn=None):
-        super().__init__(default_factory=lambda obj: unpack_components(obj.database, sorted(x.name for x in obj.database.species)),
+        super().__init__(default_factory=lambda obj: unpack_components(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
                          dependsOn=dependsOn)
     def __set__(self, obj, value):
         comps = sorted(unpack_components(obj.database, value))
@@ -148,6 +148,10 @@ class DictField(TypedField):
             def __setitem__(pxy, item, value):
                 conds = TypedField.__get__(self, obj)
                 conds[item] = value
+                self.__set__(obj, conds)
+            def __delitem__(pxy, item):
+                conds = TypedField.__get__(self, obj)
+                del conds[item]
                 self.__set__(obj, conds)
             def __len__(pxy):
                 return len(TypedField.__get__(self, obj))
@@ -231,7 +235,7 @@ class Workspace:
     database: Database = TypedField(lambda _: None)
     components: SpeciesList = ComponentsField(dependsOn=['database'])
     phases: PhaseList = PhasesField(dependsOn=['database', 'components'])
-    conditions: Mapping[ConditionKey, ConditionValue] = ConditionsField()
+    conditions: Mapping[ConditionKey, ConditionValue] = ConditionsField(lambda _: OrderedDict())
     verbose: bool = TypedField(lambda _: False)
     models: Mapping[PhaseName, Model] = ModelsField(dependsOn=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())

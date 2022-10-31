@@ -663,10 +663,18 @@ class PressureType(IndependentPotential):
     def __reduce__(self):
         return self.__class__, ()
 
+class SystemMolesType(StateVariable):
+    implementation_units = 'mol'
+    display_units = 'mol'
+    display_name = 'No. Moles'
+    def __init__(self):
+        super().__init__('N')
+    def __reduce__(self):
+        return self.__class__, ()
 
 temperature = T = TemperatureType()
 pressure = P = PressureType()
-moles = N = StateVariable('N')
+moles = N = SystemMolesType()
 site_fraction = Y = SiteFraction
 X = MoleFraction
 W = MassFraction
