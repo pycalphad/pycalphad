@@ -41,8 +41,8 @@ The newest stable version can be found on `PyPI`_.
    :caption: Developer
 
    releasing
-
    onboarding
+   api/modules
 
 Getting Help
 ============
