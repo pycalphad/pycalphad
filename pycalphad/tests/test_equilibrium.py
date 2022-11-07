@@ -1056,3 +1056,19 @@ def test_eq_charge_ndzro(load_database):
                        rtol=5e-4)
     assert np.allclose(Y_PYRO, [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01,
                                 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
+
+@pytest.mark.solver
+@select_database("crtiv_ghosh.tdb")
+def test_ternary_three_phase_dilute(load_database):
+    components = ["CR", "TI", "V"]
+    dbf = load_database()
+    phases = sorted(dbf.phases.keys())
+    conditions = {v.N: 1.0, v.P: 101325.0, v.T: 500.0}
+
+    # Got the MG to be stable with pdens=10
+    eq_res = equilibrium(dbf, components+["VA"], set(phases), {v.X("CR"): 0.20, v.X("TI"): 0.20, **conditions}, verbose=True, calc_opts=dict(pdens=60), to_xarray=False)
+    print(eq_res.Phase)
+    assert np.all(np.isclose(eq_res.MU.squeeze(), [-26103.482, -16869.033, -19606.779]))
+    # Sorting is pretty hacky, but gets the job done
+    assert np.all(np.isclose(sorted(eq_res.NP.squeeze()[:3]), [8.9018E-02, 1.6608E-01, 7.4490E-01]))
+    assert sorted(eq_res.Phase.squeeze()[:3]) == ["BCC_A2", "HCP_A3", "LAVES_C15"]
