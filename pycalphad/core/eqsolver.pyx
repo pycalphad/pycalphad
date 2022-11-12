@@ -3,17 +3,15 @@ from collections import OrderedDict
 import numpy as np
 cimport numpy as np
 cimport cython
-cdef extern from "_isnan.h":
-    bint isnan (double) nogil
 from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord
 from pycalphad.core.constants import *
 
 
-cdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
-                         object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
-                         double[::1] state_variables, double minimum_df, bint verbose) except *:
+cpdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
+                          object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
+                          double[::1] state_variables, double minimum_df, bint verbose) except *:
     """
     Attempt to add a new phase with the largest driving force (based on chemical potentials). Candidate phases
     are taken from current_grid and modify the composition_sets object. The function returns a boolean indicating
