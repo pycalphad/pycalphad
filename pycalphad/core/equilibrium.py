@@ -3,7 +3,8 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 import warnings
-from collections import Iterable, OrderedDict
+from collections import OrderedDict
+from collections.abc import Iterable
 from datetime import datetime
 from pycalphad.core.workspace import Workspace
 from pycalphad.core.light_dataset import LightDataset
