@@ -12,9 +12,10 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver, SolverBase
 from pycalphad.core.light_dataset import LightDataset
+from pycalphad.plot.renderers import Renderer, DEFAULT_PLOT_RENDERER
 from pycalphad.model import Model
 import numpy as np
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Type
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
 from pycalphad.property_framework import ComputableProperty, as_property
@@ -241,6 +242,7 @@ class Workspace:
     verbose: bool = TypedField(lambda _: False)
     models: Mapping[PhaseName, Model] = ModelsField(dependsOn=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
+    renderer: Renderer = TypedField(lambda wks: DEFAULT_PLOT_RENDERER(wks))
     phase_record_factory: Optional[PhaseRecordFactory] = PRFField(dependsOn=['phases', 'conditions', 'models', 'parameters'])
     calc_opts: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
     solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), dependsOn=['verbose'])
@@ -389,8 +391,6 @@ class Workspace:
             yield index, composition_sets
 
     def get(self, *args: Tuple[ComputableProperty], values_only=True):
-        if self.ndim > 1:
-            raise ValueError('Dimension of calculation is greater than one')
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
         arg_units = {arg: (ureg.Unit(getattr(arg, 'implementation_units', '')),
@@ -428,28 +428,9 @@ class Workspace:
         else:
             return results
 
-    @staticmethod
-    def _property_axis_label(prop: ComputableProperty) -> str:
-        propname = getattr(prop, 'display_name', None)
-        if propname is not None:
-            result = str(propname)
-            display_units = ureg.Unit(getattr(prop, 'display_units', ''))
-            if len(f'{display_units:~P}') > 0:
-                result += f' [{display_units:~P}]'
-            return result
-        else:
-            return str(prop)
+    @property
+    def plot(self):
+        return self.renderer
 
-    def plot(self, x: ComputableProperty, *ys: Tuple[ComputableProperty], ax=None):
-        import matplotlib.pyplot as plt
-        ax = ax if ax is not None else plt.gca()
-        x = as_property(x)
-        data = self.get(x, *ys, values_only=False)
-        
-        for y in data.keys():
-            if y == x:
-                continue
-            ax.plot(data[x].magnitude, data[y].magnitude, label=str(y))
-            ax.set_ylabel(self._property_axis_label(y))
-        ax.set_xlabel(self._property_axis_label(x))
-        ax.legend()
+    def render(self, rtype: Type[Renderer]):
+        return rtype(self)

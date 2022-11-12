@@ -171,6 +171,8 @@ class StateVariable(Symbol):
             yield cs_idx, compset
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
+        if len(compsets) == 0:
+            return np.nan
         state_variables = compsets[0].phase_record.state_variables
         statevar_idx = state_variables.index(self)
         return compsets[0].dof[statevar_idx]
@@ -286,8 +288,10 @@ class PhaseFraction(StateVariable):
         self.phase_name = phase_name.upper()
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
-        result = np.atleast_1d(np.zeros(self.shape))
+        result = np.atleast_1d(np.full(self.shape, fill_value=np.nan))
         for _, compset in self.filtered(compsets):
+            if np.all(np.isnan(result[0])):
+                result[0] = 0.0
             result[0] += compset.NP
         return result
 
