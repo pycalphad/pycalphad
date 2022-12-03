@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.plot.binary package" href="pycalphad.plot.binary.html" /><link rel="prev" title="pycalphad.models package" href="pycalphad.models.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.plot package - pycalphad 0.10.2.dev2+g73879c8e documentation</title>
+        <title>pycalphad.plot package - pycalphad 0.10.2.dev5+gfca56229 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.2.dev2+g73879c8e documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.2.dev5+gfca56229 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.2.dev2+g73879c8e documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.2.dev5+gfca56229 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -157,7 +157,7 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul class="current">
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
@@ -173,6 +173,12 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing pycalphad</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../onboarding.html">Onboarding as a Developer</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current has-children"><a class="reference internal" href="pycalphad.html">pycalphad package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.codegen.html">pycalphad.codegen package</a></li>
@@ -187,11 +193,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing pycalphad</a></li>
 </ul>
 
 </div>
@@ -480,7 +481,7 @@ place axis elements in different locations.</p>
 <dd></dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.triangular.TriangularAxes.set">
-<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjustable=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg_filter=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animated=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscale_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscalex_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscaley_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes_locator=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisbelow=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_aspect=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_box=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_path=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facecolor=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_layout=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigate=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_effects=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">picker=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_cycle=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rasterization_zorder=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rasterized=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sketch_params=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snap=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visible=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xbound=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmargin=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xscale=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xticklabels=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xticks=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ybound=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymargin=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yticklabels=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yticks=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zorder=&lt;UNSET&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.set" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjustable=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agg_filter=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animated=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscale_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscalex_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscaley_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes_locator=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axisbelow=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_aspect=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_box=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_path=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facecolor=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_on=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_layout=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouseover=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigate=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_effects=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">picker=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_cycle=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rasterization_zorder=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rasterized=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sketch_params=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snap=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visible=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xbound=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmargin=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xscale=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xticklabels=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xticks=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ybound=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymargin=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yticklabels=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yticks=&lt;UNSET&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zorder=&lt;UNSET&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.set" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set multiple properties at once.</p>
 <p>Supported properties are</p>
 <dl class="simple">
@@ -491,8 +492,8 @@ anchor: (float, float) or {‘C’, ‘SW’, ‘S’, ‘SE’, ‘E’, ‘NE�
 animated: bool
 aspect: {‘auto’, ‘equal’} or float
 autoscale_on: bool
-autoscalex_on: bool
-autoscaley_on: bool
+autoscalex_on: unknown
+autoscaley_on: unknown
 axes_locator: Callable[[Axes, Renderer], Bbox]
 axisbelow: bool or ‘line’
 box_aspect: float or None
@@ -505,6 +506,7 @@ frame_on: bool
 gid: str
 in_layout: bool
 label: object
+mouseover: bool
 navigate: bool
 navigate_mode: unknown
 path_effects: <cite>.AbstractPathEffect</cite>
@@ -523,14 +525,14 @@ xbound: unknown
 xlabel: str
 xlim: (bottom: float, top: float)
 xmargin: float greater than -0.5
-xscale: {“linear”, “log”, “symlog”, “logit”, …} or <cite>.ScaleBase</cite>
+xscale: unknown
 xticklabels: unknown
 xticks: unknown
 ybound: unknown
 ylabel: str
 ylim: (bottom: float, top: float)
 ymargin: float greater than -0.5
-yscale: {“linear”, “log”, “symlog”, “logit”, …} or <cite>.ScaleBase</cite>
+yscale: unknown
 yticklabels: unknown
 yticks: unknown
 zorder: float</p>
