@@ -15,6 +15,7 @@ from pycalphad.core.light_dataset import LightDataset
 from pycalphad.plot.renderers import Renderer, DEFAULT_PLOT_RENDERER
 from pycalphad.model import Model
 import numpy as np
+import numpy.typing as npt
 from typing import Optional, Tuple, Type
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
@@ -235,6 +236,11 @@ class EquilibriumCalculationField(TypedField):
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         self.__set__(obj, None)
 
+def _as_quantity(prop: ComputableProperty, qt: npt.ArrayLike):
+    if not isinstance(qt, Q_):
+        return Q_(qt, prop.implementation_units)
+    else:
+        return qt
 
 class Workspace:
     _callbacks = defaultdict(lambda: [])
@@ -263,7 +269,7 @@ class Workspace:
 
     def recompute(self):
         # Assumes implementation units from this point
-        unitless_conds = OrderedDict((key, value.to(key.implementation_units).magnitude) for key, value in self.conditions.items())
+        unitless_conds = OrderedDict((key, _as_quantity(key, value).to(key.implementation_units).magnitude) for key, value in self.conditions.items())
         str_conds = OrderedDict((str(key), value) for key, value in unitless_conds.items())
         components = [x for x in sorted(self.components)]
         desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
