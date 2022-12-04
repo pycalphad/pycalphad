@@ -99,7 +99,6 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     str_conds = sorted([str(k) for k in curr_conds.keys()])
     grid_conds = _adjust_conditions(curr_conds)
     # Assumes implementation units from this point
-    print(grid_conds)
     unitless_conds = OrderedDict((key, value.to(key.implementation_units).magnitude)
                                  for key, value in grid_conds.items())
     for T_idx in range(temperature_grid.size):

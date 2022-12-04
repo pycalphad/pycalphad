@@ -18,6 +18,7 @@ Advanced Examples
    :maxdepth: 1
 
    UsingCalculationResults
+   LegacyEnergySurface
    LegacyReferenceState
    ChargedPhases
    PlotActivity
