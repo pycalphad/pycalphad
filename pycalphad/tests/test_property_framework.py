@@ -1,6 +1,10 @@
+from pycalphad.core.workspace import Workspace
 from pycalphad.property_framework import as_property, DotDerivativeComputedProperty, \
     ModelComputedProperty, T0, IsolatedPhase, DormantPhase
 import pycalphad.variables as v
+from pycalphad.tests.fixtures import select_database, load_database
+import numpy as np
+import numpy.testing
 
 
 def test_as_property_creation():
@@ -24,3 +28,49 @@ def test_property_units():
     assert v.T.display_units != 'degC'
     assert v.T['degC'] == v.T
 
+@select_database("alzn_mey.tdb")
+def test_cpf_phase_energy_curves(load_database):
+    wks2 = Workspace(load_database(), ['AL', 'ZN'],
+                    ['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    {v.X('ZN'):(0,1,0.02), v.T: 600, v.P:101325, v.N: 1})
+
+    props = []
+    for phase_name in wks2.phases:
+        # Workaround for poor starting point selection in IsolatedPhase
+        metastable_wks = wks2.copy()
+        metastable_wks.phases = [phase_name]
+        prop = IsolatedPhase(phase_name, metastable_wks)(f'GM({phase_name})')
+        prop.display_name = phase_name
+        props.append(prop)
+    result = {}
+    for prop, value in wks2.get(*props, values_only=False).items():
+        result[prop.display_name] = value
+    np.testing.assert_almost_equal(np.nanmax(result['FCC_A1'].magnitude), -20002.975665, decimal=5)
+    np.testing.assert_almost_equal(np.nanmin(result['FCC_A1'].magnitude), -26718.58552, decimal=5)
+    np.testing.assert_almost_equal(np.nanmax(result['HCP_A3'].magnitude), -15601.975666, decimal=5)
+    np.testing.assert_almost_equal(np.nanmin(result['HCP_A3'].magnitude), -28027.206646, decimal=5)
+    np.testing.assert_almost_equal(np.nanmax(result['LIQUID'].magnitude), -16099.679946, decimal=5)
+    np.testing.assert_almost_equal(np.nanmin(result['LIQUID'].magnitude), -27195.787525, decimal=5)
+
+@select_database("alzn_mey.tdb")
+def test_cpf_driving_force(load_database):
+    wks3 = Workspace(load_database(), ['AL', 'ZN'],
+                ['FCC_A1', 'HCP_A3', 'LIQUID'],
+                {v.X('ZN'):(0,1,0.02), v.T: 600, v.P:101325, v.N: 1})
+    metastable_liq_wks = wks3.copy()
+    metastable_liq_wks.phases = ['LIQUID']
+    liq_driving_force = DormantPhase('LIQUID', metastable_liq_wks).driving_force
+    liq_driving_force.display_name = 'Liquid Driving Force'
+    result, = wks3.get(liq_driving_force)
+    np.testing.assert_almost_equal(np.nanmax(result.magnitude), -610.932599, decimal=5)
+    np.testing.assert_almost_equal(np.nanmin(result.magnitude), -3903.295718, decimal=5)
+
+@select_database("alzn_mey.tdb")
+def test_cpf_tzero(load_database):
+    wks4 = Workspace(load_database(), ['AL', 'ZN'],
+                    ['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    {v.X('ZN'):(0,1,0.02), v.T: 300, v.P:101325, v.N: 1})
+    tzero = T0('FCC_A1', 'HCP_A3', wks4)
+    result, = wks4.get(tzero)
+    np.testing.assert_almost_equal(np.nanmax(result.magnitude), 3044.97905, decimal=5)
+    np.testing.assert_almost_equal(np.nanmin(result.magnitude), 621.72616, decimal=5)
