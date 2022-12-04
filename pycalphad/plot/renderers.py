@@ -66,7 +66,7 @@ class MatplotlibRenderer(Renderer):
                 continue
             if np.all(np.isnan(data[y].magnitude)):
                 continue
-            ax.plot(data[x].magnitude, data[y].magnitude, label=str(y))
+            ax.plot(data[x].magnitude, data[y].magnitude, label=getattr(y, 'display_name', str(y)))
         ax.set_ylabel(ylabel)
         ax.set_xlabel(_property_axis_label(x))
         # Suppress legend if there is only one line

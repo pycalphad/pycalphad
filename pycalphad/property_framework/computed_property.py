@@ -203,9 +203,17 @@ class DotDerivativeComputedProperty:
         newobj.display_units = new_units
         return newobj
 
+    _display_name = None
     @property
     def display_name(self):
-        return str(self)
+        if self._display_name is not None:
+            return self._display_name
+        else:
+            return str(self)
+
+    @display_name.setter
+    def display_name(self, val):
+        self._display_name = val
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         solver = Solver()

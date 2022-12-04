@@ -7,9 +7,10 @@ ureg.define('fraction = []')
 ureg.define('percent = 1e-2 fraction = %')
 ureg.define('ppm = 1e-6 fraction')
 Q_ = ureg.Quantity
+DimensionalityError = pint.DimensionalityError
 
 energy_implementation_units = GM_implementation_units = 'J / mol'
-energy_display_units = GM_display_units = 'kJ / mol'
+energy_display_units = GM_display_units = 'J / mol'
 energy_display_name = GM_display_name = 'Gibbs Energy'
 enthalpy_implementation_units = HM_implementation_units = GM_implementation_units
 enthalpy_display_units = HM_display_units = GM_display_units

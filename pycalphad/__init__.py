@@ -18,6 +18,7 @@ from pycalphad.core.workspace import Workspace
 from pycalphad.plot.binary import binplot
 from pycalphad.plot.ternary import ternplot
 from pycalphad.plot.eqplot import eqplot
+from pycalphad.property_framework import as_property
 
 # Set the version of pycalphad
 try:

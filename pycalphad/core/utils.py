@@ -96,7 +96,7 @@ def unpack_condition(tup):
             raise ValueError('Condition tuple is length {}'.format(len(tup)))
     elif isinstance(tup, Q_):
         return tup
-    elif isinstance(tup, Iterable):
+    elif isinstance(tup, Iterable) and np.ndim(tup) != 0:
         return [float(x) for x in tup]
     else:
         return [float(tup)]

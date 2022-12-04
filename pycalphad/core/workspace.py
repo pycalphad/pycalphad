@@ -1,6 +1,7 @@
 import warnings
 from collections import OrderedDict, Counter, defaultdict
 from collections.abc import Mapping
+from copy import copy
 from pycalphad.property_framework.computed_property import DotDerivativeComputedProperty
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models
@@ -41,7 +42,7 @@ def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
             if np.any(np.logical_and(np.asarray(vals) < minimum_composition, np.asarray(vals) > 0)):
                 warnings.warn(
                     f"Some specified compositions are below the minimum allowed composition of {minimum_composition}.")
-            new_conds[key] = [max(val, minimum_composition) for val in vals]
+            new_conds[key] = [min(max(val, minimum_composition), 1-minimum_composition) for val in vals]
         else:
             new_conds[key] = unpack_condition(value)
         if getattr(key, 'display_units', '') != '':
@@ -271,10 +272,6 @@ class Workspace:
         # Assumes implementation units from this point
         unitless_conds = OrderedDict((key, _as_quantity(key, value).to(key.implementation_units).magnitude) for key, value in self.conditions.items())
         str_conds = OrderedDict((str(key), value) for key, value in unitless_conds.items())
-        components = [x for x in sorted(self.components)]
-        desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
-        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-        pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
 
         state_variables = self.phase_record_factory.state_variables
         self.phase_record_factory.update_parameters(self.parameters.unwrap())
@@ -290,9 +287,6 @@ class Workspace:
         grid = calculate(self.database, self.components, self.phases, model=self.models.unwrap(), fake_points=True,
                         phase_records=self.phase_record_factory, output='GM', parameters=self.parameters.unwrap(),
                         to_xarray=False, **grid_opts)
-        coord_dict = str_conds.copy()
-        coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
-        coord_dict['component'] = pure_elements
         properties = starting_point(unitless_conds, state_variables, self.phase_record_factory, grid)
         return _solve_eq_at_conditions(properties, self.phase_record_factory, grid,
                                        list(str_conds.keys()), state_variables,
@@ -391,7 +385,8 @@ class Workspace:
             for phase_idx, phase_name in enumerate(prop_Phase_values[index]):
                 if phase_name == '' or phase_name == '_FAKE_':
                     continue
-                phase_record = self.phase_record_factory[phase_name]
+                # phase_name can be a numpy.str_, which is different from the builtin str
+                phase_record = self.phase_record_factory[str(phase_name)]
                 sfx = prop_Y_values[index + np.index_exp[phase_idx, :phase_record.phase_dof]]
                 phase_amt = prop_NP_values[index + np.index_exp[phase_idx]]
                 compset = CompositionSet(phase_record)
@@ -436,6 +431,9 @@ class Workspace:
             return list(results.values())
         else:
             return results
+
+    def copy(self):
+        return copy(self)
 
     @property
     def plot(self):

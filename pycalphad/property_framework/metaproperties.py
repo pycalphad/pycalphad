@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 import numpy.typing as npt
 from pycalphad.core.minimizer import advance_state
 from pycalphad.core.composition_set import CompositionSet
@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 from pycalphad.property_framework.computed_property import as_property, ComputableProperty
 from pycalphad.property_framework import units
 import numpy as np
+from copy import copy
 
 def find_first_compset(phase_name: str, wks: "Workspace"):
     for _, compsets in wks.enumerate_composition_sets():
@@ -190,3 +191,74 @@ class IsolatedPhase:
     @property
     def driving_force(self):
         return self.__call__(DrivingForce(self._compset.phase_record.phase_name))
+
+
+class ReferenceState:
+    """
+    Meta-property for calculations involving reference states.
+    """
+    _reference_wks: List["Workspace"]
+    _fixed_conds: List
+    _floating_conds: List
+
+    def __init__(self,
+                 reference_conditions: List[Tuple[str, Dict]],
+                 wks: "Workspace"
+                ):
+        self._reference_wks = []
+        for phase_name, ref_conds in reference_conditions:
+            new_wks = wks.copy()
+            new_wks.phases = [phase_name]
+            self._floating_conds = sorted(set(wks.conditions.keys()) - set(ref_conds.keys()))
+            self._fixed_conds = sorted(set(wks.conditions.keys()).intersection(set(ref_conds.keys())))
+            new_wks.conditions = ref_conds
+            self._reference_wks.append(new_wks)
+        filtered_fixed_conds = []
+        for fic in self._fixed_conds:
+            if len(set([tuple(rwks.conditions[fic]) for rwks in self._reference_wks])) != 1:
+                filtered_fixed_conds.append(fic)
+        self._fixed_conds = filtered_fixed_conds
+        if len(self._fixed_conds)+1 != len(self._reference_wks):
+            raise ValueError('Specified conditions do not define a reference plane')
+
+    def __call__(self, prop: ComputableProperty) -> ComputableProperty:
+        prop = as_property(prop)
+        class _autoproperty:
+            shape = prop.shape
+            implementation_units = prop.implementation_units
+            display_units = prop.display_units
+            display_name = prop.display_name
+            @staticmethod
+            def compute_property(equilibrium_compsets: List[CompositionSet], cur_conds: Dict[str, float],
+                            chemical_potentials: npt.ArrayLike) -> float:
+                # Property contribution prior to reference state change
+                result = prop.compute_property(equilibrium_compsets, cur_conds, chemical_potentials)
+                if not isinstance(result, units.Q_):
+                    result = units.Q_(result, prop.implementation_units)
+
+                # Calculate reference contribution
+
+                # First, compute the plane of reference
+                plane_matrix = np.zeros((len(self._reference_wks), len(self._fixed_conds)+1))
+                # Rightmost column represents the constant term
+                plane_matrix[:, -1] = 1
+                plane_rhs = np.zeros(len(self._fixed_conds)+1)
+                for row_idx, ref_wks in enumerate(self._reference_wks):
+                    for col_idx, fic in enumerate(self._fixed_conds):
+                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic]
+                    for floc in self._floating_conds:
+                        ref_wks.conditions[floc] = cur_conds[str(floc)]
+                    if ref_wks.ndim != 0:
+                        raise ValueError('Reference state must be point calculation')
+                    eq_idx, ref_compsets = list(ref_wks.enumerate_composition_sets())[0]
+                    ref_chempots = ref_wks.eq.MU[eq_idx]
+                    plane_rhs[row_idx] = prop.compute_property(ref_compsets, {str(c): val for c, val in ref_wks.conditions.items()}, ref_chempots)
+                plane_coefs = np.linalg.solve(plane_matrix, plane_rhs)
+
+                # Next, plug fixed conditions of current point into equation of reference plane
+                current_vector = [cur_conds[str(floc)] for floc in self._fixed_conds]
+                reference_offset = units.Q_(np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1],
+                                            prop.implementation_units)
+                return result - reference_offset
+            __str__ = lambda _: f'{prop.__str__()} [ReferenceState]'
+        return _autoproperty()
