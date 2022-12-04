@@ -88,7 +88,7 @@ def set_plot_renderer(klass):
         klass = getattr(globals(), klass, None)
     if klass is None:
         raise AttributeError(f"Unknown plot renderer: {klass}")
-    DEFAULT_PLOT_BACKEND = klass
+    DEFAULT_PLOT_RENDERER = klass
 
 
 DEFAULT_PLOT_RENDERER = MatplotlibRenderer
