@@ -18,6 +18,7 @@ Advanced Examples
    :maxdepth: 1
 
    UsingCalculationResults
+   LegacyReferenceState
    ChargedPhases
    PlotActivity
    ViscosityModel
