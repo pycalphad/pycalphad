@@ -1,6 +1,6 @@
 from pycalphad.core.workspace import Workspace
 from pycalphad.property_framework import as_property, DotDerivativeComputedProperty, \
-    ModelComputedProperty, T0, IsolatedPhase, DormantPhase
+    ModelComputedProperty, T0, IsolatedPhase, DormantPhase, ReferenceState
 import pycalphad.variables as v
 from pycalphad.tests.fixtures import select_database, load_database
 import numpy as np
@@ -74,3 +74,16 @@ def test_cpf_tzero(load_database):
     result, = wks4.get(tzero)
     np.testing.assert_almost_equal(np.nanmax(result.magnitude), 3044.97905, decimal=5)
     np.testing.assert_almost_equal(np.nanmin(result.magnitude), 621.72616, decimal=5)
+
+@select_database("nbre_liu.tdb")
+def test_cpf_reference_state(load_database):
+    wks = Workspace(load_database(), ["NB", "RE", "VA"], ["LIQUID_RENB"],
+                    {v.P: 101325, v.T: 2800, v.X("RE"): (0, 1, 0.005)})
+
+    ref = ReferenceState([("LIQUID_RENB", {v.X("RE"): 0}),
+                        ("LIQUID_RENB", {v.X("RE"): 1})
+                        ], wks)
+
+    result, = wks.get(ref('HM'))
+    np.testing.assert_almost_equal(np.nanmax(result.magnitude), 0, decimal=5)
+    np.testing.assert_almost_equal(np.nanmin(result.magnitude), -2034.554367, decimal=5)
