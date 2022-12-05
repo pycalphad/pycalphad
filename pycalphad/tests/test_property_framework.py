@@ -87,3 +87,18 @@ def test_cpf_reference_state(load_database):
     result, = wks.get(ref('HM'))
     np.testing.assert_almost_equal(np.nanmax(result.magnitude), 0, decimal=5)
     np.testing.assert_almost_equal(np.nanmin(result.magnitude), -2034.554367, decimal=5)
+
+@select_database("alzn_mey.tdb")
+def test_cpf_calculation(load_database):
+    wks4 = Workspace(load_database(), ['AL', 'ZN'],
+                    ['LIQUID'],
+                    {v.X('ZN'): 0.3, v.T: 700, v.P:101325, v.N: 1})
+
+    results = wks4.get('HM.T', 'MU(AL).X(ZN)')
+    np.testing.assert_array_almost_equal(np.squeeze(results), [29.63807, -3460.0878], decimal=5)
+    wks4.phases = ['FCC_A1', 'LIQUID', 'HCP_A3']
+    wks4.conditions[v.X('ZN')] = 0.7
+    results = wks4.get('X(LIQUID, AL).T')
+    np.testing.assert_array_almost_equal(np.squeeze(results), [0.00249], decimal=5)
+    results = wks4.get('NP(*).T')
+    np.testing.assert_array_almost_equal(np.squeeze(results), [-0.01147, float('nan'), 0.01147], decimal=5)
