@@ -439,5 +439,3 @@ class Workspace:
     def plot(self):
         return self.renderer
 
-    def render(self, rtype: Type[Renderer]):
-        return rtype(self)
