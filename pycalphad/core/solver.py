@@ -54,16 +54,18 @@ class Solver(SolverBase):
         num_statevars = len(state_variables)
         num_components = len(nonvacant_elements)
         chemical_potentials = np.zeros(num_components)
-        prescribed_elemental_amounts = []
-        prescribed_element_indices = []
+        prescribed_mole_fraction_coefficients = []
+        prescribed_mole_fraction_rhs = []
         for cond, value in conditions.items():
             if str(cond).startswith('X_'):
                 el = str(cond)[2:]
                 el_idx = list(nonvacant_elements).index(el)
-                prescribed_elemental_amounts.append(float(value))
-                prescribed_element_indices.append(el_idx)
-        prescribed_element_indices = np.array(prescribed_element_indices, dtype=np.int32)
-        prescribed_elemental_amounts = np.array(prescribed_elemental_amounts)
+                prescribed_mole_fraction_rhs.append(float(value))
+                coefs = np.zeros(num_components)
+                coefs[el_idx] = 1.0
+                prescribed_mole_fraction_coefficients.append(coefs)
+        prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
+        prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)
         prescribed_system_amount = conditions.get('N', 1.0)
         fixed_chemical_potential_indices = np.array([nonvacant_elements.index(key[3:]) for key in conditions.keys() if key.startswith('MU_')], dtype=np.int32)
         free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(fixed_chemical_potential_indices)), dtype=np.int32)
@@ -78,8 +80,8 @@ class Solver(SolverBase):
         fixed_statevar_indices = np.array(fixed_statevar_indices, dtype=np.int32)
         fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
         spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
-                                   chemical_potentials, prescribed_elemental_amounts,
-                                   prescribed_element_indices,
+                                   chemical_potentials, prescribed_mole_fraction_coefficients,
+                                   prescribed_mole_fraction_rhs,
                                    free_chemical_potential_indices, free_statevar_indices,
                                    fixed_chemical_potential_indices, fixed_statevar_indices,
                                    fixed_stable_compset_indices)

@@ -25,8 +25,8 @@ cdef class SystemSpecification:
     cdef int num_statevars, num_components, max_num_free_stable_phases
     cdef double prescribed_system_amount
     cdef double ALLOWED_MASS_RESIDUAL
-    cdef double[::1] initial_chemical_potentials, prescribed_elemental_amounts
-    cdef int[::1] prescribed_element_indices
+    cdef double[::1] initial_chemical_potentials, prescribed_mole_fraction_rhs
+    cdef double[:,::1] prescribed_mole_fraction_coefficients
     cdef int[::1] free_chemical_potential_indices, free_statevar_indices
     cdef int[::1] fixed_chemical_potential_indices, fixed_statevar_indices, fixed_stable_compset_indices
     cpdef bint check_convergence(self, SystemState state)
