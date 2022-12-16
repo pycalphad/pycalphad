@@ -20,8 +20,9 @@ import numpy.typing as npt
 from typing import Optional, Tuple, Type
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
+from pycalphad.core.conditions import Conditions
 from pycalphad.property_framework import ComputableProperty, as_property
-from pycalphad.property_framework.units import unit_conversion_context, ureg, Q_
+from pycalphad.property_framework.units import unit_conversion_context, ureg, as_quantity, Q_
 from runtype import isa
 from runtype.pytypes import Dict, List, Sequence, SumType, Mapping, NoneType
 
@@ -170,21 +171,9 @@ class DictField(TypedField):
 
 class ConditionsField(DictField):
     def __set__(self, obj, value):
-        conditions = value.copy()
-        # Temporary solution until constraint system improves
-        if conditions.get(v.N) is None:
-            conditions[v.N] = Q_([1.0], 'mol')
-        elif not isinstance(conditions[v.N], Q_):
-            conditions[v.N] = Q_(np.atleast_1d(conditions[v.N]), 'mol')
-        if np.any(conditions[v.N] != Q_(1.0, 'mol')):
-            raise ConditionError('N!=1 is not yet supported, got N={}'.format(conditions[v.N]))
-        # Modify conditions values to be within numerical limits, e.g., X(AL)=0
-        # Also wrap single-valued conditions with lists
-        conds = _adjust_conditions(conditions)
-
-        for cond in conds.keys():
-            if isinstance(cond, (v.MoleFraction, v.ChemicalPotential)) and cond.species not in obj.components:
-                raise ConditionError('{} refers to non-existent component'.format(cond))
+        conds = Conditions(obj)
+        for k, v in value.items():
+            conds[k] = v
         super().__set__(obj, conds)
 
 class ModelsField(DictField):
@@ -248,7 +237,7 @@ class Workspace:
     database: Database = TypedField(lambda _: None)
     components: SpeciesList = ComponentsField(dependsOn=['database'])
     phases: PhaseList = PhasesField(dependsOn=['database', 'components'])
-    conditions: Mapping[ConditionKey, ConditionValue] = ConditionsField(lambda _: OrderedDict())
+    conditions: Conditions = ConditionsField(lambda wks: Conditions(wks))
     verbose: bool = TypedField(lambda _: False)
     models: Mapping[PhaseName, Model] = ModelsField(dependsOn=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
@@ -270,9 +259,8 @@ class Workspace:
 
     def recompute(self):
         # Assumes implementation units from this point
-        unitless_conds = OrderedDict((key, _as_quantity(key, value).to(key.implementation_units).magnitude) for key, value in self.conditions.items())
+        unitless_conds = OrderedDict((key, as_quantity(key, value).to(key.implementation_units).magnitude) for key, value in self.conditions.items())
         str_conds = OrderedDict((str(key), value) for key, value in unitless_conds.items())
-
         state_variables = self.phase_record_factory.state_variables
         self.phase_record_factory.update_parameters(self.parameters.unwrap())
 

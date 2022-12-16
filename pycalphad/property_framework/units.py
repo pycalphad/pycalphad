@@ -1,5 +1,9 @@
 import pint
 import numpy as np
+import numpy.typing as npt
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from pycalphad.property_framework import ComputableProperty
 
 ureg = pint.UnitRegistry(preprocessors=[lambda s: s.replace('%', ' percent ')])
 ureg.define('atom = 1/avogadro_number * mol')
@@ -8,6 +12,12 @@ ureg.define('percent = 1e-2 fraction = %')
 ureg.define('ppm = 1e-6 fraction')
 Q_ = ureg.Quantity
 DimensionalityError = pint.DimensionalityError
+
+def as_quantity(prop: "ComputableProperty", qt: npt.ArrayLike):
+    if not isinstance(qt, Q_):
+        return Q_(qt, prop.display_units)
+    else:
+        return qt
 
 energy_implementation_units = GM_implementation_units = 'J / mol'
 energy_display_units = GM_display_units = 'J / mol'
