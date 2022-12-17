@@ -5,7 +5,7 @@ from pycalphad.property_framework.units import Q_
 from pycalphad.core.minimizer import SystemSpecification
 import pycalphad.variables as v
 from collections.abc import Iterable
-from typing import List, NamedTuple, TYPE_CHECKING
+from typing import List, NamedTuple, Optional, TYPE_CHECKING
 import warnings
 
 if TYPE_CHECKING:
@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 class ConditionsEntry(NamedTuple):
     prop: "ComputableProperty"
     value: "Q_"
+
+_default = object()
 
 def unpack_condition(tup):
     """
@@ -52,11 +54,19 @@ class Conditions:
 
     minimum_composition: float = 1e-10
 
-    def __init__(self, wks: "Workspace"):
+    def __init__(self, wks: Optional["Workspace"]):
         self._wks = wks
         self._conds = []
         # Default to N=1
         self.__setitem__(v.N, Q_(np.atleast_1d(1.0), 'mol'))
+
+    @classmethod
+    def from_dict(cls, d):
+        if isinstance(d, Conditions):
+            return d
+        obj = cls(wks=None)
+        obj.update(d)
+        return obj
     
     def _find_matching_index(self, prop: "ComputableProperty"):
         for idx, (key, _) in enumerate(self._conds):
@@ -67,7 +77,7 @@ class Conditions:
 
     @classmethod
     def cast_from(cls, key) -> "Conditions":
-        return key
+        return cls.from_dict(key)
     
     def __getitem__(self, item):
         key = as_property(item)
@@ -80,7 +90,14 @@ class Conditions:
         # stored and queried with distinct units
         return entry.value.to(key.display_units)
 
-    get = __getitem__
+    def get(self, item, default=_default):
+        try:
+            return self.__getitem__(item)
+        except IndexError:
+            if default is not _default:
+                return default
+            else:
+                raise
 
     def __delitem__(self, item):
         idx = self._find_matching_index(as_property(item))
@@ -125,9 +142,17 @@ class Conditions:
         for key, _ in self._conds:
             yield key
 
+    def str_keys(self):
+        for key, _ in self._conds:
+            yield str(key)
+
     def values(self):
         for _, value in self._conds:
             yield value
+
+    def update(self, d):
+        for key, value in d.items():
+            self.__setitem__(key, value)
 
     def items(self):
         for key, value in self._conds:
@@ -146,56 +171,3 @@ class Conditions:
 
     def __iter__(self):
         yield from self.keys()
-
-    def get_system_spec(self, composition_sets):
-        """
-        Create a SystemSpecification object for the specified compositions.
-
-        Parameters
-        ----------
-        composition_sets : List[pycalphad.core.composition_set.CompositionSet]
-            List of CompositionSet objects in the starting point. Modified in place.
-
-        Returns
-        -------
-        SystemSpecification
-
-        """
-        compsets = composition_sets
-        state_variables = compsets[0].phase_record.state_variables
-        nonvacant_elements = compsets[0].phase_record.nonvacant_elements
-        num_statevars = len(state_variables)
-        num_components = len(nonvacant_elements)
-        chemical_potentials = np.zeros(num_components)
-        prescribed_mole_fraction_coefficients = []
-        prescribed_mole_fraction_rhs = []
-        for cond, value in conditions.items():
-            if str(cond).startswith('X_'):
-                el = str(cond)[2:]
-                el_idx = list(nonvacant_elements).index(el)
-                prescribed_mole_fraction_rhs.append(float(value))
-                coefs = np.zeros(num_components)
-                coefs[el_idx] = 1.0
-                prescribed_mole_fraction_coefficients.append(coefs)
-        prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
-        prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)
-        prescribed_system_amount = conditions.get('N', 1.0)
-        fixed_chemical_potential_indices = np.array([nonvacant_elements.index(key[3:]) for key in conditions.keys() if key.startswith('MU_')], dtype=np.int32)
-        free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(fixed_chemical_potential_indices)), dtype=np.int32)
-        for fixed_chempot_index in fixed_chemical_potential_indices:
-            el = nonvacant_elements[fixed_chempot_index]
-            chemical_potentials[fixed_chempot_index] = conditions.get('MU_' + str(el))
-        fixed_statevar_indices = []
-        for statevar_idx, statevar in enumerate(state_variables):
-            if str(statevar) in [str(k) for k in conditions.keys()]:
-                fixed_statevar_indices.append(statevar_idx)
-        free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)), dtype=np.int32)
-        fixed_statevar_indices = np.array(fixed_statevar_indices, dtype=np.int32)
-        fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
-        spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
-                                   chemical_potentials, prescribed_mole_fraction_coefficients,
-                                   prescribed_mole_fraction_rhs,
-                                   free_chemical_potential_indices, free_statevar_indices,
-                                   fixed_chemical_potential_indices, fixed_statevar_indices,
-                                   fixed_stable_compset_indices)
-        return spec

@@ -127,8 +127,6 @@ def add_nearly_stable(object composition_sets, object phase_records,
 
 def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
     """
-        _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None)
-
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
     For that case, usually only a small slice of the master 'properties' is provided.
