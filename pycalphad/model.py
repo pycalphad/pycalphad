@@ -475,6 +475,9 @@ class Model(object):
         for key, value in self.__class__.contributions:
             self.models[key] = S(getattr(self, value)(dbe))
 
+        # Convert string symbol names to Symbol objects
+        # This makes xreplace work with the symbols dict
+        symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
         for name, value in self.models.items():
             # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
             self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
