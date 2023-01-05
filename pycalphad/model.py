@@ -254,10 +254,6 @@ class Model(object):
         self.models = OrderedDict()
         self.build_phase(dbe)
 
-        for name, value in self.models.items():
-            # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
-            self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
-
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
 
@@ -478,6 +474,10 @@ class Model(object):
         self.models.clear()
         for key, value in self.__class__.contributions:
             self.models[key] = S(getattr(self, value)(dbe))
+
+        for name, value in self.models.items():
+            # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
+            self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
 
     def _array_validity(self, constituent_array):
         """
