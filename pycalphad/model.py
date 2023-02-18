@@ -290,8 +290,7 @@ class Model(object):
             # of other symbols
             for iteration in range(_MAX_PARAM_NESTING):
                 obj = obj.xreplace(symbols)
-                if iteration < 3:
-                    obj = Model.unwrap_piecewise(obj)
+                obj = Model.unwrap_piecewise(obj)
                 undefs = [x for x in obj.free_symbols if not isinstance(x, v.StateVariable)]
                 if len(undefs) == 0:
                     break
