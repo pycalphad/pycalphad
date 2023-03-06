@@ -27,7 +27,7 @@ jobs:
       # Build documentation
       - run: sphinx-build -W -b html docs docs/_build/html
       # Upload documentation html directory
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./docs/_build/html
           name: pycalphad-documentation
