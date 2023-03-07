@@ -13,7 +13,7 @@ jobs:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
       - uses: actions/setup-python@v4
@@ -49,7 +49,7 @@ jobs:
     needs: [Tests]
     steps:
       # The source code _must_ be checked out for coverage to be processed at Codecov.
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Download artifacts
         uses: actions/download-artifact@v3
       - name: Upload to Codecov

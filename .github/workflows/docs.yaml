@@ -11,7 +11,7 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
       - uses: actions/setup-python@v4
@@ -68,7 +68,7 @@ jobs:
       TARGET_BRANCH: website
       DEPLOY_NAME: latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee the TARGET_BRANCH exists
       - uses: actions/download-artifact@v3
