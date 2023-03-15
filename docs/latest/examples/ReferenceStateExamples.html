@@ -6,9 +6,10 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Calculate and Plot Activity" href="PlotActivity.html" /><link rel="prev" title="Phases with Electrically Charged Species" href="ChargedPhases.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>Calculations with Reference States - pycalphad 0.10.3.dev2+g497d8f3c documentation</title>
+        <title>Calculations with Reference States - pycalphad 0.10.3.dev3+gc98e804b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
     
     
@@ -123,7 +124,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.3.dev2+g497d8f3c documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.3.dev3+gc98e804b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +150,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.3.dev2+g497d8f3c documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.3.dev3+gc98e804b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -219,268 +220,11 @@
           </label>
         </div>
         <article role="main">
-          
-<style>
-/* CSS for nbsphinx extension */
-
-/* remove conflicting styling from Sphinx themes */
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt *,
-div.nbinput.container div.input_area pre,
-div.nboutput.container div.output_area pre,
-div.nbinput.container div.input_area .highlight,
-div.nboutput.container div.output_area .highlight {
-    border: none;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-}
-
-div.nbinput.container > div[class*=highlight],
-div.nboutput.container > div[class*=highlight] {
-    margin: 0;
-}
-
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt * {
-    background: none;
-}
-
-div.nboutput.container div.output_area .highlight,
-div.nboutput.container div.output_area pre {
-    background: unset;
-}
-
-div.nboutput.container div.output_area div.highlight {
-    color: unset;  /* override Pygments text color */
-}
-
-/* avoid gaps between output lines */
-div.nboutput.container div[class*=highlight] pre {
-    line-height: normal;
-}
-
-/* input/output containers */
-div.nbinput.container,
-div.nboutput.container {
-    display: -webkit-flex;
-    display: flex;
-    align-items: flex-start;
-    margin: 0;
-    width: 100%;
-}
-@media (max-width: 540px) {
-    div.nbinput.container,
-    div.nboutput.container {
-        flex-direction: column;
-    }
-}
-
-/* input container */
-div.nbinput.container {
-    padding-top: 5px;
-}
-
-/* last container */
-div.nblast.container {
-    padding-bottom: 5px;
-}
-
-/* input prompt */
-div.nbinput.container div.prompt pre {
-    color: #307FC1;
-}
-
-/* output prompt */
-div.nboutput.container div.prompt pre {
-    color: #BF5B3D;
-}
-
-/* all prompts */
-div.nbinput.container div.prompt,
-div.nboutput.container div.prompt {
-    width: 4.5ex;
-    padding-top: 5px;
-    position: relative;
-    user-select: none;
-}
-
-div.nbinput.container div.prompt > div,
-div.nboutput.container div.prompt > div {
-    position: absolute;
-    right: 0;
-    margin-right: 0.3ex;
-}
-
-@media (max-width: 540px) {
-    div.nbinput.container div.prompt,
-    div.nboutput.container div.prompt {
-        width: unset;
-        text-align: left;
-        padding: 0.4em;
-    }
-    div.nboutput.container div.prompt.empty {
-        padding: 0;
-    }
-
-    div.nbinput.container div.prompt > div,
-    div.nboutput.container div.prompt > div {
-        position: unset;
-    }
-}
-
-/* disable scrollbars and line breaks on prompts */
-div.nbinput.container div.prompt pre,
-div.nboutput.container div.prompt pre {
-    overflow: hidden;
-    white-space: pre;
-}
-
-/* input/output area */
-div.nbinput.container div.input_area,
-div.nboutput.container div.output_area {
-    -webkit-flex: 1;
-    flex: 1;
-    overflow: auto;
-}
-@media (max-width: 540px) {
-    div.nbinput.container div.input_area,
-    div.nboutput.container div.output_area {
-        width: 100%;
-    }
-}
-
-/* input area */
-div.nbinput.container div.input_area {
-    border: 1px solid #e0e0e0;
-    border-radius: 2px;
-    /*background: #f5f5f5;*/
-}
-
-/* override MathJax center alignment in output cells */
-div.nboutput.container div[class*=MathJax] {
-    text-align: left !important;
-}
-
-/* override sphinx.ext.imgmath center alignment in output cells */
-div.nboutput.container div.math p {
-    text-align: left;
-}
-
-/* standard error */
-div.nboutput.container div.output_area.stderr {
-    background: #fdd;
-}
-
-/* ANSI colors */
-.ansi-black-fg { color: #3E424D; }
-.ansi-black-bg { background-color: #3E424D; }
-.ansi-black-intense-fg { color: #282C36; }
-.ansi-black-intense-bg { background-color: #282C36; }
-.ansi-red-fg { color: #E75C58; }
-.ansi-red-bg { background-color: #E75C58; }
-.ansi-red-intense-fg { color: #B22B31; }
-.ansi-red-intense-bg { background-color: #B22B31; }
-.ansi-green-fg { color: #00A250; }
-.ansi-green-bg { background-color: #00A250; }
-.ansi-green-intense-fg { color: #007427; }
-.ansi-green-intense-bg { background-color: #007427; }
-.ansi-yellow-fg { color: #DDB62B; }
-.ansi-yellow-bg { background-color: #DDB62B; }
-.ansi-yellow-intense-fg { color: #B27D12; }
-.ansi-yellow-intense-bg { background-color: #B27D12; }
-.ansi-blue-fg { color: #208FFB; }
-.ansi-blue-bg { background-color: #208FFB; }
-.ansi-blue-intense-fg { color: #0065CA; }
-.ansi-blue-intense-bg { background-color: #0065CA; }
-.ansi-magenta-fg { color: #D160C4; }
-.ansi-magenta-bg { background-color: #D160C4; }
-.ansi-magenta-intense-fg { color: #A03196; }
-.ansi-magenta-intense-bg { background-color: #A03196; }
-.ansi-cyan-fg { color: #60C6C8; }
-.ansi-cyan-bg { background-color: #60C6C8; }
-.ansi-cyan-intense-fg { color: #258F8F; }
-.ansi-cyan-intense-bg { background-color: #258F8F; }
-.ansi-white-fg { color: #C5C1B4; }
-.ansi-white-bg { background-color: #C5C1B4; }
-.ansi-white-intense-fg { color: #A1A6B2; }
-.ansi-white-intense-bg { background-color: #A1A6B2; }
-
-.ansi-default-inverse-fg { color: #FFFFFF; }
-.ansi-default-inverse-bg { background-color: #000000; }
-
-.ansi-bold { font-weight: bold; }
-.ansi-underline { text-decoration: underline; }
-
-
-div.nbinput.container div.input_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight].math,
-div.nboutput.container div.output_area.rendered_html,
-div.nboutput.container div.output_area > div.output_javascript,
-div.nboutput.container div.output_area:not(.rendered_html) > img{
-    padding: 5px;
-    margin: 0;
-}
-
-/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
-div.nbinput.container div.input_area > div[class^='highlight'],
-div.nboutput.container div.output_area > div[class^='highlight']{
-    overflow-y: hidden;
-}
-
-/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt .copybtn {
-    display: none;
-}
-
-/* Some additional styling taken form the Jupyter notebook CSS */
-.jp-RenderedHTMLCommon table,
-div.rendered_html table {
-  border: none;
-  border-collapse: collapse;
-  border-spacing: 0;
-  color: black;
-  font-size: 12px;
-  table-layout: fixed;
-}
-.jp-RenderedHTMLCommon thead,
-div.rendered_html thead {
-  border-bottom: 1px solid black;
-  vertical-align: bottom;
-}
-.jp-RenderedHTMLCommon tr,
-.jp-RenderedHTMLCommon th,
-.jp-RenderedHTMLCommon td,
-div.rendered_html tr,
-div.rendered_html th,
-div.rendered_html td {
-  text-align: right;
-  vertical-align: middle;
-  padding: 0.5em 0.5em;
-  line-height: normal;
-  white-space: normal;
-  max-width: none;
-  border: none;
-}
-.jp-RenderedHTMLCommon th,
-div.rendered_html th {
-  font-weight: bold;
-}
-.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
-div.rendered_html tbody tr:nth-child(odd) {
-  background: #f5f5f5;
-}
-.jp-RenderedHTMLCommon tbody tr:hover,
-div.rendered_html tbody tr:hover {
-  background: rgba(66, 165, 245, 0.2);
-}
-</style>
-<section id="Calculations-with-Reference-States">
+          <section id="Calculations-with-Reference-States">
 <h1>Calculations with Reference States<a class="headerlink" href="#Calculations-with-Reference-States" title="Permalink to this headline">¶</a></h1>
 <section id="Experimental-Reference-States:-Formation-and-Mixing-Energy">
 <h2>Experimental Reference States: Formation and Mixing Energy<a class="headerlink" href="#Experimental-Reference-States:-Formation-and-Mixing-Energy" title="Permalink to this headline">¶</a></h2>
-<p>By default, energies calculated with pycalphad (e.g. <code class="docutils literal notranslate"><span class="pre">GM</span></code>, <code class="docutils literal notranslate"><span class="pre">HM</span></code>, etc.) are the absolute energies as defined in the database and are not calculated with respect to any reference state.</p>
+<p>By default, energies calculated with pycalphad (e.g. <code class="docutils literal notranslate"><span class="pre">GM</span></code>, <code class="docutils literal notranslate"><span class="pre">HM</span></code>, etc.) are the absolute energies as defined in the database and are not calculated with respect to any reference state.</p>
 <p>pycalphad <code class="docutils literal notranslate"><span class="pre">Model</span></code> objects allow the reference for the pure components to be set to arbitrary phases and temperature/pressure conditions through the <code class="docutils literal notranslate"><span class="pre">shift_reference_state</span></code> method, which creates new properties for the energies that are referenced to the new reference state, <code class="docutils literal notranslate"><span class="pre">GMR</span></code>, <code class="docutils literal notranslate"><span class="pre">HMR</span></code>, <code class="docutils literal notranslate"><span class="pre">SMR</span></code>, and <code class="docutils literal notranslate"><span class="pre">CPMR</span></code>.</p>
 <section id="Enthalpy-of-mixing">
 <h3>Enthalpy of mixing<a class="headerlink" href="#Enthalpy-of-mixing" title="Permalink to this headline">¶</a></h3>
@@ -639,7 +383,7 @@ div.rendered_html tbody tr:hover {
 <section id="Calculations-at-specific-site-fractions">
 <h2>Calculations at specific site fractions<a class="headerlink" href="#Calculations-at-specific-site-fractions" title="Permalink to this headline">¶</a></h2>
 <p>In the previous example, the mixing energy for the CHI phase in Nb-Re is sampled by sampling site fractions linearly between endmembers and then randomly across site fraction space.</p>
-<p>Imagine now that you’d like to calculate the mixing energy along a single internal degree of freedom (i.e. between two endmembers), referenced to those endmembers.</p>
+<p>Imagine now that you’d like to calculate the mixing energy along a single internal degree of freedom (i.e. between two endmembers), referenced to those endmembers.</p>
 <p>A custom 2D site fraction array can be passed to the <code class="docutils literal notranslate"><span class="pre">points</span></code> argument of <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and the <code class="docutils literal notranslate"><span class="pre">HM_MIX</span></code> property can be calculated as above.</p>
 <p>The sublattice model for CHI is <code class="docutils literal notranslate"><span class="pre">RE</span> <span class="pre">:</span> <span class="pre">NB,RE</span> <span class="pre">:</span> <span class="pre">NB,RE</span></code>.</p>
 <p>If we are interested in the interaction along the second sublattice when NB occupies the third sublattice, we need to construct a site fraction array of</p>
@@ -647,7 +391,7 @@ div.rendered_html tbody tr:hover {
 <span class="p">[</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span> <span class="p">]</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">x</span></code> varies from 0 to 1. This fixes the site fraction of RE in the first sublattice to 1 and the site fractions of NB and RE in the third sublattice to 1 and 0, respectively. Note that the site fraction array is sorted first in sublattice order, then in alphabetic order within each sublattice (e.g. NB is always before RE within a sublattice)</p>
+<p>where <code class="docutils literal notranslate"><span class="pre">x</span></code> varies from 0 to 1. This fixes the site fraction of RE in the first sublattice to 1 and the site fractions of NB and RE in the third sublattice to 1 and 0, respectively. Note that the site fraction array is sorted first in sublattice order, then in alphabetic order within each sublattice (e.g. NB is always before RE within a sublattice)</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
