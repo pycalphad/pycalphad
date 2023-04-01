@@ -252,3 +252,40 @@ def test_BCC_phase_with_symmetry_option_B(load_database):
     bcc_4sl_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_4SL", T=300, N=1, P=101325, pdens=10)
     bcc_no_B_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_NOB", T=300, N=1, P=101325, pdens=10)
     assert np.allclose(bcc_4sl_calc_res.GM.values.squeeze(), bcc_no_B_calc_res.GM.values.squeeze())
+
+
+def test_molar_volume_isothermal():
+    TDB = """
+        ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+        TYPE_DEFINITION % SEQ * !
+        PHASE BCC_A2 % 1 1 !
+        CONSTITUENT BCC_A2 :FE: !
+        PARAMETER V0(BCC_A2,FE;0) 0.01 7.00790E-6; 6000 N !
+        PARAMETER VA(BCC_A2,FE;0) 0.01 3.42756E-5*T +8.14005E-9*T**2 +0.291672*T**-1; 6000 N !
+        """
+        
+    db = Database(TDB)
+    mv_300K = calculate(db, ["FE"], "BCC_A2", T=300, N=1, P=101325, output="molar_volume", pdens=10)
+    mv_1200K = calculate(db, ["FE"], "BCC_A2", T=1200, N=1, P=101325, output="molar_volume", pdens=10)
+
+    assert np.allclose(mv_300K['molar_volume'], 7.092e-6)
+    assert np.allclose(mv_1200K['molar_volume'], 7.39e-6)
+
+
+def test_volume_energy():
+    TDB = """
+    ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+    TYPE_DEFINITION % SEQ * !
+    PHASE BCC_A2 % 1 1 !
+    CONSTITUENT BCC_A2 :FE: !
+    PARAMETER G(BCC_A2,FE;0) 0.01 T;  6000.00 N !
+
+    PARAMETER V0(BCC_A2,FE;0) 0.01 1E-6; 6000 N !
+    PARAMETER VA(BCC_A2,FE;0) 0.01 1E-6*T; 6000 N !
+    """
+
+    db = Database(TDB)
+    energy = 1e-6*np.exp(1e-6*300)*(10e9-101325)
+    result = calculate(db, ['FE'], 'BCC_A2', T=300, P=10E9, N=1, output='volume_energy')
+
+    assert np.allclose(np.squeeze(result['volume_energy']).values, energy)
