@@ -1426,7 +1426,7 @@ class Model(object):
         else:
             warnings.warn(
                     f"The database for \"{self.phase_name}\" contains a term for the isothermal compressibility"
-                    f"however the pressure dependence has not been incorporated into the molar volume or"
+                    f"however the pressure dependence has not been fully incorporated into the molar volume or"
                     f"Gibbs free energy models. THE GIBBS ENERGY AND MOLAR VOLUME CALCULATIONS MAY BE INCORRECT.")
 
         return self.volume_energy
