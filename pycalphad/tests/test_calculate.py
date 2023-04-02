@@ -289,3 +289,32 @@ def test_volume_energy():
     result = calculate(db, ['FE'], 'BCC_A2', T=300, P=10E9, N=1, output='volume_energy')
 
     assert np.allclose(np.squeeze(result['volume_energy']).values, energy)
+
+
+def test_magnetic_volume_contribution():
+    """
+    Toy problem where pressure required to reduce TC to 500 K is 5.43 GPa.
+    Pressures below this value will increase the molar volume due to the magnetic transition.
+    Pressures far above this value should approach the isothermal molar volume.
+    """
+
+    TDB = """
+    ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+    TYPE_DEFINITION % SEQ * !
+    TYPE_DEFINITION A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+    PHASE BCC_A2 %A 1 1 !
+    CONSTITUENT BCC_A2 :FE: !
+    PARAMETER G(BCC_A2,FE;0) 0.01 T;  6000.00 N !
+    PARAMETER TC(BCC_A2,FE;0)  298.15 +1043 -1e-7*P;  6000 N !
+    PARAMETER BMAGN(BCC_A2,FE;0)  298.15 +2.22;  6000 N !
+    
+    PARAMETER V0(BCC_A2,FE;0) 0.01 1E-6; 6000 N !
+    PARAMETER VA(BCC_A2,FE;0) 0.01 1E-6*T; 6000 N !
+    """
+
+    db = Database(TDB)
+    res1 = calculate(db, ['FE'], 'BCC_A2', T=500, P=101325, N=1, output='molar_volume')
+    res2 = calculate(db, ['FE'], 'BCC_A2', T=500, P=10e9, N=1, output='molar_volume')
+
+    assert np.allclose(np.squeeze(res1['molar_volume']).values, 1.857e-6)
+    assert np.allclose(np.squeeze(res2['molar_volume']).values, 1.0e-6)

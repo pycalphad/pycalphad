@@ -1416,8 +1416,7 @@ class Model(object):
 
         # magnetic contribution to volume
         G_mag = self.models.get('mag')
-        tau_curie = v.T/self.TC
-        V_mag = G_mag.diff(tau_curie)*tau_curie.diff(v.P)
+        V_mag = G_mag.diff(v.P)
 
         self.MV = self.molar_volume = V_p0 + V_mag
         self.volume_energy = S.Zero
