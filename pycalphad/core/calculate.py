@@ -19,7 +19,7 @@ from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
-from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.core.constants import MIN_SITE_FRACTION, MAX_ENDMEMBER_PAIRS, MAX_EXTRA_POINTS
 
 
 def hr_point_sample(constraint_jac, constraint_rhs, initial_point, num_points):
@@ -150,14 +150,11 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     if (fixed_grid is True) and not linearly_constrained_space:
         # Sample along the edges of the endmembers
         # These constitution space edges are often the equilibrium points!
-        em_pairs = list(itertools.combinations(points, 2))
-        lingrid = np.linspace(0, 1, pdens)
-        if len(em_pairs) * pdens < 100000:
-            extra_points = [first_em * lingrid[np.newaxis].T +
-                            second_em * lingrid[::-1][np.newaxis].T
-                            for first_em, second_em in em_pairs]
-        else:
-            extra_points = []
+        em_pairs = list(itertools.combinations(points, 2))[:MAX_ENDMEMBER_PAIRS]
+        lingrid = np.linspace(0, 1, int(min(pdens, MAX_EXTRA_POINTS/MAX_ENDMEMBER_PAIRS)))
+        extra_points = [first_em * lingrid[np.newaxis].T +
+                        second_em * lingrid[::-1][np.newaxis].T
+                        for first_em, second_em in em_pairs]
         points = np.concatenate(list(itertools.chain([points], extra_points)))
     # Sample composition space for more points
     if sum(sublattice_dof) > len(sublattice_dof):
