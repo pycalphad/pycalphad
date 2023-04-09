@@ -1419,17 +1419,17 @@ class Model(object):
         V_mag = G_mag.diff(v.P)
 
         self.MV = self.molar_volume = V_p0 + V_mag
-        self.volume_energy = S.Zero
+        volume_energy = S.Zero
 
         if VK == 0:
-            self.volume_energy = V_p0*(v.P-101325)
+            volume_energy = V_p0*(v.P-101325)
         else:
             warnings.warn(
                     f"The database for \"{self.phase_name}\" contains a term for the isothermal compressibility"
                     f"however the pressure dependence has not been fully incorporated into the molar volume or"
                     f"Gibbs free energy models. THE GIBBS ENERGY AND MOLAR VOLUME CALCULATIONS MAY BE INCORRECT.")
 
-        return self.volume_energy
+        return volume_energy
 
 
 class TestModel(Model):
