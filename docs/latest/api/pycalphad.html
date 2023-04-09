@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html" /><link rel="prev" title="API Documentation" href="modules.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad package - pycalphad 0.10.3.dev6+g8f20e2a7 documentation</title>
+        <title>pycalphad package - pycalphad 0.10.3.dev7+ge345631c documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.3.dev6+g8f20e2a7 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.3.dev7+ge345631c documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.3.dev6+g8f20e2a7 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.3.dev7+ge345631c documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -466,7 +466,7 @@ site fractions substituted.</p>
 </dd></dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.contributions">
-<span class="sig-name descname"><span class="pre">contributions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[('ref',</span> <span class="pre">'reference_energy'),</span> <span class="pre">('idmix',</span> <span class="pre">'ideal_mixing_energy'),</span> <span class="pre">('xsmix',</span> <span class="pre">'excess_mixing_energy'),</span> <span class="pre">('mag',</span> <span class="pre">'magnetic_energy'),</span> <span class="pre">('2st',</span> <span class="pre">'twostate_energy'),</span> <span class="pre">('ein',</span> <span class="pre">'einstein_energy'),</span> <span class="pre">('ord',</span> <span class="pre">'atomic_ordering_energy')]</span></em><a class="headerlink" href="#pycalphad.model.Model.contributions" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">contributions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[('ref',</span> <span class="pre">'reference_energy'),</span> <span class="pre">('idmix',</span> <span class="pre">'ideal_mixing_energy'),</span> <span class="pre">('xsmix',</span> <span class="pre">'excess_mixing_energy'),</span> <span class="pre">('mag',</span> <span class="pre">'magnetic_energy'),</span> <span class="pre">('2st',</span> <span class="pre">'twostate_energy'),</span> <span class="pre">('ein',</span> <span class="pre">'einstein_energy'),</span> <span class="pre">('vol',</span> <span class="pre">'volume_energy'),</span> <span class="pre">('ord',</span> <span class="pre">'atomic_ordering_energy')]</span></em><a class="headerlink" href="#pycalphad.model.Model.contributions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.model.Model.curie_temperature">
@@ -642,6 +642,22 @@ Defaults to “{}R”, e.g. the transformation of ‘GM’ -&gt; ‘GMR’</p></
 <dt class="sig sig-object py" id="pycalphad.model.Model.variables">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">variables</span></span><a class="headerlink" href="#pycalphad.model.Model.variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return state variables in the model.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.model.Model.volume_energy">
+<span class="sig-name descname"><span class="pre">volume_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbe</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.volume_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.model.Model.volume_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the volumetric contribution in symbolic form. Follows the approach by Lu, Selleby, and Sundman [1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Database containing the relevant parameters.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The high-pressure portion of the model is not currently implemented.
+The parameters needed for it are queried from the database; however, calculations
+are reserved for future implementation.</p>
+<p class="rubric">References</p>
+<p>[1] Lu, Selleby, and Sundman, Calphad, Vol. 29, No. 1, 2005, doi:10.1016/j.calphad.2005.04.001.</p>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.model.Model.xiong_magnetic_energy">
