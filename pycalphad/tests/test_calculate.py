@@ -285,10 +285,13 @@ def test_volume_energy():
     """
 
     db = Database(TDB)
-    energy = 1e-6*np.exp(1e-6*300)*(10e9-101325)
-    result = calculate(db, ['FE'], 'BCC_A2', T=300, P=10E9, N=1, output='volume_energy')
+    energy_hp = 1e-6*np.exp(1e-6*300)*(10e9-101325)
+    
+    result_atm = calculate(db, ['FE'], 'BCC_A2', T=300, P=101325, N=1)
+    result_hp = calculate(db, ['FE'], 'BCC_A2', T=300, P=10E9, N=1)
+    vol_energy_contrib = np.squeeze(result_hp['GM']).values - np.squeeze(result_atm['GM']).values
 
-    assert np.allclose(np.squeeze(result['volume_energy']).values, energy)
+    assert np.allclose(vol_energy_contrib, energy_hp)
 
 
 def test_magnetic_volume_contribution():
