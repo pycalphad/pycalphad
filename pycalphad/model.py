@@ -152,7 +152,7 @@ class Model(object):
     contributions = [('ref', 'reference_energy'), ('idmix', 'ideal_mixing_energy'),
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
-                     ('ord', 'atomic_ordering_energy')]
+                     ('vol', 'volume_energy'), ('ord', 'atomic_ordering_energy')]
 
     def __new__(cls, *args, **kwargs):
         target_cls = cls._dispatch_on(*args, **kwargs)
@@ -1358,6 +1358,78 @@ class Model(object):
             reference_contrib = Add(*terms)
             referenced_value = getattr(self, out) - reference_contrib
             setattr(self, fmt_str.format(out), referenced_value)
+    
+    def volume_energy(self, dbe):
+        """
+        Return the volumetric contribution in symbolic form. Follows the approach by Lu, Selleby, and Sundman [1].
+
+        Parameters
+        ----------
+        dbe : Database
+            Database containing the relevant parameters.
+        
+        Notes
+        -----
+        The high-pressure portion of the model is not currently implemented.
+        The parameters needed for it are queried from the database; however, calculations
+        are reserved for future implementation.
+
+        References
+        ----------
+        [1] Lu, Selleby, and Sundman, Calphad, Vol. 29, No. 1, 2005, doi:10.1016/j.calphad.2005.04.001.
+        """
+
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
+
+        V0_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'V0') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+
+        VA_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'VA') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+
+        VK_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'VK') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+
+        VC_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'VC') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+
+        V0 = self.redlich_kister_sum(phase, param_search, V0_param_query)
+        VA = self.redlich_kister_sum(phase, param_search, VA_param_query)
+        VK = self.redlich_kister_sum(phase, param_search, VK_param_query)
+        VC = self.redlich_kister_sum(phase, param_search, VC_param_query)
+
+        # nonmagnetic contribution to volume
+        V_p0 = V0*exp(VA)
+
+        # magnetic contribution to volume
+        G_mag = self.models.get('mag')
+        V_mag = G_mag.diff(v.P)
+
+        self.MV = self.molar_volume = V_p0 + V_mag
+        volume_energy = S.Zero
+
+        if VK == 0:
+            volume_energy = V_p0*(v.P-101325)
+        else:
+            warnings.warn(
+                    f"The database for \"{self.phase_name}\" contains a term for the isothermal compressibility"
+                    f"however the pressure dependence has not been fully incorporated into the molar volume or"
+                    f"Gibbs free energy models. THE GIBBS ENERGY AND MOLAR VOLUME CALCULATIONS MAY BE INCORRECT.")
+
+        return volume_energy
 
 
 class TestModel(Model):
