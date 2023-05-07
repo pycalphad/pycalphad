@@ -1,12 +1,22 @@
 What's New
 ==========
 
+0.10.2 (2023-02-14)
+-------------------
+
+This is a minor release containing bug fixes.
+
+* MAINT: Update symengine to 0.9.2 and add Python 3.11 support ( :issue:`456` )
+* FIX: hyperplane: Incorrectly throwing out stable starting points ( :issue:`428` )
+* ENH: minimizer: performance improvements ( :issue:`424` )
+
+
 0.10.1 (2022-05-25)
 -------------------
 
-This is a minor release containing several new features, but fixes, and some
+This is a minor release containing several new features, bug fixes, and some
 breaking changes to internal APIs for interacting with ``Solver`` objects and
-the Gibbs eneryg minimizer.
+the Gibbs energy minimizer.
 
 * ENH: Internal API refactor to enable a ``CompositionSet``-based solver API ( :issue:`415` )
 * ENH: Enable option B and option F support for TDBs ( :issue:`412` )
