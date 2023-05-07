@@ -12,3 +12,8 @@ COMP_DIFFERENCE_TOL = 1e-4
 
 # Constraint scaling factors, for numerical stability
 INTERNAL_CONSTRAINT_SCALING = 1.0
+
+# Prevent excessive sampling for very complex phase models
+# This avoids running out of RAM
+MAX_ENDMEMBER_PAIRS = 5000 # ~100 endmembers
+MAX_EXTRA_POINTS = 90000

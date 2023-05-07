@@ -263,6 +263,16 @@ class Model(object):
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
 
     @staticmethod
+    def unwrap_piecewise(graph):
+        replace_dict = {}
+        for atom in graph.atoms(Piecewise):
+            args = atom.args
+            # Unwrap temperature-dependent piecewise with zero-defaults
+            if len(args) == 4 and args[2] == 0 and args[3] == True and args[1].free_symbols == {v.T}:
+                replace_dict[atom] = args[0]
+        return graph.xreplace(replace_dict)
+
+    @staticmethod
     def symbol_replace(obj, symbols):
         """
         Substitute values of symbols into 'obj'.
@@ -281,6 +291,7 @@ class Model(object):
             # of other symbols
             for iteration in range(_MAX_PARAM_NESTING):
                 obj = obj.xreplace(symbols)
+                obj = Model.unwrap_piecewise(obj)
                 undefs = [x for x in obj.free_symbols if not isinstance(x, v.StateVariable)]
                 if len(undefs) == 0:
                     break
@@ -1121,7 +1132,7 @@ class Model(object):
         return disord_expr + ordering_expr
 
     def atomic_ordering_energy(self, dbe):
-        """
+        r"""
         Return the atomic ordering contribution in symbolic form.
 
         If the current phase is anything other than the ordered phase in a
