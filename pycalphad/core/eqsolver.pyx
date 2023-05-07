@@ -183,14 +183,14 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
         converged = False
         changed_phases = False
         cur_conds = OrderedDict(zip(conds_keys,
-                                    [np.asarray(properties.coords[b][a], dtype=np.float_)
+                                    [np.asarray(properties.coords[str(b)][a], dtype=np.float_)
                                      for a, b in zip(it.multi_index, conds_keys)]))
         # assume 'points' and other dimensions (internal dof, etc.) always follow
-        curr_idx = [it.multi_index[i] for i, key in enumerate(conds_keys) if key in str_state_variables]
-        state_variable_values = [cur_conds[key] for key in str_state_variables]
+        curr_idx = [it.multi_index[i] for i, key in enumerate(conds_keys) if str(key) in str_state_variables]
+        state_variable_values = [cur_conds[state_variables[str_state_variables.index(key)]] for key in str_state_variables]
         state_variable_values = np.array(state_variable_values)
         # sum of independently specified components
-        indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
+        indep_sum = np.sum([float(val) for i, val in cur_conds.items() if str(i).startswith('X_')])
         if indep_sum > 1:
             # Sum of independent component mole fractions greater than one
             # Skip this condition set

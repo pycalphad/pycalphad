@@ -11,6 +11,7 @@ from pycalphad.core.starting_point import starting_point
 from pycalphad.core.utils import instantiate_models, get_state_variables, \
     unpack_components, unpack_condition, filter_phases, get_pure_elements
 from pycalphad.property_framework.units import Q_
+from pycalphad.property_framework import as_quantity
 from .compsets import get_compsets, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
 
@@ -95,11 +96,12 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     equilibrium_time = 0
     convex_hulls_calculated = 0
     convex_hull_time = 0
-    curr_conds = {key: unpack_condition(val) for key, val in conds.items()}
-    str_conds = sorted([str(k) for k in curr_conds.keys()])
+    curr_conds = {key: unpack_condition(val) for key, val in sorted(conds.items(), key=str)}
+    # XXX: Small hack to fix unit conversion issue. This whole module should be replaced with mapping
+    curr_conds[v.N] = [1.0]
     grid_conds = _adjust_conditions(curr_conds)
     # Assumes implementation units from this point
-    unitless_conds = OrderedDict((key, value.to(key.implementation_units).magnitude)
+    unitless_conds = OrderedDict((key, as_quantity(key, value).to(key.implementation_units).magnitude)
                                  for key, value in grid_conds.items())
     for T_idx in range(temperature_grid.size):
         T = temperature_grid[T_idx]
@@ -126,7 +128,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
             eq_conds[comp_cond] = [float(Xeq)]
             eq_time = time.time()
             start_point = starting_point(eq_conds, statevars, prxs, grid)
-            eq_ds = _solve_eq_at_conditions(start_point, prxs, grid, str_conds, statevars, False)
+            eq_ds = _solve_eq_at_conditions(start_point, prxs, grid, list(unitless_conds.keys()), statevars, False)
             equilibrium_time += time.time() - eq_time
             equilibria_calculated += 1
             iter_equilibria += 1
@@ -151,7 +153,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
                 eq_time = time.time()
                 # TODO: starting point could be improved by basing it off the previous calculation
                 start_point = starting_point(eq_conds, statevars, prxs, grid)
-                eq_ds = _solve_eq_at_conditions(start_point, prxs, grid, str_conds, statevars, False)
+                eq_ds = _solve_eq_at_conditions(start_point, prxs, grid, list(unitless_conds.keys()), statevars, False)
                 equilibrium_time += time.time() - eq_time
                 equilibria_calculated += 1
                 compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)

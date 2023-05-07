@@ -34,7 +34,7 @@ class DrivingForce:
 
     @property
     def shape(self):
-        return (1,)
+        return tuple()
 
     @property
     def multiplicity(self):

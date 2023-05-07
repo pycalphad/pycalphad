@@ -277,7 +277,7 @@ class Workspace:
                         to_xarray=False, **grid_opts)
         properties = starting_point(unitless_conds, state_variables, self.phase_record_factory, grid)
         return _solve_eq_at_conditions(properties, self.phase_record_factory, grid,
-                                       list(str_conds.keys()), state_variables,
+                                       list(unitless_conds.keys()), state_variables,
                                        self.verbose, solver=self.solver)
 
     def calculate_equilibrium(self):

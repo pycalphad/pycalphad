@@ -1,6 +1,7 @@
 import numpy.typing as npt
 import numpy as np
 from typing import Dict, Union, List, Optional
+from symengine import Basic, S
 import pycalphad.variables as v
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
@@ -130,8 +131,56 @@ class ModelComputedProperty(object):
             result[cs_idx][:] = grad
         return result
 
-def as_property(inp: Union[str, ComputableProperty]) -> ComputableProperty:
+class LinearCombination:
+    display_units = ''
+    implementation_units = ''
+    def __init__(self, expr: Basic):
+        symbols = sorted(expr.free_symbols, key=str)
+        symbol_classes = {s.__class__ for s in symbols}
+        if len(symbol_classes) > 1:
+            raise ValueError(f'Property types in a linear combination must match. Got: {expr}')
+        if list(symbol_classes)[0] != v.MoleFraction:
+            raise ValueError('Only mole fractions are supported in linear combination conditions')
+        coefs = []
+        for s in symbols:
+            coef = expr.diff(s)
+            if float(coef) == int(coef):
+                coef = int(coef)
+            else:
+                coef = float(coef)
+            coefs.append(coef)
+        constant_term = expr + 0
+        for symbol, coef in zip(symbols, coefs):
+            constant_term -= symbol*coef
+        constant_term = float(constant_term)
+        symbols.append(S.One)
+        coefs.append(constant_term)
+        self.coefs = coefs
+        self.symbols = symbols
+
+    def __str__(self):
+        return f"LinComb_{'-'.join([str(s) for s in self.symbols])},{'-'.join([str(s) for s in self.coefs])}"
+
+    @property
+    def shape(self):
+        return tuple()
+
+    def compute_property(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike) -> npt.ArrayLike:
+        result = 0.0
+        for symbol, coef in zip(self.symbols, self.coefs):
+            if symbol == S.One:
+                result += coef
+            else:
+                sym_val = symbol.compute_property(compsets, cur_conds, chemical_potentials)
+                result += coef*sym_val
+        return result
+
+def as_property(inp: Union[str, Basic, ComputableProperty]) -> ComputableProperty:
     if isinstance(inp, ComputableProperty):
+        return inp
+    elif isinstance(inp, Basic):
+        # Try to convert mathematical expression to a LinComb condition
+        inp = LinearCombination(inp)
         return inp
     elif not isinstance(inp, str):
         raise TypeError(f'{inp} is not a ComputableProperty')

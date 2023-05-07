@@ -48,6 +48,8 @@ class Solver(SolverBase):
         SystemSpecification
 
         """
+        # Prevent circular import
+        from pycalphad.variables import ChemicalPotential
         compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
         nonvacant_elements = compsets[0].phase_record.nonvacant_elements
@@ -64,14 +66,26 @@ class Solver(SolverBase):
                 coefs = np.zeros(num_components)
                 coefs[el_idx] = 1.0
                 prescribed_mole_fraction_coefficients.append(coefs)
+            elif str(cond).startswith('LinComb_'):
+                coefs = np.zeros(num_components)
+                constant = 0.0
+                for symbol, coef in zip(cond.symbols, cond.coefs):
+                    if symbol == 1:
+                        constant = coef
+                        continue
+                    el = str(symbol)[2:]
+                    el_idx = list(nonvacant_elements).index(el)
+                    coefs[el_idx] = coef
+                prescribed_mole_fraction_rhs.append(float(value) - float(constant))
+                prescribed_mole_fraction_coefficients.append(coefs)
         prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
         prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)
         prescribed_system_amount = conditions.get('N', 1.0)
-        fixed_chemical_potential_indices = np.array([nonvacant_elements.index(key[3:]) for key in conditions.keys() if key.startswith('MU_')], dtype=np.int32)
+        fixed_chemical_potential_indices = np.array([nonvacant_elements.index(str(key)[3:]) for key in conditions.keys() if str(key).startswith('MU_')], dtype=np.int32)
         free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(fixed_chemical_potential_indices)), dtype=np.int32)
         for fixed_chempot_index in fixed_chemical_potential_indices:
             el = nonvacant_elements[fixed_chempot_index]
-            chemical_potentials[fixed_chempot_index] = conditions.get('MU_' + str(el))
+            chemical_potentials[fixed_chempot_index] = conditions.get(ChemicalPotential(el))
         fixed_statevar_indices = []
         for statevar_idx, statevar in enumerate(state_variables):
             if str(statevar) in [str(k) for k in conditions.keys()]:

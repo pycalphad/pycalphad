@@ -1,6 +1,7 @@
 from pycalphad import variables as v
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.light_dataset import LightDataset
+from pycalphad.property_framework.computed_property import LinearCombination
 from xarray import Dataset
 import numpy as np
 from collections import OrderedDict
@@ -28,6 +29,7 @@ def global_min_is_possible(conditions, state_variables):
     for cond in conditions.keys():
         if cond in state_variables or \
            isinstance(cond, v.MoleFraction) or \
+           isinstance(cond, LinearCombination) or \
            isinstance(cond, v.ChemicalPotential) or \
            cond == v.N:
             continue
@@ -68,15 +70,13 @@ def starting_point(conditions, state_variables, phase_records, grid):
         len(nonvacant_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = nonvacant_elements
     conds_as_strings = [str(k) for k in conditions.keys()]
-    specified_elements = set()
+    number_dof = len(nonvacant_elements) - 1
     for i in conditions.keys():
-        # Assume that a condition specifying a species contributes to constraining it
-        if not hasattr(i, 'species'):
+        if not (hasattr(i, 'species') or isinstance(i, LinearCombination)):
             continue
-        specified_elements |= set(i.species.constituents.keys()) - {'VA'}
-    dependent_comp = set(nonvacant_elements) - specified_elements
-    if len(dependent_comp) != 1:
-        raise ValueError('Number of dependent components different from one')
+        number_dof -= 1
+    if number_dof != 0:
+        raise ValueError('Number of degrees of freedom is not zero')
 
     ds_vars = {'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
                'GM':     (conds_as_strings, np.empty(grid_shape)),
@@ -97,8 +97,9 @@ def starting_point(conditions, state_variables, phase_records, grid):
         ds_vars.update({str(f_sv): (conds_as_strings, np.empty(grid_shape))})
 
     result = LightDataset(ds_vars, coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
+
     if global_min_enabled:
-        result = lower_convex_hull(grid, state_variables, result)
+        result = lower_convex_hull(grid, state_variables, sorted(conditions.keys(), key=str), result)
     else:
         raise NotImplementedError('Conditions not yet supported')
 

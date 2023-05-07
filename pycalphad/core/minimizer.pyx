@@ -317,7 +317,9 @@ cdef class SystemSpecification:
         # constant and we can keep extra computation (especially calls into
         # NumPy out of the run loop)
         if self.prescribed_mole_fraction_rhs.shape[0] > 0:
-            self.ALLOWED_MASS_RESIDUAL = min(1e-8, np.min(np.abs(self.prescribed_mole_fraction_rhs))/10.0)
+            # With linear combinations of conditions, RHS can now be exactly zero
+            # This means the smallest allowed mass residual needs to be limited to prevent instability
+            self.ALLOWED_MASS_RESIDUAL = max(1e-12, min(1e-8, np.min(np.abs(self.prescribed_mole_fraction_rhs))/10.0))
             # Also adjust mass residual if we are near the edge of composition space
             self.ALLOWED_MASS_RESIDUAL = min(self.ALLOWED_MASS_RESIDUAL, (1-np.sum(np.abs(self.prescribed_mole_fraction_rhs)))/10.0)
         else:
