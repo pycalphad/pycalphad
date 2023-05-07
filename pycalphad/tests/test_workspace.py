@@ -58,10 +58,11 @@ def test_tzero_property(load_database):
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 600, v.X('ZN'): (0.01,1-0.01,0.01)})
     my_tzero = T0('FCC_A1', 'HCP_A3', wks=wks)
+    my_tzero.maximum_value = 1700 # ZN reference state in this database is not valid beyond this temperature
     assert isinstance(my_tzero, ComputableProperty)
     assert my_tzero.property_to_optimize == v.T
     t0_values, = wks.get(my_tzero)
-    assert_allclose(np.nanmax(t0_values.magnitude), 2952.90443)
+    assert_allclose(np.nanmax(t0_values.magnitude), 1686.814152)
     wks.conditions[v.X('ZN')] = 0.3
     my_tzero.property_to_optimize = v.X('ZN')
     my_tzero.minimum_value = 0.0
