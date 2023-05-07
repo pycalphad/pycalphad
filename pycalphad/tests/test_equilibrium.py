@@ -1028,3 +1028,13 @@ def test_ternary_three_phase_dilute(load_database):
     # Sorting is pretty hacky, but gets the job done
     assert np.all(np.isclose(sorted(eq_res.NP.squeeze()[:3]), [8.9018E-02, 1.6608E-01, 7.4490E-01]))
     assert sorted(eq_res.Phase.squeeze()[:3]) == ["BCC_A2", "HCP_A3", "LAVES_C15"]
+
+@pytest.mark.solver
+@select_database("gibbs_phase_rule.tdb")
+def test_issue_468_gibbs_phase_rule(load_database):
+    components = ['FE','C','VA']
+    dbf = load_database()
+    phases = ['LIQUID', 'FCC_A1', 'BCC_A2', 'GRAPHITE', 'CEMENTITE', 'DIAMOND_A4']
+    eq = equilibrium(dbf, components, phases, {v.N:1, v.P:1e5, v.T:1080, v.X('C'):0.0053}, verbose=True)
+    assert sorted(eq.Phase.values.squeeze()) == ["", "BCC_A2", "GRAPHITE"]
+    assert np.allclose(sorted(eq.NP.values.squeeze()), [0.00015170798706395827, 0.999848292010574, np.nan], atol=1e-7, equal_nan=True)

@@ -71,8 +71,9 @@ def test_cpf_tzero(load_database):
                     ['FCC_A1', 'HCP_A3', 'LIQUID'],
                     {v.X('ZN'):(0,1,0.02), v.T: 300, v.P:101325, v.N: 1})
     tzero = T0('FCC_A1', 'HCP_A3', wks4)
+    tzero.maximum_value = 1700 # ZN reference state in this database is not valid beyond this temperature
     result, = wks4.get(tzero)
-    np.testing.assert_almost_equal(np.nanmax(result.magnitude), 3044.97905, decimal=5)
+    np.testing.assert_almost_equal(np.nanmax(result.magnitude), 1673.2643290, decimal=5)
     np.testing.assert_almost_equal(np.nanmin(result.magnitude), 621.72616, decimal=5)
 
 @select_database("nbre_liu.tdb")

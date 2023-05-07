@@ -381,6 +381,9 @@ cdef class SystemSpecification:
             state.increment_phase_metastability_counters()
             if not phases_changed:
                 advance_state(self, state, eq_soln, step_size)
+        if state.free_stable_compset_indices.shape[0] > self.max_num_free_stable_phases:
+            # Gibbs phase rule violation in solution
+            converged = False
         return converged
 
     cpdef SystemState get_new_state(self, list compsets):
@@ -978,6 +981,10 @@ cdef bint change_phases(SystemSpecification spec, SystemState state):
     cdef int MIN_REQUIRED_METASTABLE_PHASE_ITERATIONS_TO_ADD = 5
     cdef double MIN_DRIVING_FORCE_TO_ADD = 1e-5
     cdef int MAX_ALLOWED_TIMES_COMPSET_REMOVED = 4
+    if state.free_stable_compset_indices.shape[0] > spec.max_num_free_stable_phases:
+        # Gibbs phase rule is currently being violated
+        # Try forcing phases with small amounts out of the equilibrium
+        MIN_PHASE_AMOUNT = 1e-4
     phase_amt = state.phase_amt
     current_free_stable_compset_indices = state.free_stable_compset_indices
     compsets_to_remove = set()

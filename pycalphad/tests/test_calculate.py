@@ -5,6 +5,7 @@ Model quantities correctly.
 
 import pytest
 from pycalphad import Database, calculate, Model, variables as v
+from itertools import chain
 import numpy as np
 from numpy.testing import assert_allclose
 from pycalphad.codegen.callables import build_phase_records
@@ -252,3 +253,100 @@ def test_BCC_phase_with_symmetry_option_B(load_database):
     bcc_4sl_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_4SL", T=300, N=1, P=101325, pdens=10)
     bcc_no_B_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_NOB", T=300, N=1, P=101325, pdens=10)
     assert np.allclose(bcc_4sl_calc_res.GM.values.squeeze(), bcc_no_B_calc_res.GM.values.squeeze())
+
+def test_complex_multisublattice():
+    "calculate returns a result without running out of memory for a complex multi-sublattice phase"
+    tdb = """
+ELEMENT CR BCC_A2 51.996 4050.0 23.543 !
+ELEMENT FE BCC_A2 55.847 4489.0 27.28 !
+ELEMENT MO BCC_A2 95.94 4589.0 28.56 !
+ELEMENT NB BCC_A2 92.906 5220.0 36.27 !
+ELEMENT NI FCC_A1 58.69 4787.0 29.796 !
+
+PHASE MU_PHASE %  5 2.0 2.0 2.0 6.0 1.0 !
+CONSTITUENT MU_PHASE
+   :CR,FE,MO,NB,NI:CR,FE,MO,NB,NI:CR,FE,MO,NB,NI:
+   CR,FE,MO,NB,NI:CR,FE,MO,NB,NI: !
+    """
+    dbf = Database(tdb)
+    calc_res = calculate(dbf, ['CR', 'FE', 'MO', 'NB', 'NI'], ['MU_PHASE'], N=1, P=101325, T=300, pdens=60)
+    assert calc_res.GM.size < 100000
+
+@pytest.mark.solver
+@select_database("alni_dupin_2001.tdb")
+def test_calculation_symengine_evalf_energy_difference(load_database):
+    "Platform-dependent numerical differences stemming from optimizations of the Model object representation (gh-431)"
+    dbf = load_database()
+    comps = ['AL', 'NI', 'VA']
+    res = calculate(dbf, comps, ['FCC_L12'], P=101325, T=1600, N=1, pdens=60)
+    points = res.Y.values
+    mod = Model(dbf, comps, 'FCC_L12')
+    for point_idx in range(points.shape[-2]):
+        dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :].flat])))
+        np.testing.assert_allclose(res.GM.values.flat[point_idx], float(mod.GM.subs(dof).evalf(real=True)))
+
+def test_molar_volume_isothermal():
+    TDB = """
+        ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+        TYPE_DEFINITION % SEQ * !
+        PHASE BCC_A2 % 1 1 !
+        CONSTITUENT BCC_A2 :FE: !
+        PARAMETER V0(BCC_A2,FE;0) 0.01 7.00790E-6; 6000 N !
+        PARAMETER VA(BCC_A2,FE;0) 0.01 3.42756E-5*T +8.14005E-9*T**2 +0.291672*T**-1; 6000 N !
+        """
+        
+    db = Database(TDB)
+    mv_300K = calculate(db, ["FE"], "BCC_A2", T=300, N=1, P=101325, output="molar_volume", pdens=10)
+    mv_1200K = calculate(db, ["FE"], "BCC_A2", T=1200, N=1, P=101325, output="molar_volume", pdens=10)
+
+    assert np.allclose(mv_300K['molar_volume'], 7.092e-6)
+    assert np.allclose(mv_1200K['molar_volume'], 7.39e-6)
+
+def test_volume_energy():
+    TDB = """
+    ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+    TYPE_DEFINITION % SEQ * !
+    PHASE BCC_A2 % 1 1 !
+    CONSTITUENT BCC_A2 :FE: !
+    PARAMETER G(BCC_A2,FE;0) 0.01 T;  6000.00 N !
+
+    PARAMETER V0(BCC_A2,FE;0) 0.01 1E-6; 6000 N !
+    PARAMETER VA(BCC_A2,FE;0) 0.01 1E-6*T; 6000 N !
+    """
+
+    db = Database(TDB)
+    energy_hp = 1e-6*np.exp(1e-6*300)*(10e9-101325)
+    
+    result_atm = calculate(db, ['FE'], 'BCC_A2', T=300, P=101325, N=1)
+    result_hp = calculate(db, ['FE'], 'BCC_A2', T=300, P=10E9, N=1)
+    vol_energy_contrib = np.squeeze(result_hp['GM']).values - np.squeeze(result_atm['GM']).values
+
+    assert np.allclose(vol_energy_contrib, energy_hp)
+
+def test_magnetic_volume_contribution():
+    """
+    Toy problem where pressure required to reduce TC to 500 K is 5.43 GPa.
+    Pressures below this value will increase the molar volume due to the magnetic transition.
+    Pressures far above this value should approach the isothermal molar volume.
+    """
+
+    TDB = """
+    ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+    TYPE_DEFINITION % SEQ * !
+    TYPE_DEFINITION A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+    PHASE BCC_A2 %A 1 1 !
+    CONSTITUENT BCC_A2 :FE: !
+    PARAMETER G(BCC_A2,FE;0) 0.01 T;  6000.00 N !
+    PARAMETER TC(BCC_A2,FE;0)  298.15 +1043 -1e-7*P;  6000 N !
+    PARAMETER BMAGN(BCC_A2,FE;0)  298.15 +2.22;  6000 N !
+    
+    PARAMETER V0(BCC_A2,FE;0) 0.01 1E-6; 6000 N !
+    PARAMETER VA(BCC_A2,FE;0) 0.01 1E-6*T; 6000 N !
+    """
+
+    db = Database(TDB)
+    res1 = calculate(db, ['FE'], 'BCC_A2', T=500, P=101325, N=1, output='molar_volume')
+    res2 = calculate(db, ['FE'], 'BCC_A2', T=500, P=10e9, N=1, output='molar_volume')
+
+    assert np.allclose(np.squeeze(res1['molar_volume']).values, 1.857e-6)
+    assert np.allclose(np.squeeze(res2['molar_volume']).values, 1.0e-6)

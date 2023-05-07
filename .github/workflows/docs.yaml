@@ -11,7 +11,7 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
       - uses: actions/setup-python@v4
@@ -27,7 +27,7 @@ jobs:
       # Build documentation
       - run: sphinx-build -W -b html docs docs/_build/html
       # Upload documentation html directory
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./docs/_build/html
           name: pycalphad-documentation
@@ -43,7 +43,7 @@ jobs:
           name: pycalphad-documentation
           path: pycalphad-docs-html
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v1.2
+        uses: nwtgck/actions-netlify@v2.0
         with:
           publish-dir: 'pycalphad-docs-html'
           production-branch: develop
@@ -68,7 +68,7 @@ jobs:
       TARGET_BRANCH: website
       DEPLOY_NAME: latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee the TARGET_BRANCH exists
       - uses: actions/download-artifact@v3
