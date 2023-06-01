@@ -33,8 +33,8 @@ def _parse_species_postfix_charge(formula) -> v.Species:
     else:
         charge = 0
     # assumes that the remaining formula is a pure element
-    constituents = dict(parse_chemical_formula(formula)[0])
-    return v.Species(name, constituents=constituents, charge=charge)
+    constituents = dict(parse_chemical_formula(formula.upper())[0])
+    return v.Species(name.upper(), constituents=constituents, charge=charge)
 
 class TokenParserError(Exception):
     """Exception raised when the TokenParser hits a parsing error."""
@@ -643,6 +643,7 @@ class SUBQExcessQuadruplet:
 
 def _species(el_chg):
     el, chg = el_chg
+    el = el.upper()
     name = rename_element_charge(el, chg)
     constituents = dict(parse_chemical_formula(el)[0])
     return v.Species(name, constituents=constituents, charge=chg)
@@ -794,7 +795,7 @@ def parse_header(toks: TokenParser) -> Header:
     num_soln_phases = toks.parse(int)
     list_soln_species_count = toks.parseN(num_soln_phases, int)
     num_stoich_phases = toks.parse(int)
-    pure_elements = toks.parseN(num_pure_elements, str)
+    pure_elements = [x.upper() for x in toks.parseN(num_pure_elements, str)]
     pure_elements_mass = toks.parseN(num_pure_elements, float)
     num_gibbs_coeffs = toks.parse(int)
     gibbs_coefficient_idxs = toks.parseN(num_gibbs_coeffs, int)
@@ -838,6 +839,20 @@ def parse_interval_heat_capacity(toks: TokenParser, num_gibbs_coeffs, H298, S298
 
 def parse_endmember(toks: TokenParser, num_pure_elements, num_gibbs_coeffs, is_stoichiometric=False):
     species_name = toks.parse(str)
+    # We are case-sensitive here, e.g., Co (cobalt) != CO (carbon monoxide)
+    # pycalphad's Species parser is not. We need to help that parser by leaving Co alone while converting CO to C1O1.
+    # We split the name on every capital letter. If the substring has no number at the end, add a '1'.
+    # Then we rejoin the string together and convert the species name to uppercase (the canonical form for Species).
+    possible_species = re.findall('.[^A-Z]*', species_name)
+    if len(possible_species) > 1:
+        rebuilt_species_name = []
+        for ps in possible_species:
+            if not (ps[-1].isdigit() or (ps[-1] in (')', ']'))):
+                rebuilt_species_name.append(ps+'1')
+            else:
+                rebuilt_species_name.append(ps)
+        species_name = ''.join(rebuilt_species_name)
+    species_name = species_name.upper()
     if toks[0] == '#':
         # special case for stoichiometric phases, this is a dummy species, skip it
         _ = toks.parse(str)
@@ -1116,7 +1131,7 @@ def parse_phase_aqueous(toks, phase_name, phase_type, num_pure_elements, num_gib
 
 def parse_phase(toks, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs, num_const):
     """Dispatches to the correct parser depending on the phase type"""
-    phase_name = toks.parse(str)
+    phase_name = toks.parse(str).upper()
     phase_type = toks.parse(str)
     if phase_type in ('SUBQ', 'SUBG'):
         phase = parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_coeffs, num_excess_coeffs)
@@ -1170,7 +1185,7 @@ def read_cs_dat(dbf: Database, fd):
     fd : file-like
         File descriptor.
     """
-    header, solution_phases, stoichiometric_phases = parse_cs_dat(fd.read().upper())
+    header, solution_phases, stoichiometric_phases = parse_cs_dat(fd.read())
     # add elements and their reference states
     for el, mass in zip(header.pure_elements, header.pure_elements_mass):
         if 'E(' not in str(el):

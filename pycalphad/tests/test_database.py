@@ -861,3 +861,7 @@ def test_database_symmetry_options_are_generated(load_database):
     # read/write is a no-op
     read_dbf = Database.from_string(dbf.to_string(fmt="tdb"), fmt="tdb")
     assert len(read_dbf._parameters) == 375
+
+def test_dat_ambiguous_compound_names():
+    "Compound names in DAT files are case sensitive (gh-425)"
+    Database.from_file(files(pycalphad.tests.databases).joinpath("issue425.dat"), fmt='dat')
