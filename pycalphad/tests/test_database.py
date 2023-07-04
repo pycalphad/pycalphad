@@ -861,3 +861,44 @@ def test_database_symmetry_options_are_generated(load_database):
     # read/write is a no-op
     read_dbf = Database.from_string(dbf.to_string(fmt="tdb"), fmt="tdb")
     assert len(read_dbf._parameters) == 375
+
+def test_database_ignore_if_then_type_definition():
+    """Lines with Type_DEFINITION ... IF ... THEN ... will be ignored"""
+    tdb_string = """
+    ELEMENT /-   ELECTRON_GAS               .0000E+00   .0000E+00   .0000E+00!
+    ELEMENT VA   VACUUM                     .0000E+00   .0000E+00   .0000E+00!
+    ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01!
+    ELEMENT CR   BCC_A2                    5.1996E+01  4.0500E+03  2.3560E+01!
+    ELEMENT NI   FCC_A1                    5.8690E+01  4.7870E+03  2.9796E+01!
+
+    PHASE FCC_A1  %A  2 1   1 !
+    CONST FCC_A1  :AL,CR,NI% : VA% :  !
+    PHASE FCC_L12  %ADG  3 .75   .25   1 !
+    CONST FCC_L12  :AL,CR,NI : AL,CR,NI : VA :  !
+
+    PHASE BCC_A2  %B  2 1   3 !
+    CONST BCC_A2  :AL,CR%,NI,VA : VA :  !
+    PHASE BCC_B2  %BCW  3 .5 .5    3 !
+    CONST BCC_B2  :AL,CR,NI%,VA : AL%,CR,NI,VA : VA: !
+
+    TYPE_DEFINITION A GES A_P_D @ MAGNETIC  -3.0 .28 !
+    TYPE_DEFINITION B GES A_P_D @ MAGNETIC  -1.0 .40 !
+
+    TYPE_DEFINITION C GES A_P_D BCC_B2 DIS_PART BCC_A2 !
+    TYPE_DEFINITION D GES A_P_D FCC_L12 DIS_PART FCC_A1 !
+
+
+    TYPE_DEFINITION G IF (AL AND NI) THEN
+                    GES A_P_D FCC_L12 C_S 2 NI:AL:VA !
+
+    TYPE_DEFINITION G IF (NI) THEN
+                    GES A_P_D FCC_L12 MAJ 1 NI:NI:VA !
+
+    TYPE_DEFINITION W IF (CR AND AL AND NI) THEN
+                    GES A_P_D BCC_B2 C_S,, NI:AL:VA !
+
+
+    TYPE_DEFINITION W IF (CR) THEN
+                    GES A_P_D BCC_B2 MAJ 1 CR:CR:VA !
+    """
+    dbf = Database.from_string(tdb_string, fmt='tdb')
