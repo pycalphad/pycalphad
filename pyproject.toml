@@ -38,4 +38,8 @@ omit = [
     "stringsource",
 ]
 
+[tool.coverage.report]
+ignore_errors = true
+# workaround for https://github.com/cython/cython/issues/5581
+
 [tool.setuptools_scm]
