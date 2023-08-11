@@ -283,10 +283,12 @@ class Model(object):
             # Unwrap temperature-dependent piecewise with zero-defaults
             if len(args) == 4 and args[2] == 0 and args[3] == True and args[1].free_symbols == {v.T}:
                 replace_dict[atom] = args[0]
-            elif (len(args) > 4) and cls.extrapolate_temperature_bounds:
+            elif cls.extrapolate_temperature_bounds:
                 # Set lower and upper temperature limits to -+infinity
                 # First filter out default zero-branches
                 filtered_args = [(x, cond) for x, cond in zip(*[iter(args)]*2) if not ((cond == S.true) and (x == S.Zero))]
+                if len(filtered_args) == 0:
+                    continue
                 if not all([cond.free_symbols == {v.T} for _, cond in filtered_args]):
                     # Only temperature-dependent piecewise conditions are supported for extrapolation
                     continue
@@ -306,7 +308,7 @@ class Model(object):
                 exprcondpairs.append((filtered_args[sortindices[-1]][0],
                                       v.T >= intervals[sortindices[-1]].args[0]
                 ))
-                # Branch required for LLVM (should never hit in this formulation)
+                # Catch-all branch required for LLVM (should never hit in this formulation)
                 exprcondpairs.append((0, True))
                 replace_dict[atom] = Piecewise(*exprcondpairs)
         return graph.xreplace(replace_dict)
