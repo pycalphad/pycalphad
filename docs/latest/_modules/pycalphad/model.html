@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.model - pycalphad 0.10.3.dev20+g1f932323 documentation</title>
+        <title>pycalphad.model - pycalphad 0.10.3.dev21+g7224eb8c documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.10.3.dev20+g1f932323 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.10.3.dev21+g7224eb8c documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.3.dev20+g1f932323 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.3.dev21+g7224eb8c documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -318,6 +318,12 @@
             <span class="n">s</span> <span class="o">=</span> <span class="s2">"ReferenceState('</span><span class="si">{}</span><span class="s2">', '</span><span class="si">{}</span><span class="s2">')"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">s</span></div>
 
+<div class="viewcode-block" id="classproperty"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.classproperty">[docs]</a><span class="k">class</span> <span class="nc">classproperty</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># https://stackoverflow.com/questions/5189699/how-to-make-a-class-property</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">owner</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">"""</span>
@@ -374,6 +380,13 @@
                      <span class="p">(</span><span class="s1">'xsmix'</span><span class="p">,</span> <span class="s1">'excess_mixing_energy'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'mag'</span><span class="p">,</span> <span class="s1">'magnetic_energy'</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">'2st'</span><span class="p">,</span> <span class="s1">'twostate_energy'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'ein'</span><span class="p">,</span> <span class="s1">'einstein_energy'</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">'vol'</span><span class="p">,</span> <span class="s1">'volume_energy'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'ord'</span><span class="p">,</span> <span class="s1">'atomic_ordering_energy'</span><span class="p">)]</span>
+
+    <span class="c1"># Behave as if piecewise temperature bounds extend to +-inf (i.e., ignore lower/upper T limits for parameters)</span>
+    <span class="c1"># This follows the behavior of most commercial codes, but may be undesirable in some circumstances</span>
+    <span class="c1"># Designed to be readonly on instances, because mutation after initialization will not work</span>
+    <span class="nd">@classproperty</span>
+    <span class="k">def</span> <span class="nf">extrapolate_temperature_bounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">target_cls</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_dispatch_on</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -482,8 +495,47 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">site_fractions</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)],</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)],</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Model.symbol_replace"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.symbol_replace">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">symbol_replace</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">symbols</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.unwrap_piecewise"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.unwrap_piecewise">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">unwrap_piecewise</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pycalphad.io.tdb</span> <span class="kn">import</span> <span class="n">to_interval</span>
+        <span class="n">replace_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">Piecewise</span><span class="p">):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">args</span>
+            <span class="c1"># Unwrap temperature-dependent piecewise with zero-defaults</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">free_symbols</span> <span class="o">==</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">}:</span>
+                <span class="n">replace_dict</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">cls</span><span class="o">.</span><span class="n">extrapolate_temperature_bounds</span><span class="p">:</span>
+                <span class="c1"># Set lower and upper temperature limits to -+infinity</span>
+                <span class="c1"># First filter out default zero-branches</span>
+                <span class="n">filtered_args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">iter</span><span class="p">(</span><span class="n">args</span><span class="p">)]</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">cond</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">x</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">))]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtered_args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">cond</span><span class="o">.</span><span class="n">free_symbols</span> <span class="o">==</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">filtered_args</span><span class="p">]):</span>
+                    <span class="c1"># Only temperature-dependent piecewise conditions are supported for extrapolation</span>
+                    <span class="k">continue</span>
+                <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_interval</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">filtered_args</span><span class="p">]</span>
+                <span class="n">sortindices</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">intervals</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">)</span> <span class="ow">and</span> \
+                   <span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">):</span>
+                    <span class="c1"># Nothing to do, temperature range already extrapolated</span>
+                    <span class="k">continue</span>
+                <span class="c1"># First branch is special-cased to negative infinity</span>
+                <span class="n">exprcondpairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">filtered_args</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="n">intervals</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">sortindices</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">exprcondpairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">filtered_args</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="n">idx</span><span class="p">]][</span><span class="mi">0</span><span class="p">],</span>
+                                         <span class="n">And</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="n">intervals</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="n">intervals</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="p">))</span>
+                <span class="c1"># Last branch is special-cased to positive infinity</span>
+                <span class="n">exprcondpairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">filtered_args</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]][</span><span class="mi">0</span><span class="p">],</span>
+                                      <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="n">intervals</span><span class="p">[</span><span class="n">sortindices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">))</span>
+                <span class="c1"># Catch-all branch required for LLVM (should never hit in this formulation)</span>
+                <span class="n">exprcondpairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+                <span class="n">replace_dict</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">exprcondpairs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">graph</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">replace_dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.symbol_replace"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.symbol_replace">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">symbol_replace</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">symbols</span><span class="p">):</span>
         <span class="sd">"""</span>
 <span class="sd">        Substitute values of symbols into 'obj'.</span>
 
@@ -501,6 +553,7 @@
             <span class="c1"># of other symbols</span>
             <span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_MAX_PARAM_NESTING</span><span class="p">):</span>
                 <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">unwrap_piecewise</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
                 <span class="n">undefs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">undefs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">break</span>
@@ -1338,7 +1391,7 @@
         <span class="k">return</span> <span class="n">disord_expr</span> <span class="o">+</span> <span class="n">ordering_expr</span>
 
 <div class="viewcode-block" id="Model.atomic_ordering_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.atomic_ordering_energy">[docs]</a>    <span class="k">def</span> <span class="nf">atomic_ordering_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
-        <span class="sd">"""</span>
+        <span class="sa">r</span><span class="sd">"""</span>
 <span class="sd">        Return the atomic ordering contribution in symbolic form.</span>
 
 <span class="sd">        If the current phase is anything other than the ordered phase in a</span>

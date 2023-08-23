@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.core.calculate - pycalphad 0.10.3.dev20+g1f932323 documentation</title>
+        <title>pycalphad.core.calculate - pycalphad 0.10.3.dev21+g7224eb8c documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.3.dev20+g1f932323 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.3.dev21+g7224eb8c documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.3.dev20+g1f932323 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.3.dev21+g7224eb8c documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -240,7 +240,7 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">extract_parameters</span><span class="p">,</span> \
     <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">point_sample</span><span class="p">,</span> \
     <span class="n">unpack_components</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_kwarg</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">,</span> <span class="n">MAX_ENDMEMBER_PAIRS</span><span class="p">,</span> <span class="n">MAX_EXTRA_POINTS</span>
 
 
 <div class="viewcode-block" id="hr_point_sample"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.calculate.hr_point_sample">[docs]</a><span class="k">def</span> <span class="nf">hr_point_sample</span><span class="p">(</span><span class="n">constraint_jac</span><span class="p">,</span> <span class="n">constraint_rhs</span><span class="p">,</span> <span class="n">initial_point</span><span class="p">,</span> <span class="n">num_points</span><span class="p">):</span>
@@ -371,12 +371,13 @@
     <span class="k">if</span> <span class="p">(</span><span class="n">fixed_grid</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">linearly_constrained_space</span><span class="p">:</span>
         <span class="c1"># Sample along the edges of the endmembers</span>
         <span class="c1"># These constitution space edges are often the equilibrium points!</span>
-        <span class="n">em_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-        <span class="n">lingrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pdens</span><span class="p">)</span>
-        <span class="n">extra_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">first_em</span> <span class="o">*</span> <span class="n">lingrid</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span>
-                        <span class="n">second_em</span> <span class="o">*</span> <span class="n">lingrid</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
-                        <span class="k">for</span> <span class="n">first_em</span><span class="p">,</span> <span class="n">second_em</span> <span class="ow">in</span> <span class="n">em_pairs</span><span class="p">]</span>
-        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="n">points</span><span class="p">],</span> <span class="n">extra_points</span><span class="p">)))</span>
+        <span class="n">em_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="mi">2</span><span class="p">))[:</span><span class="n">MAX_ENDMEMBER_PAIRS</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">em_pairs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lingrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">pdens</span><span class="p">,</span> <span class="n">MAX_EXTRA_POINTS</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">em_pairs</span><span class="p">))))</span>
+            <span class="n">extra_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">first_em</span> <span class="o">*</span> <span class="n">lingrid</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span>
+                            <span class="n">second_em</span> <span class="o">*</span> <span class="n">lingrid</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+                            <span class="k">for</span> <span class="n">first_em</span><span class="p">,</span> <span class="n">second_em</span> <span class="ow">in</span> <span class="n">em_pairs</span><span class="p">]</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="n">points</span><span class="p">],</span> <span class="n">extra_points</span><span class="p">)))</span>
     <span class="c1"># Sample composition space for more points</span>
     <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sublattice_dof</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sublattice_dof</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">linearly_constrained_space</span><span class="p">:</span>
@@ -698,6 +699,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"model must contain a Model instance for every active phase. Missing Model objects for </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">active_phases_without_models</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="n">maximum_internal_dof</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">site_fractions</span><span class="p">)</span> <span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">)</span>
+
     <span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">active_phases</span><span class="p">):</span>
         <span class="n">mod</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="n">phase_record</span> <span class="o">=</span> <span class="n">phase_records</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
