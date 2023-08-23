@@ -5,6 +5,7 @@ Model quantities correctly.
 
 import pytest
 from pycalphad import Database, calculate, Model, variables as v
+from itertools import chain
 import numpy as np
 from numpy.testing import assert_allclose
 from pycalphad.codegen.callables import build_phase_records
@@ -253,6 +254,36 @@ def test_BCC_phase_with_symmetry_option_B(load_database):
     bcc_no_B_calc_res = calculate(dbf, ["AL", "FE", "VA"], "BCC_NOB", T=300, N=1, P=101325, pdens=10)
     assert np.allclose(bcc_4sl_calc_res.GM.values.squeeze(), bcc_no_B_calc_res.GM.values.squeeze())
 
+def test_complex_multisublattice():
+    "calculate returns a result without running out of memory for a complex multi-sublattice phase"
+    tdb = """
+ELEMENT CR BCC_A2 51.996 4050.0 23.543 !
+ELEMENT FE BCC_A2 55.847 4489.0 27.28 !
+ELEMENT MO BCC_A2 95.94 4589.0 28.56 !
+ELEMENT NB BCC_A2 92.906 5220.0 36.27 !
+ELEMENT NI FCC_A1 58.69 4787.0 29.796 !
+
+PHASE MU_PHASE %  5 2.0 2.0 2.0 6.0 1.0 !
+CONSTITUENT MU_PHASE
+   :CR,FE,MO,NB,NI:CR,FE,MO,NB,NI:CR,FE,MO,NB,NI:
+   CR,FE,MO,NB,NI:CR,FE,MO,NB,NI: !
+    """
+    dbf = Database(tdb)
+    calc_res = calculate(dbf, ['CR', 'FE', 'MO', 'NB', 'NI'], ['MU_PHASE'], N=1, P=101325, T=300, pdens=60)
+    assert calc_res.GM.size < 100000
+
+@pytest.mark.solver
+@select_database("alni_dupin_2001.tdb")
+def test_calculation_symengine_evalf_energy_difference(load_database):
+    "Platform-dependent numerical differences stemming from optimizations of the Model object representation (gh-431)"
+    dbf = load_database()
+    comps = ['AL', 'NI', 'VA']
+    res = calculate(dbf, comps, ['FCC_L12'], P=101325, T=1600, N=1, pdens=60)
+    points = res.Y.values
+    mod = Model(dbf, comps, 'FCC_L12')
+    for point_idx in range(points.shape[-2]):
+        dof = dict(zip(mod.variables, chain([1600., *points[..., point_idx, :].flat])))
+        np.testing.assert_allclose(res.GM.values.flat[point_idx], float(mod.GM.subs(dof).evalf(real=True)))
 
 def test_molar_volume_isothermal():
     TDB = """
@@ -270,7 +301,6 @@ def test_molar_volume_isothermal():
 
     assert np.allclose(mv_300K['molar_volume'], 7.092e-6)
     assert np.allclose(mv_1200K['molar_volume'], 7.39e-6)
-
 
 def test_volume_energy():
     TDB = """
@@ -292,7 +322,6 @@ def test_volume_energy():
     vol_energy_contrib = np.squeeze(result_hp['GM']).values - np.squeeze(result_atm['GM']).values
 
     assert np.allclose(vol_energy_contrib, energy_hp)
-
 
 def test_magnetic_volume_contribution():
     """
