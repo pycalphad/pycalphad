@@ -22,9 +22,15 @@ def as_quantity(prop: "ComputableProperty", qt: npt.ArrayLike):
 energy_implementation_units = GM_implementation_units = 'J / mol'
 energy_display_units = GM_display_units = 'J / mol'
 energy_display_name = GM_display_name = 'Gibbs Energy'
+G_implementation_units = 'J'
+G_display_units = 'J'
+G_display_name = 'Gibbs Energy'
 enthalpy_implementation_units = HM_implementation_units = GM_implementation_units
 enthalpy_display_units = HM_display_units = GM_display_units
 enthalpy_display_name = HM_display_name = 'Enthalpy'
+H_implementation_units = 'J'
+H_display_units = 'J'
+H_display_name = 'Enthalpy'
 entropy_implementation_units = SM_implementation_units = 'J / mol / K'
 entropy_display_units = SM_display_units = 'J / mol / K'
 entropy_display_name = SM_display_name = 'Entropy'

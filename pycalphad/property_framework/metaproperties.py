@@ -76,9 +76,28 @@ class DrivingForce:
         seen_phases = 0
         for _, compset in self.filtered(compsets):
             driving_force = np.dot(chemical_potentials, compset.X) - compset.energy
+            seen_phases += 1
         if seen_phases > 1:
             raise ValueError('DrivingForce was passed multiple stable valid CompositionSets')
         return driving_force
+
+    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: "DotDerivativeDeltas") -> npt.ArrayLike:
+        "Compute dot derivative with self as numerator, with the given deltas"
+        seen_phases = 0
+        dot_derivative = np.nan
+        for cs_idx, compset in self.filtered(compsets):
+            if np.isnan(dot_derivative):
+                dot_derivative = 0.0
+            dot_derivative += np.dot(deltas.delta_chemical_potentials, compset.X)
+            deltas_singlephase = copy(deltas)
+            deltas_singlephase.delta_sitefracs = [deltas.delta_sitefracs[cs_idx]]
+            for el_idx, el in enumerate(compsets[0].phase_record.pure_elements):
+                dot_derivative += chemical_potentials[el_idx] * \
+                    as_property('X({0},{1})'.format(self.phase_name, el)).dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
+            dot_derivative -= as_property('GM({0})'.format(self.phase_name)).dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
+        if seen_phases > 1:
+            raise ValueError('DrivingForce was passed multiple stable valid CompositionSets')
+        return dot_derivative
 
 class DormantPhase:
     """
@@ -140,6 +159,9 @@ class DormantPhase:
                     state.recompute(spec)
                 self._compset = state.compsets[0]
                 return prop.compute_property([self._compset], cur_conds, chemical_potentials)
+            @staticmethod
+            def dot_derivative(compsets, cur_conds, chemical_potentials, deltas):
+                return prop.dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
             __str__ = lambda _: f'{prop.__str__()} [Dormant({self._compset.phase_record.phase_name})]'
         return _autoproperty()
 
@@ -185,6 +207,9 @@ class IsolatedPhase:
                             chemical_potentials: npt.ArrayLike) -> float:
                 self.solver.solve([self._compset], cur_conds)
                 return prop.compute_property([self._compset], cur_conds, chemical_potentials)
+            @staticmethod
+            def dot_derivative(compsets, cur_conds, chemical_potentials, deltas):
+                return prop.dot_derivative([self._compset], cur_conds, chemical_potentials, deltas)
             __str__ = lambda _: f'{prop.__str__()} [Isolated({self._compset.phase_record.phase_name})]'
         return _autoproperty()
 
