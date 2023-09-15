@@ -70,4 +70,7 @@ class PhaseRecordFactory(object):
     def values(self):
         return iter(self.get(k) for k in self.keys())
 
+    def items(self):
+        return zip(self.models.keys(), iter(self.get(k) for k in self.keys()))
+
     __getitem__ = get
