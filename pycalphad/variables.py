@@ -475,6 +475,24 @@ class MassFraction(StateVariable):
         self.phase_name = phase_name
         self.species = species
 
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        result = np.atleast_1d(np.zeros(self.shape))
+        result[:] = np.nan
+        normalizer = 0.
+        for _, compset in self.filtered(compsets):
+            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+            if np.isnan(result[0]):
+                result[0] = 0
+            if self.phase_name is None:
+                result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+                for n_idx in range(len(compset.phase_record.nonvacant_elements)):
+                    normalizer += compset.NP * compset.phase_record.molar_masses[n_idx] * compset.X[n_idx]
+            else:
+                result[0] += compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+                for n_idx in range(len(compset.phase_record.nonvacant_elements)):
+                    normalizer += compset.phase_record.molar_masses[n_idx] * compset.X[n_idx]
+        return result / normalizer
+
     def __reduce__(self):
         if self.phase_name is None:
             return self.__class__, (self.species,)

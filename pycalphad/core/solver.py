@@ -66,6 +66,17 @@ class Solver(SolverBase):
                 coefs = np.zeros(num_components)
                 coefs[el_idx] = 1.0
                 prescribed_mole_fraction_coefficients.append(coefs)
+            elif str(cond).startswith('W_'):
+                # wA = k -> (1-k)*MWA*xA - k*MWB*xB - k*MWC*xC = 0
+                el = str(cond)[2:]
+                el_idx = list(nonvacant_elements).index(el)
+                coef_vector = np.zeros(num_components)
+                coef_vector -= value
+                coef_vector[el_idx] += 1
+                # multiply coef_vector times a vector of molecular weights
+                coef_vector = np.multiply(coef_vector, compsets[0].phase_record.molar_masses)
+                prescribed_mole_fraction_rhs.append(0.)
+                prescribed_mole_fraction_coefficients.append(coef_vector)
             elif str(cond).startswith('LinComb_'):
                 coefs = np.zeros(num_components)
                 constant = 0.0

@@ -176,6 +176,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         self.num_statevars = len(phase_record_factory.state_variables)
         self.pure_elements = phase_record_factory.pure_elements
         self.nonvacant_elements = phase_record_factory.nonvacant_elements
+        self.molar_masses = phase_record_factory.molar_masses
         self.parameters = phase_record_factory.param_values
         
         self.phase_dof = len(phase_record_factory.models[phase_name].site_fractions)

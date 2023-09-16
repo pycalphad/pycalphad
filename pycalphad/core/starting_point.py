@@ -29,6 +29,7 @@ def global_min_is_possible(conditions, state_variables):
     for cond in conditions.keys():
         if cond in state_variables or \
            isinstance(cond, v.MoleFraction) or \
+           isinstance(cond, v.MassFraction) or \
            isinstance(cond, LinearCombination) or \
            isinstance(cond, v.ChemicalPotential) or \
            cond == v.N:
@@ -99,7 +100,7 @@ def starting_point(conditions, state_variables, phase_records, grid):
     result = LightDataset(ds_vars, coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
 
     if global_min_enabled:
-        result = lower_convex_hull(grid, state_variables, sorted(conditions.keys(), key=str), result)
+        result = lower_convex_hull(grid, state_variables, sorted(conditions.keys(), key=str), phase_records, result)
     else:
         raise NotImplementedError('Conditions not yet supported')
 

@@ -4,11 +4,11 @@ equilibrium calculation.
 """
 from pycalphad.property_framework.computed_property import LinearCombination
 from .hyperplane import hyperplane
-from pycalphad.variables import ChemicalPotential, MoleFraction, IndependentPotential, SystemMolesType
+from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, IndependentPotential, SystemMolesType
 import numpy as np
 
 
-def lower_convex_hull(global_grid, state_variables, conds_keys, result_array):
+def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_factory, result_array):
     """
     Find the simplices on the lower convex hull satisfying the specified
     conditions in the result array.
@@ -21,6 +21,8 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, result_array):
         A list of the state variables (e.g., P, T) used in this calculation.
     conds_keys : List
         A list of the keys of the conditions used in this calculation.
+    phase_record_factory : PhaseRecordFactory
+        PhaseRecordFactory object corresponding to this calculation.
     result_array : Dataset
         This object will be modified!
         Coordinates correspond to conditions axes.
@@ -92,6 +94,16 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, result_array):
                 component_idx = result_array.coords['component'].index(str(cond_key.species))
                 idx_fixed_chempot_indices.append(component_idx)
                 idx_result_array_MU_values[component_idx] = rhs
+            elif isinstance(cond_key, MassFraction):
+                # wA = k -> (1-k)*MWA*xA - k*MWB*xB - k*MWC*xC = 0
+                component_idx = result_array.coords['component'].index(str(cond_key.species))
+                coef_vector = np.zeros(num_comps)
+                coef_vector -= rhs
+                coef_vector[component_idx] += 1
+                # multiply coef_vector times a vector of molecular weights
+                coef_vector = np.multiply(coef_vector, phase_record_factory.molar_masses)
+                idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
+                idx_fixed_lincomb_molefrac_rhs.append(0.)
             elif isinstance(cond_key, MoleFraction):
                 component_idx = result_array.coords['component'].index(str(cond_key.species))
                 coef_vector = np.zeros(num_comps)
