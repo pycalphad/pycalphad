@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.plot.binary package" href="pycalphad.plot.binary.html" /><link rel="prev" title="pycalphad.models package" href="pycalphad.models.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.plot package - pycalphad 0.10.3.dev24+g034ba9f2 documentation</title>
+        <title>pycalphad.plot package - pycalphad 0.10.4.dev1+g3dd554d4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.3.dev24+g034ba9f2 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.4.dev1+g3dd554d4 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -149,7 +149,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.3.dev24+g034ba9f2 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.dev1+g3dd554d4 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -507,11 +507,11 @@ autoscaley_on: unknown
 axes_locator: Callable[[Axes, Renderer], Bbox]
 axisbelow: bool or ‘line’
 box_aspect: float or None
-clip_box: <cite>.Bbox</cite>
+clip_box: <cite>~matplotlib.transforms.BboxBase</cite> or None
 clip_on: bool
 clip_path: Patch or (Path, Transform) or None
 facecolor or fc: color
-figure: <cite>.Figure</cite>
+figure: <cite>~matplotlib.figure.Figure</cite>
 frame_on: bool
 gid: str
 in_layout: bool
@@ -519,27 +519,27 @@ label: object
 mouseover: bool
 navigate: bool
 navigate_mode: unknown
-path_effects: <cite>.AbstractPathEffect</cite>
+path_effects: list of <cite>.AbstractPathEffect</cite>
 picker: None or bool or float or callable
 position: [left, bottom, width, height] or <cite>~matplotlib.transforms.Bbox</cite>
-prop_cycle: unknown
+prop_cycle: <cite>~cycler.Cycler</cite>
 rasterization_zorder: float or None
 rasterized: bool
 sketch_params: (scale: float, length: float, randomness: float)
 snap: bool or None
 subplotspec: unknown
 title: str
-transform: <cite>.Transform</cite>
+transform: <cite>~matplotlib.transforms.Transform</cite>
 url: str
 visible: bool
-xbound: unknown
+xbound: (lower: float, upper: float)
 xlabel: str
-xlim: (bottom: float, top: float)
+xlim: (left: float, right: float)
 xmargin: float greater than -0.5
 xscale: unknown
 xticklabels: unknown
 xticks: unknown
-ybound: unknown
+ybound: (lower: float, upper: float)
 ylabel: str
 ylim: (bottom: float, top: float)
 ymargin: float greater than -0.5
