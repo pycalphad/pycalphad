@@ -1,0 +1,6 @@
+{
+	"name": "Python 3",
+	"image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
+	"onCreateCommand": "pip3 install --user -r requirements-dev.txt",
+	"updateContentCommand": "pip3 install --user -U --no-build-isolation --editable ."
+}
