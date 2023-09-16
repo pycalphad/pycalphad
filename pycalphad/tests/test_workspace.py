@@ -87,3 +87,13 @@ def test_dot_derivative_binary_composition(load_database):
     x, y_dot = wks.get('X(ZN)', 'MU(AL).X(ZN)')
     # Checked by finite difference
     assert_allclose(y_dot.magnitude, -2806.93592)
+
+@select_database("alzn_mey.tdb")
+def test_mass_fraction_binary_condition(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 300, v.W('AL'): 0.1})
+    results = wks.get('W(AL)', 'W(ZN)', 'W(FCC_A1,AL)', 'W(HCP_A3,AL)', 'W(LIQUID,AL)',
+                      'W(FCC_A1,ZN)', 'W(HCP_A3,ZN)', 'W(LIQUID,ZN)')
+    truth = [0.1, 0.9, 0.98650697, 6.64406221e-05, np.nan, 0.01349303, 0.99993356, np.nan]
+    np.testing.assert_almost_equal([x[0].magnitude for x in results], truth, decimal=5)
