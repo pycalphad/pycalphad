@@ -2,11 +2,11 @@ import numpy as np
 from pycalphad.core.errors import ConditionError
 from pycalphad.property_framework import as_property, as_quantity
 from pycalphad.property_framework.units import Q_
-from pycalphad.core.minimizer import SystemSpecification
 import pycalphad.variables as v
 from collections.abc import Iterable
 from typing import List, NamedTuple, Optional, TYPE_CHECKING
 import warnings
+import os
 
 if TYPE_CHECKING:
     from pycalphad.core.workspace import Workspace
@@ -171,3 +171,12 @@ class Conditions:
 
     def __iter__(self):
         yield from self.keys()
+
+    def __str__(self):
+        result = ""
+        with np.printoptions(threshold=10):
+            for key, value in self._conds:
+                result += str(key) + "=" + str(value) + os.linesep
+        return result
+
+    __repr__ = __str__

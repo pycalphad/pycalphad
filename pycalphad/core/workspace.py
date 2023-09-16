@@ -162,6 +162,8 @@ class DictField(TypedField):
                 self.__set__(obj, conds)
             def __len__(pxy):
                 return len(TypedField.__get__(self, obj))
+            def __str__(pxy):
+                return str(TypedField.__get__(self, obj))
             def __repr__(pxy):
                 return repr(TypedField.__get__(self, obj))
         return DictProxy()
