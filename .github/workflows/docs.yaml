@@ -11,7 +11,7 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
       - uses: actions/setup-python@v4
@@ -43,7 +43,7 @@ jobs:
           name: pycalphad-documentation
           path: pycalphad-docs-html
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v2.0
+        uses: nwtgck/actions-netlify@v2.1
         with:
           publish-dir: 'pycalphad-docs-html'
           production-branch: develop
@@ -68,7 +68,7 @@ jobs:
       TARGET_BRANCH: website
       DEPLOY_NAME: latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee the TARGET_BRANCH exists
       - uses: actions/download-artifact@v3

@@ -98,6 +98,12 @@ class ReferenceState():
             s = "ReferenceState('{}', '{}')".format(self.species.name, self.phase_name)
         return s
 
+class classproperty(object):
+    # https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
+    def __init__(self, f):
+        self.f = f
+    def __get__(self, obj, owner):
+        return self.f(owner)
 
 class Model(object):
     """
@@ -154,6 +160,13 @@ class Model(object):
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
                      ('vol', 'volume_energy'), ('ord', 'atomic_ordering_energy')]
+
+    # Behave as if piecewise temperature bounds extend to +-inf (i.e., ignore lower/upper T limits for parameters)
+    # This follows the behavior of most commercial codes, but may be undesirable in some circumstances
+    # Designed to be readonly on instances, because mutation after initialization will not work
+    @classproperty
+    def extrapolate_temperature_bounds(cls):
+        return True
 
     def __new__(cls, *args, **kwargs):
         target_cls = cls._dispatch_on(*args, **kwargs)
@@ -262,18 +275,47 @@ class Model(object):
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
 
-    @staticmethod
-    def unwrap_piecewise(graph):
+    @classmethod
+    def unwrap_piecewise(cls, graph):
+        from pycalphad.io.tdb import to_interval
         replace_dict = {}
         for atom in graph.atoms(Piecewise):
             args = atom.args
             # Unwrap temperature-dependent piecewise with zero-defaults
             if len(args) == 4 and args[2] == 0 and args[3] == True and args[1].free_symbols == {v.T}:
                 replace_dict[atom] = args[0]
+            elif cls.extrapolate_temperature_bounds:
+                # Set lower and upper temperature limits to -+infinity
+                # First filter out default zero-branches
+                filtered_args = [(x, cond) for x, cond in zip(*[iter(args)]*2) if not ((cond == S.true) and (x == S.Zero))]
+                if len(filtered_args) == 0:
+                    continue
+                if not all([cond.free_symbols == {v.T} for _, cond in filtered_args]):
+                    # Only temperature-dependent piecewise conditions are supported for extrapolation
+                    continue
+                intervals = [to_interval(cond) for _, cond in filtered_args]
+                sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].args[0])]
+                if (intervals[sortindices[0]].args[0] == S.NegativeInfinity) and \
+                   (intervals[sortindices[-1]].args[1] == S.Infinity):
+                    # Nothing to do, temperature range already extrapolated
+                    continue
+                # First branch is special-cased to negative infinity
+                exprcondpairs = [(filtered_args[sortindices[0]][0], v.T < intervals[sortindices[0]].args[1])]
+                for idx in sortindices[1:-1]:
+                    exprcondpairs.append((filtered_args[sortindices[idx]][0],
+                                         And(v.T >= intervals[sortindices[idx]].args[0], v.T < intervals[sortindices[idx]].args[1])
+                    ))
+                # Last branch is special-cased to positive infinity
+                exprcondpairs.append((filtered_args[sortindices[-1]][0],
+                                      v.T >= intervals[sortindices[-1]].args[0]
+                ))
+                # Catch-all branch required for LLVM (should never hit in this formulation)
+                exprcondpairs.append((0, True))
+                replace_dict[atom] = Piecewise(*exprcondpairs)
         return graph.xreplace(replace_dict)
 
-    @staticmethod
-    def symbol_replace(obj, symbols):
+    @classmethod
+    def symbol_replace(cls, obj, symbols):
         """
         Substitute values of symbols into 'obj'.
 
@@ -291,7 +333,7 @@ class Model(object):
             # of other symbols
             for iteration in range(_MAX_PARAM_NESTING):
                 obj = obj.xreplace(symbols)
-                obj = Model.unwrap_piecewise(obj)
+                obj = cls.unwrap_piecewise(obj)
                 undefs = [x for x in obj.free_symbols if not isinstance(x, v.StateVariable)]
                 if len(undefs) == 0:
                     break

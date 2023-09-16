@@ -173,3 +173,51 @@ def test_model_deep_branching(load_database):
     # However, that is a relatively long test. This just checks that the deep branches were cleaned up.
     # Without optimization/unwrapping, this would be about 57
     assert len(mod.GM.atoms(Piecewise)) < 30
+
+def test_model_extrapolate_temperature():
+    "Models extrapolate temperature bounds outside upper/lower limits"
+    TDB_extrapolate = """
+    ELEMENT VA   VACUUM   0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT A    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+    ELEMENT B    DISORD     0.0000E+00  0.0000E+00  0.0000E+00 !
+
+    FUNCTION GSYM1  500 +100;  5000.00 Y 40000; 10000 N !
+
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+    TYPE_DEFINITION % SEQ *!
+    TYPE_DEFINITION ' GES A_P_D ORDERED DIS_PART DISORD ,,,!
+
+    PHASE DISORD  %  2 1   3 !
+    PHASE ORDERED %'  3 0.5  0.5  3  !
+
+    CONSTITUENT DISORD  : A,B : VA :  !
+    CONSTITUENT ORDERED  : A,B: A,B : VA :  !
+
+    PARAMETER G(DISORD,A:VA;0)  298.15  -10000+GSYM1#; 1000 Y -3000-GSYM1#; 6000 N !
+    PARAMETER G(DISORD,B:VA;0)  298.15  -10000+GSYM1#; 1000 Y -3000-GSYM1#; 6000 N !
+
+    """
+    dbf = Database(TDB_extrapolate)
+    # First, confirm that turning the extrapolation off reproduces the correct behavior
+    class modtype(Model):
+        extrapolate_temperature_bounds = False
+    mod = modtype(dbf, ['A', 'B', 'VA'], 'ORDERED')
+    # Remove ideal mixing effects so we can test extrapolation easily
+    mod.models['idmix'] = 0
+    dof = {v.Y('ORDERED', 0, 'A'): 0.5, v.Y('ORDERED', 0, 'B'): 0.5,
+               v.Y('ORDERED', 1, 'A'): 0.5, v.Y('ORDERED', 1, 'B'): 0.5,
+               v.Y('ORDERED', 2, 'VA'): 1.0}
+    assert mod.GM.subs(dof).subs({v.T: 200}).n(real=True) == 0.
+    assert mod.GM.subs(dof).subs({v.T: 50000}).n(real=True) == 0.
+
+    # Next, test that the default behavior (extrapolation) works as intended
+    mod = Model(dbf, ['A', 'B', 'VA'], 'ORDERED')
+    # Remove ideal mixing effects so we can test extrapolation easily
+    mod.models['idmix'] = 0
+    dof = {v.Y('ORDERED', 0, 'A'): 0.5, v.Y('ORDERED', 0, 'B'): 0.5,
+               v.Y('ORDERED', 1, 'A'): 0.5, v.Y('ORDERED', 1, 'B'): 0.5,
+               v.Y('ORDERED', 2, 'VA'): 1.0}
+    assert mod.GM.subs(dof).subs({v.T: 200}).n(real=True) == -9900.
+    assert mod.GM.subs(dof).subs({v.T: 50000}).n(real=True) == -43000.

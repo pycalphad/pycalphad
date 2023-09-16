@@ -100,9 +100,9 @@ class Species(object):
 
     def __repr__(self):
         if self.name == '*':
-            return '*'
+            return str(self.__class__.__name__)+'(\'*\')'
         if self.name == '':
-            return 'None'
+            return str(self.__class__.__name__)+"(None)"
         species_constituents = ''.join(
             ['{}{}'.format(el, val) for el, val in sorted(self.constituents.items(), key=lambda t: t[0])])
         if self.charge == 0:

@@ -283,6 +283,10 @@ def _process_typedef(targetdb, typechar, line):
     tokens = line.replace(',', '').split()
     if len(tokens) < 4:
         return
+    #Don't process IF-THEN type definitions for now
+    if 'IF' in tokens or 'THEN' in tokens:
+        warnings.warn("Type definitions using IF/THEN logic is not supported")
+        return
     keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC'], tokens[3].upper())[0]
     if len(keyword) == 0:
         raise ValueError('Unknown type definition keyword: {}'.format(tokens[3]))
