@@ -118,6 +118,6 @@ def halton(dim, nbpts, primes=None, scramble=True):
         radix_vector = np.power(dim_primes[i], -np.arange(num_powers, dtype=np.longdouble))
         # we can drop precision after the outer product for a speedup
         sum_matrix = np.outer(np.arange(1, nbpts+1), radix_vector).astype(np.float_)
-        mod_matrix = np.mod(scrambler[dim_primes[i]] * np.floor(sum_matrix), dim_primes[i])
+        mod_matrix = np.mod(scrambler[dim_primes[i]] * np.floor(sum_matrix + 1e-15), dim_primes[i])
         result[:, i] = np.dot(mod_matrix, powers)
     return result
