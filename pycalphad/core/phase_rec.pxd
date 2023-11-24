@@ -22,9 +22,9 @@ cdef class FastFunctionFactory:
     cdef map[pair[string, string], int] _cache_property_map
     cdef int _cache_cur_idx
     cdef void** _cache_ptr
-    cdef void* get_func(self, string property_name) nogil except *
-    cdef void* get_grad(self, string property_name) nogil except *
-    cdef void* get_hess(self, string property_name) nogil except *
+    cdef void* get_func(self, string property_name) except * nogil
+    cdef void* get_grad(self, string property_name) except * nogil
+    cdef void* get_hess(self, string property_name) except * nogil
     cpdef FastFunction get_cons_func(self)
     cpdef FastFunction get_cons_jac(self)
     cpdef FastFunction get_cons_hess(self)
@@ -66,11 +66,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public int phase_dof
     cdef public int num_statevars
     cdef public unicode phase_name 
-    cpdef void prop(self, double[::1] out, double[::1] dof, string property_name) nogil except *
-    cpdef void prop_2d(self, double[::1] out, double[:, ::1] dof, string property_name) nogil except *
+    cpdef void prop(self, double[::1] out, double[::1] dof, string property_name) except * nogil
+    cpdef void prop_2d(self, double[::1] out, double[:, ::1] dof, string property_name) except * nogil
     cpdef void prop_parameters_2d(self, double[:, ::1] out, double[:, ::1] dof,
-                                  double[:, ::1] parameters, string property_name) nogil except *
-    cpdef void prop_grad(self, double[::1] out, double[::1] dof, string property_name) nogil except *
+                                  double[:, ::1] parameters, string property_name) except * nogil
+    cpdef void prop_grad(self, double[::1] out, double[::1] dof, string property_name) except * nogil
     cpdef void obj(self, double[::1] out, double[::1] dof) nogil
     cpdef void formulaobj(self, double[::1] out, double[::1] dof) nogil
     cpdef void obj_2d(self, double[::1] out, double[:, ::1] dof) nogil

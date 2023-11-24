@@ -629,7 +629,7 @@ cdef class SystemState:
             else:
                 self.metastable_phase_iterations[idx] += 1
 
-cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, int num_reserved_rows) except +:
+cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, int num_reserved_rows) except *:
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln
     cdef int num_stable_phases, num_fixed_phases, num_fixed_mole_fraction_conditions, num_free_variables

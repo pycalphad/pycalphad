@@ -41,7 +41,7 @@ cdef class FastFunctionFactory:
         self._cache_ptr = <void**> self._cache.data
         self._cache_cur_idx = -1
 
-    cdef void* get_func(self, string property_name) nogil except *:
+    cdef void* get_func(self, string property_name) except * nogil:
         cdef pair[string, string] cache_key = pair[string, string](string(<char*>'func'), property_name)
         cdef map[pair[string, string], int].iterator it
         it = self._cache_property_map.find(cache_key)
@@ -55,7 +55,7 @@ cdef class FastFunctionFactory:
             it = self._cache_property_map.find(cache_key)
         return <void*>self._cache_ptr[deref(it).second]
 
-    cdef void* get_grad(self, string property_name) nogil except *:
+    cdef void* get_grad(self, string property_name) except * nogil:
         cdef pair[string, string] cache_key = pair[string, string](string(<char*>'grad'), property_name)
         cdef map[pair[string, string], int].iterator it
         it = self._cache_property_map.find(cache_key)
@@ -69,7 +69,7 @@ cdef class FastFunctionFactory:
             it = self._cache_property_map.find(cache_key)
         return <void*>self._cache_ptr[deref(it).second]
 
-    cdef void* get_hess(self, string property_name) nogil except *:
+    cdef void* get_hess(self, string property_name) except * nogil:
         cdef pair[string, string] cache_key = pair[string, string](string(<char*>'hess'), property_name)
         cdef map[pair[string, string], int].iterator it
         it = self._cache_property_map.find(cache_key)
@@ -206,7 +206,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void prop(self, double[::1] outp, double[::1] dof, string property_name) nogil except *:
+    cpdef void prop(self, double[::1] outp, double[::1] dof, string property_name) except * nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
@@ -216,7 +216,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void prop_2d(self, double[::1] outp, double[:, ::1] dof, string property_name) nogil except *:
+    cpdef void prop_2d(self, double[::1] outp, double[:, ::1] dof, string property_name) except * nogil:
         # dof.shape[1] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
@@ -230,7 +230,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void prop_parameters_2d(self, double[:, ::1] outp, double[:, ::1] dof,
-                                  double[:, ::1] parameters, string property_name) nogil except *:
+                                  double[:, ::1] parameters, string property_name) except * nogil:
         """
         Calculate objective function using custom parameters.
         Note dof and parameters are vectorized separately, i.e., broadcast against each other.
@@ -259,7 +259,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void prop_grad(self, double[::1] out, double[::1] dof, string property_name) nogil except *:
+    cpdef void prop_grad(self, double[::1] out, double[::1] dof, string property_name) except * nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         (<FastFunction>self.function_factory.get_grad(property_name)).call(&out[0], &dof_concat[0])

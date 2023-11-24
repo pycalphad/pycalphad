@@ -60,7 +60,7 @@ cdef int argmax(double* a, int a_shape) nogil:
 cpdef void hyperplane_coefficients(double[:,::1] compositions,
                                    size_t[::1] fixed_chempot_indices,
                                    int[::1] trial_simplex,
-                                   double[::1] out_plane_coefs) nogil except *:
+                                   double[::1] out_plane_coefs) except * nogil:
     cdef int i, j
     cdef int plane_rows = trial_simplex.shape[0] + fixed_chempot_indices.shape[0]
     if plane_rows != compositions.shape[1]:
@@ -86,7 +86,7 @@ cpdef void intersecting_point(double[:,::1] compositions,
                               int[::1] trial_simplex,
                               double[:,::1] fixed_lincomb_molefrac_coefs,
                               double[::1] fixed_lincomb_molefrac_rhs,
-                              double[::1] out_intersecting_point) nogil except *:
+                              double[::1] out_intersecting_point) except * nogil:
     cdef int i, j
     if trial_simplex.shape[0] == 1:
         # Simplex is zero-dimensional, so there is no intersection; just return the point defining the 0-simplex
