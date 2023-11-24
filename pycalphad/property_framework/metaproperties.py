@@ -234,8 +234,8 @@ class ReferenceState:
         for phase_name, ref_conds in reference_conditions:
             new_wks = wks.copy()
             new_wks.phases = [phase_name]
-            self._floating_conds = sorted(set(wks.conditions.keys()) - set(ref_conds.keys()))
-            self._fixed_conds = sorted(set(wks.conditions.keys()).intersection(set(ref_conds.keys())))
+            self._floating_conds = sorted(set(wks.conditions.keys()) - set(ref_conds.keys()), key=str)
+            self._fixed_conds = sorted(set(wks.conditions.keys()).intersection(set(ref_conds.keys())), key=str)
             new_wks.conditions = ref_conds
             self._reference_wks.append(new_wks)
         filtered_fixed_conds = []
