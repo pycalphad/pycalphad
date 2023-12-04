@@ -1459,10 +1459,13 @@ class Model(object):
             (where('constituent_array').test(self._array_validity))
         )
 
+        # V0 is given in databases per mole of formula, so we should normalize it
         self.V0 = V0 = self.redlich_kister_sum(phase, param_search, V0_param_query) / self._site_ratio_normalization
-        self.VA = VA = self.redlich_kister_sum(phase, param_search, VA_param_query) / self._site_ratio_normalization
-        self.VK = VK = self.redlich_kister_sum(phase, param_search, VK_param_query) / self._site_ratio_normalization
-        self.VC = VC = self.redlich_kister_sum(phase, param_search, VC_param_query) / self._site_ratio_normalization
+        # VA is given in databases per mole of atoms, so we should not normalize it
+        self.VA = VA = self.redlich_kister_sum(phase, param_search, VA_param_query)
+        # TODO: unsure about the normalization of VK and VC parameters
+        self.VK = VK = self.redlich_kister_sum(phase, param_search, VK_param_query)
+        self.VC = VC = self.redlich_kister_sum(phase, param_search, VC_param_query)
 
         # nonmagnetic contribution to volume
         V_p0 = V0*exp(VA)
