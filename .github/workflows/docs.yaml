@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: pycalphad-documentation
           path: pycalphad-docs-html
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee the TARGET_BRANCH exists
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: pycalphad-documentation
           path: pycalphad-docs-html
