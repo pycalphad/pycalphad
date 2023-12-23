@@ -45,8 +45,10 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     @cython.wraparound(False)
     cpdef void update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables):
         cdef int comp_idx
-        self.dof[:state_variables.shape[0]] = state_variables
-        self.dof[state_variables.shape[0]:] = site_fracs
+        for comp_idx in range(state_variables.shape[0]):
+            self.dof[comp_idx] = state_variables[comp_idx]
+        for comp_idx in range(site_fracs.shape[0]):
+            self.dof[state_variables.shape[0] + comp_idx] = site_fracs[comp_idx]
         self.NP = phase_amt
         self.energy = 0
         memset(&self.X[0], 0, self.X.shape[0] * sizeof(double))
