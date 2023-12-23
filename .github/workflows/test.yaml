@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m venv pycalphad-dev
@@ -39,7 +39,7 @@ jobs:
       # - The `--cov` flag is required to turn on coverage
       - run: pytest -v --import-mode=append --cov --cov-config=pyproject.toml --pyargs pycalphad
       - run: coverage xml
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
           path: coverage.xml
@@ -51,7 +51,9 @@ jobs:
       # The source code _must_ be checked out for coverage to be processed at Codecov.
       - uses: actions/checkout@v4
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
       - name: Upload to Codecov
         uses: codecov/codecov-action@v3
         with:
