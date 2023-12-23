@@ -21,53 +21,6 @@ from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     unpack_components, unpack_condition, unpack_kwarg
 from pycalphad.core.constants import MIN_SITE_FRACTION, MAX_ENDMEMBER_PAIRS, MAX_EXTRA_POINTS
 
-def hr_point_sample(constraint_jac, constraint_rhs, initial_point, num_points):
-    "Hit-and-run sampling of linearly-constrained site fraction spaces"
-    q, r = np.linalg.qr(constraint_jac.T, mode='complete')
-    q1 = q[:, :constraint_jac.shape[0]]
-    q2 = q[:, constraint_jac.shape[0]:]
-    r1 = r[:constraint_jac.shape[0], :]
-    if initial_point is not None:
-        z_bar = initial_point
-    else:
-        # minimum norm solution to underdetermined system of equations
-        # may not be feasible if it fails the non-negativity constraint
-        z_bar = np.linalg.lstsq(constraint_jac, constraint_rhs, rcond=None)[0]
-    solution_norm = np.linalg.norm(constraint_jac.dot(z_bar) - constraint_rhs)
-    if (solution_norm > 1e-4) or np.any(z_bar < 0):
-        # initial point does not satisfy constraints; give up
-        return np.empty((0, z_bar.shape[0]))
-    # Hit-and-Run sampling
-    new_feasible_z = np.zeros((num_points, constraint_jac.shape[1]))
-    current_z = np.array(z_bar)
-    min_z = MIN_SITE_FRACTION
-    rng = np.random.RandomState(1769)
-    for iteration in range(num_points):
-        new_feasible_z[iteration, :] = current_z
-        # generate unit direction in null space
-        d = rng.normal(size=(constraint_jac.shape[1] - constraint_jac.shape[0]))
-        d /= np.linalg.norm(d, axis=0)
-        proj = np.dot(q2, d)
-        # find extent of step direction possible while staying within bounds (0 <= z)
-        with np.errstate(divide='ignore'):
-            alphas = (min_z - current_z) / proj
-        # Need to use small value to prevent constraints binding one sublattice (with proj ~ 0) from binding all dof
-        max_alpha_candidates = alphas[np.logical_and(proj > 1e-6, np.isfinite(alphas))]
-        min_alpha_candidates = alphas[np.logical_and(proj < -1e-6, np.isfinite(alphas))]
-        alpha_min = np.min(min_alpha_candidates)
-        alpha_max = np.max(max_alpha_candidates)
-        # Poor progress; give up on sampling
-        if np.abs(alpha_max - alpha_min) < 1e-4:
-            new_feasible_z = new_feasible_z[:iteration+1, :]
-            break
-        # choose a random step size within the feasible interval
-        new_alpha = rng.uniform(low=alpha_min, high=alpha_max)
-        current_z += new_alpha * proj
-    if np.any(new_feasible_z < 0):
-        raise ValueError('Constrained sampling generated negative site fractions')
-    return new_feasible_z
-
-
 
 def _jacobian_from_constraints(constraints, variables):
     """
