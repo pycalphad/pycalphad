@@ -161,6 +161,15 @@ class LinearCombination:
     def __str__(self):
         return f"LinComb_{'-'.join([str(s) for s in self.symbols])},{'-'.join([str(s) for s in self.coefs])}"
 
+    def __repr__(self):
+        result = ""
+        for idx, (sym, coef) in enumerate(zip(self.symbols[:-1], self.coefs[:-1])):
+            result += str(coef) + '*' + repr(sym)
+            if idx + 1 < len(self.symbols):
+                # if not the last entry
+                result += '+'
+        result += '=' + str(self.coefs[-1])
+
     @property
     def shape(self):
         return tuple()
