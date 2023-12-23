@@ -216,7 +216,17 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None, thin=1):
     At = A1 @ N
     bt = b1 - A1 @ xp
 
-    x0 = chebyshev_center(At, bt)
+    try:
+        x0 = chebyshev_center(At, bt)
+    except:
+        # Unable to find center
+        return np.empty((0, A1.shape[1]))
+
+    test_point = x0[np.newaxis, :] @ N.T + xp
+    if np.any(test_point < lower-1e-10) or np.any(test_point > upper+1e-10):
+        # Starting point is not feasible
+        return np.empty((0, A1.shape[1]))
+
     sampler = hitandrun(At, bt, x0)
 
     X = np.empty((n_points, At.shape[1]))

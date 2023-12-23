@@ -169,9 +169,11 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
                     pass
                 else:
                     points = np.concatenate((points, extra_points))
-            assert np.max(np.abs(constraint_jac.dot(points.T).T - constraint_rhs)) < 1e-6
-            if points.shape[0] == 0:
-                warnings.warn(f'{model.phase_name} has zero feasible configurations under the given conditions')
+            if points.shape[0] > 0:
+                assert np.max(np.abs(constraint_jac.dot(points.T).T - constraint_rhs)) < 1e-6
+            else:
+                # No feasible points; return array of nan to preserve shape
+                return np.full((num_points, points.shape[1]), np.nan)
         else:
             points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
 
