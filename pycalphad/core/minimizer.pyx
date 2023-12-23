@@ -1000,7 +1000,7 @@ cdef bint change_phases(SystemSpecification spec, SystemState state):
     for cs_idx in range(state.metastable_phase_iterations.shape[0]):
         should_add_compset = (
             (state.metastable_phase_iterations[cs_idx] >= MIN_REQUIRED_METASTABLE_PHASE_ITERATIONS_TO_ADD)
-            and (driving_forces[cs_idx] > 1e-5)
+            and (driving_forces[cs_idx] > MIN_DRIVING_FORCE_TO_ADD)
             and (state.times_compset_removed[cs_idx] < MAX_ALLOWED_TIMES_COMPSET_REMOVED)
         )
         if should_add_compset:
