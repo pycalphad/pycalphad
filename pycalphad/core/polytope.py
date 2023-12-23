@@ -150,8 +150,8 @@ def hitandrun(A, b, x0):
             D = (b - x @ A.T) / (direction @ A.T)
 
             # distance to the closest face in and opposite to direction
-            lo = np.max(D[D < 0])
-            hi = np.min(D[D > 0])
+            lo = np.max(D[D < 1e-13])
+            hi = np.min(D[D > -1e-13])
             # make random step
             x += rng.uniform(lo, hi) * direction
             yield x
