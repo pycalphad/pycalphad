@@ -115,53 +115,7 @@ def affine_subspace(A, b):
     xp = np.linalg.pinv(A) @ b
     return N, xp
 
-
-def hitandrun(A, b, x0):
-    """Generator for uniform sampling from the convex polytope Ax <= b using the
-    Hit & Run algorithm described in [Smith1984].
-
-    Parameters
-    ----------
-    A : 2d-array of shape (n_constraints, dimension)
-        Left-hand-side of Ax <= b.
-    b : 1d-array of shape (n_constraints)
-        Right-hand-side of Ax <= b.
-    x0 : 1d-array of shape (dimension)
-        Initial point that satisfies A x0 <= b.
-
-    Yields
-    -------
-    1d-array of shape (dimension)
-        Point sampled from the polytope.
-    """
-    check_Ab(A, b)
-    assert A.shape[1] == len(x0)
-
-    x = x0
-    rng = np.random.RandomState(1769)
-
-    with np.errstate(divide='ignore', invalid='ignore'):
-        while True:
-            # sample random direction from unit hypersphere
-            direction = rng.randn(A.shape[1])
-            direction /= np.linalg.norm(direction)
-
-            # distances to each face from the current point in the sampled direction
-            D = (b - x @ A.T) / (direction @ A.T)
-
-            # distance to the closest face in and opposite to direction
-            lo = np.max(D[D < 1e-12])
-            hi = np.min(D[D > -1e-12])
-            if hi < lo:
-                # Amount of 'wiggle room' is down in the numerical noise
-                lo = 0.0
-                hi = 0.0
-            # make random step
-            x += rng.uniform(lo, hi) * direction
-            yield x
-
-
-def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None, thin=1):
+def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
     """Sample a number of points from a convex polytope A1 x <= b1 using the Hit & Run
     algorithm.
 
@@ -184,9 +138,6 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None, thin=1):
         Left-hand-side of A2 x = b2.
     b2 : 1d-array of shape (n_constraints), optional
         Right-hand-side of A2 x = b2.
-    thin : int, optional
-        The thinning factor of the generated samples. A thinning of 10 means a sample
-        is taken every 10 steps.
 
     Returns
     -------
@@ -227,13 +178,29 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None, thin=1):
         # Starting point is not feasible
         return np.empty((0, A1.shape[1]))
 
-    sampler = hitandrun(At, bt, x0)
-
     X = np.empty((n_points, At.shape[1]))
-    for i in range(n_points):
-        for _ in range(thin - 1):
-            next(sampler)
-        X[i] = next(sampler)
+    x = x0
+    rng = np.random.RandomState(1769)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        directions = rng.randn(n_points, At.shape[1])
+        directions /= np.linalg.norm(directions, axis=0)
+        for i in range(n_points):
+            # sample random direction from unit hypersphere
+            direction = directions[i]
+
+            # distances to each face from the current point in the sampled direction
+            D = (bt - x @ At.T) / (direction @ At.T)
+
+            # distance to the closest face in and opposite to direction
+            lo = max(D[D < 1e-12])
+            hi = min(D[D > -1e-12])
+            if hi < lo:
+                # Amount of 'wiggle room' is down in the numerical noise
+                lo = 0.0
+                hi = 0.0
+            # make random step
+            x += rng.uniform(lo, hi) * direction
+            X[i] = x
 
     # project back
     X = X @ N.T + xp
