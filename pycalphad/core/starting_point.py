@@ -30,6 +30,7 @@ def global_min_is_possible(conditions, state_variables):
         if cond in state_variables or \
            isinstance(cond, v.MoleFraction) or \
            isinstance(cond, v.MassFraction) or \
+           isinstance(cond, v.SiteFraction) or \
            isinstance(cond, LinearCombination) or \
            isinstance(cond, v.ChemicalPotential) or \
            cond == v.N:
@@ -74,6 +75,9 @@ def starting_point(conditions, state_variables, phase_records, grid):
     number_dof = len(nonvacant_elements) - 1
     for i in conditions.keys():
         if not (hasattr(i, 'species') or isinstance(i, LinearCombination)):
+            continue
+        if hasattr(i, 'species') and hasattr(i, 'phase_name') and i.phase_name is not None:
+            # Phase-local conditions do not reduce the total degrees of freedom
             continue
         number_dof -= 1
     if number_dof != 0:

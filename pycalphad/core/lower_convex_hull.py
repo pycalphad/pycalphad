@@ -4,7 +4,7 @@ equilibrium calculation.
 """
 from pycalphad.property_framework.computed_property import LinearCombination
 from .hyperplane import hyperplane
-from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, IndependentPotential, SystemMolesType
+from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, IndependentPotential, SiteFraction, SystemMolesType
 import numpy as np
 
 
@@ -90,6 +90,9 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
             if isinstance(cond_key, IndependentPotential):
                 # Already handled above in construction of grid_index
                 continue
+            if isinstance(cond_key, SiteFraction):
+                # Already handled above in construction of grid_index
+                continue
             elif isinstance(cond_key, ChemicalPotential):
                 component_idx = result_array.coords['component'].index(str(cond_key.species))
                 idx_fixed_chempot_indices.append(component_idx)
@@ -105,6 +108,9 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
                 idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
                 idx_fixed_lincomb_molefrac_rhs.append(0.)
             elif isinstance(cond_key, MoleFraction):
+                if cond_key.phase_name is not None:
+                    # Phase-local condition already handled in construction of grid
+                    continue
                 component_idx = result_array.coords['component'].index(str(cond_key.species))
                 coef_vector = np.zeros(num_comps)
                 coef_vector[component_idx] = 1

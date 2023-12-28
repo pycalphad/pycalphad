@@ -80,6 +80,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) nogil
     cpdef void internal_cons_jac(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void internal_cons_hess(self, double[:,:,::1] out, double[::1] dof) nogil
+    cpdef void phase_local_cons_func(self, double[::1] out, double[::1] dof, FastFunction func) nogil
+    cpdef void phase_local_cons_jac(self, double[:, ::1] out, double[::1] dof, FastFunction jac_func) nogil
     cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
     cpdef void formulamole_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil

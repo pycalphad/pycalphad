@@ -320,6 +320,8 @@ class Workspace:
                     components = self.phase_record_factory[args[i].phase_name].nonvacant_elements
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
+            elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == v.Species('*'):
+                raise ValueError('Wildcard not yet supported in sublattice index')
             elif isinstance(args[i], DotDerivativeComputedProperty):
                 numerator_args = [args[i].numerator]
                 self._expand_property_arguments(numerator_args)

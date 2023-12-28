@@ -42,13 +42,15 @@ cdef void invert_matrix(double *A, int N, int* ipiv) nogil:
 
 @cython.boundscheck(False)
 cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
-                               double[:, ::1] cons_jac_tmp, CompositionSet compset,
-                               int num_statevars, double[::1] chemical_potentials, double[::1] phase_dof,
-                               int[::1] fixed_phase_dof_indices) nogil:
+                               double[:, ::1] cons_jac_tmp, double[:, ::1] phase_local_jac_tmp,
+                               CompositionSet compset, int num_statevars, double[::1] chemical_potentials,
+                               double[::1] phase_dof) nogil:
     "Compute the LHS of Eq. 41, Sundman 2015."
     cdef int comp_idx, i, j, cons_idx, fixed_dof_idx
     cdef int num_components = chemical_potentials.shape[0]
     compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
+    if compset.num_phase_local_conditions > 0:
+        compset.phase_record.phase_local_cons_jac(phase_local_jac_tmp, phase_dof, compset.phase_local_cons_jac)
 
     for i in range(compset.phase_record.phase_dof):
         for j in range(compset.phase_record.phase_dof):
@@ -59,10 +61,10 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
             phase_matrix[compset.phase_record.phase_dof+i, j] = cons_jac_tmp[i, num_statevars+j]
             phase_matrix[j, compset.phase_record.phase_dof+i] = cons_jac_tmp[i, num_statevars+j]
 
-    for cons_idx in range(fixed_phase_dof_indices.shape[0]):
-        fixed_dof_idx = fixed_phase_dof_indices[cons_idx]
-        phase_matrix[compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + cons_idx, fixed_dof_idx] = 1
-        phase_matrix[fixed_dof_idx, compset.phase_record.phase_dof + compset.phase_record.num_internal_cons] = 1
+    for i in range(compset.num_phase_local_conditions):
+        for j in range(compset.phase_record.phase_dof):
+            phase_matrix[compset.phase_record.phase_dof+compset.phase_record.num_internal_cons+i, j] = phase_local_jac_tmp[i, num_statevars+j]
+            phase_matrix[j, compset.phase_record.phase_dof+compset.phase_record.num_internal_cons+i] = phase_local_jac_tmp[i, num_statevars+j]
 
 
 cdef void write_row_stable_phase(double[:] out_row, double* out_rhs, int[::1] free_chemical_potential_indices,
@@ -410,6 +412,7 @@ cdef class CompsetState:
     cdef int[::1] fixed_phase_dof_indices
     cdef int[::1] ipiv
     cdef double[:, ::1] cons_jac_tmp
+    cdef double[:, ::1] phase_local_jac_tmp
 
     def __init__(self, SystemSpecification spec, CompositionSet compset):
         self.x = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
@@ -420,10 +423,10 @@ cdef class CompsetState:
         self.masses = np.zeros((spec.num_components, 1))
         self.mass_jac = np.zeros((spec.num_components,
                                   spec.num_statevars + compset.phase_record.phase_dof))
-        self.phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
-                                      compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
-        self.full_e_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
-                                       compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
+        self.phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + compset.num_phase_local_conditions,
+                                      compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + compset.num_phase_local_conditions))
+        self.full_e_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + compset.num_phase_local_conditions,
+                                       compset.phase_record.phase_dof + compset.phase_record.num_internal_cons + compset.num_phase_local_conditions))
         self.c_G = np.zeros(compset.phase_record.phase_dof)
         self.c_statevars = np.zeros((compset.phase_record.phase_dof, spec.num_statevars))
         self.c_component = np.zeros((spec.num_components, compset.phase_record.phase_dof))
@@ -434,6 +437,7 @@ cdef class CompsetState:
         self.ipiv = np.empty(self.phase_matrix.shape[0], dtype=np.int32)
         self.delta_y = np.zeros(compset.phase_record.phase_dof)
         self.cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons, spec.num_statevars + compset.phase_record.phase_dof))
+        self.phase_local_jac_tmp = np.zeros((compset.num_phase_local_conditions, spec.num_statevars + compset.phase_record.phase_dof))
 
     def __getstate__(self):
         return (np.array(self.x), self.energy, np.array(self.grad), np.array(self.hess),
@@ -568,8 +572,7 @@ cdef class SystemState:
             compset.phase_record.formulagrad(csst.grad, x)
             compset.phase_record.internal_cons_func(csst.internal_cons, x)
 
-            compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, compset, spec.num_statevars, self.chemical_potentials, x,
-                                 csst.fixed_phase_dof_indices)
+            compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, csst.phase_local_jac_tmp, compset, spec.num_statevars, self.chemical_potentials, x)
             # Copy the phase matrix into the e matrix and invert the e matrix
             for i in range(csst.full_e_matrix.shape[0]):
                 for j in range(csst.full_e_matrix.shape[1]):

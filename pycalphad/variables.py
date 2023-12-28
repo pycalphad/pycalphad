@@ -235,15 +235,17 @@ class SiteFraction(StateVariable):
         self.phase_name = phase_name.upper()
         self.sublattice_index = subl_index
         self.species = Species(species)
+        if '#' in phase_name:
+            self._self_without_suffix = self.__class__(self.phase_name_without_suffix, subl_index, species)
+        else:
+            self._self_without_suffix = self
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         state_variables = compsets[0].phase_record.state_variables
         result = np.atleast_1d(np.zeros(self.shape))
         for _, compset in self.filtered(compsets):
-            if compset.phase_record.phase_name != self.phase_name:
-                continue
             site_fractions = compset.phase_record.variables
-            sitefrac_idx = site_fractions.index(self)
+            sitefrac_idx = site_fractions.index(self._self_without_suffix)
             result[0] += compset.dof[len(state_variables)+sitefrac_idx]
         return result
 
@@ -262,6 +264,14 @@ class SiteFraction(StateVariable):
 
     def __hash__(self):
         return hash((self.phase_name, self.sublattice_index, self.species))
+
+    def expand_wildcard(self, phase_names=None, components=None, sublattice_indices=None):
+        if phase_names is not None:
+            return [self.__class__(phase_name, self.sublattice_index, self.species) for phase_name in phase_names]
+        elif components is not None:
+            return [self.__class__(self.phase_name, self.sublattice_index, comp) for comp in components]
+        else:
+            raise ValueError('All arguments are None')
 
     def _latex(self, printer=None):
         "LaTeX representation."
