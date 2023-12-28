@@ -87,7 +87,13 @@ class Solver(SolverBase):
                     el = str(symbol)[2:]
                     el_idx = list(nonvacant_elements).index(el)
                     coefs[el_idx] = coef
-                prescribed_mole_fraction_rhs.append(float(value) - float(constant))
+                if cond.denominator == 1:
+                    prescribed_mole_fraction_rhs.append(float(value) - float(constant))
+                else:
+                    # Adjust coefficients to account for molar ratio
+                    prescribed_mole_fraction_rhs.append(-float(constant))
+                    denominator_idx = cond.symbols.index(cond.denominator)
+                    coefs[denominator_idx] -= float(value)
                 prescribed_mole_fraction_coefficients.append(coefs)
         prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
         prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)

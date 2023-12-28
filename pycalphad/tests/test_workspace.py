@@ -105,3 +105,11 @@ def test_lincomb_binary_condition(load_database):
                     conditions={v.T: 300, v.P: 1e5, 0.5*v.X('ZN') - 7*v.X('AL'): 0.1})
     result = 0.5 * wks.get('X(ZN)')[0].magnitude - 7 * wks.get('X(AL)')[0].magnitude
     np.testing.assert_almost_equal(result, 0.1, decimal=8)
+
+@select_database("alzn_mey.tdb")
+def test_lincomb_ratio_binary_condition(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.T: 300, v.P: 1e5, v.X('AL')/v.X('ZN'): [0.25, 1, 1.5]})
+    result = wks.get('X(AL)')[0].magnitude / wks.get('X(ZN)')[0].magnitude
+    np.testing.assert_almost_equal(result, [0.25, 1, 1.5], decimal=8)

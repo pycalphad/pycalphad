@@ -1,7 +1,7 @@
 import numpy.typing as npt
 import numpy as np
 from typing import Dict, Union, List, Optional
-from symengine import Basic, S
+from symengine import Basic, Mul, Pow, S
 import pycalphad.variables as v
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
@@ -141,6 +141,14 @@ class LinearCombination:
             raise ValueError(f'Property types in a linear combination must match. Got: {expr}')
         if list(symbol_classes)[0] != v.MoleFraction:
             raise ValueError('Only mole fractions are supported in linear combination conditions')
+        # Detect case of molar ratio (x/y = c); convert to (x - c*y = 0)
+        denominator = S.One
+        for mul_atom in expr.atoms(Mul):
+            # Division is stored as a Mul where one argument is a reciprocal
+            for mul_arg in mul_atom.args:
+                if isinstance(mul_arg, Pow) and isinstance(mul_arg.args[0], v.StateVariable):
+                    denominator = mul_arg.args[0]
+        expr = (expr*denominator).expand()
         coefs = []
         for s in symbols:
             coef = expr.diff(s)
@@ -157,6 +165,7 @@ class LinearCombination:
         coefs.append(constant_term)
         self.coefs = coefs
         self.symbols = symbols
+        self.denominator = denominator
 
     def __str__(self):
         return f"LinComb_{'-'.join([str(s) for s in self.symbols])},{'-'.join([str(s) for s in self.coefs])}"

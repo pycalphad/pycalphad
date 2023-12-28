@@ -121,8 +121,19 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
                 idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
                 idx_fixed_lincomb_molefrac_rhs.append(rhs)
             elif isinstance(cond_key, LinearCombination):
-                idx_fixed_lincomb_molefrac_coefs.append(cond_key.coefs[:-1])
-                idx_fixed_lincomb_molefrac_rhs.append(rhs-cond_key.coefs[-1])
+                if cond_key.denominator == 1:
+                    idx_fixed_lincomb_molefrac_coefs.append(cond_key.coefs[:-1])
+                    idx_fixed_lincomb_molefrac_rhs.append(rhs-cond_key.coefs[-1])
+                else:
+                    # This is a molar ratio
+                    denominator_idx = cond_key.symbols.index(cond_key.denominator)
+                    coefs = cond_key.coefs[:-1]
+                    coefs[denominator_idx] -= rhs
+                    idx_fixed_lincomb_molefrac_coefs.append(coefs)
+                    if cond_key.coefs[-1] != 0:
+                        # Constant term for molar ratio should be zero
+                        raise ValueError(f'Unsupported condition {cond_key}')
+                    idx_fixed_lincomb_molefrac_rhs.append(-cond_key.coefs[-1])
             else:
                 raise ValueError(f'Unsupported condition {cond_key}')
 
