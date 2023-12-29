@@ -1014,6 +1014,33 @@ def test_eq_charge_ndzro(load_database):
                                 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
 
 @pytest.mark.solver
+def test_issue_503_charged_infeasible_subsystem():
+    "equilibrium suspends a phase with zero feasible points due to internal constraints"
+    tdb = """
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+ ELEMENT V    BCC_A2                    5.0941E+01  4.5070E+03  3.0890E+01!
+
+ SPECIES O-2                         O1/-2!
+ SPECIES O2                          O2!
+ SPECIES O3                          O3!
+ SPECIES V+2                         V1/+2!
+ SPECIES V+3                         V1/+3!
+
+ PHASE GAS:G %  1  1.0  !
+    CONSTITUENT GAS:G :O,O2,O3 :  !
+
+ PHASE HALITE %  2 1   1 !
+    CONSTITUENT HALITE :V,V+2,V+3,VA : O-2,VA :  !
+"""
+    dbf = Database(tdb)
+    result = equilibrium(dbf, ['O', 'VA'], ['GAS', 'HALITE'], {v.T: 1000, v.P: 1e5})
+    print(result)
+    assert np.all(np.isclose(result.NP.squeeze(), [1.0, np.nan], equal_nan=True))
+    assert np.all(result.Phase.squeeze() == ["GAS", ""])
+
+@pytest.mark.solver
 @select_database("crtiv_ghosh.tdb")
 def test_ternary_three_phase_dilute(load_database):
     components = ["CR", "TI", "V"]

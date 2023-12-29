@@ -112,6 +112,9 @@ def add_nearly_stable(object composition_sets, object phase_records,
             continue
         phase_record = phase_records[phase_name]
         phase_indices = grid.attrs['phase_indices'][phase_name]
+        if phase_indices.start == phase_indices.stop:
+            # Phase has zero feasible grid points to consider
+            continue
         driving_forces_for_phase = driving_forces[phase_indices.start:phase_indices.stop]
         minimum_df_idx = argmax(&driving_forces_for_phase[0], driving_forces_for_phase.shape[0])
         if driving_forces_for_phase[minimum_df_idx] >= minimum_df:

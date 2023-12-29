@@ -173,7 +173,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
                 assert np.max(np.abs(constraint_jac.dot(points.T).T - constraint_rhs)) < 1e-6
             else:
                 # No feasible points; return array of nan to preserve shape
-                return np.full((num_points, points.shape[1]), np.nan)
+                return np.full((num_points, constraint_jac.shape[1]), np.nan)
         else:
             points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
 
