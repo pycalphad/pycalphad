@@ -263,6 +263,9 @@ class Workspace:
         # Assumes implementation units from this point
         unitless_conds = OrderedDict((key, as_quantity(key, value).to(key.implementation_units).magnitude) for key, value in self.conditions.items())
         str_conds = OrderedDict((str(key), value) for key, value in unitless_conds.items())
+        local_conds = {key: as_quantity(key, value).to(key.implementation_units).magnitude
+                       for key, value in self.conditions.items()
+                       if getattr(key, 'phase_name', None) is not None}
         state_variables = self.phase_record_factory.state_variables
         self.phase_record_factory.update_parameters(self.parameters.unwrap())
 
@@ -276,7 +279,7 @@ class Workspace:
 
         grid = calculate(self.database, self.components, self.phases, model=self.models.unwrap(), fake_points=True,
                         phase_records=self.phase_record_factory, output='GM', parameters=self.parameters.unwrap(),
-                        to_xarray=False, **grid_opts)
+                        to_xarray=False, conditions=local_conds, **grid_opts)
         properties = starting_point(unitless_conds, state_variables, self.phase_record_factory, grid)
         return _solve_eq_at_conditions(properties, self.phase_record_factory, grid,
                                        list(unitless_conds.keys()), state_variables,
@@ -397,13 +400,17 @@ class Workspace:
         results = dict()
 
         prop_MU_values = self.eq.MU
-        conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
+        str_conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
+        conds_keys = [None] * len(str_conds_keys)
+        for k in self.conditions.keys():
+            cond_idx = str_conds_keys.index(str(k))
+            conds_keys[cond_idx] = k
         local_index = 0
 
         for index, composition_sets in self.enumerate_composition_sets():
             cur_conds = OrderedDict(zip(conds_keys,
                                         [np.asarray(self.eq.coords[b][a], dtype=np.float_)
-                                        for a, b in zip(index, conds_keys)]))
+                                        for a, b in zip(index, str_conds_keys)]))
             chemical_potentials = prop_MU_values[index]
             
             for arg in args:

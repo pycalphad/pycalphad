@@ -186,7 +186,11 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
                                     [np.asarray(properties.coords[str(b)][a], dtype=np.float_)
                                      for a, b in zip(it.multi_index, conds_keys)]))
         # assume 'points' and other dimensions (internal dof, etc.) always follow
-        curr_idx = [it.multi_index[i] for i, key in enumerate(conds_keys) if str(key) in str_state_variables]
+        local_idx = [it.multi_index[i] for i, key in enumerate(conds_keys)
+                     if getattr(key, 'phase_name', None) is not None]
+        sv_idx = [it.multi_index[i] for i, key in enumerate(conds_keys)
+                  if (str(key) in str_state_variables)]
+        curr_idx = local_idx + sv_idx
         state_variable_values = [cur_conds[state_variables[str_state_variables.index(key)]] for key in str_state_variables]
         state_variable_values = np.array(state_variable_values)
         # sum of independently specified components

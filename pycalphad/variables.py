@@ -233,7 +233,7 @@ class SiteFraction(StateVariable):
         #pylint: disable=E1121
         super().__init__(varname)
         self.phase_name = phase_name.upper()
-        self.sublattice_index = subl_index
+        self.sublattice_index = int(subl_index)
         self.species = Species(species)
         if '#' in phase_name:
             self._self_without_suffix = self.__class__(self.phase_name_without_suffix, subl_index, species)

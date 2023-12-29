@@ -65,7 +65,6 @@ class T0(object):
                          chemical_potentials: npt.ArrayLike) -> float:
         s = self.solver
         initial_conditions = cur_conds
-        property_to_optimize = str(self.property_to_optimize)
 
         # T0: (G(BCC) - G(HCP))**2 = 0
         # G(BCC)**2 - 2*G(BCC)*G(HCP) + G(BCP)**2
@@ -91,11 +90,11 @@ class T0(object):
             else:
                 t0_step = -residual/t0_grad
 
-            conditions[property_to_optimize] = max(min(conditions[property_to_optimize] + t0_step,
+            conditions[self.property_to_optimize] = max(min(conditions[self.property_to_optimize] + t0_step,
                                                             self.maximum_value),
                                                         self.minimum_value)
             if residual < self.residual_tol:
                 break
         if residual > self.residual_tol:
             return float('nan')
-        return conditions[property_to_optimize]
+        return conditions[self.property_to_optimize]

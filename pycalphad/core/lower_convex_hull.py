@@ -41,6 +41,7 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
     None yet.
     """
     state_variables = sorted(state_variables, key=str)
+    local_conds_keys = [c for c in conds_keys if getattr(c, 'phase_name', None) is not None]
     str_conds_keys = [str(c) for c in conds_keys]
 
     # factored out via profiling
@@ -64,6 +65,9 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
         # grid_index is constructed at every iteration, based on state variables (independent potentials)
         grid_index = []
         # Relies on being ordered
+        for lc in local_conds_keys:
+            coord_idx = conds_keys.index(lc)
+            grid_index.append(primary_index[coord_idx])
         for sv in state_variables:
             if sv in conds_keys:
                 coord_idx = conds_keys.index(sv)

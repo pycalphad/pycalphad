@@ -29,8 +29,10 @@ def build_phase_local_constraints(mod, variables, phase_local_conditions, parame
         if isinstance(key, v.MoleFraction):
             cons = mod.moles(key.species, per_formula_unit=True) - \
                 value * sum(mod.moles(v.Species(el), per_formula_unit=True) for el in mod.nonvacant_elements)
-        else:
+        elif isinstance(key, v.SiteFraction):
             cons = key - value
+        else:
+            raise ValueError(f'Unsupported phase-local condition: {key}')
         phase_local_constraints.append(cons.expand())
 
     cf_output = build_constraint_functions(variables, phase_local_constraints,

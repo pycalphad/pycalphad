@@ -40,7 +40,7 @@ class Solver(SolverBase):
         ----------
         composition_sets : List[pycalphad.core.composition_set.CompositionSet]
             List of CompositionSet objects in the starting point. Modified in place.
-        conditions : OrderedDict[str, float]
+        conditions : OrderedDict[StateVariable, float]
             Conditions to satisfy.
 
         Returns
@@ -49,7 +49,7 @@ class Solver(SolverBase):
 
         """
         # Prevent circular import
-        from pycalphad.variables import ChemicalPotential
+        from pycalphad.variables import ChemicalPotential, MoleFraction, SiteFraction
         compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
         nonvacant_elements = compsets[0].phase_record.nonvacant_elements
@@ -58,14 +58,26 @@ class Solver(SolverBase):
         chemical_potentials = np.zeros(num_components)
         prescribed_mole_fraction_coefficients = []
         prescribed_mole_fraction_rhs = []
+        local_conditions = {key: value for key, value in conditions.items()
+                            if getattr(key, 'phase_name', None) is not None}
+        for compset in compsets:
+            phase_local_conditions = {key: value for key, value in local_conditions.items()
+                                      if compset.phase_record.phase_name == key.phase_name}
+            compset.set_local_conditions(phase_local_conditions)
         for cond, value in conditions.items():
-            if str(cond).startswith('X_'):
+            if isinstance(cond, MoleFraction) and cond.phase_name is None:
                 el = str(cond)[2:]
                 el_idx = list(nonvacant_elements).index(el)
                 prescribed_mole_fraction_rhs.append(float(value))
                 coefs = np.zeros(num_components)
                 coefs[el_idx] = 1.0
                 prescribed_mole_fraction_coefficients.append(coefs)
+            elif isinstance(cond, MoleFraction) and cond.phase_name is not None:
+                # phase-local condition; already handled
+                continue
+            elif isinstance(cond, SiteFraction):
+                # phase-local condition; already handled
+                continue
             elif str(cond).startswith('W_'):
                 # wA = k -> (1-k)*MWA*xA - k*MWB*xB - k*MWC*xC = 0
                 el = str(cond)[2:]

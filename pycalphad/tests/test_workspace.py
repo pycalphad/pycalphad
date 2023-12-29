@@ -113,3 +113,21 @@ def test_lincomb_ratio_binary_condition(load_database):
                     conditions={v.T: 300, v.P: 1e5, v.X('AL')/v.X('ZN'): [0.25, 1, 1.5]})
     result = wks.get('X(AL)')[0].magnitude / wks.get('X(ZN)')[0].magnitude
     np.testing.assert_almost_equal(result, [0.25, 1, 1.5], decimal=8)
+
+@select_database("alzn_mey.tdb")
+def test_phaselocal_binary_sitefrac_condition(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'LIQUID'],
+                    conditions={v.X('ZN'): 0.1, v.T: (890, 1000, 20), v.P: 1e5,
+                                v.Y('LIQUID', 0, 'ZN'): 0.3, v.N: 1})
+    result = wks.get('Y(LIQUID,0,ZN)')[0].magnitude
+    np.testing.assert_almost_equal(result, np.full_like(result, 0.3), decimal=8)
+
+@select_database("alzn_mey.tdb")
+def test_phaselocal_binary_molefrac_condition(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'LIQUID'],
+                    conditions={v.X('ZN'): 0.1, v.T: (890, 1000, 20), v.P: 1e5,
+                                v.X('LIQUID', 'ZN'): 0.3, v.N: 1})
+    result = wks.get('X(LIQUID,ZN)')[0].magnitude
+    np.testing.assert_almost_equal(result, np.full_like(result, 0.3), decimal=8)

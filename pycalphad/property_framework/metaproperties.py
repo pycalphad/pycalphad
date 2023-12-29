@@ -272,16 +272,16 @@ class ReferenceState:
                     for col_idx, fic in enumerate(self._fixed_conds):
                         plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic]
                     for floc in self._floating_conds:
-                        ref_wks.conditions[floc] = cur_conds[str(floc)]
+                        ref_wks.conditions[floc] = cur_conds[floc]
                     if ref_wks.ndim != 0:
                         raise ValueError('Reference state must be point calculation')
                     eq_idx, ref_compsets = list(ref_wks.enumerate_composition_sets())[0]
                     ref_chempots = ref_wks.eq.MU[eq_idx]
-                    plane_rhs[row_idx] = prop.compute_property(ref_compsets, {str(c): val for c, val in ref_wks.conditions.items()}, ref_chempots)
+                    plane_rhs[row_idx] = prop.compute_property(ref_compsets, {c: val for c, val in ref_wks.conditions.items()}, ref_chempots)
                 plane_coefs = np.linalg.solve(plane_matrix, plane_rhs)
 
                 # Next, plug fixed conditions of current point into equation of reference plane
-                current_vector = [cur_conds[str(floc)] for floc in self._fixed_conds]
+                current_vector = [cur_conds[floc] for floc in self._fixed_conds]
                 reference_offset = units.Q_(np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1],
                                             prop.implementation_units)
                 return result - reference_offset
