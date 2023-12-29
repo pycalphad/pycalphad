@@ -483,6 +483,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         if points is None:
             collected_points_arrays = []
             for index in np.ndindex(plc_shape):
+                if len(index) == 0:
+                    break
                 cur_phase_local_conditions = OrderedDict(zip(phase_local_conditions.keys(),
                                                              [b[a]
                                                               for a, b in zip(index, phase_local_conditions.values())]))
