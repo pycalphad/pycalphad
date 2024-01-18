@@ -1,14 +1,14 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en" data-content_root="../../../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2021.10.09"/>
-        <title>pycalphad.io.tdb_keywords - pycalphad 0.10.4.dev10+g84651114 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=0254c309f5cadf746f1a613e7677379ac9c8cdcd" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+        <title>pycalphad.io.tdb_keywords - pycalphad 0.10.4.dev12+g071c50a6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
 
@@ -19,38 +19,38 @@
   --color-code-foreground: black;
   
   }
-  body[data-theme="dark"] {
-    --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-  }
-  @media (prefers-color-scheme: dark) {
-    body:not([data-theme="light"]) {
+  @media not print {
+    body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
   
     }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
   }
 </style></head>
   <body>
+    
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
     </script>
     
+
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
     <title>Contents</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke="none" d="M0 0h24v24H0z" />
-      <line x1="4" y1="6" x2="20" y2="6" />
-      <line x1="10" y1="12" x2="20" y2="12" />
-      <line x1="6" y1="18" x2="20" y2="18" />
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
     </svg>
   </symbol>
   <symbol id="svg-menu" viewBox="0 0 24 24">
     <title>Menu</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
       <line x1="3" y1="12" x2="21" y2="12"></line>
       <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -59,14 +59,14 @@
   </symbol>
   <symbol id="svg-arrow-right" viewBox="0 0 24 24">
     <title>Expand</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>
   </symbol>
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -81,7 +81,7 @@
   </symbol>
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
@@ -89,7 +89,7 @@
   </symbol>
   <symbol id="svg-sun-half" viewBox="0 0 24 24">
     <title>Auto light/dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <circle cx="12" cy="12" r="9" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.dev10+g84651114 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.dev12+g071c50a6 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -142,23 +142,23 @@
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
       
-      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="../../../index.html">
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
   <div class="sidebar-logo-container">
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.dev10+g84651114 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.dev12+g071c50a6 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
-  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Install pycalphad</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../examples/BinaryExamples.html#Calculating-Energy-Surfaces-of-Binary-Systems">Calculating Energy Surfaces of Binary Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../examples/TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
@@ -178,13 +178,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../releasing.html">Releasing pycalphad</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../onboarding.html">Onboarding as a Developer</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/modules.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pycalphad.html">pycalphad package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/modules.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pycalphad.html">pycalphad package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of pycalphad package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.codegen.html">pycalphad.codegen package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.core.html">pycalphad.core package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.io.html">pycalphad.io package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.models.html">pycalphad.models package</a></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of pycalphad.plot package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
 </ul>
 </li>
@@ -196,6 +196,7 @@
 
 </div>
 </div>
+
       </div>
       
     </div>
@@ -203,6 +204,12 @@
   <div class="main">
     <div class="content">
       <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
         <div class="content-icon-container">
           <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
@@ -219,111 +226,113 @@
         </div>
         <article role="main">
           <h1>Source code for pycalphad.io.tdb_keywords</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module defines valid Thermo-Calc TDB keywords and handles abbreviations.</span>
 <span class="sd">Note that not all of these keywords are fully supported yet.</span>
-<span class="sd">"""</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
 
-<span class="c1"># Reference: Thermo-Calc Database Manager's Guide</span>
+<span class="c1"># Reference: Thermo-Calc Database Manager&#39;s Guide</span>
 <span class="n">TDB_KEYWORDS</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
-    <span class="s1">'ELEMENT'</span><span class="p">,</span>
-    <span class="s1">'SPECIES'</span><span class="p">,</span>
-    <span class="s1">'PHASE'</span><span class="p">,</span>
-    <span class="s1">'CONSTITUENT'</span><span class="p">,</span>
-    <span class="s1">'ADD_CONSTITUENT'</span><span class="p">,</span>
-    <span class="s1">'COMPOUND_PHASE'</span><span class="p">,</span>
-    <span class="s1">'ALLOTROPIC_PHASE'</span><span class="p">,</span>
-    <span class="s1">'TEMPERATURE_LIMITS'</span><span class="p">,</span>
-    <span class="s1">'DEFINE_SYSTEM_DEFAULT'</span><span class="p">,</span>
-    <span class="s1">'DEFAULT_COMMAND'</span><span class="p">,</span>
-    <span class="s1">'DATABASE_INFORMATION'</span><span class="p">,</span>
-    <span class="s1">'TYPE_DEFINITION'</span><span class="p">,</span>
-    <span class="s1">'FTP_FILE'</span><span class="p">,</span>
-    <span class="s1">'FUNCTION'</span><span class="p">,</span>
-    <span class="s1">'PARAMETER'</span><span class="p">,</span>
-    <span class="s1">'OPTIONS'</span><span class="p">,</span>
-    <span class="s1">'TABLE'</span><span class="p">,</span>
-    <span class="s1">'ASSESSED_SYSTEMS'</span><span class="p">,</span>
-    <span class="s1">'REFERENCE_FILE'</span><span class="p">,</span>
-    <span class="s1">'LIST_OF_REFERENCES'</span><span class="p">,</span>
-    <span class="s1">'ADD_REFERENCE'</span><span class="p">,</span>
-    <span class="s1">'CASE'</span><span class="p">,</span>
-    <span class="s1">'ENDCASE'</span><span class="p">,</span>
-    <span class="s1">'VERSION_DATA'</span><span class="p">,</span>
-    <span class="s1">'VERSION_DATE'</span><span class="p">,</span>
-    <span class="s1">'DIFFUSION'</span><span class="p">,</span>
-    <span class="s1">'ZEROVOLUME_SPECIES'</span>
+    <span class="s1">&#39;ELEMENT&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SPECIES&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PHASE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CONSTITUENT&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ADD_CONSTITUENT&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;COMPOUND_PHASE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ALLOTROPIC_PHASE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TEMPERATURE_LIMITS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DEFINE_SYSTEM_DEFAULT&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DEFAULT_COMMAND&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DATABASE_INFORMATION&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FTP_FILE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FUNCTION&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PARAMETER&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;OPTIONS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TABLE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ASSESSED_SYSTEMS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;REFERENCE_FILE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LIST_OF_REFERENCES&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ADD_REFERENCE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CASE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ENDCASE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;VERSION_DATA&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;VERSION_DATE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DIFFUSION&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ZEROVOLUME_SPECIES&#39;</span>
 <span class="p">])</span>
 
 <span class="c1"># Reference: Thermo-Calc Console Mode Command Reference, Version 4.1</span>
 <span class="n">TDB_COMMANDS</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
-    <span class="s1">'AMEND_PHASE_DESCRIPTION'</span><span class="p">,</span>
-    <span class="s1">'DEFINE_ELEMENTS'</span>
+    <span class="s1">&#39;AMEND_PHASE_DESCRIPTION&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DEFINE_ELEMENTS&#39;</span>
 <span class="p">])</span>
 
 <span class="c1"># Reference: Thermo-Calc Console Mode Command Reference, Version 4.1</span>
 <span class="n">TDB_PHASE_DESCRIPTIONS</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
-    <span class="s1">'EXCESS_MODEL'</span><span class="p">,</span>
-    <span class="s1">'MAGNETIC_ORDERING'</span><span class="p">,</span>
-    <span class="s1">'DEBYE_HUCKEL'</span><span class="p">,</span>
-    <span class="s1">'STATUS_BITS'</span><span class="p">,</span>
-    <span class="s1">'NEW_CONSTITUENT'</span><span class="p">,</span>
-    <span class="s1">'RENAME_PHASE'</span><span class="p">,</span>
-    <span class="s1">'COMPOSITION_SETS'</span><span class="p">,</span>
-    <span class="s1">'GLASS_TRANSITION'</span><span class="p">,</span>
-    <span class="s1">'DISORDERED_PART'</span><span class="p">,</span>
-    <span class="s1">'MAJOR_CONSTITUENT'</span><span class="p">,</span>
-    <span class="s1">'ZRO2_TRANSITION'</span><span class="p">,</span>
-    <span class="s1">'REMOVE_ADDITION'</span><span class="p">,</span>
-    <span class="s1">'QUASICHEM_IONIC'</span><span class="p">,</span>
-    <span class="s1">'QUASICHEM_FACT00'</span><span class="p">,</span>
-    <span class="s1">'QUASICHEM_IRSID'</span><span class="p">,</span>
-    <span class="s1">'TERNARY_EXTRAPOLAT'</span><span class="p">,</span>
-    <span class="s1">'HKF_ELECTROSTATIC'</span><span class="p">,</span>
-    <span class="s1">'DEFAULT_STABLE'</span><span class="p">,</span>
-    <span class="s1">'SITE_RATIOS'</span><span class="p">,</span>
-    <span class="s1">'FRACTION_LIMITS'</span>
+    <span class="s1">&#39;EXCESS_MODEL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MAGNETIC_ORDERING&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DEBYE_HUCKEL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;STATUS_BITS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;NEW_CONSTITUENT&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;RENAME_PHASE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;COMPOSITION_SETS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GLASS_TRANSITION&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DISORDERED_PART&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MAJOR_CONSTITUENT&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ZRO2_TRANSITION&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;REMOVE_ADDITION&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;QUASICHEM_IONIC&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;QUASICHEM_FACT00&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;QUASICHEM_IRSID&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TERNARY_EXTRAPOLAT&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;HKF_ELECTROSTATIC&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;DEFAULT_STABLE&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SITE_RATIOS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FRACTION_LIMITS&#39;</span>
 <span class="p">])</span>
 
 <span class="n">TDB_PARAM_TYPES</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
     <span class="c1"># Gibbs energy parameters</span>
-    <span class="s1">'G'</span><span class="p">,</span>      <span class="c1"># Gibbs energy</span>
-    <span class="s1">'L'</span><span class="p">,</span>      <span class="c1"># Excess Gibbs energy</span>
+    <span class="s1">&#39;G&#39;</span><span class="p">,</span>      <span class="c1"># Gibbs energy</span>
+    <span class="s1">&#39;L&#39;</span><span class="p">,</span>      <span class="c1"># Excess Gibbs energy</span>
     <span class="c1"># Physical model parameters</span>
-    <span class="s1">'TC'</span><span class="p">,</span>     <span class="c1"># Curie temperature</span>
-    <span class="s1">'NT'</span><span class="p">,</span>     <span class="c1"># Neel temperature</span>
-    <span class="s1">'BMAGN'</span><span class="p">,</span>  <span class="c1"># Bohr magneton number</span>
-    <span class="s1">'GD'</span><span class="p">,</span>     <span class="c1"># Gibbs energy difference between liquid and amorphous states</span>
-    <span class="s1">'THETA'</span><span class="p">,</span>  <span class="c1"># Einstein temperature (log)</span>
+    <span class="s1">&#39;TC&#39;</span><span class="p">,</span>     <span class="c1"># Curie temperature</span>
+    <span class="s1">&#39;NT&#39;</span><span class="p">,</span>     <span class="c1"># Neel temperature</span>
+    <span class="s1">&#39;BMAGN&#39;</span><span class="p">,</span>  <span class="c1"># Bohr magneton number</span>
+    <span class="s1">&#39;GD&#39;</span><span class="p">,</span>     <span class="c1"># Gibbs energy difference between liquid and amorphous states</span>
+    <span class="s1">&#39;THETA&#39;</span><span class="p">,</span>  <span class="c1"># Einstein temperature (log)</span>
     <span class="c1"># Molar volume parameters</span>
-    <span class="s1">'V0'</span><span class="p">,</span>     <span class="c1"># Molar volume at STP</span>
-    <span class="s1">'VA'</span><span class="p">,</span>     <span class="c1"># Integrated thermal expansivity</span>
-    <span class="s1">'VC'</span><span class="p">,</span>     <span class="c1"># High-pressure fitting parameter</span>
-    <span class="s1">'VK'</span><span class="p">,</span>     <span class="c1"># Isothermal compressibility</span>
+    <span class="s1">&#39;V0&#39;</span><span class="p">,</span>     <span class="c1"># Molar volume at STP</span>
+    <span class="s1">&#39;VA&#39;</span><span class="p">,</span>     <span class="c1"># Integrated thermal expansivity</span>
+    <span class="s1">&#39;VC&#39;</span><span class="p">,</span>     <span class="c1"># High-pressure fitting parameter</span>
+    <span class="s1">&#39;VK&#39;</span><span class="p">,</span>     <span class="c1"># Isothermal compressibility</span>
     <span class="c1"># Property model parameters</span>
-    <span class="s1">'VISC'</span><span class="p">,</span>   <span class="c1"># Viscosity, RT*log(viscosity)</span>
-    <span class="s1">'ELRS'</span><span class="p">,</span>   <span class="c1"># Electric resistivity</span>
-    <span class="s1">'THCD'</span><span class="p">,</span>   <span class="c1"># Thermal Conductivity</span>
-    <span class="s1">'SIGM'</span><span class="p">,</span>   <span class="c1"># Surface tension of a liquid endmember</span>
-    <span class="s1">'XI'</span><span class="p">,</span>     <span class="c1"># Surface tension dampening factor for a constituent</span>
+    <span class="s1">&#39;VISC&#39;</span><span class="p">,</span>   <span class="c1"># Viscosity, RT*log(viscosity)</span>
+    <span class="s1">&#39;ELRS&#39;</span><span class="p">,</span>   <span class="c1"># Electric resistivity</span>
+    <span class="s1">&#39;THCD&#39;</span><span class="p">,</span>   <span class="c1"># Thermal Conductivity</span>
+    <span class="s1">&#39;SIGM&#39;</span><span class="p">,</span>   <span class="c1"># Surface tension of a liquid endmember</span>
+    <span class="s1">&#39;XI&#39;</span><span class="p">,</span>     <span class="c1"># Surface tension dampening factor for a constituent</span>
     <span class="c1"># Mobility parameters</span>
-    <span class="s1">'MQ'</span><span class="p">,</span>     <span class="c1"># Activation enthalpy for mobility</span>
-    <span class="s1">'MF'</span><span class="p">,</span>     <span class="c1"># Pre-exponential factor for mobility</span>
-    <span class="s1">'DQ'</span><span class="p">,</span>     <span class="c1"># Activation enthalpy for diffusivity</span>
-    <span class="s1">'DF'</span><span class="p">,</span>     <span class="c1"># Pre-expontential factor for diffusivity</span>
-    <span class="s1">'VS'</span><span class="p">,</span>     <span class="c1"># Volume per mole of volume-carrying species</span>
+    <span class="s1">&#39;MQ&#39;</span><span class="p">,</span>     <span class="c1"># Activation enthalpy for mobility</span>
+    <span class="s1">&#39;MF&#39;</span><span class="p">,</span>     <span class="c1"># Pre-exponential factor for mobility</span>
+    <span class="s1">&#39;DQ&#39;</span><span class="p">,</span>     <span class="c1"># Activation enthalpy for diffusivity</span>
+    <span class="s1">&#39;DF&#39;</span><span class="p">,</span>     <span class="c1"># Pre-expontential factor for diffusivity</span>
+    <span class="s1">&#39;VS&#39;</span><span class="p">,</span>     <span class="c1"># Volume per mole of volume-carrying species</span>
 <span class="p">])</span>
 
-<div class="viewcode-block" id="expand_keyword"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb_keywords.expand_keyword">[docs]</a><span class="k">def</span> <span class="nf">expand_keyword</span><span class="p">(</span><span class="n">possible</span><span class="p">,</span> <span class="n">candidate</span><span class="p">):</span>
-    <span class="sd">"""</span>
+<div class="viewcode-block" id="expand_keyword">
+<a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb_keywords.expand_keyword">[docs]</a>
+<span class="k">def</span> <span class="nf">expand_keyword</span><span class="p">(</span><span class="n">possible</span><span class="p">,</span> <span class="n">candidate</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Expand an abbreviated keyword based on the provided list.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    possible : list of str</span>
-<span class="sd">        Possible keywords for 'candidate' to be matched against.</span>
+<span class="sd">        Possible keywords for &#39;candidate&#39; to be matched against.</span>
 <span class="sd">    candidate : str</span>
 <span class="sd">        Abbreviated keyword to expand.</span>
 
@@ -334,20 +343,21 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Rewritten to escape each token in the split string, instead of the input</span>
     <span class="c1"># The reason is that Python 2.7 will escape underscore characters</span>
     <span class="n">candidate_pieces</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> \
-        <span class="n">candidate</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'-'</span><span class="p">,</span> <span class="s1">'_'</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'_'</span><span class="p">)]</span>
-    <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">'^'</span>
-    <span class="n">pattern</span> <span class="o">+=</span> <span class="sa">r</span><span class="s1">'[^_\s]*_'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">candidate_pieces</span><span class="p">)</span>
-    <span class="n">pattern</span> <span class="o">+=</span> <span class="sa">r</span><span class="s1">'[^\s]*$'</span>
+        <span class="n">candidate</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)]</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;^&#39;</span>
+    <span class="n">pattern</span> <span class="o">+=</span> <span class="sa">r</span><span class="s1">&#39;[^_\s]*_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">candidate_pieces</span><span class="p">)</span>
+    <span class="n">pattern</span> <span class="o">+=</span> <span class="sa">r</span><span class="s1">&#39;[^\s]*$&#39;</span>
     <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">pxd</span><span class="p">)</span> <span class="k">for</span> <span class="n">pxd</span> <span class="ow">in</span> <span class="n">possible</span><span class="p">]</span>
     <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">string</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1"> does not match </span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">possible</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> does not match </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">possible</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">matches</span></div>
+
 </pre></div>
         </article>
       </div>
@@ -357,13 +367,19 @@
           
           
         </div>
-
-        <div class="related-information">
-              Copyright &#169; 2015, pycalphad Development Team |
-            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
-              and
-              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2015, pycalphad Development Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
         </div>
         
       </footer>
@@ -374,11 +390,10 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/scripts/main.js"></script>
+</div><script src="../../../_static/documentation_options.js?v=880d8706"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>
 </html>
