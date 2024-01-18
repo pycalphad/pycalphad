@@ -25,12 +25,7 @@ try:
     __version__ = get_version(root='..', relative_to=__file__)
     del get_version
 except ImportError:
-    # Fall back on the metadata of the installed package
-    try:
-        from importlib.metadata import version
-    except ImportError:
-        # backport for Python<3.8
-        from importlib_metadata import version
+    from importlib.metadata import version
     __version__ = version("pycalphad")
     del version
 
