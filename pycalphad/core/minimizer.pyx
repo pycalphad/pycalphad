@@ -530,6 +530,8 @@ cdef class SystemState:
                     self.mole_fractions[comp_idx] += self.phase_amt[idx] * csst.masses[comp_idx, 0]
                     self.system_amount += self.phase_amt[idx] * csst.masses[comp_idx, 0]
                 self.phase_compositions[idx, comp_idx] = csst.masses[comp_idx, 0]
+        # Avoid singularities by preventing the system mass going to zero
+        self.system_amount = max(1e-16, self.system_amount)
         for comp_idx in range(self.mole_fractions.shape[0]):
             self.mole_fractions[comp_idx] /= self.system_amount
 
