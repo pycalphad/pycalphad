@@ -1411,7 +1411,7 @@ class Model(object):
             reference_contrib = Add(*terms)
             referenced_value = getattr(self, out) - reference_contrib
             setattr(self, fmt_str.format(out), referenced_value)
-    
+
     def volume_energy(self, dbe):
         """
         Return the volumetric contribution in symbolic form. Follows the approach by Lu, Selleby, and Sundman [1].
@@ -1420,7 +1420,7 @@ class Model(object):
         ----------
         dbe : Database
             Database containing the relevant parameters.
-        
+
         Notes
         -----
         The high-pressure portion of the model is not currently implemented.
@@ -1459,10 +1459,13 @@ class Model(object):
             (where('constituent_array').test(self._array_validity))
         )
 
-        V0 = self.redlich_kister_sum(phase, param_search, V0_param_query)
-        VA = self.redlich_kister_sum(phase, param_search, VA_param_query)
-        VK = self.redlich_kister_sum(phase, param_search, VK_param_query)
-        VC = self.redlich_kister_sum(phase, param_search, VC_param_query)
+        # V0 is given in databases per mole of formula, so we should normalize it
+        self.V0 = V0 = self.symbol_replace(self.redlich_kister_sum(phase, param_search, V0_param_query) / self._site_ratio_normalization, self._symbols)
+        # VA is given in databases per mole of atoms, so we should not normalize it
+        self.VA = VA = self.symbol_replace(self.redlich_kister_sum(phase, param_search, VA_param_query), self._symbols)
+        # TODO: unsure about the normalization of VK and VC parameters
+        self.VK = VK = self.symbol_replace(self.redlich_kister_sum(phase, param_search, VK_param_query), self._symbols)
+        self.VC = VC = self.symbol_replace(self.redlich_kister_sum(phase, param_search, VC_param_query), self._symbols)
 
         # nonmagnetic contribution to volume
         V_p0 = V0*exp(VA)
@@ -1471,7 +1474,7 @@ class Model(object):
         G_mag = self.models.get('mag')
         V_mag = G_mag.diff(v.P)
 
-        self.MV = self.molar_volume = V_p0 + V_mag
+        self.VM = self.molar_volume = V_p0 + V_mag
         volume_energy = S.Zero
 
         if VK == 0:
