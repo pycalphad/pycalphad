@@ -70,6 +70,7 @@ jobs:
         with:
           pattern: artifact-*
           path: dist
+          merge-multiple: true  # download and extract all artifacts in the same directory
 
       - uses: pypa/gh-action-pypi-publish@v1.8.11
         with:
