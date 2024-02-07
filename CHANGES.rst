@@ -1,6 +1,18 @@
 What's New
 ==========
 
+0.10.4 (2024-01-29)
+-------------------
+
+This is a minor release containing bug fixes, updated dependency versions, and updated Python build targets.
+
+* MAINT/BLD: Add support for building, testing, and deploying on Python 3.12. Drop End-of-life Python 3.7. ( :issue:`508` )
+* FIX: Fix molar volume model to have more consistent property name, ``VM`` instead of ``MV``, and to property normalize ``VA``, ``VK`, and ``VC`` parameters to be per-mole-atoms ( :issue:`501` )
+* FIX: Minimizer stability improvements when one or more phases are fixed. ( :issue:`507` )
+* MAINT: Relax SymEngine version requirement. ( :issue:`498` )
+* FIX: Precision error in Halton sampling resolving divide by zero warnings. ( :issue:`495` )
+
+
 0.10.3 (2023-09-13)
 -------------------
 

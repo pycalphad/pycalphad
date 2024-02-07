@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.16.4
         env:
           # PyPy wheels not allowed because SciPy (build requirement) is not available
           CIBW_BUILD: cp3*-*
@@ -70,6 +70,7 @@ jobs:
         with:
           pattern: artifact-*
           path: dist
+          merge-multiple: true  # download and extract all artifacts in the same directory
 
       - uses: pypa/gh-action-pypi-publish@v1.8.11
         with:

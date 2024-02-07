@@ -59,7 +59,6 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'Cython' if os.getenv('CYTHON_COVERAGE', False) else '', # required for Cython test coverage
-        'importlib_metadata',  # drop when pycalphad drops support for Python<3.8
         'importlib_resources',  # drop when pycalphad drops support for Python<3.9
         'matplotlib>=3.3',
         'numpy>=1.13',
@@ -92,10 +91,11 @@ setup(
 
         # Supported Python versions
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
 
 )
