@@ -486,7 +486,7 @@ class TCPrinter(object):
     def _print_Piecewise(self, expr):
         # Filter out default zeros since they are implicit in a TDB
         filtered_args = [(x, cond) for x, cond in zip(*[iter(expr.args)]*2) if not ((cond == S.true) and (x == S.Zero))]
-        exprs = [self._stringify_expr(x) for x, cond in filtered_args]
+        exprs = [re.sub(r'\*\*\(([+-]?[0-9]+)\.0\)', r'**(\1)', self._stringify_expr(x)) for x, cond in filtered_args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
         # to_interval() is used because symengine does not implement as_set()
