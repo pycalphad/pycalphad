@@ -6,8 +6,8 @@ from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad import calculate, variables as v
 
-from pycalphad_mapping.primitives import Direction, ZPFLine, Point, Node, NodeQueue, NodesExhaustedError, STATEVARS, _get_global_value_for_var, _get_value_for_var
-from pycalphad_mapping.custom_add_new_phases import add_new_phases
+from pycalphad.mapping.primitives import Direction, ZPFLine, Point, Node, NodeQueue, NodesExhaustedError, STATEVARS, _get_global_value_for_var, _get_value_for_var
+from pycalphad.mapping.custom_add_new_phases import add_new_phases
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.utils import instantiate_models, filter_phases, unpack_components
 

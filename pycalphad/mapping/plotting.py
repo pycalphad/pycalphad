@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pycalphad.plot.utils import phase_legend
 from pycalphad import variables as v
-from pycalphad_mapping.primitives import STATEVARS
+from pycalphad.mapping.primitives import STATEVARS
 from .primitives import Point, ZPFLine, _get_value_for_var, _get_global_value_for_var
 from .mapper import Mapper
 

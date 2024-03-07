@@ -1,11 +1,11 @@
-from pycalphad_mapping.map_strategies.strategy_base import MapStrategy
-from pycalphad_mapping.map_strategies.step_strategy import StepStrategy
+from pycalphad.mapping.map_strategies.strategy_base import MapStrategy
+from pycalphad.mapping.map_strategies.step_strategy import StepStrategy
 from pycalphad import Database, variables as v
 from typing import List, Mapping
-from pycalphad_mapping.primitives import ZPFLine, Point, Node, _get_global_value_for_var, _get_value_for_var, ExitHint, Direction
+from pycalphad.mapping.primitives import ZPFLine, Point, Node, _get_global_value_for_var, _get_value_for_var, ExitHint, Direction
 import numpy as np
 import itertools
-from pycalphad_mapping.primitives import STATEVARS
+from pycalphad.mapping.primitives import STATEVARS
 from pycalphad.core.constants import COMP_DIFFERENCE_TOL
 
 """

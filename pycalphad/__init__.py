@@ -13,8 +13,7 @@ import pycalphad.io.cs_dat
 
 from pycalphad.core.calculate import calculate
 from pycalphad.core.equilibrium import equilibrium
-from pycalphad.plot.binary import binplot
-from pycalphad.plot.ternary import ternplot
+from pycalphad.mapping.compat_api import binplot, ternplot
 from pycalphad.plot.eqplot import eqplot
 
 # Set the version of pycalphad

@@ -1,10 +1,10 @@
 from pycalphad import Database, variables as v
 from pycalphad.core.composition_set import CompositionSet
-from pycalphad_mapping.primitives import STATEVARS, Point, Node, ZPFLine
+from pycalphad.mapping.primitives import STATEVARS, Point, Node, ZPFLine
 from typing import List, Mapping, Tuple, Union
-from pycalphad_mapping.map_strategies.step_strategy import StepStrategy
-from pycalphad_mapping.map_strategies.tielines_strategy import TielineStrategy
-from pycalphad_mapping.map_strategies.general_strategy import GeneralStrategy
+from pycalphad.mapping.map_strategies.step_strategy import StepStrategy
+from pycalphad.mapping.map_strategies.tielines_strategy import TielineStrategy
+from pycalphad.mapping.map_strategies.general_strategy import GeneralStrategy
 import json
 import numpy as np
 
@@ -42,8 +42,8 @@ class Mapper():
         elements = get_unique_elements(components)
 
         stepping_mode = len(axis_vars) == 1
-        is_binary_phase_diagram = (num_potential_conditions == 1) and (len(elements) == 3)
-        is_ternary_isotherm = (num_potential_conditions == 0) and (len(elements) == 4)
+        is_binary_phase_diagram = (num_potential_conditions == 1) and (len(set(elements) - {"VA"}) == 2)
+        is_ternary_isotherm = (num_potential_conditions == 0) and (len(set(elements) - {"VA"}) == 3)
         tielines_in_plane = (len(axis_vars) == 2) and (is_binary_phase_diagram or is_ternary_isotherm)
 
         if stepping_mode:

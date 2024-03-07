@@ -1,10 +1,10 @@
 from pycalphad import Database, variables as v
 from typing import List, Mapping
-from pycalphad_mapping.primitives import ZPFLine, NodeQueue, STATEVARS, Node, Point, ZPFLine, _get_global_value_for_var, _get_value_for_var, Direction, ExitHint, NodesExhaustedError
+from pycalphad.mapping.primitives import ZPFLine, NodeQueue, STATEVARS, Node, Point, ZPFLine, _get_global_value_for_var, _get_value_for_var, Direction, ExitHint, NodesExhaustedError
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.utils import instantiate_models, filter_phases, unpack_components
-from pycalphad_mapping.starting_points import starting_point_from_equilibrium
-from pycalphad_mapping.utils import calculate_with_new_conditions, check_point_is_global_min, compare_cs_for_change_in_phases, create_node_from_different_points, degrees_of_freedom, check_point_is_valid
+from pycalphad.mapping.starting_points import starting_point_from_equilibrium
+from pycalphad.mapping.utils import calculate_with_new_conditions, check_point_is_global_min, compare_cs_for_change_in_phases, create_node_from_different_points, degrees_of_freedom, check_point_is_valid
 from copy import deepcopy
 import numpy as np
 from pycalphad.core.constants import COMP_DIFFERENCE_TOL

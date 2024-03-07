@@ -1,8 +1,8 @@
 from pycalphad import Database, variables as v
-from pycalphad_mapping.mapper import Mapper
-from pycalphad_mapping.starting_points import automatic_starting_points_from_axis_limits
+from pycalphad.mapping.mapper import Mapper
+from pycalphad.mapping.starting_points import automatic_starting_points_from_axis_limits
 import matplotlib.pyplot as plt
-from pycalphad_mapping.plotting import plot_map
+from pycalphad.mapping.plotting import plot_map
 import numpy as np
 from pycalphad.core.utils import unpack_components, filter_phases
 from pycalphad.plot.utils import phase_legend

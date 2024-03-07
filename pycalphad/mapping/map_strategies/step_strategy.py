@@ -1,7 +1,7 @@
-from pycalphad_mapping.map_strategies.strategy_base import MapStrategy
+from pycalphad.mapping.map_strategies.strategy_base import MapStrategy
 from pycalphad import Database, variables as v
 from typing import List, Mapping
-from pycalphad_mapping.primitives import ZPFLine, Point, Node, Direction, ExitHint
+from pycalphad.mapping.primitives import ZPFLine, Point, Node, Direction, ExitHint
 import itertools
 import numpy as np
 

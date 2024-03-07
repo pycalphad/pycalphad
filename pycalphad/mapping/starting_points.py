@@ -6,12 +6,12 @@ from pycalphad.core.utils import instantiate_models, filter_phases, unpack_compo
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.solver import Solver
-from pycalphad_mapping.primitives import _get_value_for_var
+from pycalphad.mapping.primitives import _get_value_for_var
 from pycalphad.core.constants import MIN_SITE_FRACTION
 
 from .primitives import STATEVARS, Point, Direction
 
-from pycalphad_mapping.utils import _extract_point_from_dataset, _is_a_potential, _get_conditions_from_eq
+from pycalphad.mapping.utils import _extract_point_from_dataset, _is_a_potential, _get_conditions_from_eq
 
 def starting_point_from_equilibrium(dbf, comps, phases, conditions, condition_to_drop, **eq_kwargs):
     """

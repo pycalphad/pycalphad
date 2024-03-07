@@ -1,7 +1,7 @@
-from pycalphad_mapping.primitives import STATEVARS
+from pycalphad.mapping.primitives import STATEVARS
 from pycalphad import calculate, variables as v
 from pycalphad.core.composition_set import CompositionSet
-from pycalphad_mapping.primitives import _get_value_for_var, Point, Node
+from pycalphad.mapping.primitives import _get_value_for_var, Point, Node
 from xarray import Dataset
 from pycalphad.core.solver import Solver
 import numpy as np

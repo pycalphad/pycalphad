@@ -1,7 +1,7 @@
-from pycalphad_mapping.map_strategies.general_strategy import GeneralStrategy
+from pycalphad.mapping.map_strategies.general_strategy import GeneralStrategy
 from pycalphad import Database, calculate, variables as v
 from typing import List, Mapping
-from pycalphad_mapping.primitives import STATEVARS, Point, Node, _get_global_value_for_var, _get_value_for_var, ExitHint
+from pycalphad.mapping.primitives import STATEVARS, Point, Node, _get_global_value_for_var, _get_value_for_var, ExitHint
 import numpy as np
 import itertools
 
