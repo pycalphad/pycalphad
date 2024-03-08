@@ -463,12 +463,12 @@ class TCPrinter(object):
                 if adding_term[0] == '-':
                     terms += adding_term
                 else:
-                    terms += ' + ' + adding_term
+                    terms += '+' + adding_term
             return terms
         elif isinstance(expr, Mul):
             terms = self._stringify_expr(expr.args[0])
             for arg in expr.args[1:]:
-                terms += ' * ' + self._stringify_expr(arg)
+                terms += '*' + self._stringify_expr(arg)
             return terms
         elif isinstance(expr, Pow):
             if expr.args[0] == E:
@@ -478,7 +478,7 @@ class TCPrinter(object):
                 argument = self._stringify_expr(expr.args[0])
                 if isinstance(expr.args[0], (Add, Mul)):
                     argument = '( ' + argument + ' )'
-                terms = argument + '**' + '(' + self._stringify_expr(expr.args[1]) + ')'
+                terms = argument + '**' + '(' + self._stringify_expr(int(expr.args[1])) + ')'
             return terms
         else:
             return str(expr)
@@ -486,7 +486,7 @@ class TCPrinter(object):
     def _print_Piecewise(self, expr):
         # Filter out default zeros since they are implicit in a TDB
         filtered_args = [(x, cond) for x, cond in zip(*[iter(expr.args)]*2) if not ((cond == S.true) and (x == S.Zero))]
-        exprs = [re.sub(r'\*\*\(([+-]?[0-9]+)\.0\)', r'**(\1)', self._stringify_expr(x)) for x, cond in filtered_args]
+        exprs = [self._stringify_expr(x) for x, cond in filtered_args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
         # to_interval() is used because symengine does not implement as_set()
@@ -533,7 +533,7 @@ def reflow_text(text, linewidth=80):
     reflowed_text : str
     """
     lines = text.split("\n")
-    linebreak_chars = [" ", "$"]
+    linebreak_chars = [" ", ")", "$"]
     output_lines = []
     for line in lines:
         if len(line) <= linewidth:
@@ -541,7 +541,7 @@ def reflow_text(text, linewidth=80):
         else:
             while len(line) > linewidth:
                 linebreak_idx = linewidth - 1
-                while linebreak_idx > 0 and line[linebreak_idx] not in linebreak_chars:
+                while linebreak_idx > 0 and line[linebreak_idx-1:linebreak_idx+1] not in [str(i) + sign for sign in ['+', '-'] for i in range(10)] and line[linebreak_idx-1] not in linebreak_chars:
                     linebreak_idx -= 1
                 # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
                 if linebreak_idx <= 2:
