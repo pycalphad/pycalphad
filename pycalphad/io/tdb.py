@@ -533,7 +533,7 @@ def reflow_text(text, linewidth=80):
     reflowed_text : str
     """
     lines = text.split("\n")
-    linebreak_chars = [" ", ")", "$"]
+    linebreak_chars = [" ", "$"]
     output_lines = []
     for line in lines:
         if len(line) <= linewidth:
@@ -541,7 +541,7 @@ def reflow_text(text, linewidth=80):
         else:
             while len(line) > linewidth:
                 linebreak_idx = linewidth - 1
-                while linebreak_idx > 0 and line[linebreak_idx-1:linebreak_idx+1] not in [str(i) + sign for sign in ['+', '-'] for i in range(10)] and line[linebreak_idx-1] not in linebreak_chars:
+                while linebreak_idx > 0 and not re.match(r'[^E\(][+-][0-9]', line[linebreak_idx-1:linebreak_idx+2]) and line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
                 # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
                 if linebreak_idx <= 2:
