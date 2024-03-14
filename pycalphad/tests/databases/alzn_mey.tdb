@@ -1,0 +1,94 @@
+$ ALZN
+$
+$ TDB-file for the thermodynamic assessment of the Al-ZN system
+$
+$-------------------------------------------------------------------------------
+$ 2011.11.9
+$ 
+$ TDB file created by T.Abe, K.Hashimoto and Y.sawada
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for 
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ e-mail: abe.taichi@nims.go.jp
+$ Copyright (C) NIMS 2009
+$
+$ ------------------------------------------------------------------------------
+$ PARAMETERS ARE TAKEN FROM 
+$ Reevaluation of the Al-Zn System,
+$ Sabine an Mey, Z.Metallkd., 84 (1993) 451-455.
+$
+$ ------------------------------------------------------------------------------
+
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01!
+ ELEMENT ZN   HCP_ZN                    6.5390E+01  5.6568E+03  4.1631E+01!
+
+$-------------------------------------------------------------------------------
+$ FUNCTIONS FOR PURE AND OTHERS
+$-------------------------------------------------------------------------------
+ FUNCTION  GHSERAL  298.0
+    -7976.15+137.0715*T-24.36720*T*LN(T)-1.884662E-3*T**2-0.877664E-6*T**3
+    +74092*T**(-1);                                                   700.00 Y
+    -11276.24+223.0269*T-38.58443*T*LN(T)+18.531982E-3*T**2-5.764227E-6*T**3
+    +74092*T**(-1);                                                    933.6 Y
+    -11277.68+188.6620*T-31.74819*T*LN(T)-1234.26E25*T**(-9);        2900.00 N ! 
+ FUNCTION  GALLIQ   298.0
+    +3029.403+125.2307*T-24.36720*T*LN(T)-1.884662E-3*T**2-0.877664E-6*T**3
+    +74092*T**(-1)+79.401E-21*T**7;                                   700.00 Y
+    -270.6860+211.1861*T-38.58443*T*LN(T)+18.53198E-3*T**2-5.764227E-6*T**3
+    +74092*T**(-1)+79.401E-21*T**7;                                    933.6 Y
+    -795.7090+177.4100*T-31.74819*T*LN(T);                           2900.00 N !
+ FUNCTION  GALHCP   298.0  +5481-1.8*T+GHSERAL#;                      6000  N !
+
+
+ FUNCTION GHSERZN    298.0  -7285.787+118.4693*T-23.70131*T*LN(T)
+     -.001712034*T**2-1.264963E-06*T**3;                              692.7 Y
+     -11070.60+172.3449*T-31.38*T*LN(T)+4.70657E+26*T**(-9);           1700 N !
+ $FUNCTION GZNLIQ     298.0  -1.285170+108.1769*T-23.70131*T*LN(T)
+ $    -.001712034*T**2-1.264963E-06*T**3-3.585652E-19*T**7;            692.7 Y
+ $    -11070.60+172.3449*T-31.38*T*LN(T)+4.70657E+26*T**(-9);           1700 N !
+ FUNCTION GZNLIQ     298.14  +7157.213-10.29299*T-3.5896E-19*T**7+GHSERZN#;
+                                                                      692.7 Y
+     +7450.168-10.737066*T-4.7051E+26*T**(-9)+GHSERZN#;                 1700 N !
+ FUNCTION GZNFCC     298.15  +2969.82-1.56968*T+GHSERZN#;               1700 N !
+
+$-------------------------------------------------------------------------------
+ TYPE_DEFINITION % SEQ *!
+ DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+ DEFAULT_COMMAND DEF_SYS_ELEMENT VA /- !
+
+$-------------------------------------------------------------------------------
+$ PARAMETERS FOR LIQUID PHASE
+$-------------------------------------------------------------------------------
+ PHASE LIQUID %  1  1.0  !
+ CONSTITUENT LIQUID :AL,ZN :  !
+   PARAMETER G(LIQUID,AL;0)      298.15  +GALLIQ#;                      2900 N !
+   PARAMETER G(LIQUID,ZN;0)      298.15  +GZNLIQ#;                      1700 N !
+   PARAMETER G(LIQUID,AL,ZN;0)   298.15  +10465.5-3.39259*T;            6000 N !
+
+$-------------------------------------------------------------------------------
+$ FUNCTIONS FOR FCC_A1
+$-------------------------------------------------------------------------------
+ PHASE FCC_A1  %  1  1.0  !
+ CONSTITUENT FCC_A1  :AL,ZN :  !
+   PARAMETER G(FCC_A1,AL;0)      298.15  +GHSERAL#;                     2900 N !
+   PARAMETER G(FCC_A1,ZN;0)      298.15  +GZNFCC#;                      1700 N !
+   PARAMETER G(FCC_A1,AL,ZN;0)   298.15  +7297.5+0.47512*T;             6000 N !
+   PARAMETER G(FCC_A1,AL,ZN;1)   298.15  +6612.9-4.5911*T;              6000 N !
+   PARAMETER G(FCC_A1,AL,ZN;2)   298.15  -3097.2+3.30635*T;             6000 N !
+
+$-------------------------------------------------------------------------------
+$ FUNCTIONS FOR HCP_A3
+$-------------------------------------------------------------------------------
+ PHASE HCP_A3  %  1  1.0  !
+ CONSTITUENT HCP_A3  :AL,ZN :  !
+  PARAMETER G(HCP_A3,AL;0)       298.15  +GALHCP#;                      2900 N !
+  PARAMETER G(HCP_A3,ZN;0)       298.15  +GHSERZN#;                     1700 N !
+  PARAMETER G(HCP_A3,AL,ZN;0)    298.15  +18821.0-8.95255*T;            6000 N !
+  PARAMETER G(HCP_A3,AL,ZN;3)    298.15  -702.8;                        6000 N !
+
+$
+$------------------------------------------------------------------- END OF LINE
+
+ 

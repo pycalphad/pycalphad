@@ -10,6 +10,7 @@ import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
+from pycalphad.io.tdb import get_supported_variables
 import numpy as np
 from collections import OrderedDict
 
@@ -269,7 +270,7 @@ class Model(object):
 
         for name, value in self.models.items():
             # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
-            self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
+            self.models[name] = self.symbol_replace(value, symbols).xreplace(get_supported_variables())
 
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
@@ -430,9 +431,12 @@ class Model(object):
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
     energy = GM = property(lambda self: self.ast)
+    energy_implementation_units = GM_implementation_units = 'J / mol'
+    energy_display_units = GM_display_units = 'kJ / mol'
     formulaenergy = G = property(lambda self: self.ast * self._site_ratio_normalization)
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
+    formulaenthalpy = H = property(lambda self: self.G - v.T*self.G.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
     mixing_energy = GM_MIX = property(lambda self: self.GM - self.endmember_reference_model.GM)
