@@ -1,5 +1,5 @@
 import os, sys
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
 import numpy as np
 
@@ -28,13 +28,16 @@ CYTHON_EXTENSION_MODULES = [
     Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx'], define_macros=CYTHON_DEFINE_MACROS),
 ]
 
+packages = find_packages()
+# Do NOT include pycalphad._dev. It is for local development and should not be distributed.
+packages.remove("pycalphad._dev")
+
 setup(
     name='pycalphad',
     author='Richard Otis',
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
-    # Do NOT include pycalphad._dev here. It is for local development and should not be distributed.
-    packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests', 'pycalphad.tests.databases', 'pycalphad.models'],
+    packages=packages,
     ext_modules=cythonize(
         CYTHON_EXTENSION_MODULES,
         include_path=CYTHON_EXTENSION_INCLUDES,

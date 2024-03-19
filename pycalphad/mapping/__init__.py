@@ -1,0 +1,1 @@
+from .compat_api import binplot, ternplot
