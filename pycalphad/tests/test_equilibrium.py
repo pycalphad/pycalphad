@@ -998,6 +998,31 @@ def test_MQMQA_ternary_equilibrium_xs_symm_123(load_database):
     assert np.all(eq.Phase.squeeze() == ['TERN_XS_123', '', '', ''])
     assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25023, 0.19915, 0.30039, 4.0755E-02, 0.11934, 9.0136E-02], atol=1e-5)  # Thermochimica result
 
+@select_database("Be-F-Li.dat")
+def test_MQMQA_species_of_different_moles(load_database):
+    """Ternary ideal"""
+    dbf = load_database()
+    comps = ['F', 'LI', 'BE', 'VA']
+    eq = equilibrium(dbf, comps, ['MSFL'], {v.N: 1, v.P: 101325, v.T: 1450, v.X('LI'):0.333333333333333, v.X('BE'):0.111111111111111})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -3.83970E+05)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['MSFL', '', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [2.8044E-03, 0.27308, 2.1286E-03, 4.0389E-04, 0.18883,  0.53275], atol=1e-5)  # Thermochimica result
+
+@select_database("NaCl-AlCl3.dat")
+def test_MQMQA_when_vacancy_is_a_species(load_database):
+    """Ternary ideal"""
+    dbf = load_database()
+    comps = ['CL', 'AL', 'NA', 'VA']
+    eq = equilibrium(dbf, comps, ['MSSOLN'], {v.N: 1, v.P: 101325, v.T: 1400, v.X('NA'):0.5, v.X('CL'):0.375})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -2.44826E+05)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['MSSOLN', 'MSSOLN', '', ''])
+
 @pytest.mark.solver
 @select_database("alfeo.tdb")
 def test_eq_charge_halite(load_database):

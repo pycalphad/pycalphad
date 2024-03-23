@@ -323,7 +323,7 @@ def test_magnetic_reference_energy_is_zero(load_database):
 
 def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
-    
+
     VA_INTERACTION_TDB = """
     ELEMENT AL   FCC_A1                    26.981539   4577.296    28.3215!
     ELEMENT VA   BLANK                     0.0 0.0 0.0 !
@@ -779,7 +779,6 @@ def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
     mod = ModelMQMQA(dbf, ["FE", "SB", "O", "S"], "SLAG-LIQ")
-
     assert FE2 in mod.cations
     assert FE3 in mod.cations
     assert SB3 in mod.cations
@@ -938,7 +937,7 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
 @select_database("KF-NIF2_switched.dat")
 def test_DAT_coordination_numbers_are_order_invariant(load_database):
     """Coordination number parameters should have the coordinations sorted in the correct order.
-    
+
     This test confirms that if database cation ordering is not alphabetical in
     the source database (in particular, for coordination numbers), the energy
     will be correctly computed.
