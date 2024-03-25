@@ -854,11 +854,14 @@ def test_tc_printer_nested_mul_add():
     """
     test_expr = S('A*(B+C)')
     result = TCPrinter()._stringify_expr(test_expr)
-    assert result == 'A * (B + C)'
+    #Test for B+C or C+B since this seems to differ across different OS
+    assert result == 'A * (B + C)' or result == 'A * (C + B)'
 
     test_expr = S('A*(B*C)')
     result = TCPrinter()._stringify_expr(test_expr)
-    assert result == 'A * B * C'
+    #Just test that the parenthesis are ignored, since the ordering can
+    #differ across different OS and this would result in 6 different combinations to test
+    assert '(' not in result and ')' not in result
 
 
 @select_database("Al-Fe_sundman2009.tdb")
