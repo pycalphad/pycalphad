@@ -463,12 +463,12 @@ class TCPrinter(object):
                 if adding_term[0] == '-':
                     terms += adding_term
                 else:
-                    terms += ' + ' + adding_term
+                    terms += '+' + adding_term
             return terms
         elif isinstance(expr, Mul):
             terms = self._stringify_expr(expr.args[0])
             for arg in expr.args[1:]:
-                terms += ' * ' + self._stringify_expr(arg)
+                terms += '*' + self._stringify_expr(arg)
             return terms
         elif isinstance(expr, Pow):
             if expr.args[0] == E:
@@ -478,7 +478,7 @@ class TCPrinter(object):
                 argument = self._stringify_expr(expr.args[0])
                 if isinstance(expr.args[0], (Add, Mul)):
                     argument = '( ' + argument + ' )'
-                terms = argument + '**' + '(' + self._stringify_expr(expr.args[1]) + ')'
+                terms = argument + '**' + '(' + self._stringify_expr(int(expr.args[1])) + ')'
             return terms
         else:
             return str(expr)
@@ -541,7 +541,7 @@ def reflow_text(text, linewidth=80):
         else:
             while len(line) > linewidth:
                 linebreak_idx = linewidth - 1
-                while linebreak_idx > 0 and line[linebreak_idx] not in linebreak_chars:
+                while linebreak_idx > 0 and not re.match(r'[^E\(][+-][0-9]', line[linebreak_idx-1:linebreak_idx+2]) and line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
                 # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
                 if linebreak_idx <= 2:
