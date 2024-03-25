@@ -845,6 +845,21 @@ def test_tc_printer_exp():
     result = TCPrinter()._stringify_expr(test_expr)
     assert result == 'exp(-300 * T**(-1))'
 
+def test_tc_printer_nested_mul_add():
+    """
+    TCPrinter retains parenthesis around a nested Mul(Add()) expression
+    Ex. A*(B+C) should result in A*(B+C) instead of A*B+C
+    Also, it should not add unnecessary parenthesis, so: 
+        A*(B*C) should be A*B*C
+    """
+    test_expr = S('A*(B+C)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    assert result == 'A * (B + C)'
+
+    test_expr = S('A*(B*C)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    assert result == 'A * B * C'
+
 
 @select_database("Al-Fe_sundman2009.tdb")
 def test_database_symmetry_options_are_generated(load_database):
