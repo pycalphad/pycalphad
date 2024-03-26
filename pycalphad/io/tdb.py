@@ -470,11 +470,12 @@ class TCPrinter(object):
             for arg in expr.args[1:]:
                 #For cases like: A*(B+C) which is structured as Mul(A, Add(B,C))
                 #We want to explicitly add the parenthesis around Add(B,C)
-                #so we will save it to A*(B+C) rather than A*B+C
-                #For other types of expr, this isn't an issue since:
-                #    Mul does not need the extra parenthesis
-                #    Pow will add parenthesis
-                #    Other functions such as Log, Sin, etc will already include the parenthesis
+                #and save it to A*(B+C) rather than A*B+C
+                #For other types of expr, this shouldn't be an issue since:
+                #    Mul should not need extra parenthesis, e.g. A*(B*C) -> A*B*C
+                #    Pow will explicitly add parenthesis (in the next elif block)
+                #    Other functions such as Log, Sin, etc should
+                #        include the parenthesis when converting to string
                 if isinstance(arg, Add):
                     terms += ' * ' + '(' + self._stringify_expr(arg) + ')'
                 else:
