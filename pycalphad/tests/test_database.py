@@ -859,6 +859,11 @@ def test_tc_printer_nested_mul_add():
     #Test for B+C or C+B since this seems to differ across different OS
     assert result == 'A * (B + C)' or result == 'A * (C + B)'
 
+    #Test for Mul(Add(A,B),Add(C,D))
+    test_expr = S('(A+B)*(C+D)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    assert ('(A + B)' in result or '(B + A)' in result) and ('(C + D)' in result or '(D + C)' in result)
+
     #Test that the parenthesis are ignored for Mul(A,Mul(B,C))
     test_expr = S('A*(B*C)')
     result = TCPrinter()._stringify_expr(test_expr)
