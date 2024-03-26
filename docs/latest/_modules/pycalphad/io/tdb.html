@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>pycalphad.io.tdb - pycalphad 0.10.4.post2.dev5+gf283453b documentation</title>
+        <title>pycalphad.io.tdb - pycalphad 0.10.4.post2.dev6+g2953e0ac documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
@@ -122,7 +122,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev5+gf283453b documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev6+g2953e0ac documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -148,7 +148,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev5+gf283453b documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev6+g2953e0ac documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -708,9 +708,19 @@
                     <span class="n">terms</span> <span class="o">+=</span> <span class="s1">&#39; + &#39;</span> <span class="o">+</span> <span class="n">adding_term</span>
             <span class="k">return</span> <span class="n">terms</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Mul</span><span class="p">):</span>
-            <span class="n">terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-                <span class="n">terms</span> <span class="o">+=</span> <span class="s1">&#39; * &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="c1">#For cases like: A*(B+C) where an Add object is one of the arguments in Mul</span>
+            <span class="c1">#We want to explicitly add the parenthesis around Add(B,C)</span>
+            <span class="c1">#and save it to A*(B+C) rather than A*B+C</span>
+            <span class="c1">#For other types of expr, this shouldn&#39;t be an issue since:</span>
+            <span class="c1">#    Mul should not need extra parenthesis, e.g. A*(B*C) -&gt; A*B*C</span>
+            <span class="c1">#    Pow will explicitly add parenthesis (in the next elif block)</span>
+            <span class="c1">#    Other functions such as Log, Sin, etc should</span>
+            <span class="c1">#        include the parenthesis when converting to string</span>
+            
+            <span class="c1">#All the arguments in Mul should be tested and they&#39;re all combined to a single expression by &#39; * &#39;</span>
+            <span class="c1">#    So we could stringify each argument as a list and join them together is &#39; * &#39;</span>
+            <span class="n">term_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span><span class="n">Add</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
+            <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39; * &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">term_list</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">terms</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Pow</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">E</span><span class="p">:</span>
@@ -1226,7 +1236,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=ac00bad5"></script>
+</div><script src="../../../_static/documentation_options.js?v=8efec0c2"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
