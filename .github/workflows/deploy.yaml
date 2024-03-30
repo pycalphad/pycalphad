@@ -75,6 +75,7 @@ jobs:
           pattern: artifact-*
           path: dist
           merge-multiple: true  # download and extract all artifacts in the same directory
+
       - name: [PyPI] Upload artifacts to PyPI (Production)
         uses: pypa/gh-action-pypi-publish@v1.8.14
         if: github.event_name == 'release' && github.event.action == 'published'
