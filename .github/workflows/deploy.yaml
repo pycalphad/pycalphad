@@ -63,11 +63,6 @@ jobs:
   upload_pypi:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    environment:
-      - name: pypi
-        if: github.event_name == 'release' && github.event.action == 'published'
-      - name: testpypi
-        if: github.event_name == 'push' && github.ref_name == 'develop'
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # upload to PyPI when a GitHub Release is created
