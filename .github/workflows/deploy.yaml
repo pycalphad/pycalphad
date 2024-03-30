@@ -64,8 +64,10 @@ jobs:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment:
-      name: pypi
-      url: https://pypi.org/p/pycalphad/
+      - name: pypi
+        if: github.event_name == 'release' && github.event.action == 'published'
+      - name: testpypi
+        if: github.event_name == 'push' && github.ref_name == 'develop'
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # upload to PyPI when a GitHub Release is created
@@ -80,6 +82,6 @@ jobs:
         if: github.event_name == 'release' && github.event.action == 'published'
       - name: TestPyPI - Upload Artifacts
         uses: pypa/gh-action-pypi-publish@v1.8.14
-        # if: github.event_name != 'release' && github.ref_name == 'develop'
+        if: github.event_name == 'push' && github.ref_name == 'develop'
         with:
           repository-url: https://test.pypi.org/legacy/
