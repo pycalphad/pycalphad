@@ -69,12 +69,17 @@ jobs:
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # upload to PyPI when a GitHub Release is created
-    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: artifact-*
           path: dist
           merge-multiple: true  # download and extract all artifacts in the same directory
-
-      - uses: pypa/gh-action-pypi-publish@v1.8.14
+      if: github.event_name == 'release' && github.event.action == 'published'
+      - name: [PyPI] Upload artifacts to PyPI (Production)
+        uses: pypa/gh-action-pypi-publish@v1.8.14
+      # if: github.event_name != 'release' && github.ref_name == 'develop'
+      - name: [TestPyPI] Upload Artifacts
+        uses: pypa/gh-action-pypi-publish@v1.8.14
+        with:
+          repository-url: https://test.pypi.org/legacy/
