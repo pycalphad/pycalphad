@@ -63,19 +63,20 @@ jobs:
   upload_pypi:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # upload to PyPI when a GitHub Release is created
-    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: artifact-*
           path: dist
           merge-multiple: true  # download and extract all artifacts in the same directory
-
-      - uses: pypa/gh-action-pypi-publish@v1.8.14
+      - name: PyPI - Upload Artifacts to PyPI (Production)
+        uses: pypa/gh-action-pypi-publish@v1.8.14
+        if: github.event_name == 'release' && github.event.action == 'published'
+      - name: TestPyPI - Upload Artifacts
+        uses: pypa/gh-action-pypi-publish@v1.8.14
+        if: github.event_name == 'push' && github.ref_name == 'develop'
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_PYCALPHAD_TOKEN }}
-          # To test, uncomment the following:
-          # password: ${{ secrets.TEST_PYPI_PYCALPHAD_TOKEN }}
-          # repository_url: https://test.pypi.org/legacy/
+          repository-url: https://test.pypi.org/legacy/
