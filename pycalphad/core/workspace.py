@@ -202,7 +202,9 @@ class PRFField(TypedField):
     def __init__(self, dependsOn=None):
         def make_prf(obj):
             try:
-                prf = PhaseRecordFactory(obj.database, obj.components, obj.conditions, obj.models, parameters=obj.parameters)
+                prf = PhaseRecordFactory(obj.database, obj.components, obj.conditions,
+                                         obj.models.unwrap() if hasattr(obj.models, 'unwrap') else obj.models,
+                                         parameters=obj.parameters)
                 return prf
             except AttributeError:
                 return None
