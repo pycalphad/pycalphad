@@ -6,7 +6,6 @@ from pycalphad.property_framework.computed_property import DotDerivativeComputed
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models
 from pycalphad import calculate
-from pycalphad.core.errors import ConditionError
 from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
@@ -25,6 +24,7 @@ from pycalphad.property_framework import ComputableProperty, as_property
 from pycalphad.property_framework.units import unit_conversion_context, ureg, as_quantity, Q_
 from runtype import isa
 from runtype.pytypes import Dict, List, Sequence, SumType, Mapping, NoneType
+from typing import TypeVar
 
 
 
@@ -189,8 +189,7 @@ class ModelsField(DictField):
             value = value.unwrap()
         try:
             # Expand specified Model type into a dict of instances
-            if isinstance(value, type):
-                value = instantiate_models(obj.database, obj.components, obj.phases, model=value, parameters=obj.parameters)
+            value = instantiate_models(obj.database, obj.components, obj.phases, model=value, parameters=obj.parameters)
             super().__set__(obj, value)
         except AttributeError:
             super().__set__(obj, None)
@@ -236,6 +235,9 @@ def _as_quantity(prop: ComputableProperty, qt: npt.ArrayLike):
     else:
         return qt
 
+# Defined to allow type checking for Model or its subclasses
+ModelType = TypeVar('ModelType', bound=Model)
+
 class Workspace:
     _callbacks = defaultdict(lambda: [])
     database: Database = TypedField(lambda _: None)
@@ -243,7 +245,7 @@ class Workspace:
     phases: PhaseList = PhasesField(dependsOn=['database', 'components'])
     conditions: Conditions = ConditionsField(lambda wks: Conditions(wks))
     verbose: bool = TypedField(lambda _: False)
-    models: Mapping[PhaseName, Model] = ModelsField(dependsOn=['phases', 'parameters'])
+    models: Mapping[PhaseName, ModelType] = ModelsField(dependsOn=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
     renderer: Renderer = TypedField(lambda wks: DEFAULT_PLOT_RENDERER(wks))
     phase_record_factory: Optional[PhaseRecordFactory] = PRFField(dependsOn=['phases', 'conditions', 'models', 'parameters'])
