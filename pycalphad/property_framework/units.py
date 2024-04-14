@@ -10,6 +10,7 @@ ureg.define('atom = 1/avogadro_number * mol')
 ureg.define('fraction = []')
 ureg.define('percent = 1e-2 fraction = %')
 ureg.define('ppm = 1e-6 fraction')
+pint.set_application_registry(ureg)
 Q_ = ureg.Quantity
 DimensionalityError = pint.DimensionalityError
 
