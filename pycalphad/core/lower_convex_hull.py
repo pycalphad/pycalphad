@@ -125,19 +125,30 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
                 idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
                 idx_fixed_lincomb_molefrac_rhs.append(rhs)
             elif isinstance(cond_key, LinearCombination):
+                coef_vector = np.zeros(num_comps)
                 if cond_key.denominator == 1:
-                    idx_fixed_lincomb_molefrac_coefs.append(cond_key.coefs[:-1])
-                    idx_fixed_lincomb_molefrac_rhs.append(rhs-cond_key.coefs[-1])
+                    for symbol_idx, symbol in enumerate(cond_key.symbols):
+                        if symbol != 1:
+                            coef_idx = result_array.coords['component'].index(str(symbol.species))
+                            coef_vector[coef_idx] = cond_key.coefs[symbol_idx]
+                        else:
+                            idx_fixed_lincomb_molefrac_rhs.append(rhs-cond_key.coefs[symbol_idx])
                 else:
                     # This is a molar ratio
                     denominator_idx = cond_key.symbols.index(cond_key.denominator)
-                    coefs = cond_key.coefs[:-1]
-                    coefs[denominator_idx] -= rhs
-                    idx_fixed_lincomb_molefrac_coefs.append(coefs)
-                    if cond_key.coefs[-1] != 0:
-                        # Constant term for molar ratio should be zero
-                        raise ValueError(f'Unsupported condition {cond_key}')
-                    idx_fixed_lincomb_molefrac_rhs.append(-cond_key.coefs[-1])
+                    for symbol_idx, symbol in enumerate(cond_key.symbols):
+                        if symbol_idx == denominator_idx:
+                            coef_idx = result_array.coords['component'].index(str(symbol.species))
+                            coef_vector[coef_idx] = cond_key.coefs[symbol_idx] - rhs
+                        elif symbol != 1:
+                            coef_idx = result_array.coords['component'].index(str(symbol.species))
+                            coef_vector[coef_idx] = cond_key.coefs[symbol_idx]
+                        else:
+                            if cond_key.coefs[symbol_idx] != 0:
+                                # Constant term for molar ratio should be zero
+                                raise ValueError(f'Unsupported condition {cond_key}')
+                            idx_fixed_lincomb_molefrac_rhs.append(-cond_key.coefs[symbol_idx])
+                idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
             else:
                 raise ValueError(f'Unsupported condition {cond_key}')
 
