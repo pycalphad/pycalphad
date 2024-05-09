@@ -543,6 +543,12 @@ def rename_element_charge(element, charge):
     if charge == 0:
         return f'{element}'
     elif charge > 0:
+        unwanted_characters=['(',')','[',']','{','}','+','-','.',',']  
+        element=list(element)
+        element=[i for i in element if i not in unwanted_characters]
+        element=[i for i in element if i.isdigit()==False ]
+
+        element=''.join(element)
         return f'{element}+{charge}'
     else:
         return f'{element}-{abs(charge)}'
@@ -642,11 +648,28 @@ class SUBQExcessQuadruplet:
 
 
 def _species(el_chg):
-    el, chg = el_chg
+    el,const, chg = el_chg
+    unwanted_characters=['(',')','[',']','{','}','+','-','.',',']  
+    el=list(el)
+    el=[i for i in el if i not in unwanted_characters]
+    el=[i for i in el if i.isdigit()==False ]
+    el=''.join(el)
     name = rename_element_charge(el, chg)
-    constituents = dict(parse_chemical_formula(el)[0])
+    constituents = dict(parse_chemical_formula(const)[0])
     return v.Species(name, constituents=constituents, charge=chg)
 
+def element_check(spec,element):
+    if len(spec)>2:
+        spec=[i for count,i in enumerate(spec) if count<2]
+        spec=''.join(spec)
+    else:
+        pass
+    if spec==element:
+        bool_= True
+    else:
+        bool_=False
+        
+    return bool_
 
 def _process_chemical_group_override_string(s):
     """
@@ -723,19 +746,67 @@ class Phase_SUBQ(PhaseBase):
         # do that by adding the charge to the name (without +/-), i.e. CU_1 or
         # CU_1.0. This mangling frees us from worrying about Species name
         # collisions within the Database.
-        cations = [rename_element_charge(el, chg) for el, chg in cation_el_chg_pairs]
-        anions = [rename_element_charge(el, chg) for el, chg in anion_el_chg_pairs]
+        pure_elementsSUBQ=pure_elements
+        if 'VA' not in pure_elements:
+            pure_elementsSUBQ.append('VA')
+        else:
+            pass
+        cations_ori = [rename_element_charge(el, chg) for el, chg in cation_el_chg_pairs]
+        cations = [rename_element_charge(pure, chg) for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]
+        anions = [rename_element_charge(pure, chg) for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]
+        anions_ori = [rename_element_charge(el, chg) for el, chg in anion_el_chg_pairs]
+####MAKING STRONG ASSUMPTIONS ABOUT VACANCIES. THEIR STOICHIOMETRIC VALUE WILL ALWAYS BE THE SAME TO 
+###ITS QUADRUPLET STOICHIOMETRY. MEANING NEVER WILL BE DIMER FOR VACANCY AND ALWAYS WILL BE ANION##############
+        cat_el_pairs_edited=[]
+        cat_chg_pairs_edited=[]
+        an_el_pairs_edited=[]
+        an_chg_pairs_edited=[]
+        for count,i in enumerate(self.endmembers):
+            ele_name_cat=list(set([pure for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]))
+            ele_name_an=list(set([pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]))
+            endmember_pure_element=[i for count,i in enumerate(i.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] in ele_name_cat]
+            if len([i for i in i.stoichiometry_pure_elements if i!=0])==2:
+                endmember_pure_element_anion_contribution=[i for count,i in enumerate(i.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] in ele_name_an]
+                stoi_pure_ele=i.stoichiometry_pure_elements
+            else:
+                endmember_pure_element_anion_contribution=[i.stoichiometry_quadruplet[1]]
+                stoi_pure_ele=i.stoichiometry_pure_elements
+                stoi_pure_ele.append(1.0)
+            endmember_pure_element.append(endmember_pure_element_anion_contribution[0])
+            endmember_stoichiometry=[i for i in i.stoichiometry_quadruplet if i!=0.0]
+            finding_multispeciation=[i/j for i,j in zip(endmember_pure_element,endmember_stoichiometry)]
+            endmember_ele_full=[pure_elementsSUBQ[count] for count,i in enumerate(i.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] in ele_name_cat]
+            endmember_ele_an=[pure_elementsSUBQ[count] for count,i in enumerate(i.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] not in ele_name_cat]
+            print('endmember_ele_an',endmember_ele_an)
+            endmember_ele_full.append(endmember_ele_an[0])
+            el_chg_editing=[str(i)+str(int(j)) for i,j in zip(endmember_ele_full,finding_multispeciation)]
+
+            quadruplet_charges_cat=self.subl_1_charges[list(self.subl_const_idx_pairs[count])[0]-1]
+            quadruplet_charges_an=-1*self.subl_2_charges[list(self.subl_const_idx_pairs[count])[1]-1]
+            print('endmember_stoichiometry',i.species_name,self.subl_1_charges,self.subl_2_charges,self.subl_const_idx_pairs)
+
+            cat_el_pairs_edited.append(el_chg_editing[0])
+            cat_chg_pairs_edited.append(quadruplet_charges_cat)
+            an_el_pairs_edited.append(el_chg_editing[1])
+            an_chg_pairs_edited.append(quadruplet_charges_an)
+        cation_el_chg_pairs_edited = list(set(zip(cat_el_pairs_edited,cat_el_pairs_edited,cat_chg_pairs_edited)))
+        anion_el_chg_pairs_edited = list(set(zip(an_el_pairs_edited,an_el_pairs_edited,an_chg_pairs_edited)))
+        print('How are things going on here',cation_el_chg_pairs_edited,anion_el_chg_pairs_edited,)
+
+
         # Add the (renamed) species to the database so the phase constituents can be added
-        dbf.species.update(map(_species, cation_el_chg_pairs))
-        dbf.species.update(map(_species, anion_el_chg_pairs))
+        dbf.species.update(map(_species, cation_el_chg_pairs_edited))
+        dbf.species.update(map(_species, anion_el_chg_pairs_edited))
+        print('THesea are the dbf species now',dbf.species)
+#        print('THesea are the ions now',jorge_cat,jorge_an)
 
         # Second: add the phase and phase constituents
         model_hints = {
             "mqmqa": {
                 "type": self.phase_type,
                 "chemical_groups": {
-                    "cations": dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups)),
-                    "anions": dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups)),
+                    "cations": dict(zip(map(_species, cation_el_chg_pairs_edited), self.subl_1_chemical_groups)),
+                    "anions": dict(zip(map(_species, anion_el_chg_pairs_edited), self.subl_2_chemical_groups)),
                 }
             }
         }
@@ -746,7 +817,6 @@ class Phase_SUBQ(PhaseBase):
         # Third: add the endmember (pair) Gibbs energies
         num_pairs = len(list(itertools.product(cations, anions)))
         assert len(self.endmembers) == num_pairs
-
         # Endmember pairs came in order of the specified subl_const_idx_pairs labels.
         for (i, j), endmember in zip(self.subl_const_idx_pairs, self.endmembers):
             endmember.insert(dbf, self.phase_name, [[cations[i-1]], [anions[j-1]]], gibbs_coefficient_idxs)
@@ -962,7 +1032,6 @@ def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_
                 chemical_group_overrides.append(" ".join(toks.parseN(10, str)))
             break
         excess_parameters.append(parse_subq_excess(toks, mixing_type, num_excess_coeffs))
-
     return Phase_SUBQ(phase_name, phase_type, endmembers, num_pairs, num_quadruplets, num_subl_1_const, num_subl_2_const, subl_1_const, subl_2_const, subl_1_charges, subl_1_chemical_groups, subl_2_charges, subl_2_chemical_groups, subl_const_idx_pairs, quadruplets, excess_parameters, chemical_group_overrides)
 
 

@@ -1,4 +1,4 @@
- System Sb-Fe-S-O https://doi.org/10.1016/j.calphad.2019.01.016
+System Sb-Fe-S-O https://doi.org/10.1016/j.calphad.2019.01.016
     4    2    0   18    8
  Sb                       Fe                       S
  O
@@ -67,7 +67,7 @@
   2.00000      3.00000     0.000000     0.000000     0.000000
   1.65300
    3   2
- Fe+2                     Fe+3                     Sb+3
+ Fe2+                     Fe3+                     Sb3+
  O                        S
   2.00000      3.00000      3.00000
    1   1   1
