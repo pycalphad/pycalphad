@@ -32,6 +32,9 @@ class TriangularAxes(Axes):
     name = 'triangular'
 
     def __init__(self, *args, **kwargs):
+        """
+        """
+        # Empty docstring to workaround https://github.com/matplotlib/matplotlib/issues/28234
         super().__init__(*args, **kwargs)
         self.set_aspect(1, adjustable='box', anchor='SW')
         self.cla()
