@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html" /><link rel="prev" title="Examples" href="index.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</title>
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
+        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
     
@@ -69,7 +69,7 @@
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -84,7 +84,7 @@
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
@@ -92,7 +92,7 @@
   <symbol id="svg-sun-half" viewBox="0 0 24 24">
     <title>Auto light/dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <circle cx="12" cy="12" r="9" />
       <path d="M13 12h5" />
@@ -100,6 +100,60 @@
       <path d="M13 18h1" />
       <path d="M13 9h4" />
       <path d="M13 6h1" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" /
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
 </svg>
@@ -113,6 +167,8 @@
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
 
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
 
 
 <div class="page">
@@ -124,13 +180,14 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
         <button class="theme-toggle">
           <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
@@ -150,7 +207,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -213,11 +270,17 @@
           <span>Back to top</span>
         </a>
         <div class="content-icon-container">
-          
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/examples/BinaryExamples.nblink.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
 <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
@@ -227,18 +290,18 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <section id="Plotting-Isobaric-Binary-Phase-Diagrams-with-binplot">
-<h1>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code><a class="headerlink" href="#Plotting-Isobaric-Binary-Phase-Diagrams-with-binplot" title="Link to this heading">#</a></h1>
+<h1>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code><a class="headerlink" href="#Plotting-Isobaric-Binary-Phase-Diagrams-with-binplot" title="Link to this heading">¶</a></h1>
 <p>These are a few examples of how to use Thermo-Calc TDB files to calculate isobaric binary phase diagrams. As long as the TDB file is present, each cell in these examples is self contained and can completely reproduce the figure shown.</p>
 <section id="binplot">
-<h2>binplot<a class="headerlink" href="#binplot" title="Link to this heading">#</a></h2>
+<h2>binplot<a class="headerlink" href="#binplot" title="Link to this heading">¶</a></h2>
 <p>The phase diagrams are computed with <code class="docutils literal notranslate"><span class="pre">binplot</span></code>, which has four required arguments: 1. The Database object 2. A list of active components (vacancies (<code class="docutils literal notranslate"><span class="pre">VA</span></code>), which are present in many databases, must be included explictly). 3. A list of phases to consider in the calculation 4. A dictionary conditions to consider, with keys of pycalphad StateVariables and values of scalars, 1D arrays, or <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code> ranges</p>
 <p>Note that, at the time of writing, invariant reactions (three-phase ‘regions’ on binary diagrams) are not yet automatically detected so they are not drawn on the diagram.</p>
 <p>Also note that the <a class="reference external" href="https://ipython.readthedocs.io/en/stable/interactive/magics.html">magic variable</a> <code class="docutils literal notranslate"><span class="pre">%matplotlib</span> <span class="pre">inline</span></code> should only be used in Jupyter notebooks.</p>
 </section>
 <section id="TDB-files">
-<h2>TDB files<a class="headerlink" href="#TDB-files" title="Link to this heading">#</a></h2>
+<h2>TDB files<a class="headerlink" href="#TDB-files" title="Link to this heading">¶</a></h2>
 <p>The TDB files should be located in the current working directory of the notebook. If you are running using a Jupyter notebook, the default working directory is the directory that that notebook is saved in.</p>
 <p>To check the working directory, run:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
@@ -247,7 +310,7 @@
 </div>
 <p>TDB files can be found in the literature. The <a class="reference external" href="https://avdwgroup.engin.brown.edu">Thermodynamic DataBase DataBase</a> (TDBDB) has indexed many available databases and links to the original papers and/or TDB files where possible.</p>
 <section id="Al-Zn-(S.-Mey,-1993)">
-<h3>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#Al-Zn-(S.-Mey,-1993)" title="Link to this heading">#</a></h3>
+<h3>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#Al-Zn-(S.-Mey,-1993)" title="Link to this heading">¶</a></h3>
 <p>The miscibility gap in the fcc phase is included in the Al-Zn diagram, shown below.</p>
 <p>The format for specifying a range of a state variable is (<em>start</em>, <em>stop</em>, <em>step</em>).</p>
 <ol class="upperalpha simple" start="19">
@@ -286,7 +349,7 @@
 </div>
 </section>
 <section id="Al-Mg-(Y.-Zhong,-2005)">
-<h3>Al-Mg (Y. Zhong, 2005)<a class="headerlink" href="#Al-Mg-(Y.-Zhong,-2005)" title="Link to this heading">#</a></h3>
+<h3>Al-Mg (Y. Zhong, 2005)<a class="headerlink" href="#Al-Mg-(Y.-Zhong,-2005)" title="Link to this heading">¶</a></h3>
 <ol class="upperalpha simple" start="25">
 <li><p>Zhong, M. Yang, Z.-K. Liu, CALPHAD 29 (2005) 303-311 doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.08.004">10.1016/j.calphad.2005.08.004</a></p></li>
 </ol>
@@ -322,7 +385,7 @@
 </div>
 </section>
 <section id="Al-Ni-(Dupin,-2001)">
-<h3>Al-Ni (Dupin, 2001)<a class="headerlink" href="#Al-Ni-(Dupin,-2001)" title="Link to this heading">#</a></h3>
+<h3>Al-Ni (Dupin, 2001)<a class="headerlink" href="#Al-Ni-(Dupin,-2001)" title="Link to this heading">¶</a></h3>
 <p>Components and conditions can also be stored as variables and passed to binplot.</p>
 <ol class="upperalpha simple" start="14">
 <li><p>Dupin, I. Ansara, B. Sundman, CALPHAD 25(2) (2001) 279-298 doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00049-9">10.1016/S0364-5916(01)00049-9</a></p></li>
@@ -369,7 +432,7 @@
 </div>
 </section>
 <section id="Al-Fe-(M.-Seiersten,-1991)">
-<h3>Al-Fe (M. Seiersten, 1991)<a class="headerlink" href="#Al-Fe-(M.-Seiersten,-1991)" title="Link to this heading">#</a></h3>
+<h3>Al-Fe (M. Seiersten, 1991)<a class="headerlink" href="#Al-Fe-(M.-Seiersten,-1991)" title="Link to this heading">¶</a></h3>
 <p>Removing tielines</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
@@ -405,7 +468,7 @@
 </div>
 </section>
 <section id="Nb-Re-(Liu,-2013)">
-<h3>Nb-Re (Liu, 2013)<a class="headerlink" href="#Nb-Re-(Liu,-2013)" title="Link to this heading">#</a></h3>
+<h3>Nb-Re (Liu, 2013)<a class="headerlink" href="#Nb-Re-(Liu,-2013)" title="Link to this heading">¶</a></h3>
 <p>X.L. Liu, C.Z. Hargather, Z.-K. Liu, CALPHAD 41 (2013) 119-127 doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.02.006">10.1016/j.calphad.2013.02.006</a></p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
@@ -442,7 +505,7 @@
 </section>
 </section>
 <section id="Calculating-Energy-Surfaces-of-Binary-Systems">
-<h1>Calculating Energy Surfaces of Binary Systems<a class="headerlink" href="#Calculating-Energy-Surfaces-of-Binary-Systems" title="Link to this heading">#</a></h1>
+<h1>Calculating Energy Surfaces of Binary Systems<a class="headerlink" href="#Calculating-Energy-Surfaces-of-Binary-Systems" title="Link to this heading">¶</a></h1>
 <p>It is very common in CALPHAD modeling to directly examine the Gibbs energy surface of all the constituent phases in a system.</p>
 <p>Below we show how the Gibbs energy of all phases may be calculated as a function of composition at a given temperature (2800 K).</p>
 <p>Note that the chi phase has additional, internal degrees of freedom which allow it to take on multiple states for a given overall composition. Only the low-energy states are relevant to calculating the equilibrium phase diagram.</p>
@@ -566,10 +629,10 @@
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=bf134e4c"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
+</div><script src="../_static/documentation_options.js?v=516405e1"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

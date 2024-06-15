@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="prev" title="pycalphad.plot package" href="pycalphad.plot.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>pycalphad.plot.binary package - pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</title>
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
+        <title>pycalphad.plot.binary package - pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
     
     
@@ -68,7 +68,7 @@
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -83,7 +83,7 @@
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
@@ -91,7 +91,7 @@
   <symbol id="svg-sun-half" viewBox="0 0 24 24">
     <title>Auto light/dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <circle cx="12" cy="12" r="9" />
       <path d="M13 12h5" />
@@ -99,6 +99,60 @@
       <path d="M13 18h1" />
       <path d="M13 9h4" />
       <path d="M13 6h1" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" /
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
 </svg>
@@ -112,6 +166,8 @@
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
 
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
 
 
 <div class="page">
@@ -123,13 +179,14 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
         <button class="theme-toggle">
           <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
@@ -149,7 +206,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -212,11 +269,17 @@
           <span>Back to top</span>
         </a>
         <div class="content-icon-container">
-          
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/api/pycalphad.plot.binary.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
 <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
@@ -226,17 +289,17 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <section id="pycalphad-plot-binary-package">
-<h1>pycalphad.plot.binary package<a class="headerlink" href="#pycalphad-plot-binary-package" title="Link to this heading">#</a></h1>
+<h1>pycalphad.plot.binary package<a class="headerlink" href="#pycalphad-plot-binary-package" title="Link to this heading">¶</a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
 <section id="module-pycalphad.plot.binary.compsets">
-<span id="pycalphad-plot-binary-compsets-module"></span><h2>pycalphad.plot.binary.compsets module<a class="headerlink" href="#module-pycalphad.plot.binary.compsets" title="Link to this heading">#</a></h2>
+<span id="pycalphad-plot-binary-compsets-module"></span><h2>pycalphad.plot.binary.compsets module<a class="headerlink" href="#module-pycalphad.plot.binary.compsets" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.BinaryCompset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.compsets.</span></span><span class="sig-name descname"><span class="pre">BinaryCompset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_fracs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#BinaryCompset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.BinaryCompset" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.compsets.</span></span><span class="sig-name descname"><span class="pre">BinaryCompset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_fracs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#BinaryCompset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.BinaryCompset" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Composition set for representations of a phase equilibria in a two
 component system with a temperature condition.</p>
@@ -255,34 +318,34 @@ component system with a temperature condition.</p>
 <p>In the future, this representation could be phased out if <cite>equilibrium</cite> returned composition sets.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.BinaryCompset.SITE_FRAC_ATOL">
-<span class="sig-name descname"><span class="pre">SITE_FRAC_ATOL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#pycalphad.plot.binary.compsets.BinaryCompset.SITE_FRAC_ATOL" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">SITE_FRAC_ATOL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#pycalphad.plot.binary.compsets.BinaryCompset.SITE_FRAC_ATOL" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.BinaryCompset.TEMPERATURE_ATOL">
-<span class="sig-name descname"><span class="pre">TEMPERATURE_ATOL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></em><a class="headerlink" href="#pycalphad.plot.binary.compsets.BinaryCompset.TEMPERATURE_ATOL" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">TEMPERATURE_ATOL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></em><a class="headerlink" href="#pycalphad.plot.binary.compsets.BinaryCompset.TEMPERATURE_ATOL" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.BinaryCompset.from_dataset_vertices">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dataset_vertices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_vertex</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#BinaryCompset.from_dataset_vertices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.BinaryCompset.from_dataset_vertices" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dataset_vertices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_vertex</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#BinaryCompset.from_dataset_vertices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.BinaryCompset.from_dataset_vertices" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.compsets.</span></span><span class="sig-name descname"><span class="pre">CompsetPair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compsets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.compsets.</span></span><span class="sig-name descname"><span class="pre">CompsetPair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compsets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Pair of binary composition sets that make up an equilibrium</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>compsets</strong> (<em>list</em><em> of </em><a class="reference internal" href="#pycalphad.plot.binary.compsets.BinaryCompset" title="pycalphad.plot.binary.compsets.BinaryCompset"><em>BinaryCompset</em></a>) – </p>
+<dd class="field-odd"><p><strong>compsets</strong> (<em>list</em><em> of </em><a class="reference internal" href="#pycalphad.plot.binary.compsets.BinaryCompset" title="pycalphad.plot.binary.compsets.BinaryCompset"><em>BinaryCompset</em></a>)</p>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.compsets">
-<span class="sig-name descname"><span class="pre">compsets</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.compsets" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">compsets</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.compsets" title="Link to this definition">¶</a></dt>
 <dd><p>CompSets sorted by composition</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -293,7 +356,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.a">
-<span class="sig-name descname"><span class="pre">a</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.a" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">a</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.a" title="Link to this definition">¶</a></dt>
 <dd><p>Composition set in the pair with the lower composition</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -304,7 +367,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.b">
-<span class="sig-name descname"><span class="pre">b</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.b" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">b</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.b" title="Link to this definition">¶</a></dt>
 <dd><p>Composition set in the pair with the higher composition</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -315,7 +378,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.phases">
-<span class="sig-name descname"><span class="pre">phases</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.phases" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">phases</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.phases" title="Link to this definition">¶</a></dt>
 <dd><p>List of phase names, sorted by composition</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -326,7 +389,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.unique_phases">
-<span class="sig-name descname"><span class="pre">unique_phases</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.unique_phases" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">unique_phases</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.unique_phases" title="Link to this definition">¶</a></dt>
 <dd><p>Set of phase names</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -337,7 +400,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.compositions">
-<span class="sig-name descname"><span class="pre">compositions</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.compositions" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">compositions</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.compositions" title="Link to this definition">¶</a></dt>
 <dd><p>Array of compositions, sorted</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -348,7 +411,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.temperature">
-<span class="sig-name descname"><span class="pre">temperature</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.temperature" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">temperature</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.temperature" title="Link to this definition">¶</a></dt>
 <dd><p>Temperature of the 2D compsets</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -359,7 +422,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.same_phase">
-<span class="sig-name descname"><span class="pre">same_phase</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.same_phase" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">same_phase</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.same_phase" title="Link to this definition">¶</a></dt>
 <dd><p>Whether the composition sets are for the same phase</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -370,7 +433,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.mean_composition">
-<span class="sig-name descname"><span class="pre">mean_composition</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.mean_composition" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">mean_composition</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.mean_composition" title="Link to this definition">¶</a></dt>
 <dd><p>Mean composition of the CompSets</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -381,7 +444,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.max_composition">
-<span class="sig-name descname"><span class="pre">max_composition</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.max_composition" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">max_composition</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.max_composition" title="Link to this definition">¶</a></dt>
 <dd><p>Max composition of the CompSets</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -392,7 +455,7 @@ component system with a temperature condition.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.min_composition">
-<span class="sig-name descname"><span class="pre">min_composition</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.min_composition" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">min_composition</span></span><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.min_composition" title="Link to this definition">¶</a></dt>
 <dd><p>Min composition of the CompSets</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -403,12 +466,12 @@ component system with a temperature condition.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.Tdiscrepancy">
-<span class="sig-name descname"><span class="pre">Tdiscrepancy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.Tdiscrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.Tdiscrepancy" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">Tdiscrepancy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.Tdiscrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.Tdiscrepancy" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the temperature discrepancy (absolute difference) between this
 pair of composition sets and another.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair"><em>CompsetPair</em></a>) – </p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair"><em>CompsetPair</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>np.float64</p>
@@ -418,12 +481,12 @@ pair of composition sets and another.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.pairwise_xdiscrepancy">
-<span class="sig-name descname"><span class="pre">pairwise_xdiscrepancy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.pairwise_xdiscrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.pairwise_xdiscrepancy" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">pairwise_xdiscrepancy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.pairwise_xdiscrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.pairwise_xdiscrepancy" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the ordered composition discrepancy between this and another
 pair of CompSet2D objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair"><em>CompsetPair</em></a>) – </p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair"><em>CompsetPair</em></a>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>float</p>
@@ -433,7 +496,7 @@ pair of CompSet2D objects.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.xdiscrepancy">
-<span class="sig-name descname"><span class="pre">xdiscrepancy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.xdiscrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.xdiscrepancy" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">xdiscrepancy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.xdiscrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.xdiscrepancy" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the composition discrepancy (absolute difference) between this
 composition set and another.</p>
 <dl class="field-list simple">
@@ -449,7 +512,7 @@ only care about the composition and the real discrepancy will be returned.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy">
-<span class="sig-name descname"><span class="pre">ydiscrepancy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.ydiscrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">ydiscrepancy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.ydiscrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the discrepancy (absolute differences) between the site
 fractions of the composition sets as an array of discrepancies.</p>
 <dl class="field-list simple">
@@ -463,7 +526,7 @@ fractions of the composition sets as an array of discrepancies.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy_max">
-<span class="sig-name descname"><span class="pre">ydiscrepancy_max</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.ydiscrepancy_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy_max" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">ydiscrepancy_max</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#CompsetPair.ydiscrepancy_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy_max" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the maximum discrepancy (absolute difference) between the site
 fractions of the composition sets.</p>
 <dl class="field-list simple">
@@ -479,7 +542,7 @@ fractions of the composition sets.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.find_two_phase_region_compsets">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.compsets.</span></span><span class="sig-name descname"><span class="pre">find_two_phase_region_compsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hull</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">misc_gap_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_composition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#find_two_phase_region_compsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.find_two_phase_region_compsets" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.compsets.</span></span><span class="sig-name descname"><span class="pre">find_two_phase_region_compsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hull</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">misc_gap_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_composition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#find_two_phase_region_compsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.find_two_phase_region_compsets" title="Link to this definition">¶</a></dt>
 <dd><p>From a 1D convex hull at constant T and P, return the composition sets for
 a two phase region or that have the smallest index composition coordinate</p>
 <dl class="field-list simple">
@@ -502,15 +565,15 @@ composition sets are considered distinct and in a miscibility gap.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.compsets.get_compsets">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.compsets.</span></span><span class="sig-name descname"><span class="pre">get_compsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eq_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#get_compsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.get_compsets" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.compsets.</span></span><span class="sig-name descname"><span class="pre">get_compsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eq_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_comp_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/compsets.html#get_compsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.compsets.get_compsets" title="Link to this definition">¶</a></dt>
 <dd><p>Return a CompSet2D object if a pair of composition sets is found in an
 equilibrium dataset. Otherwise return None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>eq_dataset</strong> – </p></li>
-<li><p><strong>indep_comp</strong> – </p></li>
-<li><p><strong>indep_comp_index</strong> – </p></li>
+<li><p><strong>eq_dataset</strong></p></li>
+<li><p><strong>indep_comp</strong></p></li>
+<li><p><strong>indep_comp_index</strong></p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -521,16 +584,16 @@ equilibrium dataset. Otherwise return None.</p>
 
 </section>
 <section id="module-pycalphad.plot.binary.map">
-<span id="pycalphad-plot-binary-map-module"></span><h2>pycalphad.plot.binary.map module<a class="headerlink" href="#module-pycalphad.plot.binary.map" title="Link to this heading">#</a></h2>
+<span id="pycalphad-plot-binary-map-module"></span><h2>pycalphad.plot.binary.map module<a class="headerlink" href="#module-pycalphad.plot.binary.map" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.map.map_binary">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.map.</span></span><span class="sig-name descname"><span class="pre">map_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eq_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_sets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/map.html#map_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.map.map_binary" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.map.</span></span><span class="sig-name descname"><span class="pre">map_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eq_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_sets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/map.html#map_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.map.map_binary" title="Link to this definition">¶</a></dt>
 <dd><p>Map a binary T-X phase diagram</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – </p></li>
-<li><p><strong>comps</strong> (<em>list</em><em> of </em><em>str</em>) – </p></li>
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>)</p></li>
+<li><p><strong>comps</strong> (<em>list</em><em> of </em><em>str</em>)</p></li>
 <li><p><strong>phases</strong> (<em>list</em><em> of </em><em>str</em>) – List of phases to consider in mapping</p></li>
 <li><p><strong>conds</strong> (<em>dict</em>) – Dictionary of conditions</p></li>
 <li><p><strong>eq_kwargs</strong> (<em>dict</em>) – Dictionary of keyword arguments to pass to equilibrium</p></li>
@@ -555,13 +618,13 @@ over two phase regions, once calculated.
 
 </section>
 <section id="module-pycalphad.plot.binary.plot">
-<span id="pycalphad-plot-binary-plot-module"></span><h2>pycalphad.plot.binary.plot module<a class="headerlink" href="#module-pycalphad.plot.binary.plot" title="Link to this heading">#</a></h2>
+<span id="pycalphad-plot-binary-plot-module"></span><h2>pycalphad.plot.binary.plot module<a class="headerlink" href="#module-pycalphad.plot.binary.plot" title="Link to this heading">¶</a></h2>
 <p>The plot module handles plotting ZPF boundaries and provides a user-facing
 function <cite>binplot</cite> for users to plot binary phase diagrams with a similar API
 as <cite>equilibrium</cite>.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.plot.binplot">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.plot.</span></span><span class="sig-name descname"><span class="pre">binplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">map_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/plot.html#binplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.plot.binplot" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.plot.</span></span><span class="sig-name descname"><span class="pre">binplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">map_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/plot.html#binplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.plot.binplot" title="Link to this definition">¶</a></dt>
 <dd><p>Calculate the binary isobaric phase diagram.</p>
 <p>This function is a convenience wrapper around map_binary() and plot_boundaries()</p>
 <dl class="field-list simple">
@@ -591,12 +654,12 @@ eq_kwargs is defined in map_kwargs, this argument takes precedence.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.plot.plot_boundaries">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.plot.</span></span><span class="sig-name descname"><span class="pre">plot_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zpf_boundary_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tielines=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tieline_color=(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scatter=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_generator=&lt;function</span> <span class="pre">phase_legend&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridlines=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/plot.html#plot_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.plot.plot_boundaries" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.plot.</span></span><span class="sig-name descname"><span class="pre">plot_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zpf_boundary_sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tielines=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tieline_color=(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scatter=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_generator=&lt;function</span> <span class="pre">phase_legend&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridlines=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/plot.html#plot_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.plot.plot_boundaries" title="Link to this definition">¶</a></dt>
 <dd><p>Plot a set of ZPFBoundarySets</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>zpf_boundary_sets</strong> (<em>pycalphad.mapping.zpf_boundary_sets.ZPFBoundarySets</em>) – </p></li>
+<li><p><strong>zpf_boundary_sets</strong> (<em>pycalphad.mapping.zpf_boundary_sets.ZPFBoundarySets</em>)</p></li>
 <li><p><strong>tielines</strong> (<em>optional</em><em>, </em><em>bool</em>) – Whether the plot the tielines (defaults to True)</p></li>
 <li><p><strong>tieline_color</strong> (<em>color</em>) – A valid matplotlib color, such as a named color string, hex RGB
 string, or a tuple of RGBA components to set the color of the two
@@ -622,15 +685,15 @@ created.</p></li>
 
 </section>
 <section id="module-pycalphad.plot.binary.zpf_boundary_sets">
-<span id="pycalphad-plot-binary-zpf-boundary-sets-module"></span><h2>pycalphad.plot.binary.zpf_boundary_sets module<a class="headerlink" href="#module-pycalphad.plot.binary.zpf_boundary_sets" title="Link to this heading">#</a></h2>
+<span id="pycalphad-plot-binary-zpf-boundary-sets-module"></span><h2>pycalphad.plot.binary.zpf_boundary_sets module<a class="headerlink" href="#module-pycalphad.plot.binary.zpf_boundary_sets" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.zpf_boundary_sets.</span></span><span class="sig-name descname"><span class="pre">TwoPhaseRegion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_compsets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#TwoPhaseRegion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.zpf_boundary_sets.</span></span><span class="sig-name descname"><span class="pre">TwoPhaseRegion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_compsets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#TwoPhaseRegion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A group of points that belong to the same phase region.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.phases">
-<span class="sig-name descname"><span class="pre">phases</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.phases" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">phases</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.phases" title="Link to this definition">¶</a></dt>
 <dd><p>Unique phases in this two phase region</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -641,7 +704,7 @@ created.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.compsets">
-<span class="sig-name descname"><span class="pre">compsets</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.compsets" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">compsets</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.compsets" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of <a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair">CompsetPair</a></p>
@@ -651,7 +714,7 @@ created.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.add_compsets">
-<span class="sig-name descname"><span class="pre">add_compsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compset_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#TwoPhaseRegion.add_compsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.add_compsets" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">add_compsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compset_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#TwoPhaseRegion.add_compsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.add_compsets" title="Link to this definition">¶</a></dt>
 <dd><p>Add composition sets to this region.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -666,12 +729,12 @@ compsets belong in this TwoPhaseRegion.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.compsets_belong_in_region">
-<span class="sig-name descname"><span class="pre">compsets_belong_in_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compsets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Xtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ttol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#TwoPhaseRegion.compsets_belong_in_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.compsets_belong_in_region" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">compsets_belong_in_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compsets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Xtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ttol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#TwoPhaseRegion.compsets_belong_in_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.compsets_belong_in_region" title="Link to this definition">¶</a></dt>
 <dd><p>Return True if the composition sets belong to this TwoPhaseRegion</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>compsets</strong> (<a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair"><em>CompsetPair</em></a>) – </p></li>
+<li><p><strong>compsets</strong> (<a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair"><em>CompsetPair</em></a>)</p></li>
 <li><p><strong>Xtol</strong> (<em>float</em>) – Composition discrepancy tolerance</p></li>
 <li><p><strong>Ttol</strong> (<em>float</em>) – Temperature discrepancy tolerance</p></li>
 </ul>
@@ -693,13 +756,13 @@ compsets belong in this TwoPhaseRegion.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.zpf_boundary_sets.</span></span><span class="sig-name descname"><span class="pre">ZPFBoundarySets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_composition_condition</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.plot.binary.zpf_boundary_sets.</span></span><span class="sig-name descname"><span class="pre">ZPFBoundarySets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indep_composition_condition</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Holds CompsetPairs that can be organized into TwoPhaseRegions and plotted
 together.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.components">
-<span class="sig-name descname"><span class="pre">components</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.components" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">components</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.components" title="Link to this definition">¶</a></dt>
 <dd><p>List of components</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -710,7 +773,7 @@ together.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.indep_comp_cond">
-<span class="sig-name descname"><span class="pre">indep_comp_cond</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.indep_comp_cond" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">indep_comp_cond</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.indep_comp_cond" title="Link to this definition">¶</a></dt>
 <dd><p>Condition for the independent component</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -721,7 +784,7 @@ together.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.all_compsets">
-<span class="sig-name descname"><span class="pre">all_compsets</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.all_compsets" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">all_compsets</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.all_compsets" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of <a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair">CompsetPair</a></p>
@@ -731,7 +794,7 @@ together.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.two_phase_regions">
-<span class="sig-name descname"><span class="pre">two_phase_regions</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.two_phase_regions" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">two_phase_regions</span></span><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.two_phase_regions" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of <a class="reference internal" href="#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion" title="pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion">TwoPhaseRegion</a></p>
@@ -741,18 +804,18 @@ together.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.add_compsets">
-<span class="sig-name descname"><span class="pre">add_compsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compsets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Xtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ttol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.add_compsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.add_compsets" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">add_compsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compsets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Xtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ttol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.add_compsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.add_compsets" title="Link to this definition">¶</a></dt>
 <dd><p>Add composition sets to current boundary sets</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>compsets</strong> (<a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair"><em>CompsetPair</em></a>) – </p>
+<dd class="field-odd"><p><strong>compsets</strong> (<a class="reference internal" href="#pycalphad.plot.binary.compsets.CompsetPair" title="pycalphad.plot.binary.compsets.CompsetPair"><em>CompsetPair</em></a>)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_line_plot_boundaries">
-<span class="sig-name descname"><span class="pre">get_line_plot_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">close_miscibility_gaps=0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tieline_color=(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_generator=&lt;function</span> <span class="pre">phase_legend&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.get_line_plot_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_line_plot_boundaries" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_line_plot_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">close_miscibility_gaps=0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tieline_color=(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_generator=&lt;function</span> <span class="pre">phase_legend&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.get_line_plot_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_line_plot_boundaries" title="Link to this definition">¶</a></dt>
 <dd><p>Get the ZPF boundaries to plot from each two phase region.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -792,13 +855,13 @@ function returns a tuple of scatter_dict and a tineline_collection.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_phases">
-<span class="sig-name descname"><span class="pre">get_phases</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.get_phases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_phases" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_phases</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.get_phases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_phases" title="Link to this definition">¶</a></dt>
 <dd><p>Get all the phases represented in the two phase regions</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_scatter_plot_boundaries">
-<span class="sig-name descname"><span class="pre">get_scatter_plot_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tieline_color=(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_generator=&lt;function</span> <span class="pre">phase_legend&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.get_scatter_plot_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_scatter_plot_boundaries" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_scatter_plot_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tieline_color=(0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_generator=&lt;function</span> <span class="pre">phase_legend&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.get_scatter_plot_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_scatter_plot_boundaries" title="Link to this definition">¶</a></dt>
 <dd><p>Get the ZPF boundaries to plot from each two phase region.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -832,7 +895,7 @@ function returns a tuple of scatter_dict and a tineline_collection.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.rebuild_two_phase_regions">
-<span class="sig-name descname"><span class="pre">rebuild_two_phase_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Xtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ttol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.rebuild_two_phase_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.rebuild_two_phase_regions" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">rebuild_two_phase_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Xtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ttol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary/zpf_boundary_sets.html#ZPFBoundarySets.rebuild_two_phase_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.rebuild_two_phase_regions" title="Link to this definition">¶</a></dt>
 <dd><p>Rebuild the two phase regions with new tolerances.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -848,7 +911,7 @@ function returns a tuple of scatter_dict and a tineline_collection.</p>
 
 </section>
 <section id="module-pycalphad.plot.binary">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.plot.binary" title="Link to this heading">#</a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.plot.binary" title="Link to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -974,10 +1037,10 @@ function returns a tuple of scatter_dict and a tineline_collection.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=bf134e4c"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
+</div><script src="../_static/documentation_options.js?v=516405e1"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>
 </html>

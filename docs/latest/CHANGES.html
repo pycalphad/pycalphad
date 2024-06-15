@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Releasing pycalphad" href="releasing.html" /><link rel="prev" title="FAQ" href="faq.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>What’s New - pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</title>
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
+        <title>What’s New - pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
     
     
@@ -68,7 +68,7 @@
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -83,7 +83,7 @@
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
@@ -91,7 +91,7 @@
   <symbol id="svg-sun-half" viewBox="0 0 24 24">
     <title>Auto light/dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <circle cx="12" cy="12" r="9" />
       <path d="M13 12h5" />
@@ -99,6 +99,60 @@
       <path d="M13 18h1" />
       <path d="M13 9h4" />
       <path d="M13 6h1" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" /
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
 </svg>
@@ -112,6 +166,8 @@
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
 
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
 
 
 <div class="page">
@@ -123,13 +179,14 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</div></a>
+      <a href="index.html"><div class="brand">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
         <button class="theme-toggle">
           <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
@@ -149,7 +206,7 @@
     <img class="sidebar-logo" src="_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev7+g2116efe5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -212,11 +269,17 @@
           <span>Back to top</span>
         </a>
         <div class="content-icon-container">
-          
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/CHANGES.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
 <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
@@ -226,11 +289,11 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <section id="what-s-new">
-<h1>What’s New<a class="headerlink" href="#what-s-new" title="Link to this heading">#</a></h1>
+<h1>What’s New<a class="headerlink" href="#what-s-new" title="Link to this heading">¶</a></h1>
 <section id="id1">
-<h2>0.10.4 (2024-01-29)<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<h2>0.10.4 (2024-01-29)<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing bug fixes, updated dependency versions, and updated Python build targets.</p>
 <ul class="simple">
 <li><p>MAINT/BLD: Add support for building, testing, and deploying on Python 3.12. Drop End-of-life Python 3.7. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/508">issue 508</a> )</p></li>
@@ -241,7 +304,7 @@
 </ul>
 </section>
 <section id="id2">
-<h2>0.10.3 (2023-09-13)<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<h2>0.10.3 (2023-09-13)<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing new features, bug fixes, and performance improvements.</p>
 <ul class="simple">
 <li><p>ENH: Add molar volume model support: <code class="docutils literal notranslate"><span class="pre">V0</span></code> and <code class="docutils literal notranslate"><span class="pre">VA</span></code> parameters, <code class="docutils literal notranslate"><span class="pre">molar_volume</span></code> property, and <code class="docutils literal notranslate"><span class="pre">PV</span></code> volume energy entribution ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/466">issue 466</a> )</p></li>
@@ -253,7 +316,7 @@
 </ul>
 </section>
 <section id="id3">
-<h2>0.10.2 (2023-02-14)<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<h2>0.10.2 (2023-02-14)<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing bug fixes.</p>
 <ul class="simple">
 <li><p>MAINT: Update symengine to 0.9.2 and add Python 3.11 support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/456">issue 456</a> )</p></li>
@@ -262,7 +325,7 @@
 </ul>
 </section>
 <section id="id4">
-<h2>0.10.1 (2022-05-25)<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<h2>0.10.1 (2022-05-25)<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing several new features, bug fixes, and some
 breaking changes to internal APIs for interacting with <code class="docutils literal notranslate"><span class="pre">Solver</span></code> objects and
 the Gibbs energy minimizer.</p>
@@ -277,7 +340,7 @@ the Gibbs energy minimizer.</p>
 </ul>
 </section>
 <section id="id5">
-<h2>0.10.0 (2022-02-21)<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<h2>0.10.0 (2022-02-21)<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
 <p>This is a major release containing performance improvements, bug fixes, and breaking changes for custom models.
 Note that, if you use custom Models with pycalphad, you will need to change all your sympy imports to symengine.
 It should be a drop-in replacement in most cases; if you have any issues, please file a GitHub issue or contact us.</p>
@@ -292,14 +355,14 @@ It should be a drop-in replacement in most cases; if you have any issues, please
 </ul>
 </section>
 <section id="id6">
-<h2>0.9.2 (2021-08-12)<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<h2>0.9.2 (2021-08-12)<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing a bug fix for a regression introduced by the previous release.</p>
 <ul class="simple">
 <li><p>FIX: Associate model computation in <code class="docutils literal notranslate"><span class="pre">calculate</span></code> when number of components is different from number of elements ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/367">issue 367</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/368">issue 368</a> )</p></li>
 </ul>
 </section>
 <section id="id7">
-<h2>0.9.1 (2021-08-08)<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<h2>0.9.1 (2021-08-08)<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing performance improvements and bug fixes.</p>
 <ul class="simple">
 <li><p>ENH: Add metastable composition sets to solver starting point ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/362">issue 362</a> )</p></li>
@@ -311,7 +374,7 @@ It should be a drop-in replacement in most cases; if you have any issues, please
 </ul>
 </section>
 <section id="id8">
-<h2>0.9.0 (2021-06-06)<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<h2>0.9.0 (2021-06-06)<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
 <p>This is a major release including a new minimizer, support for installing from PyPI using pip, performance improvements, documentation improvements, and bug fixes.</p>
 <ul class="simple">
 <li><p>ENH: Introduce a new energy minimizer based on the method described by <a class="reference internal" href="#sundman2015" id="id9"><span>[Sundman2015]</span></a>.
@@ -333,7 +396,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id10">
-<h2>0.8.5 (2021-05-20)<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<h2>0.8.5 (2021-05-20)<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>MAINT: Introduce a warning when partitioned phase models incorrectly use <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> properties ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/328">issue 328</a> )</p></li>
 <li><p>FIX: Generalize assumptions for the species that can be in substitutional and interstitial sublattices of partitioned phase models ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/311">issue 311</a> )</p></li>
@@ -358,7 +421,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id11">
-<h2>0.8.4 (2020-10-28)<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<h2>0.8.4 (2020-10-28)<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing performance improvements and bug fixes.</p>
 <ul class="simple">
 <li><p>DOC: Fix array indexing in examples ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/282">issue 282</a> )</p></li>
@@ -370,7 +433,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id12">
-<h2>0.8.3 (2020-03-31)<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<h2>0.8.3 (2020-03-31)<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p>FIX: Improved <code class="docutils literal notranslate"><span class="pre">model_hints</span></code> construction when reading databases with out of order type definitions, fixes detecting disordered phases with <code class="docutils literal notranslate"><span class="pre">filter_phases</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/269">issue 269</a> )</p></li>
@@ -378,7 +441,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id13">
-<h2>0.8.2 (2020-03-07)<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<h2>0.8.2 (2020-03-07)<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements. Python 2.7 support is dropped as well as Python 3.5 and below. Python 3.6-3.8 are explictly supported.</p>
 <ul class="simple">
 <li><p>ENH: Reading large databases via delayed parameter processing ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/266">issue 266</a> )</p></li>
@@ -391,7 +454,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id14">
-<h2>0.8.1 (2019-11-28)<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<h2>0.8.1 (2019-11-28)<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>ENH: Calculation speed and accuracy improvements via exact Hessians and the SymEngine lambda backend ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/249">issue 249</a> )</p></li>
@@ -407,7 +470,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id15">
-<h2>0.8 (2019-05-31)<a class="headerlink" href="#id15" title="Link to this heading">#</a></h2>
+<h2>0.8 (2019-05-31)<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>ENH: Major performance improvement with new Just-In-Time SymEngine/LLVM-based compiler. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/220">issue 220</a> )</p></li>
@@ -419,7 +482,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id16">
-<h2>0.7.1 (2018-11-14)<a class="headerlink" href="#id16" title="Link to this heading">#</a></h2>
+<h2>0.7.1 (2018-11-14)<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>FIX: PhaseRecord: Fix pickling, so distributed scheduling will work ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/196">issue 196</a> )</p></li>
@@ -437,7 +500,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id17">
-<h2>0.7 (2018-03-19)<a class="headerlink" href="#id17" title="Link to this heading">#</a></h2>
+<h2>0.7 (2018-03-19)<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h2>
 <p>This is a major release with new features and performance improvements.</p>
 <ul class="simple">
 <li><p>ENH: Add support for calculations with species, including support for the associate, ionic liquid, and gas phase models ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/161">issue 161</a> ).</p></li>
@@ -447,7 +510,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id18">
-<h2>0.6.1 (2017-12-01)<a class="headerlink" href="#id18" title="Link to this heading">#</a></h2>
+<h2>0.6.1 (2017-12-01)<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and new features.</p>
 <ul class="simple">
 <li><p>ENH: tdb: Add more command parsing: TEMPERATURE_LIMITS, DATABASE_INFO, VERSION_DATE, REFERENCE_FILE, ADD_REFERENCES</p></li>
@@ -456,7 +519,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id19">
-<h2>0.6 (2017-11-26)<a class="headerlink" href="#id19" title="Link to this heading">#</a></h2>
+<h2>0.6 (2017-11-26)<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h2>
 <p>This is a major release with new features, bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>Users updating from an earlier version should follow the updated installation instructions to ensure they have all the correct dependencies.</p></li>
@@ -475,7 +538,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id20">
-<h2>0.5.2 (2017-08-10)<a class="headerlink" href="#id20" title="Link to this heading">#</a></h2>
+<h2>0.5.2 (2017-08-10)<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with a new feature, bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>ENH: Add ternary isothermal phase diagram plotting. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/98">issue 98</a> ).</p></li>
@@ -487,7 +550,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id21">
-<h2>0.5.1 (2017-05-12)<a class="headerlink" href="#id21" title="Link to this heading">#</a></h2>
+<h2>0.5.1 (2017-05-12)<a class="headerlink" href="#id21" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes.</p>
 <ul class="simple">
 <li><p>FIX: Custom Models involving certain mathematical constants will compile. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a>.</p></li>
@@ -495,7 +558,7 @@ The version scheme for development versions has changed. ( <a class="reference e
 </ul>
 </section>
 <section id="id22">
-<h2>0.5 (2017-05-04)<a class="headerlink" href="#id22" title="Link to this heading">#</a></h2>
+<h2>0.5 (2017-05-04)<a class="headerlink" href="#id22" title="Link to this heading">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>Python 3.6 is now supported. Python 3.3 support has been dropped.</p></li>
@@ -521,7 +584,7 @@ with the caveat that users will need to install the Microsoft Visual C++ Build T
 </ul>
 </section>
 <section id="id23">
-<h2>0.4.2 (2016-08-26)<a class="headerlink" href="#id23" title="Link to this heading">#</a></h2>
+<h2>0.4.2 (2016-08-26)<a class="headerlink" href="#id23" title="Link to this heading">¶</a></h2>
 <p>This is a minor feature release with one breaking change.</p>
 <ul class="simple">
 <li><p>There is now support for the Xiong magnetic model (Xiong et al, Calphad, 2012), two-state liquid-amorphous model,
@@ -532,7 +595,7 @@ contributions. The API for custom contributions has changed; the old method will
 </ul>
 </section>
 <section id="id24">
-<h2>0.4.1 (2016-08-08)<a class="headerlink" href="#id24" title="Link to this heading">#</a></h2>
+<h2>0.4.1 (2016-08-08)<a class="headerlink" href="#id24" title="Link to this heading">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p>Python 3.3 support has been dropped. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/46">issue 46</a>.</p></li>
@@ -542,7 +605,7 @@ contributions. The API for custom contributions has changed; the old method will
 </ul>
 </section>
 <section id="id25">
-<h2>0.4 (2016-08-03)<a class="headerlink" href="#id25" title="Link to this heading">#</a></h2>
+<h2>0.4 (2016-08-03)<a class="headerlink" href="#id25" title="Link to this heading">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>The equilibrium solver core has been rewritten, resulting in a significant increase in robustness and accuracy,
@@ -553,7 +616,7 @@ Because of this, dask and dill are now dependencies.</p></li>
 </ul>
 </section>
 <section id="id26">
-<h2>0.3.6 (2016-06-01)<a class="headerlink" href="#id26" title="Link to this heading">#</a></h2>
+<h2>0.3.6 (2016-06-01)<a class="headerlink" href="#id26" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>Fix installation problem on Windows when using Anaconda.</p></li>
@@ -562,7 +625,7 @@ Because of this, dask and dill are now dependencies.</p></li>
 </ul>
 </section>
 <section id="id27">
-<h2>0.3.5 (2016-05-14)<a class="headerlink" href="#id27" title="Link to this heading">#</a></h2>
+<h2>0.3.5 (2016-05-14)<a class="headerlink" href="#id27" title="Link to this heading">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">tdb</span></code>: Fix TDB parsing errors on recent (&gt;=2.1) versions of pyparsing.</p></li>
@@ -572,14 +635,14 @@ An error is now raised if a calculation specifies components not in the Database
 </ul>
 </section>
 <section id="id28">
-<h2>0.3.4 (2016-04-28)<a class="headerlink" href="#id28" title="Link to this heading">#</a></h2>
+<h2>0.3.4 (2016-04-28)<a class="headerlink" href="#id28" title="Link to this heading">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Support the use of the absolute value function in the energy function.</p></li>
 </ul>
 </section>
 <section id="id29">
-<h2>0.3.3 (2016-04-21)<a class="headerlink" href="#id29" title="Link to this heading">#</a></h2>
+<h2>0.3.3 (2016-04-21)<a class="headerlink" href="#id29" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Significant improvements to the speed and accuracy of the solver.
@@ -592,7 +655,7 @@ Pull requests improving pycalphad’s support for kinetic calculations are welco
 </ul>
 </section>
 <section id="id30">
-<h2>0.3.2 (2016-02-22)<a class="headerlink" href="#id30" title="Link to this heading">#</a></h2>
+<h2>0.3.2 (2016-02-22)<a class="headerlink" href="#id30" title="Link to this heading">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Fix a bug causing calculations at multiple temperatures to fail in multi-component systems.
@@ -604,7 +667,7 @@ Further performance improvements will come to this soon.</p></li>
 </ul>
 </section>
 <section id="id31">
-<h2>0.3.1 (2016-02-18)<a class="headerlink" href="#id31" title="Link to this heading">#</a></h2>
+<h2>0.3.1 (2016-02-18)<a class="headerlink" href="#id31" title="Link to this heading">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Make the <code class="docutils literal notranslate"><span class="pre">curie_temperature</span></code> attribute work when dealing with the order-disorder model.</p></li>
@@ -612,7 +675,7 @@ Further performance improvements will come to this soon.</p></li>
 </ul>
 </section>
 <section id="id32">
-<h2>0.3 (2016-02-17)<a class="headerlink" href="#id32" title="Link to this heading">#</a></h2>
+<h2>0.3 (2016-02-17)<a class="headerlink" href="#id32" title="Link to this heading">¶</a></h2>
 <p>This is a major release with new features and fixes. It is very likely that
 if you will need to update code to be compatible with this version.</p>
 <ul class="simple">
@@ -645,7 +708,7 @@ obvious way of expressing the calculation as a traditional “step” or “map�
 </ul>
 </section>
 <section id="id33">
-<h2>0.2.5 (2015-12-22)<a class="headerlink" href="#id33" title="Link to this heading">#</a></h2>
+<h2>0.2.5 (2015-12-22)<a class="headerlink" href="#id33" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with new features and bug fixes.</p>
 <ul class="simple">
 <li><p><strong>Breaking change</strong> in <code class="docutils literal notranslate"><span class="pre">Model</span></code>: All mixing attributes have been renamed from <code class="docutils literal notranslate"><span class="pre">MIX_{attr}</span></code> to <code class="docutils literal notranslate"><span class="pre">{attr}_MIX</span></code>.</p></li>
@@ -667,7 +730,7 @@ For now, users will probably not notice a difference.</p></li>
 </ul>
 </section>
 <section id="id34">
-<h2>0.2.4 (2015-11-18)<a class="headerlink" href="#id34" title="Link to this heading">#</a></h2>
+<h2>0.2.4 (2015-11-18)<a class="headerlink" href="#id34" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>Optional, experimental support for <a class="reference external" href="http://numba.pydata.org/">numba</a> has been added to <code class="docutils literal notranslate"><span class="pre">calculate</span></code>.
@@ -688,7 +751,7 @@ Users will notice the biggest difference when calculating phases with the magnet
 </ul>
 </section>
 <section id="id35">
-<h2>0.2.3 (2015-11-08)<a class="headerlink" href="#id35" title="Link to this heading">#</a></h2>
+<h2>0.2.3 (2015-11-08)<a class="headerlink" href="#id35" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>Autograd is now a required dependency. It should be automatically installed on upgrade.</p></li>
@@ -705,7 +768,7 @@ infrastructure and is not collecting information from users.)</p></li>
 </ul>
 </section>
 <section id="id36">
-<h2>0.2.2 (2015-10-17)<a class="headerlink" href="#id36" title="Link to this heading">#</a></h2>
+<h2>0.2.2 (2015-10-17)<a class="headerlink" href="#id36" title="Link to this heading">¶</a></h2>
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
 <li><p>Numerical stability improvements to the energy minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
@@ -716,7 +779,7 @@ Please report these numerical issues if you run into them because they are diffi
 </ul>
 </section>
 <section id="id37">
-<h2>0.2.1 (2015-09-10)<a class="headerlink" href="#id37" title="Link to this heading">#</a></h2>
+<h2>0.2.1 (2015-09-10)<a class="headerlink" href="#id37" title="Link to this heading">¶</a></h2>
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
 <li><p>Composition conditions are correctly constructed when the dependent component does not come
@@ -724,7 +787,7 @@ last in alphabetical order ( <a class="reference external" href="https://github.
 </ul>
 </section>
 <section id="id38">
-<h2>0.2 (2015-08-23)<a class="headerlink" href="#id38" title="Link to this heading">#</a></h2>
+<h2>0.2 (2015-08-23)<a class="headerlink" href="#id38" title="Link to this heading">¶</a></h2>
 <p>This is a big release and is largely incompatible with 0.1.x.
 This was necessary for the move to the new equilibrium engine.
 0.2.x will be the last “alpha” version of pycalphad where APIs are broken without notice.
@@ -754,20 +817,20 @@ It requires the unlisted dependency <code class="docutils literal notranslate"><
 </ul>
 </section>
 <section id="post1-2015-04-10">
-<h2>0.1.1.post1 (2015-04-10)<a class="headerlink" href="#post1-2015-04-10" title="Link to this heading">#</a></h2>
+<h2>0.1.1.post1 (2015-04-10)<a class="headerlink" href="#post1-2015-04-10" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Fixes for automated test coverage</p></li>
 <li><p>Add funding acknowledgment</p></li>
 </ul>
 </section>
 <section id="id39">
-<h2>0.1.1 (2015-04-09)<a class="headerlink" href="#id39" title="Link to this heading">#</a></h2>
+<h2>0.1.1 (2015-04-09)<a class="headerlink" href="#id39" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Single-source version support with Versioneer</p></li>
 </ul>
 </section>
 <section id="id40">
-<h2>0.1 (2015-04-09)<a class="headerlink" href="#id40" title="Link to this heading">#</a></h2>
+<h2>0.1 (2015-04-09)<a class="headerlink" href="#id40" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Initial public release</p></li>
 </ul>
@@ -887,10 +950,10 @@ It requires the unlisted dependency <code class="docutils literal notranslate"><
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=bf134e4c"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+</div><script src="_static/documentation_options.js?v=516405e1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="_static/scripts/furo.js?v=4e2eecee"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>
 </html>
