@@ -88,9 +88,9 @@ def unpack_condition(tup):
         if len(tup) == 1:
             return [float(tup[0])]
         elif len(tup) == 2:
-            return np.arange(tup[0], tup[1], dtype=np.float_)
+            return np.arange(tup[0], tup[1], dtype=np.float64)
         elif len(tup) == 3:
-            return np.arange(tup[0], tup[1], tup[2], dtype=np.float_)
+            return np.arange(tup[0], tup[1], tup[2], dtype=np.float64)
         else:
             raise ValueError('Condition tuple is length {}'.format(len(tup)))
     elif isinstance(tup, Iterable):
@@ -147,7 +147,7 @@ def endmember_matrix(dof, vacancy_indices=None):
     >>> endmember_matrix([3,3,1], vacancy_indices=[[2], [2], [0]])
     """
     total_endmembers = functools.reduce(operator.mul, dof, 1)
-    res_matrix = np.empty((total_endmembers, sum(dof)), dtype=np.float_)
+    res_matrix = np.empty((total_endmembers, sum(dof)), dtype=np.float64)
     dof_arrays = [np.eye(d).tolist() for d in dof]
     row_idx = 0
     for row in itertools.product(*dof_arrays):

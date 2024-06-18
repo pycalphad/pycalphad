@@ -1,6 +1,6 @@
 # Build requirements, matching pyproject.toml[build-system][requires]
 Cython
-oldest-supported-numpy
+numpy>=2
 scipy
 setuptools
 setuptools_scm[toml]>=6.0

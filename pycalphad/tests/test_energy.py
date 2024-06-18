@@ -55,8 +55,8 @@ def calculate_output(model, variables, output, mode='sympy'):
 def check_output(model, variables, output, known_value, mode='sympy'):
     "Check that our calculated quantity matches the known value."
     desired = calculate_output(model, variables, output, mode)
-    known_value = np.array(known_value, dtype=np.complex_)
-    desired = np.array(desired, dtype=np.complex_)
+    known_value = np.array(known_value, dtype=np.complex128)
+    desired = np.array(desired, dtype=np.complex128)
     # atol defaults to zero here, but it cannot be zero if desired is zero
     # we set it to a reasonably small number for energies and derivatives (in Joules)
     # An example where expected = 0, but known != 0 is for ideal mix xlogx terms
@@ -479,7 +479,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1e-12,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1e-12,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_Sneg2}).n(real=True), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **em_FE_Sneg2}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -148395.0, atol=0.1)
 
     em_FE_VA = {
@@ -488,7 +488,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.0,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1e-12,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_VA}).n(real=True), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **em_FE_VA}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -87735.077, atol=0.1)
 
     em_FE_S = {
@@ -497,7 +497,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1e-12,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1.0,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_S}).n(real=True), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **em_FE_S}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -102463.52, atol=0.1)
 
     # Test some ficticious "nice" mixing cases
@@ -507,7 +507,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.33333333,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 0.33333333,
     }
-    out = np.array(mod.ast.subs({**potentials, **mix_equal}).n(real=True), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **mix_equal}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -130358.2, atol=0.1)
 
     mix_unequal = {
@@ -516,7 +516,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.25,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 0.25,
     }
-    out = np.array(mod.ast.subs({**potentials, **mix_unequal}).n(real=True), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **mix_unequal}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -138484.11, atol=0.1)
 
     # Test the energies for the two equilibrium internal DOF for the conditions
@@ -526,7 +526,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.00545E-04,
         v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 6.00994E-01,
     }
-    out = np.array(mod.ast.subs({**potentials, **eq_sf_1}).n(real=True), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **eq_sf_1}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -141545.37, atol=0.1)
 
     eq_sf_2 = {
@@ -535,7 +535,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.45273E-04,
         v.Y('IONIC_LIQ', 1, v.Species('S')): 9.84476E-01,
     }
-    out = np.array(mod.ast.subs({**potentials, **eq_sf_2}).n(real=True), dtype=np.complex_)
+    out = np.array(mod.ast.subs({**potentials, **eq_sf_2}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -104229.18, atol=0.1)
 
 
