@@ -466,9 +466,19 @@ class TCPrinter(object):
                     terms += '+' + adding_term
             return terms
         elif isinstance(expr, Mul):
-            terms = self._stringify_expr(expr.args[0])
-            for arg in expr.args[1:]:
-                terms += '*' + self._stringify_expr(arg)
+            #For cases like: A*(B+C) where an Add object is one of the arguments in Mul
+            #We want to explicitly add the parenthesis around Add(B,C)
+            #and save it to A*(B+C) rather than A*B+C
+            #For other types of expr, this shouldn't be an issue since:
+            #    Mul should not need extra parenthesis, e.g. A*(B*C) -> A*B*C
+            #    Pow will explicitly add parenthesis (in the next elif block)
+            #    Other functions such as Log, Sin, etc should
+            #        include the parenthesis when converting to string
+            
+            #All the arguments in Mul should be tested and they're all combined to a single expression by ' * '
+            #    So we could stringify each argument as a list and join them together is ' * '
+            term_list = ['(' + self._stringify_expr(arg) + ')' if isinstance(arg,Add) else self._stringify_expr(arg) for arg in expr.args]
+            terms = ' * '.join(term_list)
             return terms
         elif isinstance(expr, Pow):
             if expr.args[0] == E:

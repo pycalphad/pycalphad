@@ -845,6 +845,39 @@ def test_tc_printer_exp():
     result = TCPrinter()._stringify_expr(test_expr)
     assert result == 'exp(-300*T**(-1))'
 
+def test_tc_printer_nested_mul_add():
+    """
+    TCPrinter retains parenthesis around a nested Mul(...,Add(...)) expression
+    Ex. A*(B+C) should result in A*(B+C) instead of A*B+C
+    Also, it should not add unnecessary parenthesis, so: 
+        A*(B*C) should be A*B*C and
+        A*B**C should be A * B**(C) instead of A * (B**(C))
+    """
+    #Test that parenthesis are retained for Mul(A,Add(B,C))
+    test_expr = S('A*(B+C)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    #Test for B+C or C+B since this seems to differ across different OS
+    assert result == 'A * (B + C)' or result == 'A * (C + B)'
+
+    #Test for Mul(Add(A,B),Add(C,D))
+    test_expr = S('(A+B)*(C+D)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    assert ('(A + B)' in result or '(B + A)' in result) and ('(C + D)' in result or '(D + C)' in result)
+
+    #Test that the parenthesis are ignored for Mul(A,Mul(B,C))
+    test_expr = S('A*(B*C)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    #Since the ordering seem to sometimes differ across different OS
+    #    this would result in 6 different combinations to test
+    #    so we'll just test that the parenthesis are removed
+    assert '(' not in result and ')' not in result
+
+    #Test that parenthesis are not added for Mul(A,Pow(B,C))
+    #    We want to avoid cases where something like A * T**(B) becomes A * (T**(B))
+    test_expr = S('A*B**(C)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    assert result == 'A * B**(C)'
+
 
 @select_database("Al-Fe_sundman2009.tdb")
 def test_database_symmetry_options_are_generated(load_database):
