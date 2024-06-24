@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>pycalphad.core.halton - pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</title>
+        <title>pycalphad.core.halton - pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
@@ -178,7 +178,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -205,7 +205,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -396,8 +396,8 @@
                          <span class="s1">&#39;calculated when </span><span class="se">\&#39;</span><span class="s1">primes</span><span class="se">\&#39;</span><span class="s1"> is only of length </span><span class="si">{1}</span><span class="s1">. &#39;</span>
                          <span class="s1">&#39;Use the </span><span class="se">\&#39;</span><span class="s1">primes</span><span class="se">\&#39;</span><span class="s1"> parameter to pass additional &#39;</span>
                          <span class="s1">&#39;primes.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">primes</span><span class="p">)))</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nbpts</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">)</span>
-    <span class="n">dim_primes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">primes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">dim</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nbpts</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">dim_primes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">primes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">dim</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dim_primes</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
         <span class="n">num_powers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nbpts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">dim_primes</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">)</span>
         <span class="c1"># need to be careful about precision errors here</span>
@@ -405,7 +405,7 @@
         <span class="n">powers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">dim_primes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_powers</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">longdouble</span><span class="p">))</span>
         <span class="n">radix_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">dim_primes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_powers</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">longdouble</span><span class="p">))</span>
         <span class="c1"># we can drop precision after the outer product for a speedup</span>
-        <span class="n">sum_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nbpts</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">radix_vector</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">)</span>
+        <span class="n">sum_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nbpts</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">radix_vector</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="n">mod_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">scrambler</span><span class="p">[</span><span class="n">dim_primes</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">sum_matrix</span> <span class="o">+</span> <span class="mf">1e-15</span><span class="p">),</span> <span class="n">dim_primes</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="n">result</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">mod_matrix</span><span class="p">,</span> <span class="n">powers</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span></div>
@@ -442,7 +442,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=516405e1"></script>
+</div><script src="../../../_static/documentation_options.js?v=2d15f586"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=4e2eecee"></script>

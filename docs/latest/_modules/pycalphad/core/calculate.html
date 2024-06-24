@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>pycalphad.core.calculate - pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</title>
+        <title>pycalphad.core.calculate - pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
@@ -178,7 +178,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -205,7 +205,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev8+g1c79c0cf documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -482,7 +482,7 @@
     <span class="c1"># Issues with this appear to be platform-dependent</span>
     <span class="n">points</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)]</span>
     <span class="c1"># Ensure that points has the correct dimensions and dtype</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">))</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">points</span>
 
 
@@ -574,12 +574,12 @@
         <span class="n">phase_output</span> <span class="o">=</span> <span class="n">broadcast_to</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase_compositions</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
         <span class="n">phase_compositions</span> <span class="o">=</span> <span class="n">broadcast_to</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pure_elements</span><span class="p">),))</span>
-    <span class="n">phase_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">)</span>
+    <span class="n">phase_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">parameter_array_length</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">phase_output</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">phase_output</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">parameter_array_length</span><span class="p">,)</span>
-    <span class="n">phase_compositions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phase_compositions</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">)</span>
+    <span class="n">phase_compositions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phase_compositions</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="n">phase_compositions</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pure_elements</span><span class="p">),)</span>
     <span class="k">if</span> <span class="n">fake_points</span><span class="p">:</span>
         <span class="n">output_shape</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">max_tieline_vertices</span><span class="p">,)</span>
@@ -845,7 +845,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=516405e1"></script>
+</div><script src="../../../_static/documentation_options.js?v=2d15f586"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=4e2eecee"></script>
