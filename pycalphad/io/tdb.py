@@ -551,6 +551,7 @@ def reflow_text(text, linewidth=80):
         else:
             while len(line) > linewidth:
                 linebreak_idx = linewidth - 1
+                # Makes expressions breakable at `linebreak_chars` plus at [+-][0-9], since they are not preceded by 'E' or '('. This should prevent breaking lines inside EXP or LN/LOG or power expression: '6.14599E-07', 'T**(-3)', and 'LOG(-3)'
                 while linebreak_idx > 0 and not re.match(r'[^E\(][+-][0-9]', line[linebreak_idx-1:linebreak_idx+2]) and line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
                 # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
