@@ -475,10 +475,10 @@ class TCPrinter(object):
             #    Other functions such as Log, Sin, etc should
             #        include the parenthesis when converting to string
             
-            #All the arguments in Mul should be tested and they're all combined to a single expression by ' * '
-            #    So we could stringify each argument as a list and join them together is ' * '
+            #All the arguments in Mul should be tested and they're all combined to a single expression by '*'
+            #    So we could stringify each argument as a list and join them together is '*'
             term_list = ['(' + self._stringify_expr(arg) + ')' if isinstance(arg,Add) else self._stringify_expr(arg) for arg in expr.args]
-            terms = ' * '.join(term_list)
+            terms = '*'.join(term_list)
             return terms
         elif isinstance(expr, Pow):
             if expr.args[0] == E:
