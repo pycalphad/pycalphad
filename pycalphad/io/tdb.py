@@ -10,7 +10,7 @@ from pyparsing import delimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
-from symengine import Symbol, LessThan, StrictLessThan, S, E
+from symengine import Symbol, RealDouble, LessThan, StrictLessThan, S, E
 from tinydb import where
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
@@ -488,7 +488,9 @@ class TCPrinter(object):
                 argument = self._stringify_expr(expr.args[0])
                 if isinstance(expr.args[0], (Add, Mul)):
                     argument = '( ' + argument + ' )'
-                terms = argument + '**' + '(' + self._stringify_expr(int(expr.args[1])) + ')'
+                # Deals with both numbers (RealDouble) and nested function exponents
+                exponent = int(expr.args[1]) if isinstance(expr.args[1], RealDouble) else expr.args[1]
+                terms = argument + '**' + '(' + self._stringify_expr(exponent) + ')'
             return terms
         else:
             return str(expr)
