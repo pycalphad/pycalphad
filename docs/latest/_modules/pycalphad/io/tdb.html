@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>pycalphad.io.tdb - pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</title>
+        <title>pycalphad.io.tdb - pycalphad 0.10.4.post2.dev10+ga3c1005e documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
@@ -178,7 +178,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev10+ga3c1005e documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -205,7 +205,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev9+g25cf9c4d documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev10+ga3c1005e documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -296,7 +296,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">symengine.lib.symengine_wrapper</span> <span class="kn">import</span> <span class="n">UniversalSet</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Complement</span>
 <span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Not</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span>
+<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">RealDouble</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span>
 <span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>
 <span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="kn">import</span> <span class="n">DatabaseExportError</span>
@@ -763,7 +763,7 @@
                 <span class="k">if</span> <span class="n">adding_term</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
                     <span class="n">terms</span> <span class="o">+=</span> <span class="n">adding_term</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">terms</span> <span class="o">+=</span> <span class="s1">&#39; + &#39;</span> <span class="o">+</span> <span class="n">adding_term</span>
+                    <span class="n">terms</span> <span class="o">+=</span> <span class="s1">&#39;+&#39;</span> <span class="o">+</span> <span class="n">adding_term</span>
             <span class="k">return</span> <span class="n">terms</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Mul</span><span class="p">):</span>
             <span class="c1">#For cases like: A*(B+C) where an Add object is one of the arguments in Mul</span>
@@ -775,10 +775,10 @@
             <span class="c1">#    Other functions such as Log, Sin, etc should</span>
             <span class="c1">#        include the parenthesis when converting to string</span>
             
-            <span class="c1">#All the arguments in Mul should be tested and they&#39;re all combined to a single expression by &#39; * &#39;</span>
-            <span class="c1">#    So we could stringify each argument as a list and join them together is &#39; * &#39;</span>
+            <span class="c1">#All the arguments in Mul should be tested and they&#39;re all combined to a single expression by &#39;*&#39;</span>
+            <span class="c1">#    So we could stringify each argument as a list and join them together is &#39;*&#39;</span>
             <span class="n">term_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span><span class="n">Add</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
-            <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39; * &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">term_list</span><span class="p">)</span>
+            <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">term_list</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">terms</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Pow</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">E</span><span class="p">:</span>
@@ -788,7 +788,9 @@
                 <span class="n">argument</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">)):</span>
                     <span class="n">argument</span> <span class="o">=</span> <span class="s1">&#39;( &#39;</span> <span class="o">+</span> <span class="n">argument</span> <span class="o">+</span> <span class="s1">&#39; )&#39;</span>
-                <span class="n">terms</span> <span class="o">=</span> <span class="n">argument</span> <span class="o">+</span> <span class="s1">&#39;**&#39;</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+                <span class="c1"># Deals with both numbers (RealDouble) and nested function exponents</span>
+                <span class="n">exponent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">RealDouble</span><span class="p">)</span> <span class="k">else</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">terms</span> <span class="o">=</span> <span class="n">argument</span> <span class="o">+</span> <span class="s1">&#39;**&#39;</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
             <span class="k">return</span> <span class="n">terms</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
@@ -854,7 +856,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">linewidth</span><span class="p">:</span>
                 <span class="n">linebreak_idx</span> <span class="o">=</span> <span class="n">linewidth</span> <span class="o">-</span> <span class="mi">1</span>
-                <span class="k">while</span> <span class="n">linebreak_idx</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">linebreak_chars</span><span class="p">:</span>
+                <span class="c1"># Makes expressions breakable at `linebreak_chars` plus at [+-][0-9], since they are not preceded by &#39;E&#39; or &#39;(&#39;. This should prevent breaking lines inside EXP or LN/LOG or power expression: &#39;6.14599E-07&#39;, &#39;T**(-3)&#39;, and &#39;LOG(-3)&#39;</span>
+                <span class="k">while</span> <span class="n">linebreak_idx</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^E\(][+-][0-9]&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="n">linebreak_idx</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span> <span class="ow">and</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">linebreak_chars</span><span class="p">:</span>
                     <span class="n">linebreak_idx</span> <span class="o">-=</span> <span class="mi">1</span>
                 <span class="c1"># Need to check 2 (rather than zero) because we prepend newlines with 2 characters</span>
                 <span class="k">if</span> <span class="n">linebreak_idx</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
@@ -1294,7 +1297,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=2d15f586"></script>
+</div><script src="../../../_static/documentation_options.js?v=7a29c2ef"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=4e2eecee"></script>
