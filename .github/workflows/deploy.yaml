@@ -73,10 +73,10 @@ jobs:
           path: dist
           merge-multiple: true  # download and extract all artifacts in the same directory
       - name: PyPI - Upload Artifacts to PyPI (Production)
-        uses: pypa/gh-action-pypi-publish@v1.8.14
+        uses: pypa/gh-action-pypi-publish@v1.9.0
         if: github.event_name == 'release' && github.event.action == 'published'
       - name: TestPyPI - Upload Artifacts
-        uses: pypa/gh-action-pypi-publish@v1.8.14
+        uses: pypa/gh-action-pypi-publish@v1.9.0
         if: github.event_name == 'push' && github.ref_name == 'develop'
         with:
           repository-url: https://test.pypi.org/legacy/
