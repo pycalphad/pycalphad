@@ -132,7 +132,6 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
                 ax.plot(x_data, y_data, color=colors[p], lw=1, solid_capstyle="butt")
 
         if tielines:
-            print(tieline_color)
             tieline_collection = LineCollection(np.asarray([[x_arrays[0], x_arrays[1]], [y_arrays[0], y_arrays[1]]]).T[::tielines, ...], zorder=1, linewidths=0.5, capstyle="butt", colors=[tieline_color for _ in range(len(x_arrays[0]))])
             ax.add_collection(tieline_collection)
 
