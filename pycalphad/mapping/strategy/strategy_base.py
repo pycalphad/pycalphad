@@ -49,6 +49,10 @@ class MapStrategy:
         self.phases = filter_phases(self.dbf, unpack_components(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)
 
+        #Add v.N to conditions. Mapping assumes that v.N is in conditions
+        if v.N not in self.conditions:
+            self.conditions[v.N] = 1
+
         self.axis_vars = []
         self.axis_lims = {}
         self.axis_delta = {}
@@ -62,7 +66,7 @@ class MapStrategy:
         self.models = instantiate_models(self.dbf, self.components, self.phases)
         self.phase_records = build_phase_records(self.dbf, self.components, self.phases, set(STATEVARS), self.models)
 
-        #In case we need to call pycalphad functions outside this class (*cough _find_global_min_point *cough)
+        #In case we need to call pycalphad functions outside this class
         self.system_info = {
             "dbf": self.dbf,
             "comps": self.components,
