@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.4
+        uses: pypa/cibuildwheel@v2.19.1
         env:
           # PyPy wheels not allowed because SciPy (build requirement) is not available
           CIBW_BUILD: cp3*-*
@@ -63,19 +63,20 @@ jobs:
   upload_pypi:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # upload to PyPI when a GitHub Release is created
-    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: artifact-*
           path: dist
           merge-multiple: true  # download and extract all artifacts in the same directory
-
-      - uses: pypa/gh-action-pypi-publish@v1.8.11
+      - name: PyPI - Upload Artifacts to PyPI (Production)
+        uses: pypa/gh-action-pypi-publish@v1.9.0
+        if: github.event_name == 'release' && github.event.action == 'published'
+      - name: TestPyPI - Upload Artifacts
+        uses: pypa/gh-action-pypi-publish@v1.9.0
+        if: github.event_name == 'push' && github.ref_name == 'develop'
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_PYCALPHAD_TOKEN }}
-          # To test, uncomment the following:
-          # password: ${{ secrets.TEST_PYPI_PYCALPHAD_TOKEN }}
-          # repository_url: https://test.pypi.org/legacy/
+          repository-url: https://test.pypi.org/legacy/

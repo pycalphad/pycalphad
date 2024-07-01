@@ -108,8 +108,8 @@ def halton(dim, nbpts, primes=None, scramble=True):
                          'calculated when \'primes\' is only of length {1}. '
                          'Use the \'primes\' parameter to pass additional '
                          'primes.'.format(dim, len(primes)))
-    result = np.empty((nbpts, dim), dtype=np.float_)
-    dim_primes = np.asarray(primes[0:dim], dtype=np.float_)
+    result = np.empty((nbpts, dim), dtype=np.float64)
+    dim_primes = np.asarray(primes[0:dim], dtype=np.float64)
     for i in np.arange(dim_primes.size):
         num_powers = np.ceil(np.log(nbpts + 1) / np.log(dim_primes[i])).astype(np.int_)
         # need to be careful about precision errors here
@@ -117,7 +117,7 @@ def halton(dim, nbpts, primes=None, scramble=True):
         powers = np.power(dim_primes[i], -np.arange(1, num_powers+1, dtype=np.longdouble))
         radix_vector = np.power(dim_primes[i], -np.arange(num_powers, dtype=np.longdouble))
         # we can drop precision after the outer product for a speedup
-        sum_matrix = np.outer(np.arange(1, nbpts+1), radix_vector).astype(np.float_)
+        sum_matrix = np.outer(np.arange(1, nbpts+1), radix_vector).astype(np.float64)
         mod_matrix = np.mod(scrambler[dim_primes[i]] * np.floor(sum_matrix + 1e-15), dim_primes[i])
         result[:, i] = np.dot(mod_matrix, powers)
     return result

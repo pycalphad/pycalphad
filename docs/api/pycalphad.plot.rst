@@ -36,14 +36,6 @@ pycalphad.plot.ternary module
    :undoc-members:
    :show-inheritance:
 
-pycalphad.plot.triangular module
---------------------------------
-
-.. automodule:: pycalphad.plot.triangular
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pycalphad.plot.utils module
 ---------------------------
 
