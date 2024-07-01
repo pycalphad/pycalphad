@@ -36,9 +36,9 @@ def unpack_condition(tup):
         if len(tup) == 1:
             return [float(tup[0])]
         elif len(tup) == 2:
-            return np.arange(tup[0], tup[1], dtype=np.float_)
+            return np.arange(tup[0], tup[1], dtype=np.float64)
         elif len(tup) == 3:
-            return np.arange(tup[0], tup[1], tup[2], dtype=np.float_)
+            return np.arange(tup[0], tup[1], tup[2], dtype=np.float64)
         else:
             raise ValueError('Condition tuple is length {}'.format(len(tup)))
     elif isinstance(tup, Q_):

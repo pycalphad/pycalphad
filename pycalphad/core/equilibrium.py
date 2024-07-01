@@ -78,7 +78,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         result_array = np.zeros(properties.GM.shape) # Will not work for non-scalar properties
         for index, composition_sets in wks.enumerate_composition_sets():
             cur_conds = OrderedDict(zip(conds_keys,
-                                        [np.asarray(properties.coords[b][a], dtype=np.float_)
+                                        [np.asarray(properties.coords[b][a], dtype=np.float64)
                                         for a, b in zip(index, conds_keys)]))
             chemical_potentials = properties.MU[index]
             result_array[index] = cprop.compute_property(composition_sets, cur_conds, chemical_potentials)
