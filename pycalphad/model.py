@@ -1350,7 +1350,7 @@ class Model(object):
 
         Parameters
         ----------
-        reference_states : Iterable of ReferenceState
+        reference_states : Iterable of pycalphad.model.ReferenceState
             Pure element ReferenceState objects. Must include all the pure
             elements defined in the current model.
         dbe : Database
