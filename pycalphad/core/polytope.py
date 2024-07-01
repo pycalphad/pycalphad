@@ -160,7 +160,15 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
 
     if N.shape[1] == 0:
         # zero-dimensional polytope, return unique solution
-        X = np.atleast_2d(np.linalg.solve(A2, b2))
+        # Use lstsq instead of solve, to allow for redundant constraints (non-square constraint matrix)
+        solution = np.linalg.lstsq(A2, b2, rcond=None)
+        X = np.atleast_2d(solution[0])
+        # Check residuals to ensure system was fully determined, or constraints were redundant
+        if solution[1].size > 0:
+            residual = float(solution[1])
+            if residual > 1e-10:
+                # Starting point is not feasible
+                return np.empty((0, A1.shape[1]))
         return X
 
     # project to the affine subspace of the equality constraints
