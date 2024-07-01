@@ -202,6 +202,7 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
             # distance to the closest face in and opposite to direction
             lo = max(D[D < 1e-10])
             hi = min(D[D > -1e-10])
+            print('DEBUG', lo, hi)
             if hi < lo:
                 # Amount of 'wiggle room' is down in the numerical noise
                 lo = 0.0
