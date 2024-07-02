@@ -112,7 +112,7 @@ def affine_subspace(A, b):
         Particular solution to Ax = b.
     """
     N = scipy.linalg.null_space(A)
-    xp = scipy.linalg.pinv(A) @ b
+    xp = np.linalg.pinv(A) @ b
     return N, xp
 
 def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
@@ -157,6 +157,10 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
     else:
         N = np.eye(A1.shape[1])
         xp = np.zeros(A1.shape[1])
+
+    # Do not allow particular solutions to fall outside of bounds
+    # This operation helps with numerical robustness
+    xp = np.clip(xp, lower+1e-14, upper-1e-14)
 
     if N.shape[1] == 0:
         # zero-dimensional polytope, return unique solution
