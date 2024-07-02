@@ -8,7 +8,7 @@ from pycalphad import variables as v
 from pycalphad.plot.utils import phase_legend
 from pycalphad.plot import triangular  # register triangular projection
 
-from pycalphad.mapping.primitives import STATEVARS, Node
+from pycalphad.mapping.primitives import STATEVARS, Node, ZPFLine
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
 from pycalphad.mapping.strategy.binary_strategy import BinaryStrategy
 from pycalphad.mapping.strategy.ternary_strategy import TernaryStrategy
@@ -24,6 +24,14 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global = F
         return v.NP(phase)
     else:
         return var
+    
+def _get_label(var: v.StateVariable):
+    #If user just passes v.NP rather than an instance of v.NP, then label is just NP
+    if var == v.NP:
+        return 'Phase Fraction'
+    #Otherwise, we can just use the display name
+    else:
+        return var.display_name
 
 def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, *args, **kwargs):
     """
@@ -81,8 +89,8 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
+    ax.set_xlabel(_get_label(x))
+    ax.set_ylabel(_get_label(y))
     
     return ax
 
@@ -102,6 +110,23 @@ def _plot_nodes(ax, nodes: list[Node], x: v.StateVariable, y: v.StateVariable, p
                 for xp, yp, p in zip(x_data, y_data, node.stable_phases_with_multiplicity):
                     ax.scatter([xp], [yp], color=phase_colors[p], s=8, zorder=3)
 
+def _plot_tielines(ax, zpf_lines: list[ZPFLine], x: v.StateVariable, y: v.StateVariable, phases: list[str], phase_colors, tielines = 1, tieline_color=(0, 1, 0, 1)):
+    for zpf_lines in zpf_lines:
+        phases = zpf_lines.stable_phases_with_multiplicity
+        x_arrays = []
+        y_arrays = []
+        for p in phases:
+            x_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, x))
+            y_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, y))
+            x_arrays.append(x_data)
+            y_arrays.append(y_data)
+            if not all((y_data == 0) | (y_data == np.nan)):
+                ax.plot(x_data, y_data, color=phase_colors[p], lw=1, solid_capstyle="butt")
+
+        if tielines:
+            tieline_collection = LineCollection(np.asarray([[x_arrays[0], x_arrays[1]], [y_arrays[0], y_arrays[1]]]).T[::tielines, ...], zorder=1, linewidths=0.5, capstyle="butt", colors=[tieline_color for _ in range(len(x_arrays[0]))])
+            ax.add_collection(tieline_collection)
+
 def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, tielines = 1, label_node = False, legend_generator = phase_legend, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), *args, **kwargs):
     """
     Binary plotting
@@ -119,21 +144,7 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     phases = strategy.get_all_phases()
     handles, colors = legend_generator(phases)
 
-    for zpf_lines in strategy.zpf_lines:
-        phases = zpf_lines.stable_phases_with_multiplicity
-        x_arrays = []
-        y_arrays = []
-        for p in phases:
-            x_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, x))
-            y_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, y))
-            x_arrays.append(x_data)
-            y_arrays.append(y_data)
-            if not all((y_data == 0) | (y_data == np.nan)):
-                ax.plot(x_data, y_data, color=colors[p], lw=1, solid_capstyle="butt")
-
-        if tielines:
-            tieline_collection = LineCollection(np.asarray([[x_arrays[0], x_arrays[1]], [y_arrays[0], y_arrays[1]]]).T[::tielines, ...], zorder=1, linewidths=0.5, capstyle="butt", colors=[tieline_color for _ in range(len(x_arrays[0]))])
-            ax.add_collection(tieline_collection)
+    _plot_tielines(ax, strategy.zpf_lines, x, y, phases=phases, phase_colors=colors, tielines=tielines, tieline_color=tieline_color)
 
     _plot_nodes(ax, strategy.node_queue.nodes, x, y, phases=phases, phase_colors=colors, label_end_points=label_node, tie_triangle_color=tie_triangle_color)
 
@@ -154,8 +165,8 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
+    ax.set_xlabel(_get_label(x))
+    ax.set_ylabel(_get_label(y))
 
     return ax
 
@@ -166,8 +177,12 @@ def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.Stat
     plot_binary(strategy, x, y, ax, tielines=tielines, label_node=label_nodes, legend_generator=legend_generator, tieline_color=tieline_color, tie_triangle_color=tie_triangle_color, *args, **kwargs)
     ax.set_xlim([0,1])
     ax.set_ylim([0,1])
-    ax.yaxis.label.set_rotation(60)  # rotate ylabel
-    ax.yaxis.set_label_coords(x=0.12, y=0.5)  # move the label to a pleasing position
+
+    #Projection is stored in the default axis name, so only adjust y label if the axis is triangular
+    #Note: this is assuming that triangular is the only option for making a ternary plot and that the user doesn't change the default name
+    if 'triangular' in ax.name:
+        ax.yaxis.label.set_rotation(60)  # rotate ylabel
+        ax.yaxis.set_label_coords(x=0.12, y=0.5)  # move the label to a pleasing position
 
     return ax
 
@@ -235,7 +250,7 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
+    ax.set_xlabel(_get_label(x))
+    ax.set_ylabel(_get_label(y))
 
     return ax
