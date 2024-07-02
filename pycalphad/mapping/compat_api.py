@@ -48,7 +48,7 @@ def binplot(database, components, phases, conditions, plot_kwargs=None, **map_kw
     # remaining map_kwargs from pycalphad.plot.binary.map.map_binary:
     # calc_kwargs=None
     
-    strategy = BinaryStrategy(database, components, phases, conditions)
+    strategy = BinaryStrategy(database, components, phases, conditions, **map_kwargs)
     strategy.initialize()
     strategy.do_map()
 
@@ -102,7 +102,8 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, map_kwargs=None, **plot_
     if (len(indep_comps) != 2) or (len(indep_pots) != 0):
         raise ValueError('ternplot() requires exactly two composition coordinates')
 
-    strategy = TernaryStrategy(dbf, comps, phases, conds)
+    map_kwargs = map_kwargs if map_kwargs is not None else dict()
+    strategy = TernaryStrategy(dbf, comps, phases, conds, **map_kwargs)
     strategy.initialize()
     strategy.do_map()
 
@@ -153,7 +154,7 @@ def isoplethplot(database, components, phases, conditions, plot_kwargs=None, **m
     if (len(indep_comps) != 1) or (len(indep_pots) != 1):
         raise ValueError('isoplethplot() requires exactly one composition coordinate and one potential coordinate')
     
-    strategy = IsoplethStrategy(database, components, phases, conditions)
+    strategy = IsoplethStrategy(database, components, phases, conditions, **map_kwargs)
     strategy.initialize()
     strategy.do_map()
 
@@ -201,7 +202,7 @@ def stepplot(database, components, phases, conditions, plot_kwargs=None, **map_k
     if len(indep_vars) != 1:
         raise ValueError('stepplot() requires exactly one coordinate')
 
-    strategy = StepStrategy(database, components, phases, conditions)
+    strategy = StepStrategy(database, components, phases, conditions, **map_kwargs)
     strategy.initialize()
     strategy.do_map()
 

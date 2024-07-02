@@ -53,8 +53,8 @@ class IsoplethStrategy(MapStrategy):
     TODO: initialize, _determine_start_direction and _test_swap_axis are the same as for binary strategy
             We may want to merge some of these methods to a single class that isopleths and binary strategies can inherit from
     """
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]]):
-        super().__init__(dbf, components, phases, conditions)
+    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
+        super().__init__(dbf, components, phases, conditions, **kwargs)
 
     def initialize(self):
         """

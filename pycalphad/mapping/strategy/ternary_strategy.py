@@ -102,8 +102,8 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
         return options_tests[best_index][0], options_tests[best_index][1], options_tests[best_index][2], normal
 
 class TernaryStrategy(MapStrategy):
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]]):
-        super().__init__(dbf, components, phases, conditions)
+    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
+        super().__init__(dbf, components, phases, conditions, **kwargs)
         #TODO: I don't really like this since this assumes pure elements
         #Although since species as conditions aren't supported yet, I suppose it's fine for now
         unlisted_element = list(set(self.components) - {'VA'} - set([str(av.species) for av in self.axis_vars]))[0]

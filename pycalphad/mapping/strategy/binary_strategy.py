@@ -62,8 +62,8 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
         return options_tests[best_index][1], options_tests[best_index][2]
 
 class BinaryStrategy(MapStrategy):
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]]):
-        super().__init__(dbf, components, phases, conditions)
+    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
+        super().__init__(dbf, components, phases, conditions, **kwargs)
 
     def initialize(self):
         """

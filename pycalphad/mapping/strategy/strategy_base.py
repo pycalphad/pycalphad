@@ -24,27 +24,28 @@ class MapStrategy:
 
     Derived classes:
         SteppingStrategy - for single axis diagrams
-        TielinesStrategy - for binary and ternary phase diagrams
-                           this may be split to handle since ternary phase diagrams may need some special handling
-        IsoplethStrategy - for isopleths
+        BinaryStrategy - for binary phase diagrams (1 composition, 1 potential axis)
+        TernaryStrategy - for ternary phase diagrams (2 composition axis)
+        IsoplethStrategy - for isopleths (this has only been tested for 1 composition, 1 potential axis so far)
         
-        Eventually, we will want a general strategy that can map out more than two axis variables
-
-    
+    Constants
+        DELTA_SCALE = 0.5 - factor to scale down step size if a single step iteration was unsuccessfuly
+        MIN_DELTA_RATIO = 0.1 - minimum step size (as ratio of default) before stopping zpf line iteration
+        GLOBAL_CHECK_INTERVAL = 1 - number of iterations before global min check
+                                    I think there's a lot of issues if this is >1
+        GLOBAL_MIN_PDENS = 500 - sampling density for global min check
+        GLOBAL_MIN_TOL = 1e-4 - minimum driving force for a composition set to pass global min check
+        GLOBAL_MIN_NUM_CANDIDATES = 1 - number of candidates to search through for finding global min
+                                        sometimes, global min can be missed if the sampling is poor, so checking the n-best candidates can help
     """
-    #Some default constants
-    MIN_DELTA_RATIO = 0.1
-    DELTA_SCALE = 0.5
-    GLOBAL_CHECK_INTERVAL = 1
-    GLOBAL_MIN_PDENS = 500
-    GLOBAL_MIN_TOL = 1e-4
-    GLOBAL_MIN_NUM_CANDIDATES = 1
-
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]]):
+    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
         if isinstance(dbf, str):
             dbf = Database(dbf)
         self.dbf = dbf
-        self.components = components
+
+        #Implicitly add vacancies to components. This shouldn't affect models that don't use vacancies
+        #But models that use vacancies will be ignored if the user forgets to supply it
+        self.components = list(set(components).union({'VA'}))
         self.elements = map_utils.elements_from_components(self.components)
         self.phases = filter_phases(self.dbf, unpack_components(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)
@@ -82,6 +83,14 @@ class MapStrategy:
         self._exits = []
         self._exit_dirs = []
         self._exit_index = 0
+
+        #Some default constants
+        self.DELTA_SCALE = kwargs.get('DELTA_SCALE', 0.5)
+        self.MIN_DELTA_RATIO = kwargs.get('MIN_DELTA_RATIO', 0.1)
+        self.GLOBAL_CHECK_INTERVAL = kwargs.get('GLOBAL_CHECK_INTERVAL', 1)
+        self.GLOBAL_MIN_PDENS = kwargs.get('GLOBAL_MIN_PDENS', 500)
+        self.GLOBAL_MIN_TOL = kwargs.get('GLOBAL_MIN_TOL', 1e-4)
+        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get('GLOBAL_MIN_NUM_CANDIDATES', 1)
 
     def get_all_phases(self):
         """
@@ -225,6 +234,7 @@ class MapStrategy:
         #TODO: check if composition sums to more than 1, could be an override for isopleth strategy
         hit_axis_limit = False
         offset = 0 if axis_var in STATEVARS else MIN_COMPOSITION
+
         if new_conds[axis_var] > max(axis_lims) -  offset:
             new_conds[axis_var] = max(axis_lims) - offset
             hit_axis_limit = True

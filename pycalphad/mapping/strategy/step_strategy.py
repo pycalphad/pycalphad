@@ -15,8 +15,8 @@ from pycalphad.mapping.strategy.strategy_base import MapStrategy
 _log = logging.getLogger(__name__)
 
 class StepStrategy(MapStrategy):
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]]):
-        super().__init__(dbf, components, phases, conditions)
+    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
+        super().__init__(dbf, components, phases, conditions, **kwargs)
 
     def initialize(self):
         """
