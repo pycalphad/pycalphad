@@ -172,10 +172,9 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
         return X
 
     # project to the affine subspace of the equality constraints
-    At = A1.astype(np.float128) @ N.astype(np.float128)
-    bt = np.subtract(b1, A1 @ xp, dtype=np.float128)
-    print('At', At)
-    print('bt', bt)
+    At = A1 @ N
+    bt = b1 - A1 @ xp
+
     try:
         x0 = chebyshev_center(At, bt)
     except:
@@ -193,16 +192,18 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
     with np.errstate(divide='ignore', invalid='ignore'):
         directions = rng.randn(n_points, At.shape[1])
         directions /= np.linalg.norm(directions, axis=0)
+        print('directions', directions)
         for i in range(n_points):
             # sample random direction from unit hypersphere
             direction = directions[i]
 
             # distances to each face from the current point in the sampled direction
-            D = np.divide(bt - x @ At.T, direction @ At.T, dtype=np.float128)
+            D = (bt - x @ At.T) / (direction @ At.T)
             print('D', D)
             # distance to the closest face in and opposite to direction
             lo = max(D[D < 1e-10])
             hi = min(D[D > -1e-10])
+            print('DEBUG', lo, hi)
             if hi < lo:
                 # Amount of 'wiggle room' is down in the numerical noise
                 lo = 0.0
