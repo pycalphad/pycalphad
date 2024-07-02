@@ -15,7 +15,7 @@ def update_cs_phase_frac(comp_set: CompositionSet, phase_frac: float):
     comp_set.update(comp_set.dof[len(STATEVARS):], phase_frac, comp_set.dof[:len(STATEVARS)])
 
 def get_statevars_array(conditions: dict[v.StateVariable, float]):
-    return np.asarray([conditions[sv] for sv in STATEVARS], dtype=np.float_)
+    return np.asarray([conditions[sv] for sv in STATEVARS], dtype=np.float64)
 
 def elements_from_components(components: list[str]):
     #Components can be a compound, so we want to get all unique elements
