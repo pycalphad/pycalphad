@@ -112,7 +112,7 @@ def affine_subspace(A, b):
         Particular solution to Ax = b.
     """
     N = scipy.linalg.null_space(A)
-    xp = np.linalg.pinv(A, rcond=-1) @ b
+    xp = scipy.linalg.pinv(A) @ b
     return N, xp
 
 def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
