@@ -195,7 +195,10 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
         for i in range(n_points):
             # sample random direction from unit hypersphere
             direction = directions[i]
-
+            print('direction', direction)
+            print('x @ At.T', x @ At.T)
+            print('D numerator', bt - x @ At.T)
+            print('D denominator', direction @ At.T)
             # distances to each face from the current point in the sampled direction
             D = (bt - x @ At.T) / (direction @ At.T)
 
