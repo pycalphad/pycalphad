@@ -112,8 +112,7 @@ def affine_subspace(A, b):
         Particular solution to Ax = b.
     """
     N = scipy.linalg.null_space(A)
-    # Set rcond to roughly MIN_SITE_FRACTION/10 for robustness at dilute limit
-    xp = np.linalg.pinv(A, rcond=1e-17) @ b
+    xp = np.linalg.pinv(A, rcond=-1) @ b
     return N, xp
 
 def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
