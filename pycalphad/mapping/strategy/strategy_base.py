@@ -85,12 +85,23 @@ class MapStrategy:
         self._exit_index = 0
 
         #Some default constants
-        self.DELTA_SCALE = kwargs.get('DELTA_SCALE', 0.5)
-        self.MIN_DELTA_RATIO = kwargs.get('MIN_DELTA_RATIO', 0.1)
-        self.GLOBAL_CHECK_INTERVAL = kwargs.get('GLOBAL_CHECK_INTERVAL', 1)
-        self.GLOBAL_MIN_PDENS = kwargs.get('GLOBAL_MIN_PDENS', 500)
-        self.GLOBAL_MIN_TOL = kwargs.get('GLOBAL_MIN_TOL', 1e-4)
-        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get('GLOBAL_MIN_NUM_CANDIDATES', 1)
+        self.DELTA_SCALE = kwargs.get("DELTA_SCALE", 0.5)
+        self.MIN_DELTA_RATIO = kwargs.get("MIN_DELTA_RATIO", 0.1)
+        self.GLOBAL_CHECK_INTERVAL = kwargs.get("GLOBAL_CHECK_INTERVAL", 1)
+        self.GLOBAL_MIN_PDENS = kwargs.get("GLOBAL_MIN_PDENS", 500)
+        self.GLOBAL_MIN_TOL = kwargs.get("GLOBAL_MIN_TOL", 1e-4)
+        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1)
+
+    def _constant_kwargs(self):
+        const_kwargs = {
+            "DELTA_SCALE": self.DELTA_SCALE,
+            "MIN_DELTA_RATIO": self.MIN_DELTA_RATIO,
+            "GLOBAL_CHECK_INTERVAL": self.GLOBAL_CHECK_INTERVAL,
+            "GLOBAL_MIN_PDENS": self.GLOBAL_MIN_PDENS,
+            "GLOBAL_MIN_TOL": self.GLOBAL_MIN_TOL,
+            "GLOBAL_MIN_NUM_CANDIDATES": self.GLOBAL_MIN_NUM_CANDIDATES,
+            }
+        return const_kwargs
 
     def get_all_phases(self):
         """
@@ -341,8 +352,8 @@ class MapStrategy:
         final_len = len(zpf_line.points)
         _log.info(f"Removed zpf points from {orig_len} to {final_len}")
 
-        #zpf_line.append(new_node.parent)
-        zpf_line.append(new_node)
+        zpf_line.append(new_node.parent)
+        #zpf_line.append(new_node)
 
         #Set axis variable and direction from the previous zpf line
         #So we know where the node came from (this can give some hints for exit finding)

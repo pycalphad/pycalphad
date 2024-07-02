@@ -116,14 +116,16 @@ class TernaryStrategy(MapStrategy):
         Here, we do a step mapping along the axis bounds and grab all the nodes
         The nodes of a step map is distinguished from starting points in that they have a parent
         """
+        map_kwargs = self._constant_kwargs()
+
         #Iterate through axis variables, and set conditions to fix axis variable at min only
         for av in self.axis_vars:
             conds = copy.deepcopy(self.conditions)
             conds[av] = np.amin(self.axis_lims[av])
             
-            other_av = self._other_av(av)
-            av_range = np.amax(self.axis_lims[other_av]) - np.amin(self.axis_lims[other_av])
-            conds[other_av] = (self.axis_lims[other_av][0], self.axis_lims[other_av][1], av_range/20)
+            #other_av = self._other_av(av)
+            #av_range = np.amax(self.axis_lims[other_av]) - np.amin(self.axis_lims[other_av])
+            #conds[other_av] = (self.axis_lims[other_av][0], self.axis_lims[other_av][1], av_range/20)
 
             #Adjust composition conditions to be slightly above 0 or below 1 for numerical stability
             if isinstance(av, v.X):
@@ -131,7 +133,7 @@ class TernaryStrategy(MapStrategy):
                     conds[av] = MIN_COMPOSITION
 
             #Step map
-            step = StepStrategy(self.dbf, self.components, self.phases, conds)
+            step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
             step.initialize()
             step.do_map()
             self._add_starting_points_from_step(step)
@@ -141,11 +143,11 @@ class TernaryStrategy(MapStrategy):
         conds[self.all_vars[-1]] = MIN_COMPOSITION
         del conds[self.axis_vars[0]]
 
-        av_range = np.amax(self.axis_lims[self.axis_vars[1]]) - np.amin(self.axis_lims[self.axis_vars[1]])
-        conds[self.axis_vars[1]] = (self.axis_lims[self.axis_vars[1]][0], self.axis_lims[self.axis_vars[1]][1], av_range/20)
+        #av_range = np.amax(self.axis_lims[self.axis_vars[1]]) - np.amin(self.axis_lims[self.axis_vars[1]])
+        #conds[self.axis_vars[1]] = (self.axis_lims[self.axis_vars[1]][0], self.axis_lims[self.axis_vars[1]][1], av_range/20)
 
         #Step map
-        step = StepStrategy(self.dbf, self.components, self.phases, conds)
+        step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
         step.initialize()
         step.do_map()
         self._add_starting_points_from_step(step)

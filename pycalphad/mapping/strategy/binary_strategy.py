@@ -93,7 +93,8 @@ class BinaryStrategy(MapStrategy):
                         conds[av] = 1 - MIN_COMPOSITION
 
                 #Step map
-                step = StepStrategy(self.dbf, self.components, self.phases, conds)
+                map_kwargs = self._constant_kwargs()
+                step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
                 step.initialize()
                 step.do_map()
                 self._add_starting_points_from_step(step)
