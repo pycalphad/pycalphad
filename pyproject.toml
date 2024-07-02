@@ -2,7 +2,8 @@
 requires = [
     "Cython",
     # numpy ABI compatibility for different Python versions
-    "oldest-supported-numpy",
+    "oldest-supported-numpy; python_version=='3.8'",
+    "numpy>=2; python_version>='3.9'",
     "scipy",
     "setuptools",
     "setuptools_scm[toml]>=6.0",

@@ -376,7 +376,7 @@ class Workspace:
 
         for index in np.ndindex(prop_GM_values.shape):
             cur_conds = OrderedDict(zip(conds_keys,
-                                        [np.asarray(self.eq.coords[b][a], dtype=np.float_)
+                                        [np.asarray(self.eq.coords[b][a], dtype=np.float64)
                                         for a, b in zip(index, conds_keys)]))
             state_variable_values = [cur_conds[key] for key in str_state_variables]
             state_variable_values = np.array(state_variable_values)
@@ -413,7 +413,7 @@ class Workspace:
 
         for index, composition_sets in self.enumerate_composition_sets():
             cur_conds = OrderedDict(zip(conds_keys,
-                                        [np.asarray(self.eq.coords[b][a], dtype=np.float_)
+                                        [np.asarray(self.eq.coords[b][a], dtype=np.float64)
                                         for a, b in zip(index, str_conds_keys)]))
             chemical_potentials = prop_MU_values[index]
             

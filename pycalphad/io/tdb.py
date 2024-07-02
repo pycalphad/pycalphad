@@ -10,7 +10,7 @@ from pyparsing import delimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
-from symengine import Float, Symbol, LessThan, StrictLessThan, S, E
+from symengine import Float, Symbol, RealDouble, LessThan, StrictLessThan, S, E
 from tinydb import where
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
@@ -482,12 +482,22 @@ class TCPrinter(object):
                 if adding_term[0] == '-':
                     terms += adding_term
                 else:
-                    terms += ' + ' + adding_term
+                    terms += '+' + adding_term
             return terms
         elif isinstance(expr, Mul):
-            terms = self._stringify_expr(expr.args[0])
-            for arg in expr.args[1:]:
-                terms += ' * ' + self._stringify_expr(arg)
+            #For cases like: A*(B+C) where an Add object is one of the arguments in Mul
+            #We want to explicitly add the parenthesis around Add(B,C)
+            #and save it to A*(B+C) rather than A*B+C
+            #For other types of expr, this shouldn't be an issue since:
+            #    Mul should not need extra parenthesis, e.g. A*(B*C) -> A*B*C
+            #    Pow will explicitly add parenthesis (in the next elif block)
+            #    Other functions such as Log, Sin, etc should
+            #        include the parenthesis when converting to string
+            
+            #All the arguments in Mul should be tested and they're all combined to a single expression by '*'
+            #    So we could stringify each argument as a list and join them together is '*'
+            term_list = ['(' + self._stringify_expr(arg) + ')' if isinstance(arg,Add) else self._stringify_expr(arg) for arg in expr.args]
+            terms = '*'.join(term_list)
             return terms
         elif isinstance(expr, Pow):
             if expr.args[0] == E:
@@ -497,7 +507,9 @@ class TCPrinter(object):
                 argument = self._stringify_expr(expr.args[0])
                 if isinstance(expr.args[0], (Add, Mul)):
                     argument = '( ' + argument + ' )'
-                terms = argument + '**' + '(' + self._stringify_expr(expr.args[1]) + ')'
+                # Deals with both numbers (RealDouble) and nested function exponents
+                exponent = int(expr.args[1]) if isinstance(expr.args[1], RealDouble) else expr.args[1]
+                terms = argument + '**' + '(' + self._stringify_expr(exponent) + ')'
             return terms
         else:
             return str(expr)
@@ -560,7 +572,8 @@ def reflow_text(text, linewidth=80):
         else:
             while len(line) > linewidth:
                 linebreak_idx = linewidth - 1
-                while linebreak_idx > 0 and line[linebreak_idx] not in linebreak_chars:
+                # Makes expressions breakable at `linebreak_chars` plus at [+-][0-9], since they are not preceded by 'E' or '('. This should prevent breaking lines inside EXP or LN/LOG or power expression: '6.14599E-07', 'T**(-3)', and 'LOG(-3)'
+                while linebreak_idx > 0 and not re.match(r'[^E\(][+-][0-9]', line[linebreak_idx-1:linebreak_idx+2]) and line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
                 # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
                 if linebreak_idx <= 2:

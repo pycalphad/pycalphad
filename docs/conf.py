@@ -106,6 +106,10 @@ pygments_dark_style = "native"
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
+show_warning_types = True
+# https://github.com/sphinx-doc/sphinx/issues/12300
+suppress_warnings = ["config.cache"]
+
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 

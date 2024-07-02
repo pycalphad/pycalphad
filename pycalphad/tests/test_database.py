@@ -721,6 +721,13 @@ def test_reflow_text_raises_on_unbreakable_lines():
     with pytest.raises(ValueError):
         reflow_text(very_long_line, 80)
 
+def test_reflow_text_for_line_breaks():
+    """Should accept line breaks only at `linebreak_chars` or before number addition/subtractions since they are not preceded by 'E' or '(', e.g.: '6.14599E-07', 'T**(-3)', and 'LOG(-3)'."""
+    linebreak_chars = [" ", "$"]
+    test_string = "FUNCTION SYMBOL 000 -1.111111*2.2222222E-02-LOG(-3.333333)*3.333333*T**(-3.33333)+4.4444444E-04+T**(-5.55555)*LOG(-5.55555)*5.555555; 000 N !"
+    lines = reflow_text(test_string, 80).replace("  ", "").split("\n")
+    for i in range(1, len(lines)):
+        assert lines[i][0] in linebreak_chars or (lines[i][0] in ['+', '-'] and lines[i-1][-1] not in ["E", "("])
 
 # TODO: when the new database-as-files test fixture is merged, replace with unary 50 proper.
 def test_long_constituent_line_writes_correctly():
@@ -841,9 +848,42 @@ def test_tc_printer_no_division_symbols():
 
 def test_tc_printer_exp():
     "TCPrinter prints the exponential function when the argument is not an integer."
-    test_expr = S('exp(-300T**(-1))')
+    test_expr = S('exp(-300T**(-1.0))')
     result = TCPrinter()._stringify_expr(test_expr)
-    assert result == 'exp(-300 * T**(-1))'
+    assert result == 'exp(-300*T**(-1))'
+
+def test_tc_printer_nested_mul_add():
+    """
+    TCPrinter retains parenthesis around a nested Mul(...,Add(...)) expression
+    Ex. A*(B+C) should result in A*(B+C) instead of A*B+C
+    Also, it should not add unnecessary parenthesis, so: 
+        A*(B*C) should be A*B*C and
+        A*B**C should be A*B**(C) instead of A*(B**(C))
+    """
+    #Test that parenthesis are retained for Mul(A,Add(B,C))
+    test_expr = S('A*(B+C)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    #Test for B+C or C+B since this seems to differ across different OS
+    assert result == 'A*(B+C)' or result == 'A*(C+B)'
+
+    #Test for Mul(Add(A,B),Add(C,D))
+    test_expr = S('(A+B)*(C+D)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    assert ('(A+B)' in result or '(B+A)' in result) and ('(C+D)' in result or '(D+C)' in result)
+
+    #Test that the parenthesis are ignored for Mul(A,Mul(B,C))
+    test_expr = S('A*(B*C)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    #Since the ordering seem to sometimes differ across different OS
+    #    this would result in 6 different combinations to test
+    #    so we'll just test that the parenthesis are removed
+    assert '(' not in result and ')' not in result
+
+    #Test that parenthesis are not added for Mul(A,Pow(B,C))
+    #    We want to avoid cases where something like A*T**(B) becomes A*(T**(B))
+    test_expr = S('A*B**(C)')
+    result = TCPrinter()._stringify_expr(test_expr)
+    assert result == 'A*B**(C)'
 
 
 @select_database("Al-Fe_sundman2009.tdb")

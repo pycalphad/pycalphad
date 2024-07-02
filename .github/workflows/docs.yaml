@@ -43,7 +43,7 @@ jobs:
           name: pycalphad-documentation
           path: pycalphad-docs-html
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v2.1
+        uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: 'pycalphad-docs-html'
           production-branch: develop
