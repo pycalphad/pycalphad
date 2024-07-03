@@ -1,4 +1,6 @@
 from pycalphad.core.workspace import Workspace
+from pycalphad.core.solver import Solver
+from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property, DotDerivativeComputedProperty, \
     ModelComputedProperty, T0, IsolatedPhase, DormantPhase, ReferenceState
 import pycalphad.variables as v
@@ -103,3 +105,73 @@ def test_cpf_calculation(load_database):
     np.testing.assert_array_almost_equal(np.squeeze(results), [0.00249], decimal=5)
     results = wks4.get('NP(*).T')
     np.testing.assert_array_almost_equal(np.squeeze(results), [-0.01147, float('nan'), 0.01147], decimal=5)
+
+@select_database("alnipt.tdb")
+def test_jansson_derivative_zero_and_undefined(load_database):
+    "Jansson derivatives for cases related to phase boundary following"
+    # Helper function for getting Jansson derivative "delta" information
+    def compute_deltas(comp_sets, conds, chem_pots, var, condition_to_drop):
+        #Remove condition
+        drop_val = conds[condition_to_drop]
+        del conds[condition_to_drop]
+
+        # Get deltas (denominator of derivative)
+        solver = Solver()
+        spec = solver.get_system_spec(comp_sets, conds)
+        state = spec.get_new_state(comp_sets)
+        state.chemical_potentials[:] = chem_pots
+        state.recompute(spec)
+        deltas = var.dot_deltas(spec, state)
+
+        #Restore condition
+        conds[condition_to_drop] = drop_val
+        return deltas
+
+    dbf = load_database()
+    comps = ["AL", "PT", "VA"]
+    temp = 1250.
+    conds = {v.T: temp, v.P: 101325, v.X("AL"): 0.8, v.N: 1}
+
+    wks = Workspace(dbf, comps, conditions=conds)
+
+    cs_liq = CompositionSet(wks.phase_record_factory['LIQUID'])
+    cs_liq.update(np.array([8.97729829e-01, 1.02270171e-01]), 0.0, np.array([1, 1e5, temp]))
+    cs_liq.fixed = True
+
+    cs_stoich = CompositionSet(wks.phase_record_factory['PT8AL21'])
+    cs_stoich.update(np.array([1., 1.]), 1.0, np.array([1, 1e5, temp]))
+    cs_stoich.fixed = False
+
+    comp_sets = [cs_liq, cs_stoich]
+    chem_pots = np.array([-64069.50246157, -299709.44925698])
+
+    # Delta with v.X('AL')
+    #   Since PT8AL21 is stoichiometric, everything should be undefined here since
+    #   it would be impossible move the global composition while still having the NP(PT8AL21) = 1
+    x_deltas = compute_deltas(comp_sets, conds, chem_pots, v.X('AL'), v.T)
+    assert np.isnan(x_deltas.delta_statevars[2])
+    dtdx = v.T.dot_derivative(comp_sets, conds, chem_pots, x_deltas)
+    assert np.isnan(dtdx)
+
+    # Delta with v.T
+    #   Since we're tracing along the PT8AL21 phase boundary, which is a stoichiometric phase
+    #     The delta composition for PT8AL21 should be 0, but it can change for the liquid phase
+    #     But because the liquid phase is fixed at 0, the overall change in v.X('AL') should also be 0
+    T_deltas = compute_deltas(comp_sets, conds, chem_pots, v.T, v.X('AL'))
+    assert T_deltas.delta_statevars[2] == 1.
+    # Since we trace along PT8AL21, then X('PT8AL21', 'AL').T = X('AL').T = 0
+    dxdt_phase = v.X('PT8AL21', 'AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
+    dxdt = v.X('AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
+    assert dxdt_phase == 0.
+    assert dxdt == 0.
+
+    # If we switch the free phase to LIQUID, then X('LIQUID', 'AL').T = X('AL').T != 0
+    cs_liq.NP = 1.
+    cs_liq.fixed = False
+    cs_stoich.NP = 0.
+    cs_stoich.fixed = True
+    T_deltas = compute_deltas(comp_sets, conds, chem_pots, v.T, v.X('AL'))
+    dxdt_phase = v.X('LIQUID', 'AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
+    dxdt = v.X('AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
+    np.testing.assert_allclose(dxdt_phase, dxdt)
+    np.testing.assert_allclose(dxdt_phase, -0.00034853908, rtol=1e-8)
