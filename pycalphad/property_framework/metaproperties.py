@@ -270,7 +270,7 @@ class ReferenceState:
                 plane_rhs = np.zeros(len(self._fixed_conds)+1)
                 for row_idx, ref_wks in enumerate(self._reference_wks):
                     for col_idx, fic in enumerate(self._fixed_conds):
-                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic]
+                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic][0]
                     for floc in self._floating_conds:
                         ref_wks.conditions[floc] = cur_conds[floc]
                     if ref_wks.ndim != 0:

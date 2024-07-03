@@ -87,7 +87,7 @@ def constraints_from_bounds(lower, upper):
         Right-hand-side of Ax <= b.
     """
     n = len(lower)
-    A = np.row_stack([-np.eye(n), np.eye(n)])
+    A = np.vstack([-np.eye(n), np.eye(n)])
     b = np.r_[-np.array(lower), np.array(upper)]
     return A, b
 
