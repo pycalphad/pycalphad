@@ -8,6 +8,7 @@ from libc.stdlib cimport malloc, free
 
 @cython.boundscheck(False)
 cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
+    # Note: This function will destroy input matrix A
     cdef int i
     cdef int NRHS = 1
     cdef int iwork = 0
@@ -28,6 +29,7 @@ cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
             x[i] = -1e19
 
 cpdef void lstsq_check_infeasible(double[:,::] A, double[::] b, double[::] out_x):
+    # Note: This function will destroy input matrix A
     A_copy = np.copy(A)
     b_copy = np.copy(b)
     lstsq(&A[0,0], A.shape[0], A.shape[1],
