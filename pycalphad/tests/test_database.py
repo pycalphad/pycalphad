@@ -70,6 +70,7 @@ def test_database_pickle():
     assert test_dbf == new_dbf
 
 
+@pytest.mark.filterwarnings("ignore:unclosed file*:ResourceWarning")
 def test_database_diffusion():
     "Diffusion database support."
     DIFFUSION_TDB = open(str(files(pycalphad.tests.databases).joinpath("diffusion.tdb")), "r").read()
@@ -78,6 +79,7 @@ def test_database_diffusion():
     # Won't work until sympy/sympy#10560 is fixed to prevent precision loss
     #assert Database(DIFFUSION_TDB) == Database.from_string(Database(DIFFUSION_TDB).to_string(fmt='tdb'), fmt='tdb')
 
+@pytest.mark.filterwarnings("ignore:unclosed file*:ResourceWarning")
 def test_load_from_string():
     "Test database loading from a string."
     test_model = Model(Database.from_string(open(files(pycalphad.tests.databases).joinpath("alcrni.tdb"), "r").read()
@@ -166,6 +168,7 @@ def _testwritetdb():
     os.remove(fname)
 
 
+@pytest.mark.filterwarnings("ignore:Ignoring that the following function names are beyond the 8 character TDB limit*:UserWarning")
 @select_database("alnipt.tdb")
 def test_to_file_defaults_to_raise_if_exists(load_database, _testwritetdb):
     "Attempting to use Database.to_file should raise by default if it exists"
@@ -176,6 +179,7 @@ def test_to_file_defaults_to_raise_if_exists(load_database, _testwritetdb):
         test_dbf.to_file(fname)  # test if_exists behavior
 
 
+@pytest.mark.filterwarnings("ignore:Ignoring that the following function names are beyond the 8 character TDB limit*:UserWarning")
 @select_database("alnipt.tdb")
 def test_to_file_raises_with_bad_if_exists_argument(load_database, _testwritetdb):
     "Database.to_file should raise if a bad behavior string is passed to if_exists"
@@ -186,6 +190,7 @@ def test_to_file_raises_with_bad_if_exists_argument(load_database, _testwritetdb
         test_dbf.to_file(fname, if_exists='TEST_BAD_ARGUMENT')  # test if_exists behavior
 
 
+@pytest.mark.filterwarnings("ignore:Ignoring that the following function names are beyond the 8 character TDB limit*:UserWarning")
 @select_database("alnipt.tdb")
 def test_to_file_overwrites_with_if_exists_argument(load_database, _testwritetdb):
     "Database.to_file should overwrite if 'overwrite' is passed to if_exists"
@@ -215,16 +220,19 @@ def test_unknown_format_to_string():
     with pytest.raises(NotImplementedError):
         REFERENCE_DBF.to_string(fmt='_fail_')
 
+@pytest.mark.filterwarnings("ignore:unclosed file*:ResourceWarning")
 def test_load_from_stringio():
     "Test database loading from a file-like object."
     test_tdb = Database(StringIO(open(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")), "r").read()))
     assert test_tdb == REFERENCE_DBF
 
+@pytest.mark.filterwarnings("ignore:unclosed file*:ResourceWarning")
 def test_load_from_stringio_from_file():
     "Test database loading from a file-like object with the from_file method."
     test_tdb = Database.from_file(StringIO(open(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")), "r").read()), fmt='tdb')
     assert test_tdb == REFERENCE_DBF
 
+@pytest.mark.filterwarnings("ignore:unclosed file*:ResourceWarning")
 def test_unspecified_format_from_file():
     "from_file: Unspecified format for file descriptor raises ValueError."
     with pytest.raises(ValueError):
@@ -941,4 +949,5 @@ def test_database_ignore_if_then_type_definition():
     TYPE_DEFINITION W IF (CR) THEN
                     GES A_P_D BCC_B2 MAJ 1 CR:CR:VA !
     """
-    dbf = Database.from_string(tdb_string, fmt='tdb')
+    with pytest.warns(UserWarning, match='Type definitions using IF/THEN logic is not supported'):
+        Database.from_string(tdb_string, fmt='tdb')
