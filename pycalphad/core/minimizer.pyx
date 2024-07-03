@@ -27,6 +27,16 @@ cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
         for i in range(N):
             x[i] = -1e19
 
+cpdef void lstsq_check_infeasible(double[:,::] A, double[::] b, double[::] out_x):
+    A_copy = np.copy(A)
+    b_copy = np.copy(b)
+    lstsq(&A[0,0], A.shape[0], A.shape[1],
+        &out_x[0], 1e-16)
+    residual = np.sum(np.square(np.dot(A_copy, out_x) - b_copy))
+    if residual > 1e-6:
+        # lstsq solution is spurious; throw it away
+        out_x[:] = np.nan
+
 @cython.boundscheck(False)
 cdef void invert_matrix(double *A, int N, int* ipiv) nogil:
     "A will be overwritten."
@@ -672,8 +682,7 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
         # target_statevar_index is the last column of the matrix, by construction
         equilibrium_matrix[-1, -1] = 1
         equilibrium_soln[-1] = 1
-        lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
-          &equilibrium_soln[0], 1e-16)
+        lstsq_check_infeasible(equilibrium_matrix, equilibrium_soln, equilibrium_soln)
         for i in range(spec.free_chemical_potential_indices.shape[0]):
             chempot_idx = spec.free_chemical_potential_indices[i]
             delta_chemical_potentials[chempot_idx] = equilibrium_soln[i]
@@ -721,8 +730,7 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
             equilibrium_soln[num_stable_phases + num_fixed_phases + i] = 1
         else:
             equilibrium_soln[num_stable_phases + num_fixed_phases + i] = -1/(num_fixed_mole_fraction_conditions)
-    lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
-        &equilibrium_soln[0], 1e-16)
+    lstsq_check_infeasible(equilibrium_matrix, equilibrium_soln, equilibrium_soln)
     for i in range(spec.free_chemical_potential_indices.shape[0]):
         chempot_idx = spec.free_chemical_potential_indices[i]
         delta_chemical_potentials[chempot_idx] = equilibrium_soln[i]
@@ -763,8 +771,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
         equilibrium_soln[:] = 0
         equilibrium_matrix[-1, target_component_index] = 1
         equilibrium_soln[-1] = 1
-        lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
-          &equilibrium_soln[0], 1e-16)
+        lstsq_check_infeasible(equilibrium_matrix, equilibrium_soln, equilibrium_soln)
         for i in range(spec.free_chemical_potential_indices.shape[0]):
             chempot_idx = spec.free_chemical_potential_indices[i]
             delta_chemical_potentials[chempot_idx] = equilibrium_soln[i]
