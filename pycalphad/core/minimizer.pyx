@@ -656,13 +656,13 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln, delta_chemical_potentials, delta_statevars, delta_phase_amounts
     cdef int[::1] orig_fixed_statevar_indices, orig_free_statevar_indices
-    cdef int chempot_idx, statevar_idx, i
+    cdef int chempot_idx, statevar_idx, cs_idx, i
 
     orig_fixed_statevar_indices = np.array(spec.fixed_statevar_indices)
     orig_free_statevar_indices = np.array(spec.free_statevar_indices)
     delta_chemical_potentials = np.zeros(spec.num_components)
     delta_statevars = np.zeros(spec.num_statevars)
-    delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
+    delta_phase_amounts = np.zeros(len(state.compsets))
     spec.fixed_statevar_indices = np.setdiff1d(spec.fixed_statevar_indices, np.array(target_statevar_index))
     spec.free_statevar_indices = np.append(spec.free_statevar_indices, target_statevar_index).astype(np.int32)
 
@@ -678,7 +678,8 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
             chempot_idx = spec.free_chemical_potential_indices[i]
             delta_chemical_potentials[chempot_idx] = equilibrium_soln[i]
         for i in range(state.free_stable_compset_indices.shape[0]):
-            delta_phase_amounts[i] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
+            cs_idx = state.free_stable_compset_indices[i]
+            delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
         for i in range(spec.free_statevar_indices.shape[0]):
             statevar_idx = spec.free_statevar_indices[i]
             delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
@@ -697,7 +698,7 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
     cdef int num_stable_phases = state.free_stable_compset_indices.shape[0]
     cdef int num_fixed_phases = spec.fixed_stable_compset_indices.shape[0]
     cdef int num_fixed_mole_fraction_conditions = spec.prescribed_mole_fraction_rhs.shape[0]
-    cdef int chempot_idx, statevar_idx, i
+    cdef int chempot_idx, statevar_idx, cs_idx, i
     cdef bint component_was_fixed = False
 
     for i in range(spec.prescribed_mole_fraction_coefficients.shape[0]):
@@ -708,7 +709,7 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
 
     delta_chemical_potentials = np.zeros(spec.num_components)
     delta_statevars = np.zeros(spec.num_statevars)
-    delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
+    delta_phase_amounts = np.zeros(len(state.compsets))
 
     equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 0)
     equilibrium_soln[:] = 0
@@ -726,7 +727,8 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
         chempot_idx = spec.free_chemical_potential_indices[i]
         delta_chemical_potentials[chempot_idx] = equilibrium_soln[i]
     for i in range(state.free_stable_compset_indices.shape[0]):
-        delta_phase_amounts[i] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
+        cs_idx = state.free_stable_compset_indices[i]
+        delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
     for i in range(spec.free_statevar_indices.shape[0]):
         statevar_idx = spec.free_statevar_indices[i]
         delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
@@ -738,7 +740,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln, delta_chemical_potentials, delta_statevars, delta_phase_amounts
     cdef int[::1] orig_fixed_statevar_indices, orig_free_statevar_indices
-    cdef int chempot_idx, statevar_idx, i
+    cdef int chempot_idx, statevar_idx, cs_idx, i
     cdef bint component_was_fixed = False
 
     for i in range(spec.fixed_chemical_potential_indices.shape[0]):
@@ -752,7 +754,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
     orig_free_chemical_potential_indices = np.array(spec.free_chemical_potential_indices)
     delta_chemical_potentials = np.zeros(spec.num_components)
     delta_statevars = np.zeros(spec.num_statevars)
-    delta_phase_amounts = np.zeros(state.free_stable_compset_indices.shape[0])
+    delta_phase_amounts = np.zeros(len(state.compsets))
     spec.fixed_chemical_potential_indices = np.setdiff1d(spec.fixed_chemical_potential_indices, np.array(target_component_index))
     spec.free_chemical_potential_indices = np.append(spec.free_chemical_potential_indices, target_component_index).astype(np.int32)
 
@@ -767,7 +769,8 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
             chempot_idx = spec.free_chemical_potential_indices[i]
             delta_chemical_potentials[chempot_idx] = equilibrium_soln[i]
         for i in range(state.free_stable_compset_indices.shape[0]):
-            delta_phase_amounts[i] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
+            cs_idx = state.free_stable_compset_indices[i]
+            delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
         for i in range(spec.free_statevar_indices.shape[0]):
             statevar_idx = spec.free_statevar_indices[i]
             delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
