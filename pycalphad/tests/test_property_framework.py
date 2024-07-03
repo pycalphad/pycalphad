@@ -158,7 +158,7 @@ def test_jansson_derivative_zero_and_undefined(load_database):
     #     The delta composition for PT8AL21 should be 0, but it can change for the liquid phase
     #     But because the liquid phase is fixed at 0, the overall change in v.X('AL') should also be 0
     T_deltas = compute_deltas(comp_sets, conds, chem_pots, v.T, v.X('AL'))
-    assert T_deltas.delta_statevars[2] == 1.
+    np.testing.assert_allclose(T_deltas.delta_statevars[2], 1., atol=1e-8)
     # Since we trace along PT8AL21, then X('PT8AL21', 'AL').T = X('AL').T = 0
     dxdt_phase = v.X('PT8AL21', 'AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
     dxdt = v.X('AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
