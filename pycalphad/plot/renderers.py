@@ -33,7 +33,7 @@ class MatplotlibRenderer(Renderer):
         import matplotlib.pyplot as plt
         ax = ax if ax is not None else plt.gca()
         x = as_property(x)
-        data = self.workspace.get(x, *ys, values_only=False)
+        data = self.workspace.get(x, *ys, values_only=False, return_units=False)
 
         num_y = 0
         for y in data.keys():
@@ -64,9 +64,9 @@ class MatplotlibRenderer(Renderer):
         for y in data.keys():
             if y == x:
                 continue
-            if np.all(np.isnan(data[y].magnitude)):
+            if np.all(np.isnan(data[y])):
                 continue
-            ax.plot(data[x].magnitude, data[y].magnitude, label=getattr(y, 'display_name', str(y)))
+            ax.plot(data[x], data[y], label=getattr(y, 'display_name', str(y)))
         ax.set_ylabel(ylabel)
         ax.set_xlabel(_property_axis_label(x))
         # Suppress legend if there is only one line
@@ -76,10 +76,10 @@ class MatplotlibRenderer(Renderer):
 class PandasRenderer(Renderer):
     def __call__(self, *ys: Tuple[ComputableProperty]):
         import pandas as pd
-        data = self.workspace.get(*ys, values_only=False)
+        data = self.workspace.get(*ys, values_only=False, return_units=False)
         stripped_data = {}
         for key, value in data.items():
-            stripped_data[_property_axis_label(key)] = value.magnitude
+            stripped_data[_property_axis_label(key)] = value
         return pd.DataFrame.from_dict(stripped_data)
 
 def set_plot_renderer(klass):
