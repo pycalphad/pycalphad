@@ -88,7 +88,7 @@ class Conditions:
         # Important to use the _key_ display_units, and not the entry.prop
         # This is because v.T['K'] == v.T['degC'], so conditions can be
         # stored and queried with distinct units
-        return entry.value.to(key.display_units)
+        return entry.value.to(key.display_units).magnitude
 
     def get(self, item, default=_default):
         try:
@@ -109,6 +109,8 @@ class Conditions:
         prop = as_property(item)
         if isinstance(prop, v.MoleFraction):
             vals = unpack_condition(value)
+            if isinstance(vals, Q_):
+                vals = vals.to(prop.implementation_units).magnitude
             # "Zero" composition is a common pattern. Do not warn for that case.
             if np.any(np.logical_and(np.asarray(vals) < self.minimum_composition, np.asarray(vals) > 0)):
                 warnings.warn(
@@ -146,25 +148,17 @@ class Conditions:
         for key, _ in self._conds:
             yield str(key)
 
-    def values(self):
-        for _, value in self._conds:
-            yield value
+    def values(self, units='display_units'):
+        for key, value in self._conds:
+            yield value.to(getattr(key, units, '')).magnitude
 
     def update(self, d):
         for key, value in d.items():
             self.__setitem__(key, value)
 
-    def items(self):
+    def items(self, units='display_units'):
         for key, value in self._conds:
-            yield key, value
-
-    def str_items(self):
-        """
-        Return key-value pairs suitable for the minimizer.
-        This returns values as implementation units, magnitude only.
-        """
-        for key, value in self._conds:
-            yield (str(key), value.to(key.implementation_units).magnitude)
+            yield key, value.to(getattr(key, units, '')).magnitude
 
     def __len__(self):
         return len(self._conds)
