@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-11]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
         env:
           # PyPy wheels not allowed because SciPy (build requirement) is not available
           CIBW_BUILD: cp3*-*
-          CIBW_SKIP: cp35-* cp36-* cp37-* *-musllinux_*
+          CIBW_SKIP: cp36-* cp37-* *-musllinux_*
           CIBW_ARCHS_LINUX: auto64
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_WINDOWS: auto64
