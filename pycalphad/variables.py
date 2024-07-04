@@ -276,8 +276,8 @@ class SiteFraction(StateVariable):
     def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
-        return 'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
-            '}}_{'+str(self.sublattice_index)+',\mathrm{'+self.species.escaped_name+'}}'
+        return r'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
+            '}}_{'+str(self.sublattice_index)+r',\mathrm{'+self.species.escaped_name+'}}'
 
     def __str__(self):
         "String representation."
@@ -663,7 +663,7 @@ class ChemicalPotential(StateVariable):
 
     def _latex(self, printer=None):
         "LaTeX representation."
-        return '\mu_{'+self.species.escaped_name+'}'
+        return r'\mu_{'+self.species.escaped_name+'}'
 
     def __str__(self):
         "String representation."
