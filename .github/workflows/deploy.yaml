@@ -23,6 +23,14 @@ jobs:
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee setuptools_scm will pick up the tags
 
+      # setuptools_scm workaround for https://github.com/pypa/setuptools_scm/issues/455
+      - name: Disable local version identifier on develop CI
+        run: |
+          echo 'local_scheme = "no-local-version"' >> pyproject.toml
+          git diff --color=always
+          git update-index --assume-unchanged pyproject.toml
+        if: github.event_name == 'push' && github.ref_name == 'develop'
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.1
         env:
@@ -46,6 +54,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee setuptools_scm will pick up the tags
+
+      # setuptools_scm workaround for https://github.com/pypa/setuptools_scm/issues/455
+      - name: Disable local version identifier on develop CI
+        run: |
+          echo 'local_scheme = "no-local-version"\n' >> pyproject.toml
+          git diff --color=always
+          git update-index --assume-unchanged pyproject.toml
+        if: github.event_name == 'push' && github.ref_name == 'develop'
 
       - uses: actions/setup-python@v5
         name: Install Python

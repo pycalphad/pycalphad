@@ -42,4 +42,6 @@ omit = [
 [tool.coverage.report]
 ignore_errors = true # workaround for https://github.com/cython/cython/issues/5581
 
+# '[tool.setuptools.scm]\n' needs to be the last line because
+# we do an append operation in the deploy.yaml GitHub Actions workflow
 [tool.setuptools_scm]
