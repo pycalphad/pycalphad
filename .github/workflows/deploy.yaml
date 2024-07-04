@@ -33,6 +33,7 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          SETUPTOOLS_SCM_LOCAL_SCHEME: no-local-version
 
       - uses: actions/upload-artifact@v4
         with:
@@ -56,6 +57,8 @@ jobs:
 
       - name: Build sdist
         run: python -m build --sdist
+        env:
+          SETUPTOOLS_SCM_LOCAL_SCHEME: no-local-version
 
       - uses: actions/upload-artifact@v4
         with:
