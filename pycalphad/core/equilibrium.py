@@ -86,7 +86,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         properties.merge(result, inplace=True, compat='equals')
     if to_xarray:
         properties = wks.eq.get_dataset()
-    properties.attrs['created'] = datetime.utcnow().isoformat()
+    properties.attrs['created'] = datetime.now().isoformat()
     if len(kwargs) > 0:
         warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
     return properties
