@@ -1,8 +1,6 @@
 [build-system]
 requires = [
     "Cython",
-    # numpy ABI compatibility for different Python versions
-    "oldest-supported-numpy; python_version=='3.8'",
     "numpy>=2; python_version>='3.9'",
     "scipy",
     "setuptools",
@@ -46,4 +44,6 @@ omit = [
 [tool.coverage.report]
 ignore_errors = true # workaround for https://github.com/cython/cython/issues/5581
 
+# '[tool.setuptools.scm]\n' needs to be the last line because
+# we do an append operation in the deploy.yaml GitHub Actions workflow
 [tool.setuptools_scm]

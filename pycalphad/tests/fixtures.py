@@ -1,4 +1,4 @@
-from importlib_resources import files
+from importlib.resources import files
 import pytest
 import pycalphad.tests.databases
 from pycalphad.io.database import Database

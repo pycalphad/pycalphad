@@ -50,10 +50,6 @@ by e-mail or using the issue tracker on GitHub.
 pycalphad is licensed under the MIT License.
 See LICENSE.txt for details.
 
-Required Dependencies:
-
-* Python 3.7+
-* matplotlib, numpy, scipy, symengine, xarray, pyparsing, tinydb
 
 Installation
 ------------
