@@ -29,7 +29,6 @@ jobs:
           echo "\nlocal_scheme = \"no-local-version\"" >> pyproject.toml
           git diff --color=always
           git update-index --assume-unchanged pyproject.toml
-        # if: github.event_name == 'push' && github.ref_name == 'develop'
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.1
@@ -61,7 +60,6 @@ jobs:
           echo "\nlocal_scheme = \"no-local-version\"" >> pyproject.toml
           git diff --color=always
           git update-index --assume-unchanged pyproject.toml
-        # if: github.event_name == 'push' && github.ref_name == 'develop'
 
       - uses: actions/setup-python@v5
         name: Install Python
