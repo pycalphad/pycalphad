@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>pycalphad.io.tdb - pycalphad 0.10.4.post2.dev18+gdc738d0b documentation</title>
+        <title>pycalphad.io.tdb - pycalphad 0.10.4.post2.dev19+gda2bbbbf documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
@@ -178,7 +178,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev18+gdc738d0b documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.4.post2.dev19+gda2bbbbf documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -205,7 +205,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev18+gdc738d0b documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev19+gda2bbbbf documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -317,10 +317,9 @@
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
-<span class="c1"># ast.Num is deprecated in Python 3.8 in favor of as ast.Constant</span>
-<span class="c1"># Both are whitelisted for compatability across versions</span>
+
 <span class="n">_AST_WHITELIST</span> <span class="o">=</span> <span class="p">[</span><span class="n">ast</span><span class="o">.</span><span class="n">Add</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">BinOp</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Call</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Div</span><span class="p">,</span>
-                  <span class="n">ast</span><span class="o">.</span><span class="n">Expression</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Load</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Mult</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Num</span><span class="p">,</span>
+                  <span class="n">ast</span><span class="o">.</span><span class="n">Expression</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Load</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Mult</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span>
                   <span class="n">ast</span><span class="o">.</span><span class="n">Pow</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Sub</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">UAdd</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">UnaryOp</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">USub</span><span class="p">]</span>
 
 <span class="k">def</span> <span class="nf">_sympify_string</span><span class="p">(</span><span class="n">math_string</span><span class="p">):</span>
@@ -1297,7 +1296,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=273611a0"></script>
+</div><script src="../../../_static/documentation_options.js?v=265bef55"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=4e2eecee"></script>
