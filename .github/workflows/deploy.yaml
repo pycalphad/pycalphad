@@ -38,7 +38,7 @@ jobs:
           CIBW_BUILD: cp3*-*
           CIBW_SKIP: cp36-* cp37-* *-musllinux_*
           CIBW_ARCHS_LINUX: auto64
-          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          CIBW_ARCHS_MACOS: x86_64 arm64
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
 
