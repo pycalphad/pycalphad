@@ -3,7 +3,7 @@ The test_database module contains tests for the Database object.
 """
 from io import StringIO
 import pytest
-from importlib_resources import files
+from importlib.resources import files
 import hashlib
 import os
 import pickle

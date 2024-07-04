@@ -31,10 +31,9 @@ import warnings
 import hashlib
 from copy import deepcopy
 
-# ast.Num is deprecated in Python 3.8 in favor of as ast.Constant
-# Both are whitelisted for compatability across versions
+
 _AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Constant, ast.Div,
-                  ast.Expression, ast.Load, ast.Mult, ast.Name, ast.Num,
+                  ast.Expression, ast.Load, ast.Mult, ast.Name,
                   ast.Pow, ast.Sub, ast.UAdd, ast.UnaryOp, ast.USub]
 
 def _sympify_string(math_string):

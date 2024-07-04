@@ -36,7 +36,7 @@ jobs:
         env:
           # PyPy wheels not allowed because SciPy (build requirement) is not available
           CIBW_BUILD: cp3*-*
-          CIBW_SKIP: cp36-* cp37-* *-musllinux_*
+          CIBW_SKIP: cp36-* cp37-* cp38-* *-musllinux_*
           CIBW_ARCHS_LINUX: auto64
           CIBW_ARCHS_MACOS: x86_64 arm64
           CIBW_ARCHS_WINDOWS: auto64
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - run: pip install build
 
