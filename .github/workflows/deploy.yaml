@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
+          fetch-depth: 0  # fetch the entire repo history, required to guarantee setuptools_scm will pick up the tags
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.1
@@ -44,6 +44,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # fetch the entire repo history, required to guarantee setuptools_scm will pick up the tags
 
       - uses: actions/setup-python@v5
         name: Install Python
