@@ -26,7 +26,7 @@ jobs:
       # setuptools_scm workaround for https://github.com/pypa/setuptools_scm/issues/455
       - name: Disable local version identifier on develop CI
         run: |
-          echo -e '\nlocal_scheme = "no-local-version"\n' >> pyproject.toml
+          echo 'local_scheme = "no-local-version"' >> pyproject.toml
           git diff --color=always
           git update-index --assume-unchanged pyproject.toml
 
