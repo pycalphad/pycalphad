@@ -131,3 +131,20 @@ def test_phaselocal_binary_molefrac_condition(load_database):
                                 v.X('LIQUID', 'ZN'): 0.3, v.N: 1})
     result = wks.get('X(LIQUID,ZN)')[0]
     np.testing.assert_almost_equal(result, np.full_like(result, 0.3), decimal=8)
+
+@pytest.mark.solver
+@select_database("cumg.tdb")
+def test_site_fraction_conditions(load_database):
+    "No numerical errors from site fraction conditions near limits."
+    components = ["CU", "MG"]
+    dbf = load_database()
+    phases = ['LIQUID']
+    wks = Workspace(dbf, components, phases, {v.N:1, v.P:1e5, v.T:1080})
+    wks.conditions.update({v.Y('LIQUID', 0, 'MG'): 0, v.X('MG'): 0})
+    gm, phase_amt = wks.get('GM(*)', 'NP(*)') # should have only one phase
+    np.testing.assert_almost_equal(gm, [-48941.69181887])
+    np.testing.assert_almost_equal(phase_amt, np.array([1.0]), decimal=10)
+    wks.conditions.update({v.Y('LIQUID', 0, 'MG'): 1, v.X('MG'): 1})
+    gm, phase_amt = wks.get('GM(*)', 'NP(*)') # should have only one phase
+    np.testing.assert_almost_equal(gm, [-53295.58547987])
+    np.testing.assert_almost_equal(phase_amt, np.array([1.0]), decimal=10)

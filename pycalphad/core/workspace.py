@@ -156,6 +156,10 @@ class DictField(TypedField):
                 conds = TypedField.__get__(self, obj)
                 conds[item] = value
                 self.__set__(obj, conds)
+            def update(pxy, new_conds):
+                conds = TypedField.__get__(self, obj)
+                conds.update(new_conds)
+                self.__set__(obj, conds)
             def __delitem__(pxy, item):
                 conds = TypedField.__get__(self, obj)
                 del conds[item]
