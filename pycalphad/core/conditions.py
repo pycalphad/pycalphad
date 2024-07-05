@@ -107,7 +107,7 @@ class Conditions:
     
     def __setitem__(self, item, value):
         prop = as_property(item)
-        if isinstance(prop, v.MoleFraction):
+        if isinstance(prop, (v.MoleFraction, v.SiteFraction)):
             vals = unpack_condition(value)
             if isinstance(vals, Q_):
                 vals = vals.to(prop.implementation_units).magnitude
