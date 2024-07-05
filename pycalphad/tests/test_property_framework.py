@@ -80,16 +80,26 @@ def test_cpf_tzero(load_database):
 
 @select_database("nbre_liu.tdb")
 def test_cpf_reference_state(load_database):
+    # linspace is better than arange here because we want precise control of both endpoints
+    # small deviations in the endpoint will push the reference state around, for large step sizes
+    x_re = np.linspace(0, 1, num=10, endpoint=True)
     wks = Workspace(load_database(), ["NB", "RE", "VA"], ["LIQUID_RENB"],
-                    {v.P: 101325, v.T: 2800, v.X("RE"): (0, 1, 0.005)})
+                    {v.P: 101325, v.T: 2800, v.X("RE"): x_re})
 
     ref = ReferenceState([("LIQUID_RENB", {v.X("RE"): 0}),
                         ("LIQUID_RENB", {v.X("RE"): 1})
                         ], wks)
+    hm_mix = ref('HM')
+    hm_mix_t = DotDerivativeComputedProperty(hm_mix, v.T)
+    # Check that order of operations does not matter for this case
+    hm_mix_t_2 = ref(DotDerivativeComputedProperty('HM', v.T))
 
-    result, = wks.get(ref('HM'))
-    np.testing.assert_almost_equal(np.nanmax(result), 0, decimal=5)
-    np.testing.assert_almost_equal(np.nanmin(result), -2034.554367, decimal=5)
+    ref_hm, ref_hm_t, ref_hm_t_2 = wks.get(hm_mix, hm_mix_t, hm_mix_t_2)
+    ser_hm, ser_hm_t = wks.get('HM', 'HM.T')
+    np.testing.assert_almost_equal(np.nanmax(ref_hm), 0, decimal=5)
+    np.testing.assert_almost_equal(ref_hm, ser_hm - ser_hm[0]*(1-x_re) - ser_hm[-1]*x_re, decimal=5)
+    np.testing.assert_almost_equal(ref_hm_t, ser_hm_t - ser_hm_t[0]*(1-x_re) - ser_hm_t[-1]*x_re, decimal=5)
+    np.testing.assert_almost_equal(ref_hm_t, ref_hm_t_2)
 
 @select_database("alzn_mey.tdb")
 def test_cpf_calculation(load_database):

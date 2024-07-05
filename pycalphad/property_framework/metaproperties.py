@@ -255,8 +255,6 @@ class ReferenceState:
                             chemical_potentials: npt.ArrayLike) -> float:
                 # Property contribution prior to reference state change
                 result = prop.compute_property(equilibrium_compsets, cur_conds, chemical_potentials)
-                if not isinstance(result, units.Q_):
-                    result = units.Q_(result, prop.implementation_units)
 
                 # Calculate reference contribution
 
@@ -279,15 +277,12 @@ class ReferenceState:
 
                 # Next, plug fixed conditions of current point into equation of reference plane
                 current_vector = [cur_conds[floc] for floc in self._fixed_conds]
-                reference_offset = units.Q_(np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1],
-                                            prop.implementation_units)
+                reference_offset = np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1]
                 return result - reference_offset
             @staticmethod
             def dot_derivative(equilibrium_compsets, cur_conds, chemical_potentials, deltas):
                 # Property contribution prior to reference state change
                 result = prop.dot_derivative(equilibrium_compsets, cur_conds, chemical_potentials, deltas)
-                if not isinstance(result, units.Q_):
-                    result = units.Q_(result, prop.implementation_units)
 
                 # Calculate reference contribution
 
@@ -298,7 +293,7 @@ class ReferenceState:
                 plane_rhs = np.zeros(len(self._fixed_conds)+1)
                 for row_idx, ref_wks in enumerate(self._reference_wks):
                     for col_idx, fic in enumerate(self._fixed_conds):
-                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic]
+                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic][0]
                     for floc in self._floating_conds:
                         ref_wks.conditions[floc] = cur_conds[floc]
                     if ref_wks.ndim != 0:
@@ -310,8 +305,7 @@ class ReferenceState:
 
                 # Next, plug fixed conditions of current point into equation of reference plane
                 current_vector = [cur_conds[floc] for floc in self._fixed_conds]
-                reference_offset = units.Q_(np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1],
-                                            prop.implementation_units)
+                reference_offset = np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1]
                 return result - reference_offset
             __str__ = lambda _: f'{prop.__str__()} [ReferenceState]'
         return _autoproperty()
