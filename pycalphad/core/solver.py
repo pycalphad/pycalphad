@@ -68,7 +68,7 @@ class Solver(SolverBase):
             if isinstance(cond, MoleFraction) and cond.phase_name is None:
                 el = str(cond)[2:]
                 el_idx = list(nonvacant_elements).index(el)
-                prescribed_mole_fraction_rhs.append(float(value))
+                prescribed_mole_fraction_rhs.append(np.asarray(value).flat[0])
                 coefs = np.zeros(num_components)
                 coefs[el_idx] = 1.0
                 prescribed_mole_fraction_coefficients.append(coefs)
