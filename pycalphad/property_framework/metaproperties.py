@@ -159,9 +159,6 @@ class DormantPhase:
                     state.recompute(spec)
                 self._compset = state.compsets[0]
                 return prop.compute_property([self._compset], cur_conds, chemical_potentials)
-            @staticmethod
-            def dot_derivative(compsets, cur_conds, chemical_potentials, deltas):
-                return prop.dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
             __str__ = lambda _: f'{prop.__str__()} [Dormant({self._compset.phase_record.phase_name})]'
         return _autoproperty()
 
