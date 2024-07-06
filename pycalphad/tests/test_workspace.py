@@ -134,6 +134,26 @@ def test_phaselocal_binary_molefrac_condition(load_database):
     result = wks.get('X(LIQUID,ZN)')[0]
     np.testing.assert_almost_equal(result, np.full_like(result, 0.3), decimal=8)
 
+@select_database("alzn_mey.tdb")
+def test_miscibility_gap_cpf_specifier(load_database):
+    dbf = load_database()
+    # these conditions should be at an fcc miscibility gap
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1'],
+                    conditions={v.X('ZN'): 0.3, v.T: 580, v.P: 1e5, v.N: 1})
+    # should return two values: one for each fcc composition set
+    result_one = wks.get('X(FCC_A1,ZN)')
+    # phase wildcard should return both composition sets
+    # note that all other phases are suspended, or else we'd get the metastable ones too
+    result_two = wks.get('X(*,ZN)')
+    fcc_1 = wks.get('X(FCC_A1#1,ZN)')
+    fcc_2 = wks.get('X(FCC_A1#2,ZN)')
+    np.testing.assert_almost_equal(result_one, [[0.181492], [0.538458]], decimal=6)
+    np.testing.assert_equal(result_one, result_two)
+    np.testing.assert_equal(result_one, np.r_[fcc_1, fcc_2])
+    # this composition set doesn't exist
+    fcc_3 = wks.get('X(FCC_A1#3,ZN)')
+    assert np.isnan(fcc_3[0][0])
+
 @pytest.mark.solver
 @select_database("cumg.tdb")
 def test_site_fraction_conditions(load_database):
