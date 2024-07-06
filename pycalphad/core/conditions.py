@@ -118,6 +118,9 @@ class Conditions:
             value = [min(max(val, self.minimum_composition), 1-self.minimum_composition) for val in vals]
         else:
             value = unpack_condition(value)
+
+        if len(value) == 0:
+            raise ConditionError('Condition cannot be zero-length array')
         
         value = as_quantity(prop, value).to(prop.implementation_units)
 

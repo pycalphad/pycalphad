@@ -19,7 +19,7 @@ import numpy.typing as npt
 from typing import Optional, Tuple, Type
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
-from pycalphad.core.conditions import Conditions
+from pycalphad.core.conditions import Conditions, ConditionError
 from pycalphad.property_framework import ComputableProperty, as_property
 from pycalphad.property_framework.units import unit_conversion_context, ureg, as_quantity, Q_
 from runtype import isa
@@ -288,9 +288,6 @@ class Workspace:
                                        list(unitless_conds.keys()), state_variables,
                                        self.verbose, solver=self.solver)
 
-    def calculate_equilibrium(self):
-        self.eq = self.recompute()
-
     def _detect_phase_multiplicity(self):
         multiplicity = {k: 0 for k in sorted(self.phase_record_factory.keys())}
         prop_GM_values = self.eq.GM
@@ -391,6 +388,11 @@ class Workspace:
                 compset.update(sfx, phase_amt, state_variable_values)
                 composition_sets.append(compset)
             yield index, composition_sets
+
+    def get_composition_sets(self):
+        if self.ndim != 0:
+            raise ConditionError('get_composition_sets() can only be used for point (0-D) calculations. Use enumerate_composition_sets() instead.')
+        return next(self.enumerate_composition_sets())[1]
 
     def get_dict(self, *args: Tuple[ComputableProperty]):
         args = list(map(as_property, args))

@@ -2,6 +2,7 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Workspace, variables as v
 from pycalphad.core.conditions import ConditionError
+from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property, ComputableProperty, T0, IsolatedPhase, DormantPhase
 from pycalphad.property_framework.units import Q_
 from pycalphad.tests.fixtures import load_database, select_database
@@ -79,6 +80,29 @@ def test_dot_derivative_binary_temperature(load_database):
     x, y_dot = wks.get('T', 'MU(AL).T')
     # Checked by finite difference
     assert_allclose(y_dot, -28.775364)
+
+@select_database("alzn_mey.tdb")
+def test_condition_zero_length(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.N: 1, v.P: 1e5, v.X('ZN'): 0.3})
+    # Note that 100 < 300; this expands to a zero-length array
+    with pytest.raises(ConditionError):
+        wks.conditions[v.T] = (300, 100, 10)
+
+@select_database("alzn_mey.tdb")
+def test_get_composition_sets(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 300, v.X('ZN'): 0.3})
+    compsets = wks.get_composition_sets()
+    assert len(compsets) == 2
+    assert all(isinstance(c, CompositionSet) for c in compsets)
+
+    wks.conditions[v.T] = (300, 1000, 10)
+    # this function only works for point calculations
+    with pytest.raises(ConditionError):
+        wks.get_composition_sets()
 
 @select_database("alzn_mey.tdb")
 def test_condition_nonexistent_component(load_database):
