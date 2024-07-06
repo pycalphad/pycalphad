@@ -107,7 +107,7 @@ class Conditions:
     
     def __setitem__(self, item, value):
         prop = as_property(item)
-        if isinstance(prop, (v.MoleFraction, v.SiteFraction)):
+        if isinstance(prop, (v.MoleFraction, v.MassFraction, v.SiteFraction)):
             vals = unpack_condition(value)
             if isinstance(vals, Q_):
                 vals = vals.to(prop.implementation_units).magnitude
@@ -121,9 +121,12 @@ class Conditions:
         
         value = as_quantity(prop, value).to(prop.implementation_units)
 
-        if isinstance(prop, (v.MoleFraction, v.ChemicalPotential)) and prop.species not in self._wks.components:
+        if isinstance(prop, (v.MoleFraction, v.MassFraction, v.ChemicalPotential)) and prop.species not in self._wks.components:
             raise ConditionError('{} refers to non-existent component'.format(prop))
-        
+
+        if isinstance(prop, v.SiteFraction) and prop not in self._wks.phase_record_factory[prop.phase_name].variables:
+            raise ConditionError('{} refers to non-existent constituent'.format(prop))
+
         if (prop == v.N) and np.any(value != Q_(1.0, 'mol')):
             raise ConditionError('N!=1 is not yet supported, got N={}'.format(value))
         

@@ -1,6 +1,7 @@
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Workspace, variables as v
+from pycalphad.core.conditions import ConditionError
 from pycalphad.property_framework import as_property, ComputableProperty, T0, IsolatedPhase, DormantPhase
 from pycalphad.property_framework.units import Q_
 from pycalphad.tests.fixtures import load_database, select_database
@@ -78,6 +79,18 @@ def test_dot_derivative_binary_temperature(load_database):
     x, y_dot = wks.get('T', 'MU(AL).T')
     # Checked by finite difference
     assert_allclose(y_dot, -28.775364)
+
+@select_database("alzn_mey.tdb")
+def test_condition_nonexistent_component(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 300})
+    with pytest.raises(ConditionError):
+        wks.conditions[v.X('FE')] = 0.3
+    with pytest.raises(ConditionError):
+        wks.conditions[v.W('FE')] = 0.3
+    with pytest.raises(ConditionError):
+        wks.conditions[v.Y('FCC_A1', 0, 'FE')] = 0.3
 
 @select_database("alzn_mey.tdb")
 def test_dot_derivative_binary_composition(load_database):
