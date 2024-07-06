@@ -233,11 +233,6 @@ class EquilibriumCalculationField(TypedField):
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         self.__set__(obj, None)
 
-def _as_quantity(prop: ComputableProperty, qt: npt.ArrayLike):
-    if not isinstance(qt, Q_):
-        return Q_(qt, prop.implementation_units)
-    else:
-        return qt
 
 # Defined to allow type checking for Model or its subclasses
 ModelType = TypeVar('ModelType', bound=Model)
