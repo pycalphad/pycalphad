@@ -33,7 +33,7 @@ class MatplotlibRenderer(Renderer):
         import matplotlib.pyplot as plt
         ax = ax if ax is not None else plt.gca()
         x = as_property(x)
-        data = self.workspace.get(x, *ys, values_only=False, return_units=False)
+        data = self.workspace.get_dict(x, *ys)
 
         num_y = 0
         for y in data.keys():
@@ -76,7 +76,7 @@ class MatplotlibRenderer(Renderer):
 class PandasRenderer(Renderer):
     def __call__(self, *ys: Tuple[ComputableProperty]):
         import pandas as pd
-        data = self.workspace.get(*ys, values_only=False, return_units=False)
+        data = self.workspace.get_dict(*ys)
         stripped_data = {}
         for key, value in data.items():
             stripped_data[_property_axis_label(key)] = value

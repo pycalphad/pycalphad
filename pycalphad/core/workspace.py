@@ -392,7 +392,7 @@ class Workspace:
                 composition_sets.append(compset)
             yield index, composition_sets
 
-    def get(self, *args: Tuple[ComputableProperty], values_only=True, return_units=False):
+    def get_dict(self, *args: Tuple[ComputableProperty]):
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
         arg_units = {arg: (ureg.Unit(getattr(arg, 'implementation_units', '')),
@@ -425,15 +425,10 @@ class Workspace:
                                                     prop_implementation_units).to(prop_display_units, context).magnitude
             local_index += 1
         
-        if return_units:
-            for arg in args:
-                _, prop_display_units = arg_units[arg]
-                results[arg] = Q_(results[arg], prop_display_units)
+        return results
 
-        if values_only:
-            return list(results.values())
-        else:
-            return results
+    def get(self, *args: Tuple[ComputableProperty]):
+        return list(self.get_dict(*args).values())
 
     def copy(self):
         return copy(self)

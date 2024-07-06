@@ -54,7 +54,7 @@ def test_cpf_phase_energy_curves(load_database):
         prop.display_name = phase_name
         props.append(prop)
     result = {}
-    for prop, value in wks2.get(*props, values_only=False).items():
+    for prop, value in wks2.get_dict(*props).items():
         result[prop.display_name] = value
     np.testing.assert_almost_equal(np.nanmax(result['FCC_A1']), -20002.975665, decimal=5)
     np.testing.assert_almost_equal(np.nanmin(result['FCC_A1']), -26718.58552, decimal=5)
