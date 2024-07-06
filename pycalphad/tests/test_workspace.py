@@ -112,6 +112,14 @@ def test_mass_fraction_binary_condition(load_database):
     np.testing.assert_almost_equal([x[0] for x in results], truth, decimal=5)
 
 @select_database("alzn_mey.tdb")
+def test_mass_fraction_binary_dilute(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 300, v.W('AL'): 0})
+    results = wks.get('W(AL)')
+    np.testing.assert_almost_equal(results[0][0], 0)
+
+@select_database("alzn_mey.tdb")
 def test_lincomb_binary_condition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
