@@ -105,6 +105,8 @@ def test_lincomb_binary_condition(load_database):
                     conditions={v.T: 300, v.P: 1e5, 0.5*v.X('ZN') - 7*v.X('AL'): 0.1})
     result = 0.5 * wks.get('X(ZN)')[0] - 7 * wks.get('X(AL)')[0]
     np.testing.assert_almost_equal(result, 0.1, decimal=8)
+    result2 = wks.get(0.5*v.X('ZN') - 7*v.X('AL'))[0]
+    np.testing.assert_almost_equal(result2, result, decimal=8)
 
 @select_database("alzn_mey.tdb")
 def test_lincomb_ratio_binary_condition(load_database):

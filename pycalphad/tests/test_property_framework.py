@@ -5,6 +5,7 @@ from pycalphad.property_framework import as_property, DotDerivativeComputedPrope
     ModelComputedProperty, T0, IsolatedPhase, DormantPhase, ReferenceState
 import pycalphad.variables as v
 from pycalphad.tests.fixtures import select_database, load_database
+import pytest
 import numpy as np
 import numpy.testing
 
@@ -21,6 +22,11 @@ def test_as_property_dot_derivative_creation():
     assert as_property('NP(LIQUID).T') == DotDerivativeComputedProperty(v.NP('LIQUID'), v.T)
     assert ModelComputedProperty('SM') != ModelComputedProperty('HM')
 
+def test_nonconditionable_derivative_fails():
+    # can't set Gibbs energy as condition, so this should raise
+    with pytest.raises(TypeError):
+        DotDerivativeComputedProperty(v.T, ModelComputedProperty('GM'))
+
 def test_property_units():
     model_prop = ModelComputedProperty('test')
     model_prop.implementation_units = 'J/mol'
@@ -29,6 +35,9 @@ def test_property_units():
     assert v.T['degC'].display_units == 'degC'
     assert v.T.display_units != 'degC'
     assert v.T['degC'] == v.T
+
+def test_property_repr():
+    repr(0.5*v.X('ZN') - 7*v.X('AL')) == '0.5*X(ZN)-7*X(AL)'
 
 @select_database("alzn_mey.tdb")
 def test_cpf_phase_energy_curves(load_database):
@@ -108,7 +117,10 @@ def test_cpf_calculation(load_database):
                     {v.X('ZN'): 0.3, v.T: 700, v.P:101325, v.N: 1})
 
     results = wks4.get('HM.T', 'MU(AL).X(ZN)')
-    np.testing.assert_array_almost_equal(np.squeeze(results), [29.63807, -3460.0878], decimal=5)
+    desired = np.array([29.63807, -3460.0878])
+    np.testing.assert_array_almost_equal(np.squeeze(results), desired, decimal=5)
+    results_units = wks4.get(as_property('HM.T')['mJ/K/mol'], as_property('MU(AL).X(ZN)')['mJ/mol'])
+    np.testing.assert_array_almost_equal(np.squeeze(results_units), 1000. * desired, decimal=1)
 
     wks4.phases = ['FCC_A1', 'LIQUID', 'HCP_A3']
     wks4.conditions[v.X('ZN')] = 0.7
