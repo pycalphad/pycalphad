@@ -1,7 +1,7 @@
 from pycalphad.core.workspace import Workspace
 from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set import CompositionSet
-from pycalphad.property_framework import as_property, DotDerivativeComputedProperty, \
+from pycalphad.property_framework import as_property, JanssonDerivative, \
     ModelComputedProperty, T0, IsolatedPhase, DormantPhase, ReferenceState
 import pycalphad.variables as v
 from pycalphad.tests.fixtures import select_database, load_database
@@ -15,17 +15,17 @@ def test_as_property_creation():
     assert as_property('X(ZN)') == v.X('ZN')
     assert as_property('X(FCC_A1#1,ZN)') == v.X('FCC_A1#1', 'ZN')
 
-def test_as_property_dot_derivative_creation():
-    assert as_property('HM.T') == DotDerivativeComputedProperty(ModelComputedProperty('HM'), v.T)
-    assert as_property('HM.T') == DotDerivativeComputedProperty('HM', 'T')
-    assert as_property('MU(AL).X(ZN)') == DotDerivativeComputedProperty(v.MU('AL'), v.X('ZN'))
-    assert as_property('NP(LIQUID).T') == DotDerivativeComputedProperty(v.NP('LIQUID'), v.T)
+def test_as_property_jansson_derivative_creation():
+    assert as_property('HM.T') == JanssonDerivative(ModelComputedProperty('HM'), v.T)
+    assert as_property('HM.T') == JanssonDerivative('HM', 'T')
+    assert as_property('MU(AL).X(ZN)') == JanssonDerivative(v.MU('AL'), v.X('ZN'))
+    assert as_property('NP(LIQUID).T') == JanssonDerivative(v.NP('LIQUID'), v.T)
     assert ModelComputedProperty('SM') != ModelComputedProperty('HM')
 
 def test_nonconditionable_derivative_fails():
     # can't set Gibbs energy as condition, so this should raise
     with pytest.raises(TypeError):
-        DotDerivativeComputedProperty(v.T, ModelComputedProperty('GM'))
+        JanssonDerivative(v.T, ModelComputedProperty('GM'))
 
 def test_property_units():
     model_prop = ModelComputedProperty('test')
@@ -99,9 +99,9 @@ def test_cpf_reference_state(load_database):
                         ("LIQUID_RENB", {v.X("RE"): 1})
                         ], wks)
     hm_mix = ref('HM')
-    hm_mix_t = DotDerivativeComputedProperty(hm_mix, v.T)
+    hm_mix_t = JanssonDerivative(hm_mix, v.T)
     # Check that order of operations does not matter for this case
-    hm_mix_t_2 = ref(DotDerivativeComputedProperty('HM', v.T))
+    hm_mix_t_2 = ref(JanssonDerivative('HM', v.T))
 
     ref_hm, ref_hm_t, ref_hm_t_2 = wks.get(hm_mix, hm_mix_t, hm_mix_t_2)
     ser_hm, ser_hm_t = wks.get('HM', 'HM.T')
@@ -155,7 +155,7 @@ def test_jansson_derivative_zero_and_undefined(load_database):
         state = spec.get_new_state(comp_sets)
         state.chemical_potentials[:] = chem_pots
         state.recompute(spec)
-        deltas = var.dot_deltas(spec, state)
+        deltas = var.jansson_deltas(spec, state)
 
         #Restore condition
         conds[condition_to_drop] = drop_val
@@ -184,7 +184,7 @@ def test_jansson_derivative_zero_and_undefined(load_database):
     #   it would be impossible move the global composition while still having the NP(PT8AL21) = 1
     x_deltas = compute_deltas(comp_sets, conds, chem_pots, v.X('AL'), v.T)
     assert np.isnan(x_deltas.delta_statevars[2])
-    dtdx = v.T.dot_derivative(comp_sets, conds, chem_pots, x_deltas)
+    dtdx = v.T.jansson_derivative(comp_sets, conds, chem_pots, x_deltas)
     assert np.isnan(dtdx)
 
     # Delta with v.T
@@ -194,8 +194,8 @@ def test_jansson_derivative_zero_and_undefined(load_database):
     T_deltas = compute_deltas(comp_sets, conds, chem_pots, v.T, v.X('AL'))
     np.testing.assert_allclose(T_deltas.delta_statevars[2], 1., atol=1e-8)
     # Since we trace along PT8AL21, then X('PT8AL21', 'AL').T = X('AL').T = 0
-    dxdt_phase = v.X('PT8AL21', 'AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
-    dxdt = v.X('AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
+    dxdt_phase = v.X('PT8AL21', 'AL').jansson_derivative(comp_sets, conds, chem_pots, T_deltas)
+    dxdt = v.X('AL').jansson_derivative(comp_sets, conds, chem_pots, T_deltas)
     assert dxdt_phase == 0.
     assert dxdt == 0.
 
@@ -205,7 +205,7 @@ def test_jansson_derivative_zero_and_undefined(load_database):
     cs_stoich.NP = 0.
     cs_stoich.fixed = True
     T_deltas = compute_deltas(comp_sets, conds, chem_pots, v.T, v.X('AL'))
-    dxdt_phase = v.X('LIQUID', 'AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
-    dxdt = v.X('AL').dot_derivative(comp_sets, conds, chem_pots, T_deltas)
+    dxdt_phase = v.X('LIQUID', 'AL').jansson_derivative(comp_sets, conds, chem_pots, T_deltas)
+    dxdt = v.X('AL').jansson_derivative(comp_sets, conds, chem_pots, T_deltas)
     np.testing.assert_allclose(dxdt_phase, dxdt)
     np.testing.assert_allclose(dxdt_phase, -0.00034853908, rtol=1e-8)

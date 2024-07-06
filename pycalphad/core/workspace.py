@@ -2,7 +2,7 @@ import warnings
 from collections import OrderedDict, Counter, defaultdict
 from collections.abc import Mapping
 from copy import copy
-from pycalphad.property_framework.computed_property import DotDerivativeComputedProperty
+from pycalphad.property_framework.computed_property import JanssonDerivative
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models
 from pycalphad import calculate
@@ -325,7 +325,7 @@ class Workspace:
                 args.extend(additional_args)
             elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == v.Species('*'):
                 raise ValueError('Wildcard not yet supported in sublattice index')
-            elif isinstance(args[i], DotDerivativeComputedProperty):
+            elif isinstance(args[i], JanssonDerivative):
                 numerator_args = [args[i].numerator]
                 self._expand_property_arguments(numerator_args)
                 denominator_args = [args[i].denominator]
@@ -333,7 +333,7 @@ class Workspace:
                 if (len(numerator_args) > 1) or (len(denominator_args) > 1):
                     for n_arg in numerator_args:
                         for d_arg in denominator_args:
-                            args.append(DotDerivativeComputedProperty(n_arg, d_arg))
+                            args.append(JanssonDerivative(n_arg, d_arg))
                     indices_to_delete.append(i)
             else:
                 # This is a concrete ComputableProperty

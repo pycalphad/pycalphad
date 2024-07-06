@@ -5,7 +5,7 @@ from symengine import Basic, Mul, Pow, S
 import pycalphad.variables as v
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver
-from pycalphad.property_framework.types import ComputableProperty, DotDerivativeDeltas, \
+from pycalphad.property_framework.types import ComputableProperty, JanssonDerivativeDeltas, \
     DifferentiableComputableProperty, ConditionableComputableProperty
 from pycalphad.property_framework import units
 from copy import copy
@@ -80,32 +80,32 @@ class ModelComputedProperty(object):
             return np.nan
 
 
-    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas) -> npt.ArrayLike:
-        "Compute dot derivative with self as numerator, with the given deltas"
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas) -> npt.ArrayLike:
+        "Compute Jansson derivative with self as numerator, with the given deltas"
         state_variables = compsets[0].phase_record.state_variables
         grad_values = self._compute_property_gradient(compsets, cur_conds, chemical_potentials)
 
         # Sundman et al, 2015, Eq. 73
-        dot_derivative = np.nan
+        jansson_derivative = np.nan
         for idx, compset in enumerate(compsets):
             if compset.NP == 0 and not (compset.fixed):
                 continue
             func_value = self._compute_per_phase_property(compset, cur_conds)
             if np.isnan(func_value):
                 continue
-            if np.isnan(dot_derivative):
-                dot_derivative = 0.0
+            if np.isnan(jansson_derivative):
+                jansson_derivative = 0.0
             grad_value = grad_values[idx]
             delta_sitefracs = deltas.delta_sitefracs[idx]
 
             if self.phase_name is None:
-                dot_derivative += deltas.delta_phase_amounts[idx] * func_value
-                dot_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
-                dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
+                jansson_derivative += deltas.delta_phase_amounts[idx] * func_value
+                jansson_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                jansson_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
             else:
-                dot_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
-                dot_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
-        return dot_derivative
+                jansson_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                jansson_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
+        return jansson_derivative
 
     def _compute_per_phase_property(self, compset: CompositionSet, cur_conds: Dict[str, float]) -> float:
         out = np.atleast_1d(np.zeros(1))
@@ -208,7 +208,7 @@ def as_property(inp: Union[str, Basic, ComputableProperty]) -> ComputablePropert
         numerator, denominator = dot_tokens
         numerator = as_property(numerator)
         denominator = as_property(denominator)
-        return DotDerivativeComputedProperty(numerator, denominator)
+        return JanssonDerivative(numerator, denominator)
     try:
         begin_parens = inp.index('(')
         end_parens = inp.index(')')
@@ -236,14 +236,14 @@ def as_property(inp: Union[str, Basic, ComputableProperty]) -> ComputablePropert
         prop_instance = prop
     return prop_instance
 
-class DotDerivativeComputedProperty:
+class JanssonDerivative:
     def __init__(self, numerator: DifferentiableComputableProperty, denominator: ConditionableComputableProperty):
         self.numerator = as_property(numerator)
         if not isinstance(self.numerator, DifferentiableComputableProperty):
             raise TypeError(f'{self.numerator} is not a differentiable property')
         self.denominator = as_property(denominator)
         if not isinstance(self.denominator, ConditionableComputableProperty):
-            raise TypeError(f'{self.denominator} cannot be used in the denominator of a dot derivative')
+            raise TypeError(f'{self.denominator} cannot be used in the denominator of a Jansson derivative')
 
     @property
     def shape(self):
@@ -265,8 +265,8 @@ class DotDerivativeComputedProperty:
     def display_units(self, val):
         self._display_units = val
 
-    def __getitem__(self, new_units: str) -> "DotDerivativeComputedProperty":
-        "Get DotDerivativeComputedProperty with different display units"
+    def __getitem__(self, new_units: str) -> "JanssonDerivative":
+        "Get JanssonDerivative with different display units"
         newobj = copy(self)
         newobj.display_units = new_units
         return newobj
@@ -289,8 +289,8 @@ class DotDerivativeComputedProperty:
         state = spec.get_new_state(compsets)
         state.chemical_potentials[:] = chemical_potentials
         state.recompute(spec)
-        deltas = self.denominator.dot_deltas(spec, state)
-        return self.numerator.dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
+        deltas = self.denominator.jansson_deltas(spec, state)
+        return self.numerator.jansson_derivative(compsets, cur_conds, chemical_potentials, deltas)
 
     def __str__(self):
         return str(self.numerator)+'.'+str(self.denominator)

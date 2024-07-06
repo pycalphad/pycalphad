@@ -73,7 +73,7 @@ def test_tzero_property(load_database):
     assert_allclose(t0_composition[0], 0.86119, atol=my_tzero.residual_tol)
 
 @select_database("alzn_mey.tdb")
-def test_dot_derivative_binary_temperature(load_database):
+def test_jansson_derivative_binary_temperature(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 300, v.X('ZN'): 0.3})
@@ -117,7 +117,7 @@ def test_condition_nonexistent_component(load_database):
         wks.conditions[v.Y('FCC_A1', 0, 'FE')] = 0.3
 
 @select_database("alzn_mey.tdb")
-def test_dot_derivative_binary_composition(load_database):
+def test_jansson_derivative_binary_composition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 600, v.X('ZN'): 0.1})
@@ -217,7 +217,7 @@ def test_site_fraction_conditions(load_database):
     np.testing.assert_almost_equal(phase_amt, np.array([1.0]), decimal=10)
 
 @select_database("cumg.tdb")
-def test_dot_derivative_chempot_condition(load_database):
+def test_jansson_derivative_chempot_condition(load_database):
     components = ["CU", "MG"]
     dbf = load_database()
     phases = ['LIQUID']
