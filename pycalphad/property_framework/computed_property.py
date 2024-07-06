@@ -178,6 +178,7 @@ class LinearCombination:
                 # if not the last entry
                 result += '+'
         result += '=' + str(self.coefs[-1])
+        return result
 
     @property
     def shape(self):

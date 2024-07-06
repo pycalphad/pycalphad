@@ -37,7 +37,7 @@ def test_property_units():
     assert v.T['degC'] == v.T
 
 def test_property_repr():
-    repr(0.5*v.X('ZN') - 7*v.X('AL')) == '0.5*X(ZN)-7*X(AL)'
+    repr(as_property(0.5*v.X('ZN') - 7*v.X('AL'))) == '0.5*X(ZN)-7*X(AL)'
 
 @select_database("alzn_mey.tdb")
 def test_cpf_phase_energy_curves(load_database):
