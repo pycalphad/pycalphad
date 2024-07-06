@@ -328,7 +328,7 @@ class Workspace:
                     components = [x for x in self.phase_record_factory[args[i].phase_name].variables
                                   if x.sublattice_index == args[i].sublattice_index]
                 else:
-                    components = self.phase_record_factory[args[i].phase_name].nonvacant_elements
+                    components = self.components
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
             elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == v.Species('*'):

@@ -109,12 +109,24 @@ def test_cpf_calculation(load_database):
 
     results = wks4.get('HM.T', 'MU(AL).X(ZN)')
     np.testing.assert_array_almost_equal(np.squeeze(results), [29.63807, -3460.0878], decimal=5)
+
     wks4.phases = ['FCC_A1', 'LIQUID', 'HCP_A3']
     wks4.conditions[v.X('ZN')] = 0.7
+
     results = wks4.get('X(LIQUID, AL).T')
     np.testing.assert_array_almost_equal(np.squeeze(results), [0.00249], decimal=5)
     results = wks4.get('NP(*).T')
     np.testing.assert_array_almost_equal(np.squeeze(results), [-0.01147, float('nan'), 0.01147], decimal=5)
+    molefracs = wks4.get('X(*)')
+    np.testing.assert_almost_equal(molefracs, [[0.3], [0.7]])
+    fcc_phase_compositions = wks4.get('X(FCC_A1,*)')
+    np.testing.assert_almost_equal(fcc_phase_compositions, [[0.4983366], [0.5016634]])
+    hcp_phase_compositions = wks4.get('X(HCP_A3,*)')
+    np.testing.assert_almost_equal(hcp_phase_compositions, [[float('nan')], [float('nan')]])
+    liq_phase_compositions = wks4.get('X(LIQUID,*)')
+    np.testing.assert_almost_equal(liq_phase_compositions, [[0.2118856], [0.7881144]])
+    all_phase_compositions = wks4.get('X(*,*)')
+    np.testing.assert_equal(all_phase_compositions, np.r_[fcc_phase_compositions, hcp_phase_compositions, liq_phase_compositions])
 
 @select_database("alnipt.tdb")
 def test_jansson_derivative_zero_and_undefined(load_database):
