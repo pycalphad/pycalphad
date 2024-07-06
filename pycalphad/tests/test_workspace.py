@@ -150,3 +150,23 @@ def test_site_fraction_conditions(load_database):
     gm, phase_amt = wks.get('GM(*)', 'NP(*)') # should have only one phase
     np.testing.assert_almost_equal(gm, [-53295.58547987])
     np.testing.assert_almost_equal(phase_amt, np.array([1.0]), decimal=10)
+
+@select_database("cumg.tdb")
+def test_dot_derivative_chempot_condition(load_database):
+    components = ["CU", "MG"]
+    dbf = load_database()
+    phases = ['LIQUID']
+    wks = Workspace(dbf, components, phases, {v.N:1, v.P:1e5, v.T:1080})
+    wks.conditions[v.X('MG')] = 0.3
+    chempot1, result1 = wks.get('MU(CU)', 'MU(CU).X(MG)')
+    wks.conditions[v.X('MG')] = wks.conditions[v.X('MG')] + 1e-6
+    chempot2, = wks.get('MU(CU)')
+    np.testing.assert_almost_equal(result1, (chempot2 - chempot1) / 1e-6, decimal=1)
+
+    del wks.conditions[v.X('MG')]
+    wks.conditions[v.MU('CU')] = chempot1[0]
+    molefrac1, result2 = wks.get('X(MG)', 'X(MG).MU(CU)')
+    wks.conditions[v.MU('CU')] = chempot1[0] + 1.0
+    molefrac2, = wks.get('X(MG)')
+    np.testing.assert_almost_equal(molefrac1, [0.3])
+    np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
