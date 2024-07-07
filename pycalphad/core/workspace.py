@@ -394,6 +394,17 @@ class Workspace:
             raise ConditionError('get_composition_sets() can only be used for point (0-D) calculations. Use enumerate_composition_sets() instead.')
         return next(self.enumerate_composition_sets())[1]
 
+    @property
+    def condition_axis_order(self):
+        str_conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
+        conds_keys = [None] * len(str_conds_keys)
+        for k in self.conditions.keys():
+            cond_idx = str_conds_keys.index(str(k))
+            # unit-length dimensions will be 'squeezed' out
+            if len(self.eq.coords[str(k)]) > 1:
+                conds_keys[cond_idx] = k
+        return [c for c in conds_keys if c is not None]
+
     def get_dict(self, *args: Tuple[ComputableProperty]):
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
@@ -426,7 +437,12 @@ class Workspace:
                 results[arg][local_index, ...] = Q_(arg.compute_property(composition_sets, cur_conds, chemical_potentials),
                                                     prop_implementation_units).to(prop_display_units, context).magnitude
             local_index += 1
-        
+
+        # roll the dimensions of the property arrays back up
+        conds_shape = tuple(len(self.eq.coords[str(b)]) for b in self.condition_axis_order)
+        for arg in results.keys():
+            results[arg] = results[arg].reshape(conds_shape + arg.shape)
+
         return results
 
     def get(self, *args: Tuple[ComputableProperty]):

@@ -70,7 +70,7 @@ def test_tzero_property(load_database):
     my_tzero.minimum_value = 0.0
     my_tzero.maximum_value = 1.0
     t0_composition, = wks.get(my_tzero)
-    assert_allclose(t0_composition[0], 0.86119, atol=my_tzero.residual_tol)
+    assert_allclose(t0_composition, 0.86119, atol=my_tzero.residual_tol)
 
 @select_database("alzn_mey.tdb")
 def test_jansson_derivative_binary_temperature(load_database):
@@ -133,7 +133,7 @@ def test_mass_fraction_binary_condition(load_database):
     results = wks.get('W(AL)', 'W(ZN)', 'W(FCC_A1,AL)', 'W(HCP_A3,AL)', 'W(LIQUID,AL)',
                       'W(FCC_A1,ZN)', 'W(HCP_A3,ZN)', 'W(LIQUID,ZN)')
     truth = [0.1, 0.9, 0.98650697, 6.64406221e-05, np.nan, 0.01349303, 0.99993356, np.nan]
-    np.testing.assert_almost_equal([x[0] for x in results], truth, decimal=5)
+    np.testing.assert_almost_equal(results, truth, decimal=5)
 
 @select_database("alzn_mey.tdb")
 def test_mass_fraction_binary_dilute(load_database):
@@ -141,7 +141,7 @@ def test_mass_fraction_binary_dilute(load_database):
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 300, v.W('AL'): 0})
     results = wks.get('W(AL)')
-    np.testing.assert_almost_equal(results[0][0], 0)
+    np.testing.assert_almost_equal(results[0], 0)
 
 @select_database("alzn_mey.tdb")
 def test_lincomb_binary_condition(load_database):
@@ -192,12 +192,12 @@ def test_miscibility_gap_cpf_specifier(load_database):
     result_two = wks.get('X(*,ZN)')
     fcc_1 = wks.get('X(FCC_A1#1,ZN)')
     fcc_2 = wks.get('X(FCC_A1#2,ZN)')
-    np.testing.assert_almost_equal(result_one, [[0.181492], [0.538458]], decimal=6)
+    np.testing.assert_almost_equal(result_one, [0.181492, 0.538458], decimal=6)
     np.testing.assert_equal(result_one, result_two)
     np.testing.assert_equal(result_one, np.r_[fcc_1, fcc_2])
     # this composition set doesn't exist
     fcc_3 = wks.get('X(FCC_A1#3,ZN)')
-    assert np.isnan(fcc_3[0][0])
+    assert np.isnan(fcc_3[0])
 
 @pytest.mark.solver
 @select_database("cumg.tdb")
@@ -229,9 +229,9 @@ def test_jansson_derivative_chempot_condition(load_database):
     np.testing.assert_almost_equal(result1, (chempot2 - chempot1) / 1e-6, decimal=1)
 
     del wks.conditions[v.X('MG')]
-    wks.conditions[v.MU('CU')] = chempot1[0]
+    wks.conditions[v.MU('CU')] = chempot1
     molefrac1, result2 = wks.get('X(MG)', 'X(MG).MU(CU)')
-    wks.conditions[v.MU('CU')] = chempot1[0] + 1.0
+    wks.conditions[v.MU('CU')] = chempot1 + 1.0
     molefrac2, = wks.get('X(MG)')
-    np.testing.assert_almost_equal(molefrac1, [0.3])
+    np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
