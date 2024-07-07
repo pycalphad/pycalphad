@@ -145,7 +145,7 @@ class CompsetPair():
         if self.same_phase or ignore_phase:
             return np.abs(self.a.composition - self.b.composition)
         else:
-            return np.infty
+            return np.inf
 
     def ydiscrepancy(self):
         """
@@ -164,7 +164,7 @@ class CompsetPair():
         if self.same_phase:
             return np.abs(self.a.site_fracs - self.b.site_fracs)
         else:
-            return np.infty
+            return np.inf
 
     def ydiscrepancy_max(self):
         """
@@ -221,7 +221,7 @@ class CompsetPair():
         if self.phases == other.phases:
             return np.abs(self.compositions - other.compositions)
         else:
-            return np.full(self.compositions.shape, np.infty)
+            return np.full(self.compositions.shape, np.inf)
 
 
 def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
