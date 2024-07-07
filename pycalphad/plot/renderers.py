@@ -79,7 +79,7 @@ class PandasRenderer(Renderer):
         data = self.workspace.get_dict(*ys)
         stripped_data = {}
         for key, value in data.items():
-            stripped_data[_property_axis_label(key)] = value
+            stripped_data[_property_axis_label(key)] = value.reshape(-1)
         return pd.DataFrame.from_dict(stripped_data)
 
 def set_plot_renderer(klass):
