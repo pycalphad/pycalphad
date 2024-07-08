@@ -34,21 +34,21 @@ class TriangularAxes(Axes):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_aspect(1, adjustable='box', anchor='SW')
-        self.cla()
+        self.clear()
 
     def _init_axis(self):
         self.xaxis = maxis.XAxis(self)
         self.yaxis = maxis.YAxis(self)
         self._update_transScale()
 
-    def cla(self):
+    def clear(self):
         """
         Hard-code axes limits to be on [0, 1] for both axes.
 
         Warning: Limits not on [0, 1] may lead to clipping issues!
         """
         # Don't forget to call the base class
-        super().cla()
+        super().clear()
 
         x_min = 0
         y_min = 0
