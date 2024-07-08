@@ -93,6 +93,10 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
         if phase_ids[index] not in tested_phases:
             tested_phases.append(phase_ids[index])
             test_cs = CompositionSet(phase_records[phase_ids[index]])
+            # TODO: on some models, I get an error of
+            # ValueError: buffer source array is read-only (line 59 in pycalphad.core.composition_set.CompositionSet.update)
+            # Databases where this occured in test suite: alcfe_b2.tdb running Al-C-Fe isopleth, alcocrni.tdb running Al-Co-Ni ternary
+            # and femns.tdb with ionic liquid model
             test_cs.update(y[index][:test_cs.phase_record.phase_dof], 1.0, map_utils.get_statevars_array(point.global_conditions))
             dormantPhase = DormantPhase(test_cs, None)
             test_dg = point.get_property(dormantPhase.driving_force)

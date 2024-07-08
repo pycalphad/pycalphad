@@ -4,7 +4,7 @@ from pycalphad.mapping.primitives import STATEVARS
 from pycalphad.mapping.strategy import StepStrategy, BinaryStrategy, TernaryStrategy, IsoplethStrategy
 from pycalphad.mapping.plotting import plot_step, plot_binary, plot_ternary, plot_isopleth
 
-def binplot(database, components, phases, conditions, plot_kwargs=None, **map_kwargs):
+def binplot(database, components, phases, conditions, return_strategy = False, plot_kwargs=None, **map_kwargs):
     """
     Calculate the binary isobaric phase diagram.
 
@@ -42,11 +42,6 @@ def binplot(database, components, phases, conditions, plot_kwargs=None, **map_kw
     indep_pots = [key for key, value in conditions.items() if key in STATEVARS and len(np.atleast_1d(value)) > 1]
     if (len(indep_comps) != 1) or (len(indep_pots) != 1):
         raise ValueError('binplot() requires exactly one composition coordinate and one potential coordinate')
-    # TODO: try to give full backwards compatible support for plot_kwargs and map_kwargs
-    # remaining plot_kwargs from pycalphad.plot.binary.plot.plot_boundaries:
-    # tieline_color=(0, 1, 0, 1)
-    # remaining map_kwargs from pycalphad.plot.binary.map.map_binary:
-    # calc_kwargs=None
     
     strategy = BinaryStrategy(database, components, phases, conditions, **map_kwargs)
     strategy.initialize()
@@ -56,10 +51,13 @@ def binplot(database, components, phases, conditions, plot_kwargs=None, **map_kw
     ax = plot_binary(strategy, **plot_kwargs)
     ax.grid(plot_kwargs.get("gridlines", False))
 
-    return ax
+    if return_strategy:
+        return ax, strategy
+    else:
+        return ax
 
 
-def ternplot(dbf, comps, phases, conds, x=None, y=None, map_kwargs=None, **plot_kwargs):
+def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy = False, map_kwargs=None, **plot_kwargs):
     """
     Calculate the ternary isothermal, isobaric phase diagram.
     This function is a convenience wrapper around equilibrium() and eqplot().
@@ -111,9 +109,12 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, map_kwargs=None, **plot_
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
 
-    return ax
+    if return_strategy:
+        return ax, strategy
+    else:
+        return ax
 
-def isoplethplot(database, components, phases, conditions, plot_kwargs=None, **map_kwargs):
+def isoplethplot(database, components, phases, conditions, return_strategy = False, plot_kwargs=None, **map_kwargs):
     """
     Calculates an isopleth phase diagram.
     For now, we'll define isopleths as having 1 potential condition and 1 non-potential condition
@@ -162,9 +163,12 @@ def isoplethplot(database, components, phases, conditions, plot_kwargs=None, **m
     ax = plot_isopleth(strategy, **plot_kwargs)
     ax.grid(plot_kwargs.get("gridlines", False))
 
-    return ax
+    if return_strategy:
+        return ax, strategy
+    else:
+        return ax
 
-def stepplot(database, components, phases, conditions, plot_kwargs=None, **map_kwargs):
+def stepplot(database, components, phases, conditions, return_strategy = False, plot_kwargs=None, **map_kwargs):
     """
     Calculate the binary isobaric phase diagram.
 
@@ -210,4 +214,7 @@ def stepplot(database, components, phases, conditions, plot_kwargs=None, **map_k
     ax = plot_step(strategy, **plot_kwargs)
     ax.grid(plot_kwargs.get("gridlines", False))
 
-    return ax
+    if return_strategy:
+        return ax, strategy
+    else:
+        return ax
