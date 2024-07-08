@@ -10,13 +10,13 @@ import pycalphad.variables as v
 from matplotlib.axes import Axes
 
 
-@select_database("alzn_mey.tdb")
+@select_database("Al-Mg_Zhong.tdb")
 def test_binplot(load_database):
     dbf = load_database()
-    my_phases_alzn = ['LIQUID', 'FCC_A1', 'HCP_A3']
-
-    ax = binplot(dbf, ['AL', 'ZN', 'VA'] , my_phases_alzn,
-                 {v.X('ZN'):(0,1,0.02), v.T: (300, 1000, 10), v.P:101325, v.N: 1})
+    comps = ['AL', 'MG', 'VA']
+    phases = dbf.phases.keys()
+    ax = binplot(dbf, comps, phases,
+                 {v.N: 1, v.P:101325, v.T: (300, 1000, 10), v.X('MG'):(0, 1, 0.02)})
     assert isinstance(ax, Axes)
 
 
