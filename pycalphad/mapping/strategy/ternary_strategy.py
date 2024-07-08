@@ -63,7 +63,7 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
     _log.info(f"Point {point.fixed_phases}, {point.free_phases} with normal {normal}. Testing derivative in {av}")
 
     #This is here to have derivative with respect to the axis variable to follow the direction of the normal
-    #  As a note here, the derivative we compute is not the directional derivative with respect to the normal
+    #  NOTE: the derivative we compute is not the directional derivative with respect to the normal
     #  but rather the derivative with respect to the axis variable, with the normal as a fixed condition
     #  Since we lose the direction information of the normal when taking the derivative, mult_factor is here
     #  to retain that information

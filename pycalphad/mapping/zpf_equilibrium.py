@@ -8,6 +8,7 @@ from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework.metaproperties import DormantPhase
 from pycalphad.core.constants import COMP_DIFFERENCE_TOL
+from pycalphad.property_framework.computed_property import JanssonDerivative
 
 from pycalphad.mapping.primitives import STATEVARS, Node, Point
 import pycalphad.mapping.utils as map_utils
@@ -217,14 +218,12 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
 
 def compute_derivative(point: Point, v_num: v.StateVariable, v_den: v.StateVariable, free_den = True):
     """
-    Computes dot derivative of d v_num / d v_den
-
-    Pycalphad workspace will support an API for dot derivatives, but I wasn't
-    sure how it works
+    Computes dot derivative of d v_num / d v_den, which handles removing the numerator variable
+        free_den is an unintuitive name, but it refers to the mapping code to state that the denominator variable
+        is the free variable that we plan on stepping in, with the numerator being the dependent variable
     """
-    # Ideally we should be able to use point.stable_composition_sets, but this is
-    # a dirty workaround since the deltas only seem to store values for unfixed phases,
-    # which messes up the indexing 
+    # Should be able to use point.stable_composition_sets, which puts the fixed composition sets first
+    # This was originally here to account for an indexing issue, which is fixed now
     comp_sets = point.free_composition_sets + point.fixed_composition_sets
     chem_pots = point.chemical_potentials
     conds = copy.deepcopy(point.global_conditions)
@@ -232,47 +231,7 @@ def compute_derivative(point: Point, v_num: v.StateVariable, v_den: v.StateVaria
     if free_den:
         del conds[v_num]
 
-    # Get deltas (denominator of derivative)
-    solver = Solver()
-    spec = solver.get_system_spec(comp_sets, conds)
-    state = spec.get_new_state(comp_sets)
-    state.chemical_potentials[:] = chem_pots
-    state.recompute(spec)
-    deltas = v_den.dot_deltas(spec, state)
-
-    # Get derivative
-    # Currently, we'll only support state variables and composition (mole)
-    # For state variable, we can simply get the dot derivative
-    if v_num in STATEVARS:
-        der = v_num.dot_derivative(comp_sets, conds, chem_pots, deltas)
-        return der
-
-    # For mole fraction, we take
-    #   x = sum(n_alpha * x_alpha)
-    # and compute
-    #   dx = sum(n_a * dx_a + x_a * dn_a)
-    # This is the workaround to indexing issues when there are fixed composition sets
-    # The solution in pycalphad would be to store the deltas for all stable phases where it would be 0 for fixed phases
-    #   but this is something I should discuss later
-    elif isinstance(v_num, v.X):
-        if v_num.phase_name is None:
-            der = 0
-            for ph in point.free_phases:
-                vphx = v.X(ph, v_num.species.escaped_name.upper())
-                vnp = v.NP(ph)
-                x = np.squeeze(vphx.compute_property(comp_sets, conds, chem_pots))
-                n = np.squeeze(vnp.compute_property(comp_sets, conds, chem_pots))
-                dx = vphx.dot_derivative(comp_sets, conds, chem_pots, deltas)
-                dnp = vnp.dot_derivative(comp_sets, conds, chem_pots, deltas)
-                der += n*dx + x*dnp
-            return der
-        else:
-            der = v_num.dot_derivative(comp_sets, conds, chem_pots, deltas)
-            return der
-        
-    # We currently don't support other types of variables
-    # Would be cool though!
-    return None
-
-
+    derivative_property = JanssonDerivative(v_num, v_den)
+    derivative = derivative_property.compute_property(comp_sets, conds, chem_pots)
+    return derivative
     

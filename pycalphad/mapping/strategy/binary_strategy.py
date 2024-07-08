@@ -22,9 +22,9 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
     """
     _log.info(f"Sorting point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}")
     
-    #Sort axis by state variables first (this won't matter for ternaries, but for binaries, we'd like to step in temperature for line compounds in case all 4 tests fail the criteria)
-    #This is a workaround as pycalphad will return 0 for undefined dot derivatives (ex. dX/dT on a stoichiometric compound is inf, but will return 0). If it returned inf, then it will
-    #pass the best index test and we wouldn't have to worry about which axis to test first
+    #Sort axis by state variables first
+    #This shouldn't be necessary since dT/dX return np.nan, which we replace to np.inf for getting the optimal direction
+    #But just in case, we default to stepping in temperature if no direction could be found
     axis_vars = map_utils._sort_axis_by_state_vars(axis_vars)
 
     #Remove first axis variable from point - assumes we default to stepping along second variable
@@ -41,8 +41,11 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
         cs_list, av_list = options
         new_point = map_utils._generate_point_with_fixed_cs(point, cs_list[0], cs_list[1])
         der = abs(zeq.compute_derivative(new_point, av_list[0], av_list[1]))
-        #Normalize derivative (normalization factor should be is axis delta)
-        der *= norm[av_list[1]] / norm[av_list[0]]
+        if np.isnan(der):
+            der = np.inf
+        else:
+            #Normalize derivative (normalization factor should be is axis delta)
+            der *= norm[av_list[1]] / norm[av_list[0]]
         options_tests.append((der, new_point, av_list[0]))
 
     #Best point/axis var is determined by the lowest derivative over 1
