@@ -243,6 +243,8 @@ def test_charged_infeasible_minimum_norm():
     assert np.any(np.logical_and(output[:, 1] > 0.25, output[:, 1] < 0.35))
 
 
+@pytest.mark.filterwarnings("ignore:The order-disorder model for \"BCC_4SL\" has a contribution from the physical property model*:UserWarning")
+@pytest.mark.filterwarnings("ignore:The order-disorder model for \"BCC_NOB\" has a contribution from the physical property model*:UserWarning")
 @select_database("Al-Fe_sundman2009.tdb")
 def test_BCC_phase_with_symmetry_option_B(load_database):
     """Loading a database with option B and F generates new ordering parameters."""

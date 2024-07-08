@@ -182,7 +182,8 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
                 else:
                     new_energy += idx_result_array_NP_values[idx] * global_grid.GM[np.index_exp[grid_index + (points[idx],)]]
                     molesum += idx_result_array_NP_values[idx]
-            result_array_GM_values[it.multi_index] = new_energy / molesum
+            if molesum != 0:
+                result_array_GM_values[it.multi_index] = new_energy / molesum
         it.iternext()
     result_array.remove('points')
     return result_array

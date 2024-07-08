@@ -3,7 +3,7 @@ The utils test module contains tests for pycalphad utilities.
 """
 
 import pytest
-from importlib_resources import files
+from importlib.resources import files
 from pycalphad import Database, Model
 from pycalphad.core.utils import filter_phases, unpack_components, instantiate_models, generate_symmetric_group
 import pycalphad.tests.databases

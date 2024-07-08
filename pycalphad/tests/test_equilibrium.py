@@ -116,9 +116,14 @@ def test_dilute_condition(load_database):
     'Zero' and dilute composition conditions are correctly handled.
     """
     dbf = load_database()
-    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
+    # if exactly zero is specified as composition, we do not warn about dilute composition
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
-    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-12}, verbose=True)
+    # if the user specifies a small (but nonzero) value below the supported limit, then we warn
+    with pytest.warns(UserWarning, match='Some specified compositions are below the minimum allowed composition'):
+        eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-12}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.841)
     assert_allclose(np.squeeze(eq.MU.values), [-385499.682936,  -64415.837878], atol=1.0)
 
@@ -404,13 +409,8 @@ def test_eq_model_phase_name(load_database):
 def test_unused_equilibrium_kwarg_warns(load_database):
     "Check that an unused keyword argument raises a warning"
     dbf = load_database()
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning, match='The following equilibrium keyword arguments were passed, but unused'):
         equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, unused_kwarg='should raise a warning')
-        assert len(w) >= 1
-        categories = [warning.__dict__['_category_name'] for warning in w]
-        assert 'UserWarning' in categories
-        expected_string_fragment = 'keyword arguments were passed, but unused'
-        assert any([expected_string_fragment in str(warning.message) for warning in w])
 
 
 @select_database("alfe.tdb")

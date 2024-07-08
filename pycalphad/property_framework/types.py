@@ -9,7 +9,7 @@ except ImportError:
 from pycalphad.core.composition_set import CompositionSet
 
 @dataclass
-class DotDerivativeDeltas:
+class JanssonDerivativeDeltas:
     delta_chemical_potentials: Optional[Any]
     delta_statevars: Optional[Any]
     delta_parameters: Optional[Any]
@@ -29,13 +29,13 @@ class ComputableProperty(Protocol):
 
 @runtime_checkable
 class DifferentiableComputableProperty(ComputableProperty, Protocol):
-    "Can be in the numerator of a dot derivative"
-    def dot_derivative(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike,
-                       deltas: DotDerivativeDeltas) -> npt.ArrayLike:
+    "Can be in the numerator of a Jansson derivative"
+    def jansson_derivative(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike,
+                       deltas: JanssonDerivativeDeltas) -> npt.ArrayLike:
                        ...
 
 @runtime_checkable
 class ConditionableComputableProperty(ComputableProperty, Protocol):
-    "Can be in the denominator of a dot derivative"
-    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
+    "Can be in the denominator of a Jansson derivative"
+    def jansson_deltas(self, spec, state) -> JanssonDerivativeDeltas:
         ...

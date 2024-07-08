@@ -164,6 +164,7 @@ def test_order_disorder_interstital_sublattice_validation():
     with pytest.raises(ValueError):
         Model(DBF_OrderDisorder_broken, ["A", "B", "VA"], "ORD_SUBS_INSTL")
 
+@pytest.mark.filterwarnings("ignore:The order-disorder model for \"ORD_FCC\" has a contribution from the physical property model*:UserWarning")
 @select_database("FeNi_deep_branching.tdb")
 def test_model_deep_branching(load_database):
     "Models with very deep piecewise branching are optimized at construction time"

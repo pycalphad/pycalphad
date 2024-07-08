@@ -88,7 +88,7 @@ class Conditions:
         # Important to use the _key_ display_units, and not the entry.prop
         # This is because v.T['K'] == v.T['degC'], so conditions can be
         # stored and queried with distinct units
-        return entry.value.to(key.display_units)
+        return entry.value.to(key.display_units).magnitude
 
     def get(self, item, default=_default):
         try:
@@ -107,8 +107,10 @@ class Conditions:
     
     def __setitem__(self, item, value):
         prop = as_property(item)
-        if isinstance(prop, v.MoleFraction):
+        if isinstance(prop, (v.MoleFraction, v.MassFraction, v.SiteFraction)):
             vals = unpack_condition(value)
+            if isinstance(vals, Q_):
+                vals = vals.to(prop.implementation_units).magnitude
             # "Zero" composition is a common pattern. Do not warn for that case.
             if np.any(np.logical_and(np.asarray(vals) < self.minimum_composition, np.asarray(vals) > 0)):
                 warnings.warn(
@@ -116,12 +118,18 @@ class Conditions:
             value = [min(max(val, self.minimum_composition), 1-self.minimum_composition) for val in vals]
         else:
             value = unpack_condition(value)
+
+        if len(value) == 0:
+            raise ConditionError('Condition cannot be zero-length array')
         
         value = as_quantity(prop, value).to(prop.implementation_units)
 
-        if isinstance(prop, (v.MoleFraction, v.ChemicalPotential)) and prop.species not in self._wks.components:
+        if isinstance(prop, (v.MoleFraction, v.MassFraction, v.ChemicalPotential)) and prop.species not in self._wks.components:
             raise ConditionError('{} refers to non-existent component'.format(prop))
-        
+
+        if isinstance(prop, v.SiteFraction) and prop not in self._wks.phase_record_factory[prop.phase_name].variables:
+            raise ConditionError('{} refers to non-existent constituent'.format(prop))
+
         if (prop == v.N) and np.any(value != Q_(1.0, 'mol')):
             raise ConditionError('N!=1 is not yet supported, got N={}'.format(value))
         
@@ -146,25 +154,17 @@ class Conditions:
         for key, _ in self._conds:
             yield str(key)
 
-    def values(self):
-        for _, value in self._conds:
-            yield value
+    def values(self, units='display_units'):
+        for key, value in self._conds:
+            yield value.to(getattr(key, units, '')).magnitude
 
     def update(self, d):
         for key, value in d.items():
             self.__setitem__(key, value)
 
-    def items(self):
+    def items(self, units='display_units'):
         for key, value in self._conds:
-            yield key, value
-
-    def str_items(self):
-        """
-        Return key-value pairs suitable for the minimizer.
-        This returns values as implementation units, magnitude only.
-        """
-        for key, value in self._conds:
-            yield (str(key), value.to(key.implementation_units).magnitude)
+            yield key, value.to(getattr(key, units, '')).magnitude
 
     def __len__(self):
         return len(self._conds)

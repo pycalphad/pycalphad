@@ -396,6 +396,7 @@ def test_magnetic_endmember_mixing_energy_is_zero(load_database):
     check_output(m, statevars, 'GM_MIX', 0.0)
 
 
+@pytest.mark.filterwarnings("ignore:B2_BCC is a partitioned model with an ordering energy contribution*:UserWarning")
 @select_database("alfe.tdb")
 def test_order_disorder_mixing_energy_is_nan(load_database):
     """The endmember-referenced mixing energy is undefined and the energy should be NaN."""

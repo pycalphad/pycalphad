@@ -5,7 +5,7 @@ Classes and constants for representing thermodynamic variables.
 
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
-from pycalphad.property_framework.types import DotDerivativeDeltas
+from pycalphad.property_framework.types import JanssonDerivativeDeltas
 from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, \
     fixed_component_differential, chemical_potential_differential
 import numpy as np
@@ -177,13 +177,13 @@ class StateVariable(Symbol):
         statevar_idx = state_variables.index(self)
         return compsets[0].dof[statevar_idx]
 
-    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas):
-        "Compute dot derivative with self as numerator, with the given deltas"
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
+        "Compute Jansson derivative with self as numerator, with the given deltas"
         state_variables = compsets[0].phase_record.state_variables
         statevar_idx = state_variables.index(self)
         return deltas.delta_statevars[statevar_idx]
 
-    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
+    def jansson_deltas(self, spec, state) -> JanssonDerivativeDeltas:
         state_variables = state.compsets[0].phase_record.state_variables
         statevar_idx = sorted(state_variables, key=str).index(self)
         delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
@@ -195,7 +195,7 @@ class StateVariable(Symbol):
             delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                          delta_statevars)
             compsets_delta_sitefracs.append(delta_sitefracs)
-        return DotDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+        return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
 
@@ -276,8 +276,8 @@ class SiteFraction(StateVariable):
     def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
-        return 'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
-            '}}_{'+str(self.sublattice_index)+',\mathrm{'+self.species.escaped_name+'}}'
+        return r'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
+            '}}_{'+str(self.sublattice_index)+r',\mathrm{'+self.species.escaped_name+'}}'
 
     def __str__(self):
         "String representation."
@@ -305,14 +305,14 @@ class PhaseFraction(StateVariable):
             result[0] += compset.NP
         return result
 
-    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas):
-        "Compute dot derivative with self as numerator, with the given deltas"
-        dot_derivative = np.nan
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
+        "Compute Jansson derivative with self as numerator, with the given deltas"
+        jansson_derivative = np.nan
         for idx, _ in self.filtered(compsets):
-            if np.isnan(dot_derivative):
-                dot_derivative = 0.0
-            dot_derivative += deltas.delta_phase_amounts[idx]
-        return dot_derivative
+            if np.isnan(jansson_derivative):
+                jansson_derivative = 0.0
+            jansson_derivative += deltas.delta_phase_amounts[idx]
+        return jansson_derivative
 
     def expand_wildcard(self, phase_names):
         return [self.__class__(phase_name) for phase_name in phase_names]
@@ -399,34 +399,34 @@ class MoleFraction(StateVariable):
                 / (masses.sum(axis=0)**2)
         return result
 
-    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas):
-        "Compute dot derivative with self as numerator, with the given deltas"
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
+        "Compute Jansson derivative with self as numerator, with the given deltas"
         state_variables = compsets[0].phase_record.state_variables
         grad_values = self.compute_property_gradient(compsets, cur_conds, chemical_potentials)
 
         # Sundman et al, 2015, Eq. 73
-        dot_derivative = np.nan
+        jansson_derivative = np.nan
         for idx, compset in enumerate(compsets):
             if compset.NP == 0 and not (compset.fixed):
                 continue
             func_value = self.compute_per_phase_property(compset, cur_conds)
             if np.isnan(func_value):
                 continue
-            if np.isnan(dot_derivative):
-                dot_derivative = 0.0
+            if np.isnan(jansson_derivative):
+                jansson_derivative = 0.0
             grad_value = grad_values[idx]
             delta_sitefracs = deltas.delta_sitefracs[idx]
 
             if self.phase_name is None:
-                dot_derivative += deltas.delta_phase_amounts[idx] * func_value
-                dot_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
-                dot_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
+                jansson_derivative += deltas.delta_phase_amounts[idx] * func_value
+                jansson_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                jansson_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
             else:
-                dot_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
-                dot_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
-        return dot_derivative
+                jansson_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                jansson_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
+        return jansson_derivative
 
-    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
+    def jansson_deltas(self, spec, state) -> JanssonDerivativeDeltas:
         component_idx = state.compsets[0].phase_record.nonvacant_elements.index(str(self.species))
         delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
         fixed_component_differential(spec, state, component_idx)
@@ -437,7 +437,7 @@ class MoleFraction(StateVariable):
             delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                          delta_statevars)
             compsets_delta_sitefracs.append(delta_sitefracs)
-        return DotDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+        return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
 
@@ -636,8 +636,8 @@ class ChemicalPotential(StateVariable):
             result[0] += multiplicity * chemical_potentials[el_idx]
         return result
 
-    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: DotDerivativeDeltas):
-        "Compute dot derivative with self as numerator, with the given deltas"
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
+        "Compute Jansson derivative with self as numerator, with the given deltas"
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]
@@ -646,7 +646,7 @@ class ChemicalPotential(StateVariable):
             result += multiplicity * deltas.delta_chemical_potentials[el_idx]
         return result
 
-    def dot_deltas(self, spec, state) -> DotDerivativeDeltas:
+    def jansson_deltas(self, spec, state) -> JanssonDerivativeDeltas:
         component_idx = state.compsets[0].phase_record.nonvacant_elements.index(str(self.species))
         delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
         chemical_potential_differential(spec, state, component_idx)
@@ -657,13 +657,13 @@ class ChemicalPotential(StateVariable):
             delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                          delta_statevars)
             compsets_delta_sitefracs.append(delta_sitefracs)
-        return DotDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+        return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
 
     def _latex(self, printer=None):
         "LaTeX representation."
-        return '\mu_{'+self.species.escaped_name+'}'
+        return r'\mu_{'+self.species.escaped_name+'}'
 
     def __str__(self):
         "String representation."

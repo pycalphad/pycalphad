@@ -2,7 +2,7 @@ import warnings
 from collections import OrderedDict, Counter, defaultdict
 from collections.abc import Mapping
 from copy import copy
-from pycalphad.property_framework.computed_property import DotDerivativeComputedProperty
+from pycalphad.property_framework.computed_property import JanssonDerivative
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models
 from pycalphad import calculate
@@ -19,7 +19,7 @@ import numpy.typing as npt
 from typing import Optional, Tuple, Type
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
-from pycalphad.core.conditions import Conditions
+from pycalphad.core.conditions import Conditions, ConditionError
 from pycalphad.property_framework import ComputableProperty, as_property
 from pycalphad.property_framework.units import unit_conversion_context, ureg, as_quantity, Q_
 from runtype import isa
@@ -156,6 +156,10 @@ class DictField(TypedField):
                 conds = TypedField.__get__(self, obj)
                 conds[item] = value
                 self.__set__(obj, conds)
+            def update(pxy, new_conds):
+                conds = TypedField.__get__(self, obj)
+                conds.update(new_conds)
+                self.__set__(obj, conds)
             def __delitem__(pxy, item):
                 conds = TypedField.__get__(self, obj)
                 del conds[item]
@@ -229,11 +233,6 @@ class EquilibriumCalculationField(TypedField):
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         self.__set__(obj, None)
 
-def _as_quantity(prop: ComputableProperty, qt: npt.ArrayLike):
-    if not isinstance(qt, Q_):
-        return Q_(qt, prop.implementation_units)
-    else:
-        return qt
 
 # Defined to allow type checking for Model or its subclasses
 ModelType = TypeVar('ModelType', bound=Model)
@@ -289,9 +288,6 @@ class Workspace:
                                        list(unitless_conds.keys()), state_variables,
                                        self.verbose, solver=self.solver)
 
-    def calculate_equilibrium(self):
-        self.eq = self.recompute()
-
     def _detect_phase_multiplicity(self):
         multiplicity = {k: 0 for k in sorted(self.phase_record_factory.keys())}
         prop_GM_values = self.eq.GM
@@ -324,12 +320,12 @@ class Workspace:
                     components = [x for x in self.phase_record_factory[args[i].phase_name].variables
                                   if x.sublattice_index == args[i].sublattice_index]
                 else:
-                    components = self.phase_record_factory[args[i].phase_name].nonvacant_elements
+                    components = self.components
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
             elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == v.Species('*'):
                 raise ValueError('Wildcard not yet supported in sublattice index')
-            elif isinstance(args[i], DotDerivativeComputedProperty):
+            elif isinstance(args[i], JanssonDerivative):
                 numerator_args = [args[i].numerator]
                 self._expand_property_arguments(numerator_args)
                 denominator_args = [args[i].denominator]
@@ -337,7 +333,7 @@ class Workspace:
                 if (len(numerator_args) > 1) or (len(denominator_args) > 1):
                     for n_arg in numerator_args:
                         for d_arg in denominator_args:
-                            args.append(DotDerivativeComputedProperty(n_arg, d_arg))
+                            args.append(JanssonDerivative(n_arg, d_arg))
                     indices_to_delete.append(i)
             else:
                 # This is a concrete ComputableProperty
@@ -393,7 +389,23 @@ class Workspace:
                 composition_sets.append(compset)
             yield index, composition_sets
 
-    def get(self, *args: Tuple[ComputableProperty], values_only=True):
+    def get_composition_sets(self):
+        if self.ndim != 0:
+            raise ConditionError('get_composition_sets() can only be used for point (0-D) calculations. Use enumerate_composition_sets() instead.')
+        return next(self.enumerate_composition_sets())[1]
+
+    @property
+    def condition_axis_order(self):
+        str_conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
+        conds_keys = [None] * len(str_conds_keys)
+        for k in self.conditions.keys():
+            cond_idx = str_conds_keys.index(str(k))
+            # unit-length dimensions will be 'squeezed' out
+            if len(self.eq.coords[str(k)]) > 1:
+                conds_keys[cond_idx] = k
+        return [c for c in conds_keys if c is not None]
+
+    def get_dict(self, *args: Tuple[ComputableProperty]):
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
         arg_units = {arg: (ureg.Unit(getattr(arg, 'implementation_units', '')),
@@ -425,15 +437,16 @@ class Workspace:
                 results[arg][local_index, ...] = Q_(arg.compute_property(composition_sets, cur_conds, chemical_potentials),
                                                     prop_implementation_units).to(prop_display_units, context).magnitude
             local_index += 1
-        
-        for arg in args:
-            _, prop_display_units = arg_units[arg]
-            results[arg] = Q_(results[arg], prop_display_units)
 
-        if values_only:
-            return list(results.values())
-        else:
-            return results
+        # roll the dimensions of the property arrays back up
+        conds_shape = tuple(len(self.eq.coords[str(b)]) for b in self.condition_axis_order)
+        for arg in results.keys():
+            results[arg] = results[arg].reshape(conds_shape + arg.shape)
+
+        return results
+
+    def get(self, *args: Tuple[ComputableProperty]):
+        return list(self.get_dict(*args).values())
 
     def copy(self):
         return copy(self)

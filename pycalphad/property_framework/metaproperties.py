@@ -81,23 +81,23 @@ class DrivingForce:
             raise ValueError('DrivingForce was passed multiple stable valid CompositionSets')
         return driving_force
 
-    def dot_derivative(self, compsets, cur_conds, chemical_potentials, deltas: "DotDerivativeDeltas") -> npt.ArrayLike:
-        "Compute dot derivative with self as numerator, with the given deltas"
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: "DotDerivativeDeltas") -> npt.ArrayLike:
+        "Compute Jansson derivative with self as numerator, with the given deltas"
         seen_phases = 0
-        dot_derivative = np.nan
+        jansson_derivative = np.nan
         for cs_idx, compset in self.filtered(compsets):
-            if np.isnan(dot_derivative):
-                dot_derivative = 0.0
-            dot_derivative += np.dot(deltas.delta_chemical_potentials, compset.X)
+            if np.isnan(jansson_derivative):
+                jansson_derivative = 0.0
+            jansson_derivative += np.dot(deltas.delta_chemical_potentials, compset.X)
             deltas_singlephase = copy(deltas)
             deltas_singlephase.delta_sitefracs = [deltas.delta_sitefracs[cs_idx]]
             for el_idx, el in enumerate(compsets[0].phase_record.pure_elements):
-                dot_derivative += chemical_potentials[el_idx] * \
-                    as_property('X({0},{1})'.format(self.phase_name, el)).dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
-            dot_derivative -= as_property('GM({0})'.format(self.phase_name)).dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
+                jansson_derivative += chemical_potentials[el_idx] * \
+                    as_property('X({0},{1})'.format(self.phase_name, el)).jansson_derivative(compsets, cur_conds, chemical_potentials, deltas)
+            jansson_derivative -= as_property('GM({0})'.format(self.phase_name)).jansson_derivative(compsets, cur_conds, chemical_potentials, deltas)
         if seen_phases > 1:
             raise ValueError('DrivingForce was passed multiple stable valid CompositionSets')
-        return dot_derivative
+        return jansson_derivative
 
 class DormantPhase:
     """
@@ -159,9 +159,6 @@ class DormantPhase:
                     state.recompute(spec)
                 self._compset = state.compsets[0]
                 return prop.compute_property([self._compset], cur_conds, chemical_potentials)
-            @staticmethod
-            def dot_derivative(compsets, cur_conds, chemical_potentials, deltas):
-                return prop.dot_derivative(compsets, cur_conds, chemical_potentials, deltas)
             __str__ = lambda _: f'{prop.__str__()} [Dormant({self._compset.phase_record.phase_name})]'
         return _autoproperty()
 
@@ -208,8 +205,8 @@ class IsolatedPhase:
                 self.solver.solve([self._compset], cur_conds)
                 return prop.compute_property([self._compset], cur_conds, chemical_potentials)
             @staticmethod
-            def dot_derivative(compsets, cur_conds, chemical_potentials, deltas):
-                return prop.dot_derivative([self._compset], cur_conds, chemical_potentials, deltas)
+            def jansson_derivative(compsets, cur_conds, chemical_potentials, deltas):
+                return prop.jansson_derivative([self._compset], cur_conds, chemical_potentials, deltas)
             __str__ = lambda _: f'{prop.__str__()} [Isolated({self._compset.phase_record.phase_name})]'
         return _autoproperty()
 
@@ -258,8 +255,6 @@ class ReferenceState:
                             chemical_potentials: npt.ArrayLike) -> float:
                 # Property contribution prior to reference state change
                 result = prop.compute_property(equilibrium_compsets, cur_conds, chemical_potentials)
-                if not isinstance(result, units.Q_):
-                    result = units.Q_(result, prop.implementation_units)
 
                 # Calculate reference contribution
 
@@ -270,7 +265,7 @@ class ReferenceState:
                 plane_rhs = np.zeros(len(self._fixed_conds)+1)
                 for row_idx, ref_wks in enumerate(self._reference_wks):
                     for col_idx, fic in enumerate(self._fixed_conds):
-                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic]
+                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic][0]
                     for floc in self._floating_conds:
                         ref_wks.conditions[floc] = cur_conds[floc]
                     if ref_wks.ndim != 0:
@@ -282,15 +277,12 @@ class ReferenceState:
 
                 # Next, plug fixed conditions of current point into equation of reference plane
                 current_vector = [cur_conds[floc] for floc in self._fixed_conds]
-                reference_offset = units.Q_(np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1],
-                                            prop.implementation_units)
+                reference_offset = np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1]
                 return result - reference_offset
             @staticmethod
-            def dot_derivative(equilibrium_compsets, cur_conds, chemical_potentials, deltas):
+            def jansson_derivative(equilibrium_compsets, cur_conds, chemical_potentials, deltas):
                 # Property contribution prior to reference state change
-                result = prop.dot_derivative(equilibrium_compsets, cur_conds, chemical_potentials, deltas)
-                if not isinstance(result, units.Q_):
-                    result = units.Q_(result, prop.implementation_units)
+                result = prop.jansson_derivative(equilibrium_compsets, cur_conds, chemical_potentials, deltas)
 
                 # Calculate reference contribution
 
@@ -301,20 +293,19 @@ class ReferenceState:
                 plane_rhs = np.zeros(len(self._fixed_conds)+1)
                 for row_idx, ref_wks in enumerate(self._reference_wks):
                     for col_idx, fic in enumerate(self._fixed_conds):
-                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic]
+                        plane_matrix[row_idx, col_idx] = ref_wks.conditions[fic][0]
                     for floc in self._floating_conds:
                         ref_wks.conditions[floc] = cur_conds[floc]
                     if ref_wks.ndim != 0:
                         raise ValueError('Reference state must be point calculation')
                     eq_idx, ref_compsets = list(ref_wks.enumerate_composition_sets())[0]
                     ref_chempots = ref_wks.eq.MU[eq_idx]
-                    plane_rhs[row_idx] = prop.dot_derivative(ref_compsets, {c: val for c, val in ref_wks.conditions.items()}, ref_chempots, deltas)
+                    plane_rhs[row_idx] = prop.jansson_derivative(ref_compsets, {c: val for c, val in ref_wks.conditions.items()}, ref_chempots, deltas)
                 plane_coefs = np.linalg.solve(plane_matrix, plane_rhs)
 
                 # Next, plug fixed conditions of current point into equation of reference plane
                 current_vector = [cur_conds[floc] for floc in self._fixed_conds]
-                reference_offset = units.Q_(np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1],
-                                            prop.implementation_units)
+                reference_offset = np.dot(plane_coefs[:-1], current_vector) + plane_coefs[-1]
                 return result - reference_offset
             __str__ = lambda _: f'{prop.__str__()} [ReferenceState]'
         return _autoproperty()

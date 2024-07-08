@@ -4,7 +4,7 @@ from pycalphad.core.composition_set import CompositionSet
 if TYPE_CHECKING:
     from pycalphad.core.workspace import Workspace
 from pycalphad.core.solver import Solver
-from pycalphad.property_framework import as_property, DotDerivativeComputedProperty, ConditionableComputableProperty, \
+from pycalphad.property_framework import as_property, JanssonDerivative, ConditionableComputableProperty, \
     ModelComputedProperty
 
 def find_first_compset(phase_name: str, wks: "Workspace"):
@@ -70,9 +70,9 @@ class T0(object):
         # G(BCC)**2 - 2*G(BCC)*G(HCP) + G(BCP)**2
         # grad = 2*G(BCC)*G'(FCC) - 2*(G'(BCC)*G(HCP) + G'(HCP)*G(BCC)) + 2*G(HCP)*G'(HCP)
         gm_one = ModelComputedProperty('GM', self._phase_one.phase_record.phase_name)
-        gm_one_grad = DotDerivativeComputedProperty(gm_one, self.property_to_optimize)
+        gm_one_grad = JanssonDerivative(gm_one, self.property_to_optimize)
         gm_two = ModelComputedProperty('GM', self._phase_two.phase_record.phase_name)
-        gm_two_grad = DotDerivativeComputedProperty(gm_two, self.property_to_optimize)
+        gm_two_grad = JanssonDerivative(gm_two, self.property_to_optimize)
         conditions = initial_conditions.copy()
         for _ in range(self.maximum_iterations):
             one_result = s.solve([self._phase_one], conditions)
