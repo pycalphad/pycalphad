@@ -1,0 +1,103 @@
+$ ALMG
+$
+$ TDB-file for the thermodynamic assessment of the Al-Mg system
+$
+$--------------------------------------------------------------------------
+$ 2008.10.15
+$ 
+$ TDB file for PANDAT/TC created by M.Palumbo, T.Abe and K.Hashimoto
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for 
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ e-mail: abe.taichi@nims.go.jp
+$ Copyright (C) NIMS 2008
+$
+$
+$ PARAMETERS ARE TAKEN FROM 
+$   Y. Zhong, M. Yang, Z.-K. Liu CALPHAD 29 (2005) pp. 303-311
+$
+$ -------------------------------------------------------------------------
+$
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01!
+ ELEMENT MG   HCP_A3                    2.4305E+01  4.9980E+03  3.2671E+01!
+$
+$ -------------------------------------------------------------------------
+$ 
+ FUNCTION GHSERAL    298.15  -7976.15+137.071542*T-24.3671976*T*LN(T)
+     -.001884662*T**2-8.77664E-07*T**3+74092*T**(-1);  		700  Y
+      -11276.24+223.02695*T-38.5844296*T*LN(T)+.018531982*T**2
+     -5.764227E-06*T**3+74092*T**(-1);  			933.6 Y
+      -11277.683+188.661987*T-31.748192*T*LN(T)-1.234264E+28*T**(-9);  
+     								2900 N !
+ FUNCTION GMGLIQ     298.15  +8202.24-8.83693*T-8.01759E-20*T**7
+     +GHSERMG#;  						923  Y
+      +8690.32-9.39216*T-1.03819E+28*T**(-9)+GHSERMG#;  	6000 N !
+ FUNCTION GHCPAL     298.15  +5481-1.799*T+GHSERAL#;   		6000 N !
+ FUNCTION GALBCC     298.15  +10083-4.813*T+GHSERAL#;   	6000 N !
+ FUNCTION GHSERMG    298.15  -8367.34+143.677875*T-26.1849782*T*LN(T)
+     +4.858E-04*T**2-1.393669E-06*T**3+78950*T**(-1);  		923  Y
+      -14130.185+204.718543*T-34.3088*T*LN(T)+1.038192E+28*T**(-9);  
+     								3000 N !
+ FUNCTION UN_ASS 298.15 0; 					300  N !
+ 
+ TYPE_DEFINITION % SEQ *!
+ DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+ DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+$
+$ -------------------------------------------------------------------------
+$
+ PHASE LIQUID:L %  1  1.0  !
+  CONSTITUENT LIQUID:L :AL,MG :  !
+  PARAMETER G(LIQUID,AL;0)  298.15  +11005.553-11.840873*T
+  				    +7.9401E-20*T**7+GHSERAL#;  933.6 Y
+     +10481.974-11.252014*T+1.234264E+28*T**(-9)+GHSERAL#;  	2900 N !
+  PARAMETER G(LIQUID,MG;0)     298.15  +GMGLIQ#;  		3000 N !
+  PARAMETER G(LIQUID,AL,MG;0)  298.15  -9019+4.794*T;   	6000 N !
+  PARAMETER G(LIQUID,AL,MG;1)  298.15  -1093+1.412*T;   	6000 N !
+  PARAMETER G(LIQUID,AL,MG;2)  298.15  494;   			6000 N !
+
+ PHASE FCC_A1  %  2 1   1 !
+  CONSTITUENT FCC_A1  :AL%,MG : VA% :  !
+  PARAMETER G(FCC_A1,AL:VA;0)  298.15  	  +GHSERAL#;  		2900 N !
+  PARAMETER G(FCC_A1,MG:VA;0)  298.15     +2600-0.9*T+GHSERMG#; 3000 N !
+  PARAMETER G(FCC_A1,AL,MG:VA;0)  298.15  +1593+2.149*T;  	6000 N !
+  PARAMETER G(FCC_A1,AL,MG:VA;1)  298.15  +1014-0.660*T;   	6000 N !
+  PARAMETER G(FCC_A1,AL,MG:VA;2)  298.15  -673;   		6000 N !
+
+ PHASE HCP_A3  %  2 1   .5 !
+  CONSTITUENT HCP_A3  :AL,MG% : VA% :  !
+  PARAMETER G(HCP_A3,AL:VA;0)  298.15     +5481-1.8*T+GHSERAL#; 2900 N !
+  PARAMETER G(HCP_A3,MG:VA;0)  298.15     +GHSERMG#;  		3000 N !
+  PARAMETER G(HCP_A3,AL,MG:VA;0)  298.15  +4336-2.863*T;  	6000 N !
+  PARAMETER G(HCP_A3,AL,MG:VA;1)  298.15  -449-0.135*T;   	6000 N !
+  PARAMETER G(HCP_A3,AL,MG:VA;2)  298.15  -1963;   		6000 N !
+$
+$ Compound phases ----------------------------------------------------------
+$
+ PHASE ALMG_BETA  %  2 140  89 !
+  CONSTITUENT ALMG_BETA  :AL : MG :  !
+  PARAMETER G(ALMG_BETA,AL:MG;0)  298.15    -803385+105.238*T
+                                   +140*GHSERAL#+89*GHSERMG#;     6000 N !
+
+ PHASE ALMG_EPSILON  %  2 30   23 !
+  CONSTITUENT ALMG_EPSILON  :AL : MG :  !
+  PARAMETER G(ALMG_EPSILON,AL:MG;0)  298.15  -170832-8.047*T
+				   +30*GHSERAL#+23*GHSERMG#;      6000 N !
+
+ PHASE ALMG_GAMMA  %  3 5   12   12 !
+  CONSTITUENT ALMG_GAMMA  :MG : AL,MG% : AL%,MG :  !
+  PARAMETER G(ALMG_GAMMA,MG:AL:AL;0)  298.15  8360+20.338857*T
+                                       +5*GHSERMG#+24*GHSERAL#;    6000 N !
+  PARAMETER G(ALMG_GAMMA,MG:MG:AL;0)  298.15  -104308.83+23.495281*T
+			              +17*GHSERMG#+12*GHSERAL#;    6000 N !
+  PARAMETER G(ALMG_GAMMA,MG:AL:MG;0)  298.15  180556.0-138.069*T
+				      +17*GHSERMG#+12*GHSERAL#;    6000 N !
+  PARAMETER G(ALMG_GAMMA,MG:MG:MG;0)  298.15  
+                     		+139371.0-87.319*T+29*GHSERMG#;    6000 N !
+  PARAMETER G(ALMG_GAMMA,MG:AL:AL,MG;0)  298.15  113100-14.5*T;    6000 N !
+  PARAMETER G(ALMG_GAMMA,MG:MG:AL,MG;0)  298.15  113100-14.5*T;    6000 N !
+$
+$------------------------------------------------------------ END OF LINE
+ 
