@@ -1248,12 +1248,21 @@ class Model(object):
         num_ordered_interstitial_subls = len(ordered_phase.sublattices) - num_substitutional_sublattice_idxs
         num_disordered_interstitial_subls = len(disordered_phase.sublattices) - 1
         if num_ordered_interstitial_subls != num_disordered_interstitial_subls:
+            import textwrap
             raise ValueError(
-                f'Number of interstitial sublattices for the disordered phase '
-                f'({num_disordered_interstitial_subls}) and the ordered phase '
-                f'({num_ordered_interstitial_subls}) do not match. Got '
-                f'substitutional sublattice indices of {substitutional_sublattice_idxs}.'
-                )
+                textwrap.dedent(
+                f"""
+                Number of interstitial sublattices for the disordered phase
+                 {disordered_phase_name} ({num_disordered_interstitial_subls})
+                 and the ordered phase {ordered_phase_name}
+                 ({num_ordered_interstitial_subls}) do not match. Found substitutional
+                 sublattices in the ordered phase with indices of
+                 {substitutional_sublattice_idxs}. Ensure that all the constituents in
+                 the substitutional sublattices for the disordered and ordered phase
+                 match exactly and the constituents in the interstitial sublattices for
+                 the disordered and ordered phase match exactly.
+                """
+                ).replace("\n", ""))
         # We also validate that no physical properties have ordered
         # contributions because the underlying physical property needs to
         # paritioned and substituted for the physical property in the disordered
