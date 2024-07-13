@@ -446,7 +446,12 @@ class Workspace:
         return results
 
     def get(self, *args: Tuple[ComputableProperty]):
-        return list(self.get_dict(*args).values())
+        result = list(self.get_dict(*args).values())
+        if len(result) != 1:
+            return result
+        else:
+            # For single properties, just return the result without wrapping in a list
+            return result[0]
 
     def copy(self):
         return copy(self)

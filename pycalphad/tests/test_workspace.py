@@ -43,8 +43,8 @@ def test_workspace_conditions_specify_units(load_database):
     assert_allclose(wks.conditions[v.T], np.arange(0., 100., 1.) + 273.15)
     wks.conditions[v.T['degC']] = (10, 300, 5)
     assert_allclose(wks.conditions[v.T], np.arange(10., 300., 5.) + 273.15)
-    assert_allclose(wks.get(v.T)[0], np.arange(10., 300., 5.) + 273.15)
-    assert_allclose(wks.get(v.T['degC'])[0], np.arange(10., 300., 5.))
+    assert_allclose(wks.get(v.T), np.arange(10., 300., 5.) + 273.15)
+    assert_allclose(wks.get(v.T['degC']), np.arange(10., 300., 5.))
 
 @select_database("alzn_mey.tdb")
 def test_meta_property_creation(load_database):
@@ -63,13 +63,13 @@ def test_tzero_property(load_database):
     my_tzero.maximum_value = 1700 # ZN reference state in this database is not valid beyond this temperature
     assert isinstance(my_tzero, ComputableProperty)
     assert my_tzero.property_to_optimize == v.T
-    t0_values, = wks.get(my_tzero)
+    t0_values = wks.get(my_tzero)
     assert_allclose(np.nanmax(t0_values), 1686.814152)
     wks.conditions[v.X('ZN')] = 0.3
     my_tzero.property_to_optimize = v.X('ZN')
     my_tzero.minimum_value = 0.0
     my_tzero.maximum_value = 1.0
-    t0_composition, = wks.get(my_tzero)
+    t0_composition = wks.get(my_tzero)
     assert_allclose(t0_composition, 0.86119, atol=my_tzero.residual_tol)
 
 @select_database("alzn_mey.tdb")
@@ -154,17 +154,17 @@ def test_mass_fraction_binary_dilute(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 300, v.W('AL'): 0})
-    results = wks.get('W(AL)')
-    np.testing.assert_almost_equal(results[0], 0)
+    result = wks.get('W(AL)')
+    np.testing.assert_almost_equal(result, 0)
 
 @select_database("alzn_mey.tdb")
 def test_lincomb_binary_condition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.T: 300, v.P: 1e5, 0.5*v.X('ZN') - 7*v.X('AL'): 0.1})
-    result = 0.5 * wks.get('X(ZN)')[0] - 7 * wks.get('X(AL)')[0]
+    result = 0.5 * wks.get('X(ZN)') - 7 * wks.get('X(AL)')
     np.testing.assert_almost_equal(result, 0.1, decimal=8)
-    result2 = wks.get(0.5*v.X('ZN') - 7*v.X('AL'))[0]
+    result2 = wks.get(0.5*v.X('ZN') - 7*v.X('AL'))
     np.testing.assert_almost_equal(result2, result, decimal=8)
 
 @select_database("alzn_mey.tdb")
@@ -172,7 +172,7 @@ def test_lincomb_ratio_binary_condition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.T: 300, v.P: 1e5, v.X('AL')/v.X('ZN'): [0.25, 1, 1.5]})
-    result = wks.get('X(AL)')[0] / wks.get('X(ZN)')[0]
+    result = wks.get('X(AL)') / wks.get('X(ZN)')
     np.testing.assert_almost_equal(result, [0.25, 1, 1.5], decimal=8)
 
 @select_database("alzn_mey.tdb")
@@ -211,7 +211,7 @@ def test_miscibility_gap_cpf_specifier(load_database):
     np.testing.assert_equal(result_one, np.r_[fcc_1, fcc_2])
     # this composition set doesn't exist
     fcc_3 = wks.get('X(FCC_A1#3,ZN)')
-    assert np.isnan(fcc_3[0])
+    assert np.isnan(fcc_3)
 
 @pytest.mark.solver
 @select_database("cumg.tdb")
@@ -239,14 +239,14 @@ def test_jansson_derivative_chempot_condition(load_database):
     wks.conditions[v.X('MG')] = 0.3
     chempot1, result1 = wks.get('MU(CU)', 'MU(CU).X(MG)')
     wks.conditions[v.X('MG')] = wks.conditions[v.X('MG')] + 1e-6
-    chempot2, = wks.get('MU(CU)')
+    chempot2 = wks.get('MU(CU)')
     np.testing.assert_almost_equal(result1, (chempot2 - chempot1) / 1e-6, decimal=1)
 
     del wks.conditions[v.X('MG')]
     wks.conditions[v.MU('CU')] = chempot1
     molefrac1, result2 = wks.get('X(MG)', 'X(MG).MU(CU)')
     wks.conditions[v.MU('CU')] = chempot1 + 1.0
-    molefrac2, = wks.get('X(MG)')
+    molefrac2 = wks.get('X(MG)')
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
 

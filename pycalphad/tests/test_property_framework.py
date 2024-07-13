@@ -72,7 +72,7 @@ def test_cpf_driving_force(load_database):
     metastable_liq_wks.phases = ['LIQUID']
     liq_driving_force = DormantPhase('LIQUID', metastable_liq_wks).driving_force
     liq_driving_force.display_name = 'Liquid Driving Force'
-    result, = wks3.get(liq_driving_force)
+    result = wks3.get(liq_driving_force)
     np.testing.assert_almost_equal(np.nanmax(result), -610.932599, decimal=5)
     np.testing.assert_almost_equal(np.nanmin(result), -3903.295718, decimal=5)
 
@@ -83,7 +83,7 @@ def test_cpf_tzero(load_database):
                     {v.X('ZN'):(0,1,0.02), v.T: 300, v.P:101325, v.N: 1})
     tzero = T0('FCC_A1', 'HCP_A3', wks4)
     tzero.maximum_value = 1700 # ZN reference state in this database is not valid beyond this temperature
-    result, = wks4.get(tzero)
+    result = wks4.get(tzero)
     np.testing.assert_almost_equal(np.nanmax(result), 1673.2643290, decimal=5)
     np.testing.assert_almost_equal(np.nanmin(result), 621.72616, decimal=5)
 
