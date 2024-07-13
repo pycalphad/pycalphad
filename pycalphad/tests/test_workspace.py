@@ -168,6 +168,21 @@ def test_lincomb_binary_condition(load_database):
     np.testing.assert_almost_equal(result2, result, decimal=8)
 
 @select_database("alzn_mey.tdb")
+def test_lincomb_binary_condition_rhs_negative(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.T: 300, v.P: 1e5, v.X('ZN') - v.X('AL'): -0.5})
+    result = wks.get('X(ZN)') - wks.get('X(AL)')
+    np.testing.assert_almost_equal(result, -0.5, decimal=8)
+    result2 = wks.get(v.X('ZN') - v.X('AL'))
+    np.testing.assert_almost_equal(result2, result, decimal=8)
+    del wks.conditions[v.X('ZN') - v.X('AL')]
+    wks.conditions[v.X('ZN') - v.X('AL')] = -1.5
+    result3 = wks.get(v.X('ZN') - v.X('AL'))
+    assert np.isnan(result3)
+
+
+@select_database("alzn_mey.tdb")
 def test_lincomb_ratio_binary_condition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
