@@ -798,7 +798,6 @@ class Phase_SUBQ(PhaseBase):
         dbf.species.update(map(_species, cation_el_chg_pairs_edited))
         dbf.species.update(map(_species, anion_el_chg_pairs_edited))
         print('THesea are the dbf species now',dbf.species)
-#        print('THesea are the ions now',jorge_cat,jorge_an)
 
         # Second: add the phase and phase constituents
         model_hints = {
