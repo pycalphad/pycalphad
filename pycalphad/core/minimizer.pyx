@@ -58,7 +58,7 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
                                CompositionSet compset, int num_statevars, double[::1] chemical_potentials,
                                double[::1] phase_dof) nogil:
     "Compute the LHS of Eq. 41, Sundman 2015."
-    cdef int comp_idx, i, j, cons_idx, fixed_dof_idx
+    cdef int comp_idx, i, j
     cdef int num_components = chemical_potentials.shape[0]
     compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
     if compset.num_phase_local_conditions > 0:
@@ -93,7 +93,7 @@ cdef void write_row_stable_phase(double[:] out_row, double* out_rhs, int[::1] fr
     # 1a. This phase row: free stable composition sets = zero contribution
     free_variable_column_offset += free_stable_compset_indices.shape[0]
     # 1a. This phase row: free state variables
-    for i in range(free_statevar_indices.shape[0]):   
+    for i in range(free_statevar_indices.shape[0]):
         statevar_idx = free_statevar_indices[i]
         out_row[free_variable_column_offset + i] = -grad[statevar_idx]
     out_rhs[0] = energy
