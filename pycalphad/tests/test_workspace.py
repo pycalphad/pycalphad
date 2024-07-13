@@ -81,6 +81,20 @@ def test_jansson_derivative_binary_temperature(load_database):
     # Checked by finite difference
     assert_allclose(y_dot, -28.775364)
 
+@select_database("alnipt.tdb")
+def test_jansson_derivative_with_invalid_mass_conditions(load_database):
+    """
+    CPF values including Jansson derivatives computed for conditions that are invalid should produce NaN.
+    """
+    dbf = load_database()
+    wks = Workspace(dbf, ["AL", "NI", "PT"], ["LIQUID"], {v.T: 298.15, v.P: 101325, v.N: 1, v.X("AL"): 0.6, v.X("PT"): 0.6})
+    T = wks.get("T")
+    assert np.isnan(T)
+    GM = wks.get("GM")
+    assert np.isnan(GM)
+    dGM_dT = wks.get("GM.T")
+    assert np.isnan(dGM_dT)
+
 @select_database("alzn_mey.tdb")
 def test_condition_zero_length(load_database):
     dbf = load_database()
