@@ -249,3 +249,21 @@ def test_jansson_derivative_chempot_condition(load_database):
     molefrac2, = wks.get('X(MG)')
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
+
+def test_issue_503_pure_vacancy_charge_balance():
+    "Pure vacancy phases are correctly suspended (gh-503)"
+    TDB = """
+    ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+    ELEMENT ZR   BLANK                     0.0000E+00  0.0000E+00  0.0000E+00!
+    SPECIES O-2                         O1/-2!
+    SPECIES ZR+4                        ZR1/+4!
+    PHASE SPINEL %  4 1 2 2 4 !
+    CONSTITUENT SPINEL : ZR+4 : VA : VA : O-2 :  !
+    PHASE GAS:G %  1  1.0  !
+    CONSTITUENT GAS:G :O,ZR :  !
+    """
+    wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 1, v.T: 1000})
+    assert np.isnan(wks.get('NP(SPINEL)'))
+    np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
