@@ -1,13 +1,23 @@
 """
-The plot test module verifies that the eqplot produces plots without error.
+The plot test module verifies that the plotting module produces plots without error.
 """
 
 import matplotlib.pyplot as plt
 plt.switch_backend('Agg')
-from pycalphad import eqplot, equilibrium
+from pycalphad import binplot, eqplot, equilibrium
 from pycalphad.tests.fixtures import select_database, load_database
 import pycalphad.variables as v
 from matplotlib.axes import Axes
+
+
+@select_database("Al-Mg_Zhong.tdb")
+def test_binplot(load_database):
+    dbf = load_database()
+    comps = ['AL', 'MG', 'VA']
+    phases = dbf.phases.keys()
+    ax = binplot(dbf, comps, phases,
+                 {v.N: 1, v.P:101325, v.T: (300, 1000, 10), v.X('MG'):(0, 1, 0.02)})
+    assert isinstance(ax, Axes)
 
 
 @select_database("alfe.tdb")

@@ -1,6 +1,22 @@
 What's New
 ==========
 
+0.10.5 (2024-07-12)
+-------------------
+
+This is a minor release containing bug fixes, dependency updates, updated Python build targets, and CI updates.
+
+* ENH: Improve error message for ordering models having mismatched constituents ( :issue:`541` )
+* FIX: Writing TDB with float exponents ( :issue:`516` )
+* FIX: Writing TDB with ``A*(B+C)`` expressions ( :issue:`522` )
+* FIX/BLD: NumPy 2.0 Support ( :issue:`530` and :issue:`538` )
+* MAINT/BLD: Bump OS versions for wheel build/deploy workflow ( :issue:`531` )
+* BLD: Enable "Trusted Publisher" support for PyPI wheels ( :issue:`523` )
+* MAINT/BLD: Drop Python 3.8 support ( :issue:`537` )
+* ENH/BLD: Drop universal wheel builds on macOS ( :issue:`536` )
+* BLD/CI: Set fetch-depth to zero to guarantee version tags are picked up from SCM in sdist workflow ( :issue:`533` )
+* BLD/CI: Remove local version specifier for TestPyPI uploads ( :issue:`534` )
+
 0.10.4 (2024-01-29)
 -------------------
 

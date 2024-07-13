@@ -32,7 +32,7 @@ jobs:
         if: github.event_name == 'push' && github.ref_name == 'develop'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19.1
+        uses: pypa/cibuildwheel@v2.19.2
         env:
           # PyPy wheels not allowed because SciPy (build requirement) is not available
           CIBW_BUILD: cp3*-*
