@@ -141,7 +141,6 @@ cdef void simplex_fractions(double[:,::1] compositions,
     intersecting_point(compositions, fixed_chempot_indices, trial_simplex,
                        fixed_lincomb_molefrac_coefs, fixed_lincomb_molefrac_rhs,
                        <double[:compositions.shape[1]]>target_point)
-    #print('target_point ', np.asarray(<double[:compositions.shape[1]]>target_point))
     # Fill coordinate matrix
     for j in range(simplex_size):
         # compositions[trial_simplex[i], :]
