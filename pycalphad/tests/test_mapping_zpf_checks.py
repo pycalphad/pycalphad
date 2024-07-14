@@ -3,7 +3,7 @@ import copy
 import numpy as np
 
 from pycalphad import Database, variables as v
-from pycalphad.codegen.callables import build_phase_records
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.utils import instantiate_models
 
 from pycalphad.mapping.starting_points import point_from_equilibrium
@@ -227,7 +227,7 @@ def test_check_global_min(load_database):
         "phases": phases,
     }
     system_info["models"] = instantiate_models(system_info["dbf"], comps, phases)
-    system_info["phase_records"]= build_phase_records(system_info["dbf"], comps, phases, set(STATEVARS), system_info["models"])
+    system_info["phase_records"] = PhaseRecordFactory(system_info["dbf"], comps, set(STATEVARS), system_info["models"])
     extra_args["system_info"] = system_info
 
     # check_change_in_phases for same set of phases -> no change
