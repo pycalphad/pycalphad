@@ -659,8 +659,9 @@ def _species(el_chg):
     return v.Species(name, constituents=constituents, charge=chg)
 
 def element_check(spec,element):
+    unwanted_characters=['(',')','[',']','{','}','+','-','.',',']  
     if len(spec)>2:
-        spec=[i for count,i in enumerate(spec) if count<2]
+        spec=[i for count,i in enumerate(spec) if count<2 and i not in unwanted_characters]
         spec=''.join(spec)
     else:
         pass
@@ -761,43 +762,110 @@ class Phase_SUBQ(PhaseBase):
         cat_chg_pairs_edited=[]
         an_el_pairs_edited=[]
         an_chg_pairs_edited=[]
-        for count,i in enumerate(self.endmembers):
+        for count,endmember in enumerate(self.endmembers):
             ele_name_cat=list(set([pure for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]))
             ele_name_an=list(set([pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]))
-            endmember_pure_element=[i for count,i in enumerate(i.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] in ele_name_cat]
-            if len([i for i in i.stoichiometry_pure_elements if i!=0])==2:
-                endmember_pure_element_anion_contribution=[i for count,i in enumerate(i.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] in ele_name_an]
-                stoi_pure_ele=i.stoichiometry_pure_elements
+            endmember_pure_element=[j for count,j in enumerate(endmember.stoichiometry_pure_elements) if j!=0.0 if pure_elementsSUBQ[count] in ele_name_cat]
+#            print('This is endmember again',self.subl_1_const,self.subl_1_charges,cations,anions)
+###This loop is to find out how many anions are to the cations. This is shown in the endmember_pure_element_anion
+####is appended to the endmember_pure_element###
+            if len([i for i in endmember.stoichiometry_pure_elements if i!=0])==2:
+                endmember_pure_element_anion_contribution=[i for count,i in \
+                                                           enumerate(endmember.stoichiometry_pure_elements) if \
+                                                           i!=0.0 if pure_elementsSUBQ[count] in ele_name_an]
+                stoi_pure_ele=endmember.stoichiometry_pure_elements
             else:
-                endmember_pure_element_anion_contribution=[i.stoichiometry_quadruplet[1]]
-                stoi_pure_ele=i.stoichiometry_pure_elements
+                endmember_pure_element_anion_contribution=[endmember.stoichiometry_quadruplet[1]]
+                stoi_pure_ele=endmember.stoichiometry_pure_elements
                 stoi_pure_ele.append(1.0)
             endmember_pure_element.append(endmember_pure_element_anion_contribution[0])
-            endmember_stoichiometry=[i for i in i.stoichiometry_quadruplet if i!=0.0]
+            endmember_stoichiometry=[i for i in endmember.stoichiometry_quadruplet if i!=0.0]
             finding_multispeciation=[i/j for i,j in zip(endmember_pure_element,endmember_stoichiometry)]
-            endmember_ele_full=[pure_elementsSUBQ[count] for count,i in enumerate(i.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] in ele_name_cat]
-            endmember_ele_an=[pure_elementsSUBQ[count] for count,i in enumerate(i.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] not in ele_name_cat]
-            print('endmember_ele_an',endmember_ele_an)
+            endmember_ele_full=[pure_elementsSUBQ[count] for count,i in\
+                                enumerate(endmember.stoichiometry_pure_elements) if i!=0.0 if\
+                                pure_elementsSUBQ[count] in ele_name_cat]
+#####IF THE MULTISPECIATION IS HANDLED HERE WELL THEN I SHOULD USE self.subl_1_const and its respective charges
+##### to triple make sure everything is being calculated correctly#####
+            endmember_ele_an=[pure_elementsSUBQ[count] for count,i in enumerate(endmember.stoichiometry_pure_elements) if i!=0.0 if pure_elementsSUBQ[count] not in ele_name_cat]
             endmember_ele_full.append(endmember_ele_an[0])
             el_chg_editing=[str(i)+str(int(j)) for i,j in zip(endmember_ele_full,finding_multispeciation)]
+            which_multi_spec=[i for i,j in zip(endmember_ele_full,finding_multispeciation) if int(j)>1]
+            multi_cat=[True for i in which_multi_spec if i in ele_name_cat]
+            multi_an=[True for i in which_multi_spec if i in ele_name_an]
+            print(multi_cat,multi_an,len(multi_cat),len(multi_an))
+            cations_ele_total=[i.split('+')[0] for i in cations]
+            anions_ele_total=[i.split('-')[0] for i in anions]
+            cation_count={i:cations_ele_total.count(i) for i in list(set(cations_ele_total))}
+            anion_count={i:anions_ele_total.count(i) for i in list(set(anions_ele_total))}
+            full_count={**cation_count,**anion_count}
+            multi_spec_bool=[full_count[i] for i in endmember_ele_full ]
+#            cation_count=[ for i in cation [i.split('+')[0] for i in cations]]
+#            anion_count
+###MAking assumption here that there will not be a charge that is not an integer#####
+#            quadruplet_charges_cat=self.subl_1_charges[list(self.subl_const_idx_pairs[count])[0]-1]
+#            quadruplet_charges_an=-1*self.subl_2_charges[list(self.subl_const_idx_pairs[count])[1]-1]
+            if len(which_multi_spec)==0 and sum(multi_spec_bool)==2:
+                jorge_cat={i.split('+')[0]:i.split('+')[1] for i in cations} 
+                jorge_an={i.split('-')[0]:i.split('-')[1] for i in anions} 
+                quadruplet_charges_cat=float([jorge_cat[i] for i in endmember_ele_full if i in ele_name_cat][0])
+                quadruplet_charges_an=float([jorge_an[i] for i in endmember_ele_full if i in ele_name_an][0])*-1
+                cat_el_pairs_edited.append(el_chg_editing[0])
+                cat_chg_pairs_edited.append(quadruplet_charges_cat)
+                an_el_pairs_edited.append(el_chg_editing[1])
+                an_chg_pairs_edited.append(quadruplet_charges_an)
+            elif len(which_multi_spec)==0 and sum(multi_spec_bool)>2: 
+                if multi_spec_bool[1]==1 and multi_spec_bool[0]!=1:
+                    jorge_an={i.split('-')[0]:i.split('-')[1] for i in anions} 
+                    quadruplet_charges_an=float([jorge_an[i] for i in endmember_ele_full if i in ele_name_an][0])*-1
+                    quadruplet_charges_cat=-1*quadruplet_charges_an\
+                *float(endmember.stoichiometry_quadruplet[1])/float(endmember.stoichiometry_quadruplet[0])
+                    cat_el_pairs_edited.append(el_chg_editing[0])
+                    cat_chg_pairs_edited.append(quadruplet_charges_cat)
+                    an_el_pairs_edited.append(el_chg_editing[1])
+                    an_chg_pairs_edited.append(quadruplet_charges_an)
+                elif multi_spec_bool[0]==1 and multi_spec_bool[1]!=1:
+                    jorge_cat={i.split('-')[0]:i.split('-')[1] for i in cations} 
+                    quadruplet_charges_cat=float([jorge_cat[i] for i in endmember_ele_full if i in ele_name_cat][0])
+                    quadruplet_charges_an=-1*quadruplet_charges_cat\
+                *float(endmember.stoichiometry_quadruplet[0])/float(endmember.stoichiometry_quadruplet[1])
+                    cat_el_pairs_edited.append(el_chg_editing[0])
+                    cat_chg_pairs_edited.append(quadruplet_charges_cat)
+                    an_el_pairs_edited.append(el_chg_editing[1])
+                    an_chg_pairs_edited.append(quadruplet_charges_an)
+                else:
+                    pass    
+            elif len(which_multi_spec)!=0 and len(multi_cat)!=0 and len(multi_an)==0:
+                jorge_an={i.split('-')[0]:i.split('-')[1] for i in anions} 
 
-            quadruplet_charges_cat=self.subl_1_charges[list(self.subl_const_idx_pairs[count])[0]-1]
-            quadruplet_charges_an=-1*self.subl_2_charges[list(self.subl_const_idx_pairs[count])[1]-1]
-            print('endmember_stoichiometry',i.species_name,self.subl_1_charges,self.subl_2_charges,self.subl_const_idx_pairs)
-
-            cat_el_pairs_edited.append(el_chg_editing[0])
-            cat_chg_pairs_edited.append(quadruplet_charges_cat)
-            an_el_pairs_edited.append(el_chg_editing[1])
-            an_chg_pairs_edited.append(quadruplet_charges_an)
-        cation_el_chg_pairs_edited = list(set(zip(cat_el_pairs_edited,cat_el_pairs_edited,cat_chg_pairs_edited)))
-        anion_el_chg_pairs_edited = list(set(zip(an_el_pairs_edited,an_el_pairs_edited,an_chg_pairs_edited)))
-        print('How are things going on here',cation_el_chg_pairs_edited,anion_el_chg_pairs_edited,)
-
+                quadruplet_charges_an=float([jorge_an[i] for i in endmember_ele_full if i in ele_name_an][0])*-1
+                quadruplet_charges_cat=-1*quadruplet_charges_an\
+                *float(endmember.stoichiometry_quadruplet[1])/float(endmember.stoichiometry_quadruplet[0])
+                cat_chg_pairs_edited.append(quadruplet_charges_cat)
+                print(quadruplet_charges_cat,quadruplet_charges_an,endmember_ele_full)
+                cat_el_pairs_edited.append(el_chg_editing[0])
+                cat_chg_pairs_edited.append(quadruplet_charges_cat)
+                an_el_pairs_edited.append(el_chg_editing[1])
+                an_chg_pairs_edited.append(quadruplet_charges_an)
+            else:
+                pass
+#            quadruplet_charges_cat=endmember_stoichiometry[1]
+#            quadruplet_charges_an=-1*endmember_stoichiometry[0]
+####THIS IS WHERE I PUT EVERYTHING TOGETHER WITH THE CHARGES AND THE ALLEGED APPROPRIATE ENDMEMBERS           
+#            cat_el_pairs_edited.append(el_chg_editing[0])
+#            cat_chg_pairs_edited.append(quadruplet_charges_cat)
+#            an_el_pairs_edited.append(el_chg_editing[1])
+#            an_chg_pairs_edited.append(quadruplet_charges_an)
+            print('MAde it this far',el_chg_editing)
+            print('but is is CoRRecT',quadruplet_charges_cat,quadruplet_charges_an)
+        print(cat_el_pairs_edited,cat_chg_pairs_edited)
+        cation_el_chg_pairs_edited = list(zip(cat_el_pairs_edited,cat_el_pairs_edited,cat_chg_pairs_edited))
+        print('Why are you broken',len(cat_el_pairs_edited),len(cat_chg_pairs_edited))
+        anion_el_chg_pairs_edited = list(zip(an_el_pairs_edited,an_el_pairs_edited,an_chg_pairs_edited))
+#        print(cation_el_chg_pairs_edited,anion_el_chg_pairs_edited)
 
         # Add the (renamed) species to the database so the phase constituents can be added
         dbf.species.update(map(_species, cation_el_chg_pairs_edited))
         dbf.species.update(map(_species, anion_el_chg_pairs_edited))
-        print('THesea are the dbf species now',dbf.species)
 
         # Second: add the phase and phase constituents
         model_hints = {
