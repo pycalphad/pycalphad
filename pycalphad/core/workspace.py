@@ -3,7 +3,7 @@ from collections import OrderedDict, Counter, defaultdict
 from copy import copy
 from pycalphad.property_framework.computed_property import JanssonDerivative
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models
+from pycalphad.core.utils import unpack_species, unpack_condition, unpack_phases, filter_phases, instantiate_models
 from pycalphad import calculate
 from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
@@ -128,15 +128,15 @@ class TypedField:
 
 class ComponentsField(TypedField):
     def __init__(self, depends_on=None):
-        super().__init__(default_factory=lambda obj: unpack_components(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
+        super().__init__(default_factory=lambda obj: unpack_species(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
                          depends_on=depends_on)
     def __set__(self, obj, value):
-        comps = sorted(unpack_components(obj.database, value))
+        comps = sorted(unpack_species(obj.database, value))
         super().__set__(obj, comps)
 
     def __get__(self, obj, objtype=None):
         getobj = super().__get__(obj, objtype=objtype)
-        return sorted(unpack_components(obj.database, getobj))
+        return sorted(unpack_species(obj.database, getobj))
 
 class PhasesField(TypedField):
     def __init__(self, depends_on=None):

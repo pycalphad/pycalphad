@@ -227,7 +227,7 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
     return new_dict
 
 
-def unpack_components(dbf, comps):
+def unpack_species(dbf, comps):
     """
 
     Parameters
@@ -272,7 +272,7 @@ def get_pure_elements(dbf, comps):
     list
         A list of pure elements in the Database
     """
-    comps = sorted(unpack_components(dbf, comps))
+    comps = sorted(unpack_species(dbf, comps))
     components = [x for x in comps]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
@@ -536,4 +536,3 @@ def generate_symmetric_group(configuration, symmetry):
             new_config.insert(fixed_idx, configuration[fixed_idx])
         symmetrically_distinct_configurations.add(tuple(new_config))
     return sorted(symmetrically_distinct_configurations, key=canonical_sort_key)
-
