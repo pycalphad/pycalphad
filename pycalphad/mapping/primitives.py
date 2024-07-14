@@ -86,6 +86,8 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : b
         return var
     if isinstance(var, v.X):
         return v.X(phase, var.species)
+    elif isinstance(var, v.W):
+        return v.W(phase, var.species)
     elif isinstance(var, v.NP) or var == v.NP:
         return v.NP(phase)
     else:
