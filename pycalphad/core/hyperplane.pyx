@@ -114,7 +114,7 @@ cpdef void intersecting_point(double[:,::1] compositions,
     free(constraint_matrix)
     free(constraint_rhs)
 
-#@cython.boundscheck(False)
+@cython.boundscheck(False)
 cdef void simplex_fractions(double[:,::1] compositions,
                              size_t[::1] fixed_chempot_indices,
                              int[::1] trial_simplex,
