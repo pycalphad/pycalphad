@@ -6,7 +6,7 @@ import copy
 import numpy as np
 
 from pycalphad import Database, variables as v
-import pycalphad.core.constants as PYC_CONSTANTS
+from pycalphad.core.constants import MIN_PHASE_FRACTION
 
 from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Node, Point, ExitHint, Direction, ZPFState, _get_phase_specific_variable
 import pycalphad.mapping.utils as map_utils
@@ -51,7 +51,7 @@ class StepStrategy(MapStrategy):
         exits, exit_dirs = super()._find_exits_from_node(node)
         if node.exit_hint == ExitHint.POINT_IS_EXIT:
             return exits, exit_dirs
-        
+
         num_node_cs = len(node.stable_composition_sets)
         num_parent_cs = len(node.parent.stable_composition_sets)
         is_pot_cond = self.axis_vars[0] in STATEVARS
@@ -67,7 +67,7 @@ class StepStrategy(MapStrategy):
                 #Make sure parent cs if a subset of node cs
                 if len(parent_cs_set - node_cs_set) != 0:
                     return exits, exit_dirs
-                
+
                 #Test all n-1 set of phases excluding parent set
                 for trial_stable_cs in itertools.combinations(node.stable_composition_sets, num_node_cs - 1):
                     if set(trial_stable_cs) == parent_cs_set:
@@ -87,7 +87,7 @@ class StepStrategy(MapStrategy):
                         exits.append(candidate_point)
                         exit_dirs.append(node.axis_direction)
                         return exits, exit_dirs
-            
+
             else:
                 #Not potential condition, create exit with all phases stable and free
                 candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [], node.stable_composition_sets)
@@ -100,7 +100,7 @@ class StepStrategy(MapStrategy):
 
         elif num_node_cs == num_parent_cs:
             #Number of phases are the same, remove the 0 phase
-            cs_to_keep = [cs for cs in node.stable_composition_sets if cs.NP > PYC_CONSTANTS.MIN_PHASE_FRACTION]
+            cs_to_keep = [cs for cs in node.stable_composition_sets if cs.NP > MIN_PHASE_FRACTION]
             #If there are more than 1 zero phase, then return the empty exits, here, a new starting point should be generated
             if len(cs_to_keep) < num_node_cs - 1:
                 return exits, exit_dirs
@@ -110,10 +110,10 @@ class StepStrategy(MapStrategy):
             exits.append(candidate_point)
             exit_dirs.append(node.axis_direction)
             return exits, exit_dirs
-        
+
         return exits, exit_dirs
-        
-        
+
+
     def _determine_start_direction(self, node: Node, exit_point: Point, proposed_direction: Direction):
         """
         For stepping, only one direction is possible from a node since we either step positive or negative
@@ -142,7 +142,7 @@ class StepStrategy(MapStrategy):
         if zpf_line.status == ZPFState.FAILED:
             #ZPF line failed, so add a new starting point
             self._add_starting_point_at_last_condition(zpf_line.points[-1].global_conditions, zpf_line.axis_direction)
-    
+
     def _add_starting_point_at_last_condition(self, conditions: dict[v.StateVariable, float], axis_dir: Direction):
         """
         Checks if the point is at the axis limits
@@ -157,7 +157,7 @@ class StepStrategy(MapStrategy):
         new_conds = copy.deepcopy(conditions)
         while not_at_axis_lims:
             if axis_dir == Direction.POSITIVE:
-                not_at_axis_lims = new_conds[av] + new_delta*axis_dir.value < max(self.axis_lims[av]) 
+                not_at_axis_lims = new_conds[av] + new_delta*axis_dir.value < max(self.axis_lims[av])
             else:
                 not_at_axis_lims = new_conds[av] + new_delta*axis_dir.value > min(self.axis_lims[av])
 

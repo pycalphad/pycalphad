@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 from pycalphad import variables as v
-import pycalphad.core.constants as PYC_CONSTANTS
+from pycalphad.core.constants import COMP_DIFFERENCE_TOL
 from pycalphad.core.composition_set import CompositionSet
 
 from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Point, MIN_COMPOSITION, ZPFState
@@ -41,14 +41,14 @@ def simple_check_global_min(step_results: tuple[Point, list[CompositionSet]], **
     """
     if step_results is None:
         return False
-    
-    PDENS = kwargs.get("pdens", 500)
-    TOL = kwargs.get("tol", 1e-4)
+
+    pdens = kwargs.get("pdens", 500)
+    tol = kwargs.get("tol", 1e-4)
     system_info = kwargs.get("system_info", None)
     num_candidates = kwargs.get("global_num_candidates", 1)
     new_point, orig_cs = step_results
-    global_test_point = zeq.find_global_min_point(new_point, system_info, PDENS, TOL, num_candidates)
-    
+    global_test_point = zeq.find_global_min_point(new_point, system_info, pdens, tol, num_candidates)
+
     if global_test_point is not None:
         _log.info(f"Point is not global minimum. Current CS: {new_point.stable_phases}, new CS: {global_test_point.stable_phases}")
 
@@ -62,14 +62,14 @@ def check_valid_point(zpf_line: ZPFLine, step_results: tuple[Point, list[Composi
         c) Failed equilibrium and axis delta reached minimum -> end zpf line with unexpected ending
     """
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
-    DELTA_SCALE = kwargs.get("delta_scale", 0.5)
-    MIN_DELTA_RATIO = kwargs.get("min_delta_ratio", 0.1)
+    delta_scale = kwargs.get("delta_scale", 0.5)
+    min_delta_ratio = kwargs.get("min_delta_ratio", 0.1)
     if step_results is None:
-        _log.info(f"Invalid equilibrium result, reducing step size from {zpf_line.current_delta} -> {zpf_line.current_delta*DELTA_SCALE}")
+        _log.info(f"Invalid equilibrium result, reducing step size from {zpf_line.current_delta} -> {zpf_line.current_delta*delta_scale}")
 
-        zpf_line.current_delta *= DELTA_SCALE
-        if zpf_line.current_delta / axis_delta[zpf_line.axis_var] < MIN_DELTA_RATIO:
-            _log.info(f"Step size has reached minimum {zpf_line.current_delta}/{axis_delta[zpf_line.axis_var]} = {MIN_DELTA_RATIO}. Failing ZPF line")
+        zpf_line.current_delta *= delta_scale
+        if zpf_line.current_delta / axis_delta[zpf_line.axis_var] < min_delta_ratio:
+            _log.info(f"Step size has reached minimum {zpf_line.current_delta}/{axis_delta[zpf_line.axis_var]} = {min_delta_ratio}. Failing ZPF line")
 
             zpf_line.status = ZPFState.FAILED
             return None
@@ -90,7 +90,7 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
         x_offset = 0 if zpf_line.axis_var in STATEVARS else MIN_COMPOSITION
         offset = statevar_offset if av in STATEVARS else x_offset
         offset = 0 if av != zpf_line.axis_var else offset
-        
+
         if new_point_vars[av] <= min(axis_lims[av]) + offset or new_point_vars[av] >= max(axis_lims[av]) - offset:
         #if np.isclose(new_point_vars[av], min(axis_lims[av]) + offset, rtol=1e-5) or np.isclose(new_point_vars[av], max(axis_lims[av]) - offset):
             _log.info(f"New point outside axis limits. {av} = {new_point_vars[av]}. Limits = {axis_lims[av]}")
@@ -136,7 +136,7 @@ def check_axis_values(zpf_line: ZPFLine, step_results: tuple[Point, list[Composi
     """
     if step_results is None:
         return None
-    
+
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
 
     new_point, orig_cs = step_results
@@ -157,7 +157,7 @@ def check_axis_values(zpf_line: ZPFLine, step_results: tuple[Point, list[Composi
     #    _log.info("Variable reach composition limit. Ending ZPF line")
     #    zpf_line.status = ZPFState.REACHED_LIMIT
     #    return None
-    
+
 def check_change_in_phases(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
     """
     If the number of phases changed upon stepping, then attempt to create a new node
@@ -170,7 +170,7 @@ def check_change_in_phases(zpf_line: ZPFLine, step_results: tuple[Point, list[Co
     """
     if step_results is None:
         return None
-    
+
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
     do_not_create_node = kwargs.get("do_not_create_node", False)    #For testing/debugging purposes
 
@@ -187,7 +187,7 @@ def check_change_in_phases(zpf_line: ZPFLine, step_results: tuple[Point, list[Co
         if num_different_phases > 1:
             _log.info("Number of phases changes by more than one. Failing ZPF line")
             return None
-        
+
         if do_not_create_node:
             new_node = None
         else:
@@ -204,9 +204,9 @@ def check_change_in_phases(zpf_line: ZPFLine, step_results: tuple[Point, list[Co
                 _log.info(f"New node found successfully. {new_node.global_conditions}, {new_node.fixed_phases}, {new_node.free_phases}")
                 zpf_line.status = ZPFState.NEW_NODE_FOUND
                 return new_node
-            
+
         _log.info("New node could not be found. Failing ZPF line")
-            
+
     return None
 
 def check_global_min(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
@@ -223,19 +223,19 @@ def check_global_min(zpf_line: ZPFLine, step_results: tuple[Point, list[Composit
     """
     if step_results is None:
         return None
-    
+
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
-    GLOBAL_CHECK_INTERVAL = kwargs.get("global_check_interval", 1)
-    PDENS = kwargs.get("pdens", 500)
-    TOL = kwargs.get("tol", 1e-4)
+    global_check_interval = kwargs.get("global_check_interval", 1)
+    pdens = kwargs.get("pdens", 500)
+    tol = kwargs.get("tol", 1e-4)
     num_candidates = kwargs.get("global_num_candidates", 1)
     system_info = kwargs.get("system_info", None)
     do_not_create_node = kwargs.get("do_not_create_node", False)    #For testing/debugging purposes
 
     new_point, orig_cs = step_results
     new_point_vars = {av: new_point.get_property(av) for av in axis_vars}
-    if len(zpf_line.points) % GLOBAL_CHECK_INTERVAL == 0:
-        global_test_point = zeq.find_global_min_point(new_point, system_info, PDENS, TOL, num_candidates)
+    if len(zpf_line.points) % global_check_interval == 0:
+        global_test_point = zeq.find_global_min_point(new_point, system_info, pdens, tol, num_candidates)
         if global_test_point is not None:
             _log.info(f"Global min detected. {new_point.stable_phases} -> {global_test_point.stable_phases}")
             #By default, assumed the zpf failed. When we successfully find a new node, then we change this
@@ -257,7 +257,7 @@ def check_global_min(zpf_line: ZPFLine, step_results: tuple[Point, list[Composit
                     zpf_line.status = ZPFState.NEW_NODE_FOUND
                     _log.info(f"New node found successfully. {new_node.global_conditions}, {new_node.fixed_phases}, {new_node.free_phases}")
                     return new_node
-                
+
             _log.info("New node could not be found. Failing ZPF line")
 
 def check_similar_phase_composition(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
@@ -272,16 +272,15 @@ def check_similar_phase_composition(zpf_line: ZPFLine, step_results: tuple[Point
     """
     if step_results is None:
         return None
-    
+
     new_point, orig_cs = step_results
     comp_sets = new_point.stable_composition_sets
     for i in range(len(comp_sets)):
         for j in range(i+1, len(comp_sets)):
-            same_comp = np.allclose(comp_sets[i].X, comp_sets[j].X, atol=10*PYC_CONSTANTS.COMP_DIFFERENCE_TOL)
+            same_comp = np.allclose(comp_sets[i].X, comp_sets[j].X, atol=10*COMP_DIFFERENCE_TOL)
             same_phase = comp_sets[i].phase_record.phase_name == comp_sets[j].phase_record.phase_name
             if same_comp and same_phase:
                 zpf_line.status = ZPFState.REACHED_LIMIT
                 _log.info(f"Two composition sets have the same composition. Ending ZPF line. {comp_sets[i]} = {comp_sets[j]}")
                 return None
     return None
-

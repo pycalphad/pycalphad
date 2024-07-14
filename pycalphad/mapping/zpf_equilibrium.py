@@ -76,14 +76,6 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
     g_chempot = x * point.chemical_potentials
     dGs = np.sum(g_chempot, axis=1) - gm
 
-    # max_id = np.argmax(dGs)
-
-    # #Create composition set and create DormantPhase and solve for driving force
-    # cs = CompositionSet(phase_records[phase_ids[max_id]])
-    # cs.update(y[max_id, :cs.phase_record.phase_dof], 1.0, map_utils.get_statevars_array(point.global_conditions))
-    # dormantPhase = DormantPhase(cs, None)
-    # dG = point.get_property(dormantPhase.driving_force)
-
     sorted_indices = np.argsort(dGs)[::-1]
     cs = None
     dG = 0
@@ -98,13 +90,13 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
             # Databases where this occured in test suite: alcfe_b2.tdb running Al-C-Fe isopleth, alcocrni.tdb running Al-Co-Ni ternary
             # and femns.tdb with ionic liquid model
             test_cs.update(y[index][:test_cs.phase_record.phase_dof], 1.0, map_utils.get_statevars_array(point.global_conditions))
-            dormantPhase = DormantPhase(test_cs, None)
-            test_dg = point.get_property(dormantPhase.driving_force)
+            dormant_phase = DormantPhase(test_cs, None)
+            test_dg = point.get_property(dormant_phase.driving_force)
             _log.info(f"Testing phase {phase_ids[index]} with dG={dGs[index]}->{test_dg} for global min.")
             if test_dg > dG:
                 dG = test_dg
                 cs = test_cs
-    
+
     #If driving force is above tolerance, then create a new point with the additional composition set
     if dG < tol:
         return None
@@ -118,7 +110,7 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
         else:
             _log.info(f'Global min was falsely detected. No global min found')
             return None
-    
+
 def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
     """
     Check that the new composition set detected during global min check is truely a new CS
@@ -152,17 +144,17 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
                 return False
         except Exception as e:
             return False
-        
+
         _log.info(f"Equilibrium: {ref_cs_copy}, {new_cs_copy}")
         if np.allclose(ref_cs_copy.dof[num_sv:], new_cs_copy.dof[num_sv:], atol=10*COMP_DIFFERENCE_TOL):
             return False
-        
+
         if ref_cs_copy.NP < 1e-3:
             cs.update(new_cs_copy.dof[num_sv:], cs.NP, new_cs_copy.dof[:num_sv])
             return True
-        
+
     return True
-    
+
 def create_node_from_different_points(new_point: Point, orig_cs: list[CompositionSet], axis_vars):
     """
     Between two points with different composition sets (only 1 different CS)
@@ -178,7 +170,7 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
 
     if len(phases_added) + len(phases_removed) != 1:
         return None
-    
+
     #Fix the unique CS
     if len(phases_added) == 1:
         fixed_cs = phases_added[0]
@@ -210,11 +202,11 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
             return None
     except Exception as e:
         return None
-    
+
     #Add axis var back
     for av in axis_vars:
         new_conditions[av] = av.compute_property(solution_cs, new_conditions, results.chemical_potentials)
-    
+
     #Create node with parent between thr previous point
     parent = Point(new_conditions, np.array(results.chemical_potentials), [cs for cs in orig_cs if cs.fixed], [cs for cs in orig_cs if not cs.fixed])
     new_node = Node(new_conditions, np.array(results.chemical_potentials), [cs for cs in solution_cs if cs.fixed], [cs for cs in solution_cs if not cs.fixed], parent)
@@ -238,4 +230,3 @@ def compute_derivative(point: Point, v_num: v.StateVariable, v_den: v.StateVaria
     derivative_property = JanssonDerivative(v_num, v_den)
     derivative = derivative_property.compute_property(comp_sets, conds, chem_pots)
     return derivative
-    
