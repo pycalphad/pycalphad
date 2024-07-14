@@ -8,8 +8,6 @@ def binplot(database, components, phases, conditions, return_strategy = False, p
     """
     Calculate the binary isobaric phase diagram.
 
-    This function is a convenience wrapper around map_binary() and plot_boundaries()
-
     Parameters
     ----------
     database : Database
@@ -60,7 +58,6 @@ def binplot(database, components, phases, conditions, return_strategy = False, p
 def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy = False, map_kwargs=None, **plot_kwargs):
     """
     Calculate the ternary isothermal, isobaric phase diagram.
-    This function is a convenience wrapper around equilibrium() and eqplot().
 
     Parameters
     ----------
@@ -118,9 +115,8 @@ def isoplethplot(database, components, phases, conditions, return_strategy = Fal
     """
     Calculates an isopleth phase diagram.
     For now, we'll define isopleths as having 1 potential condition and 1 non-potential condition
-    TODO: 
 
-    This function is a convenience wrapper around map_binary() and plot_boundaries()
+    TODO: if we can confirm that isopleths work with 2 non-potential conditions, then remove the check at the beginning
 
     Parameters
     ----------
@@ -170,9 +166,8 @@ def isoplethplot(database, components, phases, conditions, return_strategy = Fal
 
 def stepplot(database, components, phases, conditions, return_strategy = False, plot_kwargs=None, **map_kwargs):
     """
-    Calculate the binary isobaric phase diagram.
-
-    This function is a convenience wrapper around map_binary() and plot_boundaries()
+    Calculates and plot a step diagram
+        Default axes will be axis variable vs. phase fraction
 
     Parameters
     ----------

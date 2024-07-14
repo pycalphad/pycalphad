@@ -16,6 +16,32 @@ from pycalphad.mapping.strategy.ternary_strategy import TernaryStrategy
 from pycalphad.mapping.strategy.isopleth_strategy import IsoplethStrategy
 import pycalphad.mapping.utils as map_utils
 
+"""
+Two types of functions in this module
+
+Functions that return plot data
+    _get_step_data
+    _get_node_data
+    _get_tieline_data
+    _get_isopleth_zpf_data
+    _get_isopleth_node_data
+
+    These just returns dictionaries of data from a strategy
+
+    Ideally, users who want to interface with other plotting libraries
+    can still use these functions to get an easy to read data rather than
+    having to interface with the strategies themselves
+
+Functions that interface with matplotlib for plotting
+    plot_step
+    plot_binary
+    plot_ternary
+    plot_isopleth
+
+    These functions call the previous _get_..._data functions and plots
+    them using matplotlib
+"""
+
 def _get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
     if var == v.NP:
@@ -28,12 +54,27 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
     """
     Utility function to get data from StepStrategy for plotting
 
+    Parameters
+    ----------
+    strategy : StepStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+    x_is_global : bool
+        Whether x is a phase local or global variable
+
     Return
     ------
-    step_data : Mapping[str, obj]
-        data - Mapping[phase, Mapping[x: list, y: list]]
-        phases - list[str]
-        xlim, ylim - list[float]
+    step_data : {
+        "data" : {
+            <phase_name> : {
+                "x" : [float]
+                "y" : [float]
+            }
+        }
+        "phases" : [str] - list of phases that showed up during mapping
+        "xlim" : [float] - min and max for all x values
+        "ylim" : [float] - min and max for all y values
+    }
     """
     # Get all phases in strategy (including multiplicity)
     phases = strategy.get_all_phases()
@@ -56,14 +97,19 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
             y_data[np.isnan(y_data)] = 0
             x_array.append(x_data)
             y_array.append(y_data)
+
+        # We return a single x, y array for all zpf_lines per phase
         x_array = np.concatenate(x_array, axis=0)
         y_array = np.concatenate(y_array, axis=0)
+
+        # Sort arrays by x
         argsort = np.argsort(x_array)
         x_array = x_array[argsort]
         y_array = y_array[argsort]
 
         phase_data[p] = {'x': x_array, 'y': y_array}
 
+        # Can this be done outside of this loop, or is this the easiest way?
         xlim[0] = np.amin([xlim[0], np.amin(x_array[~np.isnan(x_array)])])
         xlim[1] = np.amax([xlim[1], np.amax(x_array[~np.isnan(x_array)])])
         ylim[0] = np.amin([ylim[0], np.amin(y_array[~np.isnan(y_array)])])
@@ -80,25 +126,41 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
 
 def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, *args, **kwargs):
     """
-    API for plotting step maps
+    Plots step map using matplotlib
+
+    Parameters
+    ----------
+    strategy : StepStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+    ax : matplotlib axes (optional)
+        A new axis object will be made if not supplied
+    legend_generator : function that creates legend handles and colors for list of phases
+
+    Returns
+    -------
+    Matplotlib axis
     """
     if ax is None:
         fig, ax = plt.subplots(1,1)
 
-    # If x is None, then use axis variable and state that x is global (this is useful for v.X where we can distinguish v.X(sp,ph) vs. v.X(sp)
+    # If x is None, then use axis variable and state that x is global
+    # (this is useful for v.X where we can distinguish v.X(sp,ph) vs. v.X(sp)
     x_is_global = False
     if x is None:
         x = strategy.axis_vars[0]
     if x == strategy.axis_vars[0]:
         x_is_global = True
-    # If y is None, then use v.NP
+
+    # If y is None, then use phase fractions
     if y is None:
         y = v.NP
 
     step_data = _get_step_data(strategy, x, y, x_is_global)
     data = step_data['data']
     phases = step_data['phases']
-    xlim, ylim = step_data['xlim'], step_data['ylim']
+    xlim = step_data['xlim']
+    ylim = step_data['ylim']
 
     handles, colors = legend_generator(phases)
 
@@ -120,8 +182,29 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
     return ax
 
 def _get_node_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable):
+    """
+    Creates dictionary of data for node plotting in binary and ternary plots
+
+    Parameters
+    ----------
+    strategy : BinaryStrategy or TernaryStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+
+    Returns
+    -------
+    node_data : list[dict]
+        Each dict will be
+        {
+            "phases" : [str]
+            "x" : [float]
+            "y" : [float]
+        }
+        Indices in x and y will match the indices in phases
+    """
     node_data = []
     for node in strategy.node_queue.nodes:
+        # Nodes in binary and ternary mappings are always 3 composition sets
         if len(node.stable_composition_sets) == 3:
             node_phases = node.stable_phases_with_multiplicity
             x_data = [node.get_property(_get_phase_specific_variable(p, x)) for p in node_phases]
@@ -136,16 +219,53 @@ def _get_node_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateV
     return node_data
 
 def _plot_nodes(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, label_end_points: bool = False, tie_triangle_color = (1, 0, 0, 1)):
+    """
+    Plots node data from BinaryStrategy or TernaryStrategy onto matplotlib axis
+
+    Parameters
+    ----------
+    ax : matplotlib axis
+    strategy : BinaryStrategy or TernaryStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+    phase_colors : dict[str, color]
+        Color to plot end points if set
+    label_end_points : bool
+    tie_triangle_color : color
+        Color to plot node
+    """
     node_data = _get_node_data(strategy, x, y)
     for data in node_data:
         x_data, y_data, phases = data['x'], data['y'], data['phases']
         ax.plot(x_data + [x_data[0]], y_data + [y_data[0]], color=tie_triangle_color, zorder=2.5, lw=1, solid_capstyle="butt")
 
+        # If labeling end points, add a scatter point on each phase coordinate in the node
         if label_end_points:
             for xp, yp, p in zip(x_data, y_data, phases):
                 ax.scatter([xp], [yp], color=phase_colors[p], s=8, zorder=3)
 
 def _get_tieline_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable):
+    """
+    Creates dictionary of data for plotting zpf lines
+
+    Parameters
+    ----------
+    strategy : BinaryStrategy or TernaryStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+
+    Returns
+    -------
+    zpf_data : list[dict]
+        Each dict will be
+        {
+            <phase_name> : {
+                "x": [float]
+                "y": [float]
+            }
+        }
+        Length of x and y for each phase in a ZPFLine should be equal
+    """
     zpf_data = []
     for zpf_line in strategy.zpf_lines:
         phases = zpf_line.stable_phases_with_multiplicity
@@ -161,6 +281,22 @@ def _get_tieline_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
     return zpf_data
 
 def _plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, tielines = 1, tieline_color=(0, 1, 0, 1)):
+    """
+    Plots tieline data from BinaryStrategy or TernaryStrategy onto matplotlib axis
+
+    Parameters
+    ----------
+    ax : matplotlib axis
+    strategy : BinaryStrategy or TernaryStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+    phase_colors : dict[str, color]
+        Color to plot end points if set
+    tielines : int or False
+        int - plots every n tielines
+        False - only plots phase boundaries
+    tieline_color : color
+    """
     zpf_data = _get_tieline_data(strategy, x, y)
     for data in zpf_data:
         for p in data:
@@ -176,7 +312,29 @@ def _plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.St
 
 def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, tielines = 1, label_node = False, legend_generator = phase_legend, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), *args, **kwargs):
     """
-    Binary plotting
+    Plots binary map using matplotlib
+
+    Parameters
+    ----------
+    strategy : BinaryStrategy or TernaryStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+    ax : matplotlib axes (optional)
+        A new axis object will be made if not supplied
+    tielines : int or False (optional)
+        Default = 1
+        int - plots every n tieline
+        False - only plots phase boundaries
+    label_node : bool (optional)
+        Default = False
+        Plots points on nodes for each phase if true
+    legend_generator : function that creates legend handles and colors for list of phases
+    tieline_color : color
+    tie_triangle_color : color
+
+    Returns
+    -------
+    Matplotlib axis
     """
     if ax is None:
         fig, ax = plt.subplots(1,1)
@@ -194,14 +352,18 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     _plot_tielines(ax, strategy, x, y, phase_colors=colors, tielines=tielines, tieline_color=tieline_color)
     _plot_nodes(ax, strategy, x, y, phase_colors=colors, label_end_points=label_node, tie_triangle_color=tie_triangle_color)
 
+    # Adjusts axis limits
+    # 1. Autoscale axis
+    # 2. If x or y is a strategy axis variable
+    #    Set lower limit to max of strategy limits to rescaled limits
+    #    Set upper limit to min of strategy limits or rescaled limits
+    # 3. If x or y is not a strategy axis variable, then use the rescaled limits
     ax.autoscale()
-
     if x in strategy.axis_vars:
         xlim = list(ax.get_xlim())
         xlim[0] = np.amax((np.amin(strategy.axis_lims[x]), xlim[0]))
         xlim[1] = np.amin((np.amax(strategy.axis_lims[x]), xlim[1]))
         ax.set_xlim(xlim)
-
     if y in strategy.axis_vars:
         ylim = list(ax.get_ylim())
         ylim[0] = np.amax((np.amin(strategy.axis_lims[y]), ylim[0]))
@@ -217,6 +379,35 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     return ax
 
 def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, tielines = 1, label_nodes = False, legend_generator = phase_legend, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), *args, **kwargs):
+    """
+    Plots ternary map using matplotlib
+
+    Pretty much the same as binary mapping but some extra stuff
+    to create defualt triangular axis, limit axis limits to (0,1) and 
+    set y label position if axis is triangular
+
+    Parameters
+    ----------
+    strategy : Ternary strategy
+    x : v.StateVariable
+    y : v.StateVariable
+    ax : matplotlib axes (optional)
+        A new axis object will be made if not supplied
+    tielines : int or False (optional)
+        Default = 1
+        int - plots every n tieline
+        False - only plots phase boundaries
+    label_node : bool (optional)
+        Default = False
+        Plots points on nodes for each phase if true
+    legend_generator : function that creates legend handles and colors for list of phases
+    tieline_color : color
+    tie_triangle_color : color
+
+    Returns
+    -------
+    Matplotlib axis
+    """
     if ax is None:
         fig, ax = plt.subplots(1, 1, subplot_kw={'projection': "triangular"})
 
@@ -233,6 +424,30 @@ def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.Stat
     return ax
 
 def _get_isopleth_zpf_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.StateVariable):
+    """
+    Creates dictionary of data for plotting zpf lines for isopleths
+
+    Parameters
+    ----------
+    strategy : BinaryStrategy or TernaryStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+
+    Returns
+    -------
+    zpf_data : {
+        "data" : [
+            {
+                "phase" : str
+                "x" : [float]
+                "y" : [float]
+            }
+        ]
+        "xlim" : [float]
+        "ylim" : [float]
+    }
+    Phase in "data" is the fixed phase at zero-phase fraction
+    """
     xlim = [np.inf, -np.inf]
     ylim = [np.inf, -np.inf]
     data = []
@@ -262,6 +477,26 @@ def _get_isopleth_zpf_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.
     return zpf_data
 
 def _get_isopleth_node_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.StateVariable):
+    """
+    Creates dictionary of data for plotting nodes for isopleths
+
+    End points of the node is adjusted to be the intersection of the isopleth polytope on the node in n-composition space
+
+    Parameters
+    ----------
+    strategy : BinaryStrategy or TernaryStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+
+    Returns
+    -------
+    node_data : [
+        {
+            "x" : [float]
+            "y" : [float]
+        }
+    ]
+    """
     node_data = []
     for node in strategy.node_queue.nodes:
         is_invariant = map_utils.degrees_of_freedom(node, strategy.components, strategy.num_potential_condition) == 0
@@ -269,10 +504,12 @@ def _get_isopleth_node_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v
             x_vals = []
             y_vals = []
             for trial_stable_compsets in itertools.permutations(node.stable_composition_sets, len(node.stable_composition_sets)-2):
+                # Get phase fraction for combination of phases and node conditions
                 phase_NP = strategy._invariant_phase_fractions(node, trial_stable_compsets)
                 if phase_NP is None:
                     continue
 
+                # If phase combination is value, then extract x and y values
                 if all(phase_NP > 0):
                     if x in STATEVARS:
                         x_vals.append(node.get_property(x))
@@ -294,7 +531,24 @@ def _get_isopleth_node_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v
     return node_data
 
 
-def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, *args, **kwargs):
+def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, tie_triangle_color=(1, 0, 0, 1), *args, **kwargs):
+    """
+    Plots isopleth map using matplotlib
+
+    Parameters
+    ----------
+    strategy : IsoplethStrategy
+    x : v.StateVariable
+    y : v.StateVariable
+    ax : matplotlib axes (optional)
+        A new axis object will be made if not supplied
+    legend_generator : function that creates legend handles and colors for list of phases
+    tie_triangle_color : color
+
+    Returns
+    -------
+    Matplotlib axis
+    """
     if ax is None:
         fig, ax = plt.subplots(1,1)
 
@@ -307,6 +561,7 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
     phases = strategy.get_all_phases()
     handles, colors = legend_generator(phases)
 
+    # Plot zpf lines
     zpf_data = _get_isopleth_zpf_data(strategy, x, y)
     xlim, ylim = zpf_data['xlim'], zpf_data['ylim']
     for data in zpf_data['data']:
@@ -315,11 +570,16 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
         if not all((y_data == 0) | (y_data == np.nan)):
             ax.plot(x_data, y_data, color=colors[zero_phase], lw=1, solid_capstyle="butt")
 
+    # Plot nodes
     node_data = _get_isopleth_node_data(strategy, x, y)
     for data in node_data:
         x_data, y_data = data['x'], data['y']
-        ax.plot(x_data, y_data, color=(1,0,0,1), zorder=2.5, lw=1, solid_capstyle="butt")
+        ax.plot(x_data, y_data, color=tie_triangle_color, zorder=2.5, lw=1, solid_capstyle="butt")
 
+    # Set axis limits
+    # If variable is a strategy axis variables, then set limits to axis variable limits
+    # If variable is not a strategy axis variable, then set the lower (left, bottom) limits
+    #    to the min of the zpf data
     if x in strategy.axis_vars:
         ax.set_xlim([np.amin(strategy.axis_lims[x]), np.amax(strategy.axis_lims[x])])
     else:

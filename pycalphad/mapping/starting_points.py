@@ -12,15 +12,18 @@ import pycalphad.mapping.utils as map_utils
 
 _log = logging.getLogger(__name__)
 
-"""
-Functions for generating starting points from equilibrium
-"""
-
 def point_from_equilibrium(dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, float], **eq_kwargs):
     """
-    1. Computes equilibrium with dbf, components, phases and conditions
-    2. Free selected variables (if any), fixing composition sets by some heuristic on which CS should be fixed first (generally refers to CS with least degrees of freedom)
-    3. Create point from composition set
+    Converts Workspace equilibrium result to a Point
+
+    Parameters
+    ----------
+    dbf : Database
+    components : [str]
+    phases : [str]
+    conditions : dict[v.StateVariable, float]
+    eq_kwargs : dict
+        Additional arguments for Workspace (models, phase records, etc.)
     """
     wks = Workspace(dbf, components, phases, conditions, **eq_kwargs)
 

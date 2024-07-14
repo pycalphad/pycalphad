@@ -51,6 +51,9 @@ def _get_phase_list_with_multiplicity(phases: list[str]):
     """
     Helper function to get unique list of phases
     If a miscibility gap is present in the phase list, this will add a #n to the phase name
+
+    NOTE: this is copied from the phase multiplicity function in pycalphad.core.workspace.Workspace
+          but is taken out to here since the Workspace object is only used for getting starting points
     """
     u_phases = []
     for p in phases:
@@ -62,7 +65,7 @@ def _get_phase_list_with_multiplicity(phases: list[str]):
         u_phases.append(test_name)
     return u_phases
 
-def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global = False):
+def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : bool = False):
     """
     Helper function for ZPFLine.get_var_list
 
@@ -71,6 +74,13 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global = F
     If variable is a state variable or non-phase dependent, then return the same variable
     For variables such as x or NP, then we return x or NP of phase
         If we specify that the variable is global (for x), then we return x unchanged
+
+    Parameters
+    ----------
+    phase : str
+    var : v.StateVariable
+    is_global : bool
+        Whether variable should be phase local or global
     """
     if is_global:
         return var
@@ -89,6 +99,16 @@ class Point():
         composition sets, conditions, chemical potentials
 
     Fixed and free composition sets are split for easy accounting
+
+    Attributes
+    ----------
+    global_conditions : dict[v.StateVariable, float]
+        List of conditions that point was found at
+        NOTE: generally, Point in mapping is solved from stepping, which frees up a variable,
+              but the freed variable will be included in global_conditions for bookkeeping
+    chemical_potentials : [float]
+    _fixed_composition_sets : [CompositionSet]
+    _free_composition_sets : [CompositionSet]
     """
     global_conditions: Mapping[v.StateVariable, float]
     chemical_potentials: List[float]    #We"ll store chemical potentials in case someone wants to plot activity diagrams
@@ -99,7 +119,7 @@ class Point():
     _fixed_composition_sets: List[CompositionSet]
     _free_composition_sets: List[CompositionSet]
 
-    # Note: The following three functions make a shallow copy of the composition sets
+    # Note: The following four functions make a shallow copy of the composition sets
     @property
     def stable_composition_sets(self):
         return self._fixed_composition_sets + self._free_composition_sets
@@ -116,6 +136,8 @@ class Point():
     def free_composition_sets(self) -> List[CompositionSet]:
         return [cs for cs in self.stable_composition_sets if not cs.fixed]
 
+    # The following 6 functions serve similar purpose of the composition_sets properties, but
+    # just returns the phase names
     @property
     def stable_phases(self):
         return [cs.phase_record.phase_name for cs in self.stable_composition_sets]
