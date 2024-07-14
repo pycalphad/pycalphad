@@ -5,6 +5,7 @@ from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.constants import MIN_SITE_FRACTION
 cimport scipy.linalg.cython_lapack as cython_lapack
 from libc.stdlib cimport malloc, free
+from libc.math cimport isnan
 
 @cython.boundscheck(False)
 cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
@@ -19,9 +20,18 @@ cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
     cdef int rank = 0
     cdef double* work = <double*>malloc(lwork * sizeof(double))
     cdef double* singular_values = <double*>malloc(N * sizeof(double))
+    cdef bint isfinite = True
 
-    cython_lapack.dgelsd(&M, &N, &NRHS, A, &N, x, &M, singular_values, &rcond, &rank,
-                         work, &lwork, &iwork, &info)
+    for i in range(M*N):
+        if isnan(A[i]):
+            isfinite = False
+
+    if not isfinite:
+        for i in range(N):
+            x[i] = 0
+    else:
+        cython_lapack.dgelsd(&M, &N, &NRHS, A, &N, x, &M, singular_values, &rcond, &rank,
+                            work, &lwork, &iwork, &info)
     free(singular_values)
     free(work)
     if info != 0:
@@ -43,10 +53,21 @@ cpdef void lstsq_check_infeasible(double[:,::] A, double[::] b, double[::] out_x
 cdef void invert_matrix(double *A, int N, int* ipiv) nogil:
     "A will be overwritten."
     cdef int info = 0
+    cdef int i
     cdef double* work = <double*>malloc(N * sizeof(double))
+    cdef bint isfinite = True
 
-    cython_lapack.dgetrf(&N, &N, A, &N, ipiv, &info)
-    cython_lapack.dgetri(&N, A, &N, ipiv, work, &N, &info)
+    for i in range(N**2):
+        if isnan(A[i]):
+            isfinite = False
+
+    if not isfinite:
+        for i in range(N**2):
+            A[i] = 0
+    else:
+        cython_lapack.dgetrf(&N, &N, A, &N, ipiv, &info)
+        cython_lapack.dgetri(&N, A, &N, ipiv, work, &N, &info)
+
     free(work)
     if info != 0:
         for i in range(N**2):
@@ -58,7 +79,7 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
                                CompositionSet compset, int num_statevars, double[::1] chemical_potentials,
                                double[::1] phase_dof) nogil:
     "Compute the LHS of Eq. 41, Sundman 2015."
-    cdef int comp_idx, i, j, cons_idx, fixed_dof_idx
+    cdef int comp_idx, i, j
     cdef int num_components = chemical_potentials.shape[0]
     compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
     if compset.num_phase_local_conditions > 0:
@@ -93,7 +114,7 @@ cdef void write_row_stable_phase(double[:] out_row, double* out_rhs, int[::1] fr
     # 1a. This phase row: free stable composition sets = zero contribution
     free_variable_column_offset += free_stable_compset_indices.shape[0]
     # 1a. This phase row: free state variables
-    for i in range(free_statevar_indices.shape[0]):   
+    for i in range(free_statevar_indices.shape[0]):
         statevar_idx = free_statevar_indices[i]
         out_row[free_variable_column_offset + i] = -grad[statevar_idx]
     out_rhs[0] = energy

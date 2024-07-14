@@ -256,8 +256,11 @@ def _compute_phase_values(components, statevar_dict, str_phase_local_conditions,
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
-    pts = points.reshape(-1, points.shape[-1])
-    dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
+    if points.size > 0:
+        pts = points.reshape(-1, points.shape[-1])
+        dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
+    else:
+        dof = np.ascontiguousarray(bc_statevars.T)
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
 
     param_symbols, parameter_array = extract_parameters(parameters)

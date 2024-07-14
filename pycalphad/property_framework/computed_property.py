@@ -61,8 +61,10 @@ class ModelComputedProperty(object):
             return None
 
     def compute_property(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike) -> npt.ArrayLike:
+        if len(compsets) == 0:
+            return np.nan
         if self.phase_name is None:
-            return np.nansum([compset.NP*self._compute_per_phase_property(compset, cur_conds) for compset in compsets])
+            return np.sum([compset.NP*self._compute_per_phase_property(compset, cur_conds) for compset in compsets])
         else:
             tokens = self.phase_name.split('#')
             phase_name = tokens[0]
@@ -284,6 +286,8 @@ class JanssonDerivative:
         self._display_name = val
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
+        if len(compsets) == 0:
+            return np.nan
         solver = Solver()
         spec = solver.get_system_spec(compsets, cur_conds)
         state = spec.get_new_state(compsets)

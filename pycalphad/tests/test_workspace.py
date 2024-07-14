@@ -43,8 +43,8 @@ def test_workspace_conditions_specify_units(load_database):
     assert_allclose(wks.conditions[v.T], np.arange(0., 100., 1.) + 273.15)
     wks.conditions[v.T['degC']] = (10, 300, 5)
     assert_allclose(wks.conditions[v.T], np.arange(10., 300., 5.) + 273.15)
-    assert_allclose(wks.get(v.T)[0], np.arange(10., 300., 5.) + 273.15)
-    assert_allclose(wks.get(v.T['degC'])[0], np.arange(10., 300., 5.))
+    assert_allclose(wks.get(v.T), np.arange(10., 300., 5.) + 273.15)
+    assert_allclose(wks.get(v.T['degC']), np.arange(10., 300., 5.))
 
 @select_database("alzn_mey.tdb")
 def test_meta_property_creation(load_database):
@@ -63,13 +63,13 @@ def test_tzero_property(load_database):
     my_tzero.maximum_value = 1700 # ZN reference state in this database is not valid beyond this temperature
     assert isinstance(my_tzero, ComputableProperty)
     assert my_tzero.property_to_optimize == v.T
-    t0_values, = wks.get(my_tzero)
+    t0_values = wks.get(my_tzero)
     assert_allclose(np.nanmax(t0_values), 1686.814152)
     wks.conditions[v.X('ZN')] = 0.3
     my_tzero.property_to_optimize = v.X('ZN')
     my_tzero.minimum_value = 0.0
     my_tzero.maximum_value = 1.0
-    t0_composition, = wks.get(my_tzero)
+    t0_composition = wks.get(my_tzero)
     assert_allclose(t0_composition, 0.86119, atol=my_tzero.residual_tol)
 
 @select_database("alzn_mey.tdb")
@@ -80,6 +80,20 @@ def test_jansson_derivative_binary_temperature(load_database):
     x, y_dot = wks.get('T', 'MU(AL).T')
     # Checked by finite difference
     assert_allclose(y_dot, -28.775364)
+
+@select_database("alnipt.tdb")
+def test_jansson_derivative_with_invalid_mass_conditions(load_database):
+    """
+    CPF values including Jansson derivatives computed for conditions that are invalid should produce NaN.
+    """
+    dbf = load_database()
+    wks = Workspace(dbf, ["AL", "NI", "PT"], ["LIQUID"], {v.T: 298.15, v.P: 101325, v.N: 1, v.X("AL"): 0.6, v.X("PT"): 0.6})
+    T = wks.get("T")
+    assert np.isnan(T)
+    GM = wks.get("GM")
+    assert np.isnan(GM)
+    dGM_dT = wks.get("GM.T")
+    assert np.isnan(dGM_dT)
 
 @select_database("alzn_mey.tdb")
 def test_condition_zero_length(load_database):
@@ -140,25 +154,40 @@ def test_mass_fraction_binary_dilute(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: 300, v.W('AL'): 0})
-    results = wks.get('W(AL)')
-    np.testing.assert_almost_equal(results[0], 0)
+    result = wks.get('W(AL)')
+    np.testing.assert_almost_equal(result, 0)
 
 @select_database("alzn_mey.tdb")
 def test_lincomb_binary_condition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.T: 300, v.P: 1e5, 0.5*v.X('ZN') - 7*v.X('AL'): 0.1})
-    result = 0.5 * wks.get('X(ZN)')[0] - 7 * wks.get('X(AL)')[0]
+    result = 0.5 * wks.get('X(ZN)') - 7 * wks.get('X(AL)')
     np.testing.assert_almost_equal(result, 0.1, decimal=8)
-    result2 = wks.get(0.5*v.X('ZN') - 7*v.X('AL'))[0]
+    result2 = wks.get(0.5*v.X('ZN') - 7*v.X('AL'))
     np.testing.assert_almost_equal(result2, result, decimal=8)
+
+@select_database("alzn_mey.tdb")
+def test_lincomb_binary_condition_rhs_negative(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                    conditions={v.T: 300, v.P: 1e5, v.X('ZN') - v.X('AL'): -0.5})
+    result = wks.get('X(ZN)') - wks.get('X(AL)')
+    np.testing.assert_almost_equal(result, -0.5, decimal=8)
+    result2 = wks.get(v.X('ZN') - v.X('AL'))
+    np.testing.assert_almost_equal(result2, result, decimal=8)
+    del wks.conditions[v.X('ZN') - v.X('AL')]
+    wks.conditions[v.X('ZN') - v.X('AL')] = -1.5
+    result3 = wks.get(v.X('ZN') - v.X('AL'))
+    assert np.isnan(result3)
+
 
 @select_database("alzn_mey.tdb")
 def test_lincomb_ratio_binary_condition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.T: 300, v.P: 1e5, v.X('AL')/v.X('ZN'): [0.25, 1, 1.5]})
-    result = wks.get('X(AL)')[0] / wks.get('X(ZN)')[0]
+    result = wks.get('X(AL)') / wks.get('X(ZN)')
     np.testing.assert_almost_equal(result, [0.25, 1, 1.5], decimal=8)
 
 @select_database("alzn_mey.tdb")
@@ -197,7 +226,7 @@ def test_miscibility_gap_cpf_specifier(load_database):
     np.testing.assert_equal(result_one, np.r_[fcc_1, fcc_2])
     # this composition set doesn't exist
     fcc_3 = wks.get('X(FCC_A1#3,ZN)')
-    assert np.isnan(fcc_3[0])
+    assert np.isnan(fcc_3)
 
 @pytest.mark.solver
 @select_database("cumg.tdb")
@@ -225,13 +254,31 @@ def test_jansson_derivative_chempot_condition(load_database):
     wks.conditions[v.X('MG')] = 0.3
     chempot1, result1 = wks.get('MU(CU)', 'MU(CU).X(MG)')
     wks.conditions[v.X('MG')] = wks.conditions[v.X('MG')] + 1e-6
-    chempot2, = wks.get('MU(CU)')
+    chempot2 = wks.get('MU(CU)')
     np.testing.assert_almost_equal(result1, (chempot2 - chempot1) / 1e-6, decimal=1)
 
     del wks.conditions[v.X('MG')]
     wks.conditions[v.MU('CU')] = chempot1
     molefrac1, result2 = wks.get('X(MG)', 'X(MG).MU(CU)')
     wks.conditions[v.MU('CU')] = chempot1 + 1.0
-    molefrac2, = wks.get('X(MG)')
+    molefrac2 = wks.get('X(MG)')
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
+
+def test_issue_503_pure_vacancy_charge_balance():
+    "Pure vacancy phases are correctly suspended (gh-503)"
+    TDB = """
+    ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+    ELEMENT ZR   BLANK                     0.0000E+00  0.0000E+00  0.0000E+00!
+    SPECIES O-2                         O1/-2!
+    SPECIES ZR+4                        ZR1/+4!
+    PHASE SPINEL %  4 1 2 2 4 !
+    CONSTITUENT SPINEL : ZR+4 : VA : VA : O-2 :  !
+    PHASE GAS:G %  1  1.0  !
+    CONSTITUENT GAS:G :O,ZR :  !
+    """
+    wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 1, v.T: 1000})
+    assert np.isnan(wks.get('NP(SPINEL)'))
+    np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
