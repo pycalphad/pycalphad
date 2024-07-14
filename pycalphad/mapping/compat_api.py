@@ -53,7 +53,7 @@ def binplot(database, components, phases, conditions, return_strategy=False, plo
         return ax
 
 
-def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy = False, map_kwargs=None, **plot_kwargs):
+def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy=False, map_kwargs=None, **plot_kwargs):
     """
     Calculate the ternary isothermal, isobaric phase diagram.
     This function is a convenience wrapper around equilibrium() and eqplot().
@@ -68,25 +68,27 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy = False,
         Names of phases to consider in the calculation.
     conds : Mapping[v.StateVariable, Union[float, Tuple[float, float, float]]]
         Maps StateVariables to values and/or iterables of values.
-        For ternplot only one changing composition and one potential coordinate each is supported.
+        For ternplot only two changing composition coordinates is supported.
     x : v.MoleFraction
         instance of a pycalphad.variables.composition to plot on the x-axis.
         Must correspond to an independent condition.
     y : v.MoleFraction
         instance of a pycalphad.variables.composition to plot on the y-axis.
         Must correspond to an independent condition.
-    eq_kwargs : optional
-        Keyword arguments to equilibrium().
-    plot_kwargs : optional
-        Keyword arguments to eqplot().
+    return_strategy : bool, optional
+        Return the TernaryStrategy object in addition to the Axes. Defaults to False.
+    map_kwargs : dict, optional
+        Additional keyword arguments to TernaryStrategy().
+    plot_kwargs : dict, optional
+        Keyword arguments to plot_ternary().
 
     Returns
     -------
-    A phase diagram as a figure.
+    Axes
+        Matplotlib Axes of the phase diagram
+    (Axes, TernaryStrategy)
+        If return_strategy is True.
 
-    Examples
-    --------
-    None yet.
     """
     # remaining plot_kwargs from pycalphad.plot.eqplot
     # x=None, y=None, z=None, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), **kwargs
