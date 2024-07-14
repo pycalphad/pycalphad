@@ -137,7 +137,6 @@ cdef void simplex_fractions(double[:,::1] compositions,
     cdef double* target_point = <double*>malloc(compositions.shape[1] * sizeof(double))
     cdef int* int_tmp = <int*>malloc(simplex_size * sizeof(int))
     cdef size_t[::1] free_chempot_indices = np.array(list(set(range(compositions.shape[1])) - set(fixed_chempot_indices)), dtype=np.uintp)
-    #print('free_chempot_indices', np.asarray(free_chempot_indices))
     # Get target point for calculation
     intersecting_point(compositions, fixed_chempot_indices, trial_simplex,
                        fixed_lincomb_molefrac_coefs, fixed_lincomb_molefrac_rhs,
