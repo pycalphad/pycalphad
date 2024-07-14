@@ -92,6 +92,9 @@ class MapStrategy:
         self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1)
 
     def _constant_kwargs(self):
+        """
+        Creates list of global constants to pass to zpf checks
+        """
         const_kwargs = {
             "DELTA_SCALE": self.DELTA_SCALE,
             "MIN_DELTA_RATIO": self.MIN_DELTA_RATIO,
@@ -127,6 +130,9 @@ class MapStrategy:
         return self.axis_delta[av]
 
     def _other_av(self, av):
+        """
+        Returns other axis variable if there are two free variables
+        """
         if len(self.axis_vars) == 1:
             return None
         else:

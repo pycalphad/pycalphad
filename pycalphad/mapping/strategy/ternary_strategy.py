@@ -372,12 +372,14 @@ class TernaryStrategy(MapStrategy):
                         zpf_line.status = ZPFState.NOT_FINISHED
 
     def _add_starting_point_at_new_condition(self, point: Point, normal: list[float], direction: Direction):
-        # If we made it here, then no direction has worked. This could be a case where
-        # the two CS of the exit point are stoichiometric, so there is no ZPF line leading
-        # to the next node
-        # So we take a step from the normal of the exit away from the third CS of the invariant
-        # and add a new starting point. We also add the current exit as a parent, so we don't
-        # search in that direction again
+        """
+        If we made it here, then no direction has worked. This could be a case where
+        the two CS of the exit point are stoichiometric, so there is no ZPF line leading
+        to the next node
+        So we take a step from the normal of the exit away from the third CS of the invariant
+        and add a new starting point. We also add the current exit as a parent, so we don't
+        search in that direction again
+        """
         free_point = map_utils._generate_point_with_free_cs(point)
         copy_conds = copy.deepcopy(free_point.global_conditions)
         # Move by small amount (1e-3 seem to be a good value, too small, and we may fail to detect a possible third phase and too large, and we may step over a potential node)
