@@ -45,8 +45,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     solver : pycalphad.core.solver.SolverBase
         Instance of a solver that is used to calculate local equilibria.
         Defaults to a pycalphad.core.solver.Solver.
-    callables : dict, optional
-        Pre-computed callable functions for equilibrium calculation.
     phase_records : Optional[Mapping[str, PhaseRecord]]
         Mapping of phase names to PhaseRecord objects with `'GM'` output. Must include
         all active phases. The `model` argument must be a mapping of phase names to
