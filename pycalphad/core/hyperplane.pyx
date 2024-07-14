@@ -104,8 +104,6 @@ cpdef void intersecting_point(double[:,::1] compositions,
     # out_intersecting_point memory is reused for plane_coefs, to save an allocation
     cdef double[::1] plane_coefs = out_intersecting_point
     hyperplane_coefficients(compositions, fixed_chempot_indices, trial_simplex, plane_coefs)
-    #with gil:
-    #    print('plane_coefs ', np.asarray(plane_coefs))
     for j in range(compositions.shape[1]):
         for i in range(fixed_lincomb_molefrac_rhs.shape[0]):
             constraint_matrix[i + j*compositions.shape[1]] = fixed_lincomb_molefrac_coefs[i, j]
