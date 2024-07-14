@@ -4,7 +4,9 @@ from importlib.resources import files
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pycalphad import binplot, ternplot, stepplot, isoplethplot, Database, variables as v
+from pycalphad import binplot, ternplot, Database, variables as v
+from pycalphad.mapping.strategy import StepStrategy, IsoplethStrategy
+from pycalphad.mapping.plotting import plot_step, plot_isopleth
 from pycalphad.tests.fixtures import select_database, load_database
 
 import pycalphad.tests.databases
@@ -76,8 +78,13 @@ def test_step_strategy(load_database):
     dbf = load_database()
     #dbf = Database(str(files(pycalphad.tests.databases).joinpath('alcocrni.tdb')))
 
-    ax, strategy = stepplot(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1000, 2500, 40), v.X("CR"): 0.8, v.P: 101325}, return_strategy=True)
-    
+    strategy = StepStrategy(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1000, 2500, 40), v.X("CR"): 0.8, v.P: 101325})
+    strategy.initialize()
+    strategy.do_map()
+
+    # Just check that plot_step runs without failing
+    plot_step(strategy)
+
     # Two-phase regions intended to show up in the Cr-Ni system
     desired_zpf_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2"}, {"BCC_B2", "LIQUID"}, {"LIQUID"}]
     desired_node_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2", "LIQUID"}]
@@ -100,8 +107,13 @@ def test_isopleth_strategy(load_database):
     dbf = load_database()
     #dbf = Database(str(files(pycalphad.tests.databases).joinpath('crtiv_ghosh.tdb')))
 
-    ax, strategy = isoplethplot(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1073, 2073, 20), v.X("TI"): (0, 0.8, 0.01), v.X("V"): 0.2, v.P: 101325}, return_strategy=True)
-    
+    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1073, 2073, 20), v.X("TI"): (0, 0.8, 0.01), v.X("V"): 0.2, v.P: 101325})
+    strategy.initialize()
+    strategy.do_map()
+
+    # Check that plot_isopleth runs without fail
+    plot_isopleth(strategy)
+
     # Two-phase regions intended to show up in the Cr-Ni system
     desired_zpf_sets = [{"BCC_A2", "LAVES_C15"}, {"BCC_A2", "LIQUID"}]
 
