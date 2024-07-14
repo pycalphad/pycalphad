@@ -1,6 +1,5 @@
 import warnings
 from collections import OrderedDict, Counter, defaultdict
-from collections.abc import Mapping
 from copy import copy
 from pycalphad.property_framework.computed_property import JanssonDerivative
 import pycalphad.variables as v
@@ -28,7 +27,7 @@ from typing import TypeVar
 
 
 
-def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
+def _adjust_conditions(conds) -> OrderedDict[StateVariable, List[float]]:
     "Adjust conditions values to be in the implementation units of the quantity, and within the numerical limit of the solver."
     new_conds = OrderedDict()
     minimum_composition = 1e-10
