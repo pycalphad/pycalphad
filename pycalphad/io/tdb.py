@@ -646,7 +646,7 @@ def _symmetry_added_parameter(dbf, param):
     return False
 
 def get_supported_variables():
-    "When loading databases, these symbols should be replaced by their IndependentPotential counter-parts"
+    "When loading databases, these symbols should be replaced by their IndependentPotential counterparts"
     return {Symbol(x): getattr(v, x) for x in v.__dict__ if isinstance(getattr(v, x), (v.IndependentPotential, Float))}
 
 
