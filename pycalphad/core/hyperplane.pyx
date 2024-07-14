@@ -93,8 +93,6 @@ cpdef void intersecting_point(double[:,::1] compositions,
         for i in range(compositions.shape[1]):
             out_intersecting_point[i] = compositions[trial_simplex[0], i]
         return
-    #with gil:
-    #    print('trial_simplex ', np.asarray(trial_simplex))
     if (fixed_lincomb_molefrac_rhs.shape[0] + 1 != compositions.shape[1]) and fixed_chempot_indices.shape[0] > 0:
         raise ValueError('Constraint matrix is not square')
     cdef int* int_tmp = <int*>malloc(compositions.shape[1] * sizeof(int))
@@ -251,16 +249,13 @@ cpdef double hyperplane(double[:,::1] compositions,
         iterations += 1
 
         for trial_idx in range(simplex_size):
-            #print('trial simplex ', np.asarray(<int[:simplex_size]>&trial_simplices[trial_idx*simplex_size]))
             for simplex_idx in range(simplex_size):
                 fractions[trial_idx*simplex_size + simplex_idx] = 0
             simplex_fractions(compositions, fixed_chempot_indices, <int[:simplex_size]>&trial_simplices[trial_idx*simplex_size],
                               fixed_lincomb_molefrac_coefs, fixed_lincomb_molefrac_rhs, &fractions[trial_idx*simplex_size])
             smallest_fractions[trial_idx] = _min(&fractions[trial_idx*simplex_size], simplex_size)
-        #print('smallest_fractions ', np.asarray(<double[:simplex_size]>&smallest_fractions[0]))
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions, simplex_size)
-        #print('saved_trial', saved_trial)
         if smallest_fractions[saved_trial] < -simplex_size:
             break
         # Should be exactly one candidate simplex
