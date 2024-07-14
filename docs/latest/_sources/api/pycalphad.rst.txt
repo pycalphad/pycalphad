@@ -12,6 +12,7 @@ Subpackages
    pycalphad.io
    pycalphad.models
    pycalphad.plot
+   pycalphad.property_framework
 
 Submodules
 ----------

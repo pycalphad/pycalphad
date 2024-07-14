@@ -6,10 +6,20 @@ Examples
 
    BinaryExamples
    TernaryExamples
-   UsingCalculationResults
-   ChargedPhases
+   Metastability
    ReferenceStateExamples
-   PlotActivity
    EquilibriumWithOrdering
-   ViscosityModel
    CementiteAnalysis
+
+Advanced Examples
+=================
+
+.. toctree::
+   :maxdepth: 1
+
+   UsingCalculationResults
+   LegacyEnergySurface
+   LegacyReferenceState
+   ChargedPhases
+   PlotActivity
+   ViscosityModel

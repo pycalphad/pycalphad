@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Phases with Electrically Charged Species" href="ChargedPhases.html" /><link rel="prev" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Calculating Energy Surfaces [Legacy Method]" href="LegacyEnergySurface.html" /><link rel="prev" title="Heat Capacity of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.10.4.post2.dev23+g5dc12fcc documentation</title>
+        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.10.6.dev1+g8595b84f documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
@@ -180,7 +180,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.4.post2.dev23+g5dc12fcc documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.6.dev1+g8595b84f documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -207,7 +207,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.4.post2.dev23+g5dc12fcc documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev1+g8595b84f documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -217,17 +217,25 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#Calculating-Energy-Surfaces-of-Binary-Systems">Calculating Energy Surfaces of Binary Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metastability.html">Plot energy curves for several phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metastability.html#Driving-force-calculation">Driving force calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metastability.html#Calculate-T0-(t-zero)-as-a-function-of-composition">Calculate T0 (t-zero) as a function of composition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ReferenceStateExamples.html">Calculations with Reference States</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html#advanced-examples">Advanced Examples</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Advanced Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html#Calculations-at-specific-site-fractions">Calculations at specific site fractions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -237,16 +245,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing pycalphad</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../onboarding.html">Onboarding as a Developer</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api/modules.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/pycalphad.html">pycalphad package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of pycalphad package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/modules.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/pycalphad.html">pycalphad package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of pycalphad package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.codegen.html">pycalphad.codegen package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.core.html">pycalphad.core package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.io.html">pycalphad.io package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.models.html">pycalphad.models package</a></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../api/pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of pycalphad.plot package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of pycalphad.plot package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.property_framework.html">pycalphad.property_framework package</a></li>
 </ul>
 </li>
 </ul>
@@ -343,21 +352,21 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;xarray.Dataset&gt;
-Dimensions:    (N: 1, P: 1, T: 2, points: 4001, component: 2, internal_dof: 2)
+&lt;xarray.Dataset&gt; Size: 512kB
+Dimensions:    (N: 1, P: 1, T: 2, points: 4002, component: 2, internal_dof: 2)
 Coordinates:
-  * component  (component) &lt;U2 &#39;AL&#39; &#39;ZN&#39;
-  * N          (N) float64 1.0
-  * P          (P) float64 1.013e+05
-  * T          (T) float64 500.0 1e+03
+  * component  (component) &lt;U2 16B &#39;AL&#39; &#39;ZN&#39;
+  * N          (N) float64 8B 1.0
+  * P          (P) float64 8B 1.013e+05
+  * T          (T) float64 16B 500.0 1e+03
 Dimensions without coordinates: points, internal_dof
 Data variables:
-    X          (N, P, T, points, component) float64 1.0 1e-14 ... 0.7439 0.2561
-    Phase      (N, P, T, points) &lt;U6 &#39;FCC_A1&#39; &#39;FCC_A1&#39; ... &#39;FCC_A1&#39; &#39;FCC_A1&#39;
-    Y          (N, P, T, points, internal_dof) float64 1.0 1e-14 ... 0.2561
-    GM         (N, P, T, points) float64 -1.559e+04 -2.01e+04 ... -4.81e+04
+    X          (N, P, T, points, component) float64 128kB 1.0 1e-14 ... 0.2561
+    Phase      (N, P, T, points) &lt;U6 192kB &#39;FCC_A1&#39; &#39;FCC_A1&#39; ... &#39;FCC_A1&#39;
+    Y          (N, P, T, points, internal_dof) float64 128kB 1.0 ... 0.2561
+    GM         (N, P, T, points) float64 64kB -1.559e+04 -2.01e+04 ... -4.81e+04
 Attributes:
-    phase_indices:  {&#39;FCC_A1&#39;: slice(0, 4001, None)}
+    phase_indices:  {&#39;FCC_A1&#39;: slice(0, np.int64(4002), None)}
 </pre></div></div>
 </div>
 <p>We can manipulate this by selecting data by value (of a coordinate) using <code class="docutils literal notranslate"><span class="pre">sel</span></code> or index (of a coordinate) using <code class="docutils literal notranslate"><span class="pre">isel</span></code> similar to a Pandas array. Below we get the site fraction of ZN (internal_dof index of 1 selected by index) at 1000K (selected by value) for the 50th point (selected by index).</p>
@@ -375,12 +384,12 @@ Attributes:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;xarray.DataArray &#39;Y&#39; (N: 1, P: 1)&gt;
+&lt;xarray.DataArray &#39;Y&#39; (N: 1, P: 1)&gt; Size: 8B
 array([[0.97648824]])
 Coordinates:
-  * N        (N) float64 1.0
-  * P        (P) float64 1.013e+05
-    T        float64 1e+03
+  * N        (N) float64 8B 1.0
+  * P        (P) float64 8B 1.013e+05
+    T        float64 8B 1e+03
 </pre></div></div>
 </div>
 <p>accessing the <code class="docutils literal notranslate"><span class="pre">values</span></code> attribute on any on any DataArray returns the multidimensional NumPy array</p>
@@ -451,27 +460,28 @@ Coordinates:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;xarray.Dataset&gt;
-Dimensions:    (N: 1, P: 1, T: 5, X_ZN: 20, vertex: 3, component: 2, internal_dof: 2)
+&lt;xarray.Dataset&gt; Size: 23kB
+Dimensions:    (N: 1, P: 1, T: 5, X_ZN: 20, vertex: 3, component: 2,
+                internal_dof: 2)
 Coordinates:
-  * N          (N) float64 1.0
-  * P          (P) float64 1.013e+05
-  * T          (T) float64 500.0 600.0 700.0 800.0 900.0
-  * X_ZN       (X_ZN) float64 1e-10 0.05 0.1 0.15 0.2 ... 0.75 0.8 0.85 0.9 0.95
-  * vertex     (vertex) int32 0 1 2
-  * component  (component) &lt;U2 &#39;AL&#39; &#39;ZN&#39;
+  * N          (N) float64 8B 1.0
+  * P          (P) float64 8B 1.013e+05
+  * T          (T) float64 40B 500.0 600.0 700.0 800.0 900.0
+  * X_ZN       (X_ZN) float64 160B 1e-10 0.05 0.1 0.15 0.2 ... 0.8 0.85 0.9 0.95
+  * vertex     (vertex) int64 24B 0 1 2
+  * component  (component) &lt;U2 16B &#39;AL&#39; &#39;ZN&#39;
 Dimensions without coordinates: internal_dof
 Data variables:
-    NP         (N, P, T, X_ZN, vertex) float64 1.0 nan nan 1.0 ... 1.0 nan nan
-    GM         (N, P, T, X_ZN) float64 -1.559e+04 -1.615e+04 ... -5.068e+04
-    MU         (N, P, T, X_ZN, component) float64 -1.559e+04 ... -5.065e+04
-    X          (N, P, T, X_ZN, vertex, component) float64 1.0 1e-10 ... nan nan
-    Y          (N, P, T, X_ZN, vertex, internal_dof) float64 1.0 1e-10 ... nan
-    Phase      (N, P, T, X_ZN, vertex) &lt;U6 &#39;FCC_A1&#39; &#39;&#39; &#39;&#39; ... &#39;LIQUID&#39; &#39;&#39; &#39;&#39;
-    HM         (N, P, T, X_ZN) float64 5.194e+03 5.859e+03 ... 2.528e+04
+    NP         (N, P, T, X_ZN, vertex) float64 2kB 1.0 nan nan ... 1.0 nan nan
+    GM         (N, P, T, X_ZN) float64 800B -1.559e+04 -1.615e+04 ... -5.068e+04
+    MU         (N, P, T, X_ZN, component) float64 2kB -1.559e+04 ... -5.065e+04
+    X          (N, P, T, X_ZN, vertex, component) float64 5kB 1.0 1e-10 ... nan
+    Y          (N, P, T, X_ZN, vertex, internal_dof) float64 5kB 1.0 ... nan
+    Phase      (N, P, T, X_ZN, vertex) &lt;U6 7kB &#39;FCC_A1&#39; &#39;&#39; &#39;&#39; ... &#39;LIQUID&#39; &#39;&#39; &#39;&#39;
+    HM         (N, P, T, X_ZN) float64 800B 5.194e+03 5.859e+03 ... 2.528e+04
 Attributes:
-    engine:   pycalphad 0.9.3.dev40+g1bf356e4.d20220219
-    created:  2022-02-19T19:24:43.441477
+    engine:   pycalphad 0.10.4.post2.dev240+g48541ab8.d20240707
+    created:  2024-07-07T15:32:45.599856
 </pre></div></div>
 </div>
 <p>A common operation might be to find the phase fractions of the HCP_A3 phase as a function of composition for T=800.</p>
@@ -490,7 +500,7 @@ Attributes:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;xarray.DataArray &#39;NP&#39; (N: 1, X_ZN: 20, vertex: 3)&gt;
+&lt;xarray.DataArray &#39;NP&#39; (N: 1, X_ZN: 20, vertex: 3)&gt; Size: 480B
 array([[[1.        ,        nan,        nan],
         [1.        ,        nan,        nan],
         [1.        ,        nan,        nan],
@@ -512,11 +522,11 @@ array([[[1.        ,        nan,        nan],
         [       nan,        nan,        nan],
         [       nan,        nan,        nan]]])
 Coordinates:
-  * N        (N) float64 1.0
-    P        float64 1.013e+05
-    T        float64 800.0
-  * X_ZN     (X_ZN) float64 1e-10 0.05 0.1 0.15 0.2 ... 0.75 0.8 0.85 0.9 0.95
-  * vertex   (vertex) int32 0 1 2
+  * N        (N) float64 8B 1.0
+    P        float64 8B 1.013e+05
+    T        float64 8B 800.0
+  * X_ZN     (X_ZN) float64 160B 1e-10 0.05 0.1 0.15 0.2 ... 0.8 0.85 0.9 0.95
+  * vertex   (vertex) int64 24B 0 1 2
 </pre></div></div>
 </div>
 </section>
@@ -527,23 +537,23 @@ Coordinates:
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="ChargedPhases.html">
+          <a class="next-page" href="LegacyEnergySurface.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Phases with Electrically Charged Species</div>
+                <div class="title">Calculating Energy Surfaces [Legacy Method]</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="TernaryExamples.html">
+          <a class="prev-page" href="CementiteAnalysis.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Plotting Ternary Phase Diagrams and Using Triangular Axes</div>
+                <div class="title">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</div>
                 
               </div>
             </a>
@@ -551,7 +561,7 @@ Coordinates:
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2015, pycalphad Development Team
+                Copyright &#169; 2015-2022, pycalphad Development Team
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
@@ -593,7 +603,7 @@ Coordinates:
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=13d9f1d9"></script>
+</div><script src="../_static/documentation_options.js?v=2150f3ce"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
