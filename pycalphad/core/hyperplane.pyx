@@ -276,7 +276,6 @@ cpdef double hyperplane(double[:,::1] compositions,
         # Should be exactly one candidate simplex
         for i in range(simplex_size):
             candidate_simplex[i] = trial_simplices[saved_trial*simplex_size + i]
-        #print('candidate_simplex ', np.asarray(<int[:simplex_size]>&candidate_simplex[0]))
         for i in range(simplex_size):
             idx = candidate_simplex[i]
             for ici in range(simplex_size):
