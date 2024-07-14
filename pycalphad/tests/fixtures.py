@@ -8,7 +8,7 @@ def load_database(request):
     """
     Helper fixture to load a database (parameterized by the value of `request`).
     """
-    db = Database(str(files(pycalphad.tests.databases).joinpath(request.param)))
+    db = Database(files(pycalphad.tests.databases).joinpath(request.param))
     def _load_database():
         return db
     return _load_database
