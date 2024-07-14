@@ -11,6 +11,90 @@ from pycalphad.core.minimizer import site_fraction_differential, state_variable_
 import numpy as np
 from copy import copy
 
+
+class Component(object):
+    """
+    A chemical component.
+
+    Attributes
+    ----------
+    name : string
+        Name of the component
+    constituents : dict
+        Dictionary of {element: quantity} where the element is a string and the quantity a float.
+    """
+    def __new__(cls, name, constituents=None):
+        if constituents is not None:
+            new_self = object.__new__(cls)
+            new_self.name = name
+            new_self.constituents = constituents
+            return new_self
+        else:
+            arg = name
+        # if a Component is passed in, return it
+        if arg.__class__ == cls:
+            return arg
+        new_self = object.__new__(cls)
+        if arg == '*':
+            new_self = object.__new__(cls)
+            new_self.name = '*'
+            new_self.constituents = dict()
+            return new_self
+        if arg is None:
+            new_self = object.__new__(cls)
+            new_self.name = ''
+            new_self.constituents = dict()
+            return new_self
+
+        if isinstance(arg, str):
+            parse_list = parse_chemical_formula(arg.upper())
+        else:
+            parse_list = arg
+        new_self.name = name
+        parse_list = parse_list[0]
+        new_self.constituents = dict(parse_list)
+        return new_self
+
+    def __getnewargs__(self):
+        return self.name, self.constituents
+
+    def __eq__(self, other):
+        """Two components are the same if their names and constituents are the same."""
+        if isinstance(other, self.__class__):
+            return (self.name == other.name) and (self.constituents == other.constituents)
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def cast_from(cls, s: str) -> "Component":
+        return cls(s)
+
+    @property
+    def number_of_atoms(self):
+        "Number of atoms per formula unit. Vacancies do not count as atoms."
+        return sum(value for key, value in self.constituents.items() if key != 'VA')
+
+    def __repr__(self):
+        if self.name == '*':
+            return str(self.__class__.__name__)+'(\'*\')'
+        if self.name == '':
+            return str(self.__class__.__name__)+"(None)"
+        constituents = ''.join(['{}{}'.format(el, val) for el, val in sorted(self.constituents.items(), key=lambda t: t[0])])
+        return str(self.__class__.__name__) + f"(\'{self.name.upper()}\', \'{constituents}\')"
+
+    def __hash__(self):
+        return hash(self.name)
+
+
 class Species(object):
     """
     A chemical species.
