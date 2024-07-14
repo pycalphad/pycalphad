@@ -10,7 +10,7 @@ from symengine import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
-from pycalphad.codegen.callables import build_phase_records, PhaseRecordFactory
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.solver import SolverBase, Solver
 from pycalphad.core.utils import get_state_variables, instantiate_models
 import pycalphad.variables as v
@@ -55,7 +55,7 @@ def test_phase_records_passed_to_equilibrium(load_database):
     conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
 
     models = instantiate_models(dbf, comps, my_phases)
-    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
+    phase_records = PhaseRecordFactory(dbf, comps, sorted(conds.keys(), key=str), models)
 
     # With models passed
     eqx = equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records)
@@ -472,7 +472,8 @@ def test_eq_phase_record_factory_with_parameters(load_database):
     conds = {v.P: 101325, v.T: 500, v.N: 1}
     models = {'FCC_A1': Model(dbf, comps, 'FCC_A1', parameters=['VV0000'])}
     # build PhaseRecordFactory with a parameter of 20000.0
-    prf = PhaseRecordFactory(dbf, comps, conds, models, parameters={'VV0000': 20000})
+    prf = PhaseRecordFactory(dbf, comps, sorted(conds.keys(), key=str),
+                             models, parameters={'VV0000': 20000})
 
     # use the values from 'VV0000' as passed in parameters
     eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, model=models, parameters={'VV0000': 10000})

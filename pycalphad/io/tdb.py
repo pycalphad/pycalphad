@@ -399,7 +399,7 @@ def _process_reference_state(db, el, refphase, mass, H298, S298):
     # If user database doesn't specify mass, use periodic table values (if the element exists)
     db.refstates[el] = {
         'phase': refphase,
-        'mass': mass if mass != 0. else _molmass.get(el, 0.),
+        'mass': mass if mass != 0.0 else _molmass.get(el, 0.0),
         'H298': H298,
         'S298': S298,
     }
@@ -646,7 +646,7 @@ def _symmetry_added_parameter(dbf, param):
     return False
 
 def get_supported_variables():
-    "When loading databases, these symbols should be replaced by their IndependentPotential counter-parts"
+    "When loading databases, these symbols should be replaced by their IndependentPotential counterparts"
     return {Symbol(x): getattr(v, x) for x in v.__dict__ if isinstance(getattr(v, x), (v.IndependentPotential, Float))}
 
 

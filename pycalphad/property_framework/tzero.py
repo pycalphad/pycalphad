@@ -15,7 +15,7 @@ def find_first_compset(phase_name: str, wks: "Workspace"):
     return None
 
 class T0(object):
-    "T0: (GM(ONE) - GM(TWO))**2 = 0"
+    "T0: temperature where the energy of two phases are equal, GM(ONE) = GM(TWO)"
     _phase_one: CompositionSet
     _phase_two: CompositionSet
     solver: Solver
@@ -66,9 +66,6 @@ class T0(object):
         s = self.solver
         initial_conditions = cur_conds
 
-        # T0: (G(BCC) - G(HCP))**2 = 0
-        # G(BCC)**2 - 2*G(BCC)*G(HCP) + G(BCP)**2
-        # grad = 2*G(BCC)*G'(FCC) - 2*(G'(BCC)*G(HCP) + G'(HCP)*G(BCC)) + 2*G(HCP)*G'(HCP)
         gm_one = ModelComputedProperty('GM', self._phase_one.phase_record.phase_name)
         gm_one_grad = JanssonDerivative(gm_one, self.property_to_optimize)
         gm_two = ModelComputedProperty('GM', self._phase_two.phase_record.phase_name)

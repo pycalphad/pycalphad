@@ -4,10 +4,10 @@ pycalphad.codegen package
 Submodules
 ----------
 
-pycalphad.codegen.callables module
-----------------------------------
+pycalphad.codegen.phase\_record\_factory module
+-----------------------------------------------
 
-.. automodule:: pycalphad.codegen.callables
+.. automodule:: pycalphad.codegen.phase_record_factory
    :members:
    :undoc-members:
    :show-inheritance:

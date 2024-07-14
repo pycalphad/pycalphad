@@ -62,7 +62,6 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
 
     while not it.finished:
         primary_index = it.multi_index
-        # grid_index is constructed at every iteration, based on state variables (independent potentials)
         grid_index = []
         # Relies on being ordered
         for lc in local_conds_keys:

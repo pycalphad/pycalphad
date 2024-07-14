@@ -93,29 +93,20 @@ cpdef void intersecting_point(double[:,::1] compositions,
         for i in range(compositions.shape[1]):
             out_intersecting_point[i] = compositions[trial_simplex[0], i]
         return
-    #with gil:
-    #    print('trial_simplex ', np.asarray(trial_simplex))
     if (fixed_lincomb_molefrac_rhs.shape[0] + 1 != compositions.shape[1]) and fixed_chempot_indices.shape[0] > 0:
         raise ValueError('Constraint matrix is not square')
     cdef int* int_tmp = <int*>malloc(compositions.shape[1] * sizeof(int))
     cdef double* constraint_matrix = <double*>malloc((fixed_lincomb_molefrac_rhs.shape[0] + 1) * compositions.shape[1] * sizeof(double))
     cdef double* constraint_rhs = <double*>malloc((fixed_lincomb_molefrac_rhs.shape[0] + 1) * sizeof(double))
     out_intersecting_point[:] = 0
-    # out_intersecting_point memory is reused for plane_coefs, to save an allocation
     cdef double[::1] plane_coefs = out_intersecting_point
     hyperplane_coefficients(compositions, fixed_chempot_indices, trial_simplex, plane_coefs)
-    #with gil:
-    #    print('plane_coefs ', np.asarray(plane_coefs))
     for j in range(compositions.shape[1]):
         for i in range(fixed_lincomb_molefrac_rhs.shape[0]):
             constraint_matrix[i + j*compositions.shape[1]] = fixed_lincomb_molefrac_coefs[i, j]
             constraint_rhs[i] = fixed_lincomb_molefrac_rhs[i]
         constraint_matrix[fixed_lincomb_molefrac_rhs.shape[0] + j*compositions.shape[1]] = plane_coefs[j]
         constraint_rhs[fixed_lincomb_molefrac_rhs.shape[0]] = 1
-    #with gil:
-    #    print('constraint_matrix ', np.asarray(<double[:fixed_lincomb_molefrac_rhs.shape[0] + 1, :compositions.shape[1]]>constraint_matrix))
-    #    print('constraint_rhs ', np.asarray(<double[:fixed_lincomb_molefrac_rhs.shape[0] + 1]>constraint_rhs))
-    #raise ValueError('stop')
     solve(constraint_matrix, compositions.shape[1], constraint_rhs, int_tmp)
     for i in range(compositions.shape[1]):
         out_intersecting_point[i] = constraint_rhs[i]
@@ -123,7 +114,7 @@ cpdef void intersecting_point(double[:,::1] compositions,
     free(constraint_matrix)
     free(constraint_rhs)
 
-#@cython.boundscheck(False)
+@cython.boundscheck(False)
 cdef void simplex_fractions(double[:,::1] compositions,
                              size_t[::1] fixed_chempot_indices,
                              int[::1] trial_simplex,
@@ -137,15 +128,12 @@ cdef void simplex_fractions(double[:,::1] compositions,
     cdef double* target_point = <double*>malloc(compositions.shape[1] * sizeof(double))
     cdef int* int_tmp = <int*>malloc(simplex_size * sizeof(int))
     cdef size_t[::1] free_chempot_indices = np.array(list(set(range(compositions.shape[1])) - set(fixed_chempot_indices)), dtype=np.uintp)
-    #print('free_chempot_indices', np.asarray(free_chempot_indices))
     # Get target point for calculation
     intersecting_point(compositions, fixed_chempot_indices, trial_simplex,
                        fixed_lincomb_molefrac_coefs, fixed_lincomb_molefrac_rhs,
                        <double[:compositions.shape[1]]>target_point)
-    #print('target_point ', np.asarray(<double[:compositions.shape[1]]>target_point))
     # Fill coordinate matrix
     for j in range(simplex_size):
-        # compositions[trial_simplex[i], :]
         for i in range(simplex_size):
             f_coord_matrix[j + simplex_size*i] = compositions[trial_simplex[i], free_chempot_indices[j]]
         out_fractions[j] = target_point[free_chempot_indices[j]]
@@ -261,13 +249,11 @@ cpdef double hyperplane(double[:,::1] compositions,
         iterations += 1
 
         for trial_idx in range(simplex_size):
-            #print('trial simplex ', np.asarray(<int[:simplex_size]>&trial_simplices[trial_idx*simplex_size]))
             for simplex_idx in range(simplex_size):
                 fractions[trial_idx*simplex_size + simplex_idx] = 0
             simplex_fractions(compositions, fixed_chempot_indices, <int[:simplex_size]>&trial_simplices[trial_idx*simplex_size],
                               fixed_lincomb_molefrac_coefs, fixed_lincomb_molefrac_rhs, &fractions[trial_idx*simplex_size])
             smallest_fractions[trial_idx] = _min(&fractions[trial_idx*simplex_size], simplex_size)
-        #print('smallest_fractions ', np.asarray(<double[:simplex_size]>&smallest_fractions[0]))
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions, simplex_size)
         #print('saved_trial', saved_trial)

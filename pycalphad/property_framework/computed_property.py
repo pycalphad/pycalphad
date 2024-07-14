@@ -47,10 +47,12 @@ class ModelComputedProperty(object):
 
     @property
     def shape(self):
+        "Shape of return value is a scalar."
         return tuple()
 
     @property
     def multiplicity(self):
+        "Indicates multiplicity of a composition set, i.e., returns `2` for property of `FCC_A1#2` phase."
         if self.phase_name is not None:
             tokens = self.phase_name.split('#')
             if len(tokens) > 1:
@@ -142,7 +144,7 @@ class LinearCombination:
         if len(symbol_classes) > 1:
             raise ValueError(f'Property types in a linear combination must match. Got: {expr}')
         if list(symbol_classes)[0] != v.MoleFraction:
-            raise ValueError('Only mole fractions are supported in linear combination conditions')
+            raise ValueError('Only mole fractions are currently supported in linear combination conditions. Please submit feedback for what other conditions you want supported here: https://github.com/pycalphad/pycalphad/discussions')
         # Detect case of molar ratio (x/y = c); convert to (x - c*y = 0)
         denominator = S.One
         for mul_atom in expr.atoms(Mul):

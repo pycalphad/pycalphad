@@ -1,6 +1,5 @@
 import warnings
 from collections import OrderedDict, Counter, defaultdict
-from collections.abc import Mapping
 from copy import copy
 from pycalphad.property_framework.computed_property import JanssonDerivative
 import pycalphad.variables as v
@@ -12,7 +11,6 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver, SolverBase
 from pycalphad.core.light_dataset import LightDataset
-from pycalphad.plot.renderers import Renderer, DEFAULT_PLOT_RENDERER
 from pycalphad.model import Model
 import numpy as np
 import numpy.typing as npt
@@ -28,7 +26,7 @@ from typing import TypeVar
 
 
 
-def _adjust_conditions(conds) -> 'OrderedDict[StateVariable, List[float]]':
+def _adjust_conditions(conds) -> OrderedDict[StateVariable, List[float]]:
     "Adjust conditions values to be in the implementation units of the quantity, and within the numerical limit of the solver."
     new_conds = OrderedDict()
     minimum_composition = 1e-10
@@ -78,24 +76,36 @@ class ConditionKey:
         return as_property(key)
 
 class TypedField:
-    def __init__(self, default_factory=None, dependsOn=None):
+    """
+    A descriptor for managing attributes with specific types in a class, supporting automatic type coercion and default values.
+    This class is designed to be used in scenarios (like `Workspace`) where one needs to implement an observer pattern. It enables the tracking of changes in attribute values and notifies dependent attributes of any updates.
+    """
+
+    def __init__(self, default_factory=None, depends_on=None):
+        """
+        Attributes
+        ----------
+        default_factory : callable, optional
+            A callable that returns the default value of the attribute when no initial value is provided.
+        depends_on : list of str, optional
+            A list of attribute names, from the parent object, that the current attribute depends on. Changes to these attributes will trigger updates to the current attribute.
+        """
         self.default_factory = default_factory
-        self.dependsOn = dependsOn
+        self.depends_on = depends_on
 
     def __set_name__(self, owner, name):
+        "Initializes the attribute, determining its private and public names and registering dependency callbacks if necessary."
         self.type = owner.__annotations__.get(name, None)
         self.public_name = name
         self.private_name = '_' + name
-        if self.dependsOn is not None:
-            for dependency in self.dependsOn:
+        if self.depends_on is not None:
+            for dependency in self.depends_on:
                 owner._callbacks[dependency].append(self.on_dependency_update)
 
     def __set__(self, obj, value):
+        "Sets the value of the attribute in an object, handling type coercion via the `cast_from` method if the direct assignment isn't possible. It raises `TypeError` if coercion fails."
         if (self.type != NoneType) and not isa(value, self.type) and value is not None:
-            try:
-                value = self.type.cast_from(value)
-            except TypeError as e:
-                raise e
+            value = self.type.cast_from(value)
         elif value is None and self.default_factory is not None:
             value = self.default_factory(obj)
         oldval = getattr(obj, self.private_name, None)
@@ -104,6 +114,7 @@ class TypedField:
             cb(obj, self.public_name, oldval, value)
 
     def __get__(self, obj, objtype=None):
+        "Retrieves the value of the attribute, initializing it with default_factory if it hasn't been set before."
         if not hasattr(obj, self.private_name):
             if self.default_factory is not None:
                 default_value = self.default_factory(obj)
@@ -111,12 +122,13 @@ class TypedField:
         return getattr(obj, self.private_name)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        "A callback method that can be overridden to define custom behavior when a dependent attribute is updated."
         pass
 
 class ComponentsField(TypedField):
-    def __init__(self, dependsOn=None):
+    def __init__(self, depends_on=None):
         super().__init__(default_factory=lambda obj: unpack_components(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
-                         dependsOn=dependsOn)
+                         depends_on=depends_on)
     def __set__(self, obj, value):
         comps = sorted(unpack_components(obj.database, value))
         super().__set__(obj, comps)
@@ -126,9 +138,9 @@ class ComponentsField(TypedField):
         return sorted(unpack_components(obj.database, getobj))
 
 class PhasesField(TypedField):
-    def __init__(self, dependsOn=None):
+    def __init__(self, depends_on=None):
         super().__init__(default_factory=lambda obj: filter_phases(obj.database, obj.components),
-                         dependsOn=dependsOn)
+                         depends_on=depends_on)
     def __set__(self, obj, value):
         phases = sorted(unpack_phases(value))
         super().__set__(obj, phases)
@@ -183,10 +195,10 @@ class ConditionsField(DictField):
         super().__set__(obj, conds)
 
 class ModelsField(DictField):
-    def __init__(self, dependsOn=None):
+    def __init__(self, depends_on=None):
         super().__init__(default_factory=lambda obj: instantiate_models(obj.database, obj.components, obj.phases,
                                                                         model=None, parameters=obj.parameters),
-                         dependsOn=dependsOn)
+                         depends_on=depends_on)
     def __set__(self, obj, value):
         # Unwrap proxy objects before being stored
         if hasattr(value, 'unwrap'):
@@ -202,7 +214,7 @@ class ModelsField(DictField):
         self.__set__(obj, self.default_factory(obj))
 
 class PRFField(TypedField):
-    def __init__(self, dependsOn=None):
+    def __init__(self, depends_on=None):
         def make_prf(obj):
             try:
                 prf = PhaseRecordFactory(obj.database, obj.components, obj.conditions,
@@ -211,7 +223,7 @@ class PRFField(TypedField):
                 return prf
             except AttributeError:
                 return None
-        super().__init__(default_factory=make_prf, dependsOn=dependsOn)
+        super().__init__(default_factory=make_prf, depends_on=depends_on)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         self.__set__(obj, self.default_factory(obj))
@@ -240,17 +252,17 @@ ModelType = TypeVar('ModelType', bound=Model)
 class Workspace:
     _callbacks = defaultdict(lambda: [])
     database: Database = TypedField(lambda _: None)
-    components: SpeciesList = ComponentsField(dependsOn=['database'])
-    phases: PhaseList = PhasesField(dependsOn=['database', 'components'])
+    components: SpeciesList = ComponentsField(depends_on=['database'])
+    phases: PhaseList = PhasesField(depends_on=['database', 'components'])
     conditions: Conditions = ConditionsField(lambda wks: Conditions(wks))
     verbose: bool = TypedField(lambda _: False)
-    models: Mapping[PhaseName, ModelType] = ModelsField(dependsOn=['phases', 'parameters'])
+    models: Mapping[PhaseName, ModelType] = ModelsField(depends_on=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
-    renderer: Renderer = TypedField(lambda wks: DEFAULT_PLOT_RENDERER(wks))
-    phase_record_factory: Optional[PhaseRecordFactory] = PRFField(dependsOn=['phases', 'conditions', 'models', 'parameters'])
+    phase_record_factory: Optional[PhaseRecordFactory] = PRFField(depends_on=['phases', 'conditions', 'models', 'parameters'])
     calc_opts: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
-    solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), dependsOn=['verbose'])
-    eq: Optional[LightDataset] = EquilibriumCalculationField(dependsOn=['phase_record_factory', 'calc_opts', 'solver'])
+    solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), depends_on=['verbose'])
+    # eq is set by a callback in the EquilibriumCalculationField (TypedField)
+    eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'calc_opts', 'solver'])
 
     def __init__(self, *args, **kwargs):
         # Assume positional arguments are specified in class typed-attribute definition order
@@ -456,7 +468,4 @@ class Workspace:
     def copy(self):
         return copy(self)
 
-    @property
-    def plot(self):
-        return self.renderer
 
