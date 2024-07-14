@@ -47,10 +47,12 @@ class ModelComputedProperty(object):
 
     @property
     def shape(self):
+        "Shape of return value is a scalar."
         return tuple()
 
     @property
     def multiplicity(self):
+        "Indicates multiplicity of a composition set, i.e., returns `2` for property of `FCC_A1#2` phase."
         if self.phase_name is not None:
             tokens = self.phase_name.split('#')
             if len(tokens) > 1:
