@@ -21,8 +21,8 @@ Each test should be made to encounter all possible routes of the check functions
     requires forcing a new node to not be found)
 """
 
-def _create_test_point(dbf, comps, phases, conditions, free_var = None):
-    point = point_from_equilibrium(dbf, comps, phases, conditions, free_var)
+def _create_test_point(dbf, comps, phases, conditions):
+    point = point_from_equilibrium(dbf, comps, phases, conditions)
     return point
 
 def _create_default_arguments(axes, delta, lims):
@@ -46,7 +46,7 @@ def test_check_valid_point(load_database):
     comps = ["AL", "ZN", "VA"]
     phases = ["HCP_A3", "LIQUID", "FCC_A1"]
     conditions = {v.T: 500, v.P: 101325, v.N: 1, v.X("AL"): 0.5}
-    point = _create_test_point(dbf, comps, phases, conditions, None)
+    point = _create_test_point(dbf, comps, phases, conditions)
 
     #Start zpf line with initial point
     delta_T = 10
@@ -85,7 +85,7 @@ def test_check_axis_values(load_database):
     comps = ["AL", "ZN", "VA"]
     phases = ["HCP_A3", "LIQUID", "FCC_A1"]
     conditions = {v.T: 500, v.P: 101325, v.N: 1, v.X("AL"): 0.5}
-    point = _create_test_point(dbf, comps, phases, conditions, None)
+    point = _create_test_point(dbf, comps, phases, conditions)
 
     #Start zpf line with initial point
     delta_T = 10
@@ -124,7 +124,7 @@ def test_check_similar_phase_composition(load_database):
     comps = ["AL", "ZN", "VA"]
     phases = ["HCP_A3", "LIQUID", "FCC_A1"]
     conditions = {v.T: 500, v.P: 101325, v.N: 1, v.X("AL"): 0.5}
-    point = _create_test_point(dbf, comps, phases, conditions, None)
+    point = _create_test_point(dbf, comps, phases, conditions)
 
     #Start zpf line with initial point
     delta_T = 10
@@ -157,7 +157,7 @@ def test_check_change_in_phases(load_database):
     comps = ["AL", "ZN", "VA"]
     phases = ["HCP_A3", "LIQUID", "FCC_A1"]
     conditions = {v.T: 610, v.P: 101325, v.N: 1, v.X("AL"): 0.6}
-    point = _create_test_point(dbf, comps, phases, conditions, None)
+    point = _create_test_point(dbf, comps, phases, conditions)
 
     #Start zpf line with initial point
     delta_T = 10
@@ -205,7 +205,7 @@ def test_check_global_min(load_database):
     comps = ["AL", "ZN", "VA"]
     phases = ["HCP_A3", "LIQUID", "FCC_A1"]
     conditions = {v.T: 640, v.P: 101325, v.N: 1, v.X("AL"): 0.6}
-    point = _create_test_point(dbf, comps, phases, conditions, None)
+    point = _create_test_point(dbf, comps, phases, conditions)
 
     #Start zpf line with initial point
     delta_T = 10

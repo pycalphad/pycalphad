@@ -148,11 +148,24 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
     Checks that axis values are within the axis limits
 
     TODO: should check if we really need x_offset, this could affect phases like GRAPHITE which has a composition of X(C)=1
+    
+    NOTE: I think prev_point_vars (unused) and new_point_vars are called this rather
+          than conditions since they are taken from v.StateVariable.compute_property
+          rather than from the global conditions
 
     Parameters
     ----------
     zpf_line : ZPFLine
-    prev_point_vars : 
+    prev_point_vars : dict[v.StateVariable, float]
+        Conditions of last point in zpf line
+    new_point_vars : dict[v.StateVariable, float]
+        Conditions of new point
+    axis_data : dict
+        Axis variable information from map strategy
+
+    Returns
+    -------
+    bool for whether new point is within axis limits
     """
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
 
@@ -170,6 +183,20 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
     return True
 
 def _check_composition_within_limit(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]]):
+    """
+    Unused, should remove if we can confirm that this check is not needed
+
+    Checks if composition is within (0, 1) limits, only checks compositions defined in global conditions
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+    step_results : [Point, [CompositionSet]]
+
+    Returns
+    -------
+    bool if composition is within limits
+    """
     new_point, orig_cs = step_results
     comp_sum = sum(new_point.get_property(var) for var in new_point.global_conditions if isinstance(var, v.X))
     if comp_sum < MIN_COMPOSITION or comp_sum > 1-MIN_COMPOSITION:
@@ -180,7 +207,22 @@ def _check_axis_values_by_distance(zpf_line: ZPFLine, prev_point_vars: dict[v.St
     """
     Checks that the normalized distance between the previous point and the new point is within reasonable values
 
-    Note: a threshold of 3 is quite large since the axis swapping should limit this to 1 (give/take some leeway if the swapping hadn"t occured yet)
+    NOTE: a threshold of 3 is quite large since the axis swapping should limit this to 1 (give/take some leeway if the swapping hadn"t occured yet)
+    NOTE: this should scale with the global_check_interval defined in the map strategy
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+    prev_point_vars : dict[v.StateVariable, float]
+        Conditions of last point in zpf line
+    new_point_vars : dict[v.StateVariable, float]
+        Conditions of new point
+    axis_data : dict
+        Axis variable information from map strategy
+
+    Returns
+    -------
+    bool for whether new point is within distance threshold of previous point
     """
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
     normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})

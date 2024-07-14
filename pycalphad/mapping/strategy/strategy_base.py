@@ -132,7 +132,7 @@ class MapStrategy:
         else:
             return self.axis_vars[1-self.axis_vars.index(av)]
 
-    def add_nodes_from_conditions(self, conditions: dict[v.StateVariable, float], axis_var: v.StateVariable = None, direction: Direction = None, force_add: bool = True):
+    def add_nodes_from_conditions(self, conditions: dict[v.StateVariable, float], direction: Direction = None, force_add: bool = True):
         """
         Computes equilibrium and creates a point from input conditions
 
@@ -143,16 +143,16 @@ class MapStrategy:
 
         Also by default, we force add the node to skip checking if the node is already in the node queue
         """
-        point = point_from_equilibrium(self.dbf, self.components, self.phases, conditions, axis_var, models=self.models, phase_record_factory=self.phase_records)
+        point = point_from_equilibrium(self.dbf, self.components, self.phases, conditions, models=self.models, phase_record_factory=self.phase_records)
         if point is None:
             _log.warning(f"Point could not be found from {conditions}")
             return False
         if direction is None:
             _log.info(f"No direction is given, adding point from {conditions} with both directions")
-            self.node_queue.add_node(self._create_node_from_point(point, None, axis_var, Direction.POSITIVE, ExitHint.POINT_IS_EXIT), force_add)
-            self.node_queue.add_node(self._create_node_from_point(point, None, axis_var, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
+            self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT), force_add)
+            self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
         else:
-            self.node_queue.add_node(self._create_node_from_point(point, None, axis_var, direction, ExitHint.POINT_IS_EXIT), force_add)
+            self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
         return True
 
     def _create_node_from_point(self, point: Point, parent: Point, start_ax: v.StateVariable, start_dir: Direction, exit_hint: ExitHint = ExitHint.NORMAL):

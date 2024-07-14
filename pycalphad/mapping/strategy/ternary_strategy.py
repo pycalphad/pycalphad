@@ -289,7 +289,7 @@ class TernaryStrategy(MapStrategy):
         # There seems to be some cases where a phase is not detected even when it's supposed to be there
         free_point = map_utils._generate_point_with_free_cs(node, bias_towards_free=True)
         _log.info(f"Checking global eq at {free_point.global_conditions}")
-        test_point = point_from_equilibrium(self.dbf, self.components, self.phases, free_point.global_conditions, None, models=self.models, phase_record_factory=self.phase_records)
+        test_point = point_from_equilibrium(self.dbf, self.components, self.phases, free_point.global_conditions, models=self.models, phase_record_factory=self.phase_records)
         if test_point is None:
             return False, None
 
@@ -376,7 +376,7 @@ class TernaryStrategy(MapStrategy):
             copy_conds[av] += 1e-3*norm_dir*direction.value
 
         _log.info(f"Attemping to add point at {copy_conds}")
-        new_point = point_from_equilibrium(self.dbf, self.components, self.phases, copy_conds, None, models=self.models, phase_record_factory=self.phase_records)
+        new_point = point_from_equilibrium(self.dbf, self.components, self.phases, copy_conds, models=self.models, phase_record_factory=self.phase_records)
         if new_point is not None:
             # If new point is an invariant, then we add it as a starting point (point is added as a parent to prevent repeated exit calculations)
             # If new point is 2 phase, then we add it as a starting point the node being the exit

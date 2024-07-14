@@ -26,7 +26,7 @@ class StepStrategy(MapStrategy):
         mid_val = (self.axis_lims[av][0] + self.axis_lims[av][1]) / 2
         mid_conds = copy.deepcopy(self.conditions)
         mid_conds[av] = mid_val
-        self.add_nodes_from_conditions(mid_conds, None, None, True)
+        self.add_nodes_from_conditions(mid_conds, None, True)
 
     def _find_exits_from_node(self, node: Node):
         """
@@ -165,6 +165,6 @@ class StepStrategy(MapStrategy):
             if not_at_axis_lims:
                 new_conds[av] += new_delta * axis_dir.value
                 _log.info(f"Force adding starting point with conditions {new_conds}")
-                success = self.add_nodes_from_conditions(new_conds, None, axis_dir, True)
+                success = self.add_nodes_from_conditions(new_conds, axis_dir, True)
                 if success:
                     return
