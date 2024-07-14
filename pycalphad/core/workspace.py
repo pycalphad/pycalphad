@@ -80,31 +80,22 @@ class TypedField:
     """
     A descriptor for managing attributes with specific types in a class, supporting automatic type coercion and default values.
     This class is designed to be used in scenarios (like `Workspace`) where one needs to implement an observer pattern. It enables the tracking of changes in attribute values and notifies dependent attributes of any updates.
-
-    Attributes
-    ----------
-    default_factory : callable, optional
-        A callable that returns the default value of the attribute when no initial value is provided.
-    depends_on : list of str, optional
-        A list of attribute names, from the parent object, that the current attribute depends on. Changes to these attributes will trigger updates to the current attribute.
-
-    Methods
-    -------
-    __set_name__(self, owner, name)
-        Initializes the attribute, determining its private and public names and registering dependency callbacks if necessary.
-    __set__(self, obj, value)
-        Sets the value of the attribute in an object, handling type coercion via the `cast_from` method if the direct assignment isn't possible. It raises `TypeError` if coercion fails.
-    __get__(self, obj, objtype=None)
-        Retrieves the value of the attribute, initializing it with default_factory if it hasn't been set before.
-    on_dependency_update(self, obj, updated_attribute, old_val, new_val)
-        A callback method that can be overridden to define custom behavior when a dependent attribute is updated.
     """
 
     def __init__(self, default_factory=None, depends_on=None):
+        """
+        Attributes
+        ----------
+        default_factory : callable, optional
+            A callable that returns the default value of the attribute when no initial value is provided.
+        depends_on : list of str, optional
+            A list of attribute names, from the parent object, that the current attribute depends on. Changes to these attributes will trigger updates to the current attribute.
+        """
         self.default_factory = default_factory
         self.depends_on = depends_on
 
     def __set_name__(self, owner, name):
+        "Initializes the attribute, determining its private and public names and registering dependency callbacks if necessary."
         self.type = owner.__annotations__.get(name, None)
         self.public_name = name
         self.private_name = '_' + name
@@ -113,6 +104,7 @@ class TypedField:
                 owner._callbacks[dependency].append(self.on_dependency_update)
 
     def __set__(self, obj, value):
+        "Sets the value of the attribute in an object, handling type coercion via the `cast_from` method if the direct assignment isn't possible. It raises `TypeError` if coercion fails."
         if (self.type != NoneType) and not isa(value, self.type) and value is not None:
             value = self.type.cast_from(value)
         elif value is None and self.default_factory is not None:
@@ -123,6 +115,7 @@ class TypedField:
             cb(obj, self.public_name, oldval, value)
 
     def __get__(self, obj, objtype=None):
+        "Retrieves the value of the attribute, initializing it with default_factory if it hasn't been set before."
         if not hasattr(obj, self.private_name):
             if self.default_factory is not None:
                 default_value = self.default_factory(obj)
@@ -130,6 +123,7 @@ class TypedField:
         return getattr(obj, self.private_name)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        "A callback method that can be overridden to define custom behavior when a dependent attribute is updated."
         pass
 
 class ComponentsField(TypedField):
