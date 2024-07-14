@@ -11,7 +11,6 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver, SolverBase
 from pycalphad.core.light_dataset import LightDataset
-from pycalphad.plot.renderers import Renderer, DEFAULT_PLOT_RENDERER
 from pycalphad.model import Model
 import numpy as np
 import numpy.typing as npt
@@ -259,7 +258,6 @@ class Workspace:
     verbose: bool = TypedField(lambda _: False)
     models: Mapping[PhaseName, ModelType] = ModelsField(depends_on=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
-    renderer: Renderer = TypedField(lambda wks: DEFAULT_PLOT_RENDERER(wks))
     phase_record_factory: Optional[PhaseRecordFactory] = PRFField(depends_on=['phases', 'conditions', 'models', 'parameters'])
     calc_opts: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
     solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), depends_on=['verbose'])
@@ -470,7 +468,4 @@ class Workspace:
     def copy(self):
         return copy(self)
 
-    @property
-    def plot(self):
-        return self.renderer
 
