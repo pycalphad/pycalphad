@@ -43,9 +43,8 @@ class MapStrategy:
             dbf = Database(dbf)
         self.dbf = dbf
 
-        # Implicitly add vacancies to components. This shouldn't affect models that don't use vacancies
-        # But models that use vacancies will be ignored if the user forgets to supply it
-        self.components = list(set(components).union({'VA'}))
+        # Don't add vacancies to components in case user needs to restrict non-stoichiometric phases
+        self.components = sorted(components)
         self.elements = map_utils.elements_from_components(self.components)
         self.phases = filter_phases(self.dbf, unpack_components(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)

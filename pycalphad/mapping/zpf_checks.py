@@ -113,6 +113,20 @@ def check_valid_point(zpf_line: ZPFLine, step_results: tuple[Point, list[Composi
         a) Converged equilibrium -> pass
         b) Failed equilibrium, reduce axis delta -> don"t add point and attempt stepping again
         c) Failed equilibrium and axis delta reached minimum -> end zpf line with unexpected ending
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+        ZPFLine that the point is stepping in
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    axis_data : dict
+        Axis variable data from a map strategy class
+
+    Returns
+    -------
+    None - this check does not produce any new nodes
+    However, this will end zpf_line if step_result is invalid
     """
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
     delta_scale = kwargs.get("delta_scale", 0.5)
@@ -134,6 +148,11 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
     Checks that axis values are within the axis limits
 
     TODO: should check if we really need x_offset, this could affect phases like GRAPHITE which has a composition of X(C)=1
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+    prev_point_vars : 
     """
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
 
@@ -186,6 +205,20 @@ def check_axis_values(zpf_line: ZPFLine, step_results: tuple[Point, list[Composi
         a) Axes are within limits and minimal distance change -> pass
         b) Axes are outside limits -> end zpf line with graceful ending
         c) Distance changed too much -> end zpf line with unexpected ending
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+        ZPFLine that the point is stepping in
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    axis_data : dict
+        Axis variable data from a map strategy class
+
+    Returns
+    -------
+    None - this check does not produce any new nodes
+    This will end zpf_line with FAILED or REACHED_LIMIT depending on test that failed
     """
     if step_results is None:
         return None
@@ -220,6 +253,25 @@ def check_change_in_phases(zpf_line: ZPFLine, step_results: tuple[Point, list[Co
         a) No change in phases -> pass
         b) Change in phases, node successfully found -> process new node and end zpf line with graceful ending
         c) Change in phases, node not found -> end zpf line with unexpected ending
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+        ZPFLine that the point is stepping in
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    axis_data : dict
+        Axis variable data from a map strategy class
+
+    Returns
+    -------
+    new_node : Node
+        Node from step_results if there is a change in phases
+    
+    or
+
+    None : if step_results does not result in a change in phase
+           or new node cannot be found (zpf_line will be ended)
     """
     if step_results is None:
         return None
@@ -273,6 +325,25 @@ def check_global_min(zpf_line: ZPFLine, step_results: tuple[Point, list[Composit
         a) No change in phases -> pass
         b) Change in phases, node successfully found -> process new node and end zpf line with graceful ending
         c) Change in phases, node not found -> end zpf line with unexpected ending
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+        ZPFLine that the point is stepping in
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    axis_data : dict
+        Axis variable data from a map strategy class
+
+    Returns
+    -------
+    new_node : Node
+        Node from step_results if global min is found
+    
+    or
+
+    None : if step_results is still global min
+           or new node cannot be found (zpf_line will be ended)
     """
     if step_results is None:
         return None
@@ -322,6 +393,20 @@ def check_similar_phase_composition(zpf_line: ZPFLine, step_results: tuple[Point
     2 possible outcomes
         a) Composition sets are separate -> pass
         b) Composition sets are similar -> end zpf line with unexpected ending
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+        ZPFLine that the point is stepping in
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    axis_data : dict
+        Axis variable data from a map strategy class
+
+    Returns
+    -------
+    None : this check does not attempt to make a new node
+    However, the zpf line will end if this check fails
     """
     if step_results is None:
         return None
