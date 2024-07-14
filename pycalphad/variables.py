@@ -14,7 +14,7 @@ from copy import copy
 
 class Component(object):
     """
-    A chemical component.
+    A chemical component, either a pure element or a linear combination of pure elements.
 
     Attributes
     ----------
@@ -197,6 +197,54 @@ class Species(object):
 
     def __hash__(self):
         return hash(self.name)
+
+
+def unpack_components(dbf: "Database", components: "Sequence[Component | Species | str]"):
+    """
+    Build a set of Components from ones provided by the caller.
+
+    The components can be given as:
+    1. Component objects, which are directly used
+    2. Species objects, which will be converted to Component objects
+    3. str objects, which will be resolved to a Component by:
+        a) matching with the name of a Species object present in the Database, or
+        b) by parsing the string via the Component constructor
+
+    Parameters
+    ----------
+    dbf : Database
+        Thermodynamic database containing elements and species.
+    comps : Sequence[Component | Species | str]
+        Names of components to consider in the calculation.
+
+    Returns
+    -------
+    set
+        Set of Component objects
+
+    Examples
+    --------
+    >>> from pycalphad import Database, variables as v
+    >>> dbf = Database()
+    >>> dbf.species.add(v.Species("WCL4", {"W": 1, "CL": 4}))
+    >>> dbf.species.add(v.Species("H+", {"H": 1.0}, charge=1.0))
+    >>> unpack_components(dbf, [v.Component("NACL"), v.Species("H2O"), "SIO2", "K1CL1", "WCL4", "H+"])
+    """
+    desired_components = set()
+    known_species = {sp.name: sp for sp in dbf.species}
+    for c in components:
+        if isinstance(c, Component):
+            desired_components.add(c)
+        elif isinstance(c, Species):
+            desired_components.add(Component(c.name, c.constituents))
+        else:
+            if c in known_species:
+                c = known_species[c]
+                desired_components.add(Component(c.name, c.constituents))
+            else:
+                desired_components.add(Component(c))
+    return desired_components
+
 
 class StateVariable(Symbol):
     """
