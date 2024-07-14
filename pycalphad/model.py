@@ -13,6 +13,11 @@ from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symb
 from pycalphad.io.tdb import get_supported_variables
 import numpy as np
 from collections import OrderedDict
+try:
+    # needs Python 3.13+
+    from warnings import deprecated
+except ImportError:
+    from typing_extensions import deprecated
 
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols
@@ -1350,7 +1355,7 @@ class Model(object):
 
         return ordering_energy
 
-    # TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters
+    @deprecated("shift_reference_state is deprecated. Use `pycalphad.property_framework.ReferenceState` instead.")
     def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):
         """
         Add new attributes for calculating properties w.r.t. an arbitrary pure element reference state.
