@@ -171,6 +171,7 @@ class IsolatedPhase:
     """
     Meta-property for accessing properties of isolated phases.
     The configuration of an isolated phase is minimized, by itself, subject to the same conditions as the target calculation.
+    Other phases (or additional composition sets for the same phase) are not allowed to become stable.
     """
     _compset: CompositionSet
 
