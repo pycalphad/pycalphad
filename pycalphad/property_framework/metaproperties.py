@@ -102,7 +102,8 @@ class DrivingForce:
 class DormantPhase:
     """
     Meta-property for accessing properties of dormant phases.
-    The configuration of a dormant phase is minimized subject to the potentials of the target calculation.
+    The internal degrees of freedom of a dormant phase are minimized subject to the potentials of the target calculation.
+    Dormant phases are not allowed to become stable.
     """
     _compset: CompositionSet
     max_iterations: int = 50
