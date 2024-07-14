@@ -256,13 +256,11 @@ cpdef double hyperplane(double[:,::1] compositions,
             smallest_fractions[trial_idx] = _min(&fractions[trial_idx*simplex_size], simplex_size)
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions, simplex_size)
-        #print('saved_trial', saved_trial)
         if smallest_fractions[saved_trial] < -simplex_size:
             break
         # Should be exactly one candidate simplex
         for i in range(simplex_size):
             candidate_simplex[i] = trial_simplices[saved_trial*simplex_size + i]
-        #print('candidate_simplex ', np.asarray(<int[:simplex_size]>&candidate_simplex[0]))
         for i in range(simplex_size):
             idx = candidate_simplex[i]
             for ici in range(simplex_size):
