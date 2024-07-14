@@ -46,6 +46,10 @@ def _get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
     if var == v.NP:
         return 'Phase Fraction'
+    elif isinstance(var, v.X):
+        return 'X({})'.format(var.species.name.capitalize())
+    elif isinstance(var, v.W):
+        return 'W({})'.format(var.species.name.capitalize())
     # Otherwise, we can just use the display name
     else:
         return var.display_name
@@ -77,7 +81,7 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
     }
     """
     # Get all phases in strategy (including multiplicity)
-    phases = strategy.get_all_phases()
+    phases = sorted(strategy.get_all_phases())
 
     # Axis limits for x and y
     xlim = [np.inf, -np.inf]
@@ -117,7 +121,6 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
 
     step_data = {
         'data': phase_data,
-        'phases': phases,
         'xlim': xlim,
         'ylim': ylim,
     }
@@ -158,11 +161,10 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
 
     step_data = _get_step_data(strategy, x, y, x_is_global)
     data = step_data['data']
-    phases = step_data['phases']
     xlim = step_data['xlim']
     ylim = step_data['ylim']
 
-    handles, colors = legend_generator(phases)
+    handles, colors = legend_generator(sorted(data.keys()))
 
     for p in data:
         x_data = data[p]['x']
@@ -346,7 +348,7 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     if y is None:
         y = sorted_axis_var[0]
 
-    phases = strategy.get_all_phases()
+    phases = sorted(strategy.get_all_phases())
     handles, colors = legend_generator(phases)
 
     _plot_tielines(ax, strategy, x, y, phase_colors=colors, tielines=tielines, tieline_color=tieline_color)
@@ -558,7 +560,7 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
     if y is None:
         y = sorted_axis_var[0]
 
-    phases = strategy.get_all_phases()
+    phases = sorted(strategy.get_all_phases())
     handles, colors = legend_generator(phases)
 
     # Plot zpf lines
