@@ -3,6 +3,7 @@
 Classes and constants for representing thermodynamic variables.
 """
 
+from typing import Optional
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
 from pycalphad.property_framework.types import JanssonDerivativeDeltas
@@ -199,7 +200,7 @@ class Species(object):
         return hash(self.name)
 
 
-def unpack_components(dbf: "Database", components: "Sequence[Component | Species | str]"):
+def unpack_components(components: "Sequence[Component | Species | str]", dbf: Optional["Database"] = None):
     """
     Build a set of Components from ones provided by the caller.
 
@@ -212,10 +213,12 @@ def unpack_components(dbf: "Database", components: "Sequence[Component | Species
 
     Parameters
     ----------
-    dbf : Database
-        Thermodynamic database containing elements and species.
     comps : Sequence[Component | Species | str]
         Names of components to consider in the calculation.
+    dbf : Optional[Database]
+        Thermodynamic database containing elements and species. If no database is
+        passed, constructing Component objects via pattern matching to Species defined
+        in the Database (3a) will not be possible.
 
     Returns
     -------
@@ -228,10 +231,13 @@ def unpack_components(dbf: "Database", components: "Sequence[Component | Species
     >>> dbf = Database()
     >>> dbf.species.add(v.Species("WCL4", {"W": 1, "CL": 4}))
     >>> dbf.species.add(v.Species("H+", {"H": 1.0}, charge=1.0))
-    >>> unpack_components(dbf, [v.Component("NACL"), v.Species("H2O"), "SIO2", "K1CL1", "WCL4", "H+"])
+    >>> unpack_components([v.Component("NACL"), v.Species("H2O"), "SIO2", "K1CL1", "WCL4", "H+"], dbf)
     """
     desired_components = set()
-    known_species = {sp.name: sp for sp in dbf.species}
+    if dbf is not None:
+        known_species = {sp.name: sp for sp in dbf.species}
+    else:
+        known_species = {}
     for c in components:
         if isinstance(c, Component):
             desired_components.add(c)

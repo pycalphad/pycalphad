@@ -48,10 +48,29 @@ def _adjust_conditions(conds) -> OrderedDict[StateVariable, List[float]]:
             new_conds[key] = Q_(new_conds[key], units=key.display_units).to(key.implementation_units)
     return new_conds
 
-class SpeciesList:
+class ComponentList:
+    _wks: "Workspace"
+    _components: List[v.Component]
+
     @classmethod
-    def cast_from(cls, s: Sequence) -> "SpeciesList":
-        return sorted(Species.cast_from(x) for x in s)
+    def cast_from(cls, s: Sequence[SumType([str, v.Component])]) -> "ComponentList":
+        # no Database, so we don't get Species lookup support here, it's implemented in ComponentsField
+        return v.unpack_components(s)
+
+    def __init__(self, wks: Optional["Workspace"] = None):
+        self._wks = wks
+        self._components = []
+
+    def __len__(self):
+        return len(self._components)
+
+    def __iter__(self):
+        yield from self._components
+
+    def __str__(self):
+        return str(self._components)
+
+    __repr__ = __str__
 
 class PhaseList:
     @classmethod
@@ -128,15 +147,19 @@ class TypedField:
 
 class ComponentsField(TypedField):
     def __init__(self, depends_on=None):
-        super().__init__(default_factory=lambda obj: unpack_species(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
-                         depends_on=depends_on)
+        get_pure_element_components = lambda obj: v.unpack_components(sorted(x for x in obj.database.elements if x != '/-'), obj.database)
+        super().__init__(default_factory=get_pure_element_components, depends_on=depends_on)
+
     def __set__(self, obj, value):
-        comps = sorted(unpack_species(obj.database, value))
+        comps = sorted(v.unpack_components(value, obj.database))
         super().__set__(obj, comps)
 
     def __get__(self, obj, objtype=None):
         getobj = super().__get__(obj, objtype=objtype)
-        return sorted(unpack_species(obj.database, getobj))
+        return sorted(v.unpack_components(getobj, obj.database))
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        self.__set__(obj, self.default_factory(obj))
 
 class PhasesField(TypedField):
     def __init__(self, depends_on=None):
@@ -265,10 +288,13 @@ class EquilibriumCalculationField(TypedField):
 # Defined to allow type checking for Model or its subclasses
 ModelType = TypeVar('ModelType', bound=Model)
 
+# TODO: enable converting v.X conditions for v.Component objects into
+# LinearCombination conditions for components with more than one constituent
+
 class Workspace:
     _callbacks = defaultdict(lambda: [])
     database: Database = TypedField(lambda _: None)
-    components: SpeciesList = ComponentsField(depends_on=['database'])
+    components: ComponentList = ComponentsField(depends_on=['database'])
     phases: PhaseList = PhasesField(depends_on=['database', 'components'])
     conditions: Conditions = ConditionsField(lambda wks: Conditions(wks), depends_on=['components', 'models'])
     verbose: bool = TypedField(lambda _: False)
