@@ -45,8 +45,3 @@ def point_from_equilibrium(dbf: Database, components: list[str], phases: list[st
 
     point = Point(copy_conds, chemical_potentials, [cs for cs in comp_sets if cs.fixed], [cs for cs in comp_sets if not cs.fixed])
     return point
-        
-
-
-
-    

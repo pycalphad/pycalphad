@@ -101,7 +101,7 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : b
 class Point():
     """
     Stores data for a single point on the map
-    This will include everything needed to compute any property from pycalphad workspace
+    This will include everything needed to compute any property within the Workspace API
         composition sets, conditions, chemical potentials
 
     Fixed and free composition sets are split for easy accounting
@@ -117,7 +117,7 @@ class Point():
     _free_composition_sets : [CompositionSet]
     """
     global_conditions: Mapping[v.StateVariable, float]
-    chemical_potentials: List[float]    #We"ll store chemical potentials in case someone wants to plot activity diagrams
+    chemical_potentials: List[float]    # We'll store chemical potentials in case someone wants to plot activity diagrams
 
     # Yes, this uses CompositionSet objects, which means that there are copies saved.
     # Maybe inefficient, but we _need_ to know phase compositions for plotting and site
@@ -179,8 +179,8 @@ class Point():
 
     def __eq__(self, other):
         """
-        This equality treats all composition sets as the same (regardless of wether it"s fixed or not)
-            So this also ignores phase fraction, but we"re just checking if the phase boundaries
+        This equality treats all composition sets as the same (regardless of wether it's fixed or not)
+            So this also ignores phase fraction, but we're just checking if the phase boundaries
             are the same
         """
         if not isinstance(other, Point):
@@ -264,7 +264,7 @@ class Node(Point):
     Compared to its parent, the set of conditions should be the same (both keys
     and values) and the set of stable phases should differ by exactly one phase.
 
-    We"ll keep track of the axis variable and direction as well
+    We'll keep track of the axis variable and direction as well
         By default, they will be None and the direction will be decided later
     """
     parent: Point
