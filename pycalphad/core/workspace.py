@@ -263,6 +263,7 @@ class Workspace:
     phase_record_factory: Optional[PhaseRecordFactory] = PRFField(depends_on=['phases', 'conditions', 'models', 'parameters'])
     calc_opts: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
     solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), depends_on=['verbose'])
+    # eq is set by a callback in the EquilibriumCalculationField (TypedField)
     eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'calc_opts', 'solver'])
 
     def __init__(self, *args, **kwargs):
