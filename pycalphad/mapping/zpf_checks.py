@@ -12,9 +12,44 @@ import pycalphad.mapping.zpf_equilibrium as zeq
 
 _log = logging.getLogger(__name__)
 
+"""
+Two types of checking functions in this module
+
+Simple checks
+    simple_check_valid_point
+    simple_check_change_in_phases
+    simple_check_global_min
+
+    These quickly check a step result and returns 
+    a bool whether the step result is valid or not
+
+    These are intended for exit/direction finding, where we just need to know if 
+    an exit/direction is valid
+
+Normal checks
+    check_valid_point
+    check_axis_values
+    check_change_in_phases
+    check_global_min
+    check_similar_phase_composition
+
+    These will check whether the step result is valid or
+    if not valid, then will modify the zpf line or create
+    a new node
+"""
+
 def simple_check_valid_point(step_results: tuple[Point, list[CompositionSet]], **kwargs):
     """
     Returns True or False for whether step result was successful equilibria
+
+    Parameters
+    ----------
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    
+    Returns
+    -------
+    bool whether step result is valid or not (None)
     """
     if step_results is None:
         _log.info("Invalid equilibrium results")
@@ -24,6 +59,15 @@ def simple_check_valid_point(step_results: tuple[Point, list[CompositionSet]], *
 def simple_check_change_in_phases(step_results: tuple[Point, list[CompositionSet]], **kwargs):
     """
     Returns True or False for whether step result resulted in same number of phases
+
+    Parameters
+    ----------
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    
+    Returns
+    -------
+    bool whether step result resulted in a phase change
     """
     if step_results is None:
         return False
@@ -38,6 +82,15 @@ def simple_check_change_in_phases(step_results: tuple[Point, list[CompositionSet
 def simple_check_global_min(step_results: tuple[Point, list[CompositionSet]], **kwargs):
     """
     Returns True or False for whether step result is still global min
+
+    Parameters
+    ----------
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    
+    Returns
+    -------
+    bool whether step result is global min or not
     """
     if step_results is None:
         return False

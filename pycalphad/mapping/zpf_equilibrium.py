@@ -17,12 +17,29 @@ _log = logging.getLogger(__name__)
 
 def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.StateVariable, str], free_var: v.StateVariable = None):
     """
-    Pretty much a copy of the old update with new conditions
+    Updates point with new set of conditions
+    Assumes that the new conditions are small distance away from the current conditions
+
+    Parameters
+    ----------
+    point : Point
+        Point to update
+    new_conditions : dict[v.StateVariable, str]
+        New set of conditions
+    free_var : v.StateVariable (optional)
+        Variable to free when updating conditions
+        This will be the case if there's a fixed composition set, so
+        freeing a variable will conserve the Gibbs phase rule
 
     Returns
     -------
     new_point - Point with updated composition sets and conditions
-        Checking whether the number of composition sets has changed will be checked later
+    orig_cs - Original list of composition sets
+        Degrees of freedom in the composition sets will be updated with the new point conditions
+        Will include any composition sets that became unstable after updating
+
+    or
+
     None - equilibrium failed
     """
     #Update composition sets with new state variables
@@ -55,17 +72,43 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
 def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e-5, num_candidates = 1):
     """
     For each possible phase:
-        1. Sample DOF and find CS that minimizes driving force
+        1. Sample DOF and find CS that maximizes driving force
         2. Create a DormantPhase with CS and compute driving force with potentials at equilibrium
-        3. If driving force is negative, then new phase is stable
+            Or check the top N CS that maximizes driving force and compute driving force and take max
+        3. If driving force is positive, then new phase is stable
         4. Check that the new CS doesn"t match with a currently stable CS
         4. Hope that this works on miscibility gaps
 
-    This should take care of the DLASCLS error since we compute the new phase separately so if
-    the composition clashes with a fixed phase, we check that afterwards before attempting to
-    run equilibrium on two CS with the same composition
+    Parameters
+    ----------
+    point : Point
+        Point to check global min
+    system_info : dict
+        Dictionary containing information for pycalphad.calculate
+    pdens : int
+        Sampling density
+    tol : float
+        Tolerance for whether a new CS is considered stable
+    num_candidates : int
+        Number of candidate CS to check driving force
+        To avoid redundant calculations, this will only check driving force
+        for unique phases. So setting this to a high number will not significantly
+        affect performance
+
+    Returns
+    -------
+    new_point : Point with added composition set
+
+    or
+
+    None : if point is global min or global min was unable to be found
     """
-    dbf, comps, phases, models, phase_records = system_info["dbf"], system_info["comps"], system_info["phases"], system_info["models"], system_info["phase_records"]
+    dbf = system_info["dbf"]
+    comps = system_info["comps"]
+    phases = system_info["phases"]
+    models = system_info["models"]
+    phase_records = system_info["phase_records"]
+
     #Get driving force and find index that maximized driving force
     state_conds = {str(key): point.global_conditions[key] for key in STATEVARS}
     points = calculate(dbf, comps, phases, model=models, phase_records=phase_records, output="GM", to_xarray=False, pdens=pdens, **state_conds)
@@ -87,6 +130,8 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
     sorted_indices = np.argsort(dGs)[::-1]
     cs = None
     dG = 0
+    # Record phases that driving force is checked
+    # Each phase will be checked once to avoid redundant calculations
     tested_phases = []
     for i in range(np.amin([num_candidates, len(sorted_indices)])):
         index = sorted_indices[i]
@@ -130,6 +175,19 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
        beyond the tolerance for site fraction check, in which solving for equilibrium will
        fix this. In a sense, we can solve equilibrium for all CS pairs with the same name
        and skip step 2, but step 2 will avoid just unecessary calculations)
+
+    Parameters
+    ----------
+    point : Point
+        Point to compare new composition set against
+    new_cs : CompositionSet
+        Composition set to compare against the point
+
+    Returns
+    -------
+    bool
+        True if new_cs is valid
+        False if new_cs is the same CS as one already in the point
     """
     num_sv = len(STATEVARS)
     for cs in point.stable_composition_sets:
@@ -163,11 +221,32 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
         
     return True
     
-def create_node_from_different_points(new_point: Point, orig_cs: list[CompositionSet], axis_vars):
+def create_node_from_different_points(new_point: Point, orig_cs: list[CompositionSet], axis_vars : list[v.StateVariable]):
     """
     Between two points with different composition sets (only 1 different CS)
     Compute the node, freeing up the axis var and solving for it
     The unique CS will be fixed to 0 for the node
+
+    Parameters
+    ----------
+    new_point : Point
+        Point to add CS to
+    orig_cs : [CompositionSet]
+        List of CS in the previous point
+        This allows us to compare what composition set was added or removed
+    axis_vars : [v.StateVariable]
+        Variables to free when node finding
+        One variable per fixed composition set
+
+    Returns
+    -------
+    new_node : Node
+        Node solved with the fixed composition set (either added or removed from previous point)
+    
+    or
+
+    None - if node could not be found or CS change 
+           is invalid for finding new node (either 0 change in CS or more than 1)
     """
     prev_cs = [cs for cs in orig_cs]
     new_cs = [cs for cs in new_point.stable_composition_sets]
@@ -225,6 +304,23 @@ def compute_derivative(point: Point, v_num: v.StateVariable, v_den: v.StateVaria
     Computes dot derivative of d v_num / d v_den, which handles removing the numerator variable
         free_den is an unintuitive name, but it refers to the mapping code to state that the denominator variable
         is the free variable that we plan on stepping in, with the numerator being the dependent variable
+
+    Parameters
+    ----------
+    point : Point
+        Point to compure derivative on
+    v_num : v.StateVariable
+        Variable in numerator of derivative
+    v_den : v.StateVariable
+        Variable in denominator
+    free_den : bool
+        Whether to free the numerator variable
+        Name refers to the denominator being the variable we're stepping in
+
+    Returns
+    -------
+    derivative : float
+        Note: can be nan if the phase boundary is vertical and the denominator is composition
     """
     # Should be able to use point.stable_composition_sets, which puts the fixed composition sets first
     # This was originally here to account for an indexing issue, which is fixed now
