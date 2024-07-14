@@ -10,7 +10,7 @@ from pyparsing import delimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
-from symengine import Symbol, RealDouble, LessThan, StrictLessThan, S, E
+from symengine import Float, Symbol, RealDouble, LessThan, StrictLessThan, S, E
 from tinydb import where
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
@@ -58,7 +58,7 @@ def _sympify_string(math_string):
         if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
-    return sympify(expr_string).xreplace(v.supported_variables_in_databases).n()
+    return sympify(expr_string).xreplace(get_supported_variables()).n()
 
 def _parse_action(func):
     """
@@ -377,10 +377,29 @@ def _process_species(db, sp_name, sp_comp, charge=0, *args):
     constituents = {sp_comp[i]: sp_comp[i+1] for i in range(0, len(sp_comp), 2)}
     db.species.add(Species(sp_name, constituents, charge=charge))
 
+# g/mol
+_molmass = \
+    {"H": 1.008, "HE": 4.003, "LI": 6.941, "BE": 9.012, "B": 10.811, "C": 12.011, "N": 14.007, "O": 15.999,
+     "F": 18.998, "NE": 20.18, "NA": 22.99, "MG": 24.305, "AL": 26.982, "SI": 28.086, "P": 30.974, "S": 32.065,
+     "CL": 35.453, "AR": 39.948, "K": 39.098, "CA": 40.078, "SC": 44.956, "TI": 47.867, "V": 50.942, "CR": 51.996,
+     "MN": 54.938, "FE": 55.845, "CO": 58.933, "NI": 58.693, "CU": 63.546, "ZN": 65.39, "GA": 69.723, "GE": 72.64,
+     "AS": 74.922, "SE": 78.96, "BR": 79.904, "KR": 83.8, "RB": 85.468, "SR": 87.62, "Y": 88.906, "ZR": 91.224,
+     "NB": 92.906, "MO": 95.94, "TC": 98, "RU": 101.07, "RH": 102.906, "PD": 106.42, "AG": 107.868, "CD": 112.411,
+     "IN": 114.818, "SN": 118.71, "SB": 121.76, "TE": 127.6, "I": 126.905, "XE": 131.293, "CS": 132.906,
+     "BA": 137.327, "LA": 138.906, "CE": 140.116, "PR": 140.908, "ND": 144.24, "PM": 145, "SM": 150.36,
+     "EU": 151.964, "GD": 157.25, "TB": 158.925, "DY": 162.5, "HO": 164.93, "ER": 167.259, "TM": 168.934,
+     "YB": 173.04, "LU": 174.967, "HF": 178.49, "TA": 180.948, "W": 183.84, "RE": 186.207, "OS": 190.23,
+     "IR": 192.217, "PT": 195.078, "AU": 196.967, "HG": 200.59, "TL": 204.383, "PB": 207.2, "BI": 208.98,
+     "PO": 209, "AT": 210, "RN": 222, "FR": 223, "RA": 226, "AC": 227, "TH": 232.038, "PA": 231.036, "U": 238.029,
+     "NP": 237, "PU": 244, "AM": 243, "CM": 247, "BK": 247, "CF": 251, "ES": 252, "FM": 257, "MD": 258, "NO": 259,
+     "LR": 262, "RF": 261, "DB": 262, "SG": 266, "BH": 264, "HS": 277, "MT": 268
+     }
+
 def _process_reference_state(db, el, refphase, mass, H298, S298):
+    # If user database doesn't specify mass, use periodic table values (if the element exists)
     db.refstates[el] = {
         'phase': refphase,
-        'mass': mass,
+        'mass': mass if mass != 0.0 else _molmass.get(el, 0.0),
         'H298': H298,
         'S298': S298,
     }
@@ -625,6 +644,10 @@ def _symmetry_added_parameter(dbf, param):
             if phase_obj.model_hints[symm_hint] and param.get("_generated_by_symmetry_option", False):
                 return True
     return False
+
+def get_supported_variables():
+    "When loading databases, these symbols should be replaced by their IndependentPotential counterparts"
+    return {Symbol(x): getattr(v, x) for x in v.__dict__ if isinstance(getattr(v, x), (v.IndependentPotential, Float))}
 
 
 def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):

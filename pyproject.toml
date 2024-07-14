@@ -14,6 +14,10 @@ markers = [
     "solver: mark for tests that verify the correctness of the solver",
 ]
 norecursedirs = ["pycalphad/_dev"]
+filterwarnings = [
+    "error",
+    "ignore:The type definition character*:UserWarning",
+]
 
 [tool.coverage.paths]
 # The first path is the path to the modules to report coverage against.

@@ -8,7 +8,7 @@ import numpy as np
 from symengine.lib.symengine_wrapper import LambdaDouble, LLVMDouble
 from symengine import zoo
 from pycalphad import Model, variables as v
-from pycalphad.codegen.callables import build_phase_records
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.codegen.sympydiff_utils import build_functions, build_constraint_functions
 from pycalphad.tests.fixtures import select_database, load_database
 
@@ -63,7 +63,7 @@ def test_phase_records_are_picklable(load_database):
     dof = np.array([300, 1.0])
 
     mod = Model(dbf, ['AL'], 'LIQUID')
-    prxs = build_phase_records(dbf, [v.Species('AL')], ['LIQUID'], [v.T], {'LIQUID': mod}, build_gradients=True, build_hessians=True)
+    prxs = PhaseRecordFactory(dbf, [v.Species('AL')], [v.T], {'LIQUID': mod})
     prx_liquid = prxs['LIQUID']
 
     out = np.array([0.0])

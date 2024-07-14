@@ -262,6 +262,7 @@ def test_zero_site_fraction(load_database):
         5.52773e3, mode='sympy')
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 @select_database("femn.tdb")
 def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero(load_database):
     """The referenced energy for the pure elements in a unary Model with twostate and Einstein contributions referenced to that phase is zero."""
@@ -273,6 +274,7 @@ def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero(load_datab
     check_output(m, statevars, 'GMR', 0.0)
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 @select_database("femn.tdb")
 def test_underspecified_refstate_raises(load_database):
     """A Model cannot be shifted to a new reference state unless references for all pure elements are specified."""
@@ -283,6 +285,7 @@ def test_underspecified_refstate_raises(load_database):
         m.shift_reference_state(refstates, dbf)
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 @select_database("femn.tdb")
 def test_reference_energy_of_binary_twostate_einstein_is_zero(load_database):
     """The referenced energy for the pure elements in a binary Model with twostate and Einstein contributions referenced to that phase is zero."""
@@ -302,6 +305,7 @@ def test_reference_energy_of_binary_twostate_einstein_is_zero(load_database):
     check_output(m, statevars_CR, 'GMR', 0.0)
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 @select_database("crfe_bcc_magnetic.tdb")
 def test_magnetic_reference_energy_is_zero(load_database):
     """The referenced energy binary magnetic Model is zero."""
@@ -321,6 +325,7 @@ def test_magnetic_reference_energy_is_zero(load_database):
     check_output(m, statevars_CR, 'GMR', 0.0)
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
     
@@ -358,6 +363,7 @@ def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     check_output(m, statevars_mix, 'HM_MIX', 2000.0)
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 @select_database("alfe.tdb")
 def test_reference_energy_for_different_phase(load_database):
     """The referenced energy a different phase should be correct."""
@@ -396,6 +402,7 @@ def test_magnetic_endmember_mixing_energy_is_zero(load_database):
     check_output(m, statevars, 'GM_MIX', 0.0)
 
 
+@pytest.mark.filterwarnings("ignore:B2_BCC is a partitioned model with an ordering energy contribution*:UserWarning")
 @select_database("alfe.tdb")
 def test_order_disorder_mixing_energy_is_nan(load_database):
     """The endmember-referenced mixing energy is undefined and the energy should be NaN."""
@@ -426,6 +433,7 @@ def test_changing_model_ast_also_changes_mixing_energy(load_database):
     check_output(m, statevars, 'GM_MIX', 0)
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 def test_shift_reference_state_model_contribs_take_effect():
     """Shift reference state with contrib_mods set adds contributions to the pure elements."""
     TDB = """

@@ -40,7 +40,7 @@ class Solver(SolverBase):
         ----------
         composition_sets : List[pycalphad.core.composition_set.CompositionSet]
             List of CompositionSet objects in the starting point. Modified in place.
-        conditions : OrderedDict[str, float]
+        conditions : OrderedDict[StateVariable, float]
             Conditions to satisfy.
 
         Returns
@@ -48,28 +48,74 @@ class Solver(SolverBase):
         SystemSpecification
 
         """
+        # Prevent circular import
+        from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, \
+            SiteFraction
         compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
         nonvacant_elements = compsets[0].phase_record.nonvacant_elements
         num_statevars = len(state_variables)
         num_components = len(nonvacant_elements)
         chemical_potentials = np.zeros(num_components)
-        prescribed_elemental_amounts = []
-        prescribed_element_indices = []
+        prescribed_mole_fraction_coefficients = []
+        prescribed_mole_fraction_rhs = []
+        local_conditions = {key: value for key, value in conditions.items()
+                            if getattr(key, 'phase_name', None) is not None}
+        for compset in compsets:
+            phase_local_conditions = {key: value for key, value in local_conditions.items()
+                                      if compset.phase_record.phase_name == key.phase_name}
+            compset.set_local_conditions(phase_local_conditions)
         for cond, value in conditions.items():
-            if str(cond).startswith('X_'):
+            if isinstance(cond, MoleFraction) and cond.phase_name is None:
                 el = str(cond)[2:]
                 el_idx = list(nonvacant_elements).index(el)
-                prescribed_elemental_amounts.append(float(value))
-                prescribed_element_indices.append(el_idx)
-        prescribed_element_indices = np.array(prescribed_element_indices, dtype=np.int32)
-        prescribed_elemental_amounts = np.array(prescribed_elemental_amounts)
+                prescribed_mole_fraction_rhs.append(np.asarray(value).flat[0])
+                coefs = np.zeros(num_components)
+                coefs[el_idx] = 1.0
+                prescribed_mole_fraction_coefficients.append(coefs)
+            elif isinstance(cond, MoleFraction) and cond.phase_name is not None:
+                # phase-local condition; already handled
+                continue
+            elif isinstance(cond, SiteFraction):
+                # phase-local condition; already handled
+                continue
+            elif isinstance(cond, MassFraction):
+                # wA = k -> (1-k)*MWA*xA - k*MWB*xB - k*MWC*xC = 0
+                el = str(cond)[2:]
+                el_idx = list(nonvacant_elements).index(el)
+                coef_vector = np.zeros(num_components)
+                coef_vector -= value
+                coef_vector[el_idx] += 1
+                # multiply coef_vector times a vector of molecular weights
+                coef_vector = np.multiply(coef_vector, compsets[0].phase_record.molar_masses)
+                prescribed_mole_fraction_rhs.append(0.)
+                prescribed_mole_fraction_coefficients.append(coef_vector)
+            elif str(cond).startswith('LinComb_'):
+                coefs = np.zeros(num_components)
+                constant = 0.0
+                for symbol, coef in zip(cond.symbols, cond.coefs):
+                    if symbol == 1:
+                        constant = coef
+                        continue
+                    el = str(symbol)[2:]
+                    el_idx = list(nonvacant_elements).index(el)
+                    coefs[el_idx] = coef
+                if cond.denominator == 1:
+                    prescribed_mole_fraction_rhs.append(float(value) - float(constant))
+                else:
+                    # Adjust coefficients to account for molar ratio
+                    prescribed_mole_fraction_rhs.append(-float(constant))
+                    denominator_idx = cond.symbols.index(cond.denominator)
+                    coefs[denominator_idx] -= float(value)
+                prescribed_mole_fraction_coefficients.append(coefs)
+        prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
+        prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)
         prescribed_system_amount = conditions.get('N', 1.0)
-        fixed_chemical_potential_indices = np.array([nonvacant_elements.index(key[3:]) for key in conditions.keys() if key.startswith('MU_')], dtype=np.int32)
+        fixed_chemical_potential_indices = np.array([nonvacant_elements.index(str(key)[3:]) for key in conditions.keys() if str(key).startswith('MU_')], dtype=np.int32)
         free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(fixed_chemical_potential_indices)), dtype=np.int32)
         for fixed_chempot_index in fixed_chemical_potential_indices:
             el = nonvacant_elements[fixed_chempot_index]
-            chemical_potentials[fixed_chempot_index] = conditions.get('MU_' + str(el))
+            chemical_potentials[fixed_chempot_index] = conditions.get(ChemicalPotential(el))
         fixed_statevar_indices = []
         for statevar_idx, statevar in enumerate(state_variables):
             if str(statevar) in [str(k) for k in conditions.keys()]:
@@ -78,12 +124,22 @@ class Solver(SolverBase):
         fixed_statevar_indices = np.array(fixed_statevar_indices, dtype=np.int32)
         fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
         spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
-                                   chemical_potentials, prescribed_elemental_amounts,
-                                   prescribed_element_indices,
+                                   chemical_potentials, prescribed_mole_fraction_coefficients,
+                                   prescribed_mole_fraction_rhs,
                                    free_chemical_potential_indices, free_statevar_indices,
                                    fixed_chemical_potential_indices, fixed_statevar_indices,
                                    fixed_stable_compset_indices)
         return spec
+
+    @staticmethod
+    def _fix_state_variables_in_compsets(composition_sets, conditions):
+        "Ensure state variables in each CompositionSet are set to the fixed value."
+        str_state_variables = [str(k) for k in composition_sets[0].phase_record.state_variables]
+        for compset in composition_sets:
+            for k,v in conditions.items():
+                if str(k) in str_state_variables:
+                    statevar_idx = str_state_variables.index(str(k))
+                    compset.dof[statevar_idx] = v
 
     def solve(self, composition_sets, conditions):
         """
@@ -102,6 +158,7 @@ class Solver(SolverBase):
 
         """
         spec = self.get_system_spec(composition_sets, conditions)
+        self._fix_state_variables_in_compsets(composition_sets, conditions)
         state = spec.get_new_state(composition_sets)
         converged = spec.run_loop(state, 1000)
 

@@ -2,14 +2,13 @@
 The lower_convex_hull module handles geometric calculations associated with
 equilibrium calculation.
 """
-from pycalphad.core.cartesian import cartesian
-from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.property_framework.computed_property import LinearCombination
 from .hyperplane import hyperplane
+from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, IndependentPotential, SiteFraction, SystemMolesType
 import numpy as np
-import itertools
 
 
-def lower_convex_hull(global_grid, state_variables, result_array):
+def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_factory, result_array):
     """
     Find the simplices on the lower convex hull satisfying the specified
     conditions in the result array.
@@ -20,6 +19,10 @@ def lower_convex_hull(global_grid, state_variables, result_array):
         A sample of the energy surface of the system.
     state_variables : List[v.StateVariable]
         A list of the state variables (e.g., P, T) used in this calculation.
+    conds_keys : List
+        A list of the keys of the conditions used in this calculation.
+    phase_record_factory : PhaseRecordFactory
+        PhaseRecordFactory object corresponding to this calculation.
     result_array : Dataset
         This object will be modified!
         Coordinates correspond to conditions axes.
@@ -38,43 +41,11 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     None yet.
     """
     state_variables = sorted(state_variables, key=str)
-    comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
-    comp_conds_indices = sorted([idx for idx, x in enumerate(sorted(result_array.coords['component']))
-                                 if 'X_'+x in comp_conds])
-    comp_conds_indices = np.array(comp_conds_indices, dtype=np.uintp)
-    pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
-    pot_conds_indices = sorted([idx for idx, x in enumerate(sorted(result_array.coords['component']))
-                                if 'MU_'+x in pot_conds])
-    pot_conds_indices = np.array(pot_conds_indices, dtype=np.uintp)
+    local_conds_keys = [c for c in conds_keys if getattr(c, 'phase_name', None) is not None]
+    str_conds_keys = [str(c) for c in conds_keys]
 
-    if len(set(pot_conds_indices) & set(comp_conds_indices)) > 0:
-        raise ValueError('Cannot specify component chemical potential and amount simultaneously')
-
-    if len(comp_conds) > 0:
-        cart_values = cartesian([result_array.coords[cond] for cond in comp_conds])
-    else:
-        cart_values = np.atleast_2d(1.)
-    # TODO: Handle W(comp) as well as X(comp) here
-    comp_values = np.zeros(cart_values.shape[:-1] + (len(result_array.coords['component']),))
-    for idx in range(comp_values.shape[-1]):
-        if idx in comp_conds_indices:
-            comp_values[..., idx] = cart_values[..., np.where(comp_conds_indices == idx)[0][0]]
-        elif idx in pot_conds_indices:
-            # Composition value not used
-            comp_values[..., idx] = 0
-        else:
-            # Dependent component (composition value not used)
-            comp_values[..., idx] = 0
-    # Prevent compositions near an edge from going negative
-    comp_values[np.nonzero(comp_values < MIN_SITE_FRACTION)] = MIN_SITE_FRACTION*10
-
-    if len(pot_conds) > 0:
-        cart_pot_values = cartesian([result_array.coords[cond] for cond in pot_conds])
-
-    #result_array['Phase'] = force_indep_align(result_array.Phase)
     # factored out via profiling
     result_array_GM_values = result_array.GM
-    result_array_GM_dims = result_array.data_vars['GM'][0]
     result_array_points_values = result_array.points
     result_array_MU_values = result_array.MU
     result_array_NP_values = result_array.NP
@@ -88,46 +59,114 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     num_comps = len(result_array.coords['component'])
 
     it = np.nditer(result_array_GM_values, flags=['multi_index'])
-    comp_coord_shape = tuple(len(result_array.coords[cond]) for cond in comp_conds)
-    pot_coord_shape = tuple(len(result_array.coords[cond]) for cond in pot_conds)
+
     while not it.finished:
-        indep_idx = []
+        primary_index = it.multi_index
+        grid_index = []
         # Relies on being ordered
+        for lc in local_conds_keys:
+            coord_idx = conds_keys.index(lc)
+            grid_index.append(primary_index[coord_idx])
         for sv in state_variables:
-            if str(sv) in result_array.coords.keys():
-                coord_idx = list(result_array.coords.keys()).index(str(sv))
-                indep_idx.append(it.multi_index[coord_idx])
+            if sv in conds_keys:
+                coord_idx = conds_keys.index(sv)
+                grid_index.append(primary_index[coord_idx])
             else:
                 # free state variable
-                indep_idx.append(0)
-        indep_idx = tuple(indep_idx)
-        if len(comp_conds) > 0:
-            comp_idx = np.ravel_multi_index(tuple(idx for idx, key in zip(it.multi_index, result_array_GM_dims) if key in comp_conds), comp_coord_shape)
-            idx_comp_values = comp_values[comp_idx, :]
-        else:
-            idx_comp_values = np.atleast_1d(1.)
-        if len(pot_conds) > 0:
-            pot_idx = np.ravel_multi_index(tuple(idx for idx, key in zip(it.multi_index, result_array_GM_dims) if key in pot_conds), pot_coord_shape)
-            idx_pot_values = np.array(cart_pot_values[pot_idx, :])
+                grid_index.append(0)
+        grid_index = tuple(grid_index)
 
-        idx_global_grid_X_values = global_grid_X_values[indep_idx]
-        idx_global_grid_GM_values = global_grid_GM_values[indep_idx]
+        idx_global_grid_X_values = global_grid_X_values[grid_index]
+        idx_global_grid_GM_values = global_grid_GM_values[grid_index]
         idx_result_array_MU_values = result_array_MU_values[it.multi_index]
         idx_result_array_MU_values[:] = 0
-        for idx in range(len(pot_conds_indices)):
-            idx_result_array_MU_values[pot_conds_indices[idx]] = idx_pot_values[idx]
+        idx_fixed_lincomb_molefrac_coefs = []
+        idx_fixed_lincomb_molefrac_rhs = []
+        idx_fixed_chempot_indices = []
+
+        for coord_idx, str_cond_key in enumerate(sorted(result_array.coords.keys())):
+            try:
+                cond_key = conds_keys[str_conds_keys.index(str_cond_key)]
+            except ValueError:
+                continue
+            rhs = result_array.coords[str_cond_key][primary_index[coord_idx]]
+            if isinstance(cond_key, IndependentPotential):
+                # Already handled above in construction of grid_index
+                continue
+            if isinstance(cond_key, SiteFraction):
+                # Already handled above in construction of grid_index
+                continue
+            elif isinstance(cond_key, ChemicalPotential):
+                component_idx = result_array.coords['component'].index(str(cond_key.species))
+                idx_fixed_chempot_indices.append(component_idx)
+                idx_result_array_MU_values[component_idx] = rhs
+            elif isinstance(cond_key, MassFraction):
+                # wA = k -> (1-k)*MWA*xA - k*MWB*xB - k*MWC*xC = 0
+                component_idx = result_array.coords['component'].index(str(cond_key.species))
+                coef_vector = np.zeros(num_comps)
+                coef_vector -= rhs
+                coef_vector[component_idx] += 1
+                # multiply coef_vector times a vector of molecular weights
+                coef_vector = np.multiply(coef_vector, phase_record_factory.molar_masses)
+                idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
+                idx_fixed_lincomb_molefrac_rhs.append(0.)
+            elif isinstance(cond_key, MoleFraction):
+                if cond_key.phase_name is not None:
+                    # Phase-local condition already handled in construction of grid
+                    continue
+                component_idx = result_array.coords['component'].index(str(cond_key.species))
+                coef_vector = np.zeros(num_comps)
+                coef_vector[component_idx] = 1
+                idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
+                idx_fixed_lincomb_molefrac_rhs.append(rhs)
+            elif isinstance(cond_key, SystemMolesType):
+                coef_vector = np.ones(num_comps)
+                idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
+                idx_fixed_lincomb_molefrac_rhs.append(rhs)
+            elif isinstance(cond_key, LinearCombination):
+                coef_vector = np.zeros(num_comps)
+                if cond_key.denominator == 1:
+                    for symbol_idx, symbol in enumerate(cond_key.symbols):
+                        if symbol != 1:
+                            coef_idx = result_array.coords['component'].index(str(symbol.species))
+                            coef_vector[coef_idx] = cond_key.coefs[symbol_idx]
+                        else:
+                            idx_fixed_lincomb_molefrac_rhs.append(rhs-cond_key.coefs[symbol_idx])
+                else:
+                    # This is a molar ratio
+                    denominator_idx = cond_key.symbols.index(cond_key.denominator)
+                    for symbol_idx, symbol in enumerate(cond_key.symbols):
+                        if symbol_idx == denominator_idx:
+                            coef_idx = result_array.coords['component'].index(str(symbol.species))
+                            coef_vector[coef_idx] = cond_key.coefs[symbol_idx] - rhs
+                        elif symbol != 1:
+                            coef_idx = result_array.coords['component'].index(str(symbol.species))
+                            coef_vector[coef_idx] = cond_key.coefs[symbol_idx]
+                        else:
+                            if cond_key.coefs[symbol_idx] != 0:
+                                # Constant term for molar ratio should be zero
+                                raise ValueError(f'Unsupported condition {cond_key}')
+                            idx_fixed_lincomb_molefrac_rhs.append(-cond_key.coefs[symbol_idx])
+                idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
+            else:
+                raise ValueError(f'Unsupported condition {cond_key}')
+
+        idx_fixed_lincomb_molefrac_coefs = np.atleast_2d(idx_fixed_lincomb_molefrac_coefs)
+        idx_fixed_lincomb_molefrac_rhs = np.atleast_1d(idx_fixed_lincomb_molefrac_rhs)
+        idx_fixed_chempot_indices = np.array(idx_fixed_chempot_indices, dtype=np.uintp)
+
         idx_result_array_NP_values = result_array_NP_values[it.multi_index]
         idx_result_array_points_values = result_array_points_values[it.multi_index]
+
         result_array_GM_values[it.multi_index] = \
             hyperplane(idx_global_grid_X_values, idx_global_grid_GM_values,
-                       idx_comp_values, idx_result_array_MU_values, float(global_grid.coords['N'][0]),
-                       pot_conds_indices, comp_conds_indices,
+                       idx_result_array_MU_values, idx_fixed_chempot_indices, idx_fixed_lincomb_molefrac_coefs, idx_fixed_lincomb_molefrac_rhs,
                        idx_result_array_NP_values, idx_result_array_points_values)
         # Copy phase values out
         points = result_array_points_values[it.multi_index]
-        result_array_Phase_values[it.multi_index][:num_comps] = global_grid_Phase_values[indep_idx].take(points, axis=0)[:num_comps]
-        result_array_X_values[it.multi_index][:num_comps] = global_grid_X_values[indep_idx].take(points, axis=0)[:num_comps]
-        result_array_Y_values[it.multi_index][:num_comps] = global_grid_Y_values[indep_idx].take(points, axis=0)[:num_comps]
+        result_array_Phase_values[it.multi_index][:num_comps] = global_grid_Phase_values[grid_index].take(points, axis=0)[:num_comps]
+        result_array_X_values[it.multi_index][:num_comps] = global_grid_X_values[grid_index].take(points, axis=0)[:num_comps]
+        result_array_Y_values[it.multi_index][:num_comps] = global_grid_Y_values[grid_index].take(points, axis=0)[:num_comps]
         # Special case: Sometimes fictitious points slip into the result
         if '_FAKE_' in result_array_Phase_values[it.multi_index]:
             new_energy = 0.
@@ -140,9 +179,10 @@ def lower_convex_hull(global_grid, state_variables, result_array):
                     result_array_Y_values[midx] = np.nan
                     idx_result_array_NP_values[idx] = np.nan
                 else:
-                    new_energy += idx_result_array_NP_values[idx] * global_grid.GM[np.index_exp[indep_idx + (points[idx],)]]
+                    new_energy += idx_result_array_NP_values[idx] * global_grid.GM[np.index_exp[grid_index + (points[idx],)]]
                     molesum += idx_result_array_NP_values[idx]
-            result_array_GM_values[it.multi_index] = new_energy / molesum
+            if molesum != 0:
+                result_array_GM_values[it.multi_index] = new_energy / molesum
         it.iternext()
     result_array.remove('points')
     return result_array

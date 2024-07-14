@@ -11,66 +11,58 @@ import numpy as np
 from numpy import broadcast_to
 import pycalphad.variables as v
 from pycalphad import ConditionError
-from pycalphad.codegen.callables import build_phase_records
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.cache import cacheit
 from pycalphad.core.light_dataset import LightDataset
+from pycalphad.core.polytope import sample
 from pycalphad.model import Model
-from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_components, unpack_condition, unpack_kwarg
 from pycalphad.core.constants import MIN_SITE_FRACTION, MAX_ENDMEMBER_PAIRS, MAX_EXTRA_POINTS
 
 
-def hr_point_sample(constraint_jac, constraint_rhs, initial_point, num_points):
-    "Hit-and-run sampling of linearly-constrained site fraction spaces"
-    q, r = np.linalg.qr(constraint_jac.T, mode='complete')
-    q1 = q[:, :constraint_jac.shape[0]]
-    q2 = q[:, constraint_jac.shape[0]:]
-    r1 = r[:constraint_jac.shape[0], :]
-    if initial_point is not None:
-        z_bar = initial_point
-    else:
-        # minimum norm solution to underdetermined system of equations
-        # may not be feasible if it fails the non-negativity constraint
-        z_bar = np.linalg.lstsq(constraint_jac, constraint_rhs, rcond=None)[0]
-    solution_norm = np.linalg.norm(constraint_jac.dot(z_bar) - constraint_rhs)
-    if (solution_norm > 1e-4) or np.any(z_bar < 0):
-        # initial point does not satisfy constraints; give up
-        return np.empty((0, z_bar.shape[0]))
-    # Hit-and-Run sampling
-    new_feasible_z = np.zeros((num_points, constraint_jac.shape[1]))
-    current_z = np.array(z_bar)
-    min_z = MIN_SITE_FRACTION
-    rng = np.random.RandomState(1769)
-    for iteration in range(num_points):
-        # generate unit direction in null space
-        d = rng.normal(size=(constraint_jac.shape[1] - constraint_jac.shape[0]))
-        d /= np.linalg.norm(d, axis=0)
-        proj = np.dot(q2, d)
-        # find extent of step direction possible while staying within bounds (0 <= z)
-        with np.errstate(divide='ignore'):
-            alphas = (min_z - current_z) / proj
-        # Need to use small value to prevent constraints binding one sublattice (with proj ~ 0) from binding all dof
-        max_alpha_candidates = alphas[np.logical_and(proj > 1e-6, np.isfinite(alphas))]
-        min_alpha_candidates = alphas[np.logical_and(proj < -1e-6, np.isfinite(alphas))]
-        alpha_min = np.min(min_alpha_candidates)
-        alpha_max = np.max(max_alpha_candidates)
-        # Poor progress; give up on sampling
-        if np.abs(alpha_max - alpha_min) < 1e-4:
-            new_feasible_z = new_feasible_z[:iteration, :]
-            break
-        # choose a random step size within the feasible interval
-        new_alpha = rng.uniform(low=alpha_min, high=alpha_max)
-        current_z += new_alpha * proj
-        new_feasible_z[iteration, :] = current_z
-    if np.any(new_feasible_z < 0):
-        raise ValueError('Constrained sampling generated negative site fractions')
-    return new_feasible_z
+def _jacobian_from_constraints(constraints, variables):
+    """
+    Generate the Jacobian matrix and right-hand side vector from
+    a list of constraint equations.
 
+    Parameters
+    ----------
+    constraints : Iterable[Basic]
+        Constraint equations (implicitly equal to zero)
+    variables : Iterable[Basic]
+    """
+    constraint_jac = np.zeros((len(constraints), len(variables)))
+    constraint_rhs = np.zeros(len(constraints))
+    for cons_idx, cons_equation in enumerate(constraints):
+        residual = cons_equation + 0. # force copy
+        for var_idx, variable in enumerate(variables):
+            deriv = cons_equation.diff(variable)
+            try:
+                constraint_jac[cons_idx, var_idx] = float(deriv)
+            except (TypeError, RuntimeError):
+                raise ValueError('Constraint Jacobian is non-linear')
+            residual = residual - deriv * variable
+        try:
+            constraint_rhs[cons_idx] = -float(residual)
+        except (TypeError, RuntimeError):
+            raise ValueError('Constraint Jacobian is non-linear')
+    return constraint_jac, constraint_rhs
+
+def _get_local_constraint_equations(model, phase_local_conditions):
+    phase_local_constraints = []
+    for key, value in phase_local_conditions.items():
+        if isinstance(key, v.MoleFraction):
+            cons = model.moles(key.species, per_formula_unit=True) - \
+                value * sum(model.moles(v.Species(el), per_formula_unit=True) for el in model.nonvacant_elements)
+        else:
+            cons = key - value
+        phase_local_constraints.append(cons.expand())
+    return phase_local_constraints
 
 @cacheit
-def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
+def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_conditions):
     """
     Sample the internal degrees of freedom of a phase.
 
@@ -120,7 +112,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     # Note that if a phase only consists of site fraction balance constraints,
     # we do not consider that 'linearly constrained' for the purposes of sampling,
     # since the default sampler handles that case with an efficient method.
-    linearly_constrained_space = charge_constrained_space
+    linearly_constrained_space = charge_constrained_space or (len(phase_local_conditions.keys()) > 0)
 
     if charge_constrained_space:
         endmembers = points
@@ -160,32 +152,28 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     # Sample composition space for more points
     if sum(sublattice_dof) > len(sublattice_dof):
         if linearly_constrained_space:
-            # construct constraint Jacobian for this phase
-            # Model technically already does this so it would be better to reuse that functionality
-            # number of sublattices, plus charge balance
-            num_constraints = len(sublattice_dof) + 1
-            constraint_jac = np.zeros((num_constraints, points.shape[-1]))
-            constraint_rhs = np.zeros(num_constraints)
-            # site fraction balance
-            dof_idx = 0
-            constraint_idx = 0
-            for subl_dof in sublattice_dof:
-                constraint_jac[constraint_idx, dof_idx:dof_idx + subl_dof] = 1
-                constraint_rhs[constraint_idx] = 1
-                constraint_idx += 1
-                dof_idx += subl_dof
-            # charge balance
-            constraint_jac[constraint_idx, :] = species_charge
-            constraint_rhs[constraint_idx] = 0
-            # Sample additional points which obey the constraints
-            # Mean of pseudo-endmembers is feasible by convexity of the space
-            initial_point = np.mean(points, axis=0)
+            model_constraints = model.get_internal_constraints()
+            phase_local_constraints = _get_local_constraint_equations(model, phase_local_conditions)
+            constraint_jac, constraint_rhs = _jacobian_from_constraints(model_constraints + phase_local_constraints,
+                                                                        model.site_fractions)
             num_points = (pdens ** 2) * (constraint_jac.shape[1] - constraint_jac.shape[0])
-            extra_points = hr_point_sample(constraint_jac, constraint_rhs, initial_point, num_points)
-            points = np.concatenate((points, extra_points))
-            assert np.max(np.abs(constraint_jac.dot(points.T).T - constraint_rhs)) < 1e-6
-            if points.shape[0] == 0:
-                warnings.warn(f'{model.phase_name} has zero feasible configurations under the given conditions')
+            num_points = min(num_points, MAX_EXTRA_POINTS)
+            extra_points = sample(num_points, np.full(constraint_jac.shape[1], MIN_SITE_FRACTION),
+                                  np.ones(constraint_jac.shape[1]), A2=constraint_jac, b2=constraint_rhs)
+            if (len(phase_local_conditions.keys()) > 0):
+                points = extra_points
+            else:
+                # Avoid adding redundant points for the charge-constrained case
+                if charge_constrained_space and extra_points.shape[-2] == 1:
+                    # Zero degrees of freedom in the sampler, this is probably a redundant point
+                    pass
+                else:
+                    points = np.concatenate((points, extra_points))
+            if points.shape[0] > 0:
+                assert np.max(np.abs(constraint_jac.dot(points.T).T - constraint_rhs)) < 1e-6
+            else:
+                # No feasible points; return array of nan to preserve shape
+                return np.full((num_points, constraint_jac.shape[1]), np.nan)
         else:
             points = np.concatenate((points, sampler(sublattice_dof, pdof=pdens)))
 
@@ -197,7 +185,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens):
     return points
 
 
-def _compute_phase_values(components, statevar_dict,
+def _compute_phase_values(components, statevar_dict, str_phase_local_conditions,
                           points, phase_record, output, maximum_internal_dof, broadcast=True,
                           parameters=None, fake_points=False,
                           largest_energy=None):
@@ -210,6 +198,8 @@ def _compute_phase_values(components, statevar_dict,
         Names of components to consider in the calculation.
     statevar_dict : OrderedDict {str -> float or sequence}
         Mapping of state variables to desired values. This will broadcast if necessary.
+    str_phase_local_conditions : OrderedDict[str, sequence]
+        Phase-local conditions array, which are the leading dimensions of `points`, by construction.
     points : ndarray
         Inputs to 'func', except state variables. Columns should be in 'variables' order.
     phase_record : PhaseRecord
@@ -238,13 +228,17 @@ def _compute_phase_values(components, statevar_dict,
     --------
     None yet.
     """
+    plc_shape = tuple(len(x) for x in str_phase_local_conditions.values())
     if broadcast:
         # Broadcast compositions and state variables along orthogonal axes
         # This lets us eliminate an expensive Python loop
         statevars = np.meshgrid(*itertools.chain(statevar_dict.values(),
                                                      [np.empty(points.shape[-2])]),
                                     sparse=True, indexing='ij')[:-1]
-        points = broadcast_to(points, tuple(len(np.atleast_1d(x)) for x in statevar_dict.values()) + points.shape[-2:])
+        # Add dummy dimensions for the statevars between the PLC dimensions and the trailing points array dimensions
+        points = np.expand_dims(points, axis=tuple(range(len(plc_shape), len(plc_shape) + len(statevars))))
+        # Broadcast the dummy state variable dimensions to align with the size of the statevar arrays
+        points = broadcast_to(points, plc_shape + tuple(len(np.atleast_1d(x)) for x in statevar_dict.values()) + points.shape[-2:])
     else:
         statevars = list(np.atleast_1d(x) for x in statevar_dict.values())
         statevars_ = []
@@ -262,8 +256,11 @@ def _compute_phase_values(components, statevar_dict,
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
-    pts = points.reshape(-1, points.shape[-1])
-    dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
+    if points.size > 0:
+        pts = points.reshape(-1, points.shape[-1])
+        dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
+    else:
+        dof = np.ascontiguousarray(bc_statevars.T)
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
 
     param_symbols, parameter_array = extract_parameters(parameters)
@@ -271,11 +268,11 @@ def _compute_phase_values(components, statevar_dict,
     if parameter_array_length == 0:
         # No parameters specified
         phase_output = np.zeros(dof.shape[0], order='C')
-        phase_record.obj_2d(phase_output, dof)
+        phase_record.prop_2d(phase_output, dof, output.encode('utf-8'))
     else:
         # Vectorized parameter arrays
         phase_output = np.zeros((dof.shape[0], parameter_array_length), order='C')
-        phase_record.obj_parameters_2d(phase_output, dof, parameter_array)
+        phase_record.prop_parameters_2d(phase_output, dof, parameter_array, output.encode('utf-8'))
 
     for el_idx in range(len(pure_elements)):
         phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)
@@ -330,7 +327,7 @@ def _compute_phase_values(components, statevar_dict,
             expanded_points = np.append(points, append_nans, axis=-1)
     if broadcast:
         coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
-        output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
+        output_columns = list(str_phase_local_conditions.keys()) + [str(x) for x in statevar_dict.keys()] + ['points']
     else:
         output_columns = ['points']
     if parameter_array_length > 1:
@@ -352,7 +349,7 @@ def _compute_phase_values(components, statevar_dict,
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, phase_records=None, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, phase_records=None, conditions=None, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -398,6 +395,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         The `model` argument must be a mapping of phase names to instances of Model
         objects. Callers must take care that the PhaseRecord objects were created with
         the same `output` as passed to `calculate`.
+    conditions : OrderedDict
+        Mapping of StateVariables to conditions. Must contain state variables and phase-local conditions only.
 
     Returns
     -------
@@ -415,6 +414,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
     model = kwargs.pop('model', None)
+    conditions = conditions or OrderedDict()
     parameters = parameters or dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
@@ -452,7 +452,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # TODO: conditions dict of StateVariable instances should become part of the calculate API
     statevar_strings = [sv for sv in kwargs.keys() if getattr(v, sv) is not None]
     # If we don't do this, sympy will get confused during substitution
-    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
+    statevar_dict = dict((getattr(v, key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
     # Sort after default state variable check to fix gh-116
     statevar_dict = OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     str_statevar_dict = OrderedDict((str(key), unpack_condition(value)) for (key, value) in statevar_dict.items())
@@ -460,36 +460,57 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # Build phase records if they weren't passed
     if phase_records is None:
         models = instantiate_models(dbf, comps, active_phases, model=model, parameters=parameters)
-        phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
-                                            models=models, parameters=parameters,
-                                            output=output, callables=callables,
-                                            build_gradients=False, build_hessians=False,
-                                            verbose=kwargs.pop('verbose', False))
+        phase_records = PhaseRecordFactory(dbf, comps, statevar_dict, models, parameters=parameters)
     else:
         # phase_records were provided, instantiated models must also be provided by the caller
         models = model
         if not isinstance(models, Mapping):
             raise ValueError("A dictionary of instantiated models must be passed to `equilibrium` with the `model` argument if the `phase_records` argument is used.")
         active_phases_without_models = [name for name in active_phases if not isinstance(models.get(name), Model)]
-        active_phases_without_phase_records = [name for name in active_phases if not isinstance(phase_records.get(name), PhaseRecord)]
-        if len(active_phases_without_phase_records) > 0:
-            raise ValueError(f"phase_records must contain a PhaseRecord instance for every active phase. Missing PhaseRecord objects for {sorted(active_phases_without_phase_records)}")
         if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
+
+    phase_local_conditions = {key: unpack_condition(value)
+                                  for key, value in sorted(conditions.items(), key=lambda x: str(x[0]))
+                                  if isinstance(key, v.StateVariable) and hasattr(key, 'phase_name')}
+    str_phase_local_conditions = {str(k): v for k, v in phase_local_conditions.items()}
+    plc_shape = tuple(len(x) for x in phase_local_conditions.values())
+    # TODO: move state variable conditions into conditions dict
 
     for phase_name in sorted(active_phases):
         mod = models[phase_name]
         phase_record = phase_records[phase_name]
         points = points_dict[phase_name]
         if points is None:
-            points = _sample_phase_constitution(mod, sampler_dict[phase_name] or point_sample,
-                                                fixedgrid_dict[phase_name], pdens_dict[phase_name])
+            collected_points_arrays = []
+            for index in np.ndindex(plc_shape):
+                if len(index) == 0:
+                    break
+                cur_phase_local_conditions = OrderedDict(zip(phase_local_conditions.keys(),
+                                                             [b[a]
+                                                              for a, b in zip(index, phase_local_conditions.values())]))
+                # Filter down to PLCs that are for this phase
+                cur_phase_local_conditions = {k: v for k, v in cur_phase_local_conditions.items()
+                                              if k.phase_name == phase_name}
+                cur_points = _sample_phase_constitution(mod, sampler_dict[phase_name] or point_sample,
+                                                        fixedgrid_dict[phase_name], pdens_dict[phase_name],
+                                                        cur_phase_local_conditions)
+                # Collect all points arrays for all PLCs
+                collected_points_arrays.append(cur_points)
+            if len(collected_points_arrays) == 0:
+                # No phase-local conditions, can use standard approach
+                points = _sample_phase_constitution(mod, sampler_dict[phase_name] or point_sample,
+                                                    fixedgrid_dict[phase_name], pdens_dict[phase_name],
+                                                    {})
+            else:
+                # Assumes all points arrays for this phase will be the same shape (no zero-solutions)
+                points = np.array(collected_points_arrays).reshape(plc_shape + collected_points_arrays[0].shape)
         points = np.atleast_2d(points)
 
         fp = fake_points and (phase_name == sorted(active_phases)[0])
-        phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
+        phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict, str_phase_local_conditions,
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast, parameters=parameters,
                                          largest_energy=float(largest_energy), fake_points=fp)

@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pycalphad'
-copyright = '2015, pycalphad Development Team'
+copyright = '2015-2022, pycalphad Development Team'
 author = 'pycalphad Developers'
 
 # The version info for the project you're documenting, acts as replacement for

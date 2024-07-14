@@ -10,8 +10,14 @@ import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
+from pycalphad.io.tdb import get_supported_variables
 import numpy as np
 from collections import OrderedDict
+try:
+    # needs Python 3.13+
+    from warnings import deprecated
+except ImportError:
+    from typing_extensions import deprecated
 
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols
@@ -269,7 +275,7 @@ class Model(object):
 
         for name, value in self.models.items():
             # XXX: xreplace hack because SymEngine seems to let Symbols slip in somehow
-            self.models[name] = self.symbol_replace(value, symbols).xreplace(v.supported_variables_in_databases)
+            self.models[name] = self.symbol_replace(value, symbols).xreplace(get_supported_variables())
 
         self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
         self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
@@ -433,6 +439,7 @@ class Model(object):
     formulaenergy = G = property(lambda self: self.ast * self._site_ratio_normalization)
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
+    formulaenthalpy = H = property(lambda self: self.G - v.T*self.G.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
     mixing_energy = GM_MIX = property(lambda self: self.GM - self.endmember_reference_model.GM)
@@ -1348,14 +1355,14 @@ class Model(object):
 
         return ordering_energy
 
-    # TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters
+    @deprecated("shift_reference_state is deprecated. Use `pycalphad.property_framework.ReferenceState` instead.")
     def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):
         """
         Add new attributes for calculating properties w.r.t. an arbitrary pure element reference state.
 
         Parameters
         ----------
-        reference_states : Iterable of ReferenceState
+        reference_states : Iterable of pycalphad.model.ReferenceState
             Pure element ReferenceState objects. Must include all the pure
             elements defined in the current model.
         dbe : Database

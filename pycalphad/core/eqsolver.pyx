@@ -3,17 +3,15 @@ from collections import OrderedDict
 import numpy as np
 cimport numpy as np
 cimport cython
-cdef extern from "_isnan.h":
-    bint isnan (double) nogil
 from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord
 from pycalphad.core.constants import *
 
 
-cdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
-                         object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
-                         double[::1] state_variables, double minimum_df, bint verbose) except *:
+cpdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
+                          object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
+                          double[::1] state_variables, double minimum_df, bint verbose) except *:
     """
     Attempt to add a new phase with the largest driving force (based on chemical potentials). Candidate phases
     are taken from current_grid and modify the composition_sets object. The function returns a boolean indicating
@@ -92,7 +90,7 @@ cdef int argmax(double* a, int a_shape) nogil:
             result = i
     return result
 
-def add_nearly_stable(object composition_sets, dict phase_records,
+def add_nearly_stable(object composition_sets, object phase_records,
                       object grid, object current_idx, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
                       double[::1] state_variables, double minimum_df, bint verbose):
     cdef double[::1] driving_forces, driving_forces_for_phase
@@ -114,6 +112,9 @@ def add_nearly_stable(object composition_sets, dict phase_records,
             continue
         phase_record = phase_records[phase_name]
         phase_indices = grid.attrs['phase_indices'][phase_name]
+        if phase_indices.start == phase_indices.stop:
+            # Phase has zero feasible grid points to consider
+            continue
         driving_forces_for_phase = driving_forces[phase_indices.start:phase_indices.stop]
         minimum_df_idx = argmax(&driving_forces_for_phase[0], driving_forces_for_phase.shape[0])
         if driving_forces_for_phase[minimum_df_idx] >= minimum_df:
@@ -129,8 +130,6 @@ def add_nearly_stable(object composition_sets, dict phase_records,
 
 def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None):
     """
-        _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_variables, verbose, solver=None)
-
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
     For that case, usually only a small slice of the master 'properties' is provided.
@@ -144,7 +143,7 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
         Details on phase callables.
     grid : Dataset
         Sample of energy landscape of the system.
-    conds_keys : List[str]
+    conds_keys : List[v.StateVariable]
         List of conditions sorted in dimension order.
     state_variables : List[v.StateVariable]
         List of state variables sorted in dimension order.
@@ -187,14 +186,18 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
         converged = False
         changed_phases = False
         cur_conds = OrderedDict(zip(conds_keys,
-                                    [np.asarray(properties.coords[b][a], dtype=np.float64)
+                                    [np.asarray(properties.coords[str(b)][a], dtype=np.float64)
                                      for a, b in zip(it.multi_index, conds_keys)]))
         # assume 'points' and other dimensions (internal dof, etc.) always follow
-        curr_idx = [it.multi_index[i] for i, key in enumerate(conds_keys) if key in str_state_variables]
-        state_variable_values = [cur_conds[key] for key in str_state_variables]
+        local_idx = [it.multi_index[i] for i, key in enumerate(conds_keys)
+                     if getattr(key, 'phase_name', None) is not None]
+        sv_idx = [it.multi_index[i] for i, key in enumerate(conds_keys)
+                  if (str(key) in str_state_variables)]
+        curr_idx = local_idx + sv_idx
+        state_variable_values = [cur_conds[state_variables[str_state_variables.index(key)]] for key in str_state_variables]
         state_variable_values = np.array(state_variable_values)
         # sum of independently specified components
-        indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
+        indep_sum = np.sum([float(val) for i, val in cur_conds.items() if str(i).startswith('X_')])
         if indep_sum > 1:
             # Sum of independent component mole fractions greater than one
             # Skip this condition set

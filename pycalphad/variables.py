@@ -3,10 +3,13 @@
 Classes and constants for representing thermodynamic variables.
 """
 
-import sys
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
-
+from pycalphad.property_framework.types import JanssonDerivativeDeltas
+from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, \
+    fixed_component_differential, chemical_potential_differential
+import numpy as np
+from copy import copy
 
 class Species(object):
     """
@@ -76,6 +79,10 @@ class Species(object):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def cast_from(cls, s: str) -> "Species":
+        return cls(s)
+
     @property
     def escaped_name(self):
         "Name safe to embed in the variable name of complex arithmetic expressions."
@@ -107,13 +114,90 @@ class Species(object):
     def __hash__(self):
         return hash(self.name)
 
-
 class StateVariable(Symbol):
     """
     State variables are symbols with built-in assumptions of being real.
     """
+    implementation_units = ''
+    display_units = ''
+
+    @property
+    def display_name(self):
+        return self.name
+
     def __init__(self, name):
         super().__init__(name.upper())
+
+    @property
+    def shape(self):
+        return tuple()
+
+    @property
+    def is_global_property(self):
+        return (not hasattr(self, 'phase_name')) or (self.phase_name is None)
+
+    @property
+    def multiplicity(self):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            if len(tokens) > 1:
+                return int(tokens[1])
+            else:
+                return 1
+        else:
+            return None
+
+    @property
+    def phase_name_without_suffix(self):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            return tokens[0]
+        else:
+            return None
+
+    def filtered(self, input_compsets):
+        "Return a generator of CompositionSets applicable to the current property"
+        multiplicity_seen = 0
+
+        for cs_idx, compset in enumerate(input_compsets):
+            if (self.phase_name is not None) and compset.phase_record.phase_name != self.phase_name_without_suffix:
+                continue
+            if (compset.NP == 0) and (not compset.fixed):
+                continue
+            if self.phase_name is not None:
+                multiplicity_seen += 1
+                if self.multiplicity != multiplicity_seen:
+                    continue
+            yield cs_idx, compset
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        if len(compsets) == 0:
+            return np.nan
+        state_variables = compsets[0].phase_record.state_variables
+        statevar_idx = state_variables.index(self)
+        return compsets[0].dof[statevar_idx]
+
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
+        "Compute Jansson derivative with self as numerator, with the given deltas"
+        state_variables = compsets[0].phase_record.state_variables
+        statevar_idx = state_variables.index(self)
+        return deltas.delta_statevars[statevar_idx]
+
+    def jansson_deltas(self, spec, state) -> JanssonDerivativeDeltas:
+        state_variables = state.compsets[0].phase_record.state_variables
+        statevar_idx = sorted(state_variables, key=str).index(self)
+        delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
+        state_variable_differential(spec, state, statevar_idx)
+
+        # Sundman et al, 2015, Eq. 73
+        compsets_delta_sitefracs = []
+        for idx, compset in enumerate(state.compsets):
+            delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
+                                                         delta_statevars)
+            compsets_delta_sitefracs.append(delta_sitefracs)
+        return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+                                   delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
+                                   delta_parameters=None)
 
     def __reduce__(self):
         return self.__class__, (self.name,)
@@ -131,18 +215,39 @@ class StateVariable(Symbol):
     def __hash__(self):
         return hash((self.__class__, self.name))
 
+    def __getitem__(self, new_units: str) -> "StateVariable":
+        "Get StateVariable with different display units"
+        newobj = copy(self)
+        newobj.display_units = new_units
+        return newobj
+
 class SiteFraction(StateVariable):
     """
     Site fractions are symbols with built-in assumptions of being real
     and nonnegative. The constructor handles formatting of the name.
     """
+    implementation_units = 'fraction'
+    display_units = 'fraction'
     def __init__(self, phase_name, subl_index, species): #pylint: disable=W0221
         varname = phase_name + str(subl_index) + Species(species).escaped_name
         #pylint: disable=E1121
         super().__init__(varname)
         self.phase_name = phase_name.upper()
-        self.sublattice_index = subl_index
+        self.sublattice_index = int(subl_index)
         self.species = Species(species)
+        if '#' in phase_name:
+            self._self_without_suffix = self.__class__(self.phase_name_without_suffix, subl_index, species)
+        else:
+            self._self_without_suffix = self
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        state_variables = compsets[0].phase_record.state_variables
+        result = np.atleast_1d(np.zeros(self.shape))
+        for _, compset in self.filtered(compsets):
+            site_fractions = compset.phase_record.variables
+            sitefrac_idx = site_fractions.index(self._self_without_suffix)
+            result[0] += compset.dof[len(state_variables)+sitefrac_idx]
+        return result
 
     def __reduce__(self):
         return self.__class__, (self.phase_name, self.sublattice_index, self.species)
@@ -160,11 +265,19 @@ class SiteFraction(StateVariable):
     def __hash__(self):
         return hash((self.phase_name, self.sublattice_index, self.species))
 
+    def expand_wildcard(self, phase_names=None, components=None, sublattice_indices=None):
+        if phase_names is not None:
+            return [self.__class__(phase_name, self.sublattice_index, self.species) for phase_name in phase_names]
+        elif components is not None:
+            return [self.__class__(self.phase_name, self.sublattice_index, comp) for comp in components]
+        else:
+            raise ValueError('All arguments are None')
+
     def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
-        return 'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
-            '}}_{'+str(self.sublattice_index)+',\mathrm{'+self.species.escaped_name+'}}'
+        return r'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
+            '}}_{'+str(self.sublattice_index)+r',\mathrm{'+self.species.escaped_name+'}}'
 
     def __str__(self):
         "String representation."
@@ -177,10 +290,32 @@ class PhaseFraction(StateVariable):
     Phase fractions are symbols with built-in assumptions of being real
     and nonnegative. The constructor handles formatting of the name.
     """
+    implementation_units = 'fraction'
+    display_units = 'fraction'
     def __init__(self, phase_name): #pylint: disable=W0221
         varname = 'NP_' + str(phase_name)
         super().__init__(varname)
         self.phase_name = phase_name.upper()
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        result = np.atleast_1d(np.full(self.shape, fill_value=np.nan))
+        for _, compset in self.filtered(compsets):
+            if np.all(np.isnan(result[0])):
+                result[0] = 0.0
+            result[0] += compset.NP
+        return result
+
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
+        "Compute Jansson derivative with self as numerator, with the given deltas"
+        jansson_derivative = np.nan
+        for idx, _ in self.filtered(compsets):
+            if np.isnan(jansson_derivative):
+                jansson_derivative = 0.0
+            jansson_derivative += deltas.delta_phase_amounts[idx]
+        return jansson_derivative
+
+    def expand_wildcard(self, phase_names):
+        return [self.__class__(phase_name) for phase_name in phase_names]
 
     def _latex(self, printer=None):
         "LaTeX representation."
@@ -192,6 +327,8 @@ class MoleFraction(StateVariable):
     MoleFractions are symbols with built-in assumptions of being real
     and nonnegative.
     """
+    implementation_units = 'fraction'
+    display_units = 'fraction'
     def __init__(self, *args): #pylint: disable=W0221
         varname = None
         phase_name = None
@@ -213,6 +350,96 @@ class MoleFraction(StateVariable):
         super().__init__(varname)
         self.phase_name = phase_name
         self.species = species
+    
+    def expand_wildcard(self, phase_names=None, components=None):
+        if phase_names is not None:
+            return [self.__class__(phase_name, self.species) for phase_name in phase_names]
+        elif components is not None:
+            if self.phase_name is None:
+                return [self.__class__(comp) for comp in components]
+            else:
+                return [self.__class__(self.phase_name, comp) for comp in components]
+        else:
+            raise ValueError('Both phase_names and components are None')
+    
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        result = np.atleast_1d(np.zeros(self.shape))
+        result[:] = np.nan
+        for _, compset in self.filtered(compsets):
+            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+            if np.isnan(result[0]):
+                result[0] = 0
+            if self.phase_name is None:
+                result[0] += compset.NP * compset.X[el_idx]
+            else:
+                result[0] += compset.X[el_idx]
+        return result
+
+    def compute_per_phase_property(self, compset, cur_conds):
+        if self.phase_name is not None:
+            tokens = self.phase_name.split('#')
+            phase_name = tokens[0]
+            if (compset.phase_record.phase_name != phase_name):
+                return np.nan
+        el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+        return compset.X[el_idx]
+
+    def compute_property_gradient(self, compsets, cur_conds, chemical_potentials):
+        "Compute partial derivatives of property with respect to degrees of freedom of given CompositionSets"
+        result = [np.zeros(compset.dof.shape[0]) for compset in compsets]
+        num_components = len(compsets[0].phase_record.nonvacant_elements)
+        for cs_idx, compset in self.filtered(compsets):
+            masses = np.zeros((num_components, 1))
+            mass_jac = np.zeros((num_components, compset.dof.shape[0]))
+            for comp_idx in range(num_components):
+                compset.phase_record.formulamole_obj(masses[comp_idx, :], compset.dof, comp_idx)
+                compset.phase_record.formulamole_grad(mass_jac[comp_idx, :], compset.dof, comp_idx)
+            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+            result[cs_idx][:] = (mass_jac[el_idx] * masses.sum() - masses[el_idx,0] * mass_jac.sum(axis=0)) \
+                / (masses.sum(axis=0)**2)
+        return result
+
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
+        "Compute Jansson derivative with self as numerator, with the given deltas"
+        state_variables = compsets[0].phase_record.state_variables
+        grad_values = self.compute_property_gradient(compsets, cur_conds, chemical_potentials)
+
+        # Sundman et al, 2015, Eq. 73
+        jansson_derivative = np.nan
+        for idx, compset in enumerate(compsets):
+            if compset.NP == 0 and not (compset.fixed):
+                continue
+            func_value = self.compute_per_phase_property(compset, cur_conds)
+            if np.isnan(func_value):
+                continue
+            if np.isnan(jansson_derivative):
+                jansson_derivative = 0.0
+            grad_value = grad_values[idx]
+            delta_sitefracs = deltas.delta_sitefracs[idx]
+
+            if self.phase_name is None:
+                jansson_derivative += deltas.delta_phase_amounts[idx] * func_value
+                jansson_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                jansson_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
+            else:
+                jansson_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+                jansson_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
+        return jansson_derivative
+
+    def jansson_deltas(self, spec, state) -> JanssonDerivativeDeltas:
+        component_idx = state.compsets[0].phase_record.nonvacant_elements.index(str(self.species))
+        delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
+        fixed_component_differential(spec, state, component_idx)
+
+        # Sundman et al, 2015, Eq. 73
+        compsets_delta_sitefracs = []
+        for idx, compset in enumerate(state.compsets):
+            delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
+                                                         delta_statevars)
+            compsets_delta_sitefracs.append(delta_sitefracs)
+        return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+                                   delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
+                                   delta_parameters=None)
 
     def __reduce__(self):
         if self.phase_name is None:
@@ -234,6 +461,8 @@ class MassFraction(StateVariable):
     """
     Weight fractions are symbols with built-in assumptions of being real and nonnegative.
     """
+    implementation_units = 'fraction'
+    display_units = 'fraction'
     def __init__(self, *args):  # pylint: disable=W0221
         varname = None
         phase_name = None
@@ -255,6 +484,24 @@ class MassFraction(StateVariable):
         super().__init__(varname)
         self.phase_name = phase_name
         self.species = species
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        result = np.atleast_1d(np.zeros(self.shape))
+        result[:] = np.nan
+        normalizer = 0.
+        for _, compset in self.filtered(compsets):
+            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+            if np.isnan(result[0]):
+                result[0] = 0
+            if self.phase_name is None:
+                result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+                for n_idx in range(len(compset.phase_record.nonvacant_elements)):
+                    normalizer += compset.NP * compset.phase_record.molar_masses[n_idx] * compset.X[n_idx]
+            else:
+                result[0] += compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+                for n_idx in range(len(compset.phase_record.nonvacant_elements)):
+                    normalizer += compset.phase_record.molar_masses[n_idx] * compset.X[n_idx]
+        return result / normalizer
 
     def __reduce__(self):
         if self.phase_name is None:
@@ -370,25 +617,96 @@ class ChemicalPotential(StateVariable):
     """
     Chemical potentials are symbols with built-in assumptions of being real.
     """
+    implementation_units = 'J / mol'
+    display_units = 'J / mol'
+    display_name = property(lambda self: f'Chemical Potential {self.species}')
+
     def __init__(self, species):
         species = Species(species)
         varname = 'MU_' + species.escaped_name.upper()
         super().__init__(varname)
         self.species = species
 
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        phase_record = compsets[0].phase_record
+        el_indices = [(phase_record.nonvacant_elements.index(k), v)
+                       for k, v in self.species.constituents.items()]
+        result = np.atleast_1d(np.zeros(self.shape))
+        for el_idx, multiplicity in el_indices:
+            result[0] += multiplicity * chemical_potentials[el_idx]
+        return result
+
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
+        "Compute Jansson derivative with self as numerator, with the given deltas"
+        phase_record = compsets[0].phase_record
+        el_indices = [(phase_record.nonvacant_elements.index(k), v)
+                       for k, v in self.species.constituents.items()]
+        result = np.zeros(self.shape)
+        for el_idx, multiplicity in el_indices:
+            result += multiplicity * deltas.delta_chemical_potentials[el_idx]
+        return result
+
+    def jansson_deltas(self, spec, state) -> JanssonDerivativeDeltas:
+        component_idx = state.compsets[0].phase_record.nonvacant_elements.index(str(self.species))
+        delta_chemical_potentials, delta_statevars, delta_phase_amounts = \
+        chemical_potential_differential(spec, state, component_idx)
+
+        # Sundman et al, 2015, Eq. 73
+        compsets_delta_sitefracs = []
+        for idx, compset in enumerate(state.compsets):
+            delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
+                                                         delta_statevars)
+            compsets_delta_sitefracs.append(delta_sitefracs)
+        return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
+                                   delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
+                                   delta_parameters=None)
+
     def _latex(self, printer=None):
         "LaTeX representation."
-        return '\mu_{'+self.species.escaped_name+'}'
+        return r'\mu_{'+self.species.escaped_name+'}'
 
     def __str__(self):
         "String representation."
         return 'MU_%s' % self.species.name
 
-temperature = T = StateVariable('T')
-entropy = S = StateVariable('S')
-pressure = P = StateVariable('P')
-volume = V = StateVariable('V')
-moles = N = StateVariable('N')
+
+class IndependentPotential(StateVariable):
+    pass
+
+
+class TemperatureType(IndependentPotential):
+    implementation_units = 'kelvin'
+    display_units = 'kelvin'
+    display_name = 'Temperature'
+
+    def __init__(self):
+        super().__init__('T')
+    def __reduce__(self):
+        return self.__class__, ()
+
+
+class PressureType(IndependentPotential):
+    implementation_units = 'pascal'
+    display_units = 'pascal'
+    display_name = 'Pressure'
+
+    def __init__(self):
+        super().__init__('P')
+    def __reduce__(self):
+        return self.__class__, ()
+
+class SystemMolesType(StateVariable):
+    implementation_units = 'mol'
+    display_units = 'mol'
+    display_name = 'No. Moles'
+    def __init__(self):
+        super().__init__('N')
+    def __reduce__(self):
+        return self.__class__, ()
+
+temperature = T = TemperatureType()
+pressure = P = PressureType()
+moles = N = SystemMolesType()
 site_fraction = Y = SiteFraction
 X = MoleFraction
 W = MassFraction
@@ -397,6 +715,3 @@ NP = PhaseFraction
 si_gas_constant = R = Float(8.3145) # ideal gas constant
 
 CONDITIONS_REQUIRING_HESSIANS = {ChemicalPotential, PhaseFraction}
-
-# When loading databases, these symbols should be replaced by their StateVariable counter-parts defined above
-supported_variables_in_databases = {Symbol('T'): T, Symbol('P'): P, Symbol('R'): R}

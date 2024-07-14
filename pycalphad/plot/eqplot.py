@@ -86,7 +86,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
                          for key, value in sorted(eq.coords.items(), key=str)
                          if (key in ('T', 'P', 'N')) or (key.startswith('X_'))])
     indep_comps = sorted([key for key, value in conds.items() if isinstance(key, v.MoleFraction) and len(value) > 1], key=str)
-    indep_pots = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(value) > 1]
+    indep_pots = [key for key, value in conds.items() if isinstance(key, v.IndependentPotential) and len(value) > 1]
 
     # determine what the type of plot will be
     if len(indep_comps) == 1 and len(indep_pots) == 1:

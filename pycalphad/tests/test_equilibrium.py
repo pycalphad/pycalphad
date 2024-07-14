@@ -10,7 +10,7 @@ from symengine import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
-from pycalphad.codegen.callables import build_callables, build_phase_records
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.solver import SolverBase, Solver
 from pycalphad.core.utils import get_state_variables, instantiate_models
 import pycalphad.variables as v
@@ -55,51 +55,11 @@ def test_phase_records_passed_to_equilibrium(load_database):
     conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
 
     models = instantiate_models(dbf, comps, my_phases)
-    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
+    phase_records = PhaseRecordFactory(dbf, comps, sorted(conds.keys(), key=str), models)
 
     # With models passed
     eqx = equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
-
-
-@select_database("alfe.tdb")
-def test_missing_models_with_phase_records_passed_to_equilibrium_raises(load_database):
-    dbf = load_database()
-    "equilibrium should raise an error if all the active phases are not included in the phase_records"
-    my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
-    comps = ['AL', 'FE', 'VA']
-    conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
-
-    models = instantiate_models(dbf, comps, my_phases)
-    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
-
-    with pytest.raises(ValueError):
-        # model=models NOT passed
-        equilibrium(dbf, comps, my_phases, conds, verbose=True, phase_records=phase_records)
-
-
-@select_database("alfe.tdb")
-def test_missing_phase_records_passed_to_equilibrium_raises(load_database):
-    "equilibrium should raise an error if all the active phases are not included in the phase_records"
-    dbf = load_database()
-    my_phases = ['LIQUID', 'FCC_A1']
-    subset_phases = ['FCC_A1']
-    comps = ['AL', 'FE', 'VA']
-    conds = {v.T: 1400, v.P: 101325, v.N: 1.0, v.X('AL'): 0.55}
-
-    models = instantiate_models(dbf, comps, my_phases)
-    phase_records = build_phase_records(dbf, comps, my_phases, conds, models)
-
-    models_subset = instantiate_models(dbf, comps, subset_phases)
-    phase_records_subset = build_phase_records(dbf, comps, subset_phases, conds, models_subset)
-
-    # Under-specified models
-    with pytest.raises(ValueError):
-        equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models_subset, phase_records=phase_records)
-
-    # Under-specified phase_records
-    with pytest.raises(ValueError):
-        equilibrium(dbf, comps, my_phases, conds, verbose=True, model=models, phase_records=phase_records_subset)
 
 
 @pytest.mark.solver
@@ -156,9 +116,14 @@ def test_dilute_condition(load_database):
     'Zero' and dilute composition conditions are correctly handled.
     """
     dbf = load_database()
-    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
+    # if exactly zero is specified as composition, we do not warn about dilute composition
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
-    eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-12}, verbose=True)
+    # if the user specifies a small (but nonzero) value below the supported limit, then we warn
+    with pytest.warns(UserWarning, match='Some specified compositions are below the minimum allowed composition'):
+        eq = equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-12}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.841)
     assert_allclose(np.squeeze(eq.MU.values), [-385499.682936,  -64415.837878], atol=1.0)
 
@@ -444,13 +409,8 @@ def test_eq_model_phase_name(load_database):
 def test_unused_equilibrium_kwarg_warns(load_database):
     "Check that an unused keyword argument raises a warning"
     dbf = load_database()
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning, match='The following equilibrium keyword arguments were passed, but unused'):
         equilibrium(dbf, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, unused_kwarg='should raise a warning')
-        assert len(w) >= 1
-        categories = [warning.__dict__['_category_name'] for warning in w]
-        assert 'UserWarning' in categories
-        expected_string_fragment = 'keyword arguments were passed, but unused'
-        assert any([expected_string_fragment in str(warning.message) for warning in w])
 
 
 @select_database("alfe.tdb")
@@ -502,28 +462,25 @@ def test_eq_parameter_override(load_database):
 
 
 @select_database("al_parameter.tdb")
-def test_eq_build_callables_with_parameters(load_database):
+def test_eq_phase_record_factory_with_parameters(load_database):
     """
-    Check build_callables() compatibility with the parameters kwarg.
+    Check PhaseRecordFactory compatibility with the parameters kwarg.
     """
     comps = ["AL"]
     dbf = load_database()
     phases = ['FCC_A1']
     conds = {v.P: 101325, v.T: 500, v.N: 1}
-    conds_statevars = get_state_variables(conds=conds)
     models = {'FCC_A1': Model(dbf, comps, 'FCC_A1', parameters=['VV0000'])}
-    # build callables with a parameter of 20000.0
-    callables = build_callables(dbf, comps, phases,
-                                models=models, parameter_symbols=['VV0000'], additional_statevars=conds_statevars,
-                                build_gradients=True, build_hessians=True)
+    # build PhaseRecordFactory with a parameter of 20000.0
+    prf = PhaseRecordFactory(dbf, comps, sorted(conds.keys(), key=str),
+                             models, parameters={'VV0000': 20000})
 
-    # Check that passing callables should skip the build phase, but use the values from 'VV0000' as passed in parameters
-    eq_res = equilibrium(dbf, comps, phases, conds, callables=callables, parameters={'VV0000': 10000})
+    # use the values from 'VV0000' as passed in parameters
+    eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, model=models, parameters={'VV0000': 10000})
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
-    # Check that passing callables should skip the build phase,
-    # but use the values from Symbol('VV0000') as passed in parameters
-    eq_res = equilibrium(dbf, comps, phases, conds, callables=callables, parameters={Symbol('VV0000'): 10000})
+    # use the values from Symbol('VV0000') as passed in parameters
+    eq_res = equilibrium(dbf, comps, phases, conds, phase_records=prf, model=models, parameters={Symbol('VV0000'): 10000})
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
 
@@ -1056,6 +1013,33 @@ def test_eq_charge_ndzro(load_database):
                        rtol=5e-4)
     assert np.allclose(Y_PYRO, [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01,
                                 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
+
+@pytest.mark.solver
+def test_issue_503_charged_infeasible_subsystem():
+    "equilibrium suspends a phase with zero feasible points due to internal constraints"
+    tdb = """
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+ ELEMENT V    BCC_A2                    5.0941E+01  4.5070E+03  3.0890E+01!
+
+ SPECIES O-2                         O1/-2!
+ SPECIES O2                          O2!
+ SPECIES O3                          O3!
+ SPECIES V+2                         V1/+2!
+ SPECIES V+3                         V1/+3!
+
+ PHASE GAS:G %  1  1.0  !
+    CONSTITUENT GAS:G :O,O2,O3 :  !
+
+ PHASE HALITE %  2 1   1 !
+    CONSTITUENT HALITE :V,V+2,V+3,VA : O-2,VA :  !
+"""
+    dbf = Database(tdb)
+    result = equilibrium(dbf, ['O', 'VA'], ['GAS', 'HALITE'], {v.T: 1000, v.P: 1e5})
+    print(result)
+    assert np.all(np.isclose(result.NP.squeeze(), [1.0, np.nan], equal_nan=True))
+    assert np.all(result.Phase.squeeze() == ["GAS", ""])
 
 @pytest.mark.solver
 @select_database("crtiv_ghosh.tdb")

@@ -34,7 +34,7 @@ setup(
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     # Do NOT include pycalphad._dev here. It is for local development and should not be distributed.
-    packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.tests', 'pycalphad.tests.databases', 'pycalphad.models'],
+    packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.binary', 'pycalphad.property_framework', 'pycalphad.tests', 'pycalphad.tests.databases', 'pycalphad.models'],
     ext_modules=cythonize(
         CYTHON_EXTENSION_MODULES,
         include_path=CYTHON_EXTENSION_INCLUDES,
@@ -61,13 +61,16 @@ setup(
         'Cython' if os.getenv('CYTHON_COVERAGE', False) else '', # required for Cython test coverage
         'matplotlib>=3.3',
         'numpy>=1.13',
+        'pint',
         'pyparsing>=2.4',
         'pytest',
         'pytest-cov',
+        'runtype',
         'scipy',
         'setuptools_scm[toml]>=6.0',
         'symengine>=0.9.2',  # python-symengine on conda-forge
         'tinydb>=3.8',
+        'typing_extensions', # drop when pycalphad drops support for Python<3.13
         'xarray>=0.11.2',
     ],
     classifiers=[
