@@ -114,10 +114,7 @@ class TypedField:
 
     def __set__(self, obj, value):
         if (self.type != NoneType) and not isa(value, self.type) and value is not None:
-            try:
-                value = self.type.cast_from(value)
-            except TypeError as e:
-                raise e
+            value = self.type.cast_from(value)
         elif value is None and self.default_factory is not None:
             value = self.default_factory(obj)
         oldval = getattr(obj, self.private_name, None)
