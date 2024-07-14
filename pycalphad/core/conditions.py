@@ -139,7 +139,6 @@ class Conditions:
 
         if idx is None:
             # Condition is not yet specified
-            # TODO: Check number of degrees of freedom
             self._conds.append(entry)
         else:
             self._conds[idx] = entry

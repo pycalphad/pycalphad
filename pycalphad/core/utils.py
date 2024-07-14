@@ -111,7 +111,7 @@ def unpack_phases(phases):
     elif type(phases) is str:
         active_phases = [phases]
     else:
-        raise ValueError('Cannot unpack phases into recognizable input')
+        raise ValueError(f'Cannot unpack phases into recognizable input. Got {phases} of type {type(phases)}')
     return active_phases
 
 def generate_dof(phase, active_comps):

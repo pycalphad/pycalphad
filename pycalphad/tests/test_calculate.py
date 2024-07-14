@@ -8,7 +8,7 @@ from pycalphad import Database, calculate, Model, variables as v
 from itertools import chain
 import numpy as np
 from numpy.testing import assert_allclose
-from pycalphad.codegen.callables import build_phase_records
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.utils import instantiate_models
 from pycalphad import ConditionError
 from pycalphad.tests.fixtures import select_database, load_database
@@ -140,7 +140,7 @@ def test_missing_phase_records_passed_to_calculate_raises(load_database):
 
     models = instantiate_models(dbf, comps, subset_phases)
     # Dummy conditions are just needed to get all the state variables into the PhaseRecord objects
-    phase_records = build_phase_records(dbf, comps, subset_phases, [v.T, v.P, v.N], models)
+    phase_records = PhaseRecordFactory(dbf, comps, [v.T, v.P, v.N], models)
 
     with pytest.raises(ValueError):
         calculate(dbf, comps, my_phases, T=1200, P=101325, N=1, phase_records=phase_records)

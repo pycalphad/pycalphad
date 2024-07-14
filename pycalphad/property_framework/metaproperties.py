@@ -81,7 +81,7 @@ class DrivingForce:
             raise ValueError('DrivingForce was passed multiple stable valid CompositionSets')
         return driving_force
 
-    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: "DotDerivativeDeltas") -> npt.ArrayLike:
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: "JanssonDerivativeDeltas") -> npt.ArrayLike:
         "Compute Jansson derivative with self as numerator, with the given deltas"
         seen_phases = 0
         jansson_derivative = np.nan
@@ -102,7 +102,8 @@ class DrivingForce:
 class DormantPhase:
     """
     Meta-property for accessing properties of dormant phases.
-    The configuration of a dormant phase is minimized subject to the potentials of the target calculation.
+    The internal degrees of freedom of a dormant phase are minimized subject to the potentials of the target calculation.
+    Dormant phases are not allowed to become stable.
     """
     _compset: CompositionSet
     max_iterations: int = 50
@@ -170,6 +171,7 @@ class IsolatedPhase:
     """
     Meta-property for accessing properties of isolated phases.
     The configuration of an isolated phase is minimized, by itself, subject to the same conditions as the target calculation.
+    Other phases (or additional composition sets for the same phase) are not allowed to become stable.
     """
     _compset: CompositionSet
 

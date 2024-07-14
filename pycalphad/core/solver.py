@@ -49,7 +49,8 @@ class Solver(SolverBase):
 
         """
         # Prevent circular import
-        from pycalphad.variables import ChemicalPotential, MoleFraction, SiteFraction
+        from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, \
+            SiteFraction
         compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
         nonvacant_elements = compsets[0].phase_record.nonvacant_elements
@@ -78,7 +79,7 @@ class Solver(SolverBase):
             elif isinstance(cond, SiteFraction):
                 # phase-local condition; already handled
                 continue
-            elif str(cond).startswith('W_'):
+            elif isinstance(cond, MassFraction):
                 # wA = k -> (1-k)*MWA*xA - k*MWB*xB - k*MWC*xC = 0
                 el = str(cond)[2:]
                 el_idx = list(nonvacant_elements).index(el)
