@@ -15,7 +15,7 @@ def find_first_compset(phase_name: str, wks: "Workspace"):
     return None
 
 class T0(object):
-    "T0: (GM(ONE) - GM(TWO))**2 = 0"
+    "T0: temperature where the energy of two phases are equal, GM(ONE) = GM(TWO)"
     _phase_one: CompositionSet
     _phase_two: CompositionSet
     solver: Solver
