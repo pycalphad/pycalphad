@@ -66,9 +66,6 @@ class T0(object):
         s = self.solver
         initial_conditions = cur_conds
 
-        # T0: (G(BCC) - G(HCP))**2 = 0
-        # G(BCC)**2 - 2*G(BCC)*G(HCP) + G(BCP)**2
-        # grad = 2*G(BCC)*G'(FCC) - 2*(G'(BCC)*G(HCP) + G'(HCP)*G(BCC)) + 2*G(HCP)*G'(HCP)
         gm_one = ModelComputedProperty('GM', self._phase_one.phase_record.phase_name)
         gm_one_grad = JanssonDerivative(gm_one, self.property_to_optimize)
         gm_two = ModelComputedProperty('GM', self._phase_two.phase_record.phase_name)
