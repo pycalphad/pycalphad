@@ -4,7 +4,7 @@ from copy import deepcopy
 from collections import OrderedDict
 import numpy as np
 from pycalphad import calculate, variables as v
-from pycalphad.codegen.callables import build_phase_records
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.workspace import _adjust_conditions
 from pycalphad.core.starting_point import starting_point
@@ -70,8 +70,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     if models is None:
         models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'),
                                     parameters=parameters, symbols_only=True)
-    prxs = build_phase_records(dbf, species, phases, conds, models, output='GM',
-                               parameters=parameters, build_gradients=True, build_hessians=True)
+    prxs = PhaseRecordFactory(dbf, species, statevars, models, parameters=parameters)
 
     indep_comp = [key for key, value in conds.items() if isinstance(key, v.MoleFraction) and len(np.atleast_1d(value)) > 1]
     indep_pot = [key for key, value in conds.items() if isinstance(key, v.IndependentPotential) and len(np.atleast_1d(value)) > 1]
