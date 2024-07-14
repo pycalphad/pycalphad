@@ -399,7 +399,7 @@ def _process_reference_state(db, el, refphase, mass, H298, S298):
     # If user database doesn't specify mass, use periodic table values (if the element exists)
     db.refstates[el] = {
         'phase': refphase,
-        'mass': mass if mass != 0. else _molmass.get(el, 0.),
+        'mass': mass if mass != 0.0 else _molmass.get(el, 0.0),
         'H298': H298,
         'S298': S298,
     }
