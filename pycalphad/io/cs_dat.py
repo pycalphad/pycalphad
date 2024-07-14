@@ -752,6 +752,7 @@ class Phase_SUBQ(PhaseBase):
             pure_elementsSUBQ.append('VA')
         else:
             pass
+######CURRENTLY THE ONLY ISSUE REMAINING HERE IS HOW TO HANDLE IT WHEN THE PHASE HAS VACANCIES###############
 #### IN THIS PART OF THE CODE I RENAME THE CATION AND ANION SPECIES THAT ARE SPECIFIED IN THE LOWER PORTION#### 
 ### OF THE CHEMSAGE FILE. HERE I AM RENAMING THEM TO HAVE THEIR RESPECTIVE CHARGES ADDED TO THEIR NAME#####
 ###IT IS SIMILAR TO THE DEVELOPER BRANCH BUT I MADE CHANGES TO THE RENAME_ELEMENT_CHARGE FUNCTION TO GET RID OF###
@@ -866,6 +867,7 @@ class Phase_SUBQ(PhaseBase):
                     quadruplet_el_an=endmember_ele_full[1]+str(quadruplet_charges_an)
                 else:
                     pass    
+##############THIS PART IS WHERE THERE IS ACTUAL MULTISPECIATION OF AN SPECIES###########################
             elif len(which_multi_spec)!=0 and len(multi_cat)!=0 and len(multi_an)==0:
                 jorge_an={i.split('-')[0]:i.split('-')[1] for i in anions} 
                 
