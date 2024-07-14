@@ -42,7 +42,7 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
         results = solver.solve(comp_sets, new_conditions)
         if not results.converged:
             return None
-    except Exception as e:
+    except Exception:
         return None
 
     #Add free variable back
@@ -108,7 +108,7 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
             new_point._free_composition_sets.append(cs)
             return new_point
         else:
-            _log.info(f'Global min was falsely detected. No global min found')
+            _log.info('Global min was falsely detected. No global min found')
             return None
 
 def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
@@ -142,7 +142,7 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
             results = solver.solve([ref_cs_copy, new_cs_copy], conds)
             if not results.converged:
                 return False
-        except Exception as e:
+        except Exception:
             return False
 
         _log.info(f"Equilibrium: {ref_cs_copy}, {new_cs_copy}")
@@ -200,7 +200,7 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
         results = solver.solve(solution_cs, new_conditions)
         if not results.converged:
             return None
-    except Exception as e:
+    except Exception:
         return None
 
     #Add axis var back

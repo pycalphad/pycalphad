@@ -380,7 +380,7 @@ class NodeQueue():
             self._current_node_index += 1
             return next_node
         else:
-            raise NodesExhaustedError(f"No unprocessed nodes remain")
+            raise NodesExhaustedError("No unprocessed nodes remain")
         
     def size(self):
         """

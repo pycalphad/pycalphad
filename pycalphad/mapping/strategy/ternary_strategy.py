@@ -389,11 +389,11 @@ class TernaryStrategy(MapStrategy):
                 new_node = self._create_node_from_point(new_point, None, None, None, ExitHint.POINT_IS_EXIT)
                 success = self.node_queue.add_node(new_node)
             else:
-                _log.info(f"Point could not be starting point. Needs 2 or 3 phases")
+                _log.info("Point could not be starting point. Needs 2 or 3 phases")
             if not success:
-                _log.info(f"Point has already been added")
+                _log.info("Point has already been added")
         else:
-            _log.info(f"Could not find a new node from conditions")
+            _log.info("Could not find a new node from conditions")
 
             
 

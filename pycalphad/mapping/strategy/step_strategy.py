@@ -8,7 +8,7 @@ import numpy as np
 from pycalphad import Database, variables as v
 from pycalphad.core.constants import MIN_PHASE_FRACTION
 
-from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Node, Point, ExitHint, Direction, ZPFState, _get_phase_specific_variable
+from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Node, Point, ExitHint, Direction, ZPFState
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 
