@@ -32,12 +32,19 @@ def _get_delta_cs_var(point: Point, comp_sets: list[CompositionSet], axis_vars: 
 
 def _get_norm(point: Point, axis_vars: list[v.StateVariable]):
     """
+    Creates normal vector of a tieline
+
     Assumes point has two phases
     """
     vec = _get_delta_cs_var(point, point.stable_composition_sets, axis_vars)
     return [-vec[1], vec[0]]
 
 def _create_linear_comb_conditions(point: Point, axis_vars: list[v.StateVariable], normal: list[float] = None):
+    """
+    Creates a linear combination along a normal vector
+
+    If normal is not given, then the normal will be the normal of the tieline defined by the point
+    """
     # Get normal and axis variable to step in (this will be along the maximum of the normal vector)
     if normal is None:
         normal = _get_norm(point, axis_vars)
@@ -47,10 +54,13 @@ def _create_linear_comb_conditions(point: Point, axis_vars: list[v.StateVariable
     lc = LinearCombination(normal[1]*axis_vars[0] - normal[0]*axis_vars[1])
     return lc, c
 
-def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.StateVariable, float]):
+def _sort_point(point: Point, axis_vars: list[v.StateVariable]):
     """
-    Given a point in a binary system with 2 free phases, get derivative at both composition sets to
+    Given a point with 2 free phases, get derivative at both composition sets to
     test with CS to fix and which direction to start
+
+    NOTE: unlike the binary version of this function, normal is defined from the tieline
+          rather than the axis variables
     """
     _log.info(f"Sorting point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}")
 
@@ -214,8 +224,7 @@ class TernaryStrategy(MapStrategy):
         If a direction cannot be found, then we force add a starting point just past the exit_point
         """
         # Sort exit point to fix composition set that varies the least
-        norm = {av: self.normalize_factor(av) for av in self.axis_vars}
-        der, exit_point, axis_var, normal = _sort_point(exit_point, self.axis_vars, norm)
+        der, exit_point, axis_var, normal = _sort_point(exit_point, self.axis_vars)
 
         free_cs = exit_point.free_composition_sets[0]
         # If node is invariant, then we can get the other cs to know which direction to step away from
