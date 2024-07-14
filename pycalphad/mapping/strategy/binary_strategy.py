@@ -207,7 +207,7 @@ class BinaryStrategy(MapStrategy):
             curr_point = zpf_line.points[-1]
             prev_point = zpf_line.points[-2]
             dv = [(curr_point.get_property(av) - prev_point.get_property(av))/self.normalize_factor(av) for av in self.axis_vars]
-
+            
             # We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
             # We also can get the direction from the change in variable
             index = np.argmax(np.abs(dv))

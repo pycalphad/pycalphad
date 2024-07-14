@@ -171,7 +171,7 @@ class IsoplethStrategy(MapStrategy):
         """
         Given a list of composition sets, compute the phase fraction for each phase using the fixed node global conditions
 
-        Global condtions will account for v.N (sum of phase fractions == 1) and v.X (or linear combination of v.X)
+        Global conditions will account for v.N (sum of phase fractions == 1) and v.X (or linear combination of v.X)
             v.N is also included to make the matrix full rank
             This ignores the axis variables we're mapping against along with v.T and v.P
 

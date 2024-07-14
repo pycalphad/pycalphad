@@ -197,7 +197,7 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
         conds = {key: point.get_property(key) for key in point.global_conditions}
         _log.info(f"Testing free equilibrium with {ref_cs_copy}, {new_cs_copy}")
         try:
-            solver = Solver(remove_metastable=True, allow_changing_phases=False)
+            solver = Solver(remove_metastable=True)
             results = solver.solve([ref_cs_copy, new_cs_copy], conds)
             if not results.converged:
                 return False
@@ -276,7 +276,7 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
 
     # Solve equilibrium with fixed CS
     try:
-        solver = Solver(remove_metastable=True, allow_changing_phases=False)
+        solver = Solver(remove_metastable=True)
         results = solver.solve(solution_cs, new_conditions)
         if not results.converged:
             return None

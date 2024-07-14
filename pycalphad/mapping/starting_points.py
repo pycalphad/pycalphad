@@ -28,8 +28,7 @@ def point_from_equilibrium(dbf: Database, components: list[str], phases: list[st
     wks = Workspace(dbf, components, phases, conditions, **eq_kwargs)
 
     chemical_potentials = np.squeeze(wks.eq.MU)
-    for _, cs in wks.enumerate_composition_sets():
-        comp_sets = cs
+    comp_sets = wks.get_composition_sets()
 
     if len(comp_sets) == 0:
         return None

@@ -331,8 +331,6 @@ class TernaryStrategy(MapStrategy):
         global_eq_check, test_point = self._check_full_global_equilibrium(new_node, add_global_point_if_false = False)
         if test_point is None:
             _log.info("Global eq check could not be determined")
-            # zpf_line.status = ZPFState.FAILED
-            # return
 
             zpf_line.current_delta *= self.DELTA_SCALE
             if zpf_line.current_delta / self.axis_delta[zpf_line.axis_var] < self.MIN_DELTA_RATIO:
@@ -358,8 +356,6 @@ class TernaryStrategy(MapStrategy):
                     new_node = self._create_node_from_point(test_point, zpf_line.points[-1], None, None)
                     return super()._process_new_node(zpf_line, new_node)
                 else:
-                    # zpf_line.status = ZPFState.FAILED
-                    # return
                     zpf_line.current_delta *= self.DELTA_SCALE
                     if zpf_line.current_delta / self.axis_delta[zpf_line.axis_var] < self.MIN_DELTA_RATIO:
                         zpf_line.status = ZPFState.FAILED

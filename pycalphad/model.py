@@ -436,8 +436,6 @@ class Model(object):
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
     energy = GM = property(lambda self: self.ast)
-    energy_implementation_units = GM_implementation_units = 'J / mol'
-    energy_display_units = GM_display_units = 'kJ / mol'
     formulaenergy = G = property(lambda self: self.ast * self._site_ratio_normalization)
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
