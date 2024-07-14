@@ -20,7 +20,7 @@ class ExitHint(Enum):
     """
     Exit rules
 
-    NORMAL - will search for all viable exits from node 
+    NORMAL - will search for all viable exits from node
              ignores the exit that corresponds to the ZPF line that found the node
     POINT_IS_EXIT - will use the point composition sets as the exit
                     this is mainly used for starting points since the point may not necessary fit the conditions for a "node" (0 DOF)
@@ -28,7 +28,7 @@ class ExitHint(Enum):
                       not sure what the use case for this is, seems to have been for ad-hoc fix that is no longer needed?
                       Only thing I can think of is for a starting point on a node for tielines or isopleths strategies
     """
-    NORMAL = 0              
+    NORMAL = 0
     POINT_IS_EXIT = 1
     FORCE_ALL_EXITS = 2
 
@@ -65,7 +65,7 @@ def _get_phase_list_with_multiplicity(phases: list[str]):
 def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global = False):
     """
     Helper function for ZPFLine.get_var_list
-    
+
     Converts variable to phase specific if possible
 
     If variable is a state variable or non-phase dependent, then return the same variable
@@ -92,18 +92,18 @@ class Point():
     """
     global_conditions: Mapping[v.StateVariable, float]
     chemical_potentials: List[float]    #We"ll store chemical potentials in case someone wants to plot activity diagrams
-    
+
     # Yes, this uses CompositionSet objects, which means that there are copies saved.
     # Maybe inefficient, but we _need_ to know phase compositions for plotting and site
     # fractions are nice to have for more detailed reconstruction and post-processing.
     _fixed_composition_sets: List[CompositionSet]
     _free_composition_sets: List[CompositionSet]
 
-    #Note: The following three functions make a shallow copy of the composition sets
+    # Note: The following three functions make a shallow copy of the composition sets
     @property
     def stable_composition_sets(self):
         return self._fixed_composition_sets + self._free_composition_sets
-    
+
     @property
     def stable_composition_sets_flipped(self):
         return self._free_composition_sets + self._fixed_composition_sets
@@ -115,36 +115,36 @@ class Point():
     @property
     def free_composition_sets(self) -> List[CompositionSet]:
         return [cs for cs in self.stable_composition_sets if not cs.fixed]
-    
+
     @property
     def stable_phases(self):
         return [cs.phase_record.phase_name for cs in self.stable_composition_sets]
-    
+
     @property
     def fixed_phases(self):
         return [cs.phase_record.phase_name for cs in self.fixed_composition_sets]
-    
+
     @property
     def free_phases(self):
         return [cs.phase_record.phase_name for cs in self.free_composition_sets]
-    
+
     @property
     def stable_phases_with_multiplicity(self):
         return _get_phase_list_with_multiplicity(self.stable_phases)
-    
+
     @property
     def fixed_phases_with_multiplicity(self):
         return _get_phase_list_with_multiplicity(self.fixed_phases)
-    
+
     @property
     def free_phases_with_multiplicity(self):
         return _get_phase_list_with_multiplicity(self.free_phases)
 
-    #Creates a deep copy of the point
+    # Creates a deep copy of the point
     def create_copy(self):
         return deepcopy(self)
 
-    #Creates point with deep copy of inputs (composition sets, conditions, chemical potentials)
+    # Creates point with deep copy of inputs (composition sets, conditions, chemical potentials)
     @classmethod
     def with_copy(cls, *args, **kwargs):
         return cls(*deepcopy(args), **deepcopy(kwargs))
@@ -179,7 +179,7 @@ class Point():
         This also ignores phase fraction
         """
         if self == other:
-            #Compare fixed composition sets
+            # Compare fixed composition sets
             if len(self.fixed_composition_sets) != len(other.fixed_composition_sets):
                 return False
             for self_cs in self.fixed_composition_sets:
@@ -198,28 +198,28 @@ class Point():
         output += "\nConditions: " + str(self.global_conditions)
         output += "\nChem_pot: " + str(self.chemical_potentials)
         return output
-    
+
     def get_property(self, var: v.StateVariable):
         """
         Wrapper around compute property so I don't have long lines of code getting composition sets, conditions and chemical potentials everywhere
         We will also squeeze the results since v.MoleFraction seems to return an array
         """
         return np.squeeze(var.compute_property(self.stable_composition_sets, self.global_conditions, self.chemical_potentials))
-    
+
     def get_local_property(self, comp_set: CompositionSet, var: v.StateVariable):
         """
         Another wrapper around compute property, this time, it is applied to a single composition set
 
         We take the assumption here that NP = 1, so we have to correct for v.X and v.NP
         """
-        #Store current phase fraction. Easiest way to make the NP=1 assumption is the literally make NP=1
+        # Store current phase fraction. Easiest way to make the NP=1 assumption is the literally make NP=1
         curr_np = comp_set.NP
-        #Can't use map utils here due to circular dependencies
+        # Can't use map utils here due to circular dependencies
         comp_set.update(comp_set.dof[len(STATEVARS):], 1.0, comp_set.dof[:len(STATEVARS)])
 
         prop_value = var.compute_property([comp_set], self.global_conditions, self.chemical_potentials)
 
-        #Restore phase fraction
+        # Restore phase fraction
         comp_set.update(comp_set.dof[len(STATEVARS):], curr_np, comp_set.dof[:len(STATEVARS)])
 
         return np.squeeze(prop_value)
@@ -263,7 +263,7 @@ class Node(Point):
         output = super().__str__()
         output += "\nAxis: " + str([self.axis_var, self.axis_direction])
         return output
-    
+
 class ZPFState(Enum):
     """
     NOT_FINISHED - zpf line is not finished
@@ -300,15 +300,15 @@ class ZPFLine():
     @property
     def stable_phases(self):
         return self.fixed_phases + self.free_phases
-    
+
     @property
     def stable_phases_with_multiplicity(self):
         return _get_phase_list_with_multiplicity(self.stable_phases)
-    
+
     @property
     def fixed_phases_with_multiplicity(self):
         return _get_phase_list_with_multiplicity(self.fixed_phases)
-    
+
     @property
     def free_phases_with_multiplicity(self):
         return _get_phase_list_with_multiplicity(self.free_phases)
@@ -364,7 +364,7 @@ class NodeQueue():
             self.nodes.append(candidate_node)
             return True
         else:
-            #If node is already in node queue, then add the parent to the list
+            # If node is already in node queue, then add the parent to the list
             # of encountered points in the node
             for other in self.nodes:
                 if other == candidate_node:
@@ -381,13 +381,13 @@ class NodeQueue():
             return next_node
         else:
             raise NodesExhaustedError("No unprocessed nodes remain")
-        
+
     def size(self):
         """
         Length of the node queue will be how many nodes are left
         """
         return max([len(self.nodes) - self._current_node_index, 0])
-        
+
     def is_empty(self):
         """
         Since this isn"t a true queue, we can track if the node queue is "empty" by check if the

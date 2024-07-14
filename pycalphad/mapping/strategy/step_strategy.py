@@ -58,17 +58,17 @@ class StepStrategy(MapStrategy):
         is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
 
         if num_node_cs == num_parent_cs + 1:
-            #Node has more phases than parent
+            # Node has more phases than parent
             if is_pot_cond and is_invariant:
-                #Potential condition, create matrix for each n-1 set of phases
+                # Potential condition, create matrix for each n-1 set of phases
                 node_cs_set = set(node.stable_composition_sets)
                 parent_cs_set = set(node.parent.stable_composition_sets)
 
-                #Make sure parent cs if a subset of node cs
+                # Make sure parent cs if a subset of node cs
                 if len(parent_cs_set - node_cs_set) != 0:
                     return exits, exit_dirs
 
-                #Test all n-1 set of phases excluding parent set
+                # Test all n-1 set of phases excluding parent set
                 for trial_stable_cs in itertools.combinations(node.stable_composition_sets, num_node_cs - 1):
                     if set(trial_stable_cs) == parent_cs_set:
                         continue
@@ -76,11 +76,11 @@ class StepStrategy(MapStrategy):
                     phase_matrix = np.array([cs.X for cs in trial_stable_cs]).T
                     # composition list
                     global_comps = [node.get_property(v.X(e)) for e in self.elements]
-                    #phase fraction
+                    # phase fraction
                     phase_NP = np.linalg.lstsq(phase_matrix, global_comps, rcond=None)[0].flatten()
                     if all(phase_NP > 0):
                         candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [], list(trial_stable_cs))
-                        #Since we have the phase fraction, we can update the cs with them
+                        # Since we have the phase fraction, we can update the cs with them
                         for cs, ph_np in zip(candidate_point.stable_composition_sets, phase_NP):
                             cs.fixed = False
                             map_utils.update_cs_phase_frac(cs, ph_np)
@@ -89,19 +89,19 @@ class StepStrategy(MapStrategy):
                         return exits, exit_dirs
 
             else:
-                #Not potential condition, create exit with all phases stable and free
+                # Not potential condition, create exit with all phases stable and free
                 candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [], node.stable_composition_sets)
                 for cs in candidate_point.stable_composition_sets:
                     cs.fixed = False
-                #Add candidate point with the same direction as the node
+                # Add candidate point with the same direction as the node
                 exits.append(candidate_point)
                 exit_dirs.append(node.axis_direction)
                 return exits, exit_dirs
 
         elif num_node_cs == num_parent_cs:
-            #Number of phases are the same, remove the 0 phase
+            # Number of phases are the same, remove the 0 phase
             cs_to_keep = [cs for cs in node.stable_composition_sets if cs.NP > MIN_PHASE_FRACTION]
-            #If there are more than 1 zero phase, then return the empty exits, here, a new starting point should be generated
+            # If there are more than 1 zero phase, then return the empty exits, here, a new starting point should be generated
             if len(cs_to_keep) < num_node_cs - 1:
                 return exits, exit_dirs
             candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [], cs_to_keep)
@@ -122,11 +122,11 @@ class StepStrategy(MapStrategy):
         """
         axis_deltas = self._test_direction(exit_point, self.axis_vars[0], proposed_direction)
         if axis_deltas is None:
-            #Test direction failed, so add a new starting point
+            # Test direction failed, so add a new starting point
             self._add_starting_point_at_last_condition(exit_point.global_conditions, proposed_direction)
             return None
         else:
-            #Return axis variable, proposed direction and axis delta
+            # Return axis variable, proposed direction and axis delta
             #  For the most point, this seems pointless since we of course know the
             #  axis variable and direction when stepping, but this is mainly for
             #  compatibility with the tielines and isopleth strategies
@@ -140,7 +140,7 @@ class StepStrategy(MapStrategy):
         """
         super()._attempt_to_add_point(zpf_line, step_results)
         if zpf_line.status == ZPFState.FAILED:
-            #ZPF line failed, so add a new starting point
+            # ZPF line failed, so add a new starting point
             self._add_starting_point_at_last_condition(zpf_line.points[-1].global_conditions, zpf_line.axis_direction)
 
     def _add_starting_point_at_last_condition(self, conditions: dict[v.StateVariable, float], axis_dir: Direction):
@@ -161,7 +161,7 @@ class StepStrategy(MapStrategy):
             else:
                 not_at_axis_lims = new_conds[av] + new_delta*axis_dir.value > min(self.axis_lims[av])
 
-            #If new conditions are within limits, then add the new point
+            # If new conditions are within limits, then add the new point
             if not_at_axis_lims:
                 new_conds[av] += new_delta * axis_dir.value
                 _log.info(f"Force adding starting point with conditions {new_conds}")

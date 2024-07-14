@@ -25,17 +25,17 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
         Checking whether the number of composition sets has changed will be checked later
     None - equilibrium failed
     """
-    #Update composition sets with new state variables
+    # Update composition sets with new state variables
     new_state_conds = map_utils.get_statevars_array(new_conditions)
     comp_sets = copy.deepcopy(point.stable_composition_sets)
     for cs in comp_sets:
         cs.update(cs.dof[len(STATEVARS):], cs.NP, new_state_conds)
 
-    #Remove free variable condition if given - this assumes that Gibbs phase rule will be satisfy if done
+    # Remove free variable condition if given - this assumes that Gibbs phase rule will be satisfy if done
     if free_var is not None:
         del new_conditions[free_var]
 
-    #Keep track of original composition sets (these will be updated with the solver, but the original list will remain even if a phase becomes unstable)
+    # Keep track of original composition sets (these will be updated with the solver, but the original list will remain even if a phase becomes unstable)
     orig_cs = [cs for cs in comp_sets]
     try:
         solver = Solver(remove_metastable=True, allow_changing_phases=False)
@@ -45,7 +45,7 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
     except Exception:
         return None
 
-    #Add free variable back
+    # Add free variable back
     if free_var is not None:
         new_conditions[free_var] = free_var.compute_property(comp_sets, new_conditions, results.chemical_potentials)
 
@@ -66,7 +66,7 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
     run equilibrium on two CS with the same composition
     """
     dbf, comps, phases, models, phase_records = system_info["dbf"], system_info["comps"], system_info["phases"], system_info["models"], system_info["phase_records"]
-    #Get driving force and find index that maximized driving force
+    # Get driving force and find index that maximized driving force
     state_conds = {str(key): point.global_conditions[key] for key in STATEVARS}
     points = calculate(dbf, comps, phases, model=models, phase_records=phase_records, output="GM", to_xarray=False, pdens=pdens, **state_conds)
     gm = np.squeeze(points.GM)
@@ -97,7 +97,7 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
                 dG = test_dg
                 cs = test_cs
 
-    #If driving force is above tolerance, then create a new point with the additional composition set
+    # If driving force is above tolerance, then create a new point with the additional composition set
     if dG < tol:
         return None
     else:
@@ -164,14 +164,14 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
     prev_cs = [cs for cs in orig_cs]
     new_cs = [cs for cs in new_point.stable_composition_sets]
 
-    #Find the unique CS between the prev and new point
+    # Find the unique CS between the prev and new point
     phases_added = list(set(new_cs) - set(prev_cs))
     phases_removed = list(set(prev_cs) - set(new_cs))
 
     if len(phases_added) + len(phases_removed) != 1:
         return None
 
-    #Fix the unique CS
+    # Fix the unique CS
     if len(phases_added) == 1:
         fixed_cs = phases_added[0]
     elif len(phases_removed) == 1:
@@ -181,20 +181,20 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
     fixed_cs.fixed = True
     map_utils.update_cs_phase_frac(fixed_cs, 0.0)
 
-    #Set one free CS to NP=1 if all CS are NP=0
+    # Set one free CS to NP=1 if all CS are NP=0
     if (all(cs.NP == 0.0 for cs in new_cs)):
         for cs in new_cs:
             if not cs.fixed:
                 map_utils.update_cs_phase_frac(cs, 1.0)
                 break
 
-    #Setup conditions and remove axis variable to free it
+    # Setup conditions and remove axis variable to free it
     solution_cs = [cs for cs in new_cs]
     new_conditions = copy.deepcopy(new_point.global_conditions)
     for av in axis_vars:
         del new_conditions[av]
 
-    #Solve equilibrium with fixed CS
+    # Solve equilibrium with fixed CS
     try:
         solver = Solver(remove_metastable=True, allow_changing_phases=False)
         results = solver.solve(solution_cs, new_conditions)
@@ -203,11 +203,11 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
     except Exception:
         return None
 
-    #Add axis var back
+    # Add axis var back
     for av in axis_vars:
         new_conditions[av] = av.compute_property(solution_cs, new_conditions, results.chemical_potentials)
 
-    #Create node with parent between thr previous point
+    # Create node with parent between thr previous point
     parent = Point(new_conditions, np.array(results.chemical_potentials), [cs for cs in orig_cs if cs.fixed], [cs for cs in orig_cs if not cs.fixed])
     new_node = Node(new_conditions, np.array(results.chemical_potentials), [cs for cs in solution_cs if cs.fixed], [cs for cs in solution_cs if not cs.fixed], parent)
     return new_node

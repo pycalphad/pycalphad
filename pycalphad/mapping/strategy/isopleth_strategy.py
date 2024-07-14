@@ -42,7 +42,7 @@ def _point_slope(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.St
                 best_index = i
                 best_der = options_tests[i][0]
 
-    #Only return axis variable to step against
+    # Only return axis variable to step against
     if best_index == -1:
         return options_tests[0][1]
     else:
@@ -63,32 +63,32 @@ class IsoplethStrategy(MapStrategy):
         Here, we do a step mapping along the axis bounds and grab all the nodes
         The nodes of a step map is distinguished from starting points in that they have a parent
         """
-        #Iterate through axis variables, and set conditions to fix axis variable at min or max
+        # Iterate through axis variables, and set conditions to fix axis variable at min or max
         for av in self.axis_vars:
             for av_val in self.axis_lims[av]:
                 conds = copy.deepcopy(self.conditions)
                 conds[av] = av_val
 
-                #Coarse search (will need to make sure stepping works for very coarse searches as it can miss some nodes)
-                #other_av = self._other_av(av)
-                #av_range = np.amax(self.axis_lims[other_av]) - np.amin(self.axis_lims[other_av])
-                #conds[other_av] = (self.axis_lims[other_av][0], self.axis_lims[other_av][1], av_range/20)
+                # Coarse search (will need to make sure stepping works for very coarse searches as it can miss some nodes)
+                # other_av = self._other_av(av)
+                # av_range = np.amax(self.axis_lims[other_av]) - np.amin(self.axis_lims[other_av])
+                # conds[other_av] = (self.axis_lims[other_av][0], self.axis_lims[other_av][1], av_range/20)
 
-                #Adjust composition conditions to be slightly above 0 or below 1 for numerical stability
+                # Adjust composition conditions to be slightly above 0 or below 1 for numerical stability
                 if isinstance(av, v.X):
                     if conds[av] == 0:
                         conds[av] = MIN_COMPOSITION
                     elif conds[av] == 1:
                         conds[av] = 1 - MIN_COMPOSITION
 
-                #Step map
+                # Step map
                 map_kwargs = self._constant_kwargs()
                 step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
                 step.initialize()
                 step.do_map()
 
-                #Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction
-                #NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
+                # Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction
+                # NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
                 #      as starting points (which has no parents), so no starting points for isopleth mapping would be added
                 for node in step.node_queue.nodes:
                     if node.parent is not None:
@@ -114,17 +114,17 @@ class IsoplethStrategy(MapStrategy):
         exits, exit_dirs = super()._find_exits_from_node(node)
         if node.exit_hint == ExitHint.POINT_IS_EXIT:
             return exits, exit_dirs
-        
+
         node_is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
 
-        #Exits for invariant and non-invariant nodes are a bit long, so splitting them to individual functions
+        # Exits for invariant and non-invariant nodes are a bit long, so splitting them to individual functions
         if node_is_invariant:
             self._invariant_exits(node, exits, exit_dirs)
         else:
             self._non_invariant_exits(node, exits, exit_dirs)
 
         return exits, exit_dirs
-    
+
     def _invariant_exits(self, node: Node, exits: list[Point], exit_dirs: list[Direction]):
         """
         Maximum number of exits is 2*p - a ZPF line entering and exiting the node for each phase
@@ -141,25 +141,25 @@ class IsoplethStrategy(MapStrategy):
                 continue
 
             if all(phase_NP > 0):
-                #Set fixed phase as the phase in the trail comp set that we didn't test for
+                # Set fixed phase as the phase in the trail comp set that we didn't test for
                 candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [trial_stable_compsets[-2]], list(trial_stable_compsets[:-2]))
 
                 for cs in candidate_point._fixed_composition_sets:
                     cs.fixed = True
                     map_utils.update_cs_phase_frac(cs, 0.0)
 
-                #Minimum phase amount set to 1e-6 (this is to account for pycalphad ignoring all phases with NP=0 when computing deltas and causing indexing issues)
+                # Minimum phase amount set to 1e-6 (this is to account for pycalphad ignoring all phases with NP=0 when computing deltas and causing indexing issues)
                 i = 0
                 for cs in candidate_point._free_composition_sets:
                     cs.fixed = False
                     map_utils.update_cs_phase_frac(cs, np.amax([phase_NP[i], 1e-6]))
                     i += 1
 
-                #Update axis variables with new point
+                # Update axis variables with new point
                 for av in self.axis_vars:
                     candidate_point.global_conditions[av] = candidate_point.get_property(av)
 
-                #Check if a) candidate has already been added as an exit (does this really happen?) and b) node has already encountered this exit
+                # Check if a) candidate has already been added as an exit (does this really happen?) and b) node has already encountered this exit
                 added = any(candidate_point.compare_consider_fixed_cs(candidate_exits) for candidate_exits in exits)
                 exit_has_been_encountered = node.has_point_been_encountered(candidate_point, True)
                 if not added and not exit_has_been_encountered:
@@ -185,8 +185,8 @@ class IsoplethStrategy(MapStrategy):
         """
         fixed_var = [av for av in node.global_conditions if (av != v.T and av != v.P and av not in self.axis_vars)]
 
-        #Phase matrix is all conditions of fixed variable (for v.X, we use the composition set value, rather than global)
-        #b is the value of the global condition
+        # Phase matrix is all conditions of fixed variable (for v.X, we use the composition set value, rather than global)
+        # b is the value of the global condition
         phase_X_matrix = np.zeros((len(fixed_var), len(trial_stable_compsets)))
         b = np.zeros((len(fixed_var), 1))
         for i in range(len(fixed_var)):
@@ -194,11 +194,11 @@ class IsoplethStrategy(MapStrategy):
                 phase_X_matrix[i,j] = node.get_local_property(trial_stable_compsets[j], fixed_var[i])
             b[i,0] = node.global_conditions[fixed_var[i]]
 
-        #If the matrix is not full rank, then ignore it as a potential exit
+        # If the matrix is not full rank, then ignore it as a potential exit
         if np.linalg.matrix_rank(phase_X_matrix) != phase_X_matrix.shape[0]:
             return None
-        
-        #Exit is valid if phase fractions are positive (we don't check if phase fraction > 1 since it will sum to 1 from the v.N condition)
+
+        # Exit is valid if phase fractions are positive (we don't check if phase fraction > 1 since it will sum to 1 from the v.N condition)
         phase_NP = np.matmul(np.linalg.inv(phase_X_matrix), b).flatten()
         return phase_NP
 
@@ -222,7 +222,7 @@ class IsoplethStrategy(MapStrategy):
                 _log.info(f"Found candidate exit: {candidate_point.fixed_phases}, {candidate_point.free_phases}, {candidate_point.global_conditions}")
                 exits.append(candidate_point)
                 exit_dirs.append(None)
-            
+
             # (P, b) (a) or (P, a) (b) exit
             candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [node.fixed_composition_sets[i]], node.free_composition_sets + [node.fixed_composition_sets[1-i]])
             for cs in candidate_point._free_composition_sets:
@@ -245,9 +245,9 @@ class IsoplethStrategy(MapStrategy):
         else:
             directions = [proposed_direction]
 
-        #Sort exit point to fix composition set that varies the least
+        # Sort exit point to fix composition set that varies the least
         norm = {av: self.normalize_factor(av) for av in self.axis_vars}
-        #Axis variable is determined by dot derivative at the point (unlike binary, we know which composition set to fix based off the exit)
+        # Axis variable is determined by dot derivative at the point (unlike binary, we know which composition set to fix based off the exit)
         axis_var = _point_slope(exit_point, self.axis_vars, norm)
         for d in directions:
             dir_results = self._test_direction(exit_point, axis_var, d)
@@ -255,9 +255,9 @@ class IsoplethStrategy(MapStrategy):
                 av_delta, other_av_delta = dir_results
                 _log.info(f"Found direction: {axis_var, d, av_delta} for point {exit_point.fixed_phases}, {exit_point.free_phases}, {exit_point.global_conditions}")
                 return exit_point, axis_var, d, av_delta
-            
+
         return None
-    
+
     def _test_swap_axis(self, zpf_line: ZPFLine):
         """
         By default, we won"t swap axis. This will be the case for stepping
@@ -266,23 +266,21 @@ class IsoplethStrategy(MapStrategy):
         Same as swapping for binary case, where we step along the axis with the highest change
         """
         if len(zpf_line.points) > 1:
-            #Get change in axis variable for both variables
+            # Get change in axis variable for both variables
             curr_point = zpf_line.points[-1]
             prev_point = zpf_line.points[-2]
             dv = [(curr_point.get_property(av) - prev_point.get_property(av))/self.normalize_factor(av) for av in self.axis_vars]
 
-            #We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
-            #We also can get the direction from the change in variable
+            # We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
+            # We also can get the direction from the change in variable
             index = np.argmax(np.abs(dv))
             direction = Direction.POSITIVE if dv[index] > 0 else Direction.NEGATIVE
             if zpf_line.axis_var != self.axis_vars[index]:
                 _log.info(f"Swapping axis to {self.axis_vars[index]}. ZPF vector {dv} {self.axis_vars}")
 
-                #Since we check the change in axis variable at the current delta, we'll retain the same delta
-                #when switching axis variable (same delta as a ratio of the initial delta)
+                # Since we check the change in axis variable at the current delta, we'll retain the same delta
+                # when switching axis variable (same delta as a ratio of the initial delta)
                 delta_scale = zpf_line.current_delta / self.axis_delta[zpf_line.axis_var]
                 zpf_line.axis_var = self.axis_vars[index]
                 zpf_line.axis_direction = direction
                 zpf_line.current_delta = self.axis_delta[zpf_line.axis_var] * delta_scale
-
-    

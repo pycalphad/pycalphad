@@ -38,11 +38,11 @@ def _get_norm(point: Point, axis_vars: list[v.StateVariable]):
     return [-vec[1], vec[0]]
 
 def _create_linear_comb_conditions(point: Point, axis_vars: list[v.StateVariable], normal: list[float] = None):
-    #Get normal and axis variable to step in (this will be along the maximum of the normal vector)
+    # Get normal and axis variable to step in (this will be along the maximum of the normal vector)
     if normal is None:
         normal = _get_norm(point, axis_vars)
 
-    #Create a linear combination that forces the stepping to be along the normal
+    # Create a linear combination that forces the stepping to be along the normal
     c = normal[1]*point.global_conditions[axis_vars[0]] - normal[0]*point.get_property(axis_vars[1])
     lc = LinearCombination(normal[1]*axis_vars[0] - normal[0]*axis_vars[1])
     return lc, c
@@ -54,29 +54,29 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
     """
     _log.info(f"Sorting point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}")
 
-    #Free all phases in point, we will fix the phase at the end
+    # Free all phases in point, we will fix the phase at the end
     free_point = map_utils._generate_point_with_free_cs(point)
 
-    #Get normal and axis variable to step in (this will be along the maximum of the normal vector)
+    # Get normal and axis variable to step in (this will be along the maximum of the normal vector)
     normal = _get_norm(free_point, axis_vars)
     av = axis_vars[np.argmax(np.abs(normal))]
     _log.info(f"Point {point.fixed_phases}, {point.free_phases} with normal {normal}. Testing derivative in {av}")
 
-    #This is here to have derivative with respect to the axis variable to follow the direction of the normal
+    # This is here to have derivative with respect to the axis variable to follow the direction of the normal
     #  NOTE: the derivative we compute is not the directional derivative with respect to the normal
     #  but rather the derivative with respect to the axis variable, with the normal as a fixed condition
     #  Since we lose the direction information of the normal when taking the derivative, mult_factor is here
     #  to retain that information
     mult_factor = np.sign(normal[axis_vars.index(av)])
 
-    #Create a linear combination that forces the stepping to be along the normal
+    # Create a linear combination that forces the stepping to be along the normal
     lc, c = _create_linear_comb_conditions(point, axis_vars, normal)
 
-    #Create temporary set of conditions that replaces the fixed axis variable with the linear combination
+    # Create temporary set of conditions that replaces the fixed axis variable with the linear combination
     del free_point.global_conditions[axis_vars[1-axis_vars.index(av)]]
     free_point.global_conditions[lc] = c
 
-    #Test phase composition derivative for each phase stepping along the axis variable fixed along the normal
+    # Test phase composition derivative for each phase stepping along the axis variable fixed along the normal
     stable_cs = free_point.stable_composition_sets
     cs_options = [[stable_cs[0], stable_cs[1]], [stable_cs[1], stable_cs[0]]]
     options_tests = []
@@ -87,7 +87,7 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
             new_point = map_utils._generate_point_with_fixed_cs(point, cs_list[0], cs_list[1])
             options_tests.append((der, new_point, av_test))
 
-    #Best index is the one with the largest derivative
+    # Best index is the one with the largest derivative
     best_index = -1
     best_der = -1
     for i in range(len(options_tests)):
@@ -104,8 +104,8 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
 class TernaryStrategy(MapStrategy):
     def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
         super().__init__(dbf, components, phases, conditions, **kwargs)
-        #TODO: I don't really like this since this assumes pure elements
-        #Although since species as conditions aren't supported yet, I suppose it's fine for now
+        # TODO: I don't really like this since this assumes pure elements
+        # Although since species as conditions aren't supported yet, I suppose it's fine for now
         unlisted_element = list(set(self.components) - {'VA'} - set([str(av.species) for av in self.axis_vars]))[0]
         self.all_vars = self.axis_vars + [v.X(unlisted_element)]
 
@@ -118,35 +118,35 @@ class TernaryStrategy(MapStrategy):
         """
         map_kwargs = self._constant_kwargs()
 
-        #Iterate through axis variables, and set conditions to fix axis variable at min only
+        # Iterate through axis variables, and set conditions to fix axis variable at min only
         for av in self.axis_vars:
             conds = copy.deepcopy(self.conditions)
             conds[av] = np.amin(self.axis_lims[av])
-            
-            #other_av = self._other_av(av)
-            #av_range = np.amax(self.axis_lims[other_av]) - np.amin(self.axis_lims[other_av])
-            #conds[other_av] = (self.axis_lims[other_av][0], self.axis_lims[other_av][1], av_range/20)
 
-            #Adjust composition conditions to be slightly above 0 or below 1 for numerical stability
+            # other_av = self._other_av(av)
+            # av_range = np.amax(self.axis_lims[other_av]) - np.amin(self.axis_lims[other_av])
+            # conds[other_av] = (self.axis_lims[other_av][0], self.axis_lims[other_av][1], av_range/20)
+
+            # Adjust composition conditions to be slightly above 0 or below 1 for numerical stability
             if isinstance(av, v.X):
                 if conds[av] == 0:
                     conds[av] = MIN_COMPOSITION
 
-            #Step map
+            # Step map
             step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
             step.initialize()
             step.do_map()
             self._add_starting_points_from_step(step)
 
-        #Additional step where we switch axis conditions to the unlisted variable
+        # Additional step where we switch axis conditions to the unlisted variable
         conds = copy.deepcopy(self.conditions)
         conds[self.all_vars[-1]] = MIN_COMPOSITION
         del conds[self.axis_vars[0]]
 
-        #av_range = np.amax(self.axis_lims[self.axis_vars[1]]) - np.amin(self.axis_lims[self.axis_vars[1]])
-        #conds[self.axis_vars[1]] = (self.axis_lims[self.axis_vars[1]][0], self.axis_lims[self.axis_vars[1]][1], av_range/20)
+        # av_range = np.amax(self.axis_lims[self.axis_vars[1]]) - np.amin(self.axis_lims[self.axis_vars[1]])
+        # conds[self.axis_vars[1]] = (self.axis_lims[self.axis_vars[1]][0], self.axis_lims[self.axis_vars[1]][1], av_range/20)
 
-        #Step map
+        # Step map
         step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
         step.initialize()
         step.do_map()
@@ -163,7 +163,7 @@ class TernaryStrategy(MapStrategy):
                 p_index = 0
                 while len(zpf_line.points[p_index].stable_phases) != num_phases:
                     p_index += 1
-                
+
                 if len(zpf_line.points[p_index].stable_phases) == num_phases:
                     new_point = zpf_line.points[p_index]
                     if self.all_vars[-1] in new_point.global_conditions:
@@ -190,36 +190,36 @@ class TernaryStrategy(MapStrategy):
         exits, exit_dirs = super()._find_exits_from_node(node)
         if node.exit_hint == ExitHint.POINT_IS_EXIT:
             return exits, exit_dirs
-        
+
         for cs_1, cs_2 in itertools.combinations(node.stable_composition_sets, 2):
             new_conds = {key: node.get_property(key) for key, val in node.global_conditions.items()}
 
-            #Create point with free composition sets (and ignore whether cs_1 or cs_2 is actually fixed)
-            #This will be modified in _determine_start_direction
+            # Create point with free composition sets (and ignore whether cs_1 or cs_2 is actually fixed)
+            # This will be modified in _determine_start_direction
             candidate_point = Point.with_copy(new_conds, node.chemical_potentials, [], [cs_1, cs_2])
 
             if not node.has_point_been_encountered(candidate_point, False) or node.exit_hint == ExitHint.FORCE_ALL_EXITS:
                 _log.info(f"Found candidate exit: {candidate_point.fixed_phases}, {candidate_point.free_phases}, {candidate_point.global_conditions}")
                 exits.append(candidate_point)
-                #This function is only responsible for finding exit points
-                #The _determine_start_direction will take the point and find the direction and axis variable
+                # This function is only responsible for finding exit points
+                # The _determine_start_direction will take the point and find the direction and axis variable
                 exit_dirs.append(None)
 
         return exits, exit_dirs
-    
+
     def _determine_start_direction(self, node: Node, exit_point: Point, proposed_direction: Direction):
         """
         For stepping, only one direction is possible from a node since we either step positive or negative
 
         If a direction cannot be found, then we force add a starting point just past the exit_point
         """
-        #Sort exit point to fix composition set that varies the least
+        # Sort exit point to fix composition set that varies the least
         norm = {av: self.normalize_factor(av) for av in self.axis_vars}
         der, exit_point, axis_var, normal = _sort_point(exit_point, self.axis_vars, norm)
 
         free_cs = exit_point.free_composition_sets[0]
-        #If node is invariant, then we can get the other cs to know which direction to step away from
-        #It's possible that the node is not invariant (ex. as a starting point), in which case, we just set the norm_delta_dot to 1
+        # If node is invariant, then we can get the other cs to know which direction to step away from
+        # It's possible that the node is not invariant (ex. as a starting point), in which case, we just set the norm_delta_dot to 1
         if len(node.stable_composition_sets) == 3:
             other_cs = [cs for cs in node.stable_composition_sets if not _eq_compset(cs, exit_point.fixed_composition_sets[0]) and not _eq_compset(cs, exit_point.free_composition_sets[0])][0]
             delta_var = _get_delta_cs_var(exit_point, [free_cs, other_cs], self.axis_vars)
@@ -229,10 +229,10 @@ class TernaryStrategy(MapStrategy):
 
 
         if proposed_direction is None:
-            #If the derivative of the axis variable is positive and the normal is the same direction as the delta
-            #Or if derivative is negative and normal is opposite direction, then stepping is Positive direction 
-            #would be preferred. Same goes for the two other cases where Negative direction is preferred
-            #We add the other direction just in case the first proposed direction fails
+            # If the derivative of the axis variable is positive and the normal is the same direction as the delta
+            # Or if derivative is negative and normal is opposite direction, then stepping is Positive direction
+            # would be preferred. Same goes for the two other cases where Negative direction is preferred
+            # We add the other direction just in case the first proposed direction fails
             if norm_delta_dot * der > 0:
                 directions = [Direction.POSITIVE, Direction.NEGATIVE]
             else:
@@ -246,11 +246,11 @@ class TernaryStrategy(MapStrategy):
                 av_delta, other_av_delta = dir_results
                 _log.info(f"Found direction: {axis_var, d, av_delta} for point {exit_point.fixed_phases}, {exit_point.free_phases}, {exit_point.global_conditions}")
                 return exit_point, axis_var, d, av_delta
-            
+
         self._add_starting_point_at_new_condition(exit_point, normal, Direction.POSITIVE if norm_delta_dot > 0 else Direction.NEGATIVE)
-            
+
         return None
-    
+
     def _test_swap_axis(self, zpf_line: ZPFLine):
         """
         By default, we won"t swap axis. This will be the case for stepping
@@ -259,20 +259,20 @@ class TernaryStrategy(MapStrategy):
         Same as swapping for binary case
         """
         if len(zpf_line.points) > 1:
-            #Get change in axis variable for both variables
+            # Get change in axis variable for both variables
             curr_point = zpf_line.points[-1]
             prev_point = zpf_line.points[-2]
             dv = [(curr_point.get_property(av) - prev_point.get_property(av))/self.normalize_factor(av) for av in self.axis_vars]
 
-            #We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
-            #We also can get the direction from the change in variable
+            # We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
+            # We also can get the direction from the change in variable
             index = np.argmax(np.abs(dv))
             direction = Direction.POSITIVE if dv[index] > 0 else Direction.NEGATIVE
             if zpf_line.axis_var != self.axis_vars[index]:
                 _log.info(f"Swapping axis to {self.axis_vars[index]}. ZPF vector {dv} {self.axis_vars}")
-                
-                #Since we check the change in axis variable at the current delta, we'll retain the same delta
-                #when switching axis variable (same delta as a ratio of the initial delta)
+
+                # Since we check the change in axis variable at the current delta, we'll retain the same delta
+                # when switching axis variable (same delta as a ratio of the initial delta)
                 delta_scale = zpf_line.current_delta / self.axis_delta[zpf_line.axis_var]
                 zpf_line.axis_var = self.axis_vars[index]
                 zpf_line.axis_direction = direction
@@ -292,19 +292,19 @@ class TernaryStrategy(MapStrategy):
         test_point = point_from_equilibrium(self.dbf, self.components, self.phases, free_point.global_conditions, None, models=self.models, phase_record_factory=self.phase_records)
         if test_point is None:
             return False, None
-        
-        #If the test point has the same composition sets as the free point, then it's valid node
+
+        # If the test point has the same composition sets as the free point, then it's valid node
         if free_point == test_point:
             return True, test_point
-        
-        #If test point has a different set of phases, then we can add the new point as a starting point
+
+        # If test point has a different set of phases, then we can add the new point as a starting point
         else:
             if add_global_point_if_false:
                 _log.info(f"Global eq check failed. Adding test point as a starting point {test_point.fixed_phases}, {test_point.free_phases}")
                 new_node = self._create_node_from_point(test_point, None, None, None)
                 self.node_queue.add_node(new_node)
             return False, test_point
-    
+
     def _process_new_node(self, zpf_line: ZPFLine, new_node: Node):
         """
         Some extra checks before adding a new node to the node queue
@@ -318,20 +318,20 @@ class TernaryStrategy(MapStrategy):
             If not, then decrease step size and try stepping again
               If step size is too small, then fail zpf line and add node as a new starting point
         """
-        #Do a global equilibrium check before attempting to add the new node
+        # Do a global equilibrium check before attempting to add the new node
         global_eq_check, test_point = self._check_full_global_equilibrium(new_node, add_global_point_if_false = False)
         if test_point is None:
             _log.info("Global eq check could not be determined")
-            #zpf_line.status = ZPFState.FAILED
-            #return
+            # zpf_line.status = ZPFState.FAILED
+            # return
 
             zpf_line.current_delta *= self.DELTA_SCALE
             if zpf_line.current_delta / self.axis_delta[zpf_line.axis_var] < self.MIN_DELTA_RATIO:
                 zpf_line.status = ZPFState.FAILED
 
-                #Removes the last ZPF line if we determine that the new node is not connected to the current zpf line
-                #Since the last zpf line has finished (or is non-existent if this is the first zpf line), this will
-                #cause the iteration to go directly to the next node or exit
+                # Removes the last ZPF line if we determine that the new node is not connected to the current zpf line
+                # Since the last zpf line has finished (or is non-existent if this is the first zpf line), this will
+                # cause the iteration to go directly to the next node or exit
                 self.zpf_lines.pop(-1)
             else:
                 zpf_line.status = ZPFState.NOT_FINISHED
@@ -349,8 +349,8 @@ class TernaryStrategy(MapStrategy):
                     new_node = self._create_node_from_point(test_point, zpf_line.points[-1], None, None)
                     return super()._process_new_node(zpf_line, new_node)
                 else:
-                    #zpf_line.status = ZPFState.FAILED
-                    #return
+                    # zpf_line.status = ZPFState.FAILED
+                    # return
                     zpf_line.current_delta *= self.DELTA_SCALE
                     if zpf_line.current_delta / self.axis_delta[zpf_line.axis_var] < self.MIN_DELTA_RATIO:
                         zpf_line.status = ZPFState.FAILED
@@ -371,15 +371,15 @@ class TernaryStrategy(MapStrategy):
         # search in that direction again
         free_point = map_utils._generate_point_with_free_cs(point)
         copy_conds = copy.deepcopy(free_point.global_conditions)
-        #Move by small amount (1e-3 seem to be a good value, too small, and we may fail to detect a possible third phase and too large, and we may step over a potential node)
+        # Move by small amount (1e-3 seem to be a good value, too small, and we may fail to detect a possible third phase and too large, and we may step over a potential node)
         for av, norm_dir in zip(self.axis_vars, normal):
             copy_conds[av] += 1e-3*norm_dir*direction.value
 
         _log.info(f"Attemping to add point at {copy_conds}")
         new_point = point_from_equilibrium(self.dbf, self.components, self.phases, copy_conds, None, models=self.models, phase_record_factory=self.phase_records)
         if new_point is not None:
-            #If new point is an invariant, then we add it as a starting point (point is added as a parent to prevent repeated exit calculations)
-            #If new point is 2 phase, then we add it as a starting point the node being the exit
+            # If new point is an invariant, then we add it as a starting point (point is added as a parent to prevent repeated exit calculations)
+            # If new point is 2 phase, then we add it as a starting point the node being the exit
             _log.info(f"Adding starting point: {new_point.stable_phases}")
             success = False
             if len(new_point.stable_composition_sets) == 3:
@@ -394,6 +394,3 @@ class TernaryStrategy(MapStrategy):
                 _log.info("Point has already been added")
         else:
             _log.info("Could not find a new node from conditions")
-
-            
-

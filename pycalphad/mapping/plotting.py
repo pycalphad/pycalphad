@@ -17,10 +17,10 @@ from pycalphad.mapping.strategy.isopleth_strategy import IsoplethStrategy
 import pycalphad.mapping.utils as map_utils
 
 def _get_label(var: v.StateVariable):
-    #If user just passes v.NP rather than an instance of v.NP, then label is just NP
+    # If user just passes v.NP rather than an instance of v.NP, then label is just NP
     if var == v.NP:
         return 'Phase Fraction'
-    #Otherwise, we can just use the display name
+    # Otherwise, we can just use the display name
     else:
         return var.display_name
 
@@ -35,16 +35,16 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
         phases - list[str]
         xlim, ylim - list[float]
     """
-    #Get all phases in strategy (including multiplicity)
+    # Get all phases in strategy (including multiplicity)
     phases = strategy.get_all_phases()
 
-    #Axis limits for x and y
+    # Axis limits for x and y
     xlim = [np.inf, -np.inf]
     ylim = [np.inf, -np.inf]
 
-    #For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)
-    #Then get the max and min of x and y values to update xlim and ylim
-    #TODO: I don't like the "setting nan values to 0" since it can lead to some awkward plotting for variables such as MU, for NP it seems to be okay though
+    # For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)
+    # Then get the max and min of x and y values to update xlim and ylim
+    # TODO: I don't like the "setting nan values to 0" since it can lead to some awkward plotting for variables such as MU, for NP it seems to be okay though
     phase_data = {}
     for p in phases:
         x_array = []
@@ -85,13 +85,13 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
     if ax is None:
         fig, ax = plt.subplots(1,1)
 
-    #If x is None, then use axis variable and state that x is global (this is useful for v.X where we can distinguish v.X(sp,ph) vs. v.X(sp)
+    # If x is None, then use axis variable and state that x is global (this is useful for v.X where we can distinguish v.X(sp,ph) vs. v.X(sp)
     x_is_global = False
     if x is None:
         x = strategy.axis_vars[0]
     if x == strategy.axis_vars[0]:
         x_is_global = True
-    #If y is None, then use v.NP
+    # If y is None, then use v.NP
     if y is None:
         y = v.NP
 
@@ -110,7 +110,7 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
 
-    #Add legend
+    # Add legend
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
@@ -181,7 +181,7 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     if ax is None:
         fig, ax = plt.subplots(1,1)
 
-    #If variables are not given, then plot composition vs. temperature
+    # If variables are not given, then plot composition vs. temperature
     sorted_axis_var = map_utils._sort_axis_by_state_vars(strategy.axis_vars)
     if x is None:
         x = sorted_axis_var[1]
@@ -224,8 +224,8 @@ def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.Stat
     ax.set_xlim([0,1])
     ax.set_ylim([0,1])
 
-    #Projection is stored in the default axis name, so only adjust y label if the axis is triangular
-    #Note: this is assuming that triangular is the only option for making a ternary plot and that the user doesn't change the default name
+    # Projection is stored in the default axis name, so only adjust y label if the axis is triangular
+    # Note: this is assuming that triangular is the only option for making a ternary plot and that the user doesn't change the default name
     if 'triangular' in ax.name:
         ax.yaxis.label.set_rotation(60)  # rotate ylabel
         ax.yaxis.set_label_coords(x=0.12, y=0.5)  # move the label to a pleasing position
