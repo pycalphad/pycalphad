@@ -109,10 +109,6 @@ cpdef void intersecting_point(double[:,::1] compositions,
             constraint_rhs[i] = fixed_lincomb_molefrac_rhs[i]
         constraint_matrix[fixed_lincomb_molefrac_rhs.shape[0] + j*compositions.shape[1]] = plane_coefs[j]
         constraint_rhs[fixed_lincomb_molefrac_rhs.shape[0]] = 1
-    #with gil:
-    #    print('constraint_matrix ', np.asarray(<double[:fixed_lincomb_molefrac_rhs.shape[0] + 1, :compositions.shape[1]]>constraint_matrix))
-    #    print('constraint_rhs ', np.asarray(<double[:fixed_lincomb_molefrac_rhs.shape[0] + 1]>constraint_rhs))
-    #raise ValueError('stop')
     solve(constraint_matrix, compositions.shape[1], constraint_rhs, int_tmp)
     for i in range(compositions.shape[1]):
         out_intersecting_point[i] = constraint_rhs[i]
