@@ -42,27 +42,27 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
 
     None - equilibrium failed
     """
-    #Update composition sets with new state variables
+    # Update composition sets with new state variables
     new_state_conds = map_utils.get_statevars_array(new_conditions)
     comp_sets = copy.deepcopy(point.stable_composition_sets)
     for cs in comp_sets:
         cs.update(cs.dof[len(STATEVARS):], cs.NP, new_state_conds)
 
-    #Remove free variable condition if given - this assumes that Gibbs phase rule will be satisfy if done
+    # Remove free variable condition if given - this assumes that Gibbs phase rule will be satisfy if done
     if free_var is not None:
         del new_conditions[free_var]
 
-    #Keep track of original composition sets (these will be updated with the solver, but the original list will remain even if a phase becomes unstable)
+    # Keep track of original composition sets (these will be updated with the solver, but the original list will remain even if a phase becomes unstable)
     orig_cs = [cs for cs in comp_sets]
     try:
         solver = Solver(remove_metastable=True, allow_changing_phases=False)
         results = solver.solve(comp_sets, new_conditions)
         if not results.converged:
             return None
-    except Exception as e:
+    except Exception:
         return None
 
-    #Add free variable back
+    # Add free variable back
     if free_var is not None:
         new_conditions[free_var] = free_var.compute_property(comp_sets, new_conditions, results.chemical_potentials)
 
@@ -109,7 +109,7 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
     models = system_info["models"]
     phase_records = system_info["phase_records"]
 
-    #Get driving force and find index that maximized driving force
+    # Get driving force and find index that maximized driving force
     state_conds = {str(key): point.global_conditions[key] for key in STATEVARS}
     points = calculate(dbf, comps, phases, model=models, phase_records=phase_records, output="GM", to_xarray=False, pdens=pdens, **state_conds)
     gm = np.squeeze(points.GM)
@@ -118,14 +118,6 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
     phase_ids = np.squeeze(points.Phase)
     g_chempot = x * point.chemical_potentials
     dGs = np.sum(g_chempot, axis=1) - gm
-
-    # max_id = np.argmax(dGs)
-
-    # #Create composition set and create DormantPhase and solve for driving force
-    # cs = CompositionSet(phase_records[phase_ids[max_id]])
-    # cs.update(y[max_id, :cs.phase_record.phase_dof], 1.0, map_utils.get_statevars_array(point.global_conditions))
-    # dormantPhase = DormantPhase(cs, None)
-    # dG = point.get_property(dormantPhase.driving_force)
 
     sorted_indices = np.argsort(dGs)[::-1]
     cs = None
@@ -143,14 +135,14 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
             # Databases where this occured in test suite: alcfe_b2.tdb running Al-C-Fe isopleth, alcocrni.tdb running Al-Co-Ni ternary
             # and femns.tdb with ionic liquid model
             test_cs.update(y[index][:test_cs.phase_record.phase_dof], 1.0, map_utils.get_statevars_array(point.global_conditions))
-            dormantPhase = DormantPhase(test_cs, None)
-            test_dg = point.get_property(dormantPhase.driving_force)
+            dormant_phase = DormantPhase(test_cs, None)
+            test_dg = point.get_property(dormant_phase.driving_force)
             _log.info(f"Testing phase {phase_ids[index]} with dG={dGs[index]}->{test_dg} for global min.")
             if test_dg > dG:
                 dG = test_dg
                 cs = test_cs
-    
-    #If driving force is above tolerance, then create a new point with the additional composition set
+
+    # If driving force is above tolerance, then create a new point with the additional composition set
     if dG < tol:
         return None
     else:
@@ -161,9 +153,9 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
             new_point._free_composition_sets.append(cs)
             return new_point
         else:
-            _log.info(f'Global min was falsely detected. No global min found')
+            _log.info('Global min was falsely detected. No global min found')
             return None
-    
+
 def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
     """
     Check that the new composition set detected during global min check is truely a new CS
@@ -208,17 +200,17 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
             results = solver.solve([ref_cs_copy, new_cs_copy], conds)
             if not results.converged:
                 return False
-        except Exception as e:
+        except Exception:
             return False
-        
+
         _log.info(f"Equilibrium: {ref_cs_copy}, {new_cs_copy}")
         if np.allclose(ref_cs_copy.dof[num_sv:], new_cs_copy.dof[num_sv:], atol=10*COMP_DIFFERENCE_TOL):
             return False
-        
+
         if ref_cs_copy.NP < 1e-3:
             cs.update(new_cs_copy.dof[num_sv:], cs.NP, new_cs_copy.dof[:num_sv])
             return True
-        
+
     return True
     
 def create_node_from_different_points(new_point: Point, orig_cs: list[CompositionSet], axis_vars : list[v.StateVariable]):
@@ -251,14 +243,14 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
     prev_cs = [cs for cs in orig_cs]
     new_cs = [cs for cs in new_point.stable_composition_sets]
 
-    #Find the unique CS between the prev and new point
+    # Find the unique CS between the prev and new point
     phases_added = list(set(new_cs) - set(prev_cs))
     phases_removed = list(set(prev_cs) - set(new_cs))
 
     if len(phases_added) + len(phases_removed) != 1:
         return None
-    
-    #Fix the unique CS
+
+    # Fix the unique CS
     if len(phases_added) == 1:
         fixed_cs = phases_added[0]
     elif len(phases_removed) == 1:
@@ -268,33 +260,33 @@ def create_node_from_different_points(new_point: Point, orig_cs: list[Compositio
     fixed_cs.fixed = True
     map_utils.update_cs_phase_frac(fixed_cs, 0.0)
 
-    #Set one free CS to NP=1 if all CS are NP=0
+    # Set one free CS to NP=1 if all CS are NP=0
     if (all(cs.NP == 0.0 for cs in new_cs)):
         for cs in new_cs:
             if not cs.fixed:
                 map_utils.update_cs_phase_frac(cs, 1.0)
                 break
 
-    #Setup conditions and remove axis variable to free it
+    # Setup conditions and remove axis variable to free it
     solution_cs = [cs for cs in new_cs]
     new_conditions = copy.deepcopy(new_point.global_conditions)
     for av in axis_vars:
         del new_conditions[av]
 
-    #Solve equilibrium with fixed CS
+    # Solve equilibrium with fixed CS
     try:
         solver = Solver(remove_metastable=True, allow_changing_phases=False)
         results = solver.solve(solution_cs, new_conditions)
         if not results.converged:
             return None
-    except Exception as e:
+    except Exception:
         return None
-    
-    #Add axis var back
+
+    # Add axis var back
     for av in axis_vars:
         new_conditions[av] = av.compute_property(solution_cs, new_conditions, results.chemical_potentials)
-    
-    #Create node with parent between thr previous point
+
+    # Create node with parent between thr previous point
     parent = Point(new_conditions, np.array(results.chemical_potentials), [cs for cs in orig_cs if cs.fixed], [cs for cs in orig_cs if not cs.fixed])
     new_node = Node(new_conditions, np.array(results.chemical_potentials), [cs for cs in solution_cs if cs.fixed], [cs for cs in solution_cs if not cs.fixed], parent)
     return new_node
@@ -334,4 +326,3 @@ def compute_derivative(point: Point, v_num: v.StateVariable, v_den: v.StateVaria
     derivative_property = JanssonDerivative(v_num, v_den)
     derivative = derivative_property.compute_property(comp_sets, conds, chem_pots)
     return derivative
-    

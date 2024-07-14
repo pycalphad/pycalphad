@@ -27,7 +27,7 @@ class MapStrategy:
         BinaryStrategy - for binary phase diagrams (1 composition, 1 potential axis)
         TernaryStrategy - for ternary phase diagrams (2 composition axis)
         IsoplethStrategy - for isopleths (this has only been tested for 1 composition, 1 potential axis so far)
-        
+
     Constants
         DELTA_SCALE = 0.5 - factor to scale down step size if a single step iteration was unsuccessfuly
         MIN_DELTA_RATIO = 0.1 - minimum step size (as ratio of default) before stopping zpf line iteration
@@ -43,14 +43,14 @@ class MapStrategy:
             dbf = Database(dbf)
         self.dbf = dbf
 
-        #Implicitly add vacancies to components. This shouldn't affect models that don't use vacancies
-        #But models that use vacancies will be ignored if the user forgets to supply it
+        # Implicitly add vacancies to components. This shouldn't affect models that don't use vacancies
+        # But models that use vacancies will be ignored if the user forgets to supply it
         self.components = list(set(components).union({'VA'}))
         self.elements = map_utils.elements_from_components(self.components)
         self.phases = filter_phases(self.dbf, unpack_components(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)
 
-        #Add v.N to conditions. Mapping assumes that v.N is in conditions
+        # Add v.N to conditions. Mapping assumes that v.N is in conditions
         if v.N not in self.conditions:
             self.conditions[v.N] = 1
 
@@ -67,7 +67,7 @@ class MapStrategy:
         self.models = instantiate_models(self.dbf, self.components, self.phases)
         self.phase_records = build_phase_records(self.dbf, self.components, self.phases, set(STATEVARS), self.models)
 
-        #In case we need to call pycalphad functions outside this class
+        # In case we need to call pycalphad functions outside this class
         self.system_info = {
             "dbf": self.dbf,
             "comps": self.components,
@@ -84,7 +84,7 @@ class MapStrategy:
         self._exit_dirs = []
         self._exit_index = 0
 
-        #Some default constants
+        # Some default constants
         self.DELTA_SCALE = kwargs.get("DELTA_SCALE", 0.5)
         self.MIN_DELTA_RATIO = kwargs.get("MIN_DELTA_RATIO", 0.1)
         self.GLOBAL_CHECK_INTERVAL = kwargs.get("GLOBAL_CHECK_INTERVAL", 1)
@@ -126,7 +126,7 @@ class MapStrategy:
         Since potential and composition variables are on different scales, we normalize by the delta value
         """
         return self.axis_delta[av]
-    
+
     def _other_av(self, av):
         if len(self.axis_vars) == 1:
             return None
@@ -162,16 +162,16 @@ class MapStrategy:
 
         If no parent is given, then a copy of the point without the fixed composition sets is made as the parent
         """
-        #if parent is None:
+        # if parent is None:
         #    _log.info(f"No parent is given. Creating parent from point with {point.free_phases}")
         #    parent = Point(point.global_conditions, point.chemical_potentials, [], point.free_composition_sets)
-        
+
         new_node = Node(point.global_conditions, point.chemical_potentials, point.fixed_composition_sets, point.free_composition_sets, parent)
         new_node.axis_var = start_ax
         new_node.axis_direction = start_dir
         new_node.exit_hint = exit_hint
         return new_node
-    
+
     def iterate(self):
         """
         Hierarchy of mapping iterations
@@ -186,20 +186,20 @@ class MapStrategy:
             self._continue_zpf_line()
         elif len(self._exits) > self._exit_index:
             _log.info("No zpf line or last zpf line has finished. Attempting to start zpf line from next exit")
-            #This will start a new zpf line that is not finished
+            # This will start a new zpf line that is not finished
             self._start_zpf_line()
             self._exit_index += 1
         elif self.node_queue.size() > 0:
             _log.info("No more exits from current node. Attempting to get next node")
-            #This will reset the _exits list and _exitIndex to 0
+            # This will reset the _exits list and _exitIndex to 0
             self._find_node_exits()
         else:
-            # Mapping is finished once the last zpf line is finished, 
+            # Mapping is finished once the last zpf line is finished,
             # the last node has no more exits and the node queue has no more nodes
             _log.info("No more nodes in queue. Ending mapping.")
             return True
         return False
-    
+
     def do_map(self):
         """
         Wrapper over iterate to run until finished
@@ -216,13 +216,13 @@ class MapStrategy:
         3. Check if the new point generated from step can be added to the zpf line
               _attempt_to_add_point will account for invalid points and detecting new nodes
         """
-        #Test if axis needs to be swapped
+        # Test if axis needs to be swapped
         self._test_swap_axis(self.zpf_lines[-1])
 
-        #Take step
+        # Take step
         step_results = self._step_zpf_line(self.zpf_lines[-1])
 
-        #Check new point and try to add it to zpf line
+        # Check new point and try to add it to zpf line
         self._attempt_to_add_point(self.zpf_lines[-1], step_results)
 
     def _test_swap_axis(self, zpf_line: ZPFLine):
@@ -232,7 +232,7 @@ class MapStrategy:
         """
         return
 
-    def _step_conditions(self, point: Point, axis_var: v.StateVariable, axis_delta: float, axis_lims: tuple[float], direction: Direction):        
+    def _step_conditions(self, point: Point, axis_var: v.StateVariable, axis_delta: float, axis_lims: tuple[float], direction: Direction):
         """
         Creates a copy of condition and steps in proposed direction
 
@@ -240,9 +240,9 @@ class MapStrategy:
         """
         new_conds = copy.deepcopy(point.global_conditions)
         new_conds[axis_var] += axis_delta*direction.value
-        
-        #Limit axis variable to axis limits (provide a small offset for composition)
-        #TODO: check if composition sums to more than 1, could be an override for isopleth strategy
+
+        # Limit axis variable to axis limits (provide a small offset for composition)
+        # TODO: check if composition sums to more than 1, could be an override for isopleth strategy
         hit_axis_limit = False
         offset = 0 if axis_var in STATEVARS else MIN_COMPOSITION
 
@@ -258,7 +258,7 @@ class MapStrategy:
         """
         Adjust conditions and compute equilibrium, this will return a new point (or None if equilibrium fails)
         """
-        #Here we don't care if stepping reached the axis limit since we check this afterwards
+        # Here we don't care if stepping reached the axis limit since we check this afterwards
         new_conds, hit_axis_limit = self._step_conditions(point, axis_var, axis_delta, axis_lims, direction)
         if hit_axis_limit:
             return None
@@ -303,28 +303,28 @@ class MapStrategy:
         for check in check_functions:
             new_node = check(zpf_line, step_results, axis_data, **extra_args)
 
-            #If we found a new node, then process it and end zpf line
+            # If we found a new node, then process it and end zpf line
             if zpf_line.status == ZPFState.NEW_NODE_FOUND:
                 self._process_new_node(zpf_line, new_node)
                 return
-            #If equilibrium failed, then reset zpf line so it can step from previous point
+            # If equilibrium failed, then reset zpf line so it can step from previous point
             elif zpf_line.status == ZPFState.ATTEMPT_NEW_STEP:
                 zpf_line.status = ZPFState.NOT_FINISHED
                 return
-            #If anything occurs that interrupts zpf line, break out of the loop
-            #Whether we add or don't add point will be decided later
+            # If anything occurs that interrupts zpf line, break out of the loop
+            # Whether we add or don't add point will be decided later
             elif zpf_line.status != ZPFState.NOT_FINISHED:
                 _log.info(f"ZPF line {zpf_line.fixed_phases}, {zpf_line.free_phases} ended with {zpf_line.status}")
                 break
 
         # If the zpf line reached a limit (axis limits or similar phase composition), then we
         # can still add the point
-        valid_statuses = [ZPFState.NOT_FINISHED, ZPFState.REACHED_LIMIT] 
+        valid_statuses = [ZPFState.NOT_FINISHED, ZPFState.REACHED_LIMIT]
         if zpf_line.status in valid_statuses:
             new_point, _ = step_results
             zpf_line.append(new_point)
 
-            #If we successfully added a new point, attempt to increase the axis delta if is smaller than the default
+            # If we successfully added a new point, attempt to increase the axis delta if is smaller than the default
             if zpf_line.current_delta < self.axis_delta[zpf_line.axis_var]:
                 zpf_line.current_delta = np.amin([self.axis_delta[zpf_line.axis_var], zpf_line.current_delta / self.DELTA_SCALE])
 
@@ -353,16 +353,16 @@ class MapStrategy:
         _log.info(f"Removed zpf points from {orig_len} to {final_len}")
 
         zpf_line.append(new_node.parent)
-        #zpf_line.append(new_node)
+        # zpf_line.append(new_node)
 
-        #Set axis variable and direction from the previous zpf line
-        #So we know where the node came from (this can give some hints for exit finding)
+        # Set axis variable and direction from the previous zpf line
+        # So we know where the node came from (this can give some hints for exit finding)
         new_node.axis_var = zpf_line.axis_var
         new_node.axis_direction = zpf_line.axis_direction
 
-        #Add to node queue
-        #For stepping, we will force add. Most nodes will be unique, however, if we're stepping along composition
-        #in a binary, then the nodes won't be unique
+        # Add to node queue
+        # For stepping, we will force add. Most nodes will be unique, however, if we're stepping along composition
+        # in a binary, then the nodes won't be unique
         if len(self.axis_vars) == 1:
             self.node_queue.add_node(new_node, True)
         else:
@@ -375,20 +375,20 @@ class MapStrategy:
         2. Find start direction
         3. Create new zpf line with exit and direction information
         """
-        #Find start direction from current exit
+        # Find start direction from current exit
         direction_data = self._determine_start_direction(self._current_node, self._exits[self._exit_index], self._exit_dirs[self._exit_index])
 
-        #If no direction can be found, then move to the next exit
+        # If no direction can be found, then move to the next exit
         if direction_data is None:
             return
-        
-        #Create node from exit and start direction
-        exit_point, start_ax, start_dir, start_delta = direction_data
-        #start_node = self._create_node_from_point(self._exits[self._exit_index], None, start_ax, start_dir)
 
-        #Initialize zpf line
-        #self.zpf_lines.append(ZPFLine(start_node.fixed_phases, start_node.free_phases))
-        #self.zpf_lines[-1].points.append(start_node)
+        # Create node from exit and start direction
+        exit_point, start_ax, start_dir, start_delta = direction_data
+        # start_node = self._create_node_from_point(self._exits[self._exit_index], None, start_ax, start_dir)
+
+        # Initialize zpf line
+        # self.zpf_lines.append(ZPFLine(start_node.fixed_phases, start_node.free_phases))
+        # self.zpf_lines[-1].points.append(start_node)
         self.zpf_lines.append(ZPFLine(exit_point.fixed_phases, exit_point.free_phases))
         self.zpf_lines[-1].points.append(exit_point)
         self.zpf_lines[-1].axis_var = start_ax
@@ -403,7 +403,7 @@ class MapStrategy:
         From an exit point, this will return an axis variable, direction and delta
         that is suggested to give a good starting direction to a ZPF line
 
-        If proposed_direction is None, this will test both positive and negative, 
+        If proposed_direction is None, this will test both positive and negative,
         otherwise, it will only test the proposed direction
         """
         raise NotImplementedError()
@@ -413,11 +413,11 @@ class MapStrategy:
         1. Get next node in queue
         2. Find exits from node (implemented for each strategy)
         """
-        #Get new node from node queue
+        # Get new node from node queue
         self._current_node = self.node_queue.get_next_node()
         _log.info(f"Finding exits from node {self._current_node.fixed_phases}, {self._current_node.free_phases}, {self._current_node.global_conditions}")
 
-        #Find all exits from node
+        # Find all exits from node
         self._exits, self._exit_dirs = self._find_exits_from_node(self._current_node)
         exit_info = [f"Point: {ex.fixed_phases}, {ex.free_phases}, {ex_dir}" for ex, ex_dir in zip(self._exits, self._exit_dirs)]
         _log.info(f"Found exits {exit_info}")
@@ -440,7 +440,7 @@ class MapStrategy:
                 exits.append(node)
                 exit_dirs.append(node.axis_direction)
         return exits, exit_dirs
-    
+
     def _test_direction(self, point: Point, axis_var: v.StateVariable, direction: Direction):
         """
         Given an axis variable and direction, test that we can step from the point
@@ -449,8 +449,8 @@ class MapStrategy:
         We check whether stepping is possible by checking if equilibrium converged, if it"s still global min and if the number of phases stayed the same
             We"ll skip the other two checks (axis lims/distance and similar compositions) since technically, these are valid points that can be added
         """
-        #For stepping, there is not other variable
-        #For tielines and isopleths, we keep track of the other av
+        # For stepping, there is not other variable
+        # For tielines and isopleths, we keep track of the other av
         #  This is mainly to check which axis variable changes the least when stepping
         #  Where we want to be stepping in the variable that changes the other variable the least
         if len(self.axis_vars) == 1:
@@ -460,18 +460,18 @@ class MapStrategy:
             other_av_val = point.get_property(other_av)
 
         # Assume that we can step using the specified axis delta,
-        # but, if stepping fails, then we reduce the step size until 
+        # but, if stepping fails, then we reduce the step size until
         # it works. If the step size becomes too small, then we stop
 
-        #Temporary, we could default the starting delta to be the minimum, then scale up to the
-        #input delta after successful zpf line steps. This could avoid some extra equilibrum calcs
-        #If this works better then testing and scaling down the direction, then we don't need the while loop
+        # Temporary, we could default the starting delta to be the minimum, then scale up to the
+        # input delta after successful zpf line steps. This could avoid some extra equilibrum calcs
+        # If this works better then testing and scaling down the direction, then we don't need the while loop
         #  It would also be easier to return a failure mode for when the direction testing failed (non-convergence, not global min, etc)
 
-        #curr_delta = self.axis_delta[axis_var]
+        # curr_delta = self.axis_delta[axis_var]
         curr_delta = self.axis_delta[axis_var] * self.MIN_DELTA_RATIO
         while curr_delta >= self.axis_delta[axis_var]*self.MIN_DELTA_RATIO:
-            #Step condition, if we hit the axis limit, then scale down the delta and try again
+            # Step condition, if we hit the axis limit, then scale down the delta and try again
             new_conds, hit_axis_limit = self._step_conditions(point, axis_var, curr_delta, self.axis_lims[axis_var], direction)
             if not hit_axis_limit:
                 step_results = zeq.update_equilibrium_with_new_conditions(point, new_conds, self._other_av(axis_var))
@@ -482,7 +482,7 @@ class MapStrategy:
                     "tol": self.GLOBAL_MIN_TOL
                 }
 
-                #Check valid equilibrium, global min and change in phases
+                # Check valid equilibrium, global min and change in phases
                 check_functions = [zchk.simple_check_valid_point, zchk.simple_check_change_in_phases, zchk.simple_check_global_min]
                 valid_point = True
                 for checks in check_functions:
@@ -490,7 +490,7 @@ class MapStrategy:
                         valid_point = False
                         break
 
-                #If valid point, then record the change in the other axis and return both deltas
+                # If valid point, then record the change in the other axis and return both deltas
                 if valid_point:
                     other_av_delta = None
                     new_point, orig_cs = step_results
@@ -498,12 +498,10 @@ class MapStrategy:
                         new_other_av_val = new_point.get_property(other_av)
                         other_av_delta = abs(other_av_val - new_other_av_val)
                     return curr_delta, other_av_delta
-            
+
             _log.info(f"Stepping point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}, {axis_var}, {direction} failed. Reducing step size from {curr_delta} -> {curr_delta*self.DELTA_SCALE}")
             curr_delta *= self.DELTA_SCALE
-        
-        #If stepping failed and we reached the minimum step size, then return None
+
+        # If stepping failed and we reached the minimum step size, then return None
         _log.info(f"Stepping point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}, {direction} failed with minimum step size {curr_delta}.")
         return None
-
-

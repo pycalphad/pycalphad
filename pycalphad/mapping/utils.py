@@ -18,8 +18,8 @@ def get_statevars_array(conditions: dict[v.StateVariable, float]):
     return np.asarray([conditions[sv] for sv in STATEVARS], dtype=np.float64)
 
 def elements_from_components(components: list[str]):
-    #Components can be a compound, so we want to get all unique elements
-    #excluding VA. We'll also sort them
+    # Components can be a compound, so we want to get all unique elements
+    # excluding VA. We'll also sort them
     non_va_comps = list(set(components) - {"VA"})
     species_list = [v.Species(c) for c in non_va_comps]
     elements = set.union(*[set([key for key in s.constituents.keys()]) for s in species_list])
@@ -29,7 +29,7 @@ def _sort_axis_by_state_vars(axis_vars: list[v.StateVariable]):
     state_vars = [av for av in axis_vars if av in STATEVARS]
     non_state_vars = [av for av in axis_vars if av not in STATEVARS]
     return state_vars + non_state_vars
-    
+
 def _generate_point_with_fixed_cs(point: Point, cs_to_fix: CompositionSet, cs_to_free: CompositionSet):
     new_point = Point.with_copy(point.global_conditions, point.chemical_potentials, [cs_to_fix], [cs_to_free])
 
@@ -63,8 +63,8 @@ def _generate_point_with_free_cs(point: Point, bias_towards_free = False):
             update_cs_phase_frac(cs, 1/phase_sum)
         cs.fixed = False
 
-        #cs.fixed = False
-        #update_cs_phase_frac(cs, 1/len(new_point._free_composition_sets))
+        # cs.fixed = False
+        # update_cs_phase_frac(cs, 1/len(new_point._free_composition_sets))
     for key in new_point.global_conditions:
         new_point.global_conditions[key] = new_point.get_property(key)
     return new_point
