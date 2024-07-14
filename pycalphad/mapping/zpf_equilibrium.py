@@ -33,10 +33,11 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
 
     Returns
     -------
-    new_point - Point with updated composition sets and conditions
-    orig_cs - Original list of composition sets
-        Degrees of freedom in the composition sets will be updated with the new point conditions
-        Will include any composition sets that became unstable after updating
+    (new_point, orig_cs)
+        new_point - Point with updated composition sets and conditions
+        orig_cs - Original list of composition sets
+            Degrees of freedom in the composition sets will be updated with the new point conditions
+            Will include any composition sets that became unstable after updating
 
     or
 

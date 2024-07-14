@@ -358,7 +358,6 @@ class MapStrategy:
         _log.info(f"Removed zpf points from {orig_len} to {final_len}")
 
         zpf_line.append(new_node.parent)
-        # zpf_line.append(new_node)
 
         # Set axis variable and direction from the previous zpf line
         # So we know where the node came from (this can give some hints for exit finding)
@@ -392,8 +391,6 @@ class MapStrategy:
         # start_node = self._create_node_from_point(self._exits[self._exit_index], None, start_ax, start_dir)
 
         # Initialize zpf line
-        # self.zpf_lines.append(ZPFLine(start_node.fixed_phases, start_node.free_phases))
-        # self.zpf_lines[-1].points.append(start_node)
         self.zpf_lines.append(ZPFLine(exit_point.fixed_phases, exit_point.free_phases))
         self.zpf_lines[-1].points.append(exit_point)
         self.zpf_lines[-1].axis_var = start_ax
