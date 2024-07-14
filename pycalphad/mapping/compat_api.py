@@ -4,11 +4,9 @@ from pycalphad.mapping.primitives import STATEVARS
 from pycalphad.mapping.strategy import StepStrategy, BinaryStrategy, TernaryStrategy, IsoplethStrategy
 from pycalphad.mapping.plotting import plot_step, plot_binary, plot_ternary, plot_isopleth
 
-def binplot(database, components, phases, conditions, return_strategy = False, plot_kwargs=None, **map_kwargs):
+def binplot(database, components, phases, conditions, return_strategy=False, plot_kwargs=None, **map_kwargs):
     """
     Calculate the binary isobaric phase diagram.
-
-    This function is a convenience wrapper around map_binary() and plot_boundaries()
 
     Parameters
     ----------
@@ -21,28 +19,26 @@ def binplot(database, components, phases, conditions, return_strategy = False, p
     conditions : Mapping[v.StateVariable, Union[float, Tuple[float, float, float]]]
         Maps StateVariables to values and/or iterables of values.
         For binplot only one changing composition and one potential coordinate each is supported.
-    eq_kwargs : dict, optional
-        Keyword arguments to use in equilibrium() within map_binary(). If
-        eq_kwargs is defined in map_kwargs, this argument takes precedence.
+    return_strategy : bool, optional
+        Return the BinaryStrategy object in addition to the Axes. Defaults to False.
     map_kwargs : dict, optional
-        Additional keyword arguments to map_binary().
+        Additional keyword arguments to BinaryStrategy().
     plot_kwargs : dict, optional
-        Keyword arguments to plot_boundaries().
+        Keyword arguments to plot_binary().
 
     Returns
     -------
     Axes
         Matplotlib Axes of the phase diagram
+    (Axes, BinaryStrategy)
+        If return_strategy is True.
 
-    Examples
-    --------
-    None yet.
     """
     indep_comps = [key for key, value in conditions.items() if key not in STATEVARS and len(np.atleast_1d(value)) > 1]
     indep_pots = [key for key, value in conditions.items() if key in STATEVARS and len(np.atleast_1d(value)) > 1]
     if (len(indep_comps) != 1) or (len(indep_pots) != 1):
         raise ValueError('binplot() requires exactly one composition coordinate and one potential coordinate')
-    
+
     strategy = BinaryStrategy(database, components, phases, conditions, **map_kwargs)
     strategy.initialize()
     strategy.do_map()
@@ -118,7 +114,7 @@ def isoplethplot(database, components, phases, conditions, return_strategy = Fal
     """
     Calculates an isopleth phase diagram.
     For now, we'll define isopleths as having 1 potential condition and 1 non-potential condition
-    TODO: 
+    TODO:
 
     This function is a convenience wrapper around map_binary() and plot_boundaries()
 
@@ -154,7 +150,7 @@ def isoplethplot(database, components, phases, conditions, return_strategy = Fal
     indep_pots = [key for key, value in conditions.items() if key in STATEVARS and len(np.atleast_1d(value)) > 1]
     if (len(indep_comps) != 1) or (len(indep_pots) != 1):
         raise ValueError('isoplethplot() requires exactly one composition coordinate and one potential coordinate')
-    
+
     strategy = IsoplethStrategy(database, components, phases, conditions, **map_kwargs)
     strategy.initialize()
     strategy.do_map()
