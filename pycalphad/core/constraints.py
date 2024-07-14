@@ -24,8 +24,6 @@ def build_phase_local_constraints(mod, variables, phase_local_conditions, parame
     import pycalphad.variables as v
     phase_local_constraints = []
     for key, value in phase_local_conditions.items():
-        # Should each phase-local condition key have a `.as_equation(model)` function?
-        # That may work better as we expand to linear combinations of PLCs (fewer special cases needed)
         if isinstance(key, v.MoleFraction):
             cons = mod.moles(key.species, per_formula_unit=True) - \
                 value * sum(mod.moles(v.Species(el), per_formula_unit=True) for el in mod.nonvacant_elements)
