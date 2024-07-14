@@ -101,7 +101,6 @@ cpdef void intersecting_point(double[:,::1] compositions,
     cdef double* constraint_matrix = <double*>malloc((fixed_lincomb_molefrac_rhs.shape[0] + 1) * compositions.shape[1] * sizeof(double))
     cdef double* constraint_rhs = <double*>malloc((fixed_lincomb_molefrac_rhs.shape[0] + 1) * sizeof(double))
     out_intersecting_point[:] = 0
-    # out_intersecting_point memory is reused for plane_coefs, to save an allocation
     cdef double[::1] plane_coefs = out_intersecting_point
     hyperplane_coefficients(compositions, fixed_chempot_indices, trial_simplex, plane_coefs)
     for j in range(compositions.shape[1]):
