@@ -752,23 +752,36 @@ class Phase_SUBQ(PhaseBase):
             pure_elementsSUBQ.append('VA')
         else:
             pass
+#### IN THIS PART OF THE CODE I RENAME THE CATION AND ANION SPECIES THAT ARE SPECIFIED IN THE LOWER PORTION#### 
+### OF THE CHEMSAGE FILE. HERE I AM RENAMING THEM TO HAVE THEIR RESPECTIVE CHARGES ADDED TO THEIR NAME#####
+###IT IS SIMILAR TO THE DEVELOPER BRANCH BUT I MADE CHANGES TO THE RENAME_ELEMENT_CHARGE FUNCTION TO GET RID OF###
+###UNNECESSARY CHARACTERS IN THE NAME#####
         cations_ori = [rename_element_charge(el, chg) for el, chg in cation_el_chg_pairs]
-        cations = [rename_element_charge(pure, chg) for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]
-        anions = [rename_element_charge(pure, chg) for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]
+        cations = [rename_element_charge(pure, chg) for el, chg in cation_el_chg_pairs\
+                   for pure in pure_elementsSUBQ if element_check(el,pure)==True]
+        anions = [rename_element_charge(pure, chg) for el, chg in anion_el_chg_pairs\
+                  for pure in pure_elementsSUBQ if element_check(el,pure)==True]
         anions_ori = [rename_element_charge(el, chg) for el, chg in anion_el_chg_pairs]
+###########################################################################################
 ####MAKING STRONG ASSUMPTIONS ABOUT VACANCIES. THEIR STOICHIOMETRIC VALUE WILL ALWAYS BE THE SAME TO 
 ###ITS QUADRUPLET STOICHIOMETRY. MEANING NEVER WILL BE DIMER FOR VACANCY AND ALWAYS WILL BE ANION##############
         cat_el_pairs_edited=[]
         cat_chg_pairs_edited=[]
         an_el_pairs_edited=[]
         an_chg_pairs_edited=[]
+####HERE I AM GOING TO LOOP OVER ALL THE ENDMEMBERS TO GET THE STOICHIOMETRIC DATA SO THAT I KNOW WHICH SPECIES###
+###ARE DIMERS, WHICH ARE SPECIFIC CHARGES AND SO FORTH################################################\
+#####THIS FIRST PART OF THE FOR LOOP CREATES THE ELE_NAME_CAT AND ELE_NAME_AN WHICH SEPARATE THE ELEMENTS FROM ###
+### CHARGES AND CREATES A LIST OF ALL THE CATION AND ANION ELEMENTS#############################################
         for count,endmember in enumerate(self.endmembers):
-            ele_name_cat=list(set([pure for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]))
-            ele_name_an=list(set([pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el,pure)==True]))
-            endmember_pure_element=[j for count,j in enumerate(endmember.stoichiometry_pure_elements) if j!=0.0 if pure_elementsSUBQ[count] in ele_name_cat]
-#            print('This is endmember again',self.subl_1_const,self.subl_1_charges,cations,anions)
-###This loop is to find out how many anions are to the cations. This is shown in the endmember_pure_element_anion
-####is appended to the endmember_pure_element###
+            ele_name_cat=list(set([pure for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if\
+                                   element_check(el,pure)==True]))
+            ele_name_an=list(set([pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if\
+                                  element_check(el,pure)==True]))
+#################################################################################
+            endmember_pure_element=[j for count,j in enumerate(endmember.stoichiometry_pure_elements) if j!=0.0 if\
+                                    pure_elementsSUBQ[count] in ele_name_cat]
+            
             if len([i for i in endmember.stoichiometry_pure_elements if i!=0])==2:
                 endmember_pure_element_anion_contribution=[i for count,i in \
                                                            enumerate(endmember.stoichiometry_pure_elements) if \
