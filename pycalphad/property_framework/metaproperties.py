@@ -81,7 +81,7 @@ class DrivingForce:
             raise ValueError('DrivingForce was passed multiple stable valid CompositionSets')
         return driving_force
 
-    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: "DotDerivativeDeltas") -> npt.ArrayLike:
+    def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: "JanssonDerivativeDeltas") -> npt.ArrayLike:
         "Compute Jansson derivative with self as numerator, with the given deltas"
         seen_phases = 0
         jansson_derivative = np.nan
