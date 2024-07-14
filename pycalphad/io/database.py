@@ -107,7 +107,7 @@ class Database(object): #pylint: disable=R0902
                     fmt = ext[1:].lower()
             except (AttributeError, TypeError):
                 pass
-            if hasattr(fname, 'read'):
+            if hasattr(fname, 'read') or hasattr(fname, 'open'):
                 # File descriptor
                 return cls.from_file(fname, fmt=fmt)
             elif fname.find('\n') == -1:
