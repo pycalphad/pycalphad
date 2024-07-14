@@ -47,9 +47,17 @@ def _get_label(var: v.StateVariable):
     if var == v.NP:
         return 'Phase Fraction'
     elif isinstance(var, v.X):
-        return 'X({})'.format(var.species.name.capitalize())
+        if var.phase_name is None:
+            return 'X({})'.format(var.species.name.capitalize())
+        else:
+            return 'X({}, {})'.format(var.phase_name, var.species.name.capitalize())
     elif isinstance(var, v.W):
-        return 'W({})'.format(var.species.name.capitalize())
+        if var.phase_name is None:
+            return 'W({})'.format(var.species.name.capitalize())
+        else:
+            return 'W({}, {})'.format(var.phase_name, var.species.name.capitalize())
+    elif isinstance(var, v.MU):
+        return 'MU({})'.format(var.species.name.capitalize())
     # Otherwise, we can just use the display name
     else:
         return var.display_name
