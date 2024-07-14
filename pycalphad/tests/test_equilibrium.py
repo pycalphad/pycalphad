@@ -946,7 +946,7 @@ def test_MQMQA_species_of_different_moles(load_database):
     """Ternary ideal"""
     dbf = load_database()
     comps = ['F', 'LI', 'BE', 'VA']
-    eq = equilibrium(dbf, comps, ['MSFL'], {v.N: 1, v.P: 101325, v.T: 1450, v.X('LI'):0.333333333333333, v.X('BE'):0.111111111111111})
+    eq = equilibrium(dbf, comps, ['MSFL'], {v.N: 1, v.P: 101325, v.T: 1450, v.X('LI'):0.333333333333333, v.X('BE'):0.111111111111111}, calc_opts={'pdens': 2000})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
