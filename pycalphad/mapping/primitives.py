@@ -62,6 +62,24 @@ def _get_phase_list_with_multiplicity(phases: list[str]):
         u_phases.append(test_name)
     return u_phases
 
+def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global = False):
+    """
+    Helper function for ZPFLine.get_var_list
+    
+    Converts variable to phase specific if possible
+
+    If variable is a state variable or non-phase dependent, then return the same variable
+    For variables such as x or NP, then we return x or NP of phase
+        If we specify that the variable is global (for x), then we return x unchanged
+    """
+    if is_global:
+        return var
+    if isinstance(var, v.X):
+        return v.X(phase, var.species)
+    elif isinstance(var, v.NP) or var == v.NP:
+        return v.NP(phase)
+    else:
+        return var
 
 @dataclass
 class Point():

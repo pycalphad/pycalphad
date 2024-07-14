@@ -8,7 +8,7 @@ import numpy as np
 from pycalphad import Database, variables as v
 import pycalphad.core.constants as PYC_CONSTANTS
 
-from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Node, Point, ExitHint, Direction, ZPFState
+from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Node, Point, ExitHint, Direction, ZPFState, _get_phase_specific_variable
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 
