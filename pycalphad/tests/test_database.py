@@ -39,7 +39,7 @@ FUNCTION COMPAT 298.15 +9001; 6000 N !
 @select_database("rose.tdb")
 def test_database_eq(load_database):
     "Database equality comparison."
-    test_dbf = Database(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
+    test_dbf = Database(files(pycalphad.tests.databases).joinpath("alcrni.tdb"))
     assert test_dbf == test_dbf
     assert test_dbf == REFERENCE_DBF
     assert not (test_dbf == load_database())
@@ -53,7 +53,7 @@ def test_database_eq(load_database):
 @select_database("rose.tdb")
 def test_database_ne(load_database):
     "Database inequality comparison."
-    test_dbf = Database(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
+    test_dbf = Database(files(pycalphad.tests.databases).joinpath("alcrni.tdb"))
     assert not (test_dbf != test_dbf)
     assert not (test_dbf != REFERENCE_DBF)
     assert test_dbf != load_database()
@@ -65,7 +65,7 @@ def test_database_ne(load_database):
 
 def test_database_pickle():
     "Database pickle roundtrip."
-    test_dbf = Database(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
+    test_dbf = Database(files(pycalphad.tests.databases).joinpath("alcrni.tdb"))
     new_dbf = pickle.loads(pickle.dumps(test_dbf))
     assert test_dbf == new_dbf
 
@@ -90,7 +90,7 @@ def test_load_from_string():
 @select_database("alfe.tdb")
 def test_export_import(load_database):
     "Equivalence of re-imported database to original."
-    test_dbf = Database(str(files(pycalphad.tests.databases).joinpath("alnipt.tdb")))
+    test_dbf = Database(files(pycalphad.tests.databases).joinpath("alnipt.tdb"))
     assert Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb') == test_dbf
     test_dbf = load_database()
     assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
@@ -207,8 +207,11 @@ def test_to_file_overwrites_with_if_exists_argument(load_database, _testwritetdb
 
 def test_unspecified_format_from_string():
     "from_string: Unspecified string format raises ValueError."
+    db_file = files(pycalphad.tests.databases).joinpath("alcrni.tdb")
+    with open(db_file) as fp:
+        db_str = fp.read()
     with pytest.raises(ValueError):
-        Database.from_string(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb")))
+        Database.from_string(db_str)
 
 def test_unknown_format_from_string():
     "from_string: Unknown import string format raises NotImplementedError."
@@ -235,8 +238,11 @@ def test_load_from_stringio_from_file():
 @pytest.mark.filterwarnings("ignore:unclosed file*:ResourceWarning")
 def test_unspecified_format_from_file():
     "from_file: Unspecified format for file descriptor raises ValueError."
+    db_file = files(pycalphad.tests.databases).joinpath("alcrni.tdb")
+    with open(db_file) as fp:
+        db_str_io = StringIO(fp.read())
     with pytest.raises(ValueError):
-        Database.from_file(StringIO(str(files(pycalphad.tests.databases).joinpath("alcrni.tdb"))))
+        Database.from_file(db_str_io)
 
 def test_unspecified_format_to_file():
     "to_file: Unspecified format for file descriptor raises ValueError."
@@ -864,7 +870,7 @@ def test_tc_printer_nested_mul_add():
     """
     TCPrinter retains parenthesis around a nested Mul(...,Add(...)) expression
     Ex. A*(B+C) should result in A*(B+C) instead of A*B+C
-    Also, it should not add unnecessary parenthesis, so: 
+    Also, it should not add unnecessary parenthesis, so:
         A*(B*C) should be A*B*C and
         A*B**C should be A*B**(C) instead of A*(B**(C))
     """
