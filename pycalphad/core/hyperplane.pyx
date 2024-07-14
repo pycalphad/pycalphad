@@ -140,7 +140,6 @@ cdef void simplex_fractions(double[:,::1] compositions,
                        <double[:compositions.shape[1]]>target_point)
     # Fill coordinate matrix
     for j in range(simplex_size):
-        # compositions[trial_simplex[i], :]
         for i in range(simplex_size):
             f_coord_matrix[j + simplex_size*i] = compositions[trial_simplex[i], free_chempot_indices[j]]
         out_fractions[j] = target_point[free_chempot_indices[j]]
