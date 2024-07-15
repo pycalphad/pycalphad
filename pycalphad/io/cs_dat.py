@@ -789,13 +789,16 @@ class Phase_SUBQ(PhaseBase):
 ###finally the multi speciation is just a list of the ratios between pure elements and stoichiometry which #####
 ##will show as a number other than 1 if there is multispeciation in a specific species######
 ###The if statement does not break anything here I think but I should triple check!!!!! ##################
-            endmember_pure_element=[j for count,j in enumerate(endmember.stoichiometry_pure_elements) if j!=0.0 if\
-                                    pure_elementsSUBQ[count] in ele_name_cat]
+####THIS PART OF THE CODE WILL WORK WITH VACANCIES JUST BY THE WAY IT IS WRITTEN. HOWEVER IT IS NOT GOING TO BE ABLE#
+####TO CORRECTLY DETECT THEM AND IT WILL ALWAYS RESULT IN NEVER PICKING UP DIMER FOR VACANCY. WHICH IS SOMETHING ###
+###THAT WAS ALREADY BEING ASSUMMED########
+            endmember_pure_element=[j for count,j in enumerate(endmember.stoichiometry_pure_elements) if j!=0.0\
+                                    and pure_elementsSUBQ[count] in ele_name_cat]
             
             if len([i for i in endmember.stoichiometry_pure_elements if i!=0])==2:
                 endmember_pure_element_anion_contribution=[i for count,i in \
                                                            enumerate(endmember.stoichiometry_pure_elements) if \
-                                                           i!=0.0 if pure_elementsSUBQ[count] in ele_name_an]
+                                                           i!=0.0 and pure_elementsSUBQ[count] in ele_name_an]
 #                stoi_pure_ele=endmember.stoichiometry_pure_elements
             else:
                 endmember_pure_element_anion_contribution=[endmember.stoichiometry_quadruplet[1]]
@@ -815,11 +818,20 @@ class Phase_SUBQ(PhaseBase):
             endmember_ele_an=[pure_elementsSUBQ[count] for count,i in\
                               enumerate(endmember.stoichiometry_pure_elements) if i!=0.0\
                               if pure_elementsSUBQ[count] not in ele_name_cat]
+            if len(endmember_ele_full)==0 and len(endmember_ele_an)!=0:
+                endmember_ele_full.append('VA')
+            elif len(endmember_ele_an)==0 and len(endmember_ele_full)!=0:
+                endmember_ele_an.append('VA')
+            elif len(endmember_ele_an)!=0 and len(endmember_ele_full)!=0:
+                pass
+            else:
+                print('ERROR! THIS STRUCTURE IN THE MQMQA MODEL IS FORBIDDEN!!! ERROR INEVITABLE')
             endmember_ele_full.append(endmember_ele_an[0])
 ################################################################################################
 
 ####HERE IS WHERE I AM CREATING THE STRING WHERE I WILL HAVE THE ELEMENT AND THE MASS OF THE ELEMENT###
             el_mass_editing=[str(i)+str(int(j)) for i,j in zip(endmember_ele_full,finding_multispeciation)]
+            print('What is happening here',endmember_ele_full,finding_multispeciation)
             cat_mass_pairs_edited.append(el_mass_editing[0])
             an_mass_pairs_edited.append(el_mass_editing[1])
 ######################################################################################################
