@@ -107,8 +107,20 @@ class BinaryStrategy(MapStrategy):
         Grabs starting points from a step calc
             For stepping in a state variable (T or P), this is all the nodes of the step calc
             For stepping in composition, this is all the 2 phase regions
-        TODO: Do we really need separate methods for whether we're stepping in a state variable or not? or
-              can we just use the method for stepping in composition?
+        
+        NOTE: Grabbing starting points is different for whether the axis variable on the step calculation
+              is a state variable or not
+              
+              For stepping along a state variable where the composition is likely near an end point,
+              the two-phase regions are usually too small to be resolved in the stepping resolution, 
+              thus, getting starting points from the node is more consistent. Only one starting point
+              is added for each phase transition since for alpha->beta, the zpf line for alpha will end
+              with the parent and the zpf line for beta will start with the node
+
+              For stepping along a composition axis, just grab a single point from a zpf line.
+              If we were to grab the nodes, there would be two nodes for every two-phase regions:
+                alpha -> alpha + beta - Node for beginning of alpha + beta zpf line
+                alpha + beta -> beta - Node for beginning of beta zpf line
         """
         # If stepping in a state variable, then grab all the nodes
         if step.axis_vars[0] in STATEVARS:
@@ -130,20 +142,21 @@ class BinaryStrategy(MapStrategy):
                     self.node_queue.add_node(alt_node, True)
 
         # If stepping in non-state variable, then for all two-phase zpf lines, grab one point to add as node
-        for zpf_line in step.zpf_lines:
-            if len(zpf_line.stable_phases) == 2:
-                p_index = 0
-                while len(zpf_line.points[p_index].stable_phases) != 2:
-                    p_index += 1
+        else:
+            for zpf_line in step.zpf_lines:
+                if len(zpf_line.stable_phases) == 2:
+                    p_index = 0
+                    while len(zpf_line.points[p_index].stable_phases) != 2:
+                        p_index += 1
 
-                if len(zpf_line.points[p_index].stable_phases) == 2:
-                    new_point = zpf_line.points[p_index]
-                    _log.info(f"Adding point {new_point.fixed_phases}, {new_point.free_phases}, {new_point.global_conditions}")
-                    node = self._create_node_from_point(new_point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT)
-                    self.node_queue.add_node(node, True)
+                    if len(zpf_line.points[p_index].stable_phases) == 2:
+                        new_point = zpf_line.points[p_index]
+                        _log.info(f"Adding point {new_point.fixed_phases}, {new_point.free_phases}, {new_point.global_conditions}")
+                        node = self._create_node_from_point(new_point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT)
+                        self.node_queue.add_node(node, True)
 
-                    node = self._create_node_from_point(new_point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT)
-                    self.node_queue.add_node(node, True)
+                        node = self._create_node_from_point(new_point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT)
+                        self.node_queue.add_node(node, True)
 
     def _find_exits_from_node(self, node: Node):
         """

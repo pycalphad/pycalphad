@@ -69,11 +69,6 @@ class IsoplethStrategy(MapStrategy):
                 conds = copy.deepcopy(self.conditions)
                 conds[av] = av_val
 
-                # Coarse search (will need to make sure stepping works for very coarse searches as it can miss some nodes)
-                # other_av = self._other_av(av)
-                # av_range = np.amax(self.axis_lims[other_av]) - np.amin(self.axis_lims[other_av])
-                # conds[other_av] = (self.axis_lims[other_av][0], self.axis_lims[other_av][1], av_range/20)
-
                 # Adjust composition conditions to be slightly above 0 or below 1 for numerical stability
                 if isinstance(av, v.X):
                     if conds[av] == 0:

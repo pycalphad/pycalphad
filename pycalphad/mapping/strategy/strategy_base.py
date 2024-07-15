@@ -165,12 +165,8 @@ class MapStrategy:
         """
         Given a point and a parent, create a node with a starting axis/direction
 
-        If no parent is given, then a copy of the point without the fixed composition sets is made as the parent
+        Note: parent can be None, which allows for distinguishing if a node came from a starting point or from mapping
         """
-        # if parent is None:
-        #    _log.info(f"No parent is given. Creating parent from point with {point.free_phases}")
-        #    parent = Point(point.global_conditions, point.chemical_potentials, [], point.free_composition_sets)
-
         new_node = Node(point.global_conditions, point.chemical_potentials, point.fixed_composition_sets, point.free_composition_sets, parent)
         new_node.axis_var = start_ax
         new_node.axis_direction = start_dir

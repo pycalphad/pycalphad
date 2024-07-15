@@ -114,8 +114,8 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable]):
 class TernaryStrategy(MapStrategy):
     def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
         super().__init__(dbf, components, phases, conditions, **kwargs)
-        # TODO: I don't really like this since this assumes pure elements
-        # Although since species as conditions aren't supported yet, I suppose it's fine for now
+        # TODO: This assumes pure elements and will likely change with
+        #       the generalize component support
         unlisted_element = list(set(self.components) - {'VA'} - set([str(av.species) for av in self.axis_vars]))[0]
         self.all_vars = self.axis_vars + [v.X(unlisted_element)]
 
@@ -133,11 +133,7 @@ class TernaryStrategy(MapStrategy):
             conds = copy.deepcopy(self.conditions)
             conds[av] = np.amin(self.axis_lims[av])
 
-            # other_av = self._other_av(av)
-            # av_range = np.amax(self.axis_lims[other_av]) - np.amin(self.axis_lims[other_av])
-            # conds[other_av] = (self.axis_lims[other_av][0], self.axis_lims[other_av][1], av_range/20)
-
-            # Adjust composition conditions to be slightly above 0 or below 1 for numerical stability
+            # Adjust composition conditions to be slightly above 0 for numerical stability
             if isinstance(av, v.X):
                 if conds[av] == 0:
                     conds[av] = MIN_COMPOSITION
@@ -152,9 +148,6 @@ class TernaryStrategy(MapStrategy):
         conds = copy.deepcopy(self.conditions)
         conds[self.all_vars[-1]] = MIN_COMPOSITION
         del conds[self.axis_vars[0]]
-
-        # av_range = np.amax(self.axis_lims[self.axis_vars[1]]) - np.amin(self.axis_lims[self.axis_vars[1]])
-        # conds[self.axis_vars[1]] = (self.axis_lims[self.axis_vars[1]][0], self.axis_lims[self.axis_vars[1]][1], av_range/20)
 
         # Step map
         step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
