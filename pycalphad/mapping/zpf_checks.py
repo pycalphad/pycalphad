@@ -169,38 +169,16 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
     """
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
 
-    # for av in [zpf_line.axis_var]:
     for av in axis_vars:
-        statevar_offset = 0
-        x_offset = 0 if zpf_line.axis_var in STATEVARS else MIN_COMPOSITION
-        offset = statevar_offset if av in STATEVARS else x_offset
-        offset = 0 if av != zpf_line.axis_var else offset
+        offset = 1e-6
 
-        if new_point_vars[av] <= min(axis_lims[av]) + offset or new_point_vars[av] >= max(axis_lims[av]) - offset:
-        # if np.isclose(new_point_vars[av], min(axis_lims[av]) + offset, rtol=1e-5) or np.isclose(new_point_vars[av], max(axis_lims[av]) - offset):
+        # Allow some leeway below and above the axis limits. This is justified because:
+        #   1) Stepping will automatically step the stepping variable to be within axis limits
+        #   2) For stoichiometric phases at an endmember, finite precision may cause the composition to be slightly above/below 1 (within numerical precision)
+        #   3) For non-stoichiometric phases, composition will be limited between 0 and 1 due to the constraints in the minimizer
+        if new_point_vars[av] < min(axis_lims[av]) - offset or new_point_vars[av] > max(axis_lims[av]) + offset:
             _log.info(f"New point outside axis limits. {av} = {new_point_vars[av]}. Limits = {axis_lims[av]}")
             return False
-    return True
-
-def _check_composition_within_limit(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]]):
-    """
-    Unused, should remove if we can confirm that this check is not needed
-
-    Checks if composition is within (0, 1) limits, only checks compositions defined in global conditions
-
-    Parameters
-    ----------
-    zpf_line : ZPFLine
-    step_results : [Point, [CompositionSet]]
-
-    Returns
-    -------
-    bool if composition is within limits
-    """
-    new_point, orig_cs = step_results
-    comp_sum = sum(new_point.get_property(var) for var in new_point.global_conditions if isinstance(var, v.X))
-    if comp_sum < MIN_COMPOSITION or comp_sum > 1-MIN_COMPOSITION:
-        return False
     return True
 
 def _check_axis_values_by_distance(zpf_line: ZPFLine, prev_point_vars: dict[v.StateVariable, float], new_point_vars: dict[v.StateVariable, float], axis_data: Mapping, **kwargs):
@@ -281,10 +259,6 @@ def check_axis_values(zpf_line: ZPFLine, step_results: tuple[Point, list[Composi
         _log.info("Variable reach axis limit. Ending ZPF line")
         zpf_line.status = ZPFState.REACHED_LIMIT
         return None
-    # if not _check_composition_within_limit(zpf_line, step_results):
-    #    _log.info("Variable reach composition limit. Ending ZPF line")
-    #    zpf_line.status = ZPFState.REACHED_LIMIT
-    #    return None
 
 def check_change_in_phases(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
     """
