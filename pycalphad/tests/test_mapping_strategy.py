@@ -5,9 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from pycalphad import binplot, ternplot, Database, variables as v
+from pycalphad.tests.fixtures import select_database, load_database
+from pycalphad.core.utils import instantiate_models
+from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
+
 from pycalphad.mapping.strategy import StepStrategy, IsoplethStrategy
 from pycalphad.mapping.plotting import plot_step, plot_isopleth
-from pycalphad.tests.fixtures import select_database, load_database
+from pycalphad.mapping.starting_points import point_from_equilibrium
+from pycalphad.mapping.zpf_equilibrium import find_global_min_point
 
 import pycalphad.tests.databases
 
@@ -26,7 +31,6 @@ NOTES:
 @select_database("alcocrni.tdb")
 def test_binary_strategy(load_database):
     dbf = load_database()
-    #dbf = Database(str(files(pycalphad.tests.databases).joinpath('alcocrni.tdb')))
 
     ax, strategy = binplot(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1000, 2500, 40), v.X("CR"): (0, 1, 0.01), v.P: 101325}, return_strategy=True)
     
@@ -46,12 +50,10 @@ def test_binary_strategy(load_database):
 
     for dnz in desired_node_sets:
         assert dnz in node_sets
-    #plt.show()
 
 @select_database("crtiv_ghosh.tdb")
 def test_ternary_strategy(load_database):
     dbf = load_database()
-    #dbf = Database(str(files(pycalphad.tests.databases).joinpath('crtiv_ghosh.tdb')))
 
     ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("CR"): (0, 1, 0.01), v.X("TI"): (0, 1, 0.01), v.T: 923, v.P: 101325}, return_strategy=True)
     
@@ -71,12 +73,10 @@ def test_ternary_strategy(load_database):
 
     for dnz in desired_node_sets:
         assert dnz in node_sets
-    #plt.show()
 
 @select_database("alcocrni.tdb")
 def test_step_strategy(load_database):
     dbf = load_database()
-    #dbf = Database(str(files(pycalphad.tests.databases).joinpath('alcocrni.tdb')))
 
     strategy = StepStrategy(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1000, 2500, 40), v.X("CR"): 0.8, v.P: 101325})
     strategy.initialize()
@@ -100,12 +100,10 @@ def test_step_strategy(load_database):
 
     for dnz in desired_node_sets:
         assert dnz in node_sets
-    #plt.show()
 
 @select_database("crtiv_ghosh.tdb")
 def test_isopleth_strategy(load_database):
     dbf = load_database()
-    #dbf = Database(str(files(pycalphad.tests.databases).joinpath('crtiv_ghosh.tdb')))
 
     strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1073, 2073, 20), v.X("TI"): (0, 0.8, 0.01), v.X("V"): 0.2, v.P: 101325})
     strategy.initialize()
@@ -119,10 +117,39 @@ def test_isopleth_strategy(load_database):
 
     # All unique phase regions
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
-    #node_sets = [set(node.stable_phases_with_multiplicity) for node in strategy.node_queue.nodes]
 
     # Make sure that the phase regions from mapping contains all the desired regions
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
         assert dzs in mapping_sets
-    #plt.show()
+
+@select_database("femns.tdb")
+def test_global_min_check_writable_array(load_database):
+    """
+    The femns database was one that failed during the global min check during mapping
+    This was due to the site fractions from calculate being read-only after squeezing
+    which created a 'ValueError: buffer source array is read-only' error when updating
+    the composition sets
+    Fix was to create a new np array for the site fractions, and use the new array
+    to update the composition sets
+
+    This test just makes sures that find_global_min_point can run without crashing on the femns.tdb database
+    """
+    dbf = load_database()
+    comps = ['FE', 'MN', 'S', 'VA']
+    phases = list(dbf.phases.keys())
+    conds = {v.T: 1000, v.P: 101325, v.X('FE'): 0.3, v.X('S'): 0.2, v.N: 1}
+    models = instantiate_models(dbf, comps, phases)
+    phase_records = PhaseRecordFactory(dbf, comps, {v.N, v.P, v.T}, models)
+
+    point = point_from_equilibrium(dbf, comps, phases, conds)
+
+    sys_info = {
+        "dbf": dbf,
+        "comps": comps,
+        "phases": phases,
+        "models": models,
+        "phase_records": phase_records,
+    }
+
+    find_global_min_point(point, sys_info)

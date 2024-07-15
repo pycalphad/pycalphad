@@ -25,6 +25,10 @@ def point_from_equilibrium(dbf: Database, components: list[str], phases: list[st
     eq_kwargs : dict
         Additional arguments for Workspace (models, phase records, etc.)
     """
+    # Add v.N to conditions if not supplied
+    if v.N not in conditions:
+        conditions[v.N] = 1
+
     wks = Workspace(dbf, components, phases, conditions, **eq_kwargs)
 
     chemical_potentials = np.squeeze(wks.eq.MU)

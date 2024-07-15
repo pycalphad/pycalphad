@@ -130,12 +130,13 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
         index = sorted_indices[i]
         if phase_ids[index] not in tested_phases:
             tested_phases.append(phase_ids[index])
-            test_cs = CompositionSet(phase_records[phase_ids[index]])
-            # TODO: on some models, I get an error of
-            # ValueError: buffer source array is read-only (line 59 in pycalphad.core.composition_set.CompositionSet.update)
-            # Databases where this occured in test suite: alcfe_b2.tdb running Al-C-Fe isopleth, alcocrni.tdb running Al-Co-Ni ternary
-            # and femns.tdb with ionic liquid model
-            test_cs.update(y[index][:test_cs.phase_record.phase_dof], 1.0, map_utils.get_statevars_array(point.global_conditions))
+            test_cs = CompositionSet(phase_records[str(phase_ids[index])])
+            # Create numpy array for site fractions. There seems to be some models where
+            # np.squeeze(points.Y) returns a non-writable array. Not sure why, but when it does,
+            # updating the composition set will fail with a ValueError: buffer source array
+            # is read only. Creating a new array for the site fractions seems to fix this issue
+            site_fracs = np.array(y[index][:test_cs.phase_record.phase_dof], dtype=np.float64)
+            test_cs.update(site_fracs, 1.0, map_utils.get_statevars_array(point.global_conditions))
             dormant_phase = DormantPhase(test_cs, None)
             test_dg = point.get_property(dormant_phase.driving_force)
             _log.info(f"Testing phase {phase_ids[index]} with dG={dGs[index]}->{test_dg} for global min.")
