@@ -147,11 +147,22 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
     """
     Checks that axis values are within the axis limits
 
-    TODO: should check if we really need x_offset, this could affect phases like GRAPHITE which has a composition of X(C)=1
-    
     NOTE: I think prev_point_vars (unused) and new_point_vars are called this rather
           than conditions since they are taken from v.StateVariable.compute_property
           rather than from the global conditions
+
+    NOTE: There were some issues before with X-C systems where a zpf line containing
+          graphite and another stoichiometric phase would stop midway due to the 
+          composition of graphite being at X(C)=1
+
+          Adding an offset to slightly extend the axis limits seems to help this issue. 
+          Local tests with the Bengt mpea-05 database on all X-C systems (X = Al, Co, Cr, Fe, Ni, Mn) 
+          appears to have to have all zpf lines correctly present
+
+          I will also justify this offset with the following:
+            1) Stepping will automatically step the stepping variable to be within axis limits
+            2) For stoichiometric phases at an endmember, finite precision may cause the composition to be slightly above/below 1 (within numerical precision)
+            3) For non-stoichiometric phases, composition will be limited between 0 and 1 due to the constraints in the minimizer
 
     Parameters
     ----------
@@ -170,12 +181,9 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
     axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
 
     for av in axis_vars:
+        # Allow some leeway below and above the axis limits. See note in docstring for details
         offset = 1e-6
 
-        # Allow some leeway below and above the axis limits. This is justified because:
-        #   1) Stepping will automatically step the stepping variable to be within axis limits
-        #   2) For stoichiometric phases at an endmember, finite precision may cause the composition to be slightly above/below 1 (within numerical precision)
-        #   3) For non-stoichiometric phases, composition will be limited between 0 and 1 due to the constraints in the minimizer
         if new_point_vars[av] < min(axis_lims[av]) - offset or new_point_vars[av] > max(axis_lims[av]) + offset:
             _log.info(f"New point outside axis limits. {av} = {new_point_vars[av]}. Limits = {axis_lims[av]}")
             return False
