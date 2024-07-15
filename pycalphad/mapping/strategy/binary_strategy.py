@@ -74,8 +74,6 @@ class BinaryStrategy(MapStrategy):
 
         Here, we do a step mapping along the axis bounds and grab all the nodes
         The nodes of a step map is distinguished from starting points in that they have a parent
-
-        TODO: we should check performance to see if step mapping versus running multiple equilibrium along the axis then searching through the array is faster
         """
         # Iterate through axis variables, and set conditions to fix axis variable at min or max
         for av in self.axis_vars:
@@ -209,28 +207,3 @@ class BinaryStrategy(MapStrategy):
                 return exit_point, axis_var, d, av_delta
 
         return None
-
-    def _test_swap_axis(self, zpf_line: ZPFLine):
-        """
-        By default, we won"t swap axis. This will be the case for stepping
-        For more than 2 axis, we do a comparison of how much each axis variable changed in the last two steps
-        """
-        if len(zpf_line.points) > 1:
-            # Get change in axis variable for both variables
-            curr_point = zpf_line.points[-1]
-            prev_point = zpf_line.points[-2]
-            dv = [(curr_point.get_property(av) - prev_point.get_property(av))/self.normalize_factor(av) for av in self.axis_vars]
-            
-            # We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
-            # We also can get the direction from the change in variable
-            index = np.argmax(np.abs(dv))
-            direction = Direction.POSITIVE if dv[index] > 0 else Direction.NEGATIVE
-            if zpf_line.axis_var != self.axis_vars[index]:
-                _log.info(f"Swapping axis to {self.axis_vars[index]}. ZPF vector {dv} {self.axis_vars}")
-
-                # Since we check the change in axis variable at the current delta, we'll retain the same delta
-                # when switching axis variable (same delta as a ratio of the initial delta)
-                delta_scale = zpf_line.current_delta / self.axis_delta[zpf_line.axis_var]
-                zpf_line.axis_var = self.axis_vars[index]
-                zpf_line.axis_direction = direction
-                zpf_line.current_delta = self.axis_delta[zpf_line.axis_var] * delta_scale

@@ -228,10 +228,33 @@ class MapStrategy:
 
     def _test_swap_axis(self, zpf_line: ZPFLine):
         """
-        By default, we won"t swap axis. This will be the case for stepping
-        For more than 2 axis, we do a comparison of how much each axis variable changed in the last two steps
+        If there is only one axis variable, then we don't need to test for swapping the axis
+
+        For more than 2 axis, we do a comparison of how much each axis variable changed in the last two steps,
+        then change to step in the axis variable that changed the most
         """
-        return
+        if len(self.axis_vars) == 1:
+            return
+        else:
+            if len(zpf_line.points) > 1:
+                # Get change in axis variable for both variables
+                curr_point = zpf_line.points[-1]
+                prev_point = zpf_line.points[-2]
+                dv = [(curr_point.get_property(av) - prev_point.get_property(av))/self.normalize_factor(av) for av in self.axis_vars]
+                
+                # We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
+                # We also can get the direction from the change in variable
+                index = np.argmax(np.abs(dv))
+                direction = Direction.POSITIVE if dv[index] > 0 else Direction.NEGATIVE
+                if zpf_line.axis_var != self.axis_vars[index]:
+                    _log.info(f"Swapping axis to {self.axis_vars[index]}. ZPF vector {dv} {self.axis_vars}")
+
+                    # Since we check the change in axis variable at the current delta, we'll retain the same delta
+                    # when switching axis variable (same delta as a ratio of the initial delta)
+                    delta_scale = zpf_line.current_delta / self.axis_delta[zpf_line.axis_var]
+                    zpf_line.axis_var = self.axis_vars[index]
+                    zpf_line.axis_direction = direction
+                    zpf_line.current_delta = self.axis_delta[zpf_line.axis_var] * delta_scale
 
     def _step_conditions(self, point: Point, axis_var: v.StateVariable, axis_delta: float, axis_lims: tuple[float], direction: Direction):
         """
@@ -333,7 +356,7 @@ class MapStrategy:
         """
         Back tracks zpf line until the angle between the last edge on the zpf line and the edge connect to the node is greater than 90 (dot product > 0)
 
-        TODO: while this should allow for performing global min check every couple iterations, this is very iffy
+        TODO: while this should allow for performing global min check every couple iterations, this is very iffy. It's fine for now since the global check interval defaults to 1
         """
         _log.info("Back tracking zpf line to add node")
         node_pos = np.array([new_node.get_property(av) for av in self.axis_vars])
