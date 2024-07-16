@@ -61,8 +61,8 @@ def get_statevars_array(conditions: dict[v.StateVariable, float], state_variable
     """
     # If no state variables is given, then grab them from conditions
     if state_variables is None:
-        state_variables = [key for key in conditions if is_state_variable(key)]
-    return np.asarray([conditions[sv] for sv in sorted(state_variables, key=str)], dtype=np.float64)
+        state_variables = sorted([key for key in conditions if is_state_variable(key)], key=str)
+    return np.asarray([conditions[sv] for sv in state_variables], dtype=np.float64)
 
 def _sort_axis_by_state_vars(axis_vars: list[v.StateVariable]):
     """

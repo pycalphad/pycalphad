@@ -137,7 +137,7 @@ def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5
             # updating the composition set will fail with a ValueError: buffer source array
             # is read only. Creating a new array for the site fractions seems to fix this issue
             site_fracs = np.array(y[index][:test_cs.phase_record.phase_dof], dtype=np.float64)
-            test_cs.update(site_fracs, 1.0, map_utils.get_statevars_array(point.global_conditions))
+            test_cs.update(site_fracs, 1.0, map_utils.get_statevars_array(point.global_conditions, test_cs.phase_record.state_variables))
             dormant_phase = DormantPhase(test_cs, None)
             test_dg = point.get_property(dormant_phase.driving_force)
             _log.info(f"Testing phase {phase_ids[index]} with dG={dGs[index]} -> {test_dg} for global min.")

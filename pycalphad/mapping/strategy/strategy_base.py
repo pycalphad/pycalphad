@@ -6,7 +6,7 @@ import numpy as np
 
 from pycalphad import Database, variables as v
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
-from pycalphad.core.utils import instantiate_models, unpack_components, filter_phases, get_pure_elements
+from pycalphad.core.utils import instantiate_models, unpack_components, filter_phases, get_pure_elements, get_state_variables
 from pycalphad.core.composition_set import CompositionSet
 
 
@@ -75,9 +75,10 @@ class MapStrategy:
             else:
                 self.axis_lims[var] = (self.conditions[var][0], self.conditions[var][1])
 
-        state_vars = sorted([av for av in self.conditions if map_utils.is_state_variable(av)], key=str)
-        self.num_potential_condition = len([av for av in self.axis_lims if av in state_vars])
         self.models = instantiate_models(self.dbf, self.components, self.phases)
+
+        state_vars = get_state_variables(self.models, self.conditions)
+        self.num_potential_condition = len([av for av in self.axis_lims if av in state_vars])
         self.phase_records = PhaseRecordFactory(self.dbf, self.components, state_vars, self.models)
 
         # In case we need to call pycalphad functions outside this class
