@@ -61,6 +61,8 @@ class MapStrategy:
 
         # For composition variable, adjust max limit to limit the sum of composition to 1
         #   For mapping in two composition variable, assume that the other variable is at the minimum limit
+        # This is a little intrusive, since we're silently changing a user input, but this should be okay since
+        # it'll give the same result without attempting to compute equilibrium at invalid compositions
         self.axis_lims = {}
         self.axis_delta = {}
         for var in self.axis_vars:
@@ -480,59 +482,46 @@ class MapStrategy:
         We check whether stepping is possible by checking if equilibrium converged, if it"s still global min and if the number of phases stayed the same
             We"ll skip the other two checks (axis lims/distance and similar compositions) since technically, these are valid points that can be added
         """
-        # For stepping, there is not other variable
+        # For stepping, there is no other variable
         # For tielines and isopleths, we keep track of the other av
-        #  This is mainly to check which axis variable changes the least when stepping
-        #  Where we want to be stepping in the variable that changes the other variable the least
+        #   This is mainly to check which axis variable changes the least when stepping
+        #   Where we want to be stepping in the variable that changes the other variable the least
         if len(self.axis_vars) == 1:
             other_av, other_av_val = None, None
         else:
             other_av = self.axis_vars[1-self.axis_vars.index(axis_var)]
             other_av_val = point.get_property(other_av)
 
-        # Assume that we can step using the specified axis delta,
-        # but, if stepping fails, then we reduce the step size until
-        # it works. If the step size becomes too small, then we stop
-
-        # Temporary, we could default the starting delta to be the minimum, then scale up to the
-        # input delta after successful zpf line steps. This could avoid some extra equilibrum calcs
-        # If this works better then testing and scaling down the direction, then we don't need the while loop
-        #  It would also be easier to return a failure mode for when the direction testing failed (non-convergence, not global min, etc)
-
-        # curr_delta = self.axis_delta[axis_var]
+        # Set the starting delta to be the minimum (delta * min_delta_ratio). Then if direction is
+        # successful, we can scale the delta after successful zpf line iterations
         curr_delta = self.axis_delta[axis_var] * self.MIN_DELTA_RATIO
-        while curr_delta >= self.axis_delta[axis_var]*self.MIN_DELTA_RATIO:
-            # Step condition, if we hit the axis limit, then scale down the delta and try again
-            new_conds, hit_axis_limit = self._step_conditions(point, axis_var, curr_delta, self.axis_lims[axis_var], direction)
-            if not hit_axis_limit:
-                step_results = zeq.update_equilibrium_with_new_conditions(point, new_conds, self._other_av(axis_var))
+        new_conds, hit_axis_limit = self._step_conditions(point, axis_var, curr_delta, self.axis_lims[axis_var], direction)
+        if not hit_axis_limit:
+            step_results = zeq.update_equilibrium_with_new_conditions(point, new_conds, self._other_av(axis_var))
 
-                extra_args = {
-                    "system_info": self.system_info,
-                    "pdens": self.GLOBAL_MIN_PDENS,
-                    "tol": self.GLOBAL_MIN_TOL
-                }
+            extra_args = {
+                "system_info": self.system_info,
+                "pdens": self.GLOBAL_MIN_PDENS,
+                "tol": self.GLOBAL_MIN_TOL
+            }
 
-                # Check valid equilibrium, global min and change in phases
-                check_functions = [zchk.simple_check_valid_point, zchk.simple_check_change_in_phases, zchk.simple_check_global_min]
-                valid_point = True
-                for checks in check_functions:
-                    if not checks(step_results, **extra_args):
-                        valid_point = False
-                        break
+            # Check valid equilibrium, global min and change in phases
+            check_functions = [zchk.simple_check_valid_point, zchk.simple_check_change_in_phases, zchk.simple_check_global_min]
+            valid_point = True
+            for checks in check_functions:
+                if not checks(step_results, **extra_args):
+                    valid_point = False
+                    break
 
-                # If valid point, then record the change in the other axis and return both deltas
-                if valid_point:
-                    other_av_delta = None
-                    new_point, orig_cs = step_results
-                    if other_av is not None:
-                        new_other_av_val = new_point.get_property(other_av)
-                        other_av_delta = abs(other_av_val - new_other_av_val)
-                    return curr_delta, other_av_delta
+            # If valid point, then record the change in the other axis and return both deltas
+            if valid_point:
+                other_av_delta = None
+                new_point, orig_cs = step_results
+                if other_av is not None:
+                    new_other_av_val = new_point.get_property(other_av)
+                    other_av_delta = abs(other_av_val - new_other_av_val)
+                return curr_delta, other_av_delta
 
-            _log.info(f"Stepping point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}, {axis_var}, {direction} failed. Reducing step size from {curr_delta} -> {curr_delta*self.DELTA_SCALE}")
-            curr_delta *= self.DELTA_SCALE
-
-        # If stepping failed and we reached the minimum step size, then return None
-        _log.info(f"Stepping point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}, {direction} failed with minimum step size {curr_delta}.")
+        # If stepping failed, then returned None
+        _log.info(f"Stepping point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}, {direction} failed with step size {curr_delta}.")
         return None

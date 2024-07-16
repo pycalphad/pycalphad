@@ -139,7 +139,7 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
             test_cs.update(site_fracs, 1.0, map_utils.get_statevars_array(point.global_conditions))
             dormant_phase = DormantPhase(test_cs, None)
             test_dg = point.get_property(dormant_phase.driving_force)
-            _log.info(f"Testing phase {phase_ids[index]} with dG={dGs[index]}->{test_dg} for global min.")
+            _log.info(f"Testing phase {phase_ids[index]} with dG={dGs[index]} -> {test_dg} for global min.")
             if test_dg > dG:
                 dG = test_dg
                 cs = test_cs
