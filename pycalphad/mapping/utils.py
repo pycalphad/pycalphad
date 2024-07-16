@@ -55,27 +55,6 @@ def get_statevars_array(conditions: dict[v.StateVariable, float]):
     """
     return np.asarray([conditions[sv] for sv in STATEVARS], dtype=np.float64)
 
-def elements_from_components(components: list[str]):
-    """
-    Extracts all pure elements from components
-    NOTE: not super useful and may change when component/species conditions are better supported
-          Currently, mapping assumes pure element conditions
-
-    Parameters
-    ----------
-    components : [str]
-
-    Returns
-    -------
-    elements : [str]
-    """
-    # Components can be a compound, so we want to get all unique elements
-    # excluding VA. We'll also sort them
-    non_va_comps = list(set(components) - {"VA"})
-    species_list = [v.Species(c) for c in non_va_comps]
-    elements = set.union(*[set([key for key in s.constituents.keys()]) for s in species_list])
-    return sorted(list(elements))
-
 def _sort_axis_by_state_vars(axis_vars: list[v.StateVariable]):
     """
     Sorts list of axis variables by [state variables (N, P, T)] + [non-state variables]
