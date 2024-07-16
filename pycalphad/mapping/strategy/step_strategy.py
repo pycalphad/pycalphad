@@ -8,7 +8,7 @@ import numpy as np
 from pycalphad import Database, variables as v
 from pycalphad.core.constants import MIN_PHASE_FRACTION
 
-from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Node, Point, ExitHint, Direction, ZPFState
+from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, ZPFState
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 
@@ -54,7 +54,7 @@ class StepStrategy(MapStrategy):
 
         num_node_cs = len(node.stable_composition_sets)
         num_parent_cs = len(node.parent.stable_composition_sets)
-        is_pot_cond = self.axis_vars[0] in STATEVARS
+        is_pot_cond = map_utils.is_state_variable(self.axis_vars[0])
         is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
 
         if num_node_cs == num_parent_cs + 1:

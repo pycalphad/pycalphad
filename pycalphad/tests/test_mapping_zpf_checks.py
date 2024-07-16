@@ -7,7 +7,7 @@ from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.utils import instantiate_models
 
 from pycalphad.mapping.starting_points import point_from_equilibrium
-from pycalphad.mapping.primitives import ZPFLine, ZPFState, STATEVARS, Direction
+from pycalphad.mapping.primitives import ZPFLine, ZPFState, Direction
 import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.zpf_checks as zchk
 from pycalphad.tests.fixtures import select_database, load_database
@@ -227,7 +227,7 @@ def test_check_global_min(load_database):
         "phases": phases,
     }
     system_info["models"] = instantiate_models(system_info["dbf"], comps, phases)
-    system_info["phase_records"] = PhaseRecordFactory(system_info["dbf"], comps, set(STATEVARS), system_info["models"])
+    system_info["phase_records"] = PhaseRecordFactory(system_info["dbf"], comps, {v.N, v.P, v.T}, system_info["models"])
     extra_args["system_info"] = system_info
 
     # check_change_in_phases for same set of phases -> no change

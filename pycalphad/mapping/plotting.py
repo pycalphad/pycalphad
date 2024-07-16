@@ -9,7 +9,7 @@ from pycalphad import variables as v
 from pycalphad.plot.utils import phase_legend
 from pycalphad.plot import triangular  # register triangular projection
 
-from pycalphad.mapping.primitives import STATEVARS, _get_phase_specific_variable
+from pycalphad.mapping.primitives import _get_phase_specific_variable
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
 from pycalphad.mapping.strategy.binary_strategy import BinaryStrategy
 from pycalphad.mapping.strategy.ternary_strategy import TernaryStrategy
@@ -520,11 +520,11 @@ def get_isopleth_node_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.
 
                 # If phase combination is value, then extract x and y values
                 if all(phase_NP > 0):
-                    if x in STATEVARS:
+                    if map_utils.is_state_variable(x):
                         x_vals.append(node.get_property(x))
                     else:
                         x_vals.append(sum(node.get_local_property(cs, x)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP)))
-                    if y in STATEVARS:
+                    if map_utils.is_state_variable(y):
                         y_vals.append(node.get_property(y))
                     else:
                         y_vals.append(sum(node.get_local_property(cs, y)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP)))

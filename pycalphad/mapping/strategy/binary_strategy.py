@@ -7,7 +7,7 @@ import numpy as np
 
 from pycalphad import Database, variables as v
 
-from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Node, Point, ExitHint, Direction, MIN_COMPOSITION
+from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, MIN_COMPOSITION
 import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
@@ -121,7 +121,7 @@ class BinaryStrategy(MapStrategy):
                 alpha + beta -> beta - Node for beginning of beta zpf line
         """
         # If stepping in a state variable, then grab all the nodes
-        if step.axis_vars[0] in STATEVARS:
+        if map_utils.is_state_variable(step.axis_vars[0]):
             # Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction
             #  We force add nodes for positive and negative direction. This is in case the starting point ends up being in the middle
             #  of a zpf line (can happen for low solubility phases) so we want to step both in positive and negative direction

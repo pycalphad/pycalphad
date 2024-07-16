@@ -10,7 +10,7 @@ from pycalphad.property_framework.metaproperties import DormantPhase
 from pycalphad.core.constants import COMP_DIFFERENCE_TOL
 from pycalphad.property_framework.computed_property import JanssonDerivative
 
-from pycalphad.mapping.primitives import STATEVARS, Node, Point
+from pycalphad.mapping.primitives import Node, Point
 import pycalphad.mapping.utils as map_utils
 
 _log = logging.getLogger(__name__)
@@ -44,10 +44,11 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
     None - equilibrium failed
     """
     # Update composition sets with new state variables
-    new_state_conds = map_utils.get_statevars_array(new_conditions)
     comp_sets = copy.deepcopy(point.stable_composition_sets)
     for cs in comp_sets:
-        cs.update(cs.dof[len(STATEVARS):], cs.NP, new_state_conds)
+        state_variables = cs.phase_record.state_variables
+        new_state_conds = map_utils.get_statevars_array(new_conditions, state_variables)
+        cs.update(cs.dof[len(state_variables):], cs.NP, new_state_conds)
 
     # Remove free variable condition if given - this assumes that Gibbs phase rule will be satisfy if done
     if free_var is not None:
@@ -111,7 +112,7 @@ def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5
     phase_records = system_info["phase_records"]
 
     # Get driving force and find index that maximized driving force
-    state_conds = {str(key): point.global_conditions[key] for key in STATEVARS}
+    state_conds = {str(key): point.global_conditions[key] for key in point.global_conditions if map_utils.is_state_variable(key)}
     points = calculate(dbf, comps, phases, model=models, phase_records=phase_records, output="GM", to_xarray=False, pdens=pdens, **state_conds)
     gm = np.squeeze(points.GM)
     x = np.squeeze(points.X)
@@ -226,7 +227,7 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
         True if new_cs is valid
         False if new_cs is the same CS as one already in the point
     """
-    num_sv = len(STATEVARS)
+    num_sv = new_cs.phase_record.num_statevars
     for cs in point.stable_composition_sets:
         if new_cs.phase_record.phase_name != cs.phase_record.phase_name:
             continue

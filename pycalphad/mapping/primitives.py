@@ -7,8 +7,6 @@ import numpy as np
 from pycalphad import variables as v
 from pycalphad.core.composition_set import CompositionSet
 
-# must be in sorted order
-STATEVARS = [v.N, v.P, v.T]  # TODO: global, will change once pycalphad drops strict v.N condition
 CS_EQ_TOL = 1e-8
 MIN_COMPOSITION = 1e-6
 
@@ -243,12 +241,13 @@ class Point():
         # Store current phase fraction. Easiest way to make the NP=1 assumption is the literally make NP=1
         curr_np = comp_set.NP
         # Can't use map utils here due to circular dependencies
-        comp_set.update(comp_set.dof[len(STATEVARS):], 1.0, comp_set.dof[:len(STATEVARS)])
+        num_sv = comp_set.phase_record.num_statevars
+        comp_set.update(comp_set.dof[num_sv:], 1.0, comp_set.dof[:num_sv])
 
         prop_value = var.compute_property([comp_set], self.global_conditions, self.chemical_potentials)
 
         # Restore phase fraction
-        comp_set.update(comp_set.dof[len(STATEVARS):], curr_np, comp_set.dof[:len(STATEVARS)])
+        comp_set.update(comp_set.dof[num_sv:], curr_np, comp_set.dof[:num_sv])
 
         return np.squeeze(prop_value)
 

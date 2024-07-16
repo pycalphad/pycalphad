@@ -5,7 +5,7 @@ import numpy as np
 from pycalphad import variables as v
 from pycalphad.core.composition_set import CompositionSet
 
-from pycalphad.mapping.primitives import Point, Node, STATEVARS
+from pycalphad.mapping.primitives import Point, Node
 
 def degrees_of_freedom(point: Union[Point, Node], components: list[str], num_potential_conditions: int):
     """
@@ -28,6 +28,12 @@ def degrees_of_freedom(point: Union[Point, Node], components: list[str], num_pot
     non_va_comps = len(set(components) - {"VA"})
     return non_va_comps + 2 - len(point.stable_composition_sets) - (2 - num_potential_conditions)
 
+def is_state_variable(var: v.StateVariable):
+    """
+    Returns whether var is a state variable or not
+    """
+    return isinstance(var, (v.IndependentPotential, v.SystemMolesType))
+
 def update_cs_phase_frac(comp_set: CompositionSet, phase_frac: float):
     """
     Wrapper to update the phase fraction of a composition set
@@ -38,12 +44,12 @@ def update_cs_phase_frac(comp_set: CompositionSet, phase_frac: float):
     comp_set : CompositionSet
     phase_frac : float
     """
-    comp_set.update(comp_set.dof[len(STATEVARS):], phase_frac, comp_set.dof[:len(STATEVARS)])
+    num_sv = comp_set.phase_record.num_statevars
+    comp_set.update(comp_set.dof[num_sv:], phase_frac, comp_set.dof[:num_sv])
 
-def get_statevars_array(conditions: dict[v.StateVariable, float]):
+def get_statevars_array(conditions: dict[v.StateVariable, float], state_variables: list[v.StateVariable] = None):
     """
     Creates numpy array of state variables in conditions
-        Sorted by STATEVARS (N, P, T)
 
     Parameters
     ----------
@@ -51,9 +57,12 @@ def get_statevars_array(conditions: dict[v.StateVariable, float]):
 
     Returns
     -------
-    numpy array of len(STATEVARS)
+    numpy array of len(state variables)
     """
-    return np.asarray([conditions[sv] for sv in STATEVARS], dtype=np.float64)
+    # If no state variables is given, then grab them from conditions
+    if state_variables is None:
+        state_variables = [key for key in conditions if is_state_variable(key)]
+    return np.asarray([conditions[sv] for sv in sorted(state_variables, key=str)], dtype=np.float64)
 
 def _sort_axis_by_state_vars(axis_vars: list[v.StateVariable]):
     """
@@ -67,8 +76,8 @@ def _sort_axis_by_state_vars(axis_vars: list[v.StateVariable]):
     -------
     sorted axis vars : [v.StateVariable]
     """
-    state_vars = [av for av in axis_vars if av in STATEVARS]
-    non_state_vars = [av for av in axis_vars if av not in STATEVARS]
+    state_vars = [av for av in axis_vars if is_state_variable(av)]
+    non_state_vars = [av for av in axis_vars if not is_state_variable(av)]
     return state_vars + non_state_vars
 
 def _generate_point_with_fixed_cs(point: Point, cs_to_fix: CompositionSet, cs_to_free: CompositionSet):

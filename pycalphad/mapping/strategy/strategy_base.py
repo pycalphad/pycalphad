@@ -10,7 +10,7 @@ from pycalphad.core.utils import instantiate_models, unpack_components, filter_p
 from pycalphad.core.composition_set import CompositionSet
 
 
-from pycalphad.mapping.primitives import STATEVARS, ZPFLine, NodeQueue, Node, Point, ExitHint, Direction, MIN_COMPOSITION, ZPFState
+from pycalphad.mapping.primitives import ZPFLine, NodeQueue, Node, Point, ExitHint, Direction, MIN_COMPOSITION, ZPFState
 from pycalphad.mapping.starting_points import point_from_equilibrium
 import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.zpf_checks as zchk
@@ -75,9 +75,10 @@ class MapStrategy:
             else:
                 self.axis_lims[var] = (self.conditions[var][0], self.conditions[var][1])
 
-        self.num_potential_condition = sum([1 if av in STATEVARS else 0 for av in self.axis_vars])
+        state_vars = sorted([av for av in self.conditions if map_utils.is_state_variable(av)], key=str)
+        self.num_potential_condition = len([av for av in self.axis_lims if av in state_vars])
         self.models = instantiate_models(self.dbf, self.components, self.phases)
-        self.phase_records = PhaseRecordFactory(self.dbf, self.components, STATEVARS, self.models)
+        self.phase_records = PhaseRecordFactory(self.dbf, self.components, state_vars, self.models)
 
         # In case we need to call pycalphad functions outside this class
         self.system_info = {
@@ -281,7 +282,7 @@ class MapStrategy:
         hit_axis_limit = False
 
         # Offset (for composition, this pushes the axis variable to be slightly off the limits to avoid pure components)
-        offset = 0 if axis_var in STATEVARS else MIN_COMPOSITION
+        offset = 0 if map_utils.is_state_variable(axis_var) else MIN_COMPOSITION
 
         if new_conds[axis_var] > max(axis_lims) - offset:
             new_conds[axis_var] = max(axis_lims) - offset

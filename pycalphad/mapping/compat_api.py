@@ -1,7 +1,7 @@
 import numpy as np
 
-from pycalphad.mapping.primitives import STATEVARS
 from pycalphad.mapping import BinaryStrategy, TernaryStrategy, plot_binary, plot_ternary
+import pycalphad.mapping.utils as map_utils
 
 def binplot(database, components, phases, conditions, return_strategy=False, plot_kwargs=None, **map_kwargs):
     """
@@ -33,8 +33,8 @@ def binplot(database, components, phases, conditions, return_strategy=False, plo
         If return_strategy is True.
 
     """
-    indep_comps = [key for key, value in conditions.items() if key not in STATEVARS and len(np.atleast_1d(value)) > 1]
-    indep_pots = [key for key, value in conditions.items() if key in STATEVARS and len(np.atleast_1d(value)) > 1]
+    indep_comps = [key for key, value in conditions.items() if not map_utils.is_state_variable(key) and len(np.atleast_1d(value)) > 1]
+    indep_pots = [key for key, value in conditions.items() if map_utils.is_state_variable(key) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comps) != 1) or (len(indep_pots) != 1):
         raise ValueError('binplot() requires exactly one composition coordinate and one potential coordinate')
 
@@ -91,8 +91,8 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy=False, m
     # remaining plot_kwargs from pycalphad.plot.eqplot
     # x=None, y=None, z=None, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), **kwargs
     # kwargs passed ot ax.scatter
-    indep_comps = [key for key, value in conds.items() if key not in STATEVARS and len(np.atleast_1d(value)) > 1]
-    indep_pots = [key for key, value in conds.items() if key in STATEVARS and len(np.atleast_1d(value)) > 1]
+    indep_comps = [key for key, value in conds.items() if not map_utils.is_state_variable(key) and len(np.atleast_1d(value)) > 1]
+    indep_pots = [key for key, value in conds.items() if map_utils.is_state_variable(key) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comps) != 2) or (len(indep_pots) != 0):
         raise ValueError('ternplot() requires exactly two composition coordinates')
 
