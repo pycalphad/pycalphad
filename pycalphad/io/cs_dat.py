@@ -776,11 +776,16 @@ class Phase_SUBQ(PhaseBase):
 ###ARE DIMERS, WHICH ARE SPECIFIC CHARGES AND SO FORTH################################################\
 #####THIS FIRST PART OF THE FOR LOOP CREATES THE ELE_NAME_CAT AND ELE_NAME_AN WHICH SEPARATE THE ELEMENTS FROM ###
 ### CHARGES AND CREATES A LIST OF ALL THE CATION AND ANION ELEMENTS AS STRINGS#############################################
+######ANOTHER MAJOR ISSUE IN THIS PARSER IS THAT APPARENTLY IF THE LINE RIGHT BEFORE CHARGES AND QUADRUPLETS LISTS THE WRONG ELEMENT####
+### IT WILL STILL BE CORRECTLY ASSUMED OR READ IN FACTSAGE BUT NOT HERE#####
+###NEW STRATEGY..BEFORE DEFINING ELE_NAME_CAT AND ELE_NAME_AN I HAVE TO CHECK WITH THE PURE ELEMENTS IN THE SYSTEM AND DETERMINE WHETHER####
+###WHICH CATION AND ANION IT IS REFERRING TO############
         for count,endmember in enumerate(self.endmembers):
             ele_name_cat=list([pure for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if\
                                    element_check(el,pure)==True])
             ele_name_an=list([pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if\
                                   element_check(el,pure)==True])
+
 #################################################################################
 ###HERE the ENDMEMBER_PURE_ELEMENT list is made where a list of the stoichiometry of the pure elements in the######
 ### endmember specified in the current loop. (Probably need a better name)#####
@@ -814,7 +819,8 @@ class Phase_SUBQ(PhaseBase):
             endmember_ele_full=[pure_elementsSUBQ[count] for count,i in\
                                 enumerate(endmember.stoichiometry_pure_elements) if i!=0.0 if\
                                 pure_elementsSUBQ[count] in ele_name_cat]
-
+            print('Something tells me',ele_name_cat,pure_elements)
+            print('This is endmember stoichiometry pure elements',endmember.stoichiometry_pure_elements,pure_elementsSUBQ)
             endmember_ele_an=[pure_elementsSUBQ[count] for count,i in\
                               enumerate(endmember.stoichiometry_pure_elements) if i!=0.0\
                               if pure_elementsSUBQ[count] not in ele_name_cat]
@@ -831,7 +837,9 @@ class Phase_SUBQ(PhaseBase):
 
 ####HERE IS WHERE I AM CREATING THE STRING WHERE I WILL HAVE THE ELEMENT AND THE MASS OF THE ELEMENT###
             el_mass_editing=[str(i)+str(int(j)) for i,j in zip(endmember_ele_full,finding_multispeciation)]
-            print('What is happening here',endmember_ele_full,finding_multispeciation)
+            print('This is the full endmember',endmember_ele_full)
+            print('What is happening here',el_mass_editing)
+            
             cat_mass_pairs_edited.append(el_mass_editing[0])
             an_mass_pairs_edited.append(el_mass_editing[1])
 ######################################################################################################
