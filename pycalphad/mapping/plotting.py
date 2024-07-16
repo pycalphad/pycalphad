@@ -420,7 +420,7 @@ def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.Stat
     if ax is None:
         fig, ax = plt.subplots(1, 1, subplot_kw={'projection': "triangular"})
 
-    plot_binary(strategy, x, y, ax, tielines=tielines, label_node=label_nodes, legend_generator=legend_generator, tieline_color=tieline_color, tie_triangle_color=tie_triangle_color, *args, **kwargs)
+    plot_binary(strategy, x, y, ax, tielines=tielines, label_nodes=label_nodes, legend_generator=legend_generator, tieline_color=tieline_color, tie_triangle_color=tie_triangle_color, *args, **kwargs)
     ax.set_xlim([0,1])
     ax.set_ylim([0,1])
 

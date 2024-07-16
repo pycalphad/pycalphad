@@ -295,7 +295,7 @@ class TernaryStrategy(MapStrategy):
         # Do a global equilibrium check before attempting to add the new node
         global_eq_check, test_point = self._check_full_global_equilibrium(new_node, add_global_point_if_false = False)
         if test_point is None:
-            _log.info("Global eq check could not be determined")
+            _log.info("Global eq check on new node could not be determined")
 
             zpf_line.current_delta *= self.DELTA_SCALE
             if zpf_line.current_delta / self.axis_delta[zpf_line.axis_var] < self.MIN_DELTA_RATIO:
@@ -310,12 +310,12 @@ class TernaryStrategy(MapStrategy):
 
         else:
             if global_eq_check:
-                _log.info("Global eq check passed")
+                _log.info("Global eq check on new node passed")
                 return super()._process_new_node(zpf_line, new_node)
             else:
                 zpf_line_phases = zpf_line.stable_phases_with_multiplicity
                 test_node_phases = test_point.stable_phases_with_multiplicity
-                _log.info(f"Global eq check failed. Comparing zpf line {zpf_line_phases} with node phases {test_node_phases}")
+                _log.info(f"Global eq check failed. New node is metastable. Comparing zpf line {zpf_line_phases} with node phases {test_node_phases}")
                 if len(set(test_node_phases) - set(zpf_line_phases)) == 1:
                     _log.info("Node can be added as a proper node")
                     new_node = self._create_node_from_point(test_point, zpf_line.points[-1], None, None)
@@ -324,7 +324,7 @@ class TernaryStrategy(MapStrategy):
                     zpf_line.current_delta *= self.DELTA_SCALE
                     if zpf_line.current_delta / self.axis_delta[zpf_line.axis_var] < self.MIN_DELTA_RATIO:
                         zpf_line.status = ZPFState.FAILED
-                        _log.info("Node is added as a starting point")
+                        _log.info("Node is added as a starting point. Removing current zpf line.")
                         new_node = self._create_node_from_point(test_point, None, None, None)
                         if not self.node_queue.add_node(new_node):
                             _log.info(f"Node {new_node.fixed_phases}, {new_node.free_phases} has already been added")

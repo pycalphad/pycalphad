@@ -70,15 +70,15 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
     new_point = Point(new_conditions, np.array(results.chemical_potentials), [cs for cs in comp_sets if cs.fixed], [cs for cs in comp_sets if not cs.fixed])
     return new_point, orig_cs
 
-def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e-5, num_candidates = 1):
+def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5, num_candidates = 1):
     """
+    Finds potential composition set for global min check
+
     For each possible phase:
         1. Sample DOF and find CS that maximizes driving force
         2. Create a DormantPhase with CS and compute driving force with potentials at equilibrium
             Or check the top N CS that maximizes driving force and compute driving force and take max
-        3. If driving force is positive, then new phase is stable
-        4. Check that the new CS doesn"t match with a currently stable CS
-        4. Hope that this works on miscibility gaps
+        3. If driving force is positive, then new phase may be stable in when attempting to find a new node
 
     Parameters
     ----------
@@ -98,11 +98,11 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
 
     Returns
     -------
-    new_point : Point with added composition set
+    (cs, dG) : (potential new composition set, driving force of composition set)
 
     or
 
-    None : if point is global min or global min was unable to be found
+    None : if no composition set was found below the current chemical potential hyperplane
     """
     dbf = system_info["dbf"]
     comps = system_info["comps"]
@@ -148,6 +148,49 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
     if dG < tol:
         return None
     else:
+        return cs, dG
+    
+def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e-5, num_candidates = 1):
+    """
+    Checks global min on current point and attempts to find a new point 
+    with a new composition set if current point is not global min
+
+    1. Find potential new composition set for global min
+    2. If no composition set is found, then return
+    3. If composition set is found, check that the new CS doesn't match
+       with a currently stable CS
+    4. Hope that this works on miscibility gaps
+
+    Parameters
+    ----------
+    point : Point
+        Point to check global min
+    system_info : dict
+        Dictionary containing information for pycalphad.calculate
+    pdens : int
+        Sampling density
+    tol : float
+        Tolerance for whether a new CS is considered stable
+    num_candidates : int
+        Number of candidate CS to check driving force
+        To avoid redundant calculations, this will only check driving force
+        for unique phases. So setting this to a high number will not significantly
+        affect performance
+
+    Returns
+    -------
+    new_point : Point with added composition set
+
+    or
+
+    None : if point is global min or global min was unable to be found
+    """
+    min_cs_result = _find_global_min_cs(point, system_info, pdens, tol, num_candidates)
+    if min_cs_result is None:
+        return None
+    else:
+        cs, dG = min_cs_result
+        
         _log.info(f'Global min potentially detected. {point.stable_phases} + {cs.phase_record.phase_name} with dG = {dG}')
         if _detect_degenerate_phase(point, cs):
             new_point = Point(point.global_conditions, point.chemical_potentials, point.fixed_composition_sets, point.free_composition_sets)
