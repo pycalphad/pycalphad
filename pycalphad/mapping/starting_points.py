@@ -4,8 +4,7 @@ import copy
 
 import numpy as np
 
-from pycalphad import Database, Workspace, as_property, variables as v
-from pycalphad.core.composition_set import CompositionSet
+from pycalphad import Database, Workspace, variables as v
 
 from pycalphad.mapping.primitives import Point
 import pycalphad.mapping.utils as map_utils

@@ -7,7 +7,7 @@ from pycalphad import variables as v
 from pycalphad.core.constants import COMP_DIFFERENCE_TOL
 from pycalphad.core.composition_set import CompositionSet
 
-from pycalphad.mapping.primitives import STATEVARS, ZPFLine, Point, MIN_COMPOSITION, ZPFState
+from pycalphad.mapping.primitives import ZPFLine, Point, ZPFState
 import pycalphad.mapping.zpf_equilibrium as zeq
 
 _log = logging.getLogger(__name__)
