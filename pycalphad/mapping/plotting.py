@@ -319,7 +319,7 @@ def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
             tieline_collection = LineCollection(np.asarray([x_list, y_list]).T[::tielines, ...], zorder=1, linewidths=0.5, capstyle="butt", colors=[tieline_color for _ in range(len(x_list[0]))])
             ax.add_collection(tieline_collection)
 
-def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, tielines = 1, label_node = False, legend_generator = phase_legend, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), *args, **kwargs):
+def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, tielines = 1, label_nodes = False, legend_generator = phase_legend, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), *args, **kwargs):
     """
     Plots binary map using matplotlib
 
@@ -359,7 +359,7 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     handles, colors = legend_generator(phases)
 
     plot_tielines(ax, strategy, x, y, phase_colors=colors, tielines=tielines, tieline_color=tieline_color)
-    plot_nodes(ax, strategy, x, y, phase_colors=colors, label_end_points=label_node, tie_triangle_color=tie_triangle_color)
+    plot_nodes(ax, strategy, x, y, phase_colors=colors, label_end_points=label_nodes, tie_triangle_color=tie_triangle_color)
 
     # Adjusts axis limits
     # 1. Autoscale axis
