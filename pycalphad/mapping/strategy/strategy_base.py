@@ -53,14 +53,25 @@ class MapStrategy:
         if v.N not in self.conditions:
             self.conditions[v.N] = 1
 
-        self.axis_vars = []
+        
+        self.axis_vars = [key for key, val in self.conditions.items() if len(np.atleast_1d(val)) > 1]
+
+        composition_sum = sum([conditions[var] for var in conditions if (isinstance(var, v.MoleFraction) and var not in self.axis_vars)])
+        axis_minimums = {av : np.amin([self.conditions[av][0], self.conditions[av][1]]) if isinstance(av, v.MoleFraction) else 0 for av in self.axis_vars}
+
+        # For composition variable, adjust max limit to limit the sum of composition to 1
+        #   For mapping in two composition variable, assume that the other variable is at the minimum limit
         self.axis_lims = {}
         self.axis_delta = {}
-        for key, val in self.conditions.items():
-            if isinstance(val, tuple):
-                self.axis_vars.append(key)
-                self.axis_lims[key] = (val[0], val[1])
-                self.axis_delta[key] = val[-1]
+        for var in self.axis_vars:
+            self.axis_delta[var] = self.conditions[var][-1]
+            if isinstance(var, v.MoleFraction):
+                # If there are other composition variables, offset the upper limit further by the minimum of the other variables
+                min_limit_sum = sum([axis_minimums[av] for av in axis_minimums if av != var])
+                upper_limit = np.amin([self.conditions[var][1], 1 - composition_sum - min_limit_sum])
+                self.axis_lims[var] = (self.conditions[var][0], upper_limit)
+            else:
+                self.axis_lims[var] = (self.conditions[var][0], self.conditions[var][1])
 
         self.num_potential_condition = sum([1 if av in STATEVARS else 0 for av in self.axis_vars])
         self.models = instantiate_models(self.dbf, self.components, self.phases)
@@ -265,12 +276,12 @@ class MapStrategy:
         new_conds = copy.deepcopy(point.global_conditions)
         new_conds[axis_var] += axis_delta*direction.value
 
-        # Limit axis variable to axis limits (provide a small offset for composition)
-        # TODO: check if composition sums to more than 1, could be an override for isopleth strategy
         hit_axis_limit = False
+
+        # Offset (for composition, this pushes the axis variable to be slightly off the limits to avoid pure components)
         offset = 0 if axis_var in STATEVARS else MIN_COMPOSITION
 
-        if new_conds[axis_var] > max(axis_lims) -  offset:
+        if new_conds[axis_var] > max(axis_lims) - offset:
             new_conds[axis_var] = max(axis_lims) - offset
             hit_axis_limit = True
         if new_conds[axis_var] < min(axis_lims) + offset:
@@ -407,7 +418,6 @@ class MapStrategy:
 
         # Create node from exit and start direction
         exit_point, start_ax, start_dir, start_delta = direction_data
-        # start_node = self._create_node_from_point(self._exits[self._exit_index], None, start_ax, start_dir)
 
         # Initialize zpf line
         self.zpf_lines.append(ZPFLine(exit_point.fixed_phases, exit_point.free_phases))

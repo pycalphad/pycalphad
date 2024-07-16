@@ -1,8 +1,7 @@
 import numpy as np
 
 from pycalphad.mapping.primitives import STATEVARS
-from pycalphad.mapping.strategy import StepStrategy, BinaryStrategy, TernaryStrategy, IsoplethStrategy
-from pycalphad.mapping.plotting import plot_step, plot_binary, plot_ternary, plot_isopleth
+from pycalphad.mapping import BinaryStrategy, TernaryStrategy, plot_binary, plot_ternary
 
 def binplot(database, components, phases, conditions, return_strategy=False, plot_kwargs=None, **map_kwargs):
     """

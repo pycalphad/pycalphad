@@ -9,8 +9,7 @@ from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.utils import instantiate_models
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 
-from pycalphad.mapping.strategy import StepStrategy, IsoplethStrategy
-from pycalphad.mapping.plotting import plot_step, plot_isopleth
+from pycalphad.mapping import StepStrategy, IsoplethStrategy, plot_step, plot_isopleth
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
 
@@ -153,3 +152,66 @@ def test_global_min_check_writable_array(load_database):
     }
 
     find_global_min_point(point, sys_info)
+
+def test_strategy_adjust_composition_limits():
+    """
+    This tests that the strategy will adjust the condition limits
+    to prevent the map from unnecessarily going to compositions summing to > 1
+
+    The adjustment happens during initialization in MapStrategy so we just need to create a strategy
+    and check the axis limits
+    """
+    TDB = """
+    ELEMENT /-   ELECTRON_GAS              0 0 0!
+    ELEMENT VA   VACUUM                    0 0 0!
+    ELEMENT A   VACUUM                    0 0 0!
+    ELEMENT B   VACUUM                    0 0 0!
+    ELEMENT C   VACUUM                    0 0 0!
+    ELEMENT D   VACUUM                    0 0 0!
+
+    PHASE TEST_PH % 1 1 !
+    CONSTITUENT TEST_PH :A,B,C,D: !
+    """
+    dbf = Database(TDB)
+
+    # Stepping in B at A=0.1
+    # v.X('B'): (0, 1, 0.01) -> v.X('B'): (0, 0.9, 0.01)
+    comps = ['A', 'B', 'C']
+    conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('B'): (0, 1, 0.01)}
+    strategy = StepStrategy(dbf, comps, None, conds)
+
+    assert np.isclose(strategy.axis_lims[v.X('B')][0], 0)
+    assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.9)
+
+    # Stepping in T at A=0.1
+    # v.T should not change
+    comps = ['A', 'B']
+    conds = {v.T: (1, 2, 0.01), v.P: 101325, v.X('A'): 0.1}
+    strategy = StepStrategy(dbf, comps, None, conds)
+
+    assert np.isclose(strategy.axis_lims[v.T][0], 1)
+    assert np.isclose(strategy.axis_lims[v.T][1], 2)
+
+    # Isopleth in A-B-C-D at A=0.1, D=0.2
+    # v.X('B'): (0, 1, 0.01) -> v.X('B'): (0, 0.7, 0.01)
+    # v.X('C'): (0, 1, 0.01) -> v.X('C'): (0, 0.7, 0.01)
+    comps = ['A', 'B', 'C', 'D']
+    conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('D'): 0.2, v.X('B'): (0, 1, 0.01), v.X('C'): (0, 1, 0.01)}
+    strategy = IsoplethStrategy(dbf, comps, None, conds)
+
+    assert np.isclose(strategy.axis_lims[v.X('B')][0], 0)
+    assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.7)
+    assert np.isclose(strategy.axis_lims[v.X('C')][0], 0)
+    assert np.isclose(strategy.axis_lims[v.X('C')][1], 0.7)
+
+    # Isopleth in A-B-C-D at A=0.1, D=0.2 and non-zero minimum limits on B and C
+    # v.X('B'): (0.15, 1, 0.01) -> v.X('B'): (0, 0.45, 0.01)
+    # v.X('C'): (0.25, 1, 0.01) -> v.X('C'): (0, 0.55, 0.01)
+    comps = ['A', 'B', 'C', 'D']
+    conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('D'): 0.2, v.X('B'): (0.15, 1, 0.01), v.X('C'): (0.25, 1, 0.01)}
+    strategy = IsoplethStrategy(dbf, comps, None, conds)
+    
+    assert np.isclose(strategy.axis_lims[v.X('B')][0], 0.15)
+    assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.45)
+    assert np.isclose(strategy.axis_lims[v.X('C')][0], 0.25)
+    assert np.isclose(strategy.axis_lims[v.X('C')][1], 0.55)
