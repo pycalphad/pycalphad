@@ -230,7 +230,6 @@ def test_isopleth_strategy_node_exit():
         has_exit_type = False
         for de in desired_exits:
             if set(point.fixed_phases) == de[0] and set(point.free_phases) == de[1]:
-                print(de, point.fixed_phases, point.free_phases)
                 has_exit_type = True
         assert has_exit_type
 
