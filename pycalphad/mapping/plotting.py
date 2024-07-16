@@ -42,7 +42,7 @@ Functions that interface with matplotlib for plotting
     them using matplotlib
 """
 
-def _get_label(var: v.StateVariable):
+def get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
     if var == v.NP:
         return 'Phase Fraction'
@@ -62,7 +62,7 @@ def _get_label(var: v.StateVariable):
     else:
         return var.display_name
 
-def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariable, x_is_global: bool = False):
+def get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariable, x_is_global: bool = False, set_nan_to_zero = False):
     """
     Utility function to get data from StepStrategy for plotting
 
@@ -83,7 +83,6 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
                 "y" : [float]
             }
         }
-        "phases" : [str] - list of phases that showed up during mapping
         "xlim" : [float] - min and max for all x values
         "ylim" : [float] - min and max for all y values
     }
@@ -97,7 +96,6 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
 
     # For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)
     # Then get the max and min of x and y values to update xlim and ylim
-    # TODO: I don't like the "setting nan values to 0" since it can lead to some awkward plotting for variables such as MU, for NP it seems to be okay though
     phase_data = {}
     for p in phases:
         x_array = []
@@ -105,8 +103,9 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
         for zpf_lines in strategy.zpf_lines:
             x_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, x, x_is_global))
             y_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, y))
-            x_data[np.isnan(x_data)] = 0
-            y_data[np.isnan(y_data)] = 0
+            if set_nan_to_zero:
+                x_data[np.isnan(x_data)] = 0
+                y_data[np.isnan(y_data)] = 0
             x_array.append(x_data)
             y_array.append(y_data)
 
@@ -135,7 +134,7 @@ def _get_step_data(strategy: StepStrategy, x: v.StateVariable, y: v.StateVariabl
 
     return step_data
 
-def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, *args, **kwargs):
+def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, set_nan_to_zero = True, *args, **kwargs):
     """
     Plots step map using matplotlib
 
@@ -167,7 +166,7 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
     if y is None:
         y = v.NP
 
-    step_data = _get_step_data(strategy, x, y, x_is_global)
+    step_data = get_step_data(strategy, x, y, x_is_global, set_nan_to_zero=set_nan_to_zero)
     data = step_data['data']
     xlim = step_data['xlim']
     ylim = step_data['ylim']
@@ -186,12 +185,12 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
-    ax.set_xlabel(_get_label(x))
-    ax.set_ylabel(_get_label(y))
+    ax.set_xlabel(get_label(x))
+    ax.set_ylabel(get_label(y))
 
     return ax
 
-def _get_node_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable):
+def get_node_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable):
     """
     Creates dictionary of data for node plotting in binary and ternary plots
 
@@ -228,7 +227,7 @@ def _get_node_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateV
 
     return node_data
 
-def _plot_nodes(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, label_end_points: bool = False, tie_triangle_color = (1, 0, 0, 1)):
+def plot_nodes(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, label_end_points: bool = False, tie_triangle_color = (1, 0, 0, 1)):
     """
     Plots node data from BinaryStrategy or TernaryStrategy onto matplotlib axis
 
@@ -244,7 +243,7 @@ def _plot_nodes(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.State
     tie_triangle_color : color
         Color to plot node
     """
-    node_data = _get_node_data(strategy, x, y)
+    node_data = get_node_data(strategy, x, y)
     for data in node_data:
         x_data, y_data, phases = data['x'], data['y'], data['phases']
         ax.plot(x_data + [x_data[0]], y_data + [y_data[0]], color=tie_triangle_color, zorder=2.5, lw=1, solid_capstyle="butt")
@@ -254,7 +253,7 @@ def _plot_nodes(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.State
             for xp, yp, p in zip(x_data, y_data, phases):
                 ax.scatter([xp], [yp], color=phase_colors[p], s=8, zorder=3)
 
-def _get_tieline_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable):
+def get_tieline_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable):
     """
     Creates dictionary of data for plotting zpf lines
 
@@ -290,7 +289,7 @@ def _get_tieline_data(strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
         zpf_data.append(phase_data)
     return zpf_data
 
-def _plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, tielines = 1, tieline_color=(0, 1, 0, 1)):
+def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, tielines = 1, tieline_color=(0, 1, 0, 1)):
     """
     Plots tieline data from BinaryStrategy or TernaryStrategy onto matplotlib axis
 
@@ -307,7 +306,7 @@ def _plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.St
         False - only plots phase boundaries
     tieline_color : color
     """
-    zpf_data = _get_tieline_data(strategy, x, y)
+    zpf_data = get_tieline_data(strategy, x, y)
     for data in zpf_data:
         for p in data:
             x_data, y_data = data[p]['x'], data[p]['y']
@@ -359,8 +358,8 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     phases = sorted(strategy.get_all_phases())
     handles, colors = legend_generator(phases)
 
-    _plot_tielines(ax, strategy, x, y, phase_colors=colors, tielines=tielines, tieline_color=tieline_color)
-    _plot_nodes(ax, strategy, x, y, phase_colors=colors, label_end_points=label_node, tie_triangle_color=tie_triangle_color)
+    plot_tielines(ax, strategy, x, y, phase_colors=colors, tielines=tielines, tieline_color=tieline_color)
+    plot_nodes(ax, strategy, x, y, phase_colors=colors, label_end_points=label_node, tie_triangle_color=tie_triangle_color)
 
     # Adjusts axis limits
     # 1. Autoscale axis
@@ -383,8 +382,8 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
-    ax.set_xlabel(_get_label(x))
-    ax.set_ylabel(_get_label(y))
+    ax.set_xlabel(get_label(x))
+    ax.set_ylabel(get_label(y))
 
     return ax
 
@@ -433,7 +432,7 @@ def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.Stat
 
     return ax
 
-def _get_isopleth_zpf_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.StateVariable):
+def get_isopleth_zpf_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.StateVariable):
     """
     Creates dictionary of data for plotting zpf lines for isopleths
 
@@ -486,7 +485,7 @@ def _get_isopleth_zpf_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.
 
     return zpf_data
 
-def _get_isopleth_node_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.StateVariable):
+def get_isopleth_node_data(strategy: IsoplethStrategy, x: v.StateVariable, y: v.StateVariable):
     """
     Creates dictionary of data for plotting nodes for isopleths
 
@@ -572,7 +571,7 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
     handles, colors = legend_generator(phases)
 
     # Plot zpf lines
-    zpf_data = _get_isopleth_zpf_data(strategy, x, y)
+    zpf_data = get_isopleth_zpf_data(strategy, x, y)
     xlim, ylim = zpf_data['xlim'], zpf_data['ylim']
     for data in zpf_data['data']:
         zero_phase = data['phase']
@@ -581,7 +580,7 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
             ax.plot(x_data, y_data, color=colors[zero_phase], lw=1, solid_capstyle="butt")
 
     # Plot nodes
-    node_data = _get_isopleth_node_data(strategy, x, y)
+    node_data = get_isopleth_node_data(strategy, x, y)
     for data in node_data:
         x_data, y_data = data['x'], data['y']
         ax.plot(x_data, y_data, color=tie_triangle_color, zorder=2.5, lw=1, solid_capstyle="butt")
@@ -603,7 +602,7 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
-    ax.set_xlabel(_get_label(x))
-    ax.set_ylabel(_get_label(y))
+    ax.set_xlabel(get_label(x))
+    ax.set_ylabel(get_label(y))
 
     return ax
