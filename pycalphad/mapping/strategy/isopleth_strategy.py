@@ -183,7 +183,7 @@ class IsoplethStrategy(MapStrategy):
         for i in range(len(fixed_var)):
             for j in range(len(trial_stable_compsets)):
                 phase_X_matrix[i,j] = node.get_local_property(trial_stable_compsets[j], fixed_var[i])
-            b[i,0] = node.global_conditions[fixed_var[i]]
+            b[i,0] = np.squeeze(node.global_conditions[fixed_var[i]])
 
         # If the matrix is not full rank, then ignore it as a potential exit
         if np.linalg.matrix_rank(phase_X_matrix) != phase_X_matrix.shape[0]:
