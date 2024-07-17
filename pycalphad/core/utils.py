@@ -310,9 +310,10 @@ def filter_phases(dbf, comps, candidate_phases=None):
         candidate_phases = dbf.phases.keys()
     else:
         candidate_phases = set(candidate_phases).intersection(dbf.phases.keys())
+    species = unpack_species(dbf, comps)
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
-                all_sublattices_active(comps, dbf.phases[phase]) and
+                all_sublattices_active(species, dbf.phases[phase]) and
                 (phase not in disordered_phases or (phase in disordered_phases and
                 dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
     return sorted(phases)

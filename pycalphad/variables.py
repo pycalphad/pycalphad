@@ -36,6 +36,11 @@ class Component(object):
         if arg.__class__ == cls:
             return arg
         new_self = object.__new__(cls)
+        if isinstance(arg, Species):
+            # TODO: maybe should have some base class so Component-Species aren't coupled, but it's probably okay?
+            new_self.name = arg.name
+            new_self.constituents = arg.constituents
+            return new_self
         if arg == '*':
             new_self = object.__new__(cls)
             new_self.name = '*'
@@ -95,6 +100,10 @@ class Component(object):
     def __hash__(self):
         return hash(self.name)
 
+    @property
+    def escaped_name(self):
+        "Name safe to embed in the variable name of complex arithmetic expressions."
+        return str(self)
 
 class Species(object):
     """
@@ -122,6 +131,12 @@ class Species(object):
         if arg.__class__ == cls:
             return arg
         new_self = object.__new__(cls)
+        if isinstance(arg, Component):
+            # TODO: maybe should have some base class so Component-Species aren't coupled, but it's probably okay?
+            new_self.name = arg.name
+            new_self.constituents = arg.constituents
+            new_self.charge = 0
+            return new_self
         if arg == '*':
             new_self = object.__new__(cls)
             new_self.name = '*'
@@ -483,12 +498,12 @@ class MoleFraction(StateVariable):
         species = None
         if len(args) == 1:
             # this is an overall composition variable
-            species = Species(args[0])
+            species = Component(args[0])
             varname = 'X_' + species.escaped_name.upper()
         elif len(args) == 2:
             # this is a phase-specific composition variable
             phase_name = args[0].upper()
-            species = Species(args[1])
+            species = Component(args[1])
             varname = 'X_' + phase_name + '_' + species.escaped_name.upper()
         else:
             # not defined
@@ -514,6 +529,7 @@ class MoleFraction(StateVariable):
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
         for _, compset in self.filtered(compsets):
+            print(compset.phase_record.phase_name, compset.phase_record.nonvacant_elements)
             el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
             if np.isnan(result[0]):
                 result[0] = 0
@@ -617,12 +633,12 @@ class MassFraction(StateVariable):
         species = None
         if len(args) == 1:
             # this is an overall composition variable
-            species = Species(args[0])
+            species = Component(args[0])
             varname = 'W_' + species.escaped_name.upper()
         elif len(args) == 2:
             # this is a phase-specific composition variable
             phase_name = args[0].upper()
-            species = Species(args[1])
+            species = Component(args[1])
             varname = 'W_' + phase_name + '_' + species.escaped_name.upper()
         else:
             # not defined
@@ -675,7 +691,7 @@ def get_mole_fractions(mass_fractions, dependent_species, pure_element_mass_dict
     ----------
     mass_fractions : Mapping[MassFraction, float]
 
-    dependent_species : Union[Species, str]
+    dependent_species : Union[Component, str]
         Dependent species not appearing in the independent mass fractions.
 
     pure_element_mass_dict : Union[Mapping[str, float], pycalphad.Database]
@@ -690,7 +706,7 @@ def get_mole_fractions(mass_fractions, dependent_species, pure_element_mass_dict
     if not all(isinstance(mf, MassFraction) for mf in mass_fractions):
         from pycalphad.core.errors import ConditionError
         raise ConditionError("All mass_fractions must be instances of MassFraction (v.W). Got ", mass_fractions)
-    dependent_species = Species(dependent_species)
+    dependent_species = Component(dependent_species)
     species_mass_fracs = {mf.species: frac for mf, frac in mass_fractions.items()}
     all_species = set(species_mass_fracs.keys()) | {dependent_species}
     # Check if the mass dict is a Database, which is the source of the mass_dict
@@ -722,7 +738,7 @@ def get_mass_fractions(mole_fractions, dependent_species, pure_element_mass_dict
     ----------
     mass_fractions : Mapping[MoleFraction, float]
 
-    dependent_species : Union[Species, str]
+    dependent_species : Union[Component, str]
         Dependent species not appearing in the independent mass fractions.
 
     pure_element_mass_dict : Union[Mapping[str, float], pycalphad.Database]
@@ -737,7 +753,7 @@ def get_mass_fractions(mole_fractions, dependent_species, pure_element_mass_dict
     if not all(isinstance(mf, MoleFraction) for mf in mole_fractions):
         from pycalphad.core.errors import ConditionError
         raise ConditionError("All mole_fractions must be instances of MoleFraction (v.X). Got ", mole_fractions)
-    dependent_species = Species(dependent_species)
+    dependent_species = Component(dependent_species)
     species_mole_fracs = {mf.species: frac for mf, frac in mole_fractions.items()}
     all_species = set(species_mole_fracs.keys()) | {dependent_species}
     # Check if the mass dict is a Database, which is the source of the mass_dict
@@ -770,7 +786,7 @@ class ChemicalPotential(StateVariable):
     display_name = property(lambda self: f'Chemical Potential {self.species}')
 
     def __init__(self, species):
-        species = Species(species)
+        species = Component(species)
         varname = 'MU_' + species.escaped_name.upper()
         super().__init__(varname)
         self.species = species
