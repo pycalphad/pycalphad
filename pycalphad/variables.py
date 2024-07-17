@@ -223,6 +223,7 @@ def unpack_components(components: "Sequence[Component | Species | str]", dbf: Op
     1. Component objects, which are directly used
     2. Species objects, which will be converted to Component objects
     3. str objects, which will be resolved to a Component by:
+
         a) matching with the name of a Species object present in the Database, or
         b) by parsing the string via the Component constructor
 
