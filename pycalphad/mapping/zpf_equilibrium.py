@@ -57,7 +57,7 @@ def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.
     # Keep track of original composition sets (these will be updated with the solver, but the original list will remain even if a phase becomes unstable)
     orig_cs = [cs for cs in comp_sets]
     try:
-        solver = Solver(remove_metastable=True, allow_changing_phases=False)
+        solver = Solver(remove_metastable=True)
         results = solver.solve(comp_sets, new_conditions)
         if not results.converged:
             return None
