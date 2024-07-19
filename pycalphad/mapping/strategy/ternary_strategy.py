@@ -15,6 +15,7 @@ import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
+from pycalphad.mapping.strategy.strategy_utils import get_invariant_data_from_tieline_strategy, get_tieline_data_from_tieline_strategy
 
 _log = logging.getLogger(__name__)
 
@@ -366,3 +367,9 @@ class TernaryStrategy(MapStrategy):
                 _log.info("Point has already been added")
         else:
             _log.info("Could not find a new node from conditions")
+
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+        return get_invariant_data_from_tieline_strategy(self, x, y)
+    
+    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable):
+        return get_tieline_data_from_tieline_strategy(self, x, y)

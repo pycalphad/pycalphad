@@ -8,7 +8,7 @@ import numpy as np
 from pycalphad import Database, variables as v
 from pycalphad.core.constants import MIN_PHASE_FRACTION
 
-from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, ZPFState
+from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, ZPFState, _get_phase_specific_variable
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 
@@ -168,3 +168,76 @@ class StepStrategy(MapStrategy):
                 success = self.add_nodes_from_conditions(new_conds, axis_dir, True)
                 if success:
                     return
+                
+    def get_data(self, x: v.StateVariable, y: v.StateVariable, x_is_global: bool = False, set_nan_to_zero = False):
+        """
+        Utility function to get data from StepStrategy for plotting
+
+        Parameters
+        ----------
+        strategy : StepStrategy
+        x : v.StateVariable
+        y : v.StateVariable
+        x_is_global : bool
+            Whether x is a phase local or global variable
+            Ex. if plotting global composition (x) vs. phase fraction (y), then x is global
+
+        Return
+        ------
+        step_data : {
+            "data" : {
+                <phase_name> : {
+                    "x" : [float]
+                    "y" : [float]
+                }
+            }
+            "xlim" : [float] - min and max for all x values
+            "ylim" : [float] - min and max for all y values
+        }
+        """
+        # Get all phases in strategy (including multiplicity)
+        phases = sorted(self.get_all_phases())
+
+        # Axis limits for x and y
+        xlim = [np.inf, -np.inf]
+        ylim = [np.inf, -np.inf]
+
+        # For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)
+        # Then get the max and min of x and y values to update xlim and ylim
+        phase_data = {}
+        for p in phases:
+            x_array = []
+            y_array = []
+            for zpf_lines in self.zpf_lines:
+                x_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, x, x_is_global))
+                y_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, y))
+                if set_nan_to_zero:
+                    x_data[np.isnan(x_data)] = 0
+                    y_data[np.isnan(y_data)] = 0
+                x_array.append(x_data)
+                y_array.append(y_data)
+
+            # We return a single x, y array for all zpf_lines per phase
+            x_array = np.concatenate(x_array, axis=0)
+            y_array = np.concatenate(y_array, axis=0)
+
+            # Sort arrays by x
+            argsort = np.argsort(x_array)
+            x_array = x_array[argsort]
+            y_array = y_array[argsort]
+
+            phase_data[p] = {'x': x_array, 'y': y_array}
+
+            # Can this be done outside of this loop, or is this the easiest way?
+            xlim[0] = np.amin([xlim[0], np.amin(x_array[~np.isnan(x_array)])])
+            xlim[1] = np.amax([xlim[1], np.amax(x_array[~np.isnan(x_array)])])
+            ylim[0] = np.amin([ylim[0], np.amin(y_array[~np.isnan(y_array)])])
+            ylim[1] = np.amax([ylim[1], np.amax(y_array[~np.isnan(y_array)])])
+
+        step_data = {
+            'data': phase_data,
+            'xlim': xlim,
+            'ylim': ylim,
+        }
+
+        return step_data

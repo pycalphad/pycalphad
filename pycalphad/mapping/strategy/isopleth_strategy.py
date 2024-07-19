@@ -248,3 +248,110 @@ class IsoplethStrategy(MapStrategy):
                 return exit_point, axis_var, d, av_delta
 
         return None
+    
+    def get_zpf_data(self, x: v.StateVariable, y: v.StateVariable):
+        """
+        Creates dictionary of data for plotting zpf lines for isopleths
+
+        Parameters
+        ----------
+        strategy : BinaryStrategy or TernaryStrategy
+        x : v.StateVariable
+        y : v.StateVariable
+
+        Returns
+        -------
+        zpf_data : {
+            "data" : [
+                {
+                    "phase" : str
+                    "x" : [float]
+                    "y" : [float]
+                }
+            ]
+            "xlim" : [float]
+            "ylim" : [float]
+        }
+        Phase in "data" is the fixed phase at zero-phase fraction
+        """
+        xlim = [np.inf, -np.inf]
+        ylim = [np.inf, -np.inf]
+        data = []
+        for zpf_line in self.zpf_lines:
+            zero_phase = zpf_line.fixed_phases[0]
+            x_data = zpf_line.get_var_list(x)
+            y_data = zpf_line.get_var_list(y)
+
+            zpf_data = {
+                'phase': zero_phase,
+                'x': x_data,
+                'y': y_data,
+            }
+            data.append(zpf_data)
+
+            xlim[0] = np.amin([xlim[0], np.amin(x_data[~np.isnan(x_data)])])
+            xlim[1] = np.amin([xlim[1], np.amin(x_data[~np.isnan(x_data)])])
+            ylim[0] = np.amin([ylim[0], np.amin(y_data[~np.isnan(y_data)])])
+            ylim[1] = np.amin([ylim[1], np.amin(y_data[~np.isnan(y_data)])])
+
+        zpf_data = {
+            'data': data,
+            'xlim': xlim,
+            'ylim': ylim,
+        }
+
+        return zpf_data
+
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+        """
+        Creates dictionary of data for plotting invariants for isopleths
+
+        End points of the node is adjusted to be the intersection of the isopleth polytope on the node in n-composition space
+
+        Parameters
+        ----------
+        strategy : BinaryStrategy or TernaryStrategy
+        x : v.StateVariable
+        y : v.StateVariable
+
+        Returns
+        -------
+        node_data : [
+            {
+                "x" : [float]
+                "y" : [float]
+            }
+        ]
+        """
+        node_data = []
+        for node in self.node_queue.nodes:
+            is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
+            if is_invariant:
+                x_vals = []
+                y_vals = []
+                for trial_stable_compsets in itertools.permutations(node.stable_composition_sets, len(node.stable_composition_sets)-2):
+                    # Get phase fraction for combination of phases and node conditions
+                    phase_NP = self._invariant_phase_fractions(node, trial_stable_compsets)
+                    if phase_NP is None:
+                        continue
+
+                    # If phase combination is value, then extract x and y values
+                    if all(phase_NP > 0):
+                        if map_utils.is_state_variable(x):
+                            x_vals.append(node.get_property(x))
+                        else:
+                            x_vals.append(sum(node.get_local_property(cs, x)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP)))
+                        if map_utils.is_state_variable(y):
+                            y_vals.append(node.get_property(y))
+                        else:
+                            y_vals.append(sum(node.get_local_property(cs, y)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP)))
+
+                for p1, p2 in itertools.combinations(range(len(x_vals)), 2):
+                    x_data = [x_vals[p1], x_vals[p2]]
+                    y_data = [y_vals[p1], y_vals[p2]]
+                    data = {
+                        'x': x_data,
+                        'y': y_data,
+                    }
+                    node_data.append(data)
+        return node_data

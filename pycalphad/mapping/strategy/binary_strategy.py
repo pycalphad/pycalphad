@@ -12,6 +12,7 @@ import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
+from pycalphad.mapping.strategy.strategy_utils import get_invariant_data_from_tieline_strategy, get_tieline_data_from_tieline_strategy
 
 _log = logging.getLogger(__name__)
 
@@ -220,4 +221,10 @@ class BinaryStrategy(MapStrategy):
         else:
             _log.info("Global eq check failed. New node is metastable. Removing current zpf line.")
             self.zpf_lines.pop(-1)
+
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+        return get_invariant_data_from_tieline_strategy(self, x, y)
+    
+    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable):
+        return get_tieline_data_from_tieline_strategy(self, x, y)
 
