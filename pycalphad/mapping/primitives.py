@@ -22,13 +22,9 @@ class ExitHint(Enum):
              ignores the exit that corresponds to the ZPF line that found the node
     POINT_IS_EXIT - will use the point composition sets as the exit
                     this is mainly used for starting points since the point may not necessary fit the conditions for a "node" (0 DOF)
-    FORCE_ALL_EXITS - similar to normal, but will include every possible exit from node
-                      not sure what the use case for this is, seems to have been for ad-hoc fix that is no longer needed?
-                      Only thing I can think of is for a starting point on a node for tielines or isopleths strategies
     """
     NORMAL = 0
     POINT_IS_EXIT = 1
-    FORCE_ALL_EXITS = 2
 
 def _eq_compset(compset: CompositionSet, other: CompositionSet):
     """
@@ -272,7 +268,13 @@ class Node(Point):
     exit_hint: ExitHint = ExitHint.NORMAL
 
     def __post_init__(self):
-        self.encountered_points = [self.parent]
+        self.encountered_points = []
+
+        # A node may be created without a parent if it was generated
+        # as a starting point. Only parents that are Nodes or Points
+        # should be added to the list of encountered points
+        if isinstance(self.parent, (Node, Point)):
+            self.encountered_points.append(self.parent)
 
     def has_point_been_encountered(self, point : Point, test_fixed = False):
         if test_fixed:

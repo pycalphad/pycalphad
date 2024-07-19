@@ -201,7 +201,7 @@ class TernaryStrategy(MapStrategy):
             # This will be modified in _determine_start_direction
             candidate_point = Point.with_copy(new_conds, node.chemical_potentials, [], [cs_1, cs_2])
 
-            if not node.has_point_been_encountered(candidate_point, False) or node.exit_hint == ExitHint.FORCE_ALL_EXITS:
+            if not node.has_point_been_encountered(candidate_point, False):
                 _log.info(f"Found candidate exit: {candidate_point.fixed_phases}, {candidate_point.free_phases}, {candidate_point.global_conditions}")
                 exits.append(candidate_point)
                 # This function is only responsible for finding exit points
