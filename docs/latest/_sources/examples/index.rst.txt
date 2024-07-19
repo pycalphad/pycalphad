@@ -23,3 +23,4 @@ Advanced Examples
    ChargedPhases
    PlotActivity
    ViscosityModel
+   Mapping

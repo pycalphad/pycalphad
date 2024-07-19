@@ -5,11 +5,11 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Releasing pycalphad" href="releasing.html" /><link rel="prev" title="FAQ" href="faq.html" />
 
-    <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>What’s New - pycalphad 0.10.6.dev2+gb9b5509f documentation</title>
+    <!-- Generated with Sphinx 7.4.6 and Furo 2024.07.18 -->
+        <title>What’s New - pycalphad 0.10.6.dev3+g0e94ebae documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=387cc868" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=613ab9ff" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     
     
 
@@ -88,19 +88,6 @@
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
   </symbol>
-  <symbol id="svg-sun-half" viewBox="0 0 24 24">
-    <title>Auto light/dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M13 12h5" />
-      <path d="M13 15h4" />
-      <path d="M13 18h1" />
-      <path d="M13 9h4" />
-      <path d="M13 6h1" />
-    </svg>
-  </symbol>
   <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
     <title>Auto light/dark, in light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -141,7 +128,7 @@
       <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
       <path d="M13.5 6.5l4 4" />
       <path d="M20 21l2 -2l-2 -2" />
-      <path d="M17 17l-2 2l2 2" /
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
   <symbol id="svg-eye" viewBox="0 0 24 24">
@@ -179,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pycalphad 0.10.6.dev2+gb9b5509f documentation</div></a>
+      <a href="index.html"><div class="brand">pycalphad 0.10.6.dev3+g0e94ebae documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -206,7 +193,7 @@
     <img class="sidebar-logo" src="_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.6.dev2+gb9b5509f documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev3+g0e94ebae documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -235,6 +222,7 @@
 <li class="toctree-l2"><a class="reference internal" href="examples/ChargedPhases.html">Phases with Electrically Charged Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/PlotActivity.html">Calculate and Plot Activity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/Mapping.html">Plotting using the Mapping API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
@@ -305,48 +293,48 @@
 <h2>0.10.5 (2024-07-12)<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing bug fixes, dependency updates, updated Python build targets, and CI updates.</p>
 <ul class="simple">
-<li><p>ENH: Improve error message for ordering models having mismatched constituents ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/541">issue 541</a> )</p></li>
-<li><p>FIX: Writing TDB with float exponents ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/516">issue 516</a> )</p></li>
-<li><p>FIX: Writing TDB with <code class="docutils literal notranslate"><span class="pre">A*(B+C)</span></code> expressions ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/522">issue 522</a> )</p></li>
-<li><p>FIX/BLD: NumPy 2.0 Support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/530">issue 530</a> and <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/538">issue 538</a> )</p></li>
-<li><p>MAINT/BLD: Bump OS versions for wheel build/deploy workflow ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/531">issue 531</a> )</p></li>
-<li><p>BLD: Enable “Trusted Publisher” support for PyPI wheels ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/523">issue 523</a> )</p></li>
-<li><p>MAINT/BLD: Drop Python 3.8 support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/537">issue 537</a> )</p></li>
-<li><p>ENH/BLD: Drop universal wheel builds on macOS ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/536">issue 536</a> )</p></li>
-<li><p>BLD/CI: Set fetch-depth to zero to guarantee version tags are picked up from SCM in sdist workflow ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/533">issue 533</a> )</p></li>
-<li><p>BLD/CI: Remove local version specifier for TestPyPI uploads ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/534">issue 534</a> )</p></li>
+<li><p>ENH: Improve error message for ordering models having mismatched constituents ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/541">issue 541</a> )</p></li>
+<li><p>FIX: Writing TDB with float exponents ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/516">issue 516</a> )</p></li>
+<li><p>FIX: Writing TDB with <code class="docutils literal notranslate"><span class="pre">A*(B+C)</span></code> expressions ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/522">issue 522</a> )</p></li>
+<li><p>FIX/BLD: NumPy 2.0 Support ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/530">issue 530</a> and <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/538">issue 538</a> )</p></li>
+<li><p>MAINT/BLD: Bump OS versions for wheel build/deploy workflow ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/531">issue 531</a> )</p></li>
+<li><p>BLD: Enable “Trusted Publisher” support for PyPI wheels ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/523">issue 523</a> )</p></li>
+<li><p>MAINT/BLD: Drop Python 3.8 support ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/537">issue 537</a> )</p></li>
+<li><p>ENH/BLD: Drop universal wheel builds on macOS ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/536">issue 536</a> )</p></li>
+<li><p>BLD/CI: Set fetch-depth to zero to guarantee version tags are picked up from SCM in sdist workflow ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/533">issue 533</a> )</p></li>
+<li><p>BLD/CI: Remove local version specifier for TestPyPI uploads ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/534">issue 534</a> )</p></li>
 </ul>
 </section>
 <section id="id2">
 <h2>0.10.4 (2024-01-29)<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing bug fixes, updated dependency versions, and updated Python build targets.</p>
 <ul class="simple">
-<li><p>MAINT/BLD: Add support for building, testing, and deploying on Python 3.12. Drop End-of-life Python 3.7. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/508">issue 508</a> )</p></li>
-<li><p>FIX: Fix molar volume model to have more consistent property name, <code class="docutils literal notranslate"><span class="pre">VM</span></code> instead of <code class="docutils literal notranslate"><span class="pre">MV</span></code>, and to property normalize <code class="docutils literal notranslate"><span class="pre">VA</span></code>, <code class="docutils literal notranslate"><span class="pre">VK`,</span> <span class="pre">and</span> <span class="pre">``VC</span></code> parameters to be per-mole-atoms ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/501">issue 501</a> )</p></li>
-<li><p>FIX: Minimizer stability improvements when one or more phases are fixed. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/507">issue 507</a> )</p></li>
-<li><p>MAINT: Relax SymEngine version requirement. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/498">issue 498</a> )</p></li>
-<li><p>FIX: Precision error in Halton sampling resolving divide by zero warnings. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/495">issue 495</a> )</p></li>
+<li><p>MAINT/BLD: Add support for building, testing, and deploying on Python 3.12. Drop End-of-life Python 3.7. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/508">issue 508</a> )</p></li>
+<li><p>FIX: Fix molar volume model to have more consistent property name, <code class="docutils literal notranslate"><span class="pre">VM</span></code> instead of <code class="docutils literal notranslate"><span class="pre">MV</span></code>, and to property normalize <code class="docutils literal notranslate"><span class="pre">VA</span></code>, <code class="docutils literal notranslate"><span class="pre">VK`,</span> <span class="pre">and</span> <span class="pre">``VC</span></code> parameters to be per-mole-atoms ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/501">issue 501</a> )</p></li>
+<li><p>FIX: Minimizer stability improvements when one or more phases are fixed. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/507">issue 507</a> )</p></li>
+<li><p>MAINT: Relax SymEngine version requirement. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/498">issue 498</a> )</p></li>
+<li><p>FIX: Precision error in Halton sampling resolving divide by zero warnings. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/495">issue 495</a> )</p></li>
 </ul>
 </section>
 <section id="id3">
 <h2>0.10.3 (2023-09-13)<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing new features, bug fixes, and performance improvements.</p>
 <ul class="simple">
-<li><p>ENH: Add molar volume model support: <code class="docutils literal notranslate"><span class="pre">V0</span></code> and <code class="docutils literal notranslate"><span class="pre">VA</span></code> parameters, <code class="docutils literal notranslate"><span class="pre">molar_volume</span></code> property, and <code class="docutils literal notranslate"><span class="pre">PV</span></code> volume energy entribution ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/466">issue 466</a> )</p></li>
-<li><p>FIX: Improve Just-In-Time (JIT) compiler startup time for complex phases/models that have many piecewise expressions. This change also changes the behavior of PyCalphad to extrapolate parameters beyond temperature limits of piecewise expressions, consistent with other Calphad software tools ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/431">issue 431</a> )</p></li>
-<li><p>FIX: Add the <code class="docutils literal notranslate"><span class="pre">pycalphad.core.constants.MAX_ENDMEMBER_PAIRS</span></code> and <code class="docutils literal notranslate"><span class="pre">pycalphad.core.constants.MAX_EXTRA_POINTS</span></code> to limit the number of points generated by <code class="docutils literal notranslate"><span class="pre">calculate</span></code> for very large phase models (particularly phases with many sublattices and species) ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/431">issue 431</a> )</p></li>
-<li><p>FIX: Fixed a bug where the minimizer sometimes added more phases than allowed by Gibbs phase rule that led to exceptions in the minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/470">issue 470</a> )</p></li>
-<li><p>FIX: <code class="docutils literal notranslate"><span class="pre">__repr__</span></code> methods for <code class="docutils literal notranslate"><span class="pre">Species(None)</span></code> and <code class="docutils literal notranslate"><span class="pre">Species('*')</span></code> better follow typical <code class="docutils literal notranslate"><span class="pre">__repr__</span></code> conventions ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/479">issue 479</a> )</p></li>
-<li><p>FIX: Support reading (and then disregarding) <code class="docutils literal notranslate"><span class="pre">IF</span></code>/<code class="docutils literal notranslate"><span class="pre">THEN</span></code> statements in TDB <code class="docutils literal notranslate"><span class="pre">TYPE_DEFINITION</span></code> keywords. These statements used to be unhandled and raise errors, but now they are simply ignored. TDB-level flow control is usually used to influence defaults (like rejecting a phase) or help global minimizers (by adding composition sets), which are not necessary to control from the level of the TDB. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/476">issue 476</a> )</p></li>
+<li><p>ENH: Add molar volume model support: <code class="docutils literal notranslate"><span class="pre">V0</span></code> and <code class="docutils literal notranslate"><span class="pre">VA</span></code> parameters, <code class="docutils literal notranslate"><span class="pre">molar_volume</span></code> property, and <code class="docutils literal notranslate"><span class="pre">PV</span></code> volume energy entribution ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/466">issue 466</a> )</p></li>
+<li><p>FIX: Improve Just-In-Time (JIT) compiler startup time for complex phases/models that have many piecewise expressions. This change also changes the behavior of PyCalphad to extrapolate parameters beyond temperature limits of piecewise expressions, consistent with other Calphad software tools ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/431">issue 431</a> )</p></li>
+<li><p>FIX: Add the <code class="docutils literal notranslate"><span class="pre">pycalphad.core.constants.MAX_ENDMEMBER_PAIRS</span></code> and <code class="docutils literal notranslate"><span class="pre">pycalphad.core.constants.MAX_EXTRA_POINTS</span></code> to limit the number of points generated by <code class="docutils literal notranslate"><span class="pre">calculate</span></code> for very large phase models (particularly phases with many sublattices and species) ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/431">issue 431</a> )</p></li>
+<li><p>FIX: Fixed a bug where the minimizer sometimes added more phases than allowed by Gibbs phase rule that led to exceptions in the minimizer ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/470">issue 470</a> )</p></li>
+<li><p>FIX: <code class="docutils literal notranslate"><span class="pre">__repr__</span></code> methods for <code class="docutils literal notranslate"><span class="pre">Species(None)</span></code> and <code class="docutils literal notranslate"><span class="pre">Species('*')</span></code> better follow typical <code class="docutils literal notranslate"><span class="pre">__repr__</span></code> conventions ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/479">issue 479</a> )</p></li>
+<li><p>FIX: Support reading (and then disregarding) <code class="docutils literal notranslate"><span class="pre">IF</span></code>/<code class="docutils literal notranslate"><span class="pre">THEN</span></code> statements in TDB <code class="docutils literal notranslate"><span class="pre">TYPE_DEFINITION</span></code> keywords. These statements used to be unhandled and raise errors, but now they are simply ignored. TDB-level flow control is usually used to influence defaults (like rejecting a phase) or help global minimizers (by adding composition sets), which are not necessary to control from the level of the TDB. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/476">issue 476</a> )</p></li>
 </ul>
 </section>
 <section id="id4">
 <h2>0.10.2 (2023-02-14)<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing bug fixes.</p>
 <ul class="simple">
-<li><p>MAINT: Update symengine to 0.9.2 and add Python 3.11 support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/456">issue 456</a> )</p></li>
-<li><p>FIX: hyperplane: Incorrectly throwing out stable starting points ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/428">issue 428</a> )</p></li>
-<li><p>ENH: minimizer: performance improvements ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/424">issue 424</a> )</p></li>
+<li><p>MAINT: Update symengine to 0.9.2 and add Python 3.11 support ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/456">issue 456</a> )</p></li>
+<li><p>FIX: hyperplane: Incorrectly throwing out stable starting points ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/428">issue 428</a> )</p></li>
+<li><p>ENH: minimizer: performance improvements ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/424">issue 424</a> )</p></li>
 </ul>
 </section>
 <section id="id5">
@@ -355,13 +343,13 @@
 breaking changes to internal APIs for interacting with <code class="docutils literal notranslate"><span class="pre">Solver</span></code> objects and
 the Gibbs energy minimizer.</p>
 <ul class="simple">
-<li><p>ENH: Internal API refactor to enable a <code class="docutils literal notranslate"><span class="pre">CompositionSet</span></code>-based solver API ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/415">issue 415</a> )</p></li>
-<li><p>ENH: Enable option B and option F support for TDBs ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/412">issue 412</a> )</p></li>
-<li><p>FIX: Make minimizer state more internally consistent, fixing a bug when changing phases in the minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/410">issue 410</a> )</p></li>
-<li><p>ENH: pycalphad will now discover and import plugin packages (installed packages that have names prefixed with <code class="docutils literal notranslate"><span class="pre">pycalphad-</span></code>)  ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/406">issue 406</a> )</p></li>
-<li><p>ENH: Implementation of a reader for ChemSage DAT files and various bug fixes ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/389">issue 389</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/405">issue 405</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/416">issue 416</a> )</p></li>
-<li><p>ENH: Add support for the modified quasichemical model in the quadruplet approximation ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/389">issue 389</a> )</p></li>
-<li><p>FIX: TCPrinter: Special-case printing for exponential function ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/400">issue 400</a> )</p></li>
+<li><p>ENH: Internal API refactor to enable a <code class="docutils literal notranslate"><span class="pre">CompositionSet</span></code>-based solver API ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/415">issue 415</a> )</p></li>
+<li><p>ENH: Enable option B and option F support for TDBs ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/412">issue 412</a> )</p></li>
+<li><p>FIX: Make minimizer state more internally consistent, fixing a bug when changing phases in the minimizer ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/410">issue 410</a> )</p></li>
+<li><p>ENH: pycalphad will now discover and import plugin packages (installed packages that have names prefixed with <code class="docutils literal notranslate"><span class="pre">pycalphad-</span></code>)  ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/406">issue 406</a> )</p></li>
+<li><p>ENH: Implementation of a reader for ChemSage DAT files and various bug fixes ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/389">issue 389</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/405">issue 405</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/416">issue 416</a> )</p></li>
+<li><p>ENH: Add support for the modified quasichemical model in the quadruplet approximation ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/389">issue 389</a> )</p></li>
+<li><p>FIX: TCPrinter: Special-case printing for exponential function ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/400">issue 400</a> )</p></li>
 </ul>
 </section>
 <section id="id6">
@@ -370,32 +358,32 @@ the Gibbs energy minimizer.</p>
 Note that, if you use custom Models with pycalphad, you will need to change all your sympy imports to symengine.
 It should be a drop-in replacement in most cases; if you have any issues, please file a GitHub issue or contact us.</p>
 <ul class="simple">
-<li><p>BLD: Support for Python 3.10 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/374">issue 374</a> )</p></li>
-<li><p>ENH: Use SymEngine everywhere and remove SymPy support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/376">issue 376</a> )</p></li>
-<li><p>ENH: Minimizer: refactor and convergence improvements ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/373">issue 373</a> )</p></li>
-<li><p>ENH: General charge-constrained phases support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/386">issue 386</a> )</p></li>
-<li><p>FIX: tdb: Silently drop (for now) DIFFUSION and ZEROVOLUME_SPECIES commands ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/397">issue 397</a> )</p></li>
-<li><p>FIX: tdb: writer line length bugs ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/392">issue 392</a> )</p></li>
-<li><p>MAINT: plot: Create new axes with specified projection without deprecated functionality ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/370">issue 370</a> )</p></li>
+<li><p>BLD: Support for Python 3.10 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/374">issue 374</a> )</p></li>
+<li><p>ENH: Use SymEngine everywhere and remove SymPy support ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/376">issue 376</a> )</p></li>
+<li><p>ENH: Minimizer: refactor and convergence improvements ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/373">issue 373</a> )</p></li>
+<li><p>ENH: General charge-constrained phases support ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/386">issue 386</a> )</p></li>
+<li><p>FIX: tdb: Silently drop (for now) DIFFUSION and ZEROVOLUME_SPECIES commands ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/397">issue 397</a> )</p></li>
+<li><p>FIX: tdb: writer line length bugs ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/392">issue 392</a> )</p></li>
+<li><p>MAINT: plot: Create new axes with specified projection without deprecated functionality ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/370">issue 370</a> )</p></li>
 </ul>
 </section>
 <section id="id7">
 <h2>0.9.2 (2021-08-12)<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing a bug fix for a regression introduced by the previous release.</p>
 <ul class="simple">
-<li><p>FIX: Associate model computation in <code class="docutils literal notranslate"><span class="pre">calculate</span></code> when number of components is different from number of elements ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/367">issue 367</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/368">issue 368</a> )</p></li>
+<li><p>FIX: Associate model computation in <code class="docutils literal notranslate"><span class="pre">calculate</span></code> when number of components is different from number of elements ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/367">issue 367</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/368">issue 368</a> )</p></li>
 </ul>
 </section>
 <section id="id8">
 <h2>0.9.1 (2021-08-08)<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing performance improvements and bug fixes.</p>
 <ul class="simple">
-<li><p>ENH: Add metastable composition sets to solver starting point ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/362">issue 362</a> )</p></li>
-<li><p>ENH: Refactor solver and improve solver performance ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/357">issue 357</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/360">issue 360</a> )</p></li>
-<li><p>FIX: Custom state variables cannot be set equal to zero ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/365">issue 365</a> )</p></li>
-<li><p>ENH: Allow passing dictionaries of PhaseRecord objects to equilibrium and calculate ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/361">issue 361</a> )</p></li>
-<li><p>FIX: Database parsing fails if some tokens are not uppercase ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/364">issue 364</a> )</p></li>
-<li><p>ENH: Add parsing support for all TC parameters as of 2021b documentation ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/358">issue 358</a> )</p></li>
+<li><p>ENH: Add metastable composition sets to solver starting point ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/362">issue 362</a> )</p></li>
+<li><p>ENH: Refactor solver and improve solver performance ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/357">issue 357</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/360">issue 360</a> )</p></li>
+<li><p>FIX: Custom state variables cannot be set equal to zero ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/365">issue 365</a> )</p></li>
+<li><p>ENH: Allow passing dictionaries of PhaseRecord objects to equilibrium and calculate ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/361">issue 361</a> )</p></li>
+<li><p>FIX: Database parsing fails if some tokens are not uppercase ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/364">issue 364</a> )</p></li>
+<li><p>ENH: Add parsing support for all TC parameters as of 2021b documentation ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/358">issue 358</a> )</p></li>
 </ul>
 </section>
 <section id="id9">
@@ -405,42 +393,42 @@ It should be a drop-in replacement in most cases; if you have any issues, please
 <li><p>ENH: Introduce a new energy minimizer based on the method described by <a class="reference internal" href="#sundman2015" id="id10"><span>[Sundman2015]</span></a>.
 The new minimizer improves performance, convergence for dilute and pseudo-binary systems,
 and reduces the point grid density (memory) required for convergence.
-( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/329">issue 329</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/332">issue 332</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/336">issue 336</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/339">issue 339</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/343">issue 343</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/344">issue 344</a> )</p></li>
+( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/329">issue 329</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/332">issue 332</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/336">issue 336</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/339">issue 339</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/343">issue 343</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/344">issue 344</a> )</p></li>
 <li><p>BLD: Improve the build system to support PEP 517 and PEP 518 isolated builds and
-the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> standard. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/330">issue 330</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/331">issue 331</a>, <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/334">issue 334</a> )</p></li>
+the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> standard. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/330">issue 330</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/331">issue 331</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/334">issue 334</a> )</p></li>
 <li><p>BLD: Distributed pycalphad wheels on PyPI in addition to the conda-forge package.
-Using pip to install pycalphad is now supported and recommended. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/346">issue 346</a> )</p></li>
-<li><p>ENH: Improve performance of <code class="docutils literal notranslate"><span class="pre">Model</span></code> instantiation ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/340">issue 340</a> )</p></li>
-<li><p>MAINT: Add support for pyparsing 3.0 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/348">issue 348</a> )</p></li>
+Using pip to install pycalphad is now supported and recommended. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/346">issue 346</a> )</p></li>
+<li><p>ENH: Improve performance of <code class="docutils literal notranslate"><span class="pre">Model</span></code> instantiation ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/340">issue 340</a> )</p></li>
+<li><p>MAINT: Add support for pyparsing 3.0 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/348">issue 348</a> )</p></li>
 <li><p>DOC: Improve installation documentation with the newly supported pip/PyPI packages.
-An installation configuration tool is provided in the installation guide. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/351">issue 351</a> )</p></li>
-<li><p>MAINT: Refactor _sample_phase_constitution ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/335">issue 335</a> )</p></li>
-<li><p>MAINT: Remove <code class="docutils literal notranslate"><span class="pre">refdata.py</span></code> that was deprecated in pycalphad 0.6 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/333">issue 333</a> )</p></li>
+An installation configuration tool is provided in the installation guide. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/351">issue 351</a> )</p></li>
+<li><p>MAINT: Refactor _sample_phase_constitution ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/335">issue 335</a> )</p></li>
+<li><p>MAINT: Remove <code class="docutils literal notranslate"><span class="pre">refdata.py</span></code> that was deprecated in pycalphad 0.6 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/333">issue 333</a> )</p></li>
 <li><p>MAINT: Using setuptools_scm instead of versioneer to version pycalphad.
-The version scheme for development versions has changed. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/341">issue 341</a> )</p></li>
+The version scheme for development versions has changed. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/341">issue 341</a> )</p></li>
 </ul>
 </section>
 <section id="id11">
 <h2>0.8.5 (2021-05-20)<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>MAINT: Introduce a warning when partitioned phase models incorrectly use <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> properties ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/328">issue 328</a> )</p></li>
-<li><p>FIX: Generalize assumptions for the species that can be in substitutional and interstitial sublattices of partitioned phase models ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/311">issue 311</a> )</p></li>
-<li><p>FIX: Improve strictness when parsing TDB FUNCTION and PARAMETER lines ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/308">issue 308</a> )</p></li>
-<li><p>FIX: Fix Triangular axes projections to allow padding for text labels ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/295">issue 295</a> )</p></li>
-<li><p>ENH: Phase diagram plotting: enable tie-line/triangle and legend customization ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/292">issue 292</a> )</p></li>
-<li><p>FIX: Fix a bug where <code class="docutils literal notranslate"><span class="pre">Model._array_validity</span></code> could include species that are not in the phase constituents ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/258">issue 258</a> )</p></li>
-<li><p>FIX: Fix but where <code class="docutils literal notranslate"><span class="pre">eqplot</span></code> could attempt to plot tie-triangles for T-X diagrams ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/288">issue 288</a> )</p></li>
+<li><p>MAINT: Introduce a warning when partitioned phase models incorrectly use <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> properties ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/328">issue 328</a> )</p></li>
+<li><p>FIX: Generalize assumptions for the species that can be in substitutional and interstitial sublattices of partitioned phase models ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/311">issue 311</a> )</p></li>
+<li><p>FIX: Improve strictness when parsing TDB FUNCTION and PARAMETER lines ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/308">issue 308</a> )</p></li>
+<li><p>FIX: Fix Triangular axes projections to allow padding for text labels ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/295">issue 295</a> )</p></li>
+<li><p>ENH: Phase diagram plotting: enable tie-line/triangle and legend customization ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/292">issue 292</a> )</p></li>
+<li><p>FIX: Fix a bug where <code class="docutils literal notranslate"><span class="pre">Model._array_validity</span></code> could include species that are not in the phase constituents ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/258">issue 258</a> )</p></li>
+<li><p>FIX: Fix but where <code class="docutils literal notranslate"><span class="pre">eqplot</span></code> could attempt to plot tie-triangles for T-X diagrams ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/288">issue 288</a> )</p></li>
 <li><p>MAINT: Dependency and build system changes:</p>
 <ul>
-<li><p>Support Python 3.9 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/298">issue 298</a> )</p></li>
-<li><p>Bump cyipopt to support new package name and v1.0 API ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/289">issue 289</a> )</p></li>
-<li><p>Bump SymPy pin to v1.8 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/289">issue 289</a> )</p></li>
-<li><p>Bump SymEngine pin to v0.7.0 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/316">issue 316</a> )</p></li>
-<li><p>Bump SymEngine.py pin to v0.7.2 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/289">issue 289</a> )</p></li>
-<li><p>Switch to matplotlib-base; bump to v3.3 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/327">issue 327</a> )</p></li>
-<li><p>Fix NumPy deprecation warnings introduced in v1.20 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/312">issue 312</a> )</p></li>
-<li><p>Use <cite>setup_requires</cite> for build Python build dependences ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/325">issue 325</a> )</p></li>
-<li><p>The pycalphad conda channel is no longer required for installation ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/297">issue 297</a> )</p></li>
+<li><p>Support Python 3.9 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/298">issue 298</a> )</p></li>
+<li><p>Bump cyipopt to support new package name and v1.0 API ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/289">issue 289</a> )</p></li>
+<li><p>Bump SymPy pin to v1.8 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/289">issue 289</a> )</p></li>
+<li><p>Bump SymEngine pin to v0.7.0 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/316">issue 316</a> )</p></li>
+<li><p>Bump SymEngine.py pin to v0.7.2 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/289">issue 289</a> )</p></li>
+<li><p>Switch to matplotlib-base; bump to v3.3 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/327">issue 327</a> )</p></li>
+<li><p>Fix NumPy deprecation warnings introduced in v1.20 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/312">issue 312</a> )</p></li>
+<li><p>Use <cite>setup_requires</cite> for build Python build dependences ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/325">issue 325</a> )</p></li>
+<li><p>The pycalphad conda channel is no longer required for installation ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/297">issue 297</a> )</p></li>
 </ul>
 </li>
 </ul>
@@ -449,86 +437,86 @@ The version scheme for development versions has changed. ( <a class="reference e
 <h2>0.8.4 (2020-10-28)<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h2>
 <p>This is a minor release containing performance improvements and bug fixes.</p>
 <ul class="simple">
-<li><p>DOC: Fix array indexing in examples ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/282">issue 282</a> )</p></li>
-<li><p>ENH: Improve compilation performance by unwraping <code class="docutils literal notranslate"><span class="pre">Piecewise</span></code> with only one nonzero branch in <code class="docutils literal notranslate"><span class="pre">Model.redlich_kister_sum</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/281">issue 281</a> )</p></li>
-<li><p>ENH: Improve <code class="docutils literal notranslate"><span class="pre">hyperplane()</span></code> performance and support parameter vectorization in <code class="docutils literal notranslate"><span class="pre">calculate()</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/274">issue 274</a> )</p></li>
-<li><p>FIX: Bug fixes and tests for the two sublattice ionic liquid where energies were calculated incorrectly ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/273">issue 273</a> )</p></li>
-<li><p>MAINT: Fixes an internal API regression in <code class="docutils literal notranslate"><span class="pre">_eqcalculate</span></code>, the <code class="docutils literal notranslate"><span class="pre">models</span></code> aregument is now <code class="docutils literal notranslate"><span class="pre">model</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/272">issue 272</a> )</p></li>
-<li><p>FIX: Fixes a bug where databases with many components would raise an error because <code class="docutils literal notranslate"><span class="pre">_eqcalculate</span></code> computed the degrees of freedom based on  all components instead of the active components defined in the current <code class="docutils literal notranslate"><span class="pre">Model</span></code> instance ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/270">issue 270</a> )</p></li>
+<li><p>DOC: Fix array indexing in examples ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/282">issue 282</a> )</p></li>
+<li><p>ENH: Improve compilation performance by unwraping <code class="docutils literal notranslate"><span class="pre">Piecewise</span></code> with only one nonzero branch in <code class="docutils literal notranslate"><span class="pre">Model.redlich_kister_sum</span></code> ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/281">issue 281</a> )</p></li>
+<li><p>ENH: Improve <code class="docutils literal notranslate"><span class="pre">hyperplane()</span></code> performance and support parameter vectorization in <code class="docutils literal notranslate"><span class="pre">calculate()</span></code> ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/274">issue 274</a> )</p></li>
+<li><p>FIX: Bug fixes and tests for the two sublattice ionic liquid where energies were calculated incorrectly ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/273">issue 273</a> )</p></li>
+<li><p>MAINT: Fixes an internal API regression in <code class="docutils literal notranslate"><span class="pre">_eqcalculate</span></code>, the <code class="docutils literal notranslate"><span class="pre">models</span></code> aregument is now <code class="docutils literal notranslate"><span class="pre">model</span></code> ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/272">issue 272</a> )</p></li>
+<li><p>FIX: Fixes a bug where databases with many components would raise an error because <code class="docutils literal notranslate"><span class="pre">_eqcalculate</span></code> computed the degrees of freedom based on  all components instead of the active components defined in the current <code class="docutils literal notranslate"><span class="pre">Model</span></code> instance ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/270">issue 270</a> )</p></li>
 </ul>
 </section>
 <section id="id13">
 <h2>0.8.3 (2020-03-31)<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
-<li><p>FIX: Improved <code class="docutils literal notranslate"><span class="pre">model_hints</span></code> construction when reading databases with out of order type definitions, fixes detecting disordered phases with <code class="docutils literal notranslate"><span class="pre">filter_phases</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/269">issue 269</a> )</p></li>
-<li><p>FIX: Complex infinity in <code class="docutils literal notranslate"><span class="pre">Model</span></code> expressions are converted to real infinity so SymEngine can <code class="docutils literal notranslate"><span class="pre">lambdify</span></code> the expressions ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/267">issue 267</a> )</p></li>
+<li><p>FIX: Improved <code class="docutils literal notranslate"><span class="pre">model_hints</span></code> construction when reading databases with out of order type definitions, fixes detecting disordered phases with <code class="docutils literal notranslate"><span class="pre">filter_phases</span></code> ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/269">issue 269</a> )</p></li>
+<li><p>FIX: Complex infinity in <code class="docutils literal notranslate"><span class="pre">Model</span></code> expressions are converted to real infinity so SymEngine can <code class="docutils literal notranslate"><span class="pre">lambdify</span></code> the expressions ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/267">issue 267</a> )</p></li>
 </ul>
 </section>
 <section id="id14">
 <h2>0.8.2 (2020-03-07)<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements. Python 2.7 support is dropped as well as Python 3.5 and below. Python 3.6-3.8 are explictly supported.</p>
 <ul class="simple">
-<li><p>ENH: Reading large databases via delayed parameter processing ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/266">issue 266</a> )</p></li>
-<li><p>FIX: Support PhaseRecord pickling, switch SymEngine backend to LLVM ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/264">issue 264</a> )</p></li>
-<li><p>DOC: Regenerate examples ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/263">issue 263</a> )</p></li>
-<li><p>DOC: Update examples ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/262">issue 262</a> )</p></li>
-<li><p>ENH: variables.MassFraction object implementation ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/254">issue 254</a> )</p></li>
-<li><p>MAINT: Update and pin to SymPy 1.5 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/251">issue 251</a> )</p></li>
-<li><p>MAINT: Support Python 3.8, drop Python 2, &lt;3.6 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/257">issue 257</a> )</p></li>
+<li><p>ENH: Reading large databases via delayed parameter processing ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/266">issue 266</a> )</p></li>
+<li><p>FIX: Support PhaseRecord pickling, switch SymEngine backend to LLVM ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/264">issue 264</a> )</p></li>
+<li><p>DOC: Regenerate examples ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/263">issue 263</a> )</p></li>
+<li><p>DOC: Update examples ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/262">issue 262</a> )</p></li>
+<li><p>ENH: variables.MassFraction object implementation ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/254">issue 254</a> )</p></li>
+<li><p>MAINT: Update and pin to SymPy 1.5 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/251">issue 251</a> )</p></li>
+<li><p>MAINT: Support Python 3.8, drop Python 2, &lt;3.6 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/257">issue 257</a> )</p></li>
 </ul>
 </section>
 <section id="id15">
 <h2>0.8.1 (2019-11-28)<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li><p>ENH: Calculation speed and accuracy improvements via exact Hessians and the SymEngine lambda backend ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/249">issue 249</a> )</p></li>
-<li><p>ENH: Faster binary phase diagram mapping ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/209">issue 209</a> )</p></li>
-<li><p>FIX: Calculating disordered phase only if respective ordered phase inactive. Thanks &#64;igorjrd ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/248">issue 248</a> )</p></li>
+<li><p>ENH: Calculation speed and accuracy improvements via exact Hessians and the SymEngine lambda backend ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/249">issue 249</a> )</p></li>
+<li><p>ENH: Faster binary phase diagram mapping ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/209">issue 209</a> )</p></li>
+<li><p>FIX: Calculating disordered phase only if respective ordered phase inactive. Thanks &#64;igorjrd ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/248">issue 248</a> )</p></li>
 <li><p>ENH: Use better colors in phase_legend(). Thanks &#64;igorjrd ( :issue: <cite>242</cite> )</p></li>
-<li><p>FIX: Suspend a phase if only a pure-vacancy endmember would be active. Thanks &#64;igorjrd ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/239">issue 239</a> )</p></li>
-<li><p>ENH: Add element reference data reading/writing to TDB parser ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/240">issue 240</a> )</p></li>
-<li><p>DOC: Typo in documentation. Thanks &#64;jwsiegel2150 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/237">issue 237</a> )</p></li>
-<li><p>FIX: SymPy namespace clash with TDBs, and other deprecation fixes ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/234">issue 234</a> )</p></li>
-<li><p>DOC: Update installation instructions ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/241">issue 241</a> )</p></li>
-<li><p>MNT: Relax dask requirements to the minimum required for <cite>scheduler=</cite> syntax ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/223">issue 223</a> )</p></li>
+<li><p>FIX: Suspend a phase if only a pure-vacancy endmember would be active. Thanks &#64;igorjrd ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/239">issue 239</a> )</p></li>
+<li><p>ENH: Add element reference data reading/writing to TDB parser ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/240">issue 240</a> )</p></li>
+<li><p>DOC: Typo in documentation. Thanks &#64;jwsiegel2150 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/237">issue 237</a> )</p></li>
+<li><p>FIX: SymPy namespace clash with TDBs, and other deprecation fixes ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/234">issue 234</a> )</p></li>
+<li><p>DOC: Update installation instructions ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/241">issue 241</a> )</p></li>
+<li><p>MNT: Relax dask requirements to the minimum required for <cite>scheduler=</cite> syntax ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/223">issue 223</a> )</p></li>
 </ul>
 </section>
 <section id="id16">
 <h2>0.8 (2019-05-31)<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li><p>ENH: Major performance improvement with new Just-In-Time SymEngine/LLVM-based compiler. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/220">issue 220</a> )</p></li>
-<li><p>ENH: Support for fixing the chemical potential of an element as an equilibrium constraint. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/200">issue 200</a> )</p></li>
-<li><p>ENH: Support for shifting the reference state of an equilibrium calculation. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/205">issue 205</a> )</p></li>
-<li><p>MAINT: Internal reorganization of the phase model constructors. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/214">issue 214</a> <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/217">issue 217</a> )</p></li>
+<li><p>ENH: Major performance improvement with new Just-In-Time SymEngine/LLVM-based compiler. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/220">issue 220</a> )</p></li>
+<li><p>ENH: Support for fixing the chemical potential of an element as an equilibrium constraint. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/200">issue 200</a> )</p></li>
+<li><p>ENH: Support for shifting the reference state of an equilibrium calculation. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/205">issue 205</a> )</p></li>
+<li><p>MAINT: Internal reorganization of the phase model constructors. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/214">issue 214</a> <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/217">issue 217</a> )</p></li>
 <li><p>DOC: A new example for computing properties of custom models has been added.</p></li>
-<li><p>MAINT: Windows Python 2.7 support has been dropped. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/220">issue 220</a> )</p></li>
+<li><p>MAINT: Windows Python 2.7 support has been dropped. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/220">issue 220</a> )</p></li>
 </ul>
 </section>
 <section id="id17">
 <h2>0.7.1 (2018-11-14)<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li><p>FIX: PhaseRecord: Fix pickling, so distributed scheduling will work ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/196">issue 196</a> )</p></li>
-<li><p>FIX: Max phases by Gibbs phase rule accommodated  ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/184">issue 184</a> )</p></li>
-<li><p>FIX: SymPy 1.2 compatibility ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/180">issue 180</a> )</p></li>
+<li><p>FIX: PhaseRecord: Fix pickling, so distributed scheduling will work ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/196">issue 196</a> )</p></li>
+<li><p>FIX: Max phases by Gibbs phase rule accommodated  ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/184">issue 184</a> )</p></li>
+<li><p>FIX: SymPy 1.2 compatibility ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/180">issue 180</a> )</p></li>
 <li><p>FIX: Model: Degree of ordering property calculation when vacancy is in the system</p></li>
-<li><p>FIX: Species Python 2 unicode support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/166">issue 166</a> )</p></li>
-<li><p>ENH: Allow solution refinement by the Ipopt solver to be disabled. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/187">issue 187</a> )</p></li>
-<li><p>ENH: Enable custom solvers ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/177">issue 177</a> )</p></li>
-<li><p>DOC: Update pycalphad logo to be smoother and have a version with text. Thanks to Joyce Yong. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/193">issue 193</a> )</p></li>
-<li><p>MNT: Refactor callables creation in equilibrium() and calculate() ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/192">issue 192</a> )</p></li>
+<li><p>FIX: Species Python 2 unicode support ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/166">issue 166</a> )</p></li>
+<li><p>ENH: Allow solution refinement by the Ipopt solver to be disabled. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/187">issue 187</a> )</p></li>
+<li><p>ENH: Enable custom solvers ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/177">issue 177</a> )</p></li>
+<li><p>DOC: Update pycalphad logo to be smoother and have a version with text. Thanks to Joyce Yong. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/193">issue 193</a> )</p></li>
+<li><p>MNT: Refactor callables creation in equilibrium() and calculate() ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/192">issue 192</a> )</p></li>
 <li><p>ENH: tdb: Move tdb grammar creation out of loop</p></li>
 <li><p>ENH: Add magnetic moment as default Model property BMAG</p></li>
-<li><p>ENH: Optimize _compute_phase_values ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/175">issue 175</a> )</p></li>
+<li><p>ENH: Optimize _compute_phase_values ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/175">issue 175</a> )</p></li>
 </ul>
 </section>
 <section id="id18">
 <h2>0.7 (2018-03-19)<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h2>
 <p>This is a major release with new features and performance improvements.</p>
 <ul class="simple">
-<li><p>ENH: Add support for calculations with species, including support for the associate, ionic liquid, and gas phase models ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/161">issue 161</a> ).</p></li>
+<li><p>ENH: Add support for calculations with species, including support for the associate, ionic liquid, and gas phase models ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/161">issue 161</a> ).</p></li>
 <li><p>The compiled backed of common models has been removed. Users should expect that the first set of calculations with new phases in a Python script or session be slower as the models for each phase are compiled in real time.</p></li>
 <li><p>ENH: Performance of JIT compilation of phases has been improved.</p></li>
 <li><p>ENH: equilibrium: Performance optimizations to reduce the overhead of calling equilibrium, particularly in tight loops.</p></li>
@@ -548,38 +536,38 @@ The version scheme for development versions has changed. ( <a class="reference e
 <p>This is a major release with new features, bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>Users updating from an earlier version should follow the updated installation instructions to ensure they have all the correct dependencies.</p></li>
-<li><p>MAINT: Python 3.4 support has been dropped ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/145">issue 145</a> ).</p></li>
+<li><p>MAINT: Python 3.4 support has been dropped ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/145">issue 145</a> ).</p></li>
 <li><p>MAINT: Windows Python 2.7 32-bit support has been dropped. 64-bit is still supported.</p></li>
-<li><p>ENH: A new solver based on the optimization package IPOPT has been implemented, leading to increased accuracy and lower memory consumption ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/124">issue 124</a> ).</p></li>
+<li><p>ENH: A new solver based on the optimization package IPOPT has been implemented, leading to increased accuracy and lower memory consumption ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/124">issue 124</a> ).</p></li>
 <li><p>ENH: Windows users no longer have to install the Microsoft C compiler if they use Anaconda. The installer will now automatically download a MinGW-based compiler toolchain.</p></li>
-<li><p>DOC: The documentation has been updated and expanded ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/146">issue 146</a> ).</p></li>
-<li><p>ENH: calculate: Automatically suspend inactive phases from calculation ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/141">issue 141</a> ).</p></li>
-<li><p>ENH: Tielines can now be toggled on and off in phase diagrams ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/136">issue 136</a> ).</p></li>
-<li><p>ENH: Species support in Database and TDB read/write ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/137">issue 137</a> ).</p></li>
+<li><p>DOC: The documentation has been updated and expanded ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/146">issue 146</a> ).</p></li>
+<li><p>ENH: calculate: Automatically suspend inactive phases from calculation ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/141">issue 141</a> ).</p></li>
+<li><p>ENH: Tielines can now be toggled on and off in phase diagrams ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/136">issue 136</a> ).</p></li>
+<li><p>ENH: Species support in Database and TDB read/write ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/137">issue 137</a> ).</p></li>
 <li><p>FIX: Axis labeling bug in eqplot due to leaking list comprehension variable.</p></li>
-<li><p>FIX: Maintain sorted state variable ordering when one or more state variables is left as default ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/116">issue 116</a> ).</p></li>
-<li><p>MAINT: Cleanup refdata, fitting, and core.eqresult modules ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/135">issue 135</a> ).</p></li>
-<li><p>FIX: tdb: Update float parsing regex ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/144">issue 144</a> ).</p></li>
+<li><p>FIX: Maintain sorted state variable ordering when one or more state variables is left as default ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/116">issue 116</a> ).</p></li>
+<li><p>MAINT: Cleanup refdata, fitting, and core.eqresult modules ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/135">issue 135</a> ).</p></li>
+<li><p>FIX: tdb: Update float parsing regex ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/144">issue 144</a> ).</p></li>
 </ul>
 </section>
 <section id="id21">
 <h2>0.5.2 (2017-08-10)<a class="headerlink" href="#id21" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with a new feature, bug fixes and performance improvements.</p>
 <ul class="simple">
-<li><p>ENH: Add ternary isothermal phase diagram plotting. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/98">issue 98</a> ).</p></li>
-<li><p>FIX: sympy 1.1 compatibility ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/108">issue 108</a> ).</p></li>
-<li><p>ENH/FIX: Make equilibrium Datasets serializable to netCDF ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/111">issue 111</a> ).</p></li>
-<li><p>FIX: Raise an error if invalid keyword arguments are passed to Database.write ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/117">issue 117</a> ).</p></li>
-<li><p>ENH/DOC: Remove log.py module ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/104">issue 104</a> ).</p></li>
-<li><p>FIX: Mistake in the Cementite Analysis example ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a> ).</p></li>
+<li><p>ENH: Add ternary isothermal phase diagram plotting. ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/98">issue 98</a> ).</p></li>
+<li><p>FIX: sympy 1.1 compatibility ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/108">issue 108</a> ).</p></li>
+<li><p>ENH/FIX: Make equilibrium Datasets serializable to netCDF ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/111">issue 111</a> ).</p></li>
+<li><p>FIX: Raise an error if invalid keyword arguments are passed to Database.write ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/117">issue 117</a> ).</p></li>
+<li><p>ENH/DOC: Remove log.py module ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/104">issue 104</a> ).</p></li>
+<li><p>FIX: Mistake in the Cementite Analysis example ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a> ).</p></li>
 </ul>
 </section>
 <section id="id22">
 <h2>0.5.1 (2017-05-12)<a class="headerlink" href="#id22" title="Link to this heading">¶</a></h2>
 <p>This is a minor release with bug fixes.</p>
 <ul class="simple">
-<li><p>FIX: Custom Models involving certain mathematical constants will compile. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a>.</p></li>
-<li><p>FIX: Undefined symbols in CompiledModel are automatically set to zero. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/90">issue 90</a>.</p></li>
+<li><p>FIX: Custom Models involving certain mathematical constants will compile. Fixes <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a>.</p></li>
+<li><p>FIX: Undefined symbols in CompiledModel are automatically set to zero. Fixes <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/90">issue 90</a>.</p></li>
 </ul>
 </section>
 <section id="id23">
@@ -596,13 +584,13 @@ with the caveat that users will need to install the Microsoft Visual C++ Build T
 <li><p>ENH: Raise warning if unused kwargs are passed to equilibrium</p></li>
 <li><p>ENH: TDB compatibility: All characters after command delimiters should be ignored.</p></li>
 <li><p>FIX: Fix solver when sum of compositions &gt; 1</p></li>
-<li><p>DOC: calculate: Add default pdens value to docstring. Fixes  <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/85">issue 85</a>.</p></li>
-<li><p>FIX: Indexing errors ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/63">issue 63</a> ).</p></li>
-<li><p>FIX: eqsolver: Handle component index correctly when VA is not last component in alphabetical order. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/62">issue 62</a>.</p></li>
+<li><p>DOC: calculate: Add default pdens value to docstring. Fixes  <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/85">issue 85</a>.</p></li>
+<li><p>FIX: Indexing errors ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/63">issue 63</a> ).</p></li>
+<li><p>FIX: eqsolver: Handle component index correctly when VA is not last component in alphabetical order. Fixes <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/62">issue 62</a>.</p></li>
 <li><p>ENH: calculate/equilibrium: Add parameters kwarg to allow users to override Database FUNCTIONs.</p></li>
 <li><p>DOC: Add Getting Help section to readme and docs.</p></li>
 <li><p>FIX: binplot: Fix ordering of phase labels and colors.</p></li>
-<li><p>tdb: Make ELEMENT grammar more strict to catch typos easier. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/57">issue 57</a>.</p></li>
+<li><p>tdb: Make ELEMENT grammar more strict to catch typos easier. Fixes <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/57">issue 57</a>.</p></li>
 <li><p>ENH: Caching rewrite and performance increase. Database objects are now hashable.</p></li>
 <li><p>ENH: calculate: Performance enhancements via profiling.</p></li>
 <li><p>ENH: equilibrium: Break computation up into parallelizable pieces using dask.</p></li>
@@ -623,8 +611,8 @@ contributions. The API for custom contributions has changed; the old method will
 <h2>0.4.1 (2016-08-08)<a class="headerlink" href="#id25" title="Link to this heading">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
-<li><p>Python 3.3 support has been dropped. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/46">issue 46</a>.</p></li>
-<li><p>Documentation has been transitioned to a new domain, [<a class="reference external" href="https://pycalphad.org](https://pycalphad.org">https://pycalphad.org](https://pycalphad.org</a>). See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/47">issue 47</a>.</p></li>
+<li><p>Python 3.3 support has been dropped. See <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/46">issue 46</a>.</p></li>
+<li><p>Documentation has been transitioned to a new domain, [<a class="reference external" href="https://pycalphad.org](https://pycalphad.org">https://pycalphad.org](https://pycalphad.org</a>). See <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/47">issue 47</a>.</p></li>
 <li><p>BLD: Exclude xarray 0.8 from dependencies since it has a regression. (Newer versions are fine.)</p></li>
 <li><p>DOC: Automated project documentation building and deployment via Travis CI.</p></li>
 </ul>
@@ -634,7 +622,7 @@ contributions. The API for custom contributions has changed; the old method will
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
 <li><p>The equilibrium solver core has been rewritten, resulting in a significant increase in robustness and accuracy,
-particularly for chemical potential calculation with miscibility gaps. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/43">issue 43</a>.</p></li>
+particularly for chemical potential calculation with miscibility gaps. See <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/43">issue 43</a>.</p></li>
 <li><p>For performance, dask-powered multiprocessing is now used to parallelize equilibrium calculations.
 Because of this, dask and dill are now dependencies.</p></li>
 <li><p>Database and Model objects can now be pickled on all supported platforms, fixing a multiprocessing issue.</p></li>
@@ -672,7 +660,7 @@ An error is now raised if a calculation specifies components not in the Database
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Significant improvements to the speed and accuracy of the solver.
 There is still some work to do for step and map calculations, planned for 0.4.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Numerical accuracy improvement for the magnetic model <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/40">issue 40</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Numerical accuracy improvement for the magnetic model <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/40">issue 40</a>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Database</span></code>: Improvements to TDB writing, particularly for order-disorder models.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Database</span></code>: Support for reading diffusion mobility databases.
 Kinetic simulations are not on the roadmap, but this makes it easier to manipulate diffusion data.
@@ -688,7 +676,7 @@ Thanks to Ali for reporting.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: More numerical robustness improvements.
 (Global search now satisfies the strong Wolfe conditions on every iteration.)
 Further performance improvements will come to this soon.</p></li>
-<li><p>pycalphad now depends on pyparsing&lt;2.1.0 pending resolution of <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/38">issue 38</a>.</p></li>
+<li><p>pycalphad now depends on pyparsing&lt;2.1.0 pending resolution of <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/38">issue 38</a>.</p></li>
 </ul>
 </section>
 <section id="id32">
@@ -717,7 +705,7 @@ Loading a TDB will now raise <code class="docutils literal notranslate"><span cl
 The TDB writer now generates output more conformant with Thermo-Calc.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>:
 Substantively rewritten for robustness and accuracy. Users will notice a difference, especially for dilute calculations.
-Unfortunately it’s still a bit slow; fixing that will be a focus of the 0.3.x cycle. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/37">issue 37</a>.
+Unfortunately it’s still a bit slow; fixing that will be a focus of the 0.3.x cycle. See <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/37">issue 37</a>.
 Learned a <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument for specifying additional equilibrium properties to compute.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">tqdm</span></code> library is now a dependency. It adds progress bar support to <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>:
@@ -769,10 +757,10 @@ There’s still a lot of room for improvement, especially for step/map calculati
 <li><p>Piecewise-defined functions are now lazily-evaluated, meaning only the values necessary
 for the given conditions will be computed. Before, all values were always computed.
 Users will notice the biggest difference when calculating phases with the magnetic model.</p></li>
-<li><p>Fix a small but serious bug when running tinydb v3 with pycalphad ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/30">issue 30</a> ).</p></li>
-<li><p>Fix a platform-dependent crash bug when using <code class="docutils literal notranslate"><span class="pre">binplot</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/31">issue 31</a> ).</p></li>
+<li><p>Fix a small but serious bug when running tinydb v3 with pycalphad ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/30">issue 30</a> ).</p></li>
+<li><p>Fix a platform-dependent crash bug when using <code class="docutils literal notranslate"><span class="pre">binplot</span></code> ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/31">issue 31</a> ).</p></li>
 <li><p>Support for numexpr has been removed.</p></li>
-<li><p>The documentation on ReadTheDocs should be building properly again ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/26">issue 26</a> ).</p></li>
+<li><p>The documentation on ReadTheDocs should be building properly again ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/26">issue 26</a> ).</p></li>
 </ul>
 </section>
 <section id="id36">
@@ -782,7 +770,7 @@ Users will notice the biggest difference when calculating phases with the magnet
 <li><p>Autograd is now a required dependency. It should be automatically installed on upgrade.</p></li>
 <li><p>The magnetic contribution to the energy has been improved in performance.
 For some users (mainly Fe or Ni systems), the difference will be dramatic.</p></li>
-<li><p>Numerical stability improvements to the energy minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
+<li><p>Numerical stability improvements to the energy minimizer ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
 The minimizer now solves using exact Hessians and is generally more robust.
 <cite>pycalphad.core.equilibrium.MIN_STEP_LENGTH</cite> has been removed.
 There are still issues computing dilute compositions; these will continue to be addressed.
@@ -796,11 +784,11 @@ infrastructure and is not collecting information from users.)</p></li>
 <h2>0.2.2 (2015-10-17)<a class="headerlink" href="#id37" title="Link to this heading">¶</a></h2>
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
-<li><p>Numerical stability improvements to the energy minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
+<li><p>Numerical stability improvements to the energy minimizer ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
 If you’re still getting singular matrix errors occasionally, you can try adjusting
 the value of <cite>pycalphad.core.equilibrium.MIN_STEP_LENGTH</cite> as discussed in the issue above.
 Please report these numerical issues if you run into them because they are difficult to find through automated testing.</p></li>
-<li><p>Fixes for the minimizer sometimes giving type conversion errors on numpy 1.10 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/24">issue 24</a> ).</p></li>
+<li><p>Fixes for the minimizer sometimes giving type conversion errors on numpy 1.10 ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/24">issue 24</a> ).</p></li>
 </ul>
 </section>
 <section id="id38">
@@ -808,7 +796,7 @@ Please report these numerical issues if you run into them because they are diffi
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
 <li><p>Composition conditions are correctly constructed when the dependent component does not come
-last in alphabetical order ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/21">issue 21</a> ).</p></li>
+last in alphabetical order ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/21">issue 21</a> ).</p></li>
 </ul>
 </section>
 <section id="id39">
@@ -835,7 +823,7 @@ keyword argument of <code class="docutils literal notranslate"><span class="pre"
 <li><p>Experimental support for model parameter fitting is available in the <code class="docutils literal notranslate"><span class="pre">residuals</span></code> module.
 It requires the unlisted dependency <code class="docutils literal notranslate"><span class="pre">lmfit</span></code> to import.</p></li>
 <li><p>BUG: tdb: Sanitize sympify input and clean up pyparsing tracebacks inside parser actions.</p></li>
-<li><p>BUG: Always alphabetically sort components listed in interaction parameters ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/17">issue 17</a> ).</p></li>
+<li><p>BUG: Always alphabetically sort components listed in interaction parameters ( <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/17">issue 17</a> ).</p></li>
 <li><p>ENH: V0 TDB parameter support</p></li>
 <li><p>ENH: Model: Symbol replacement performance improvement during initialization.</p></li>
 <li><p>TST: Test coverage above 80%</p></li>
@@ -976,10 +964,10 @@ It requires the unlisted dependency <code class="docutils literal notranslate"><
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=d999ee76"></script>
+</div><script src="_static/documentation_options.js?v=b1aa6470"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/scripts/furo.js?v=4e2eecee"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>
 </html>

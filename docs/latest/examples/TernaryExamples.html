@@ -5,12 +5,12 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Plot energy curves for several phases" href="Metastability.html" /><link rel="prev" title="Plotting Isobaric Binary Phase Diagrams with binplot" href="BinaryExamples.html" />
 
-    <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>Plotting Ternary Phase Diagrams and Using Triangular Axes - pycalphad 0.10.6.dev2+gb9b5509f documentation</title>
+    <!-- Generated with Sphinx 7.4.6 and Furo 2024.07.18 -->
+        <title>Plotting Ternary Phase Diagrams and Using Triangular Axes - pycalphad 0.10.6.dev3+g0e94ebae documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=613ab9ff" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
     
 
@@ -89,19 +89,6 @@
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
   </symbol>
-  <symbol id="svg-sun-half" viewBox="0 0 24 24">
-    <title>Auto light/dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M13 12h5" />
-      <path d="M13 15h4" />
-      <path d="M13 18h1" />
-      <path d="M13 9h4" />
-      <path d="M13 6h1" />
-    </svg>
-  </symbol>
   <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
     <title>Auto light/dark, in light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -142,7 +129,7 @@
       <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
       <path d="M13.5 6.5l4 4" />
       <path d="M20 21l2 -2l-2 -2" />
-      <path d="M17 17l-2 2l2 2" /
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
   <symbol id="svg-eye" viewBox="0 0 24 24">
@@ -180,7 +167,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.6.dev2+gb9b5509f documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.6.dev3+g0e94ebae documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -207,7 +194,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.6.dev2+gb9b5509f documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev3+g0e94ebae documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -236,6 +223,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Mapping.html">Plotting using the Mapping API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -305,9 +293,52 @@
 <p>Often in thermodynamics, it is useful to use a two dimensional plot to express equilibria in a three component system with fixed potentials. The <code class="docutils literal notranslate"><span class="pre">ternplot</span></code> API provides a straightforward way to calculate equilibria and generate ternary phase diagrams. Alternatively, if you already have an equilibrium calculation, you can directly import and use <code class="docutils literal notranslate"><span class="pre">eqplot</span></code>.</p>
 <section id="ternplot">
 <h2>ternplot<a class="headerlink" href="#ternplot" title="Link to this heading">¶</a></h2>
-<p>Here we will use the ternplot API to plot an isothermal section of the Al-Cu-Y system from the thermodynamic database found at the <a class="reference external" href="http://hdl.handle.net/11115/101">NIST CALPHAD assessments</a> assessed by Zhang et al. <a class="reference external" href="https://doi.org/10.1016/j.calphad.2011.09.008">Calphad 35 (2011)</a>.</p>
+<p>Here we will use the ternplot API to plot an isothermal section of the Al-Cu-Y system from the thermodynamic database found at Jacob et al, Calphad 54 (2016) (1-15) (<a class="reference external" href="https://doi.org/10.1016/j.calphad.2016.04.013">https://doi.org/10.1016/j.calphad.2016.04.013</a>)</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+
+<span class="n">db_cr_fe_nb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;CrFeNb_Jacob2016.tdb&#39;</span><span class="p">)</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;NB&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db_cr_fe_nb</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1323</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;FE&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">)}</span>
+
+<span class="o">%</span><span class="k">time</span> ternplot(db_cr_fe_nb, comps, phases, conds, x=v.X(&#39;CR&#39;), y=v.X(&#39;FE&#39;))
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CPU times: total: 38.9 s
+Wall time: 39.2 s
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;TriangularAxes: title={&#39;center&#39;: &#39;Cr-Fe-Nb&#39;}, xlabel=&#39;X(Cr)&#39;, ylabel=&#39;X(Fe)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_TernaryExamples_2_2.png" src="../_images/examples_TernaryExamples_2_2.png" />
+</div>
+</div>
+<p>Here is another example for plotting the isothermal section of the Al-Cu-Y system from the thermodynamic database found at the <a class="reference external" href="http://hdl.handle.net/11115/101">NIST CALPHAD assessments</a> assessed by Zhang et al. <a class="reference external" href="https://doi.org/10.1016/j.calphad.2011.09.008">Calphad 35 (2011)</a>. Labels for phases in the three-phase equilibria can be added for clarity.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
@@ -319,7 +350,7 @@
 <span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">830</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">)}</span>
 
-<span class="o">%</span><span class="k">time</span> ternplot(db_al_cu_y, comps, phases, conds, x=v.X(&#39;AL&#39;), y=v.X(&#39;Y&#39;))
+<span class="o">%</span><span class="k">time</span> ternplot(db_al_cu_y, comps, phases, conds, x=v.X(&#39;AL&#39;), y=v.X(&#39;Y&#39;), label_nodes=True)
 </pre></div>
 </div>
 </div>
@@ -328,31 +359,31 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-CPU times: user 22.7 s, sys: 130 ms, total: 22.8 s
-Wall time: 22.9 s
+CPU times: total: 40.7 s
+Wall time: 40.9 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;TriangularAxes: title={&#39;center&#39;: &#39;Al-Cu-Y&#39;}, xlabel=&#39;X(AL)&#39;, ylabel=&#39;X(Y)&#39;&gt;
+&lt;TriangularAxes: title={&#39;center&#39;: &#39;Al-Cu-Y&#39;}, xlabel=&#39;X(Al)&#39;, ylabel=&#39;X(Y)&#39;&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_TernaryExamples_2_2.png" src="../_images/examples_TernaryExamples_2_2.png" />
+<img alt="../_images/examples_TernaryExamples_4_2.png" src="../_images/examples_TernaryExamples_4_2.png" />
 </div>
 </div>
 </section>
 <section id="Molar-Ratios-and-Linear-Combination-Conditions">
 <h2>Molar Ratios and Linear Combination Conditions<a class="headerlink" href="#Molar-Ratios-and-Linear-Combination-Conditions" title="Link to this heading">¶</a></h2>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">Workspace</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
@@ -456,10 +487,10 @@ Wall time: 22.9 s
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=d999ee76"></script>
+</div><script src="../_static/documentation_options.js?v=b1aa6470"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
