@@ -261,6 +261,17 @@ class Node(Point):
 
     We'll keep track of the axis variable and direction as well
         By default, they will be None and the direction will be decided later
+
+    Attributes
+    ----------
+    parent : Point
+        Point where Node conditions were found from
+    axis_var : v.StateVariable
+        Axis variable that parent was stepping in to find node
+    axis_direction : Direction
+        Axis direction that parent was steppig in to find node
+    exit_hint : ExitHint
+        Hints for how exits should be found from this node
     """
     parent: Point
     axis_var: v.StateVariable = None
@@ -296,8 +307,10 @@ class Node(Point):
 class ZPFState(Enum):
     """
     NOT_FINISHED - zpf line is not finished
-    GRACEFUL_ENDING - zpf line ended properly (new node is found or it reached axis limits)
-    UNEXPECTED_ENDING - zpf line ended improperly (error in equilibrium calculation, couldn"t find new node)
+    NEW_NODE_FOUND - zpf line lead to a new node (either added or removed a composition set)
+    REACHED_LIMIT - zpf line reached an axis limit
+    FAILED - zpf line ended improperly (error in equilibrium calculation, couldn't find a new node)
+    ATTEMPT_NEW_STEP - zpf line failed, but should try stepping again (case here is when the current_delta needs to be reduced)
 
     This is to track whether a zpf line ends prematurely, and if so, we may attempt to force another starting point
     """
@@ -312,15 +325,29 @@ class ZPFLine():
     ZPF line represents a line where a phase change occur (crossing the bounding will add or remove a phase, and that phase is 0 at the boundary)
         Number of phases is constant along this line
     Defines a list of fixed phases (the zero phases) and list of free phases and list of Point that represents the line
-
-    finished variable will tell the mapper whether the zpf line is finished to start the next zpf line
+    
+    Attributes
+    ----------
+    fixed_phases : list[str]
+        List of fixed phases on ZPF line
+    free_phases : list[str]
+        List of free phases on ZPF line
+    points : list[Point]
+        List of points found on ZPF line
+    status : ZPFState
+        Current state of ZPF line for whether to continue stepping
+    axis_var : v.StateVariable
+        Axis variable to step ZPF line in
+    axis_direction : Direction
+        Direction to set ZPF line in
+    current_delta : float
+        Step size of axis variable to step ZPF line in
     """
     def __init__(self, fixed_phases : List[str], free_phases : List[str]):
         # Miscibility gaps should have duplicate entries
         self.fixed_phases: List[str] = fixed_phases
         self.free_phases: List[str] = free_phases
         self.points: List[Point] = []
-        self.last_globally_checked_index: int = 0
         self.status: ZPFState = ZPFState.NOT_FINISHED
         self.axis_var: v.StateVariable = None
         self.axis_direction: Direction = None
@@ -374,7 +401,7 @@ class NodeQueue():
 
     When getting a node, it will return the node at the current node index and increase the index counter
         Queue is empty once the index counter points to the last node
-        As we don"t remove any nodes from the list (partly because we have to check for repeated nodes), we"ll assume this will be small enough to not cause a huge issue with memory (probably the case unless we plan on doing something weird)
+        As we don't remove any nodes from the list (partly because we have to check for repeated nodes), we'll assume this will be small enough to not cause memory issues
     """
     def __init__(self):
         self.nodes: list[Node] = []

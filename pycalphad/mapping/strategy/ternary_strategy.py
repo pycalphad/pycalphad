@@ -369,7 +369,48 @@ class TernaryStrategy(MapStrategy):
             _log.info("Could not find a new node from conditions")
 
     def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+        """
+        Creates dictionary of data for invariant plotting
+
+        Parameters
+        ----------
+        strategy : BinaryStrategy or TernaryStrategy
+        x : v.StateVariable
+        y : v.StateVariable
+
+        Returns
+        -------
+        node_data : list[dict]
+            Each dict will be
+            {
+                "phases" : [str]
+                "x" : [float]
+                "y" : [float]
+            }
+            Indices in x and y will match the indices in phases
+        """
         return get_invariant_data_from_tieline_strategy(self, x, y)
     
     def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable):
+        """
+        Creates dictionary of data for plotting zpf lines
+
+        Parameters
+        ----------
+        strategy : BinaryStrategy or TernaryStrategy
+        x : v.StateVariable
+        y : v.StateVariable
+
+        Returns
+        -------
+        zpf_data : list[dict]
+            Each dict will be
+            {
+                <phase_name> : {
+                    "x": [float]
+                    "y": [float]
+                }
+            }
+            Length of x and y for each phase in a ZPFLine should be equal
+        """
         return get_tieline_data_from_tieline_strategy(self, x, y)

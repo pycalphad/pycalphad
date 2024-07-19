@@ -1,6 +1,9 @@
 """
 Helper functions to grab data from tieline strategies (BinaryStrategy and TernaryStrategy)
 This is to avoid repeating get_XXX_data functions for the two strategies
+
+TODO: Once BinaryStrategy and TernaryStrategy are merged into a more general TielineStrategy,
+      these two functions can be moved into TieLineStrategy and strategy_utils.py as be removed
 """
 
 from typing import Union

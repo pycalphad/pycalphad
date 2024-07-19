@@ -13,7 +13,7 @@ _log = logging.getLogger(__name__)
 
 def point_from_equilibrium(dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, float], **eq_kwargs):
     """
-    Converts Workspace equilibrium result to a Point
+    Computes equilibrium to get a starting Point
 
     Parameters
     ----------

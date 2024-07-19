@@ -31,8 +31,7 @@ class MapStrategy:
     Constants
         DELTA_SCALE = 0.5 - factor to scale down step size if a single step iteration was unsuccessfuly
         MIN_DELTA_RATIO = 0.1 - minimum step size (as ratio of default) before stopping zpf line iteration
-        GLOBAL_CHECK_INTERVAL = 1 - number of iterations before global min check
-                                    I think there's a lot of issues if this is >1
+        GLOBAL_CHECK_INTERVAL = 1 - number of iterations before global min check. Proceed with caution for any interval >1.
         GLOBAL_MIN_PDENS = 500 - sampling density for global min check
         GLOBAL_MIN_TOL = 1e-4 - minimum driving force for a composition set to pass global min check
         GLOBAL_MIN_NUM_CANDIDATES = 1 - number of candidates to search through for finding global min

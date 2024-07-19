@@ -143,7 +143,7 @@ def check_valid_point(zpf_line: ZPFLine, step_results: tuple[Point, list[Composi
         zpf_line.status = ZPFState.ATTEMPT_NEW_STEP
     return None
 
-def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.StateVariable, float], new_point_vars: dict[v.StateVariable, float], axis_data: Mapping, **kwargs):
+def _check_axis_values_within_limit(new_point_vars: dict[v.StateVariable, float], axis_data: Mapping):
     """
     Checks that axis values are within the axis limits
 
@@ -166,7 +166,6 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
 
     Parameters
     ----------
-    zpf_line : ZPFLine
     prev_point_vars : dict[v.StateVariable, float]
         Conditions of last point in zpf line
     new_point_vars : dict[v.StateVariable, float]
@@ -178,7 +177,7 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
     -------
     bool for whether new point is within axis limits
     """
-    axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
+    axis_vars, _, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
 
     for av in axis_vars:
         # Allow some leeway below and above the axis limits. See note in docstring for details
@@ -189,16 +188,15 @@ def _check_axis_values_within_limit(zpf_line: ZPFLine, prev_point_vars: dict[v.S
             return False
     return True
 
-def _check_axis_values_by_distance(zpf_line: ZPFLine, prev_point_vars: dict[v.StateVariable, float], new_point_vars: dict[v.StateVariable, float], axis_data: Mapping, **kwargs):
+def _check_axis_values_by_distance(prev_point_vars: dict[v.StateVariable, float], new_point_vars: dict[v.StateVariable, float], axis_data: Mapping, **kwargs):
     """
     Checks that the normalized distance between the previous point and the new point is within reasonable values
 
-    NOTE: a threshold of 3 is quite large since the axis swapping should limit this to 1 (give/take some leeway if the swapping hadn"t occured yet)
+    NOTE: a threshold of 3 is quite large since the axis swapping should limit this to 1 (give/take some leeway if the swapping hadn't occured yet)
     NOTE: this should scale with the global_check_interval defined in the map strategy
 
     Parameters
     ----------
-    zpf_line : ZPFLine
     prev_point_vars : dict[v.StateVariable, float]
         Conditions of last point in zpf line
     new_point_vars : dict[v.StateVariable, float]
@@ -210,7 +208,7 @@ def _check_axis_values_by_distance(zpf_line: ZPFLine, prev_point_vars: dict[v.St
     -------
     bool for whether new point is within distance threshold of previous point
     """
-    axis_vars, axis_delta, axis_lims = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
+    axis_vars, _, _ = axis_data["axis_vars"], axis_data["axis_delta"], axis_data["axis_lims"]
     normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})
 
     dist_threshold = kwargs.get("distance_threshold", 3)
@@ -258,12 +256,12 @@ def check_axis_values(zpf_line: ZPFLine, step_results: tuple[Point, list[Composi
     new_point_vars = {av: new_point.get_property(av) for av in axis_vars}
     prev_point_vars = {av: prev_point.get_property(av) for av in axis_vars}
 
-    if not _check_axis_values_by_distance(zpf_line, prev_point_vars, new_point_vars, axis_data, **kwargs):
+    if not _check_axis_values_by_distance(prev_point_vars, new_point_vars, axis_data, **kwargs):
         _log.info("Variable more than distance threshold. Failing ZPF line")
         zpf_line.status = ZPFState.FAILED
         return None
 
-    if not _check_axis_values_within_limit(zpf_line, prev_point_vars, new_point_vars, axis_data, **kwargs):
+    if not _check_axis_values_within_limit(new_point_vars, axis_data):
         _log.info("Variable reach axis limit. Ending ZPF line")
         zpf_line.status = ZPFState.REACHED_LIMIT
         return None
@@ -327,8 +325,8 @@ def check_change_in_phases(zpf_line: ZPFLine, step_results: tuple[Point, list[Co
             new_node_vars = {av: new_node.get_property(av) for av in axis_vars}
             # Check that new node satisfy axis limits and distance between nodes
             # If not, then the zpf line ends unexpectedly
-            check_axis = _check_axis_values_within_limit(zpf_line, new_point_vars, new_node_vars, axis_data, **kwargs)
-            check_dist =_check_axis_values_by_distance(zpf_line, new_point_vars, new_node_vars, axis_data, **kwargs)
+            check_axis = _check_axis_values_within_limit(new_node_vars, axis_data)
+            check_dist =_check_axis_values_by_distance(new_point_vars, new_node_vars, axis_data, **kwargs)
             if check_axis and check_dist:
                 _log.info(f"New node found successfully. {new_node.global_conditions}, {new_node.fixed_phases}, {new_node.free_phases}")
                 zpf_line.status = ZPFState.NEW_NODE_FOUND
@@ -398,8 +396,8 @@ def check_global_min(zpf_line: ZPFLine, step_results: tuple[Point, list[Composit
                 new_node_vars = {av: new_node.get_property(av) for av in axis_vars}
                 # Check that new node satisfy axis limits and distance between nodes
                 # If not, then the zpf line ends unexpectedly
-                check_axis = _check_axis_values_within_limit(zpf_line, new_point_vars, new_node_vars, axis_data, **kwargs)
-                check_dist =_check_axis_values_by_distance(zpf_line, new_point_vars, new_node_vars, axis_data, **kwargs)
+                check_axis = _check_axis_values_within_limit(new_node_vars, axis_data)
+                check_dist =_check_axis_values_by_distance(new_point_vars, new_node_vars, axis_data, **kwargs)
                 # check_dist = True
                 if check_axis and check_dist:
                     zpf_line.status = ZPFState.NEW_NODE_FOUND

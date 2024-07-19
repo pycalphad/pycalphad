@@ -1,29 +1,3 @@
-"""
-Two types of functions in this module
-
-Functions that return plot data
-    get_step_data
-    get_node_data
-    get_tieline_data
-    get_isopleth_zpf_data
-    get_isopleth_node_data
-
-These return dictionaries of data from a strategy.
-
-Users who want to interface with other plotting libraries or export data can
-use these convenience functions to retrieve data rather than having to
-interface with the strategies themselves.
-
-Functions that interface with matplotlib for plotting
-    plot_step
-    plot_binary
-    plot_ternary
-    plot_isopleth
-
-These functions call the previous get_XXX_data functions and plots
-them using matplotlib.
-"""
-
 import itertools
 from typing import Union
 
@@ -286,9 +260,6 @@ def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.Stat
         ax.yaxis.set_label_coords(x=0.12, y=0.5)  # move the label to a pleasing position
 
     return ax
-
-
-
 
 def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, tie_triangle_color=(1, 0, 0, 1), *args, **kwargs):
     """
