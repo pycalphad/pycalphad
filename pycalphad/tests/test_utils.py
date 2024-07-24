@@ -183,3 +183,112 @@ def test_generating_symmetric_group_works_with_interstitial_sublattice():
         ("A", "B", "VA", "A", "A"),
         ("B", "A", "VA", "A", "A"),
     ]
+
+
+def test_filter_ordered_disordered_phases_with_unmatched_constituents():
+    # Ordered phase has more constituents than disordered phase
+    TDB = """
+    ELEMENT A   PHASE             0.0                0.00            0.00      !
+    ELEMENT B   PHASE             0.0                0.00            0.00      !
+    ELEMENT C   PHASE             0.0                0.00            0.00      !
+    ELEMENT D   PHASE             0.0                0.00            0.00      !
+    ELEMENT VA  VACUUM            0.0                0.00            0.00      !
+    TYPE_DEFINITION X GES AMEND_PHASE_DESCRIPTION BCC_B2 DIS_PART BCC_A2 !
+    PHASE BCC_B2 X  3 0.5 0.5   3 !
+    CONSTITUENT BCC_B2  : A,B,C,D : A,B,C,D : VA : !
+    PHASE BCC_A2  X  2 1   3 !
+    CONSTITUENT BCC_A2  :A,B,C : VA :  !
+    """
+
+    # Ordered phase has different (but same length) set of constituents
+    TDB2 = """
+    ELEMENT A   PHASE             0.0                0.00            0.00      !
+    ELEMENT B   PHASE             0.0                0.00            0.00      !
+    ELEMENT C   PHASE             0.0                0.00            0.00      !
+    ELEMENT D   PHASE             0.0                0.00            0.00      !
+    ELEMENT VA  VACUUM            0.0                0.00            0.00      !
+    TYPE_DEFINITION X GES AMEND_PHASE_DESCRIPTION BCC_B2 DIS_PART BCC_A2 !
+    PHASE BCC_B2 X  3 0.5 0.5   3 !
+    CONSTITUENT BCC_B2  : B,C,D : B,C,D : VA : !
+    PHASE BCC_A2  X  2 1   3 !
+    CONSTITUENT BCC_A2  :A,B,C : VA :  !
+    """
+
+    # Ordered phase has less constituents than disordered phase
+    TDB3 = """
+    ELEMENT A   PHASE             0.0                0.00            0.00      !
+    ELEMENT B   PHASE             0.0                0.00            0.00      !
+    ELEMENT C   PHASE             0.0                0.00            0.00      !
+    ELEMENT D   PHASE             0.0                0.00            0.00      !
+    ELEMENT VA  VACUUM            0.0                0.00            0.00      !
+    TYPE_DEFINITION X GES AMEND_PHASE_DESCRIPTION BCC_B2 DIS_PART BCC_A2 !
+    PHASE BCC_B2 X  3 0.5 0.5   3 !
+    CONSTITUENT BCC_B2  : A,B,C : A,B,C : VA : !
+    PHASE BCC_A2  X  2 1   3 !
+    CONSTITUENT BCC_A2  :A,B,C,D : VA :  !
+    """
+    from pycalphad import variables as v
+
+    dbf1 = Database(TDB)
+    dbf2 = Database(TDB2)
+    dbf3 = Database(TDB3)
+
+    # dbf1 gives BCC_B2 with [A, B, C, VA] as components
+    # dbf2 gives BCC_A2 with [A, B, C, VA] as components
+    # dbf3 gives BCC_B2 with [A, B, C, VA] as components
+    comps = ['A', 'B', 'C', 'VA']
+
+    phases1 = filter_phases(dbf1, unpack_components(dbf1, comps))
+    model1 = Model(dbf1, comps, phases1[0])
+    assert len(phases1) == 1 and 'BCC_B2' in phases1
+    assert len(set([v.Species('A'), v.Species('B'), v.Species('C'), v.Species('VA')]).symmetric_difference(model1.components)) == 0
+
+    phases2 = filter_phases(dbf2, unpack_components(dbf2, comps))
+    model2 = Model(dbf2, comps, phases2[0])
+    assert len(phases2) == 1 and 'BCC_A2' in phases2
+    assert len(set([v.Species('A'), v.Species('B'), v.Species('C'), v.Species('VA')]).symmetric_difference(model2.components)) == 0
+
+    phases3 = filter_phases(dbf3, unpack_components(dbf3, comps))
+    model3 = Model(dbf3, comps, phases3[0])
+    assert len(phases3) == 1 and 'BCC_B2' in phases3
+    assert len(set([v.Species('A'), v.Species('B'), v.Species('C'), v.Species('VA')]).symmetric_difference(model3.components)) == 0
+
+    # dbf1 gives BCC_B2 with [A, B, C, VA] as components
+    # dbf2 gives BCC_A2 with [A, B, C, VA] as components
+    # dbf3 gives BCC_A2 with [A, B, C, D, VA] as components
+    comps = ['A', 'B', 'C', 'D', 'VA']
+
+    phases1 = filter_phases(dbf1, unpack_components(dbf1, comps))
+    model1 = Model(dbf1, comps, phases1[0])
+    assert len(phases1) == 1 and 'BCC_B2' in phases1
+    assert len(set([v.Species('A'), v.Species('B'), v.Species('C'), v.Species('VA')]).symmetric_difference(model1.components)) == 0
+
+    phases2 = filter_phases(dbf2, unpack_components(dbf2, comps))
+    model2 = Model(dbf2, comps, phases2[0])
+    assert len(phases2) == 1 and 'BCC_A2' in phases2
+    assert len(set([v.Species('A'), v.Species('B'), v.Species('C'), v.Species('VA')]).symmetric_difference(model2.components)) == 0
+
+    phases3 = filter_phases(dbf3, unpack_components(dbf3, comps))
+    model3 = Model(dbf3, comps, phases3[0])
+    assert len(phases3) == 1 and 'BCC_A2' in phases3
+    assert len(set([v.Species('A'), v.Species('B'), v.Species('C'), v.Species('D'), v.Species('VA')]).symmetric_difference(model3.components)) == 0
+
+    # dbf1 gives BCC_B2 with [B, C, VA] as components
+    # dbf2 gives BCC_B2 with [B, C, VA] as components
+    # dbf3 gives BCC_A2 with [B, C, D, VA] as components
+    comps = ['B', 'C', 'D', 'VA']
+
+    phases1 = filter_phases(dbf1, unpack_components(dbf1, comps))
+    model1 = Model(dbf1, comps, phases1[0])
+    assert len(phases1) == 1 and 'BCC_B2' in phases1
+    assert len(set([v.Species('B'), v.Species('C'), v.Species('VA')]).symmetric_difference(model1.components)) == 0
+
+    phases2 = filter_phases(dbf2, unpack_components(dbf2, comps))
+    model2 = Model(dbf2, comps, phases2[0])
+    assert len(phases2) == 1 and 'BCC_B2' in phases2
+    assert len(set([v.Species('B'), v.Species('C'), v.Species('VA')]).symmetric_difference(model2.components)) == 0
+
+    phases3 = filter_phases(dbf3, unpack_components(dbf3, comps))
+    model3 = Model(dbf3, comps, phases3[0])
+    assert len(phases3) == 1 and 'BCC_A2' in phases3
+    assert len(set([v.Species('B'), v.Species('C'), v.Species('D'), v.Species('VA')]).symmetric_difference(model3.components)) == 0
