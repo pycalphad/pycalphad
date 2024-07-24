@@ -95,6 +95,20 @@ def test_export_import(load_database):
     test_dbf = load_database()
     assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
 
+def test_roundtrip_nested_powers():
+    "Round-trip with nested powers expression."
+    TDB = """
+    ELEMENT A FCC_A1 0 0 0 !
+
+    PHASE FCC_A1 % 1 1 !
+    CONSTITUENT FCC_A1 : A : !
+
+    PARAMETER G(FCC_A1,A;0) 1 ((3.49 * (1373 * T**(-1)))**(1.778 * (1473 * T**(-1))))**(0.926); 10000 N !
+    """
+    test_dbf = Database(TDB)
+    roundtrip_dbf = Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb')
+    assert roundtrip_dbf == test_dbf
+
 def test_incompatible_db_warns_by_default():
     "Symbol names too long for Thermo-Calc warn and write the database as given by default."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
