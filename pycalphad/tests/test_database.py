@@ -106,8 +106,16 @@ def test_roundtrip_nested_powers():
     PARAMETER G(FCC_A1,A;0) 1 ((3.49 * (1373 * T**(-1)))**(1.778 * (1473 * T**(-1))))**(0.926); 10000 N !
     """
     test_dbf = Database(TDB)
-    roundtrip_dbf = Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb')
+    roundtrip_dbf = Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb')
     assert roundtrip_dbf == test_dbf
+    with pytest.warns(UserWarning, match='Ignoring that non-integer exponents cannot be represented in TDB compatibility mode'):
+        roundtrip2_dbf = Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='warn'), fmt='tdb')
+    assert roundtrip2_dbf == test_dbf
+    with pytest.raises(DatabaseExportError):
+        test_dbf.to_string(fmt='tdb', if_incompatible='raise')
+    with pytest.raises(DatabaseExportError):
+        # this type of incompatibility cannot be automatically fixed
+        test_dbf.to_string(fmt='tdb', if_incompatible='fix')
 
 def test_incompatible_db_warns_by_default():
     "Symbol names too long for Thermo-Calc warn and write the database as given by default."
@@ -880,6 +888,7 @@ def test_tc_printer_exp():
     result = TCPrinter()._stringify_expr(test_expr)
     assert result == 'exp(-300*T**(-1))'
 
+@pytest.mark.filterwarnings("ignore:Ignoring that non-integer exponents*:UserWarning")
 def test_tc_printer_nested_mul_add():
     """
     TCPrinter retains parenthesis around a nested Mul(...,Add(...)) expression

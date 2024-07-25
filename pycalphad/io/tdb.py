@@ -470,6 +470,12 @@ class TCPrinter(object):
     """
     Prints Thermo-Calc style function expressions.
     """
+
+    def __init__(self, if_incompatible='warn'):
+        if if_incompatible not in ('warn', 'raise', 'ignore', 'fix'):
+            raise ValueError('Incorrect options passed to \'if_incompatible\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
+        self.if_incompatible = if_incompatible
+
     def doprint(self, expr):
         return self._print_Piecewise(expr)
 
@@ -511,7 +517,16 @@ class TCPrinter(object):
                     exponent = float(expr.args[1])
                     if exponent == int(exponent):
                         exponent = int(exponent)
+                    else:
+                        if self.if_incompatible in ('fix', 'raise'):
+                            raise DatabaseExportError(f'Non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                        elif self.if_incompatible == 'warn':
+                            warnings.warn(f'Ignoring that non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
                 except (TypeError, RuntimeError):
+                    if self.if_incompatible in ('fix', 'raise'):
+                        raise DatabaseExportError(f'Non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                    elif self.if_incompatible == 'warn':
+                        warnings.warn(f'Ignoring that non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
                     exponent = expr.args[1]
                 terms = argument + '**' + '(' + self._stringify_expr(exponent) + ')'
             return terms
@@ -692,8 +707,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         The 'fix' option will rectify the incompatibilities e.g. through name mangling.
     """
     # Before writing anything, check that the TDB is valid and take the appropriate action if not
-    if if_incompatible not in ['warn', 'raise', 'ignore', 'fix']:
-        raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
+    if if_incompatible not in ('warn', 'raise', 'ignore', 'fix'):
+        raise ValueError('Incorrect options passed to \'if_incompatible\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
     # Handle function names > 8 characters
     long_function_names = {k for k in dbf.symbols.keys() if len(k) > 8}
     if len(long_function_names) > 0:
@@ -863,7 +878,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             # Non-piecewise parameters need to be wrapped to print correctly
             # Otherwise TC's TDB parser will fail
             paramx = Piecewise((paramx, And(v.T >= 1, v.T < 10000)))
-        exprx = TCPrinter().doprint(paramx).upper()
+        exprx = TCPrinter(if_incompatible=if_incompatible).doprint(paramx).upper()
         if ';' not in exprx:
             exprx += '; N'
         if param_to_write.diffusing_species != Species(None):
