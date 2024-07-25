@@ -4,8 +4,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <!-- Generated with Sphinx 7.4.6 and Furo 2024.07.18 -->
-        <title>pycalphad.io.tdb - pycalphad 0.10.6.dev3+g0e94ebae documentation</title>
+    <!-- Generated with Sphinx 7.4.7 and Furo 2024.07.18 -->
+        <title>pycalphad.io.tdb - pycalphad 0.10.6.dev4+gc24d8813 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=613ab9ff" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.6.dev3+g0e94ebae documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.6.dev4+gc24d8813 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.6.dev3+g0e94ebae documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev4+gc24d8813 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -293,7 +293,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">symengine.lib.symengine_wrapper</span> <span class="kn">import</span> <span class="n">UniversalSet</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Complement</span>
 <span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Not</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">RealDouble</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span>
+<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span>
 <span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>
 <span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="kn">import</span> <span class="n">DatabaseExportError</span>
@@ -764,6 +764,12 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Prints Thermo-Calc style function expressions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">if_incompatible</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="s1">&#39;fix&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Incorrect options passed to </span><span class="se">\&#39;</span><span class="s1">if_incompatible</span><span class="se">\&#39;</span><span class="s1">. Valid args are </span><span class="se">\&#39;</span><span class="s1">raise</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">warn</span><span class="se">\&#39;</span><span class="s1">, or </span><span class="se">\&#39;</span><span class="s1">fix</span><span class="se">\&#39;</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">if_incompatible</span> <span class="o">=</span> <span class="n">if_incompatible</span>
+
 <div class="viewcode-block" id="TCPrinter.doprint">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCPrinter.doprint">[docs]</a>
     <span class="k">def</span> <span class="nf">doprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
@@ -801,10 +807,24 @@
                 <span class="n">terms</span> <span class="o">=</span> <span class="s1">&#39;exp(&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">argument</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span><span class="p">)):</span>
                     <span class="n">argument</span> <span class="o">=</span> <span class="s1">&#39;( &#39;</span> <span class="o">+</span> <span class="n">argument</span> <span class="o">+</span> <span class="s1">&#39; )&#39;</span>
-                <span class="c1"># Deals with both numbers (RealDouble) and nested function exponents</span>
-                <span class="n">exponent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">RealDouble</span><span class="p">)</span> <span class="k">else</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="c1"># Try coercing the exponent to an int (TC-compatible) or float</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">exponent</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">exponent</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">exponent</span><span class="p">):</span>
+                        <span class="n">exponent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_incompatible</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;fix&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">):</span>
+                            <span class="k">raise</span> <span class="n">DatabaseExportError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Non-integer exponents cannot be represented in TDB compatibility mode. Got: </span><span class="si">{</span><span class="n">expr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_incompatible</span> <span class="o">==</span> <span class="s1">&#39;warn&#39;</span><span class="p">:</span>
+                            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ignoring that non-integer exponents cannot be represented in TDB compatibility mode. Got: </span><span class="si">{</span><span class="n">expr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_incompatible</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;fix&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">DatabaseExportError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Non-integer exponents cannot be represented in TDB compatibility mode. Got: </span><span class="si">{</span><span class="n">expr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_incompatible</span> <span class="o">==</span> <span class="s1">&#39;warn&#39;</span><span class="p">:</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ignoring that non-integer exponents cannot be represented in TDB compatibility mode. Got: </span><span class="si">{</span><span class="n">expr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">exponent</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">terms</span> <span class="o">=</span> <span class="n">argument</span> <span class="o">+</span> <span class="s1">&#39;**&#39;</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
             <span class="k">return</span> <span class="n">terms</span>
         <span class="k">else</span><span class="p">:</span>
@@ -996,8 +1016,8 @@
 <span class="sd">        The &#39;fix&#39; option will rectify the incompatibilities e.g. through name mangling.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Before writing anything, check that the TDB is valid and take the appropriate action if not</span>
-    <span class="k">if</span> <span class="n">if_incompatible</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="s1">&#39;fix&#39;</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Incorrect options passed to </span><span class="se">\&#39;</span><span class="s1">if_invalid</span><span class="se">\&#39;</span><span class="s1">. Valid args are </span><span class="se">\&#39;</span><span class="s1">raise</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">warn</span><span class="se">\&#39;</span><span class="s1">, or </span><span class="se">\&#39;</span><span class="s1">fix</span><span class="se">\&#39;</span><span class="s1">.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">if_incompatible</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="s1">&#39;fix&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Incorrect options passed to </span><span class="se">\&#39;</span><span class="s1">if_incompatible</span><span class="se">\&#39;</span><span class="s1">. Valid args are </span><span class="se">\&#39;</span><span class="s1">raise</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">warn</span><span class="se">\&#39;</span><span class="s1">, or </span><span class="se">\&#39;</span><span class="s1">fix</span><span class="se">\&#39;</span><span class="s1">.&#39;</span><span class="p">)</span>
     <span class="c1"># Handle function names &gt; 8 characters</span>
     <span class="n">long_function_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">8</span><span class="p">}</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">long_function_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1167,7 +1187,7 @@
             <span class="c1"># Non-piecewise parameters need to be wrapped to print correctly</span>
             <span class="c1"># Otherwise TC&#39;s TDB parser will fail</span>
             <span class="n">paramx</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">((</span><span class="n">paramx</span><span class="p">,</span> <span class="n">And</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mi">10000</span><span class="p">)))</span>
-        <span class="n">exprx</span> <span class="o">=</span> <span class="n">TCPrinter</span><span class="p">()</span><span class="o">.</span><span class="n">doprint</span><span class="p">(</span><span class="n">paramx</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">exprx</span> <span class="o">=</span> <span class="n">TCPrinter</span><span class="p">(</span><span class="n">if_incompatible</span><span class="o">=</span><span class="n">if_incompatible</span><span class="p">)</span><span class="o">.</span><span class="n">doprint</span><span class="p">(</span><span class="n">paramx</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
         <span class="k">if</span> <span class="s1">&#39;;&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exprx</span><span class="p">:</span>
             <span class="n">exprx</span> <span class="o">+=</span> <span class="s1">&#39;; N&#39;</span>
         <span class="k">if</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">diffusing_species</span> <span class="o">!=</span> <span class="n">Species</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
@@ -1319,7 +1339,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b1aa6470"></script>
+</div><script src="../../../_static/documentation_options.js?v=e7c92f54"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
