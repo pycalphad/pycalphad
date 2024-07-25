@@ -95,6 +95,11 @@ def test_export_import(load_database):
     test_dbf = load_database()
     assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
 
+def test_bad_kwarg_raises():
+    "An invalid keyword argument passed to database export function will raise an exception."
+    with pytest.raises(ValueError):
+        Database().to_string(fmt='tdb', if_incompatible='invalid_keyword_argument')
+
 def test_roundtrip_nested_powers():
     "Round-trip with nested powers expression."
     TDB = """
@@ -887,6 +892,16 @@ def test_tc_printer_exp():
     test_expr = S('exp(-300T**(-1.0))')
     result = TCPrinter()._stringify_expr(test_expr)
     assert result == 'exp(-300*T**(-1))'
+
+def test_tc_printer_bad_kwarg():
+    "TCPrinter will raise if passed bad keyword arguments."
+    with pytest.raises(ValueError):
+        TCPrinter(if_incompatible='invalid_keyword')
+
+def test_tc_printer_raise_noninteger_exponent():
+    "TCPrinter will raise for non-integer exponents in compatibility mode."
+    with pytest.raises(DatabaseExportError):
+        TCPrinter(if_incompatible='raise')._stringify_expr(S('T**0.42'))
 
 @pytest.mark.filterwarnings("ignore:Ignoring that non-integer exponents*:UserWarning")
 def test_tc_printer_nested_mul_add():
