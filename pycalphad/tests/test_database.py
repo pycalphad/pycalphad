@@ -95,6 +95,33 @@ def test_export_import(load_database):
     test_dbf = load_database()
     assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
 
+def test_bad_kwarg_raises():
+    "An invalid keyword argument passed to database export function will raise an exception."
+    with pytest.raises(ValueError):
+        Database().to_string(fmt='tdb', if_incompatible='invalid_keyword_argument')
+
+def test_roundtrip_nested_powers():
+    "Round-trip with nested powers expression."
+    TDB = """
+    ELEMENT A FCC_A1 0 0 0 !
+
+    PHASE FCC_A1 % 1 1 !
+    CONSTITUENT FCC_A1 : A : !
+
+    PARAMETER G(FCC_A1,A;0) 1 ((3.49 * (1373 * T**(-1)))**(1.778 * (1473 * T**(-1))))**(0.926); 10000 N !
+    """
+    test_dbf = Database(TDB)
+    roundtrip_dbf = Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb')
+    assert roundtrip_dbf == test_dbf
+    with pytest.warns(UserWarning, match='Ignoring that non-integer exponents cannot be represented in TDB compatibility mode'):
+        roundtrip2_dbf = Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='warn'), fmt='tdb')
+    assert roundtrip2_dbf == test_dbf
+    with pytest.raises(DatabaseExportError):
+        test_dbf.to_string(fmt='tdb', if_incompatible='raise')
+    with pytest.raises(DatabaseExportError):
+        # this type of incompatibility cannot be automatically fixed
+        test_dbf.to_string(fmt='tdb', if_incompatible='fix')
+
 def test_incompatible_db_warns_by_default():
     "Symbol names too long for Thermo-Calc warn and write the database as given by default."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
@@ -866,6 +893,17 @@ def test_tc_printer_exp():
     result = TCPrinter()._stringify_expr(test_expr)
     assert result == 'exp(-300*T**(-1))'
 
+def test_tc_printer_bad_kwarg():
+    "TCPrinter will raise if passed bad keyword arguments."
+    with pytest.raises(ValueError):
+        TCPrinter(if_incompatible='invalid_keyword')
+
+def test_tc_printer_raise_noninteger_exponent():
+    "TCPrinter will raise for non-integer exponents in compatibility mode."
+    with pytest.raises(DatabaseExportError):
+        TCPrinter(if_incompatible='raise')._stringify_expr(S('T**0.42'))
+
+@pytest.mark.filterwarnings("ignore:Ignoring that non-integer exponents*:UserWarning")
 def test_tc_printer_nested_mul_add():
     """
     TCPrinter retains parenthesis around a nested Mul(...,Add(...)) expression
