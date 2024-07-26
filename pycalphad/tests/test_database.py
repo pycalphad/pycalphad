@@ -761,7 +761,7 @@ def test_tdb_parser_correct_lineno():
         assert False # should be unreachable because of raised exception
     except ParseException as e:
         assert e.lineno == 5
-        assert e.column == 12
+        assert e.column == 11
 
     # The third line has a ; instead of , character (see "[...]LI,LU;MG,MN[...]")
     INCORRECT_DELIMITER_STR = """PHASE LIQUID % 1 1 !
@@ -775,7 +775,7 @@ def test_tdb_parser_correct_lineno():
         assert False # should be unreachable because of raised exception
     except ParseException as e:
         assert e.lineno == 3
-        assert e.column == 42
+        assert e.column == 41
 
 @select_database("alfe.tdb")
 def test_load_database_when_given_in_lowercase(load_database):
