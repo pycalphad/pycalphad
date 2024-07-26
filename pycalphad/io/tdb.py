@@ -966,14 +966,13 @@ def read_tdb(dbf, fd):
     for command in commands:
         if len(command) == 0:
             continue
-        tokens = None
         try:
             tokens = grammar.parseString(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
         except ParseException as e:
             # pyparsing is only given one line at a time, so we modify
             # the exception metadata to correspond with the original input
-            err_char_idx = char_idx + e.column
+            err_char_idx = char_idx + (e.column - 1) # e.column is an index that starts at 1
             joinedlines = "\n".join(splitlines)
             e.pstr = joinedlines
             e.loc = err_char_idx
