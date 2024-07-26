@@ -941,7 +941,6 @@ def read_tdb(dbf, fd):
     """
     lines = fd.read().upper()
     lines = lines.replace('\t', ' ')
-    lines = lines.strip()
     # Split the string by newlines
     splitlines = lines.split('\n')
     # Remove extra whitespace inside line
@@ -963,6 +962,7 @@ def read_tdb(dbf, fd):
 
     grammar = _tdb_grammar()
 
+    char_idx = 0
     for command in commands:
         if len(command) == 0:
             continue
@@ -970,10 +970,18 @@ def read_tdb(dbf, fd):
         try:
             tokens = grammar.parseString(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
-        except:
-            print("Failed while parsing: " + command)
-            print("Tokens: " + str(tokens))
-            raise
+        except ParseException as e:
+            # pyparsing is only given one line at a time, so we modify
+            # the exception metadata to correspond with the original input
+            err_char_idx = char_idx + e.column
+            joinedlines = "\n".join(splitlines)
+            e.pstr = joinedlines
+            e.loc = err_char_idx
+            # The default message outputs the entire TDB grammar, which is unhelpful. We truncate it here
+            e.msg = 'Invalid TDB syntax'
+            raise e
+        # Add 1 for removed '!' delimiter
+        char_idx += len(command) + 1
 
     # Process type definitions last, updating model_hints for defined phases.
     for typechar, line in dbf._typedefs_queue:
