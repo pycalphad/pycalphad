@@ -943,10 +943,8 @@ def read_tdb(dbf, fd):
     lines = lines.replace('\t', ' ')
     # Split the string by newlines
     splitlines = lines.split('\n')
-    # Remove extra whitespace inside line
-    splitlines = [' '.join(k.split()) for k in splitlines]
     # Remove comments
-    splitlines = [k.strip().split('$', 1)[0] for k in splitlines]
+    splitlines = [k.split('$', 1)[0] for k in splitlines]
     # Remove everything after command delimiter, but keep the delimiter so we can split later
     splitlines = [k.split('!')[0] + ('!' if len(k.split('!')) > 1 else '') for k in splitlines]
     # Combine everything back together
@@ -970,14 +968,16 @@ def read_tdb(dbf, fd):
             tokens = grammar.parseString(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
         except ParseException as e:
+            context = e.line + '\n' + (" " * (e.column - 1) + "^")
             # pyparsing is only given one line at a time, so we modify
             # the exception metadata to correspond with the original input
             err_char_idx = char_idx + (e.column - 1) # e.column is an index that starts at 1
             joinedlines = "\n".join(splitlines)
             e.pstr = joinedlines
             e.loc = err_char_idx
-            # The default message outputs the entire TDB grammar, which is unhelpful. We truncate it here
-            e.msg = 'Invalid TDB syntax'
+            # context variable includes a helpful cursor aligned with the 'error character'
+            # this requires being on a newline so it renders correctly in consoles
+            e.msg = f'Invalid TDB syntax.\n{context}'
             raise e
         # Add 1 for removed '!' delimiter
         char_idx += len(command) + 1

@@ -759,7 +759,7 @@ def test_tdb_parser_correct_lineno():
     with pytest.raises(ParseException) as excinfo:
         Database(UNTERMINATED_PARAM_STR)
     assert excinfo.value.lineno == 5
-    assert excinfo.value.column == 11
+    assert excinfo.value.column == 16
 
     # The third line has a ; instead of , character (see "[...]LI,LU;MG,MN[...]")
     INCORRECT_DELIMITER_STR = """PHASE LIQUID % 1 1 !
@@ -771,7 +771,7 @@ def test_tdb_parser_correct_lineno():
     with pytest.raises(ParseException) as excinfo:
         Database(INCORRECT_DELIMITER_STR)
     assert excinfo.value.lineno == 3
-    assert excinfo.value.column == 41
+    assert excinfo.value.column == 45
 
 @select_database("alfe.tdb")
 def test_load_database_when_given_in_lowercase(load_database):
