@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.07.18 -->
-        <title>pycalphad.io.tdb - pycalphad 0.10.6.dev5+g01c2e635 documentation</title>
+        <title>pycalphad.io.tdb - pycalphad 0.10.6.dev6+g176909c7 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=613ab9ff" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.10.6.dev5+g01c2e635 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.10.6.dev6+g176909c7 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.6.dev5+g01c2e635 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev6+g176909c7 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1253,13 +1253,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="c1"># Split the string by newlines</span>
     <span class="n">splitlines</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="c1"># Remove extra whitespace inside line</span>
-    <span class="n">splitlines</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">splitlines</span><span class="p">]</span>
     <span class="c1"># Remove comments</span>
-    <span class="n">splitlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">splitlines</span><span class="p">]</span>
+    <span class="n">splitlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">splitlines</span><span class="p">]</span>
     <span class="c1"># Remove everything after command delimiter, but keep the delimiter so we can split later</span>
     <span class="n">splitlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;!&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">splitlines</span><span class="p">]</span>
     <span class="c1"># Combine everything back together</span>
@@ -1275,17 +1272,27 @@
 
     <span class="n">grammar</span> <span class="o">=</span> <span class="n">_tdb_grammar</span><span class="p">()</span>
 
+    <span class="n">char_idx</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">tokens</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">tokens</span> <span class="o">=</span> <span class="n">grammar</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
             <span class="n">_TDB_PROCESSOR</span><span class="p">[</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]](</span><span class="n">dbf</span><span class="p">,</span> <span class="o">*</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed while parsing: &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tokens: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tokens</span><span class="p">))</span>
-            <span class="k">raise</span>
+        <span class="k">except</span> <span class="n">ParseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">line</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">column</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;^&quot;</span><span class="p">)</span>
+            <span class="c1"># pyparsing is only given one line at a time, so we modify</span>
+            <span class="c1"># the exception metadata to correspond with the original input</span>
+            <span class="n">err_char_idx</span> <span class="o">=</span> <span class="n">char_idx</span> <span class="o">+</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">column</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># e.column is an index that starts at 1</span>
+            <span class="n">joinedlines</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">splitlines</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">pstr</span> <span class="o">=</span> <span class="n">joinedlines</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">loc</span> <span class="o">=</span> <span class="n">err_char_idx</span>
+            <span class="c1"># context variable includes a helpful cursor aligned with the &#39;error character&#39;</span>
+            <span class="c1"># this requires being on a newline so it renders correctly in consoles</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Invalid TDB syntax.</span><span class="se">\n</span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">raise</span> <span class="n">e</span>
+        <span class="c1"># Add 1 for removed &#39;!&#39; delimiter</span>
+        <span class="n">char_idx</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 
     <span class="c1"># Process type definitions last, updating model_hints for defined phases.</span>
     <span class="k">for</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typedefs_queue</span><span class="p">:</span>
@@ -1339,7 +1346,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a3b582cc"></script>
+</div><script src="../../../_static/documentation_options.js?v=cb91748e"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
