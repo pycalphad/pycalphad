@@ -310,11 +310,37 @@ def filter_phases(dbf, comps, candidate_phases=None):
         candidate_phases = dbf.phases.keys()
     else:
         candidate_phases = set(candidate_phases).intersection(dbf.phases.keys())
+    ordered_phases = [dbf.phases[phase].model_hints.get('ordered_phase') for phase in candidate_phases]
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
-    phases = [phase for phase in candidate_phases if
-                all_sublattices_active(comps, dbf.phases[phase]) and
-                (phase not in disordered_phases or (phase in disordered_phases and
-                dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
+    # First add all phases that are not order/disorder models
+    phases = [phase for phase in candidate_phases if 
+              all_sublattices_active(comps, dbf.phases[phase]) and
+              (phase not in disordered_phases) and
+              (phase not in ordered_phases)]
+
+    # Go through list of all order/disorder models
+    for ord_phase, dis_phase in zip(ordered_phases, disordered_phases):
+        if ord_phase is not None:
+            # Don't duplicate phases (both ordered and disordered phases will have the same ordered_phase and disordered_phase hints)
+            if ord_phase not in phases and dis_phase not in phases:
+                if all_sublattices_active(comps, dbf.phases[ord_phase]) and all_sublattices_active(comps, dbf.phases[dis_phase]):
+                    # All active components in the ordered and disordered part of the phase
+                    active_ord_comps = set.union(*[set(comps).intersection(subl) for subl in dbf.phases[ord_phase].constituents])
+                    active_dis_comps = set.union(*[set(comps).intersection(subl) for subl in dbf.phases[dis_phase].constituents])
+
+                    #If user explicitly specifies the disordered phase, then add the disordered phase in place of the ordered phase
+                    ord_phase_alias = ord_phase if ord_phase in candidate_phases else dis_phase
+
+                    # If active components for ordered and disordered phases are the same, then use ordered phase
+                    if len(active_dis_comps.symmetric_difference(active_ord_comps)) == 0:
+                        phases.append(ord_phase_alias)
+                    # If ordered phase components is a subset of disordered phase components, then use disordered phase
+                    elif len(active_dis_comps - active_ord_comps) > 0:
+                        phases.append(dis_phase)
+                    # If more active components in ordered phase, add ordered phase, in Model, this will build
+                    # the ordered phase for the active disordered components
+                    elif len(active_ord_comps - active_dis_comps) > 0:
+                        phases.append(ord_phase_alias)
     return sorted(phases)
 
 

@@ -211,6 +211,16 @@ class Model(object):
                 else:
                     raise ValueError('Two-sublattice ionic liquid specified with more than two sublattices')
                 self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_comps])
+        # If the phase is order/disordered model, then filter the components to the set of species in the disordered model
+        # This will account for the case where the ordered contribution has more components than the disordered model
+        if phase.model_hints.get('disordered_phase', False):
+            disordered_phase = phase.model_hints.get('disordered_phase')
+            disordered_phase_comps = set()
+            for idx, sublattice in enumerate(dbe.phases[disordered_phase].constituents):
+                subl_comps = set(sublattice).intersection(active_species)
+                disordered_phase_comps |= subl_comps
+            self.components = self.components.intersection(disordered_phase_comps)
+
         if phase.model_hints.get('ionic_liquid_2SL', False):
             # Special treatment of "neutral" vacancies in 2SL ionic liquid
             # These are treated as having variable valence
@@ -1238,8 +1248,11 @@ class Model(object):
         # with the disordered phase.
         # Assumes first sublattice of the disordered phase is the sublattice
         # that can be come ordered:
-        disordered_subl_constituents = disordered_phase.constituents[0]
-        ordered_constituents = ordered_phase.constituents
+        # Rather than using the constituents defined in the model, we want to compare the
+        # subset of the consituents defined by the components (which accounts for the active
+        # components set by the user)
+        disordered_subl_constituents = disordered_phase.constituents[0].intersection(self.components)
+        ordered_constituents = constituents
         substitutional_sublattice_idxs = []
         for idx, subl_constituents in enumerate(ordered_constituents):
             # Assumes that the ordered phase sublattice describes the ordering
