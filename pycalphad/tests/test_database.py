@@ -756,12 +756,10 @@ def test_tdb_parser_correct_lineno():
 
      PARAMETER G(BCC,FE:VA;0)      298.15 +GHSERFE; 6000 N ZIM !
     """
-    try:
+    with pytest.raises(ParseException) as excinfo:
         Database(UNTERMINATED_PARAM_STR)
-        assert False # should be unreachable because of raised exception
-    except ParseException as e:
-        assert e.lineno == 5
-        assert e.column == 11
+    assert excinfo.value.lineno == 5
+    assert excinfo.value.column == 11
 
     # The third line has a ; instead of , character (see "[...]LI,LU;MG,MN[...]")
     INCORRECT_DELIMITER_STR = """PHASE LIQUID % 1 1 !
@@ -770,12 +768,10 @@ def test_tdb_parser_correct_lineno():
     PB,PD,PR,PT,PU,RB,RE,RH,RU,S,SB,SC,SE,SI,SM,SN,SR,TA,TB,TC,TE,TH,TI,TL,TM,U,V,
     W,Y,YB,ZN,ZR : !
     """
-    try:
+    with pytest.raises(ParseException) as excinfo:
         Database(INCORRECT_DELIMITER_STR)
-        assert False # should be unreachable because of raised exception
-    except ParseException as e:
-        assert e.lineno == 3
-        assert e.column == 41
+    assert excinfo.value.lineno == 3
+    assert excinfo.value.column == 41
 
 @select_database("alfe.tdb")
 def test_load_database_when_given_in_lowercase(load_database):
