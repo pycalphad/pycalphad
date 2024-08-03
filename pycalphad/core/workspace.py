@@ -123,7 +123,8 @@ class TypedField:
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         "A callback method that can be overridden to define custom behavior when a dependent attribute is updated."
-        pass
+        if obj._suspend_dependency_updates:
+            return
 
 class ComponentsField(TypedField):
     def __init__(self, depends_on=None):
@@ -211,6 +212,8 @@ class ModelsField(DictField):
             super().__set__(obj, None)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
         self.__set__(obj, self.default_factory(obj))
 
 class PRFField(TypedField):
@@ -226,10 +229,14 @@ class PRFField(TypedField):
         super().__init__(default_factory=make_prf, depends_on=depends_on)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
         self.__set__(obj, self.default_factory(obj))
 
 class SolverField(TypedField):
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
         self.__set__(obj, self.default_factory(obj))
 
 class EquilibriumCalculationField(TypedField):
@@ -243,6 +250,8 @@ class EquilibriumCalculationField(TypedField):
         return getattr(obj, self.private_name)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
         self.__set__(obj, None)
 
 
@@ -254,7 +263,7 @@ class Workspace:
     database: Database = TypedField(lambda _: None)
     components: SpeciesList = ComponentsField(depends_on=['database'])
     phases: PhaseList = PhasesField(depends_on=['database', 'components'])
-    conditions: Conditions = ConditionsField(lambda wks: Conditions(wks))
+    conditions: Conditions = ConditionsField(lambda wks: Conditions(wks), depends_on=['components', 'models'])
     verbose: bool = TypedField(lambda _: False)
     models: Mapping[PhaseName, ModelType] = ModelsField(depends_on=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
@@ -265,14 +274,29 @@ class Workspace:
     eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'calc_opts', 'solver'])
 
     def __init__(self, *args, **kwargs):
+        self._suspend_dependency_updates = True
+        self._eq = None # manually initialized since we don't initialize the public name 'eq' (see below)
         # Assume positional arguments are specified in class typed-attribute definition order
         for arg, attrname in zip(args, ['database', 'components', 'phases', 'conditions']):
-            setattr(self, attrname, arg)
+            kwargs[attrname] = arg
         attributes = list(self.__annotations__.keys())
+        # avoid unnecessary work by initializing in a graph-optimal order (least-dependent first)
+        # don't include 'eq' in the init order to avoid an expensive code path in the partially initialized case
+        init_order = ['database', 'verbose', 'parameters', 'calc_opts', 'solver',
+                      'components', 'phases', 'models', 'conditions', 'phase_record_factory']
+        for kwarg_name in init_order:
+            if kwarg_name in kwargs.keys():
+                setattr(self, kwarg_name, kwargs[kwarg_name])
+            else:
+                # trigger default constructor (which is allowed to fail)
+                getattr(self, kwarg_name)
         for kwarg_name, kwarg_val in kwargs.items():
+            if kwarg_name in init_order:
+                continue
             if kwarg_name not in attributes:
                 raise ValueError(f'{kwarg_name} is not a Workspace attribute')
             setattr(self, kwarg_name, kwarg_val)
+        self._suspend_dependency_updates = False
 
     def recompute(self):
         # Assumes implementation units from this point
