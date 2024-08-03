@@ -231,6 +231,13 @@ class PRFField(TypedField):
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         if obj._suspend_dependency_updates:
             return
+        # changes in conditions values (as opposed to keys) do not affect the PhaseRecordFactory
+        if updated_attribute == 'conditions' and (old_val is not None) and \
+            (set(old_val.keys()) == set(new_val.keys())):
+            # call the 'conditions' callbacks because we won't trigger our own __set__ to do it
+            for cb in obj._callbacks[updated_attribute]:
+                cb(obj, self.public_name, old_val, new_val)
+            return
         self.__set__(obj, self.default_factory(obj))
 
 class SolverField(TypedField):
