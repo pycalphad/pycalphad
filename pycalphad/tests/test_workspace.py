@@ -97,6 +97,16 @@ def test_tzero_property(load_database):
     assert_allclose(t0_composition, 0.86119, atol=my_tzero.residual_tol)
 
 @select_database("alzn_mey.tdb")
+def test_isolated_phase_with_suspended_parent(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 600, v.X('ZN'): 0.3})
+    # liquid is not entered in the parent workspace
+    iph = IsolatedPhase('LIQUID', wks=wks)
+    energy = wks.get(iph('GM'))
+    assert not np.any(np.isnan(energy))
+
+@select_database("alzn_mey.tdb")
 def test_jansson_derivative_binary_temperature(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
