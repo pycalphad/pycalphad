@@ -166,15 +166,18 @@ class DictField(TypedField):
             def __iter__(pxy):
                 return TypedField.__get__(self, obj).__iter__()
             def __setitem__(pxy, item, value):
-                conds = TypedField.__get__(self, obj)
+                # we are careful not to mutate the original, by making a copy; if we don't, it will break cache invalidation
+                conds = copy(TypedField.__get__(self, obj))
                 conds[item] = value
                 self.__set__(obj, conds)
             def update(pxy, new_conds):
-                conds = TypedField.__get__(self, obj)
+                # we are careful not to mutate the original, by making a copy; if we don't, it will break cache invalidation
+                conds = copy(TypedField.__get__(self, obj))
                 conds.update(new_conds)
                 self.__set__(obj, conds)
             def __delitem__(pxy, item):
-                conds = TypedField.__get__(self, obj)
+                # we are careful not to mutate the original, by making a copy; if we don't, it will break cache invalidation
+                conds = copy(TypedField.__get__(self, obj))
                 del conds[item]
                 self.__set__(obj, conds)
             def __len__(pxy):
@@ -233,10 +236,7 @@ class PRFField(TypedField):
             return
         # changes in conditions values (as opposed to keys) do not affect the PhaseRecordFactory
         if updated_attribute == 'conditions' and (old_val is not None) and \
-            (set(old_val.keys()) == set(new_val.keys())):
-            # call the 'conditions' callbacks because we won't trigger our own __set__ to do it
-            for cb in obj._callbacks[updated_attribute]:
-                cb(obj, self.public_name, old_val, new_val)
+            (list(old_val.keys()) == list(new_val.keys())):
             return
         self.__set__(obj, self.default_factory(obj))
 
@@ -278,7 +278,7 @@ class Workspace:
     calc_opts: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
     solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), depends_on=['verbose'])
     # eq is set by a callback in the EquilibriumCalculationField (TypedField)
-    eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'calc_opts', 'solver'])
+    eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'conditions', 'calc_opts', 'solver'])
 
     def __init__(self, *args, **kwargs):
         self._suspend_dependency_updates = True
