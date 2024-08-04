@@ -59,7 +59,7 @@ setup(
         # gives the C++ SymEngine library, while conda-forge/python-symengine
         # provides the Python package called `symengine`.
         'Cython' if os.getenv('CYTHON_COVERAGE', False) else '', # required for Cython test coverage
-        'matplotlib>=3.3',
+        'matplotlib>=3.3,!=3.9.1', # https://github.com/matplotlib/matplotlib/issues/28551#issuecomment-2267563049
         'numpy>=1.13',
         'pint',
         'pyparsing>=2.4',
