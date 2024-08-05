@@ -228,6 +228,18 @@ def test_miscibility_gap_cpf_specifier(load_database):
     fcc_3 = wks.get('X(FCC_A1#3,ZN)')
     assert np.isnan(fcc_3)
 
+@select_database("cumg.tdb")
+def test_component_wildcards(load_database):
+    """Wildcards of properties that depend on components should expand without phase constituent Species like vacancies"""
+    dbf = load_database()
+    components = ["CU", "MG", "VA"]
+    phases = list(dbf.phases.keys())
+    wks = Workspace(dbf, components, phases, {v.N:1, v.P:1e5, v.T:300, v.X("MG"): 0.25})
+    X_fracs = wks.get("X(*)")
+    np.testing.assert_almost_equal([0.75, 0.25], X_fracs)
+    chempots = wks.get("MU(*)")
+    np.testing.assert_almost_equal([-9949.7314137, -43634.7588925], chempots)
+
 @pytest.mark.solver
 @select_database("cumg.tdb")
 def test_site_fraction_conditions(load_database):

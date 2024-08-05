@@ -332,7 +332,8 @@ class Workspace:
                     components = [x for x in self.phase_record_factory[args[i].phase_name].variables
                                   if x.sublattice_index == args[i].sublattice_index]
                 else:
-                    components = self.components
+                    # TODO: self.components with proper Components support
+                    components = [comp for comp in self.phase_record_factory.nonvacant_elements]
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
             elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == v.Species('*'):
@@ -358,7 +359,7 @@ class Workspace:
                     additional_args = args[i].expand_wildcard(phase_names=additional_phase_names)
                     args.extend(additional_args)
             i += 1
-        
+
         # Watch deletion order! Indices will change as items are deleted
         for deletion_index in reversed(indices_to_delete):
             del args[deletion_index]
@@ -440,7 +441,7 @@ class Workspace:
                                         [np.asarray(self.eq.coords[b][a], dtype=np.float64)
                                         for a, b in zip(index, str_conds_keys)]))
             chemical_potentials = prop_MU_values[index]
-            
+
             for arg in args:
                 prop_implementation_units, prop_display_units = arg_units[arg]
                 context = unit_conversion_context(composition_sets, arg)
@@ -467,5 +468,3 @@ class Workspace:
 
     def copy(self):
         return copy(self)
-
-
