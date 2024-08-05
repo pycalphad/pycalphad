@@ -627,6 +627,9 @@ class ChemicalPotential(StateVariable):
         super().__init__(varname)
         self.species = species
 
+    def expand_wildcard(self, components):
+        return [self.__class__(comp) for comp in components]
+
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
