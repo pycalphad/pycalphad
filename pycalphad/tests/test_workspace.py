@@ -241,10 +241,18 @@ def test_component_wildcards(load_database):
     chempots = wks.get("MU(*)")
     np.testing.assert_almost_equal([-9949.7314137, -43634.7588925], chempots)
     # site fraction expansions _should_ have species
-    Y0_fracs = wks.get("Y(FCC_A1,0,*)")  # CU,MG
-    Y1_fracs = wks.get("Y(FCC_A1,1,*)")  # VA
-    np.testing.assert_almost_equal([0.998168, 0.001832], Y0_fracs)
-    np.testing.assert_almost_equal([1.0], Y1_fracs)
+    Y_fracs = wks.get("Y(FCC_A1,0,*)")  # FCC CU,MG
+    np.testing.assert_almost_equal([0.998168, 0.001832], Y_fracs)
+    Y_fracs = wks.get("Y(FCC_A1,*,*)")  # FCC CU,MG,VA
+    np.testing.assert_almost_equal([0.998168, 0.001832, 1.0], Y_fracs)
+    # change phases to simplify phase expansion
+    wks.phases = ["FCC_A1", "LIQUID", "CU2MG"]
+    Y_fracs = wks.get("Y(*,*,*)")
+    np.testing.assert_almost_equal([
+        1.0, 1.6126622e-12, 1.1836675e-06, 9.9999882e-01,  # CU2MG CU,MG:CU,MG
+        0.998168, 0.001832, 1.0,                           # FCC_A1 CU,MG:VA
+        np.nan, np.nan,                                           # LIQUID CU,MG
+        ], Y_fracs)
 
 @pytest.mark.solver
 @select_database("cumg.tdb")
