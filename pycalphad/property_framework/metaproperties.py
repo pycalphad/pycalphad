@@ -124,12 +124,11 @@ class DormantPhase:
                                   ' either a CompositionSet object should be specified, or pass in a Workspace'
                                   ' of a previous calculation including the phase.'
                                 )
-        if not isinstance(phase, CompositionSet):
-            phase_orig = phase
-            phase = find_first_compset(phase, wks)
-            if phase is None:
-                raise ValueError(f'{phase_orig} is never stable in the specified Workspace')
-        self._compset = phase
+        if isinstance(phase, CompositionSet):
+            compset = phase
+        else:
+            compset = find_first_compset(phase, wks)  # can be None if there's a convergence failure
+        self._compset = compset
         self.solver = Solver()
 
     def __str__(self):
@@ -145,6 +144,8 @@ class DormantPhase:
             @staticmethod
             def compute_property(equilibrium_compsets: List[CompositionSet], cur_conds: Dict[str, float],
                             chemical_potentials: npt.ArrayLike) -> float:
+                if self._compset is None:
+                    return prop.compute_property([], cur_conds, chemical_potentials)
                 state_variables = equilibrium_compsets[0].phase_record.state_variables
                 components = equilibrium_compsets[0].phase_record.nonvacant_elements
                 # Fix all state variables and chemical potentials
@@ -211,11 +212,11 @@ class IsolatedPhase:
             @staticmethod
             def compute_property(equilibrium_compsets: List[CompositionSet], cur_conds: Dict[str, float],
                             chemical_potentials: npt.ArrayLike) -> float:
-                if self._compset is not None:
-                    self.solver.solve([self._compset], cur_conds)
-                    return prop.compute_property([self._compset], cur_conds, chemical_potentials)
-                else:
+                if self._compset is None:
                     return prop.compute_property([], cur_conds, chemical_potentials)
+                self.solver.solve([self._compset], cur_conds)
+                return prop.compute_property([self._compset], cur_conds, chemical_potentials)
+
             @staticmethod
             def jansson_derivative(compsets, cur_conds, chemical_potentials, deltas):
                 return prop.jansson_derivative([self._compset], cur_conds, chemical_potentials, deltas)
