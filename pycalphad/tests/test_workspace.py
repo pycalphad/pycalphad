@@ -324,7 +324,7 @@ def test_workspace_convergence_failures(load_database):
     components = ["CU", "MG", "VA"]
     phases = ["LIQUID", "FCC_A1"]
     wks = Workspace(dbf, components, phases, {v.N:1, v.P:1e5, v.T:300, v.X("MG"): 0.5}, solver=ConvergenceFailureSolver())
-    assert len(list(wks.enumerate_composition_sets())[1]) == 0
+    assert len(list(wks.enumerate_composition_sets())[1]) == 0  # convergence failures should have no stable composition sets
     assert np.isnan(wks.get("GM"))
-    print(wks.get(IsolatedPhase("LIQUID", wks=wks)("GM")))  # TODO: what should this do in convergence failure?
+    assert np.isnan(wks.get(IsolatedPhase("LIQUID", wks=wks)("GM")))
     assert np.isnan(wks.get("MU(CU)"))
