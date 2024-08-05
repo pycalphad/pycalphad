@@ -320,6 +320,7 @@ def test_issue_503_pure_vacancy_charge_balance():
 
 @select_database("cumg.tdb")
 def test_workspace_convergence_failures(load_database):
+    """Convergence failures should propagate NaNs through to computed properties"""
     dbf = load_database()
     components = ["CU", "MG", "VA"]
     phases = ["LIQUID", "FCC_A1"]
@@ -328,3 +329,7 @@ def test_workspace_convergence_failures(load_database):
     assert np.isnan(wks.get("GM"))
     assert np.isnan(wks.get(IsolatedPhase("LIQUID", wks=wks)("GM")))
     assert np.isnan(wks.get("MU(CU)"))
+    assert np.isnan(wks.get("MU(CU).X(MG)"))
+    phase_fractions = wks.get("NP(*)")
+    assert np.asarray(phase_fractions).shape == (len(phases),)
+    assert np.all(np.isnan(phase_fractions))

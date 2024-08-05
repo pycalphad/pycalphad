@@ -350,7 +350,7 @@ class MoleFraction(StateVariable):
         super().__init__(varname)
         self.phase_name = phase_name
         self.species = species
-    
+
     def expand_wildcard(self, phase_names=None, components=None):
         if phase_names is not None:
             return [self.__class__(phase_name, self.species) for phase_name in phase_names]
@@ -361,7 +361,7 @@ class MoleFraction(StateVariable):
                 return [self.__class__(self.phase_name, comp) for comp in components]
         else:
             raise ValueError('Both phase_names and components are None')
-    
+
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
@@ -628,6 +628,8 @@ class ChemicalPotential(StateVariable):
         self.species = species
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
+        if len(compsets) == 0:
+            return np.full(self.shape, np.nan)
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]
@@ -638,6 +640,8 @@ class ChemicalPotential(StateVariable):
 
     def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
         "Compute Jansson derivative with self as numerator, with the given deltas"
+        if len(compsets) == 0:
+            return np.full(self.shape, np.nan)
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]
