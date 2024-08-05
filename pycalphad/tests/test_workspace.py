@@ -328,6 +328,7 @@ def test_workspace_convergence_failures(load_database):
     assert len(list(wks.enumerate_composition_sets())[0][1]) == 0  # convergence failures should have no stable composition sets
     assert np.isnan(wks.get("GM"))
     assert np.isnan(wks.get(IsolatedPhase("LIQUID", wks=wks)("GM")))
+    assert np.isnan(wks.get(DormantPhase("CUMG2", wks=wks)("GM")))
     assert np.isnan(wks.get("MU(CU)"))
     assert np.isnan(wks.get("MU(CU).X(MG)"))
     phase_fractions = wks.get("NP(*)")
