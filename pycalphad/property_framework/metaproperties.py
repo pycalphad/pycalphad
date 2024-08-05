@@ -191,12 +191,11 @@ class IsolatedPhase:
                                   ' either a CompositionSet object should be specified, or pass in a Workspace'
                                   ' of a previous calculation including the phase.'
                                 )
-        if not isinstance(phase, CompositionSet):
-            phase_orig = phase
-            phase = find_first_compset(phase, wks)
-            if phase is None:
-                raise ValueError(f'{phase_orig} is never stable in the specified Workspace')
-        self._compset = phase
+        if isinstance(phase, CompositionSet):
+            compset = phase
+        else:
+            compset = find_first_compset(phase, wks)  # can be None if there's a convergence failure
+        self._compset = compset
         self.solver = Solver()
 
     def __str__(self):
@@ -212,8 +211,11 @@ class IsolatedPhase:
             @staticmethod
             def compute_property(equilibrium_compsets: List[CompositionSet], cur_conds: Dict[str, float],
                             chemical_potentials: npt.ArrayLike) -> float:
-                self.solver.solve([self._compset], cur_conds)
-                return prop.compute_property([self._compset], cur_conds, chemical_potentials)
+                if self._compset is not None:
+                    self.solver.solve([self._compset], cur_conds)
+                    return prop.compute_property([self._compset], cur_conds, chemical_potentials)
+                else:
+                    return prop.compute_property([], cur_conds, chemical_potentials)
             @staticmethod
             def jansson_derivative(compsets, cur_conds, chemical_potentials, deltas):
                 return prop.jansson_derivative([self._compset], cur_conds, chemical_potentials, deltas)
