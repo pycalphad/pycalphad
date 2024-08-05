@@ -332,7 +332,12 @@ def extract_parameters(parameters):
     tuple
         Tuple of parameter symbols (list) and parameter values (parameter_array_length, # parameters)
     """
-    parameter_array_lengths = set(np.atleast_1d(val).size for val in parameters.values())
+    parameter_array_lengths = set()
+    for val in parameters.values():
+        if isinstance(val, (float, int)):
+            parameter_array_lengths.add(1)
+        else:
+            parameter_array_lengths.add(len(val))
     if len(parameter_array_lengths) > 1:
         raise ValueError('parameters kwarg does not contain arrays of equal length')
     if len(parameters) > 0:
