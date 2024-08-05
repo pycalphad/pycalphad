@@ -64,7 +64,8 @@ class Solver(SolverBase):
         for compset in compsets:
             phase_local_conditions = {key: value for key, value in local_conditions.items()
                                       if compset.phase_record.phase_name == key.phase_name}
-            compset.set_local_conditions(phase_local_conditions)
+            if len(phase_local_conditions) > 0:
+                compset.set_local_conditions(phase_local_conditions)
         for cond, value in conditions.items():
             if isinstance(cond, MoleFraction) and cond.phase_name is None:
                 el = str(cond)[2:]
