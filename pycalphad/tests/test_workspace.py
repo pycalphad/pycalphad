@@ -235,10 +235,16 @@ def test_component_wildcards(load_database):
     components = ["CU", "MG", "VA"]
     phases = list(dbf.phases.keys())
     wks = Workspace(dbf, components, phases, {v.N:1, v.P:1e5, v.T:300, v.X("MG"): 0.25})
+    # expansions for component properties
     X_fracs = wks.get("X(*)")
     np.testing.assert_almost_equal([0.75, 0.25], X_fracs)
     chempots = wks.get("MU(*)")
     np.testing.assert_almost_equal([-9949.7314137, -43634.7588925], chempots)
+    # site fraction expansions _should_ have species
+    Y0_fracs = wks.get("Y(FCC_A1,0,*)")  # CU,MG
+    Y1_fracs = wks.get("Y(FCC_A1,1,*)")  # VA
+    np.testing.assert_almost_equal([0.998168, 0.001832], Y0_fracs)
+    np.testing.assert_almost_equal([1.0], Y1_fracs)
 
 @pytest.mark.solver
 @select_database("cumg.tdb")

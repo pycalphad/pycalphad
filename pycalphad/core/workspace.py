@@ -329,7 +329,7 @@ class Workspace:
                 indices_to_delete.append(i)
                 internal_to_phase = hasattr(args[i], 'sublattice_index')
                 if internal_to_phase:
-                    components = [x for x in self.phase_record_factory[args[i].phase_name].variables
+                    components = [x.species for x in self.phase_record_factory[args[i].phase_name].variables
                                   if x.sublattice_index == args[i].sublattice_index]
                 else:
                     # TODO: self.components with proper Components support
