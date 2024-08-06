@@ -233,7 +233,10 @@ class SiteFraction(StateVariable):
         #pylint: disable=E1121
         super().__init__(varname)
         self.phase_name = phase_name.upper()
-        self.sublattice_index = int(subl_index)
+        if subl_index == '*':
+            self.sublattice_index = '*'
+        else:
+            self.sublattice_index = int(subl_index)
         self.species = Species(species)
         if '#' in phase_name:
             self._self_without_suffix = self.__class__(self.phase_name_without_suffix, subl_index, species)
@@ -242,8 +245,11 @@ class SiteFraction(StateVariable):
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         state_variables = compsets[0].phase_record.state_variables
-        result = np.atleast_1d(np.zeros(self.shape))
+        result = np.atleast_1d(np.full(self.shape, fill_value=np.nan))
         for _, compset in self.filtered(compsets):
+            # we'll only hit this code path if this phase is present in the list of compsets
+            if np.all(np.isnan(result)):
+                result[0] = 0.0
             site_fractions = compset.phase_record.variables
             sitefrac_idx = site_fractions.index(self._self_without_suffix)
             result[0] += compset.dof[len(state_variables)+sitefrac_idx]
@@ -270,20 +276,24 @@ class SiteFraction(StateVariable):
             return [self.__class__(phase_name, self.sublattice_index, self.species) for phase_name in phase_names]
         elif components is not None:
             return [self.__class__(self.phase_name, self.sublattice_index, comp) for comp in components]
+        elif sublattice_indices is not None:
+            return [self.__class__(self.phase_name, idx, self.species) for idx in sublattice_indices]
         else:
             raise ValueError('All arguments are None')
 
     def _latex(self, printer=None):
         "LaTeX representation."
-        #pylint: disable=E1101
         return r'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
             '}}_{'+str(self.sublattice_index)+r',\mathrm{'+self.species.escaped_name+'}}'
 
     def __str__(self):
         "String representation."
-        #pylint: disable=E1101
-        return 'Y(%s,%d,%s)' % \
-            (self.phase_name, self.sublattice_index, self.species.escaped_name)
+        if self.sublattice_index == '*':
+            return 'Y(%s,%s,%s)' % \
+                (self.phase_name, self.sublattice_index, self.species.escaped_name)
+        else:
+            return 'Y(%s,%d,%s)' % \
+                (self.phase_name, self.sublattice_index, self.species.escaped_name)
 
 class PhaseFraction(StateVariable):
     """
@@ -626,6 +636,9 @@ class ChemicalPotential(StateVariable):
         varname = 'MU_' + species.escaped_name.upper()
         super().__init__(varname)
         self.species = species
+
+    def expand_wildcard(self, components):
+        return [self.__class__(comp) for comp in components]
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         if len(compsets) == 0:
