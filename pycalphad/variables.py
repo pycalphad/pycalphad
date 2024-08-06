@@ -642,7 +642,7 @@ class ChemicalPotential(StateVariable):
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         if len(compsets) == 0:
-            return np.full(self.shape, np.nan)
+            return np.atleast_1d(np.full(self.shape, fill_value=np.nan))
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]
