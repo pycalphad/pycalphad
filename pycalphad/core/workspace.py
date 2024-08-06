@@ -326,7 +326,8 @@ class Workspace:
                 additional_args = args[i].expand_wildcard(phase_names=phase_names)
                 args.extend(additional_args)
             elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == '*':
-                # We need to resolve sublattice_index before species to ensure we get the correct set of components
+                # We need to resolve sublattice_index before species to ensure we
+                # get the correct set of phase constituents for each sublattice
                 indices_to_delete.append(i)
                 sublattice_indices = sorted(set([x.sublattice_index for x in self.phase_record_factory[args[i].phase_name].variables]))
                 additional_args = args[i].expand_wildcard(sublattice_indices=sublattice_indices)
