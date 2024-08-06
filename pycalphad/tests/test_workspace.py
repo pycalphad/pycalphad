@@ -7,6 +7,7 @@ from pycalphad.property_framework import as_property, ComputableProperty, T0, Is
 from pycalphad.property_framework.units import Q_
 from pycalphad.tests.fixtures import load_database, select_database
 import pytest
+from collections import Counter
 
 @pytest.mark.solver
 @select_database("alzn_mey.tdb")
@@ -17,6 +18,29 @@ def test_workspace_creation(load_database):
     wks2 = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1', 'HCP_A3', 'LIQUID'],
                      {v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
     assert_allclose(wks.eq.GM, wks2.eq.GM)
+
+@select_database("alzn_mey.tdb")
+def test_workspace_dependency_init_order(load_database):
+    dbf = load_database()
+    attrcounter = Counter()
+    class TestWorkspace(Workspace):
+        def __setattr__(self, attr, val):
+            attrcounter[attr] += 1
+            super().__setattr__(attr, val)
+    twks = TestWorkspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                         conditions={v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
+    del attrcounter['_suspend_dependency_updates']
+    firstcase = set(attrcounter.values())
+    models = twks.models
+    phase_record_factory = twks.phase_record_factory
+    attrcounter.clear()
+    twks = TestWorkspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                         conditions={v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3},
+                         models=models, phase_record_factory=phase_record_factory)
+    del attrcounter['_suspend_dependency_updates']
+    secondcase = set(attrcounter.values())
+    assert len(firstcase) == 1 and next(iter(firstcase)) == 1
+    assert len(secondcase) == 1 and next(iter(secondcase)) == 1
 
 @select_database("alzn_mey.tdb")
 def test_workspace_conditions_change_clear_result(load_database):
@@ -71,6 +95,16 @@ def test_tzero_property(load_database):
     my_tzero.maximum_value = 1.0
     t0_composition = wks.get(my_tzero)
     assert_allclose(t0_composition, 0.86119, atol=my_tzero.residual_tol)
+
+@select_database("alzn_mey.tdb")
+def test_isolated_phase_with_suspended_parent(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 600, v.X('ZN'): 0.3})
+    # liquid is not entered in the parent workspace
+    iph = IsolatedPhase('LIQUID', wks=wks)
+    energy = wks.get(iph('GM'))
+    assert not np.any(np.isnan(energy))
 
 @select_database("alzn_mey.tdb")
 def test_jansson_derivative_binary_temperature(load_database):

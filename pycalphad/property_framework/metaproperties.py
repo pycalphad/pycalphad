@@ -11,7 +11,15 @@ import numpy as np
 from copy import copy
 
 def find_first_compset(phase_name: str, wks: "Workspace"):
-    for _, compsets in wks.enumerate_composition_sets():
+    if phase_name in wks.phases:
+        for _, compsets in wks.enumerate_composition_sets():
+            for compset in compsets:
+                if compset.phase_record.phase_name == phase_name:
+                    return compset
+    # couldn't find one in the existing workspace; create a single-phase calculation and try again
+    copy_wks = wks.copy()
+    copy_wks.phases = [phase_name]
+    for _, compsets in copy_wks.enumerate_composition_sets():
         for compset in compsets:
             if compset.phase_record.phase_name == phase_name:
                 return compset

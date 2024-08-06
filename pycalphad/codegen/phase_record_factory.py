@@ -27,7 +27,7 @@ class PhaseRecordFactory(object):
         if len(new_param_values.shape) > 1:
             new_param_values = new_param_values[0]
         if new_param_symbols != self.param_symbols:
-            raise ValueError('Parameter symbol misatch')
+            raise ValueError('Parameter symbol mismatch')
         self.param_values[:] = new_param_values
 
     @lru_cache()

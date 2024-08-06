@@ -111,7 +111,7 @@ def add_nearly_stable(object composition_sets, object phase_records,
         if phase_name in entered_phases:
             continue
         phase_record = phase_records[phase_name]
-        phase_indices = grid.attrs['phase_indices'][phase_name]
+        phase_indices = grid.attrs['phase_indices'].get(phase_name, slice(0,0))
         if phase_indices.start == phase_indices.stop:
             # Phase has zero feasible grid points to consider
             continue

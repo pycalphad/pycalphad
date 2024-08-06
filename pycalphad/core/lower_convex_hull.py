@@ -166,7 +166,8 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
         points = result_array_points_values[it.multi_index]
         result_array_Phase_values[it.multi_index][:num_comps] = global_grid_Phase_values[grid_index].take(points, axis=0)[:num_comps]
         result_array_X_values[it.multi_index][:num_comps] = global_grid_X_values[grid_index].take(points, axis=0)[:num_comps]
-        result_array_Y_values[it.multi_index][:num_comps] = global_grid_Y_values[grid_index].take(points, axis=0)[:num_comps]
+        result_array_Y_values[it.multi_index][:num_comps,:global_grid_Y_values.shape[-1]] = \
+            global_grid_Y_values[grid_index].take(points, axis=0)[:num_comps]
         # Special case: Sometimes fictitious points slip into the result
         if '_FAKE_' in result_array_Phase_values[it.multi_index]:
             new_energy = 0.
