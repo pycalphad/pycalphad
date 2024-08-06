@@ -325,18 +325,24 @@ class Workspace:
                 phase_names = sorted(self.phase_record_factory.keys())
                 additional_args = args[i].expand_wildcard(phase_names=phase_names)
                 args.extend(additional_args)
+            elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == '*':
+                # We need to resolve sublattice_index before species to ensure we
+                # get the correct set of phase constituents for each sublattice
+                indices_to_delete.append(i)
+                sublattice_indices = sorted(set([x.sublattice_index for x in self.phase_record_factory[args[i].phase_name].variables]))
+                additional_args = args[i].expand_wildcard(sublattice_indices=sublattice_indices)
+                args.extend(additional_args)
             elif hasattr(args[i], 'species') and args[i].species == v.Species('*'):
                 indices_to_delete.append(i)
                 internal_to_phase = hasattr(args[i], 'sublattice_index')
                 if internal_to_phase:
-                    components = [x for x in self.phase_record_factory[args[i].phase_name].variables
+                    components = [x.species for x in self.phase_record_factory[args[i].phase_name].variables
                                   if x.sublattice_index == args[i].sublattice_index]
                 else:
-                    components = self.components
+                    # TODO: self.components with proper Components support
+                    components = [comp for comp in self.phase_record_factory.nonvacant_elements]
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
-            elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == v.Species('*'):
-                raise ValueError('Wildcard not yet supported in sublattice index')
             elif isinstance(args[i], JanssonDerivative):
                 numerator_args = [args[i].numerator]
                 self._expand_property_arguments(numerator_args)
@@ -358,7 +364,7 @@ class Workspace:
                     additional_args = args[i].expand_wildcard(phase_names=additional_phase_names)
                     args.extend(additional_args)
             i += 1
-        
+
         # Watch deletion order! Indices will change as items are deleted
         for deletion_index in reversed(indices_to_delete):
             del args[deletion_index]
@@ -440,7 +446,7 @@ class Workspace:
                                         [np.asarray(self.eq.coords[b][a], dtype=np.float64)
                                         for a, b in zip(index, str_conds_keys)]))
             chemical_potentials = prop_MU_values[index]
-            
+
             for arg in args:
                 prop_implementation_units, prop_display_units = arg_units[arg]
                 context = unit_conversion_context(composition_sets, arg)
@@ -467,5 +473,3 @@ class Workspace:
 
     def copy(self):
         return copy(self)
-
-
