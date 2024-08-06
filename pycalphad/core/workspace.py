@@ -280,7 +280,7 @@ class Workspace:
     # eq is set by a callback in the EquilibriumCalculationField (TypedField)
     eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'conditions', 'calc_opts', 'solver'])
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, database=None, components=None, phases=None, conditions=None, *, **kwargs):
         self._suspend_dependency_updates = True
         self._eq = None # manually initialized since we don't initialize the public name 'eq' (see below)
         # Assume positional arguments are specified in class typed-attribute definition order
