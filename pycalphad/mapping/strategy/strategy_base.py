@@ -6,7 +6,7 @@ import numpy as np
 
 from pycalphad import Database, variables as v
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
-from pycalphad.core.utils import instantiate_models, unpack_components, filter_phases, get_pure_elements, get_state_variables
+from pycalphad.core.utils import instantiate_models, filter_phases, get_pure_elements, get_state_variables
 from pycalphad.core.composition_set import CompositionSet
 
 
@@ -45,14 +45,14 @@ class MapStrategy:
         # Don't add vacancies to components in case user needs to restrict non-stoichiometric phases
         self.components = sorted(components)
         self.elements = get_pure_elements(self.dbf, self.components)
-        self.phases = filter_phases(self.dbf, unpack_components(self.dbf, self.components), phases)
+        self.phases = filter_phases(self.dbf, v.unpack_components(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)
 
         # Add v.N to conditions. Mapping assumes that v.N is in conditions
         if v.N not in self.conditions:
             self.conditions[v.N] = 1
 
-        
+
         self.axis_vars = [key for key, val in self.conditions.items() if len(np.atleast_1d(val)) > 1]
 
         composition_sum = sum([conditions[var] for var in conditions if (isinstance(var, v.MoleFraction) and var not in self.axis_vars)])
@@ -255,7 +255,7 @@ class MapStrategy:
                 curr_point = zpf_line.points[-1]
                 prev_point = zpf_line.points[-2]
                 dv = [(curr_point.get_property(av) - prev_point.get_property(av))/self.normalize_factor(av) for av in self.axis_vars]
-                
+
                 # We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
                 # We also can get the direction from the change in variable
                 index = np.argmax(np.abs(dv))
