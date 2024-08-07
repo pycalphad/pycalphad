@@ -398,10 +398,12 @@ class SiteFraction(StateVariable):
             self._self_without_suffix = self
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
-        state_variables = compsets[0].phase_record.state_variables
         result = np.atleast_1d(np.full(self.shape, fill_value=np.nan))
+        state_variables = None
         for _, compset in self.filtered(compsets):
             # we'll only hit this code path if this phase is present in the list of compsets
+            if state_variables is None:
+                state_variables = compsets[0].phase_record.state_variables
             if np.all(np.isnan(result)):
                 result[0] = 0.0
             site_fractions = compset.phase_record.variables
@@ -796,6 +798,8 @@ class ChemicalPotential(StateVariable):
         return [self.__class__(comp) for comp in components]
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
+        if len(compsets) == 0:
+            return np.atleast_1d(np.full(self.shape, fill_value=np.nan))
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]
@@ -806,6 +810,8 @@ class ChemicalPotential(StateVariable):
 
     def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
         "Compute Jansson derivative with self as numerator, with the given deltas"
+        if len(compsets) == 0:
+            return np.full(self.shape, np.nan)
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]
