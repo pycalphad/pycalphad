@@ -5,7 +5,7 @@ from pycalphad.core.conditions import ConditionError
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property, ComputableProperty, T0, IsolatedPhase, DormantPhase
 from pycalphad.property_framework.units import Q_
-from pycalphad.tests.fixtures import load_database, select_database
+from pycalphad.tests.fixtures import load_database, select_database, ConvergenceFailureSolver
 import pytest
 from collections import Counter
 
@@ -342,3 +342,27 @@ def test_issue_503_pure_vacancy_charge_balance():
     wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 1, v.T: 1000})
     assert np.isnan(wks.get('NP(SPINEL)'))
     np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
+
+
+@select_database("cumg.tdb")
+def test_workspace_convergence_failures(load_database):
+    """Convergence failures should propagate NaNs through to computed properties"""
+    dbf = load_database()
+    components = ["CU", "MG", "VA"]
+    phases = ["LIQUID", "FCC_A1"]
+    wks = Workspace(dbf, components, phases, {v.N:1, v.P:1e5, v.T:300, v.X("MG"): 0.5}, solver=ConvergenceFailureSolver())
+    assert len(wks.get_composition_sets()) == 0  # convergence failures should have no stable composition sets
+    assert np.isnan(wks.get("X(MG)"))
+    assert np.isnan(wks.get("X(FCC_A1,MG)"))
+    assert np.isnan(wks.get("Y(FCC_A1,0,MG)"))
+    assert np.isnan(wks.get("GM"))
+    assert np.isnan(wks.get(IsolatedPhase("LIQUID", wks=wks)("GM")))
+    assert np.isnan(wks.get(DormantPhase("CUMG2", wks=wks)("GM")))
+    assert np.isnan(wks.get("MU(CU)"))
+    chempots = wks.get("MU(*)")
+    assert np.asarray(chempots).shape == (2,)
+    assert np.all(np.isnan(chempots))
+    assert np.isnan(wks.get("MU(CU).X(MG)"))
+    phase_fractions = wks.get("NP(*)")
+    assert np.asarray(phase_fractions).shape == (len(phases),)
+    assert np.all(np.isnan(phase_fractions))
