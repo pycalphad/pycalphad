@@ -6,7 +6,7 @@ import numpy as np
 
 from pycalphad import Database, variables as v
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
-from pycalphad.core.utils import instantiate_models, filter_phases, get_pure_elements, get_state_variables
+from pycalphad.core.utils import instantiate_models, filter_phases, unpack_species, get_pure_elements, get_state_variables
 from pycalphad.core.composition_set import CompositionSet
 
 
@@ -45,7 +45,7 @@ class MapStrategy:
         # Don't add vacancies to components in case user needs to restrict non-stoichiometric phases
         self.components = sorted(components)
         self.elements = get_pure_elements(self.dbf, self.components)
-        self.phases = filter_phases(self.dbf, v.unpack_components(self.dbf, self.components), phases)
+        self.phases = filter_phases(self.dbf, unpack_species(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)
 
         # Add v.N to conditions. Mapping assumes that v.N is in conditions
