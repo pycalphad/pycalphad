@@ -366,3 +366,46 @@ def test_workspace_convergence_failures(load_database):
     phase_fractions = wks.get("NP(*)")
     assert np.asarray(phase_fractions).shape == (len(phases),)
     assert np.all(np.isnan(phase_fractions))
+
+
+@select_database("al2o3_nd2o3_zro2.tdb")
+def test_constituents_are_updated_when_components_change(load_database):
+    dbf = load_database()
+    # NOTE: I_LIQUID is currently broken in this database (no vacancies in I2SL
+    # constituents), so we remove that from the phases list. We should be able
+    # to rely on the default constructor once that is fixed.
+    phases = list(set(dbf.phases.keys()) - {"I_LIQUID"})
+    wks = Workspace(dbf, phases=phases)
+    # by default: all pure elements
+    assert set(wks.components) == set({v.Component("AL"), v.Component("ND"), v.Component("ZR"), v.Component("O"), v.Component("VA")})
+    all_expected_species = {
+        v.Species('AL'),
+        v.Species('AL+3', charge=3),
+        v.Species('ALO3/2', {"AL": 1, "O": 1.5}),
+        v.Species('ND'),
+        v.Species('ND+3', charge=3),
+        v.Species('O'),
+        v.Species('O-2', charge=-2),
+        v.Species('O2', {"O": 2}),
+        v.Species('VA'),
+        v.Species('ZR'),
+        v.Species('ZR+4', charge=4)
+    }
+
+    assert set(wks.constituents) == all_expected_species
+
+    # Remove Zr
+    wks.components = ["AL", "ND", "O", "VA"]
+    assert set(wks.components) == set({v.Component("AL"), v.Component("ND"), v.Component("O"), v.Component("VA")})
+    noZR_expected_species = {
+        v.Species('AL'),
+        v.Species('AL+3', charge=3),
+        v.Species('ALO3/2', {"AL": 1, "O": 1.5}),
+        v.Species('ND'),
+        v.Species('ND+3', charge=3),
+        v.Species('O'),
+        v.Species('O-2', charge=-2),
+        v.Species('O2', {"O": 2}),
+        v.Species('VA'),
+    }
+    assert set(wks.constituents) == noZR_expected_species
