@@ -72,6 +72,11 @@ class ComponentList:
 
     __repr__ = __str__
 
+class ConstituentsList:
+    @classmethod
+    def cast_from(cls, s: Sequence) -> "ConstituentsList":
+        return sorted(Species.cast_from(x) for x in s)
+
 class PhaseList:
     @classmethod
     def cast_from(cls, s: SumType([str, Sequence[str]])) -> "PhaseList":
@@ -159,6 +164,25 @@ class ComponentsField(TypedField):
         return sorted(v.unpack_components(getobj, obj.database))
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
+        self.__set__(obj, self.default_factory(obj))
+
+class ConstituentsField(TypedField):
+    def __init__(self, depends_on=None):
+        super().__init__(default_factory=lambda obj: unpack_species(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
+                         depends_on=depends_on)
+    def __set__(self, obj, value):
+        constituents = sorted(unpack_species(obj.database, value))
+        super().__set__(obj, constituents)
+
+    def __get__(self, obj, objtype=None):
+        getobj = super().__get__(obj, objtype=objtype)
+        return sorted(unpack_species(obj.database, getobj))
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
         self.__set__(obj, self.default_factory(obj))
 
 class PhasesField(TypedField):
@@ -295,6 +319,7 @@ class Workspace:
     _callbacks = defaultdict(lambda: [])
     database: Database = TypedField(lambda _: None)
     components: ComponentList = ComponentsField(depends_on=['database'])
+    constituents: ConstituentsList = ConstituentsField(depends_on=['database', 'components'])
     phases: PhaseList = PhasesField(depends_on=['database', 'components'])
     conditions: Conditions = ConditionsField(lambda wks: Conditions(wks), depends_on=['components', 'models'])
     verbose: bool = TypedField(lambda _: False)
@@ -316,7 +341,7 @@ class Workspace:
         # avoid unnecessary work by initializing in a graph-optimal order (least-dependent first)
         # don't include 'eq' in the init order to avoid an expensive code path in the partially initialized case
         init_order = ['database', 'verbose', 'parameters', 'calc_opts', 'solver',
-                      'components', 'phases', 'models', 'conditions', 'phase_record_factory']
+                      'components', 'constituents', 'phases', 'models', 'conditions', 'phase_record_factory']
         for kwarg_name in init_order:
             if kwarg_name in kwargs.keys():
                 setattr(self, kwarg_name, kwargs[kwarg_name])
@@ -382,6 +407,13 @@ class Workspace:
                 phase_names = sorted(self.phase_record_factory.keys())
                 additional_args = args[i].expand_wildcard(phase_names=phase_names)
                 args.extend(additional_args)
+            elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == '*':
+                # We need to resolve sublattice_index before species to ensure we
+                # get the correct set of phase constituents for each sublattice
+                indices_to_delete.append(i)
+                sublattice_indices = sorted(set([x.sublattice_index for x in self.phase_record_factory[args[i].phase_name].variables]))
+                additional_args = args[i].expand_wildcard(sublattice_indices=sublattice_indices)
+                args.extend(additional_args)
             elif hasattr(args[i], 'species') and args[i].species.name == '*':
                 indices_to_delete.append(i)
                 internal_to_phase = hasattr(args[i], 'sublattice_index')
@@ -389,12 +421,9 @@ class Workspace:
                     components = [x.species for x in self.phase_record_factory[args[i].phase_name].variables
                                   if x.sublattice_index == args[i].sublattice_index]
                 else:
-                    # TODO: self.components with proper Components support
-                    components = [comp for comp in self.phase_record_factory.nonvacant_elements]
+                    components = [comp for comp in self.components if comp != v.Component('VA')]  # TODO: Special case for vacancy
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
-            elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == '*':
-                raise ValueError('Wildcard not yet supported in sublattice index')
             elif isinstance(args[i], JanssonDerivative):
                 numerator_args = [args[i].numerator]
                 self._expand_property_arguments(numerator_args)
