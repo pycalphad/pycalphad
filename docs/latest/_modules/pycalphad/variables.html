@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
 
     <!-- Generated with Sphinx 8.0.2 and Furo 2024.08.06 -->
-        <title>pycalphad.variables - pycalphad 0.10.6.dev8+g55d5d2be documentation</title>
+        <title>pycalphad.variables - pycalphad 0.10.6.dev9+g208cddb3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.10.6.dev8+g55d5d2be documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.10.6.dev9+g208cddb3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.6.dev8+g55d5d2be documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev9+g208cddb3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -552,10 +552,12 @@
 <div class="viewcode-block" id="SiteFraction.compute_property">
 <a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.SiteFraction.compute_property">[docs]</a>
     <span class="k">def</span> <span class="nf">compute_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">):</span>
-        <span class="n">state_variables</span> <span class="o">=</span> <span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">state_variables</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+        <span class="n">state_variables</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">compset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filtered</span><span class="p">(</span><span class="n">compsets</span><span class="p">):</span>
             <span class="c1"># we&#39;ll only hit this code path if this phase is present in the list of compsets</span>
+            <span class="k">if</span> <span class="n">state_variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">state_variables</span> <span class="o">=</span> <span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">state_variables</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">result</span><span class="p">)):</span>
                 <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="n">site_fractions</span> <span class="o">=</span> <span class="n">compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">variables</span>
@@ -1006,6 +1008,8 @@
 <div class="viewcode-block" id="ChemicalPotential.compute_property">
 <a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.ChemicalPotential.compute_property">[docs]</a>
     <span class="k">def</span> <span class="nf">compute_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">compsets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
         <span class="n">phase_record</span> <span class="o">=</span> <span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span>
         <span class="n">el_indices</span> <span class="o">=</span> <span class="p">[(</span><span class="n">phase_record</span><span class="o">.</span><span class="n">nonvacant_elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
                        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
@@ -1019,6 +1023,8 @@
 <a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.ChemicalPotential.jansson_derivative">[docs]</a>
     <span class="k">def</span> <span class="nf">jansson_derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">:</span> <span class="n">JanssonDerivativeDeltas</span><span class="p">):</span>
         <span class="s2">&quot;Compute Jansson derivative with self as numerator, with the given deltas&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">compsets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
         <span class="n">phase_record</span> <span class="o">=</span> <span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span>
         <span class="n">el_indices</span> <span class="o">=</span> <span class="p">[(</span><span class="n">phase_record</span><span class="o">.</span><span class="n">nonvacant_elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span>
                        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
@@ -1145,7 +1151,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=285bdbc8"></script>
+</div><script src="../../_static/documentation_options.js?v=7c3788f2"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=5fa4622c"></script>
