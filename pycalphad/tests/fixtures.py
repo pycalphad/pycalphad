@@ -36,4 +36,4 @@ class ConvergenceFailureSolver(Solver):
         spec = self.get_system_spec(composition_sets, conditions)
         self._fix_state_variables_in_compsets(composition_sets, conditions)
         state = spec.get_new_state(composition_sets)
-        return SolverResult(converged=False, x=composition_sets[0].dof, chemical_potentials=np.full_like(state.chemical_potentials, np.nan))
+        return SolverResult(converged=False, x=composition_sets[0].dof, chemical_potentials=np.full_like(state.chemical_potentials, 1e10))
