@@ -49,28 +49,10 @@ def _adjust_conditions(conds) -> OrderedDict[StateVariable, List[float]]:
     return new_conds
 
 class ComponentList:
-    _wks: "Workspace"
-    _components: List[v.Component]
-
     @classmethod
     def cast_from(cls, s: Sequence[SumType([str, v.Component])]) -> "ComponentList":
         # no Database, so we don't get Species lookup support here, it's implemented in ComponentsField
         return v.unpack_components(s)
-
-    def __init__(self, wks: Optional["Workspace"] = None):
-        self._wks = wks
-        self._components = []
-
-    def __len__(self):
-        return len(self._components)
-
-    def __iter__(self):
-        yield from self._components
-
-    def __str__(self):
-        return str(self._components)
-
-    __repr__ = __str__
 
 class ConstituentsList:
     @classmethod
