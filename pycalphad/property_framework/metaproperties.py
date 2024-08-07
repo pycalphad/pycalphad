@@ -169,7 +169,7 @@ class DormantPhase:
                     state.recompute(spec)
                 self._compset = state.compsets[0]
                 return prop.compute_property([self._compset], cur_conds, chemical_potentials)
-            __str__ = lambda _: f'{prop.__str__()} [Dormant({self._compset.phase_record.phase_name})]'
+            __str__ = lambda _: f'{prop.__str__()} [Dormant({self._compset.phase_record.phase_name if self._compset is not None else None})]'
         return _autoproperty()
 
     @property
@@ -220,7 +220,7 @@ class IsolatedPhase:
             @staticmethod
             def jansson_derivative(compsets, cur_conds, chemical_potentials, deltas):
                 return prop.jansson_derivative([self._compset], cur_conds, chemical_potentials, deltas)
-            __str__ = lambda _: f'{prop.__str__()} [Isolated({self._compset.phase_record.phase_name})]'
+            __str__ = lambda _: f'{prop.__str__()} [Isolated({self._compset.phase_record.phase_name if self._compset is not None else None})]'
         return _autoproperty()
 
     @property
