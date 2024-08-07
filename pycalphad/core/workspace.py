@@ -165,7 +165,7 @@ class ConstituentsField(TypedField):
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         if obj._suspend_dependency_updates:
             return
-        self.__set__(obj, self.default_factory(obj))
+        self.__set__(obj, unpack_species(obj.database, obj.components))
 
 class PhasesField(TypedField):
     def __init__(self, depends_on=None):
