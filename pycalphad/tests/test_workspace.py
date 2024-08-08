@@ -325,8 +325,8 @@ def test_jansson_derivative_chempot_condition(load_database):
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
 
-def test_suspend_phase_infeasible_internal_constraints():
-    "Phases that cannot satisfy internal constraints are correctly suspended"
+def test_issue_503_suspend_phase_infeasible_internal_constraints():
+    "Phases that cannot satisfy internal constraints are correctly suspended (gh-503)"
     TDB = """
     ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
     ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
