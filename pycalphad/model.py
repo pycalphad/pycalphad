@@ -9,7 +9,7 @@ from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
+from pycalphad.core.utils import unpack_species, get_pure_elements, wrap_symbol
 from pycalphad.io.tdb import get_supported_variables
 import numpy as np
 from collections import OrderedDict
@@ -198,7 +198,7 @@ class Model(object):
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
         self.site_ratios = list(phase.sublattices)
-        active_species = unpack_components(dbe, comps)
+        active_species = unpack_species(dbe, comps)
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(active_species)
             self.components |= subl_comps

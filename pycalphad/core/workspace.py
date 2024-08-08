@@ -3,7 +3,7 @@ from collections import OrderedDict, Counter, defaultdict
 from copy import copy
 from pycalphad.property_framework.computed_property import JanssonDerivative
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models
+from pycalphad.core.utils import unpack_species, unpack_condition, unpack_phases, filter_phases, instantiate_models
 from pycalphad import calculate
 from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
@@ -48,9 +48,15 @@ def _adjust_conditions(conds) -> OrderedDict[StateVariable, List[float]]:
             new_conds[key] = Q_(new_conds[key], units=key.display_units).to(key.implementation_units)
     return new_conds
 
-class SpeciesList:
+class ComponentList:
     @classmethod
-    def cast_from(cls, s: Sequence) -> "SpeciesList":
+    def cast_from(cls, s: Sequence[SumType([str, v.Component])]) -> "ComponentList":
+        # no Database, so we don't get Species lookup support here, it's implemented in ComponentsField
+        return v.unpack_components(s)
+
+class ConstituentsList:
+    @classmethod
+    def cast_from(cls, s: Sequence) -> "ConstituentsList":
         return sorted(Species.cast_from(x) for x in s)
 
 class PhaseList:
@@ -128,15 +134,38 @@ class TypedField:
 
 class ComponentsField(TypedField):
     def __init__(self, depends_on=None):
-        super().__init__(default_factory=lambda obj: unpack_components(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
-                         depends_on=depends_on)
+        get_pure_element_components = lambda obj: v.unpack_components(sorted(x for x in obj.database.elements if x != '/-'), obj.database)
+        super().__init__(default_factory=get_pure_element_components, depends_on=depends_on)
+
     def __set__(self, obj, value):
-        comps = sorted(unpack_components(obj.database, value))
+        comps = sorted(v.unpack_components(value, obj.database))
         super().__set__(obj, comps)
 
     def __get__(self, obj, objtype=None):
         getobj = super().__get__(obj, objtype=objtype)
-        return sorted(unpack_components(obj.database, getobj))
+        return sorted(v.unpack_components(getobj, obj.database))
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
+        self.__set__(obj, self.default_factory(obj))
+
+class ConstituentsField(TypedField):
+    def __init__(self, depends_on=None):
+        super().__init__(default_factory=lambda obj: unpack_species(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
+                         depends_on=depends_on)
+    def __set__(self, obj, value):
+        constituents = sorted(unpack_species(obj.database, value))
+        super().__set__(obj, constituents)
+
+    def __get__(self, obj, objtype=None):
+        getobj = super().__get__(obj, objtype=objtype)
+        return sorted(unpack_species(obj.database, getobj))
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
+        self.__set__(obj, unpack_species(obj.database, obj.components))
 
 class PhasesField(TypedField):
     def __init__(self, depends_on=None):
@@ -265,10 +294,14 @@ class EquilibriumCalculationField(TypedField):
 # Defined to allow type checking for Model or its subclasses
 ModelType = TypeVar('ModelType', bound=Model)
 
+# TODO: enable converting v.X conditions for v.Component objects into
+# LinearCombination conditions for components with more than one constituent
+
 class Workspace:
     _callbacks = defaultdict(lambda: [])
     database: Database = TypedField(lambda _: None)
-    components: SpeciesList = ComponentsField(depends_on=['database'])
+    components: ComponentList = ComponentsField(depends_on=['database'])
+    constituents: ConstituentsList = ConstituentsField(depends_on=['database', 'components'])
     phases: PhaseList = PhasesField(depends_on=['database', 'components'])
     conditions: Conditions = ConditionsField(lambda wks: Conditions(wks), depends_on=['components', 'models'])
     verbose: bool = TypedField(lambda _: False)
@@ -290,7 +323,7 @@ class Workspace:
         # avoid unnecessary work by initializing in a graph-optimal order (least-dependent first)
         # don't include 'eq' in the init order to avoid an expensive code path in the partially initialized case
         init_order = ['database', 'verbose', 'parameters', 'calc_opts', 'solver',
-                      'components', 'phases', 'models', 'conditions', 'phase_record_factory']
+                      'components', 'constituents', 'phases', 'models', 'conditions', 'phase_record_factory']
         for kwarg_name in init_order:
             if kwarg_name in kwargs.keys():
                 setattr(self, kwarg_name, kwargs[kwarg_name])
@@ -363,15 +396,14 @@ class Workspace:
                 sublattice_indices = sorted(set([x.sublattice_index for x in self.phase_record_factory[args[i].phase_name].variables]))
                 additional_args = args[i].expand_wildcard(sublattice_indices=sublattice_indices)
                 args.extend(additional_args)
-            elif hasattr(args[i], 'species') and args[i].species == v.Species('*'):
+            elif hasattr(args[i], 'species') and args[i].species.name == '*':
                 indices_to_delete.append(i)
                 internal_to_phase = hasattr(args[i], 'sublattice_index')
                 if internal_to_phase:
                     components = [x.species for x in self.phase_record_factory[args[i].phase_name].variables
                                   if x.sublattice_index == args[i].sublattice_index]
                 else:
-                    # TODO: self.components with proper Components support
-                    components = [comp for comp in self.phase_record_factory.nonvacant_elements]
+                    components = [comp for comp in self.components if comp != v.Component('VA')]  # TODO: Special case for vacancy
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
             elif isinstance(args[i], JanssonDerivative):

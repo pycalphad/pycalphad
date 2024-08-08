@@ -1,6 +1,6 @@
 import pycalphad.variables as v
 from pycalphad.codegen.sympydiff_utils import build_functions
-from pycalphad.core.utils import get_pure_elements, unpack_components, \
+from pycalphad.core.utils import get_pure_elements, unpack_species, \
     extract_parameters, get_state_variables
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.constraints import build_constraints
@@ -10,7 +10,7 @@ import numpy as np
 
 class PhaseRecordFactory(object):
     def __init__(self, dbf, comps, state_variables, models, parameters=None):
-        self.comps = sorted(unpack_components(dbf, comps))
+        self.comps = sorted(unpack_species(dbf, comps))
         self.pure_elements = get_pure_elements(dbf, comps)
         self.nonvacant_elements = sorted([x for x in self.pure_elements if x != 'VA'])
         self.molar_masses = np.array([dbf.refstates[x]['mass'] for x in self.nonvacant_elements], dtype='float')
