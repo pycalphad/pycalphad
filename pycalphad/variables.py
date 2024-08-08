@@ -532,7 +532,6 @@ class MoleFraction(StateVariable):
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
         for _, compset in self.filtered(compsets):
-            print(compset.phase_record.phase_name, compset.phase_record.nonvacant_elements)
             el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
             if np.isnan(result[0]):
                 result[0] = 0
