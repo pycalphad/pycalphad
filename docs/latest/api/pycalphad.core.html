@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.io package" href="pycalphad.io.html" /><link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
 
     <!-- Generated with Sphinx 8.0.2 and Furo 2024.08.06 -->
-        <title>pycalphad.core package - pycalphad 0.10.6.dev10+gaa844696 documentation</title>
+        <title>pycalphad.core package - pycalphad 0.10.6.dev11+g94457b91 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.6.dev10+gaa844696 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.6.dev11+g94457b91 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.6.dev10+gaa844696 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev11+g94457b91 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1713,25 +1713,6 @@ are zero for that case.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pycalphad.core.utils.unpack_components">
-<span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">unpack_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_components" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing elements and species.</p></li>
-<li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Set of Species objects</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>set</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.utils.unpack_condition">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">unpack_condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tup</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_condition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_condition" title="Link to this definition">¶</a></dt>
 <dd><p>Convert a condition to a list of values.</p>
@@ -1782,6 +1763,25 @@ there, then the constant value is used.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.core.utils.unpack_species">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">unpack_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_species" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing elements and species.</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Set of Species objects</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="pycalphad.core.utils.wrap_symbol">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.core.utils.</span></span><span class="sig-name descname"><span class="pre">wrap_symbol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#wrap_symbol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.utils.wrap_symbol" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1790,9 +1790,26 @@ there, then the constant value is used.</p>
 <section id="module-pycalphad.core.workspace">
 <span id="pycalphad-core-workspace-module"></span><h2>pycalphad.core.workspace module<a class="headerlink" href="#module-pycalphad.core.workspace" title="Link to this heading">¶</a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.core.workspace.ComponentList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.workspace.</span></span><span class="sig-name descname"><span class="pre">ComponentList</span></span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ComponentList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ComponentList" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.workspace.ComponentList.cast_from">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cast_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">s:</span> <span class="pre">Sequence[(&lt;class</span> <span class="pre">'str'&gt;+&lt;class</span> <span class="pre">'pycalphad.variables.Component'&gt;)]</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pycalphad.core.workspace.ComponentList" title="pycalphad.core.workspace.ComponentList"><span class="pre">ComponentList</span></a></span></span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ComponentList.cast_from"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ComponentList.cast_from" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.workspace.ComponentsField">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.workspace.</span></span><span class="sig-name descname"><span class="pre">ComponentsField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depends_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ComponentsField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ComponentsField" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.core.workspace.TypedField" title="pycalphad.core.workspace.TypedField"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypedField</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.workspace.ComponentsField.on_dependency_update">
+<span class="sig-name descname"><span class="pre">on_dependency_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">updated_attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ComponentsField.on_dependency_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ComponentsField.on_dependency_update" title="Link to this definition">¶</a></dt>
+<dd><p>A callback method that can be overridden to define custom behavior when a dependent attribute is updated.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1821,6 +1838,29 @@ there, then the constant value is used.</p>
 <dt class="sig sig-object py" id="pycalphad.core.workspace.ConditionsField">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.workspace.</span></span><span class="sig-name descname"><span class="pre">ConditionsField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depends_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ConditionsField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ConditionsField" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.core.workspace.DictField" title="pycalphad.core.workspace.DictField"><code class="xref py py-class docutils literal notranslate"><span class="pre">DictField</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.core.workspace.ConstituentsField">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.workspace.</span></span><span class="sig-name descname"><span class="pre">ConstituentsField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depends_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ConstituentsField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ConstituentsField" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.workspace.TypedField" title="pycalphad.core.workspace.TypedField"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypedField</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.workspace.ConstituentsField.on_dependency_update">
+<span class="sig-name descname"><span class="pre">on_dependency_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">updated_attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ConstituentsField.on_dependency_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ConstituentsField.on_dependency_update" title="Link to this definition">¶</a></dt>
+<dd><p>A callback method that can be overridden to define custom behavior when a dependent attribute is updated.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.core.workspace.ConstituentsList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.workspace.</span></span><span class="sig-name descname"><span class="pre">ConstituentsList</span></span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ConstituentsList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ConstituentsList" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.core.workspace.ConstituentsList.cast_from">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cast_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pycalphad.core.workspace.ConstituentsList" title="pycalphad.core.workspace.ConstituentsList"><span class="pre">ConstituentsList</span></a></span></span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#ConstituentsList.cast_from"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.ConstituentsList.cast_from" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1911,17 +1951,6 @@ there, then the constant value is used.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="pycalphad.core.workspace.SpeciesList">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.workspace.</span></span><span class="sig-name descname"><span class="pre">SpeciesList</span></span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#SpeciesList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.SpeciesList" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="pycalphad.core.workspace.SpeciesList.cast_from">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cast_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pycalphad.core.workspace.SpeciesList" title="pycalphad.core.workspace.SpeciesList"><span class="pre">SpeciesList</span></a></span></span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#SpeciesList.cast_from"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.SpeciesList.cast_from" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.core.workspace.TypedField">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.core.workspace.</span></span><span class="sig-name descname"><span class="pre">TypedField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depends_on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/workspace.html#TypedField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.core.workspace.TypedField" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -1946,7 +1975,7 @@ This class is designed to be used in scenarios (like <cite>Workspace</cite>) whe
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.workspace.Workspace.components">
-<span class="sig-name descname"><span class="pre">components</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pycalphad.core.workspace.SpeciesList" title="pycalphad.core.workspace.SpeciesList"><span class="pre">SpeciesList</span></a></em><a class="headerlink" href="#pycalphad.core.workspace.Workspace.components" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">components</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pycalphad.core.workspace.ComponentList" title="pycalphad.core.workspace.ComponentList"><span class="pre">ComponentList</span></a></em><a class="headerlink" href="#pycalphad.core.workspace.Workspace.components" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
@@ -1957,6 +1986,11 @@ This class is designed to be used in scenarios (like <cite>Workspace</cite>) whe
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pycalphad.core.workspace.Workspace.conditions">
 <span class="sig-name descname"><span class="pre">conditions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pycalphad.core.conditions.Conditions" title="pycalphad.core.conditions.Conditions"><span class="pre">Conditions</span></a></em><a class="headerlink" href="#pycalphad.core.workspace.Workspace.conditions" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.core.workspace.Workspace.constituents">
+<span class="sig-name descname"><span class="pre">constituents</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pycalphad.core.workspace.ConstituentsList" title="pycalphad.core.workspace.ConstituentsList"><span class="pre">ConstituentsList</span></a></em><a class="headerlink" href="#pycalphad.core.workspace.Workspace.constituents" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -2331,15 +2365,22 @@ This class is designed to be used in scenarios (like <cite>Workspace</cite>) whe
 <li><a class="reference internal" href="#pycalphad.core.utils.point_sample"><code class="docutils literal notranslate"><span class="pre">point_sample()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.utils.recursive_tuplify"><code class="docutils literal notranslate"><span class="pre">recursive_tuplify()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.utils.sizeof_fmt"><code class="docutils literal notranslate"><span class="pre">sizeof_fmt()</span></code></a></li>
-<li><a class="reference internal" href="#pycalphad.core.utils.unpack_components"><code class="docutils literal notranslate"><span class="pre">unpack_components()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.utils.unpack_condition"><code class="docutils literal notranslate"><span class="pre">unpack_condition()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.utils.unpack_kwarg"><code class="docutils literal notranslate"><span class="pre">unpack_kwarg()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.utils.unpack_phases"><code class="docutils literal notranslate"><span class="pre">unpack_phases()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.core.utils.unpack_species"><code class="docutils literal notranslate"><span class="pre">unpack_species()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.utils.wrap_symbol"><code class="docutils literal notranslate"><span class="pre">wrap_symbol()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-pycalphad.core.workspace">pycalphad.core.workspace module</a><ul>
-<li><a class="reference internal" href="#pycalphad.core.workspace.ComponentsField"><code class="docutils literal notranslate"><span class="pre">ComponentsField</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.core.workspace.ComponentList"><code class="docutils literal notranslate"><span class="pre">ComponentList</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.core.workspace.ComponentList.cast_from"><code class="docutils literal notranslate"><span class="pre">ComponentList.cast_from()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pycalphad.core.workspace.ComponentsField"><code class="docutils literal notranslate"><span class="pre">ComponentsField</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.core.workspace.ComponentsField.on_dependency_update"><code class="docutils literal notranslate"><span class="pre">ComponentsField.on_dependency_update()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.ConditionKey"><code class="docutils literal notranslate"><span class="pre">ConditionKey</span></code></a><ul>
 <li><a class="reference internal" href="#pycalphad.core.workspace.ConditionKey.cast_from"><code class="docutils literal notranslate"><span class="pre">ConditionKey.cast_from()</span></code></a></li>
 </ul>
@@ -2349,6 +2390,14 @@ This class is designed to be used in scenarios (like <cite>Workspace</cite>) whe
 </ul>
 </li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.ConditionsField"><code class="docutils literal notranslate"><span class="pre">ConditionsField</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.core.workspace.ConstituentsField"><code class="docutils literal notranslate"><span class="pre">ConstituentsField</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.core.workspace.ConstituentsField.on_dependency_update"><code class="docutils literal notranslate"><span class="pre">ConstituentsField.on_dependency_update()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pycalphad.core.workspace.ConstituentsList"><code class="docutils literal notranslate"><span class="pre">ConstituentsList</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.core.workspace.ConstituentsList.cast_from"><code class="docutils literal notranslate"><span class="pre">ConstituentsList.cast_from()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.DictField"><code class="docutils literal notranslate"><span class="pre">DictField</span></code></a><ul>
 <li><a class="reference internal" href="#pycalphad.core.workspace.DictField.get_proxy"><code class="docutils literal notranslate"><span class="pre">DictField.get_proxy()</span></code></a></li>
 </ul>
@@ -2378,10 +2427,6 @@ This class is designed to be used in scenarios (like <cite>Workspace</cite>) whe
 <li><a class="reference internal" href="#pycalphad.core.workspace.SolverField.on_dependency_update"><code class="docutils literal notranslate"><span class="pre">SolverField.on_dependency_update()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pycalphad.core.workspace.SpeciesList"><code class="docutils literal notranslate"><span class="pre">SpeciesList</span></code></a><ul>
-<li><a class="reference internal" href="#pycalphad.core.workspace.SpeciesList.cast_from"><code class="docutils literal notranslate"><span class="pre">SpeciesList.cast_from()</span></code></a></li>
-</ul>
-</li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.TypedField"><code class="docutils literal notranslate"><span class="pre">TypedField</span></code></a><ul>
 <li><a class="reference internal" href="#pycalphad.core.workspace.TypedField.on_dependency_update"><code class="docutils literal notranslate"><span class="pre">TypedField.on_dependency_update()</span></code></a></li>
 </ul>
@@ -2391,6 +2436,7 @@ This class is designed to be used in scenarios (like <cite>Workspace</cite>) whe
 <li><a class="reference internal" href="#pycalphad.core.workspace.Workspace.components"><code class="docutils literal notranslate"><span class="pre">Workspace.components</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.Workspace.condition_axis_order"><code class="docutils literal notranslate"><span class="pre">Workspace.condition_axis_order</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.Workspace.conditions"><code class="docutils literal notranslate"><span class="pre">Workspace.conditions</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.core.workspace.Workspace.constituents"><code class="docutils literal notranslate"><span class="pre">Workspace.constituents</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.Workspace.copy"><code class="docutils literal notranslate"><span class="pre">Workspace.copy()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.Workspace.database"><code class="docutils literal notranslate"><span class="pre">Workspace.database</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.core.workspace.Workspace.enumerate_composition_sets"><code class="docutils literal notranslate"><span class="pre">Workspace.enumerate_composition_sets()</span></code></a></li>
@@ -2422,7 +2468,7 @@ This class is designed to be used in scenarios (like <cite>Workspace</cite>) whe
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=6602510e"></script>
+</div><script src="../_static/documentation_options.js?v=53f5e183"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>

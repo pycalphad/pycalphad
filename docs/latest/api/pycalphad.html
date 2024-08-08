@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html" /><link rel="prev" title="API Documentation" href="modules.html" />
 
     <!-- Generated with Sphinx 8.0.2 and Furo 2024.08.06 -->
-        <title>pycalphad package - pycalphad 0.10.6.dev10+gaa844696 documentation</title>
+        <title>pycalphad package - pycalphad 0.10.6.dev11+g94457b91 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.10.6.dev10+gaa844696 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.10.6.dev11+g94457b91 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.10.6.dev10+gaa844696 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev11+g94457b91 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -560,15 +560,22 @@
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.point_sample"><code class="docutils literal notranslate"><span class="pre">point_sample()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.recursive_tuplify"><code class="docutils literal notranslate"><span class="pre">recursive_tuplify()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.sizeof_fmt"><code class="docutils literal notranslate"><span class="pre">sizeof_fmt()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.unpack_components"><code class="docutils literal notranslate"><span class="pre">unpack_components()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.unpack_condition"><code class="docutils literal notranslate"><span class="pre">unpack_condition()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.unpack_kwarg"><code class="docutils literal notranslate"><span class="pre">unpack_kwarg()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.unpack_phases"><code class="docutils literal notranslate"><span class="pre">unpack_phases()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.unpack_species"><code class="docutils literal notranslate"><span class="pre">unpack_species()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.utils.wrap_symbol"><code class="docutils literal notranslate"><span class="pre">wrap_symbol()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.workspace">pycalphad.core.workspace module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ComponentsField"><code class="docutils literal notranslate"><span class="pre">ComponentsField</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ComponentList"><code class="docutils literal notranslate"><span class="pre">ComponentList</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ComponentList.cast_from"><code class="docutils literal notranslate"><span class="pre">ComponentList.cast_from()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ComponentsField"><code class="docutils literal notranslate"><span class="pre">ComponentsField</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ComponentsField.on_dependency_update"><code class="docutils literal notranslate"><span class="pre">ComponentsField.on_dependency_update()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ConditionKey"><code class="docutils literal notranslate"><span class="pre">ConditionKey</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ConditionKey.cast_from"><code class="docutils literal notranslate"><span class="pre">ConditionKey.cast_from()</span></code></a></li>
 </ul>
@@ -578,6 +585,14 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ConditionsField"><code class="docutils literal notranslate"><span class="pre">ConditionsField</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ConstituentsField"><code class="docutils literal notranslate"><span class="pre">ConstituentsField</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ConstituentsField.on_dependency_update"><code class="docutils literal notranslate"><span class="pre">ConstituentsField.on_dependency_update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ConstituentsList"><code class="docutils literal notranslate"><span class="pre">ConstituentsList</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.ConstituentsList.cast_from"><code class="docutils literal notranslate"><span class="pre">ConstituentsList.cast_from()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.DictField"><code class="docutils literal notranslate"><span class="pre">DictField</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.DictField.get_proxy"><code class="docutils literal notranslate"><span class="pre">DictField.get_proxy()</span></code></a></li>
 </ul>
@@ -607,10 +622,6 @@
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.SolverField.on_dependency_update"><code class="docutils literal notranslate"><span class="pre">SolverField.on_dependency_update()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.SpeciesList"><code class="docutils literal notranslate"><span class="pre">SpeciesList</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.SpeciesList.cast_from"><code class="docutils literal notranslate"><span class="pre">SpeciesList.cast_from()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.TypedField"><code class="docutils literal notranslate"><span class="pre">TypedField</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.TypedField.on_dependency_update"><code class="docutils literal notranslate"><span class="pre">TypedField.on_dependency_update()</span></code></a></li>
 </ul>
@@ -620,6 +631,7 @@
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.Workspace.components"><code class="docutils literal notranslate"><span class="pre">Workspace.components</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.Workspace.condition_axis_order"><code class="docutils literal notranslate"><span class="pre">Workspace.condition_axis_order</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.Workspace.conditions"><code class="docutils literal notranslate"><span class="pre">Workspace.conditions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.Workspace.constituents"><code class="docutils literal notranslate"><span class="pre">Workspace.constituents</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.Workspace.copy"><code class="docutils literal notranslate"><span class="pre">Workspace.copy()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.Workspace.database"><code class="docutils literal notranslate"><span class="pre">Workspace.database</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html#pycalphad.core.workspace.Workspace.enumerate_composition_sets"><code class="docutils literal notranslate"><span class="pre">Workspace.enumerate_composition_sets()</span></code></a></li>
@@ -1680,6 +1692,52 @@ If not specified, randomly generated and saved to self.solution</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.variables.Component">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">Component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constituents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#Component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.Component" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A chemical component, either a pure element or a linear combination of pure elements.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.variables.Component.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pycalphad.variables.Component.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the component</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.variables.Component.constituents">
+<span class="sig-name descname"><span class="pre">constituents</span></span><a class="headerlink" href="#pycalphad.variables.Component.constituents" title="Link to this definition">¶</a></dt>
+<dd><p>Dictionary of {element: quantity} where the element is a string and the quantity a float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.variables.Component.cast_from">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cast_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pycalphad.variables.Component" title="pycalphad.variables.Component"><span class="pre">Component</span></a></span></span><a class="reference internal" href="../_modules/pycalphad/variables.html#Component.cast_from"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.Component.cast_from" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pycalphad.variables.Component.escaped_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">escaped_name</span></span><a class="headerlink" href="#pycalphad.variables.Component.escaped_name" title="Link to this definition">¶</a></dt>
+<dd><p>Name safe to embed in the variable name of complex arithmetic expressions.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pycalphad.variables.Component.number_of_atoms">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">number_of_atoms</span></span><a class="headerlink" href="#pycalphad.variables.Component.number_of_atoms" title="Link to this definition">¶</a></dt>
+<dd><p>Number of atoms per formula unit. Vacancies do not count as atoms.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.variables.IndependentPotential">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">IndependentPotential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#IndependentPotential"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.IndependentPotential" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateVariable</span></code></a></p>
@@ -2047,7 +2105,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mass_fractions</strong> (<em>Mapping</em><em>[</em><a class="reference internal" href="#pycalphad.variables.MoleFraction" title="pycalphad.variables.MoleFraction"><em>MoleFraction</em></a><em>, </em><em>float</em><em>]</em>)</p></li>
-<li><p><strong>dependent_species</strong> (<em>Union</em><em>[</em><a class="reference internal" href="#pycalphad.variables.Species" title="pycalphad.variables.Species"><em>Species</em></a><em>, </em><em>str</em><em>]</em>) – Dependent species not appearing in the independent mass fractions.</p></li>
+<li><p><strong>dependent_species</strong> (<em>Union</em><em>[</em><a class="reference internal" href="#pycalphad.variables.Component" title="pycalphad.variables.Component"><em>Component</em></a><em>, </em><em>str</em><em>]</em>) – Dependent species not appearing in the independent mass fractions.</p></li>
 <li><p><strong>pure_element_mass_dict</strong> (<em>Union</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em><em>, </em><em>pycalphad.Database</em><em>]</em>) – Either a mapping from pure elements to their mass, or a Database from
 which they can be retrieved.</p></li>
 </ul>
@@ -2066,7 +2124,7 @@ which they can be retrieved.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mass_fractions</strong> (<em>Mapping</em><em>[</em><a class="reference internal" href="#pycalphad.variables.MassFraction" title="pycalphad.variables.MassFraction"><em>MassFraction</em></a><em>, </em><em>float</em><em>]</em>)</p></li>
-<li><p><strong>dependent_species</strong> (<em>Union</em><em>[</em><a class="reference internal" href="#pycalphad.variables.Species" title="pycalphad.variables.Species"><em>Species</em></a><em>, </em><em>str</em><em>]</em>) – Dependent species not appearing in the independent mass fractions.</p></li>
+<li><p><strong>dependent_species</strong> (<em>Union</em><em>[</em><a class="reference internal" href="#pycalphad.variables.Component" title="pycalphad.variables.Component"><em>Component</em></a><em>, </em><em>str</em><em>]</em>) – Dependent species not appearing in the independent mass fractions.</p></li>
 <li><p><strong>pure_element_mass_dict</strong> (<em>Union</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em><em>, </em><em>pycalphad.Database</em><em>]</em>) – Either a mapping from pure elements to their mass, or a Database from
 which they can be retrieved.</p></li>
 </ul>
@@ -2081,6 +2139,46 @@ which they can be retrieved.</p></li>
 <dt class="sig sig-object py" id="pycalphad.variables.site_fraction">
 <span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">site_fraction</span></span><a class="headerlink" href="#pycalphad.variables.site_fraction" title="Link to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.SiteFraction" title="pycalphad.variables.SiteFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">SiteFraction</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.variables.unpack_components">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.variables.</span></span><span class="sig-name descname"><span class="pre">unpack_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pycalphad.variables.Component" title="pycalphad.variables.Component"><span class="pre">Component</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#pycalphad.variables.Species" title="pycalphad.variables.Species"><span class="pre">Species</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><span class="pre">Database</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#unpack_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.variables.unpack_components" title="Link to this definition">¶</a></dt>
+<dd><p>Build a set of Components from ones provided by the caller.</p>
+<p>The components can be given as:
+1. Component objects, which are directly used
+2. Species objects, which will be converted to Component objects
+3. str objects, which will be resolved to a Component by:</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>matching with the name of a Species object present in the Database, or</p></li>
+<li><p>by parsing the string via the Component constructor</p></li>
+</ol>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comps</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="#pycalphad.variables.Component" title="pycalphad.variables.Component"><em>Component</em></a><em> | </em><a class="reference internal" href="#pycalphad.variables.Species" title="pycalphad.variables.Species"><em>Species</em></a><em> | </em><em>str</em><em>]</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>dbf</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a><em>]</em>) – Thermodynamic database containing elements and species. If no database is
+passed, constructing Component objects via pattern matching to Species defined
+in the Database (3a) will not be possible.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Set of Component objects</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>set</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s2">&quot;WCL4&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;W&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;CL&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s2">&quot;H+&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span> <span class="n">charge</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unpack_components</span><span class="p">([</span><span class="n">v</span><span class="o">.</span><span class="n">Component</span><span class="p">(</span><span class="s2">&quot;NACL&quot;</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s2">&quot;H2O&quot;</span><span class="p">),</span> <span class="s2">&quot;SIO2&quot;</span><span class="p">,</span> <span class="s2">&quot;K1CL1&quot;</span><span class="p">,</span> <span class="s2">&quot;WCL4&quot;</span><span class="p">,</span> <span class="s2">&quot;H+&quot;</span><span class="p">],</span> <span class="n">dbf</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -2224,6 +2322,14 @@ which they can be retrieved.</p></li>
 <li><a class="reference internal" href="#pycalphad.variables.ChemicalPotential.jansson_derivative"><code class="docutils literal notranslate"><span class="pre">ChemicalPotential.jansson_derivative()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#pycalphad.variables.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.variables.Component.name"><code class="docutils literal notranslate"><span class="pre">Component.name</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.variables.Component.constituents"><code class="docutils literal notranslate"><span class="pre">Component.constituents</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.variables.Component.cast_from"><code class="docutils literal notranslate"><span class="pre">Component.cast_from()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.variables.Component.escaped_name"><code class="docutils literal notranslate"><span class="pre">Component.escaped_name</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.variables.Component.number_of_atoms"><code class="docutils literal notranslate"><span class="pre">Component.number_of_atoms</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pycalphad.variables.IndependentPotential"><code class="docutils literal notranslate"><span class="pre">IndependentPotential</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.variables.MU"><code class="docutils literal notranslate"><span class="pre">MU</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.variables.MassFraction"><code class="docutils literal notranslate"><span class="pre">MassFraction</span></code></a><ul>
@@ -2307,6 +2413,7 @@ which they can be retrieved.</p></li>
 <li><a class="reference internal" href="#pycalphad.variables.get_mass_fractions"><code class="docutils literal notranslate"><span class="pre">get_mass_fractions()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.variables.get_mole_fractions"><code class="docutils literal notranslate"><span class="pre">get_mole_fractions()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.variables.site_fraction"><code class="docutils literal notranslate"><span class="pre">site_fraction</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.variables.unpack_components"><code class="docutils literal notranslate"><span class="pre">unpack_components()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-pycalphad">Module contents</a></li>
@@ -2321,7 +2428,7 @@ which they can be retrieved.</p></li>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=6602510e"></script>
+</div><script src="../_static/documentation_options.js?v=53f5e183"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
