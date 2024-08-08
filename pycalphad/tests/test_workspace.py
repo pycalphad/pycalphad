@@ -1,6 +1,6 @@
 from numpy.testing import assert_allclose
 import numpy as np
-from pycalphad import Workspace, variables as v
+from pycalphad import Database, Workspace, variables as v
 from pycalphad.core.conditions import ConditionError
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property, ComputableProperty, T0, IsolatedPhase, DormantPhase
@@ -366,6 +366,19 @@ def test_workspace_convergence_failures(load_database):
     phase_fractions = wks.get("NP(*)")
     assert np.asarray(phase_fractions).shape == (len(phases),)
     assert np.all(np.isnan(phase_fractions))
+
+
+@select_database("al2o3_nd2o3_zro2.tdb")
+def test_components_are_updated_when_database_changes(load_database):
+    dbf = load_database()
+    phases = list(set(dbf.phases.keys()) - {"I_LIQUID"})
+    wks = Workspace(dbf, phases=phases)
+    # by default: all pure elements
+    assert set(wks.components) == set({v.Component("AL"), v.Component("ND"), v.Component("ZR"), v.Component("O"), v.Component("VA")})
+    wks.database = Database()
+    assert set(wks.components) == set()
+    wks.database = dbf
+    assert set(wks.components) == set({v.Component("AL"), v.Component("ND"), v.Component("ZR"), v.Component("O"), v.Component("VA")})
 
 
 @select_database("al2o3_nd2o3_zro2.tdb")
