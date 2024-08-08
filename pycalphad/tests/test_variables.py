@@ -46,6 +46,10 @@ def test_component_and_species_repr_str_methods():
     assert repr(comp) == "Component('*')"
     assert str(comp) == "*"
 
+    comp = v.Component(None)
+    assert repr(comp) == "Component(None)"
+    assert str(comp) == ""
+
     sp = v.Species("O2-4", {"O": 2}, charge=-4)
     assert repr(sp) == "Species('O2-4', 'O2', charge=-4)"
     assert str(sp) == "O2-4"
@@ -53,3 +57,7 @@ def test_component_and_species_repr_str_methods():
     sp = v.Species("*", {})
     assert repr(sp) == "Species('*')"
     assert str(sp) == "*"
+
+    sp = v.Species(None)
+    assert repr(sp) == "Species(None)"
+    assert str(sp) == ""
