@@ -325,8 +325,8 @@ def test_jansson_derivative_chempot_condition(load_database):
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
 
-def test_issue_503_pure_vacancy_charge_balance():
-    "Pure vacancy phases are correctly suspended (gh-503)"
+def test_issue_503_suspend_phase_infeasible_internal_constraints():
+    "Phases that cannot satisfy internal constraints are correctly suspended (gh-503)"
     TDB = """
     ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
     ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
@@ -339,7 +339,8 @@ def test_issue_503_pure_vacancy_charge_balance():
     PHASE GAS:G %  1  1.0  !
     CONSTITUENT GAS:G :O,ZR :  !
     """
-    wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 1, v.T: 1000})
+    # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
+    wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 0.5, v.T: 1000})
     assert np.isnan(wks.get('NP(SPINEL)'))
     np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
 
