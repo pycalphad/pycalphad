@@ -1015,8 +1015,8 @@ def test_eq_charge_ndzro(load_database):
                                 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
 
 @pytest.mark.solver
-def test_issue_503_charged_infeasible_subsystem():
-    "equilibrium suspends a phase with zero feasible points due to internal constraints"
+def test_issue_503_suspend_pure_vacancy_configuration():
+    "equilibrium suspends a phase with a pure-vacancy endmember as the only feasible configuration (gh-503)"
     tdb = """
  ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
  ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
