@@ -1,0 +1,880 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pycalphad.models package" href="pycalphad.models.html" /><link rel="prev" title="pycalphad.mapping package" href="pycalphad.mapping.html" />
+
+    <!-- Generated with Sphinx 8.0.2 and Furo 2024.08.06 -->
+        <title>pycalphad.mapping.strategy package - pycalphad 0.10.6.dev12+g490ef06e documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">pycalphad 0.10.6.dev12+g490ef06e documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">pycalphad 0.10.6.dev12+g490ef06e documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/Metastability.html">Plot energy curves for several phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/Metastability.html#Driving-force-calculation">Driving force calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/Metastability.html#Calculate-T0-(t-zero)-as-a-function-of-composition">Calculate T0 (t-zero) as a function of composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html#advanced-examples">Advanced Examples</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Advanced Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/LegacyReferenceState.html#Calculations-at-specific-site-fractions">Calculations at specific site fractions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ChargedPhases.html">Phases with Electrically Charged Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/Mapping.html">Plotting using the Mapping API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing pycalphad</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../onboarding.html">Onboarding as a Developer</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="pycalphad.html">pycalphad package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of pycalphad package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.codegen.html">pycalphad.codegen package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="pycalphad.mapping.html">pycalphad.mapping package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of pycalphad.mapping package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">pycalphad.mapping.strategy package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.models.html">pycalphad.models package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of pycalphad.plot package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.property_framework.html">pycalphad.property_framework package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/api/pycalphad.mapping.strategy.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="pycalphad-mapping-strategy-package">
+<h1>pycalphad.mapping.strategy package<a class="headerlink" href="#pycalphad-mapping-strategy-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-pycalphad.mapping.strategy.binary_strategy">
+<span id="pycalphad-mapping-strategy-binary-strategy-module"></span><h2>pycalphad.mapping.strategy.binary_strategy module<a class="headerlink" href="#module-pycalphad.mapping.strategy.binary_strategy" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.binary_strategy.BinaryStrategy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.mapping.strategy.binary_strategy.</span></span><span class="sig-name descname"><span class="pre">BinaryStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><span class="pre">Database</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/binary_strategy.html#BinaryStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy" title="pycalphad.mapping.strategy.strategy_base.MapStrategy"><code class="xref py py-class docutils literal notranslate"><span class="pre">MapStrategy</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.get_invariant_data">
+<span class="sig-name descname"><span class="pre">get_invariant_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/binary_strategy.html#BinaryStrategy.get_invariant_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.get_invariant_data" title="Link to this definition">¶</a></dt>
+<dd><p>Create a dictionary of data for invariant plotting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A list where each dictionary contains the following keys:</dt><dd><ul class="simple">
+<li><p>”phases” (list of str): The list of phases.</p></li>
+<li><p>”x” (list of float): The corresponding values for the x-axis.</p></li>
+<li><p>”y” (list of float): The corresponding values for the y-axis.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The indices in “x” and “y” match the indices in “phases”.</p>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.get_tieline_data">
+<span class="sig-name descname"><span class="pre">get_tieline_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/binary_strategy.html#BinaryStrategy.get_tieline_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.get_tieline_data" title="Link to this definition">¶</a></dt>
+<dd><p>Create a dictionary of data for plotting ZPF lines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A list where each dictionary has the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;&lt;phase_name&gt;&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">The</span> <span class="n">lengths</span> <span class="n">of</span> <span class="n">the</span> <span class="s2">&quot;x&quot;</span> <span class="ow">and</span> <span class="s2">&quot;y&quot;</span> <span class="n">lists</span> <span class="n">should</span> <span class="n">be</span> <span class="n">equal</span> <span class="k">for</span> <span class="n">each</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">ZPFLine</span><span class="o">.</span>
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/binary_strategy.html#BinaryStrategy.initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.initialize" title="Link to this definition">¶</a></dt>
+<dd><p>Searches axis limits to find starting points</p>
+<p>Here, we do a step mapping along the axis bounds and grab all the nodes
+The nodes of a step map is distinguished from starting points in that they have a parent</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pycalphad.mapping.strategy.isopleth_strategy">
+<span id="pycalphad-mapping-strategy-isopleth-strategy-module"></span><h2>pycalphad.mapping.strategy.isopleth_strategy module<a class="headerlink" href="#module-pycalphad.mapping.strategy.isopleth_strategy" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.mapping.strategy.isopleth_strategy.</span></span><span class="sig-name descname"><span class="pre">IsoplethStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><span class="pre">Database</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/isopleth_strategy.html#IsoplethStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy" title="pycalphad.mapping.strategy.strategy_base.MapStrategy"><code class="xref py py-class docutils literal notranslate"><span class="pre">MapStrategy</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_invariant_data">
+<span class="sig-name descname"><span class="pre">get_invariant_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/isopleth_strategy.html#IsoplethStrategy.get_invariant_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_invariant_data" title="Link to this definition">¶</a></dt>
+<dd><p>Create a dictionary of data for plotting invariants for isopleths.</p>
+<p>The end points of the node are adjusted to be the intersection of the isopleth polytope on the node in n-composition space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A list where each dictionary has the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_zpf_data">
+<span class="sig-name descname"><span class="pre">get_zpf_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/isopleth_strategy.html#IsoplethStrategy.get_zpf_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_zpf_data" title="Link to this definition">¶</a></dt>
+<dd><p>Create a dictionary of data for plotting ZPF lines for isopleths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A dictionary with the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;phase&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;xlim&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>
+<span class="p">}</span>
+
+<span class="n">The</span> <span class="s2">&quot;phase&quot;</span> <span class="ow">in</span> <span class="n">the</span> <span class="s2">&quot;data&quot;</span> <span class="n">section</span> <span class="n">refers</span> <span class="n">to</span> <span class="n">the</span> <span class="n">fixed</span> <span class="n">phase</span> <span class="n">at</span> <span class="n">zero</span><span class="o">-</span><span class="n">phase</span> <span class="n">fraction</span><span class="o">.</span>
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/isopleth_strategy.html#IsoplethStrategy.initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.initialize" title="Link to this definition">¶</a></dt>
+<dd><p>Searches axis limits to find starting points</p>
+<p>Here, we do a step mapping along the axis bounds and grab all the nodes
+The nodes of a step map is distinguished from starting points in that they have a parent</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pycalphad.mapping.strategy.step_strategy">
+<span id="pycalphad-mapping-strategy-step-strategy-module"></span><h2>pycalphad.mapping.strategy.step_strategy module<a class="headerlink" href="#module-pycalphad.mapping.strategy.step_strategy" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.step_strategy.StepStrategy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.mapping.strategy.step_strategy.</span></span><span class="sig-name descname"><span class="pre">StepStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><span class="pre">Database</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/step_strategy.html#StepStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.step_strategy.StepStrategy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy" title="pycalphad.mapping.strategy.strategy_base.MapStrategy"><code class="xref py py-class docutils literal notranslate"><span class="pre">MapStrategy</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.step_strategy.StepStrategy.get_data">
+<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_is_global</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_nan_to_zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/step_strategy.html#StepStrategy.get_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.step_strategy.StepStrategy.get_data" title="Link to this definition">¶</a></dt>
+<dd><p>Utility function to get data from StepStrategy for plotting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+<li><p><strong>x_is_global</strong> (<em>bool</em><em>, </em><em>optional</em>) – Indicates whether <cite>x</cite> is a global or phase-local variable.
+For example, if plotting global composition (<cite>x</cite>) vs. phase fraction (<cite>y</cite>), then <cite>x</cite> is global.</p></li>
+<li><p><strong>set_nan_to_zero</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, NaN values will be set to zero in the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A dictionary with the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;&lt;phase_name&gt;&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;xlim&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># min and max for all x values</span>
+    <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>   <span class="c1"># min and max for all y values</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.step_strategy.StepStrategy.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/step_strategy.html#StepStrategy.initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.step_strategy.StepStrategy.initialize" title="Link to this definition">¶</a></dt>
+<dd><p>Adds initial starting point in middle of free condition</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pycalphad.mapping.strategy.strategy_base">
+<span id="pycalphad-mapping-strategy-strategy-base-module"></span><h2>pycalphad.mapping.strategy.strategy_base module<a class="headerlink" href="#module-pycalphad.mapping.strategy.strategy_base" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_base.MapStrategy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.mapping.strategy.strategy_base.</span></span><span class="sig-name descname"><span class="pre">MapStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><span class="pre">Database</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_base.html#MapStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base strategy class for phase diagram construction.</p>
+<section id="derived-classes">
+<h3>Derived Classes<a class="headerlink" href="#derived-classes" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>SteppingStrategy: For single-axis diagrams.</p></li>
+<li><p>BinaryStrategy: For binary phase diagrams (1 composition, 1 potential axis).</p></li>
+<li><p>TernaryStrategy: For ternary phase diagrams (2 composition axes).</p></li>
+<li><p>IsoplethStrategy: For isopleths (tested only for 1 composition, 1 potential axis so far).</p></li>
+</ul>
+</section>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>DELTA_SCALE<span class="classifier">float</span></dt><dd><p>Factor to scale down step size if a single step iteration was unsuccessful (default: 0.5).</p>
+</dd>
+<dt>MIN_DELTA_RATIO<span class="classifier">float</span></dt><dd><p>Minimum step size (as ratio of default) before stopping ZPF line iteration (default: 0.1).</p>
+</dd>
+<dt>GLOBAL_CHECK_INTERVAL<span class="classifier">int</span></dt><dd><p>Number of iterations before global minimum check. Proceed with caution for any interval &gt;1 (default: 1).</p>
+</dd>
+<dt>GLOBAL_MIN_PDENS<span class="classifier">int</span></dt><dd><p>Sampling density for global minimum check (default: 500).</p>
+</dd>
+<dt>GLOBAL_MIN_TOL<span class="classifier">float</span></dt><dd><p>Minimum driving force for a composition set to pass the global minimum check (default: 1e-4).</p>
+</dd>
+<dt>GLOBAL_MIN_NUM_CANDIDATES<span class="classifier">int</span></dt><dd><p>Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_base.MapStrategy.add_nodes_from_conditions">
+<span class="sig-name descname"><span class="pre">add_nodes_from_conditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.mapping.html#pycalphad.mapping.primitives.Direction" title="pycalphad.mapping.primitives.Direction"><span class="pre">Direction</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_add</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_base.html#MapStrategy.add_nodes_from_conditions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.add_nodes_from_conditions" title="Link to this definition">¶</a></dt>
+<dd><p>Computes equilibrium and creates a point from input conditions</p>
+<p>If a direction is supplied, then we can just add the new point with the direction
+If not, then we add two points, for each direction</p>
+<p>Since this is a starting point, we set the ExitHint to POINT_IS_EXIT since we assume the starting point is not a true node</p>
+<p>Also by default, we force add the node to skip checking if the node is already in the node queue</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_base.MapStrategy.do_map">
+<span class="sig-name descname"><span class="pre">do_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_base.html#MapStrategy.do_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.do_map" title="Link to this definition">¶</a></dt>
+<dd><p>Wrapper over iterate to run until finished</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_base.MapStrategy.get_all_phases">
+<span class="sig-name descname"><span class="pre">get_all_phases</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_base.html#MapStrategy.get_all_phases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.get_all_phases" title="Link to this definition">¶</a></dt>
+<dd><p>Goes through ZPF lines to get all unique phases. For miscibility gaps, phases will have #n added to it</p>
+<p>In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set
+There should always be nodes in the node_queue since it includes starting points (even if they’re not nodes in the mapping sense)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_base.MapStrategy.iterate">
+<span class="sig-name descname"><span class="pre">iterate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_base.html#MapStrategy.iterate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.iterate" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Hierarchy of mapping iterations</dt><dd><ol class="arabic simple">
+<li><dl class="simple">
+<dt>Node queue</dt><dd><p>If not empty, then create exits from next node</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Node exits</dt><dd><p>If exits remain, then create new zpf line from next exit</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>ZPF line</dt><dd><p>If not finished, continue ZPF line</p>
+</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_base.MapStrategy.normalize_factor">
+<span class="sig-name descname"><span class="pre">normalize_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">av</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_base.html#MapStrategy.normalize_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.normalize_factor" title="Link to this definition">¶</a></dt>
+<dd><p>Since potential and composition variables are on different scales, we normalize by the delta value</p>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="module-pycalphad.mapping.strategy.strategy_utils">
+<span id="pycalphad-mapping-strategy-strategy-utils-module"></span><h2>pycalphad.mapping.strategy.strategy_utils module<a class="headerlink" href="#module-pycalphad.mapping.strategy.strategy_utils" title="Link to this heading">¶</a></h2>
+<p>Helper functions to grab data from tieline strategies (BinaryStrategy and TernaryStrategy)
+This is to avoid repeating get_XXX_data functions for the two strategies</p>
+<dl class="simple">
+<dt>TODO: Once BinaryStrategy and TernaryStrategy are merged into a more general TielineStrategy,</dt><dd><p>these two functions can be moved into TieLineStrategy and strategy_utils.py as be removed</p>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_utils.get_invariant_data_from_tieline_strategy">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.mapping.strategy.strategy_utils.</span></span><span class="sig-name descname"><span class="pre">get_invariant_data_from_tieline_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_utils.html#get_invariant_data_from_tieline_strategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_utils.get_invariant_data_from_tieline_strategy" title="Link to this definition">¶</a></dt>
+<dd><p>Create a dictionary of data for node plotting in binary and ternary plots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strategy</strong> (<a class="reference internal" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy" title="pycalphad.mapping.strategy.binary_strategy.BinaryStrategy"><em>BinaryStrategy</em></a><em> or </em><a class="reference internal" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy" title="pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy"><em>TernaryStrategy</em></a>) – The strategy used for generating the data.</p></li>
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A list where each dictionary contains the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{
+    &quot;phases&quot;: list of str,
+    &quot;x&quot;: list of float,
+    &quot;y&quot;: list of float
+}
+
+The indices in `x` and `y` match the indices in `phases`.
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_utils.get_tieline_data_from_tieline_strategy">
+<span class="sig-prename descclassname"><span class="pre">pycalphad.mapping.strategy.strategy_utils.</span></span><span class="sig-name descname"><span class="pre">get_tieline_data_from_tieline_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_utils.html#get_tieline_data_from_tieline_strategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_utils.get_tieline_data_from_tieline_strategy" title="Link to this definition">¶</a></dt>
+<dd><p>Create a dictionary of data for plotting ZPF lines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strategy</strong> (<a class="reference internal" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy" title="pycalphad.mapping.strategy.binary_strategy.BinaryStrategy"><em>BinaryStrategy</em></a><em> or </em><a class="reference internal" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy" title="pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy"><em>TernaryStrategy</em></a>) – The strategy used for generating the data.</p></li>
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A list where each dictionary has the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;&lt;phase_name&gt;&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">The</span> <span class="n">lengths</span> <span class="n">of</span> <span class="n">the</span> <span class="s2">&quot;x&quot;</span> <span class="ow">and</span> <span class="s2">&quot;y&quot;</span> <span class="n">lists</span> <span class="n">should</span> <span class="n">be</span> <span class="n">equal</span> <span class="k">for</span> <span class="n">each</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">ZPFLine</span><span class="o">.</span>
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-pycalphad.mapping.strategy.ternary_strategy">
+<span id="pycalphad-mapping-strategy-ternary-strategy-module"></span><h2>pycalphad.mapping.strategy.ternary_strategy module<a class="headerlink" href="#module-pycalphad.mapping.strategy.ternary_strategy" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.mapping.strategy.ternary_strategy.</span></span><span class="sig-name descname"><span class="pre">TernaryStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><span class="pre">Database</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/ternary_strategy.html#TernaryStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy" title="pycalphad.mapping.strategy.strategy_base.MapStrategy"><code class="xref py py-class docutils literal notranslate"><span class="pre">MapStrategy</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_invariant_data">
+<span class="sig-name descname"><span class="pre">get_invariant_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/ternary_strategy.html#TernaryStrategy.get_invariant_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_invariant_data" title="Link to this definition">¶</a></dt>
+<dd><p>Create a dictionary of data for invariant plotting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A list where each dictionary has the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{
+    &quot;phases&quot;: list of str,
+    &quot;x&quot;: list of float,
+    &quot;y&quot;: list of float
+}
+
+The indices in `x` and `y` will match the indices in `phases`.
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_tieline_data">
+<span class="sig-name descname"><span class="pre">get_tieline_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><span class="pre">StateVariable</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/ternary_strategy.html#TernaryStrategy.get_tieline_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_tieline_data" title="Link to this definition">¶</a></dt>
+<dd><p>Create a dictionary of data for plotting ZPF lines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>v.StateVariable</em>) – The state variable to be used for the x-axis.</p></li>
+<li><p><strong>y</strong> (<em>v.StateVariable</em>) – The state variable to be used for the y-axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A list where each dictionary has the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;&lt;phase_name&gt;&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">The</span> <span class="n">lengths</span> <span class="n">of</span> <span class="n">the</span> <span class="s2">&quot;x&quot;</span> <span class="ow">and</span> <span class="s2">&quot;y&quot;</span> <span class="n">lists</span> <span class="n">should</span> <span class="n">be</span> <span class="n">equal</span> <span class="k">for</span> <span class="n">each</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">ZPF</span> <span class="n">line</span><span class="o">.</span>
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/ternary_strategy.html#TernaryStrategy.initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.initialize" title="Link to this definition">¶</a></dt>
+<dd><p>Searches axis limits to find starting points</p>
+<p>Here, we do a step mapping along the axis bounds and grab all the nodes
+The nodes of a step map is distinguished from starting points in that they have a parent</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pycalphad.mapping.strategy">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.mapping.strategy" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="pycalphad.models.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">pycalphad.models package</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="pycalphad.mapping.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">pycalphad.mapping package</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2015-2022, pycalphad Development Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">pycalphad.mapping.strategy package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pycalphad.mapping.strategy.binary_strategy">pycalphad.mapping.strategy.binary_strategy module</a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy"><code class="docutils literal notranslate"><span class="pre">BinaryStrategy</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.get_invariant_data"><code class="docutils literal notranslate"><span class="pre">BinaryStrategy.get_invariant_data()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.get_tieline_data"><code class="docutils literal notranslate"><span class="pre">BinaryStrategy.get_tieline_data()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.initialize"><code class="docutils literal notranslate"><span class="pre">BinaryStrategy.initialize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pycalphad.mapping.strategy.isopleth_strategy">pycalphad.mapping.strategy.isopleth_strategy module</a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy"><code class="docutils literal notranslate"><span class="pre">IsoplethStrategy</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_invariant_data"><code class="docutils literal notranslate"><span class="pre">IsoplethStrategy.get_invariant_data()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_zpf_data"><code class="docutils literal notranslate"><span class="pre">IsoplethStrategy.get_zpf_data()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.initialize"><code class="docutils literal notranslate"><span class="pre">IsoplethStrategy.initialize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pycalphad.mapping.strategy.step_strategy">pycalphad.mapping.strategy.step_strategy module</a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.step_strategy.StepStrategy"><code class="docutils literal notranslate"><span class="pre">StepStrategy</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.step_strategy.StepStrategy.get_data"><code class="docutils literal notranslate"><span class="pre">StepStrategy.get_data()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.step_strategy.StepStrategy.initialize"><code class="docutils literal notranslate"><span class="pre">StepStrategy.initialize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pycalphad.mapping.strategy.strategy_base">pycalphad.mapping.strategy.strategy_base module</a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy"><code class="docutils literal notranslate"><span class="pre">MapStrategy</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.add_nodes_from_conditions"><code class="docutils literal notranslate"><span class="pre">MapStrategy.add_nodes_from_conditions()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.do_map"><code class="docutils literal notranslate"><span class="pre">MapStrategy.do_map()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.get_all_phases"><code class="docutils literal notranslate"><span class="pre">MapStrategy.get_all_phases()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.iterate"><code class="docutils literal notranslate"><span class="pre">MapStrategy.iterate()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.normalize_factor"><code class="docutils literal notranslate"><span class="pre">MapStrategy.normalize_factor()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pycalphad.mapping.strategy.strategy_utils">pycalphad.mapping.strategy.strategy_utils module</a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.strategy_utils.get_invariant_data_from_tieline_strategy"><code class="docutils literal notranslate"><span class="pre">get_invariant_data_from_tieline_strategy()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.strategy_utils.get_tieline_data_from_tieline_strategy"><code class="docutils literal notranslate"><span class="pre">get_tieline_data_from_tieline_strategy()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pycalphad.mapping.strategy.ternary_strategy">pycalphad.mapping.strategy.ternary_strategy module</a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy"><code class="docutils literal notranslate"><span class="pre">TernaryStrategy</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_invariant_data"><code class="docutils literal notranslate"><span class="pre">TernaryStrategy.get_invariant_data()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_tieline_data"><code class="docutils literal notranslate"><span class="pre">TernaryStrategy.get_tieline_data()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.initialize"><code class="docutils literal notranslate"><span class="pre">TernaryStrategy.initialize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pycalphad.mapping.strategy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=d252d397"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>
