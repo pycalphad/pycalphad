@@ -25,6 +25,7 @@ def binplot(database, components, phases, conditions, return_strategy=False, plo
     plot_kwargs : dict, optional
         Keyword arguments to plot_binary()
         Possible key,val pairs in plot_kwargs
+
             label_nodes : bool
                 Whether to plot points for phases on three-phase regions
                 Default = False
