@@ -259,7 +259,7 @@ class BinaryStrategy(MapStrategy):
         Returns
         -------
         list of dict
-            A list where each dictionary has the following structure:
+            A list where each dictionary has the following structure::
 
             {
                 "<phase_name>": {
