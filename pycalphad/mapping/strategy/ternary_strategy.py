@@ -370,47 +370,54 @@ class TernaryStrategy(MapStrategy):
 
     def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
         """
-        Creates dictionary of data for invariant plotting
+        Create a dictionary of data for invariant plotting.
 
         Parameters
         ----------
-        strategy : BinaryStrategy or TernaryStrategy
         x : v.StateVariable
+            The state variable to be used for the x-axis.
         y : v.StateVariable
+            The state variable to be used for the y-axis.
 
         Returns
         -------
-        node_data : list[dict]
-            Each dict will be
+        list of dict
+            A list where each dictionary has the following structure::
+
             {
-                "phases" : [str]
-                "x" : [float]
-                "y" : [float]
+                "phases": list of str,
+                "x": list of float,
+                "y": list of float
             }
-            Indices in x and y will match the indices in phases
+
+            The indices in `x` and `y` will match the indices in `phases`.
         """
         return get_invariant_data_from_tieline_strategy(self, x, y)
+
     
     def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable):
         """
-        Creates dictionary of data for plotting zpf lines
+        Create a dictionary of data for plotting ZPF lines.
 
         Parameters
         ----------
-        strategy : BinaryStrategy or TernaryStrategy
         x : v.StateVariable
+            The state variable to be used for the x-axis.
         y : v.StateVariable
+            The state variable to be used for the y-axis.
 
         Returns
         -------
-        zpf_data : list[dict]
-            Each dict will be
+        list of dict
+            A list where each dictionary has the following structure::
+
             {
-                <phase_name> : {
-                    "x": [float]
-                    "y": [float]
+                "<phase_name>": {
+                    "x": list of float,
+                    "y": list of float
                 }
             }
-            Length of x and y for each phase in a ZPFLine should be equal
+
+            The lengths of the "x" and "y" lists should be equal for each phase in a ZPF line.
         """
         return get_tieline_data_from_tieline_strategy(self, x, y)
