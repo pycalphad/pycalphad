@@ -1,6 +1,21 @@
 What's New
 ==========
 
+0.11.0 (2024-08-09)
+-------------------
+
+This is a feature-rich release with several enhancements, bug fixes, and improvements in general usability. In particular, this release introduces the new Workspace and Mapping APIs.
+
+* ENH: Introduce the Workspace API, a new object-oriented framework for managing and calculating thermodynamic properties, enabling more flexible and efficient computations. This API supports the definition of custom properties, physical units, complex condition-setting, and JIT compilation of model properties. It also enables the calculation of driving forces, T0, and other advanced properties (:issue:`432`).
+* ENH: Add support for 1D stepping and 2D phase diagram mapping, including improved plotting for binary and ternary phase diagrams, isopleths, and enhanced visual quality. This update also introduces a new API for accessing phase boundaries and equilibria, and provides drop-in replacements for `binplot` and `ternplot` (:issue:`543`).
+* ENH: Add Component implementation in variables. This adds a new `Component` class to distinguish between `Component` and `Species`, and renames various utility functions for clarity and future-proofing (:issue:`546`).
+* FIX: Better handle convergence failures in Workspace. Introduces a `ConvergenceFailureSolver` for testing and fixes issues with getting properties from unconverged states (:issue:`558`).
+* ENH: Workspace: Suspend attribute dependency updates during initialization to improve performance and robustness. Includes several optimizations in condition-setting and local conditions handling (:issue:`554`).
+* FIX: Improve wildcard support. This includes expanding wildcards in component and sublattice index contexts, and improving the handling of site fractions in unstable phases (:issue:`560`).
+* ENH: tdb: ParseException now returns correct line and column numbers for better error reporting (:issue:`550`).
+* ENH: PhaseRecord: Refactor `FastFunctionFactory.getfunc()` to optimize tight loops (:issue:`552`).
+* ENH: Add pathlib support to Database reading, allowing seamless use of `Path` objects in the Workspace API (:issue:`545`).
+
 0.10.5 (2024-07-12)
 -------------------
 
