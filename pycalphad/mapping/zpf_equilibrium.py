@@ -17,31 +17,30 @@ _log = logging.getLogger(__name__)
 
 def update_equilibrium_with_new_conditions(point: Point, new_conditions: dict[v.StateVariable, str], free_var: v.StateVariable = None):
     """
-    Updates point with new set of conditions
-    Assumes that the new conditions are small distance away from the current conditions
+    Update the point with a new set of conditions.
+
+    This function assumes that the new conditions are a small distance away from the current conditions.
 
     Parameters
     ----------
     point : Point
-        Point to update
+        The point to update.
     new_conditions : dict[v.StateVariable, str]
-        New set of conditions
-    free_var : v.StateVariable (optional)
-        Variable to free when updating conditions
-        This will be the case if there's a fixed composition set, so
-        freeing a variable will conserve the Gibbs phase rule
+        The new set of conditions to apply.
+    free_var : v.StateVariable, optional
+        The variable to free when updating conditions. This is typically required
+        if a fixed composition set is specified, ensuring the Gibbs phase rule is conserved.
 
     Returns
     -------
-    (new_point, orig_cs)
-        new_point - Point with updated composition sets and conditions
-        orig_cs - Original list of composition sets
-            Degrees of freedom in the composition sets will be updated with the new point conditions
-            Will include any composition sets that became unstable after updating
+    tuple or None
+        A tuple containing:
+            - new_point (Point): The point with updated composition sets and conditions.
+            - orig_cs (list): The original list of composition sets. The degrees of freedom 
+              in the composition sets will be updated with the new point conditions, 
+              including any composition sets that became unstable after the update.
 
-    or
-
-    None - equilibrium failed
+        If the equilibrium fails, the function returns None.
     """
     # Update composition sets with new state variables
     comp_sets = copy.deepcopy(point.stable_composition_sets)

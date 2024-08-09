@@ -95,17 +95,15 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : b
 class Point():
     """
     Stores data for a single point on the map
-    This will include everything needed to compute any property within the Workspace API
-        composition sets, conditions, chemical potentials
+    This will include everything needed to compute any property within the Workspace API.
+    Fixed and free composition sets are split for easy accounting.
 
-    Fixed and free composition sets are split for easy accounting
-
-    Attributes
+    Parameters
     ----------
     global_conditions : dict[v.StateVariable, float]
         List of conditions that point was found at
         NOTE: generally, Point in mapping is solved from stepping, which frees up a variable,
-              but the freed variable will be included in global_conditions for bookkeeping
+        but the freed variable will be included in global_conditions for bookkeeping
     chemical_potentials : [float]
     _fixed_composition_sets : [CompositionSet]
     _free_composition_sets : [CompositionSet]
@@ -262,7 +260,7 @@ class Node(Point):
     We'll keep track of the axis variable and direction as well
         By default, they will be None and the direction will be decided later
 
-    Attributes
+    Parameters
     ----------
     parent : Point
         Point where Node conditions were found from
@@ -323,9 +321,16 @@ class ZPFState(Enum):
 class ZPFLine():
     """
     ZPF line represents a line where a phase change occur (crossing the bounding will add or remove a phase, and that phase is 0 at the boundary)
-        Number of phases is constant along this line
+    Number of phases is constant along this line
     Defines a list of fixed phases (the zero phases) and list of free phases and list of Point that represents the line
     
+    Parameters
+    ----------
+    fixed_phases : list[str]
+        List of fixed phases on ZPF line
+    free_phases : list[str]
+        List of free phases on ZPF line
+
     Attributes
     ----------
     fixed_phases : list[str]
@@ -385,7 +390,6 @@ class ZPFLine():
     def get_var_list(self, var : v.StateVariable):
         """
         Gets variable along ZPF line and returns list
-
         The variables will decipher between local and global variables
         """
         return np.array([p.get_property(var) for p in self.points])
@@ -412,7 +416,7 @@ class NodeQueue():
         Checks candidate_node to see if it has been added before
             If it has been added before, add parent to the encountered points list in the node
             When we have multiple start points, we have the chance of encountering a node from multiple ZPF lines
-                By keeping a list of all points that lead to this node, we can reduce the number of exits to avoid double calculating ZPF lines
+            By keeping a list of all points that lead to this node, we can reduce the number of exits to avoid double calculating ZPF lines
 
         Force will force add candidate_node, this is useful for starting the zpf line within a two-phase field
         """

@@ -251,28 +251,33 @@ class IsoplethStrategy(MapStrategy):
     
     def get_zpf_data(self, x: v.StateVariable, y: v.StateVariable):
         """
-        Creates dictionary of data for plotting zpf lines for isopleths
+        Create a dictionary of data for plotting ZPF lines for isopleths.
 
         Parameters
         ----------
-        strategy : BinaryStrategy or TernaryStrategy
         x : v.StateVariable
+            The state variable to be used for the x-axis.
         y : v.StateVariable
+            The state variable to be used for the y-axis.
 
         Returns
         -------
-        zpf_data : {
-            "data" : [
-                {
-                    "phase" : str
-                    "x" : [float]
-                    "y" : [float]
-                }
-            ]
-            "xlim" : [float]
-            "ylim" : [float]
-        }
-        Phase in "data" is the fixed phase at zero-phase fraction
+        dict
+            A dictionary with the following structure::
+
+            {
+                "data": [
+                    {
+                        "phase": str,
+                        "x": list of float,
+                        "y": list of float
+                    }
+                ],
+                "xlim": list of float,
+                "ylim": list of float
+            }
+
+            The "phase" in the "data" section refers to the fixed phase at zero-phase fraction.
         """
         xlim = [np.inf, -np.inf]
         ylim = [np.inf, -np.inf]
@@ -304,24 +309,26 @@ class IsoplethStrategy(MapStrategy):
 
     def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
         """
-        Creates dictionary of data for plotting invariants for isopleths
+        Create a dictionary of data for plotting invariants for isopleths.
 
-        End points of the node is adjusted to be the intersection of the isopleth polytope on the node in n-composition space
+        The end points of the node are adjusted to be the intersection of the isopleth polytope on the node in n-composition space.
 
         Parameters
         ----------
-        strategy : BinaryStrategy or TernaryStrategy
         x : v.StateVariable
+            The state variable to be used for the x-axis.
         y : v.StateVariable
+            The state variable to be used for the y-axis.
 
         Returns
         -------
-        node_data : [
+        list of dict
+            A list where each dictionary has the following structure::
+
             {
-                "x" : [float]
-                "y" : [float]
+                "x": list of float,
+                "y": list of float
             }
-        ]
         """
         node_data = []
         for node in self.node_queue.nodes:

@@ -169,31 +169,37 @@ class StepStrategy(MapStrategy):
                 if success:
                     return
                 
-    def get_data(self, x: v.StateVariable, y: v.StateVariable, x_is_global: bool = False, set_nan_to_zero = False):
+    def get_data(self, x: v.StateVariable, y: v.StateVariable, x_is_global: bool = False, set_nan_to_zero=False):
         """
-        Utility function to get data from StepStrategy for plotting
+        Utility function to get data from StepStrategy for plotting.
 
         Parameters
         ----------
-        strategy : StepStrategy
         x : v.StateVariable
+            The state variable to be used for the x-axis.
         y : v.StateVariable
-        x_is_global : bool
-            Whether x is a phase local or global variable
-            Ex. if plotting global composition (x) vs. phase fraction (y), then x is global
+            The state variable to be used for the y-axis.
+        x_is_global : bool, optional
+            Indicates whether `x` is a global or phase-local variable.
+            For example, if plotting global composition (`x`) vs. phase fraction (`y`), then `x` is global.
+        set_nan_to_zero : bool, optional
+            If True, NaN values will be set to zero in the data.
 
-        Return
-        ------
-        step_data : {
-            "data" : {
-                <phase_name> : {
-                    "x" : [float]
-                    "y" : [float]
-                }
+        Returns
+        -------
+        dict
+            A dictionary with the following structure::
+
+            {
+                "data": {
+                    "<phase_name>": {
+                        "x": list of float,
+                        "y": list of float
+                    }
+                },
+                "xlim": list of float,  # min and max for all x values
+                "ylim": list of float   # min and max for all y values
             }
-            "xlim" : [float] - min and max for all x values
-            "ylim" : [float] - min and max for all y values
-        }
         """
         # Get all phases in strategy (including multiplicity)
         phases = sorted(self.get_all_phases())
