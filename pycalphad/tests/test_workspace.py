@@ -13,6 +13,7 @@ from collections import Counter
 @select_database("alzn_mey.tdb")
 def test_workspace_creation(load_database):
     dbf = load_database()
+    Workspace() # test empty workspace creation
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
     wks2 = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1', 'HCP_A3', 'LIQUID'],
