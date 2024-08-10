@@ -299,7 +299,7 @@ ModelType = TypeVar('ModelType', bound=Model)
 
 class Workspace:
     _callbacks = defaultdict(lambda: [])
-    database: Database = TypedField(lambda _: None)
+    database: Database = TypedField(lambda _: Database())
     components: ComponentList = ComponentsField(depends_on=['database'])
     constituents: ConstituentsList = ConstituentsField(depends_on=['database', 'components'])
     phases: PhaseList = PhasesField(depends_on=['database', 'components'])
