@@ -14,24 +14,29 @@ from pycalphad.mapping.primitives import _get_phase_specific_variable
 
 def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.StateVariable):
     """
-    Creates dictionary of data for node plotting in binary and ternary plots
+    Create a dictionary of data for node plotting in binary and ternary plots.
 
     Parameters
     ----------
     strategy : BinaryStrategy or TernaryStrategy
+        The strategy used for generating the data.
     x : v.StateVariable
+        The state variable to be used for the x-axis.
     y : v.StateVariable
+        The state variable to be used for the y-axis.
 
     Returns
     -------
-    node_data : list[dict]
-        Each dict will be
+    list of dict
+        A list where each dictionary contains the following structure::
+
         {
-            "phases" : [str]
-            "x" : [float]
-            "y" : [float]
+            "phases": list of str,
+            "x": list of float,
+            "y": list of float
         }
-        Indices in x and y will match the indices in phases
+
+        The indices in `x` and `y` match the indices in `phases`.
     """
     invariant_data = []
     for node in strategy.node_queue.nodes:
@@ -51,25 +56,30 @@ def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.
 
 def get_tieline_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.StateVariable):
     """
-    Creates dictionary of data for plotting zpf lines
+    Create a dictionary of data for plotting ZPF lines.
 
     Parameters
     ----------
     strategy : BinaryStrategy or TernaryStrategy
+        The strategy used for generating the data.
     x : v.StateVariable
+        The state variable to be used for the x-axis.
     y : v.StateVariable
+        The state variable to be used for the y-axis.
 
     Returns
     -------
-    zpf_data : list[dict]
-        Each dict will be
+    list of dict
+        A list where each dictionary has the following structure::
+
         {
-            <phase_name> : {
-                "x": [float]
-                "y": [float]
+            "<phase_name>": {
+                "x": list of float,
+                "y": list of float
             }
         }
-        Length of x and y for each phase in a ZPFLine should be equal
+
+        The lengths of the "x" and "y" lists should be equal for each phase in a ZPFLine.
     """
     zpf_data = []
     for zpf_line in strategy.zpf_lines:

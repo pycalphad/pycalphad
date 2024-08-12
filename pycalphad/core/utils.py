@@ -227,7 +227,7 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
     return new_dict
 
 
-def unpack_components(dbf, comps):
+def unpack_species(dbf, comps):
     """
 
     Parameters
@@ -272,7 +272,7 @@ def get_pure_elements(dbf, comps):
     list
         A list of pure elements in the Database
     """
-    comps = sorted(unpack_components(dbf, comps))
+    comps = sorted(unpack_species(dbf, comps))
     components = [x for x in comps]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
@@ -310,9 +310,10 @@ def filter_phases(dbf, comps, candidate_phases=None):
         candidate_phases = dbf.phases.keys()
     else:
         candidate_phases = set(candidate_phases).intersection(dbf.phases.keys())
+    species = unpack_species(dbf, comps)
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
-                all_sublattices_active(comps, dbf.phases[phase]) and
+                all_sublattices_active(species, dbf.phases[phase]) and
                 (phase not in disordered_phases or (phase in disordered_phases and
                 dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
     return sorted(phases)
@@ -332,7 +333,12 @@ def extract_parameters(parameters):
     tuple
         Tuple of parameter symbols (list) and parameter values (parameter_array_length, # parameters)
     """
-    parameter_array_lengths = set(np.atleast_1d(val).size for val in parameters.values())
+    parameter_array_lengths = set()
+    for val in parameters.values():
+        if isinstance(val, (float, int)):
+            parameter_array_lengths.add(1)
+        else:
+            parameter_array_lengths.add(len(val))
     if len(parameter_array_lengths) > 1:
         raise ValueError('parameters kwarg does not contain arrays of equal length')
     if len(parameters) > 0:
@@ -531,4 +537,3 @@ def generate_symmetric_group(configuration, symmetry):
             new_config.insert(fixed_idx, configuration[fixed_idx])
         symmetrically_distinct_configurations.add(tuple(new_config))
     return sorted(symmetrically_distinct_configurations, key=canonical_sort_key)
-

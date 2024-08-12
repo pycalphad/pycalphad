@@ -3,6 +3,7 @@
 Classes and constants for representing thermodynamic variables.
 """
 
+from typing import Optional
 from symengine import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
 from pycalphad.property_framework.types import JanssonDerivativeDeltas
@@ -10,6 +11,99 @@ from pycalphad.core.minimizer import site_fraction_differential, state_variable_
     fixed_component_differential, chemical_potential_differential
 import numpy as np
 from copy import copy
+
+
+class Component(object):
+    """
+    A chemical component, either a pure element or a linear combination of pure elements.
+
+    Attributes
+    ----------
+    name : string
+        Name of the component
+    constituents : dict
+        Dictionary of {element: quantity} where the element is a string and the quantity a float.
+    """
+    def __new__(cls, name, constituents=None):
+        if constituents is not None:
+            new_self = object.__new__(cls)
+            new_self.name = name
+            new_self.constituents = constituents
+            return new_self
+        else:
+            arg = name
+        # if a Component is passed in, return it
+        if arg.__class__ == cls:
+            return arg
+        new_self = object.__new__(cls)
+        if isinstance(arg, Species):
+            # TODO: maybe should have some base class so Component-Species aren't coupled, but it's probably okay?
+            new_self.name = arg.name
+            new_self.constituents = arg.constituents
+            return new_self
+        if arg == '*':
+            new_self = object.__new__(cls)
+            new_self.name = '*'
+            new_self.constituents = dict()
+            return new_self
+        if arg is None:
+            new_self = object.__new__(cls)
+            new_self.name = ''
+            new_self.constituents = dict()
+            return new_self
+
+        if isinstance(arg, str):
+            parse_list = parse_chemical_formula(arg.upper())
+        else:
+            parse_list = arg
+        new_self.name = name
+        parse_list = parse_list[0]
+        new_self.constituents = dict(parse_list)
+        return new_self
+
+    def __getnewargs__(self):
+        return self.name, self.constituents
+
+    def __eq__(self, other):
+        """Two components are the same if their names and constituents are the same."""
+        if isinstance(other, self.__class__):
+            return (self.name == other.name) and (self.constituents == other.constituents)
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def cast_from(cls, s: str) -> "Component":
+        return cls(s)
+
+    @property
+    def number_of_atoms(self):
+        "Number of atoms per formula unit. Vacancies do not count as atoms."
+        return sum(value for key, value in self.constituents.items() if key != 'VA')
+
+    def __repr__(self):
+        if self.name == '*':
+            return str(self.__class__.__name__)+'(\'*\')'
+        if self.name == '':
+            return str(self.__class__.__name__)+"(None)"
+        constituents = ''.join(['{}{}'.format(el, val) for el, val in sorted(self.constituents.items(), key=lambda t: t[0])])
+        return str(self.__class__.__name__) + f"(\'{self.name.upper()}\', \'{constituents}\')"
+
+    def __hash__(self):
+        return hash(self.name)
+
+    @property
+    def escaped_name(self):
+        "Name safe to embed in the variable name of complex arithmetic expressions."
+        return str(self)
 
 class Species(object):
     """
@@ -37,6 +131,12 @@ class Species(object):
         if arg.__class__ == cls:
             return arg
         new_self = object.__new__(cls)
+        if isinstance(arg, Component):
+            # TODO: maybe should have some base class so Component-Species aren't coupled, but it's probably okay?
+            new_self.name = arg.name
+            new_self.constituents = arg.constituents
+            new_self.charge = 0
+            return new_self
         if arg == '*':
             new_self = object.__new__(cls)
             new_self.name = '*'
@@ -113,6 +213,60 @@ class Species(object):
 
     def __hash__(self):
         return hash(self.name)
+
+
+def unpack_components(components: "Sequence[Component | Species | str]", dbf: Optional["Database"] = None):
+    """
+    Build a set of Components from ones provided by the caller.
+
+    The components can be given as:
+    1. Component objects, which are directly used
+    2. Species objects, which will be converted to Component objects
+    3. str objects, which will be resolved to a Component by:
+
+        a) matching with the name of a Species object present in the Database, or
+        b) by parsing the string via the Component constructor
+
+    Parameters
+    ----------
+    comps : Sequence[Component | Species | str]
+        Names of components to consider in the calculation.
+    dbf : Optional[Database]
+        Thermodynamic database containing elements and species. If no database is
+        passed, constructing Component objects via pattern matching to Species defined
+        in the Database (3a) will not be possible.
+
+    Returns
+    -------
+    set
+        Set of Component objects
+
+    Examples
+    --------
+    >>> from pycalphad import Database, variables as v
+    >>> dbf = Database()
+    >>> dbf.species.add(v.Species("WCL4", {"W": 1, "CL": 4}))
+    >>> dbf.species.add(v.Species("H+", {"H": 1.0}, charge=1.0))
+    >>> unpack_components([v.Component("NACL"), v.Species("H2O"), "SIO2", "K1CL1", "WCL4", "H+"], dbf)
+    """
+    desired_components = set()
+    if dbf is not None:
+        known_species = {sp.name: sp for sp in dbf.species}
+    else:
+        known_species = {}
+    for c in components:
+        if isinstance(c, Component):
+            desired_components.add(c)
+        elif isinstance(c, Species):
+            desired_components.add(Component(c.name, c.constituents))
+        else:
+            if c in known_species:
+                c = known_species[c]
+                desired_components.add(Component(c.name, c.constituents))
+            else:
+                desired_components.add(Component(c))
+    return desired_components
+
 
 class StateVariable(Symbol):
     """
@@ -233,7 +387,10 @@ class SiteFraction(StateVariable):
         #pylint: disable=E1121
         super().__init__(varname)
         self.phase_name = phase_name.upper()
-        self.sublattice_index = int(subl_index)
+        if subl_index == '*':
+            self.sublattice_index = '*'
+        else:
+            self.sublattice_index = int(subl_index)
         self.species = Species(species)
         if '#' in phase_name:
             self._self_without_suffix = self.__class__(self.phase_name_without_suffix, subl_index, species)
@@ -241,9 +398,14 @@ class SiteFraction(StateVariable):
             self._self_without_suffix = self
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
-        state_variables = compsets[0].phase_record.state_variables
-        result = np.atleast_1d(np.zeros(self.shape))
+        result = np.atleast_1d(np.full(self.shape, fill_value=np.nan))
+        state_variables = None
         for _, compset in self.filtered(compsets):
+            # we'll only hit this code path if this phase is present in the list of compsets
+            if state_variables is None:
+                state_variables = compsets[0].phase_record.state_variables
+            if np.all(np.isnan(result)):
+                result[0] = 0.0
             site_fractions = compset.phase_record.variables
             sitefrac_idx = site_fractions.index(self._self_without_suffix)
             result[0] += compset.dof[len(state_variables)+sitefrac_idx]
@@ -270,20 +432,24 @@ class SiteFraction(StateVariable):
             return [self.__class__(phase_name, self.sublattice_index, self.species) for phase_name in phase_names]
         elif components is not None:
             return [self.__class__(self.phase_name, self.sublattice_index, comp) for comp in components]
+        elif sublattice_indices is not None:
+            return [self.__class__(self.phase_name, idx, self.species) for idx in sublattice_indices]
         else:
             raise ValueError('All arguments are None')
 
     def _latex(self, printer=None):
         "LaTeX representation."
-        #pylint: disable=E1101
         return r'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
             '}}_{'+str(self.sublattice_index)+r',\mathrm{'+self.species.escaped_name+'}}'
 
     def __str__(self):
         "String representation."
-        #pylint: disable=E1101
-        return 'Y(%s,%d,%s)' % \
-            (self.phase_name, self.sublattice_index, self.species.escaped_name)
+        if self.sublattice_index == '*':
+            return 'Y(%s,%s,%s)' % \
+                (self.phase_name, self.sublattice_index, self.species.escaped_name)
+        else:
+            return 'Y(%s,%d,%s)' % \
+                (self.phase_name, self.sublattice_index, self.species.escaped_name)
 
 class PhaseFraction(StateVariable):
     """
@@ -335,12 +501,12 @@ class MoleFraction(StateVariable):
         species = None
         if len(args) == 1:
             # this is an overall composition variable
-            species = Species(args[0])
+            species = Component(args[0])
             varname = 'X_' + species.escaped_name.upper()
         elif len(args) == 2:
             # this is a phase-specific composition variable
             phase_name = args[0].upper()
-            species = Species(args[1])
+            species = Component(args[1])
             varname = 'X_' + phase_name + '_' + species.escaped_name.upper()
         else:
             # not defined
@@ -350,7 +516,7 @@ class MoleFraction(StateVariable):
         super().__init__(varname)
         self.phase_name = phase_name
         self.species = species
-    
+
     def expand_wildcard(self, phase_names=None, components=None):
         if phase_names is not None:
             return [self.__class__(phase_name, self.species) for phase_name in phase_names]
@@ -361,7 +527,7 @@ class MoleFraction(StateVariable):
                 return [self.__class__(self.phase_name, comp) for comp in components]
         else:
             raise ValueError('Both phase_names and components are None')
-    
+
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
@@ -469,12 +635,12 @@ class MassFraction(StateVariable):
         species = None
         if len(args) == 1:
             # this is an overall composition variable
-            species = Species(args[0])
+            species = Component(args[0])
             varname = 'W_' + species.escaped_name.upper()
         elif len(args) == 2:
             # this is a phase-specific composition variable
             phase_name = args[0].upper()
-            species = Species(args[1])
+            species = Component(args[1])
             varname = 'W_' + phase_name + '_' + species.escaped_name.upper()
         else:
             # not defined
@@ -527,7 +693,7 @@ def get_mole_fractions(mass_fractions, dependent_species, pure_element_mass_dict
     ----------
     mass_fractions : Mapping[MassFraction, float]
 
-    dependent_species : Union[Species, str]
+    dependent_species : Union[Component, str]
         Dependent species not appearing in the independent mass fractions.
 
     pure_element_mass_dict : Union[Mapping[str, float], pycalphad.Database]
@@ -542,7 +708,7 @@ def get_mole_fractions(mass_fractions, dependent_species, pure_element_mass_dict
     if not all(isinstance(mf, MassFraction) for mf in mass_fractions):
         from pycalphad.core.errors import ConditionError
         raise ConditionError("All mass_fractions must be instances of MassFraction (v.W). Got ", mass_fractions)
-    dependent_species = Species(dependent_species)
+    dependent_species = Component(dependent_species)
     species_mass_fracs = {mf.species: frac for mf, frac in mass_fractions.items()}
     all_species = set(species_mass_fracs.keys()) | {dependent_species}
     # Check if the mass dict is a Database, which is the source of the mass_dict
@@ -574,7 +740,7 @@ def get_mass_fractions(mole_fractions, dependent_species, pure_element_mass_dict
     ----------
     mass_fractions : Mapping[MoleFraction, float]
 
-    dependent_species : Union[Species, str]
+    dependent_species : Union[Component, str]
         Dependent species not appearing in the independent mass fractions.
 
     pure_element_mass_dict : Union[Mapping[str, float], pycalphad.Database]
@@ -589,7 +755,7 @@ def get_mass_fractions(mole_fractions, dependent_species, pure_element_mass_dict
     if not all(isinstance(mf, MoleFraction) for mf in mole_fractions):
         from pycalphad.core.errors import ConditionError
         raise ConditionError("All mole_fractions must be instances of MoleFraction (v.X). Got ", mole_fractions)
-    dependent_species = Species(dependent_species)
+    dependent_species = Component(dependent_species)
     species_mole_fracs = {mf.species: frac for mf, frac in mole_fractions.items()}
     all_species = set(species_mole_fracs.keys()) | {dependent_species}
     # Check if the mass dict is a Database, which is the source of the mass_dict
@@ -622,12 +788,17 @@ class ChemicalPotential(StateVariable):
     display_name = property(lambda self: f'Chemical Potential {self.species}')
 
     def __init__(self, species):
-        species = Species(species)
+        species = Component(species)
         varname = 'MU_' + species.escaped_name.upper()
         super().__init__(varname)
         self.species = species
 
+    def expand_wildcard(self, components):
+        return [self.__class__(comp) for comp in components]
+
     def compute_property(self, compsets, cur_conds, chemical_potentials):
+        if len(compsets) == 0:
+            return np.atleast_1d(np.full(self.shape, fill_value=np.nan))
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]
@@ -638,6 +809,8 @@ class ChemicalPotential(StateVariable):
 
     def jansson_derivative(self, compsets, cur_conds, chemical_potentials, deltas: JanssonDerivativeDeltas):
         "Compute Jansson derivative with self as numerator, with the given deltas"
+        if len(compsets) == 0:
+            return np.full(self.shape, np.nan)
         phase_record = compsets[0].phase_record
         el_indices = [(phase_record.nonvacant_elements.index(k), v)
                        for k, v in self.species.constituents.items()]

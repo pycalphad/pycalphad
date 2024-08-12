@@ -745,6 +745,33 @@ def test_tdb_parser_raises_unterminated_parameters():
     with pytest.raises(ParseException):
         Database(UNTERMINATED_PARAM_STR)
 
+def test_tdb_parser_correct_lineno():
+    """Line number is correctly reported during a parser exception."""
+    # The PARAMETER G(BCC,FE:H;0) parameter is not terminated by an `!`.
+    # The parser merges all newlines until the `!`, meaning both parameters
+    # will be joined on one "line". The parser should raise an error.
+    UNTERMINATED_PARAM_STR = """     PARAMETER G(BCC,FE:H;0) 298.15  +GHSERFE+1.5*GHSERHH
+        +258000-3170*T+498*T*LN(T)-0.275*T**2; 1811.00  Y
+        +232264+82*T+1*GHSERFE+1.5*GHSERHH; 6000.00  N
+
+     PARAMETER G(BCC,FE:VA;0)      298.15 +GHSERFE; 6000 N ZIM !
+    """
+    with pytest.raises(ParseException) as excinfo:
+        Database(UNTERMINATED_PARAM_STR)
+    assert excinfo.value.lineno == 5
+    assert excinfo.value.column == 16
+
+    # The third line has a ; instead of , character (see "[...]LI,LU;MG,MN[...]")
+    INCORRECT_DELIMITER_STR = """PHASE LIQUID % 1 1 !
+    CONSTITUENT LIQUID : AG,AL,AM,AS,AU,B,BA,BE,BI,C,CA,CD,CE,CO,CR,CS,CU,DY,ER,
+    EU,FE,GA,GD,GE,HF,HG,HO,IN,IR,K,LA,LI,LU;MG,MN,MO,N,NA,NB,ND,NI,NP,O,OS,P,PA,
+    PB,PD,PR,PT,PU,RB,RE,RH,RU,S,SB,SC,SE,SI,SM,SN,SR,TA,TB,TC,TE,TH,TI,TL,TM,U,V,
+    W,Y,YB,ZN,ZR : !
+    """
+    with pytest.raises(ParseException) as excinfo:
+        Database(INCORRECT_DELIMITER_STR)
+    assert excinfo.value.lineno == 3
+    assert excinfo.value.column == 45
 
 @select_database("alfe.tdb")
 def test_load_database_when_given_in_lowercase(load_database):

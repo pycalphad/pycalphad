@@ -1,22 +1,47 @@
 from numpy.testing import assert_allclose
 import numpy as np
-from pycalphad import Workspace, variables as v
+from pycalphad import Database, Workspace, variables as v
 from pycalphad.core.conditions import ConditionError
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property, ComputableProperty, T0, IsolatedPhase, DormantPhase
 from pycalphad.property_framework.units import Q_
-from pycalphad.tests.fixtures import load_database, select_database
+from pycalphad.tests.fixtures import load_database, select_database, ConvergenceFailureSolver
 import pytest
+from collections import Counter
 
 @pytest.mark.solver
 @select_database("alzn_mey.tdb")
 def test_workspace_creation(load_database):
     dbf = load_database()
+    Workspace() # test empty workspace creation
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
                     conditions={v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
     wks2 = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1', 'HCP_A3', 'LIQUID'],
                      {v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
     assert_allclose(wks.eq.GM, wks2.eq.GM)
+
+@select_database("alzn_mey.tdb")
+def test_workspace_dependency_init_order(load_database):
+    dbf = load_database()
+    attrcounter = Counter()
+    class TestWorkspace(Workspace):
+        def __setattr__(self, attr, val):
+            attrcounter[attr] += 1
+            super().__setattr__(attr, val)
+    twks = TestWorkspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                         conditions={v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3})
+    del attrcounter['_suspend_dependency_updates']
+    firstcase = set(attrcounter.values())
+    models = twks.models
+    phase_record_factory = twks.phase_record_factory
+    attrcounter.clear()
+    twks = TestWorkspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+                         conditions={v.N: 1, v.P: 1e5, v.T: (300, 1000, 10), v.X('ZN'): 0.3},
+                         models=models, phase_record_factory=phase_record_factory)
+    del attrcounter['_suspend_dependency_updates']
+    secondcase = set(attrcounter.values())
+    assert len(firstcase) == 1 and next(iter(firstcase)) == 1
+    assert len(secondcase) == 1 and next(iter(secondcase)) == 1
 
 @select_database("alzn_mey.tdb")
 def test_workspace_conditions_change_clear_result(load_database):
@@ -71,6 +96,16 @@ def test_tzero_property(load_database):
     my_tzero.maximum_value = 1.0
     t0_composition = wks.get(my_tzero)
     assert_allclose(t0_composition, 0.86119, atol=my_tzero.residual_tol)
+
+@select_database("alzn_mey.tdb")
+def test_isolated_phase_with_suspended_parent(load_database):
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1'],
+                    conditions={v.N: 1, v.P: 1e5, v.T: 600, v.X('ZN'): 0.3})
+    # liquid is not entered in the parent workspace
+    iph = IsolatedPhase('LIQUID', wks=wks)
+    energy = wks.get(iph('GM'))
+    assert not np.any(np.isnan(energy))
 
 @select_database("alzn_mey.tdb")
 def test_jansson_derivative_binary_temperature(load_database):
@@ -228,6 +263,32 @@ def test_miscibility_gap_cpf_specifier(load_database):
     fcc_3 = wks.get('X(FCC_A1#3,ZN)')
     assert np.isnan(fcc_3)
 
+@select_database("cumg.tdb")
+def test_component_wildcards(load_database):
+    """Wildcards of properties that depend on components should expand without phase constituent Species like vacancies"""
+    dbf = load_database()
+    components = ["CU", "MG", "VA"]
+    phases = list(dbf.phases.keys())
+    wks = Workspace(dbf, components, phases, {v.N:1, v.P:1e5, v.T:300, v.X("MG"): 0.25})
+    # expansions for component properties
+    X_fracs = wks.get("X(*)")
+    np.testing.assert_almost_equal([0.75, 0.25], X_fracs)
+    chempots = wks.get("MU(*)")
+    np.testing.assert_almost_equal([-9949.7314137, -43634.7588925], chempots)
+    # site fraction expansions _should_ have species
+    Y_fracs = wks.get("Y(FCC_A1,0,*)")  # FCC CU,MG
+    np.testing.assert_almost_equal([0.998168, 0.001832], Y_fracs)
+    Y_fracs = wks.get("Y(FCC_A1,*,*)")  # FCC CU,MG,VA
+    np.testing.assert_almost_equal([0.998168, 0.001832, 1.0], Y_fracs)
+    # change phases to simplify phase expansion
+    wks.phases = ["FCC_A1", "LIQUID", "CU2MG"]
+    Y_fracs = wks.get("Y(*,*,*)")
+    np.testing.assert_almost_equal([
+        1.0, 1.6126622e-12, 1.1836675e-06, 9.9999882e-01,  # CU2MG CU,MG:CU,MG
+        0.998168, 0.001832, 1.0,                           # FCC_A1 CU,MG:VA
+        np.nan, np.nan,                                           # LIQUID CU,MG
+        ], Y_fracs)
+
 @pytest.mark.solver
 @select_database("cumg.tdb")
 def test_site_fraction_conditions(load_database):
@@ -265,8 +326,8 @@ def test_jansson_derivative_chempot_condition(load_database):
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
 
-def test_issue_503_pure_vacancy_charge_balance():
-    "Pure vacancy phases are correctly suspended (gh-503)"
+def test_issue_503_suspend_phase_infeasible_internal_constraints():
+    "Phases that cannot satisfy internal constraints are correctly suspended (gh-503)"
     TDB = """
     ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
     ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
@@ -279,6 +340,88 @@ def test_issue_503_pure_vacancy_charge_balance():
     PHASE GAS:G %  1  1.0  !
     CONSTITUENT GAS:G :O,ZR :  !
     """
-    wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 1, v.T: 1000})
+    # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
+    wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 0.5, v.T: 1000})
+    print(wks.get_dict('X(*,*)'))
     assert np.isnan(wks.get('NP(SPINEL)'))
     np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
+
+
+@select_database("cumg.tdb")
+def test_workspace_convergence_failures(load_database):
+    """Convergence failures should propagate NaNs through to computed properties"""
+    dbf = load_database()
+    components = ["CU", "MG", "VA"]
+    phases = ["LIQUID", "FCC_A1"]
+    wks = Workspace(dbf, components, phases, {v.N:1, v.P:1e5, v.T:300, v.X("MG"): 0.5}, solver=ConvergenceFailureSolver())
+    assert len(wks.get_composition_sets()) == 0  # convergence failures should have no stable composition sets
+    assert np.isnan(wks.get("X(MG)"))
+    assert np.isnan(wks.get("X(FCC_A1,MG)"))
+    assert np.isnan(wks.get("Y(FCC_A1,0,MG)"))
+    assert np.isnan(wks.get("GM"))
+    assert np.isnan(wks.get(IsolatedPhase("LIQUID", wks=wks)("GM")))
+    assert np.isnan(wks.get(DormantPhase("CUMG2", wks=wks)("GM")))
+    assert np.isnan(wks.get("MU(CU)"))
+    chempots = wks.get("MU(*)")
+    assert np.asarray(chempots).shape == (2,)
+    assert np.all(np.isnan(chempots))
+    assert np.isnan(wks.get("MU(CU).X(MG)"))
+    phase_fractions = wks.get("NP(*)")
+    assert np.asarray(phase_fractions).shape == (len(phases),)
+    assert np.all(np.isnan(phase_fractions))
+
+
+@select_database("al2o3_nd2o3_zro2.tdb")
+def test_components_are_updated_when_database_changes(load_database):
+    dbf = load_database()
+    phases = list(set(dbf.phases.keys()) - {"I_LIQUID"})
+    wks = Workspace(dbf, phases=phases)
+    # by default: all pure elements
+    assert set(wks.components) == set({v.Component("AL"), v.Component("ND"), v.Component("ZR"), v.Component("O"), v.Component("VA")})
+    wks.database = Database()
+    assert set(wks.components) == set()
+    wks.database = dbf
+    assert set(wks.components) == set({v.Component("AL"), v.Component("ND"), v.Component("ZR"), v.Component("O"), v.Component("VA")})
+
+
+@select_database("al2o3_nd2o3_zro2.tdb")
+def test_constituents_are_updated_when_components_change(load_database):
+    dbf = load_database()
+    # NOTE: I_LIQUID is currently broken in this database (no vacancies in I2SL
+    # constituents), so we remove that from the phases list. We should be able
+    # to rely on the default constructor once that is fixed.
+    phases = list(set(dbf.phases.keys()) - {"I_LIQUID"})
+    wks = Workspace(dbf, phases=phases)
+    # by default: all pure elements
+    assert set(wks.components) == set({v.Component("AL"), v.Component("ND"), v.Component("ZR"), v.Component("O"), v.Component("VA")})
+    all_expected_species = {
+        v.Species('AL'),
+        v.Species('AL+3', charge=3),
+        v.Species('ALO3/2', {"AL": 1, "O": 1.5}),
+        v.Species('ND'),
+        v.Species('ND+3', charge=3),
+        v.Species('O'),
+        v.Species('O-2', charge=-2),
+        v.Species('O2', {"O": 2}),
+        v.Species('VA'),
+        v.Species('ZR'),
+        v.Species('ZR+4', charge=4)
+    }
+
+    assert set(wks.constituents) == all_expected_species
+
+    # Remove Zr
+    wks.components = ["AL", "ND", "O", "VA"]
+    assert set(wks.components) == set({v.Component("AL"), v.Component("ND"), v.Component("O"), v.Component("VA")})
+    noZR_expected_species = {
+        v.Species('AL'),
+        v.Species('AL+3', charge=3),
+        v.Species('ALO3/2', {"AL": 1, "O": 1.5}),
+        v.Species('ND'),
+        v.Species('ND+3', charge=3),
+        v.Species('O'),
+        v.Species('O-2', charge=-2),
+        v.Species('O2', {"O": 2}),
+        v.Species('VA'),
+    }
+    assert set(wks.constituents) == noZR_expected_species

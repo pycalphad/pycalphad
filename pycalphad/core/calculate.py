@@ -18,7 +18,7 @@ from pycalphad.core.polytope import sample
 from pycalphad.model import Model
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     get_pure_elements, filter_phases, instantiate_models, point_sample, \
-    unpack_components, unpack_condition, unpack_kwarg
+    unpack_species, unpack_condition, unpack_kwarg
 from pycalphad.core.constants import MIN_SITE_FRACTION, MAX_ENDMEMBER_PAIRS, MAX_EXTRA_POINTS
 
 
@@ -422,7 +422,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         phases = [phases]
     if isinstance(comps, (str, v.Species)):
         comps = [comps]
-    comps = sorted(unpack_components(dbf, comps))
+    comps = sorted(unpack_species(dbf, comps))
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
     nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]

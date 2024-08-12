@@ -6,7 +6,7 @@ import numpy as np
 
 from pycalphad import Database, variables as v
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
-from pycalphad.core.utils import instantiate_models, unpack_components, filter_phases, get_pure_elements, get_state_variables
+from pycalphad.core.utils import instantiate_models, filter_phases, unpack_species, get_pure_elements, get_state_variables
 from pycalphad.core.composition_set import CompositionSet
 
 
@@ -20,23 +20,31 @@ _log = logging.getLogger(__name__)
 
 class MapStrategy:
     """
-    Base strategy class for phase diagram construction
+    Base strategy class for phase diagram construction.
 
-    Derived classes:
-        SteppingStrategy - for single axis diagrams
-        BinaryStrategy - for binary phase diagrams (1 composition, 1 potential axis)
-        TernaryStrategy - for ternary phase diagrams (2 composition axis)
-        IsoplethStrategy - for isopleths (this has only been tested for 1 composition, 1 potential axis so far)
+    Derived Classes
+    ---------------
+    - SteppingStrategy: For single-axis diagrams.
+    - BinaryStrategy: For binary phase diagrams (1 composition, 1 potential axis).
+    - TernaryStrategy: For ternary phase diagrams (2 composition axes).
+    - IsoplethStrategy: For isopleths (tested only for 1 composition, 1 potential axis so far).
 
     Constants
-        DELTA_SCALE = 0.5 - factor to scale down step size if a single step iteration was unsuccessfuly
-        MIN_DELTA_RATIO = 0.1 - minimum step size (as ratio of default) before stopping zpf line iteration
-        GLOBAL_CHECK_INTERVAL = 1 - number of iterations before global min check. Proceed with caution for any interval >1.
-        GLOBAL_MIN_PDENS = 500 - sampling density for global min check
-        GLOBAL_MIN_TOL = 1e-4 - minimum driving force for a composition set to pass global min check
-        GLOBAL_MIN_NUM_CANDIDATES = 1 - number of candidates to search through for finding global min
-                                        sometimes, global min can be missed if the sampling is poor, so checking the n-best candidates can help
+    ---------
+    DELTA_SCALE : float
+        Factor to scale down step size if a single step iteration was unsuccessful (default: 0.5).
+    MIN_DELTA_RATIO : float
+        Minimum step size (as ratio of default) before stopping ZPF line iteration (default: 0.1).
+    GLOBAL_CHECK_INTERVAL : int
+        Number of iterations before global minimum check. Proceed with caution for any interval >1 (default: 1).
+    GLOBAL_MIN_PDENS : int
+        Sampling density for global minimum check (default: 500).
+    GLOBAL_MIN_TOL : float
+        Minimum driving force for a composition set to pass the global minimum check (default: 1e-4).
+    GLOBAL_MIN_NUM_CANDIDATES : int
+        Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1).
     """
+
     def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
         if isinstance(dbf, str):
             dbf = Database(dbf)
@@ -45,14 +53,14 @@ class MapStrategy:
         # Don't add vacancies to components in case user needs to restrict non-stoichiometric phases
         self.components = sorted(components)
         self.elements = get_pure_elements(self.dbf, self.components)
-        self.phases = filter_phases(self.dbf, unpack_components(self.dbf, self.components), phases)
+        self.phases = filter_phases(self.dbf, unpack_species(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)
 
         # Add v.N to conditions. Mapping assumes that v.N is in conditions
         if v.N not in self.conditions:
             self.conditions[v.N] = 1
 
-        
+
         self.axis_vars = [key for key, val in self.conditions.items() if len(np.atleast_1d(val)) > 1]
 
         composition_sum = sum([conditions[var] for var in conditions if (isinstance(var, v.MoleFraction) and var not in self.axis_vars)])
@@ -255,7 +263,7 @@ class MapStrategy:
                 curr_point = zpf_line.points[-1]
                 prev_point = zpf_line.points[-2]
                 dv = [(curr_point.get_property(av) - prev_point.get_property(av))/self.normalize_factor(av) for av in self.axis_vars]
-                
+
                 # We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
                 # We also can get the direction from the change in variable
                 index = np.argmax(np.abs(dv))

@@ -941,13 +941,10 @@ def read_tdb(dbf, fd):
     """
     lines = fd.read().upper()
     lines = lines.replace('\t', ' ')
-    lines = lines.strip()
     # Split the string by newlines
     splitlines = lines.split('\n')
-    # Remove extra whitespace inside line
-    splitlines = [' '.join(k.split()) for k in splitlines]
     # Remove comments
-    splitlines = [k.strip().split('$', 1)[0] for k in splitlines]
+    splitlines = [k.split('$', 1)[0] for k in splitlines]
     # Remove everything after command delimiter, but keep the delimiter so we can split later
     splitlines = [k.split('!')[0] + ('!' if len(k.split('!')) > 1 else '') for k in splitlines]
     # Combine everything back together
@@ -963,17 +960,27 @@ def read_tdb(dbf, fd):
 
     grammar = _tdb_grammar()
 
+    char_idx = 0
     for command in commands:
         if len(command) == 0:
             continue
-        tokens = None
         try:
             tokens = grammar.parseString(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
-        except:
-            print("Failed while parsing: " + command)
-            print("Tokens: " + str(tokens))
-            raise
+        except ParseException as e:
+            context = e.line + '\n' + (" " * (e.column - 1) + "^")
+            # pyparsing is only given one line at a time, so we modify
+            # the exception metadata to correspond with the original input
+            err_char_idx = char_idx + (e.column - 1) # e.column is an index that starts at 1
+            joinedlines = "\n".join(splitlines)
+            e.pstr = joinedlines
+            e.loc = err_char_idx
+            # context variable includes a helpful cursor aligned with the 'error character'
+            # this requires being on a newline so it renders correctly in consoles
+            e.msg = f'Invalid TDB syntax.\n{context}'
+            raise e
+        # Add 1 for removed '!' delimiter
+        char_idx += len(command) + 1
 
     # Process type definitions last, updating model_hints for defined phases.
     for typechar, line in dbf._typedefs_queue:

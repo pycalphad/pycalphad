@@ -3,7 +3,7 @@ from collections import OrderedDict, Counter, defaultdict
 from copy import copy
 from pycalphad.property_framework.computed_property import JanssonDerivative
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models
+from pycalphad.core.utils import unpack_species, unpack_condition, unpack_phases, filter_phases, instantiate_models
 from pycalphad import calculate
 from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
@@ -48,9 +48,15 @@ def _adjust_conditions(conds) -> OrderedDict[StateVariable, List[float]]:
             new_conds[key] = Q_(new_conds[key], units=key.display_units).to(key.implementation_units)
     return new_conds
 
-class SpeciesList:
+class ComponentList:
     @classmethod
-    def cast_from(cls, s: Sequence) -> "SpeciesList":
+    def cast_from(cls, s: Sequence[SumType([str, v.Component])]) -> "ComponentList":
+        # no Database, so we don't get Species lookup support here, it's implemented in ComponentsField
+        return v.unpack_components(s)
+
+class ConstituentsList:
+    @classmethod
+    def cast_from(cls, s: Sequence) -> "ConstituentsList":
         return sorted(Species.cast_from(x) for x in s)
 
 class PhaseList:
@@ -123,19 +129,43 @@ class TypedField:
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
         "A callback method that can be overridden to define custom behavior when a dependent attribute is updated."
-        pass
+        if obj._suspend_dependency_updates:
+            return
 
 class ComponentsField(TypedField):
     def __init__(self, depends_on=None):
-        super().__init__(default_factory=lambda obj: unpack_components(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
-                         depends_on=depends_on)
+        get_pure_element_components = lambda obj: v.unpack_components(sorted(x for x in obj.database.elements if x != '/-'), obj.database)
+        super().__init__(default_factory=get_pure_element_components, depends_on=depends_on)
+
     def __set__(self, obj, value):
-        comps = sorted(unpack_components(obj.database, value))
+        comps = sorted(v.unpack_components(value, obj.database))
         super().__set__(obj, comps)
 
     def __get__(self, obj, objtype=None):
         getobj = super().__get__(obj, objtype=objtype)
-        return sorted(unpack_components(obj.database, getobj))
+        return sorted(v.unpack_components(getobj, obj.database))
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
+        self.__set__(obj, self.default_factory(obj))
+
+class ConstituentsField(TypedField):
+    def __init__(self, depends_on=None):
+        super().__init__(default_factory=lambda obj: unpack_species(obj.database, sorted(x.name for x in obj.database.species if x.name != '/-')),
+                         depends_on=depends_on)
+    def __set__(self, obj, value):
+        constituents = sorted(unpack_species(obj.database, value))
+        super().__set__(obj, constituents)
+
+    def __get__(self, obj, objtype=None):
+        getobj = super().__get__(obj, objtype=objtype)
+        return sorted(unpack_species(obj.database, getobj))
+
+    def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
+        self.__set__(obj, unpack_species(obj.database, obj.components))
 
 class PhasesField(TypedField):
     def __init__(self, depends_on=None):
@@ -165,15 +195,18 @@ class DictField(TypedField):
             def __iter__(pxy):
                 return TypedField.__get__(self, obj).__iter__()
             def __setitem__(pxy, item, value):
-                conds = TypedField.__get__(self, obj)
+                # we are careful not to mutate the original, by making a copy; if we don't, it will break cache invalidation
+                conds = copy(TypedField.__get__(self, obj))
                 conds[item] = value
                 self.__set__(obj, conds)
             def update(pxy, new_conds):
-                conds = TypedField.__get__(self, obj)
+                # we are careful not to mutate the original, by making a copy; if we don't, it will break cache invalidation
+                conds = copy(TypedField.__get__(self, obj))
                 conds.update(new_conds)
                 self.__set__(obj, conds)
             def __delitem__(pxy, item):
-                conds = TypedField.__get__(self, obj)
+                # we are careful not to mutate the original, by making a copy; if we don't, it will break cache invalidation
+                conds = copy(TypedField.__get__(self, obj))
                 del conds[item]
                 self.__set__(obj, conds)
             def __len__(pxy):
@@ -211,6 +244,8 @@ class ModelsField(DictField):
             super().__set__(obj, None)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
         self.__set__(obj, self.default_factory(obj))
 
 class PRFField(TypedField):
@@ -226,10 +261,18 @@ class PRFField(TypedField):
         super().__init__(default_factory=make_prf, depends_on=depends_on)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
+        # changes in conditions values (as opposed to keys) do not affect the PhaseRecordFactory
+        if updated_attribute == 'conditions' and (old_val is not None) and \
+            (list(old_val.keys()) == list(new_val.keys())):
+            return
         self.__set__(obj, self.default_factory(obj))
 
 class SolverField(TypedField):
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
         self.__set__(obj, self.default_factory(obj))
 
 class EquilibriumCalculationField(TypedField):
@@ -243,18 +286,24 @@ class EquilibriumCalculationField(TypedField):
         return getattr(obj, self.private_name)
 
     def on_dependency_update(self, obj, updated_attribute, old_val, new_val):
+        if obj._suspend_dependency_updates:
+            return
         self.__set__(obj, None)
 
 
 # Defined to allow type checking for Model or its subclasses
 ModelType = TypeVar('ModelType', bound=Model)
 
+# TODO: enable converting v.X conditions for v.Component objects into
+# LinearCombination conditions for components with more than one constituent
+
 class Workspace:
     _callbacks = defaultdict(lambda: [])
-    database: Database = TypedField(lambda _: None)
-    components: SpeciesList = ComponentsField(depends_on=['database'])
+    database: Database = TypedField(lambda _: Database())
+    components: ComponentList = ComponentsField(depends_on=['database'])
+    constituents: ConstituentsList = ConstituentsField(depends_on=['database', 'components'])
     phases: PhaseList = PhasesField(depends_on=['database', 'components'])
-    conditions: Conditions = ConditionsField(lambda wks: Conditions(wks))
+    conditions: Conditions = ConditionsField(lambda wks: Conditions(wks), depends_on=['components', 'models'])
     verbose: bool = TypedField(lambda _: False)
     models: Mapping[PhaseName, ModelType] = ModelsField(depends_on=['phases', 'parameters'])
     parameters: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
@@ -262,17 +311,32 @@ class Workspace:
     calc_opts: SumType([NoneType, Dict]) = DictField(lambda _: OrderedDict())
     solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), depends_on=['verbose'])
     # eq is set by a callback in the EquilibriumCalculationField (TypedField)
-    eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'calc_opts', 'solver'])
+    eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'conditions', 'calc_opts', 'solver'])
 
     def __init__(self, *args, **kwargs):
+        self._suspend_dependency_updates = True
+        self._eq = None # manually initialized since we don't initialize the public name 'eq' (see below)
         # Assume positional arguments are specified in class typed-attribute definition order
         for arg, attrname in zip(args, ['database', 'components', 'phases', 'conditions']):
-            setattr(self, attrname, arg)
+            kwargs[attrname] = arg
         attributes = list(self.__annotations__.keys())
+        # avoid unnecessary work by initializing in a graph-optimal order (least-dependent first)
+        # don't include 'eq' in the init order to avoid an expensive code path in the partially initialized case
+        init_order = ['database', 'verbose', 'parameters', 'calc_opts', 'solver',
+                      'components', 'constituents', 'phases', 'models', 'conditions', 'phase_record_factory']
+        for kwarg_name in init_order:
+            if kwarg_name in kwargs.keys():
+                setattr(self, kwarg_name, kwargs[kwarg_name])
+            else:
+                # trigger default constructor (which is allowed to fail)
+                getattr(self, kwarg_name)
         for kwarg_name, kwarg_val in kwargs.items():
+            if kwarg_name in init_order:
+                continue
             if kwarg_name not in attributes:
                 raise ValueError(f'{kwarg_name} is not a Workspace attribute')
             setattr(self, kwarg_name, kwarg_val)
+        self._suspend_dependency_updates = False
 
     def recompute(self):
         # Assumes implementation units from this point
@@ -325,18 +389,23 @@ class Workspace:
                 phase_names = sorted(self.phase_record_factory.keys())
                 additional_args = args[i].expand_wildcard(phase_names=phase_names)
                 args.extend(additional_args)
-            elif hasattr(args[i], 'species') and args[i].species == v.Species('*'):
+            elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == '*':
+                # We need to resolve sublattice_index before species to ensure we
+                # get the correct set of phase constituents for each sublattice
+                indices_to_delete.append(i)
+                sublattice_indices = sorted(set([x.sublattice_index for x in self.phase_record_factory[args[i].phase_name].variables]))
+                additional_args = args[i].expand_wildcard(sublattice_indices=sublattice_indices)
+                args.extend(additional_args)
+            elif hasattr(args[i], 'species') and args[i].species.name == '*':
                 indices_to_delete.append(i)
                 internal_to_phase = hasattr(args[i], 'sublattice_index')
                 if internal_to_phase:
-                    components = [x for x in self.phase_record_factory[args[i].phase_name].variables
+                    components = [x.species for x in self.phase_record_factory[args[i].phase_name].variables
                                   if x.sublattice_index == args[i].sublattice_index]
                 else:
-                    components = self.components
+                    components = [comp for comp in self.components if comp != v.Component('VA')]  # TODO: Special case for vacancy
                 additional_args = args[i].expand_wildcard(components=components)
                 args.extend(additional_args)
-            elif hasattr(args[i], 'sublattice_index') and args[i].sublattice_index == v.Species('*'):
-                raise ValueError('Wildcard not yet supported in sublattice index')
             elif isinstance(args[i], JanssonDerivative):
                 numerator_args = [args[i].numerator]
                 self._expand_property_arguments(numerator_args)
@@ -358,7 +427,7 @@ class Workspace:
                     additional_args = args[i].expand_wildcard(phase_names=additional_phase_names)
                     args.extend(additional_args)
             i += 1
-        
+
         # Watch deletion order! Indices will change as items are deleted
         for deletion_index in reversed(indices_to_delete):
             del args[deletion_index]
@@ -440,7 +509,7 @@ class Workspace:
                                         [np.asarray(self.eq.coords[b][a], dtype=np.float64)
                                         for a, b in zip(index, str_conds_keys)]))
             chemical_potentials = prop_MU_values[index]
-            
+
             for arg in args:
                 prop_implementation_units, prop_display_units = arg_units[arg]
                 context = unit_conversion_context(composition_sets, arg)
@@ -467,5 +536,3 @@ class Workspace:
 
     def copy(self):
         return copy(self)
-
-
