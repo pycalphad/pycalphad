@@ -95,6 +95,12 @@ class IsoplethStrategy(MapStrategy):
                         alt_node.exit_hint = ExitHint.POINT_IS_EXIT
                         self.node_queue.add_node(alt_node, True)
 
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        Isopleth strategies will use a different API for custom starting points
+        since they require a point with a fixed composition set at 0
+        """
+        return None, None, "Isopleth strategy does not support single point equilibrium as starting points"
 
     def _find_exits_from_node(self, node: Node):
         """

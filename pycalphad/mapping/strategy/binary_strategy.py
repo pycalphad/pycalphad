@@ -157,6 +157,24 @@ class BinaryStrategy(MapStrategy):
                         node = self._create_node_from_point(new_point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT)
                         self.node_queue.add_node(node, True)
 
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        Modifies exit hint and direction based off number of composition sets
+            Single phase -> cannot be added
+            Two phase    -> point is exit, direction stays the same as input
+            Three phase  -> normal exit finding strategy, no direction needed
+
+        The three phase option is more than likely not needed, but added for completeness
+        """
+        if len(point.stable_composition_sets) <= 1:
+            return None, None, "Single phase detected"
+        elif len(point.stable_composition_sets) == 2:
+            return ExitHint.POINT_IS_EXIT, direction, None
+        elif len(point.stable_composition_sets) == 3:
+            return ExitHint.NORMAL, None, None
+        else:
+            return None, None, "More than three phases detected"
+
     def _find_exits_from_node(self, node: Node):
         """
         A node on for a binary system has three exits, which are combinations of 2 CS in the node

@@ -188,6 +188,24 @@ class TernaryStrategy(MapStrategy):
                         new_node = self._create_node_from_point(free_point, None, None, None)
                         self.node_queue.add_node(new_node)
 
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        Modifies exit hint and direction based off number of composition sets
+            Single phase -> cannot be added
+            Two phase    -> point is exit, direction stays the same as input
+            Three phase  -> normal exit finding strategy, no direction needed
+
+        This is the same as BinaryStrategy
+        """
+        if len(point.stable_composition_sets) <= 1:
+            return None, None, "Single phase detected"
+        elif len(point.stable_composition_sets) == 2:
+            return ExitHint.POINT_IS_EXIT, direction, None
+        elif len(point.stable_composition_sets) == 3:
+            return ExitHint.NORMAL, None, None
+        else:
+            return None, None, "More than three phases detected"
+
     def _find_exits_from_node(self, node: Node):
         """
         A node on for a ternary system has three exits, which are combinations of 2 CS in the node

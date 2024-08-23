@@ -178,13 +178,28 @@ class MapStrategy:
         if point is None:
             _log.warning(f"Point could not be found from {conditions}")
             return False
-        if direction is None:
-            _log.info(f"No direction is given, adding point from {conditions} with both directions")
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT), force_add)
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
+        
+        exit_hint, direction, err_reason = self._validate_custom_starting_point(point, direction)
+        if err_reason is not None:
+            _log.warning(f"Point could not be added at {conditions}. {err_reason}")
+            return False
+        
+        if exit_hint == ExitHint.NORMAL:
+            self.node_queue.add_node(self._create_node_from_point(point, None, None, None, exit_hint))
         else:
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
+            if direction is None:
+                _log.info(f"No direction is given, adding point from {conditions} with both directions")
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT), force_add)
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
+            else:
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
         return True
+    
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        For some strategy, we may need to modify the exit hint or direction based off the point conditions
+        """
+        return ExitHint.POINT_IS_EXIT, direction, None
 
     def _create_node_from_point(self, point: Point, parent: Point, start_ax: v.StateVariable, start_dir: Direction, exit_hint: ExitHint = ExitHint.NORMAL):
         """
