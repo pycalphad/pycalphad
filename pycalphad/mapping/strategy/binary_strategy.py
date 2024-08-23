@@ -211,7 +211,7 @@ class BinaryStrategy(MapStrategy):
     
     def _process_new_node(self, zpf_line: ZPFLine, new_node: Node):
         """
-        Post global eq check after finding node to ensure it's not a metastable node
+        Post global min check after finding node to ensure it's not a metastable node
         """
         _log.info("Checking if new node is metastable")
         cs_result = zeq._find_global_min_cs(new_node, system_info=self.system_info, pdens=self.GLOBAL_MIN_PDENS, tol=self.GLOBAL_MIN_TOL, num_candidates=self.GLOBAL_MIN_NUM_CANDIDATES)

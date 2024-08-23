@@ -6,6 +6,7 @@ import numpy as np
 
 from pycalphad import variables as v
 from pycalphad.core.composition_set import CompositionSet
+from pycalphad.property_framework import as_property
 
 CS_EQ_TOL = 1e-8
 MIN_COMPOSITION = 1e-6
@@ -88,6 +89,9 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : b
         return v.W(phase, var.species)
     elif isinstance(var, v.NP) or var == v.NP:
         return v.NP(phase)
+    elif isinstance(var, str):
+        # If var is a str, then convert to property
+        return as_property(var)
     else:
         return var
 

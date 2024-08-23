@@ -32,6 +32,8 @@ def get_label(var: v.StateVariable):
             return 'W({}, {})'.format(var.phase_name, var.species.name.capitalize())
     elif isinstance(var, v.MU):
         return 'MU({})'.format(var.species.name.capitalize())
+    elif isinstance(var, str):
+        return var
     # Otherwise, we can just use the display name
     else:
         return var.display_name
