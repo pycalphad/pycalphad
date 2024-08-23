@@ -334,9 +334,10 @@ def test_ternary_strategy_process_metastable_node(load_database):
     Tests how TernaryStrategy deals with nodes that are metastable
 
     This is done by purposely creating a known metastable node, which
-    the TernaryStrategy should be able to detect and add a stable node,
-    remove a zpf line, or adjust a zpf line delta depending on the current
-    state of the zpf line
+    the TernaryStrategy should be able to detect whether a node is metastable
+    and perform the following:
+        a) if node is metastable, do not add to node queue and remove zpf line
+        b) if node is stable, add to node queue
     """
     # Create system
     dbf = load_database()
@@ -365,39 +366,12 @@ def test_ternary_strategy_process_metastable_node(load_database):
     metastable_point = point_from_equilibrium(dbf, comps, metastable_phases, eq_conds, models=models, phase_record_factory=phase_record_factory)
     metastable_node = Node(metastable_point.global_conditions, metastable_point.chemical_potentials, [], metastable_point.stable_composition_sets, None)
 
-    # In _process_new_node
-    #    _check_full_global_equilibrium will return (False, Point)
-    #        Equilibrium check will detect metastable node and return new point if successful
-    #        New point will be BCC_A2 + LAVES_C14
-    #    test point phases and zpf line phases will differ by 0, so new point cannot be added as a node
-    #    zpf_line.current_delta is greater than minimum delta, so the current delta will be scaled down
+    # In _process_new_node, this will fail the global min check and remove the zpf line
     num_nodes = len(strategy.node_queue.nodes)
-    num_zpf_lines = len(strategy.zpf_lines)
-    old_zpf_delta = strategy.zpf_lines[0].current_delta
     strategy._process_new_node(strategy.zpf_lines[0], metastable_node)
-    # Test that zpf line was not removed
-    assert len(strategy.zpf_lines) == num_zpf_lines
-    # Test that zpf line can still continue
-    assert strategy.zpf_lines[0].status == ZPFState.NOT_FINISHED
-    # Test that zpf line delta was scaled down accordingly
-    assert np.isclose(old_zpf_delta*strategy.DELTA_SCALE, strategy.zpf_lines[0].current_delta)
-    # Test that no nodes were added
+    # Test that zpf line was removed for being a metastable node
+    assert len(strategy.zpf_lines) == 0
     assert len(strategy.node_queue.nodes) == num_nodes
-
-    # If zpf_line.current_delta is below minimum
-    #    _process_new node takes same path as before except
-    #    A new node will be created from the point returned by _check_full_global_equilibrium
-    #    and will be added to the node queue. The current zpf line will be removed since it
-    #    led to an incorrect node
-    num_nodes = len(strategy.node_queue.nodes)
-    num_zpf_lines = len(strategy.zpf_lines)
-    # Make current delta smaller than minimum
-    strategy.zpf_lines[0].current_delta = strategy.axis_delta[strategy.zpf_lines[0].axis_var] * 0.5 * strategy.MIN_DELTA_RATIO
-    strategy._process_new_node(strategy.zpf_lines[-1], metastable_node)
-    # Check that the zpf line was removed
-    assert len(strategy.zpf_lines) == num_zpf_lines - 1
-    # Check that a node was added to the queue
-    assert len(strategy.node_queue.nodes) == 1+num_nodes
 
     # _process_new_node with correct/stable node
     # This will pass the _check_full_global_equilibrium test and the node will be added

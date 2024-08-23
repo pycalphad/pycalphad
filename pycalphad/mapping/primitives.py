@@ -1,4 +1,4 @@
-from copy import deepcopy
+import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Mapping
@@ -89,11 +89,8 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : b
         return v.W(phase, var.species)
     elif isinstance(var, v.NP) or var == v.NP:
         return v.NP(phase)
-    elif isinstance(var, str):
-        # If var is a str, then convert to property
-        return as_property(var)
     else:
-        return var
+        return as_property(var)
 
 @dataclass
 class Point():
@@ -166,12 +163,12 @@ class Point():
 
     # Creates a deep copy of the point
     def create_copy(self):
-        return deepcopy(self)
+        return copy.deepcopy(self)
 
     # Creates point with deep copy of inputs (composition sets, conditions, chemical potentials)
     @classmethod
     def with_copy(cls, *args, **kwargs):
-        return cls(*deepcopy(args), **deepcopy(kwargs))
+        return cls(*copy.deepcopy(args), **copy.deepcopy(kwargs))
 
     def __eq__(self, other):
         """
@@ -228,7 +225,13 @@ class Point():
         Wrapper around compute property so I don't have long lines of code getting composition sets, conditions and chemical potentials everywhere
         We will also squeeze the results since v.MoleFraction seems to return an array
         """
-        return np.squeeze(var.compute_property(self.stable_composition_sets, self.global_conditions, self.chemical_potentials))
+        # Remove the last n conditions for each fixed composition set (points will have all conditions set regardless of the number of fixed composition sets)
+        # This allows for properties such as Jansson derivatives to compute since they require the Gibbs phase rule to be satisfied
+        adjusted_conds = copy.copy(self.global_conditions)
+        adjusted_conds_keys = list(self.global_conditions.keys())
+        for i in range(len(self.fixed_composition_sets)):
+            adjusted_conds.pop(adjusted_conds_keys[len(self.global_conditions)-1-i])
+        return np.squeeze(var.compute_property(self.stable_composition_sets, adjusted_conds, self.chemical_potentials))
 
     def get_local_property(self, comp_set: CompositionSet, var: v.StateVariable):
         """
