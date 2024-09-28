@@ -113,7 +113,6 @@ class StepStrategy(MapStrategy):
 
         return exits, exit_dirs
 
-
     def _determine_start_direction(self, node: Node, exit_point: Point, proposed_direction: Direction):
         """
         For stepping, only one direction is possible from a node since we either step positive or negative

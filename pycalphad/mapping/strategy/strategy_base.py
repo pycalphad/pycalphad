@@ -42,7 +42,10 @@ class MapStrategy:
     GLOBAL_MIN_TOL : float
         Minimum driving force for a composition set to pass the global minimum check (default: 1e-4).
     GLOBAL_MIN_NUM_CANDIDATES : int
-        Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1).
+        Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1000).
+        NOTE: this is not actually how many candidates the global eq check will solve the driving force. This value represents the N number of samples with the lowest sampled driving forces, then the driving
+              force is computed for all unique phases from the candidates (which in large databases, this might be as high as 10-20)
+              So increasing it to a high value does not significantly degrade performance and the phase diagrams will look better
     """
 
     def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
@@ -111,7 +114,7 @@ class MapStrategy:
         self.GLOBAL_CHECK_INTERVAL = kwargs.get("GLOBAL_CHECK_INTERVAL", 1)
         self.GLOBAL_MIN_PDENS = kwargs.get("GLOBAL_MIN_PDENS", 500)
         self.GLOBAL_MIN_TOL = kwargs.get("GLOBAL_MIN_TOL", 1e-4)
-        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1)
+        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1000)
 
     def _constant_kwargs(self):
         """
@@ -175,13 +178,28 @@ class MapStrategy:
         if point is None:
             _log.warning(f"Point could not be found from {conditions}")
             return False
-        if direction is None:
-            _log.info(f"No direction is given, adding point from {conditions} with both directions")
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT), force_add)
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
+        
+        exit_hint, direction, err_reason = self._validate_custom_starting_point(point, direction)
+        if err_reason is not None:
+            _log.warning(f"Point could not be added at {conditions}. {err_reason}")
+            return False
+        
+        if exit_hint == ExitHint.NORMAL:
+            self.node_queue.add_node(self._create_node_from_point(point, None, None, None, exit_hint))
         else:
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
+            if direction is None:
+                _log.info(f"No direction is given, adding point from {conditions} with both directions")
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT), force_add)
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
+            else:
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
         return True
+    
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        For some strategy, we may need to modify the exit hint or direction based off the point conditions
+        """
+        return ExitHint.POINT_IS_EXIT, direction, None
 
     def _create_node_from_point(self, point: Point, parent: Point, start_ax: v.StateVariable, start_dir: Direction, exit_hint: ExitHint = ExitHint.NORMAL):
         """
@@ -390,6 +408,7 @@ class MapStrategy:
             p2_pos = np.array([p2.get_property(av) for av in self.axis_vars])
             v21 = p1_pos - p2_pos
             vnode1 = node_pos - p1_pos
+            _log.info(f'Backtrack: {i}, {p1_pos}, {p2_pos}, {node_pos}, {np.dot(v21, vnode1)}')
             if np.dot(v21, vnode1) < 0:
                 del zpf_line.points[i]
             else:
