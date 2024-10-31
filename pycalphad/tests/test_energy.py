@@ -1286,3 +1286,42 @@ def test_QKTO_multicomponent_extrapolation(load_database):
     assert np.isclose(float(mod.moles("TC").subs(subs_dict)), 0.500, 1e-5)
     assert np.isclose(float(mod.moles("RU").subs(subs_dict)), 0.400, 1e-5)
     assert np.isclose(float(mod.moles("PD").subs(subs_dict)), 0.075, 1e-5)
+
+def test_higher_order_reciprocal_parameter():
+    test_tdb = """
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7423E+00!
+    ELEMENT MO   BCC_A2                    9.5940E+01  4.5890E+03  2.8560E+01!
+    ELEMENT NB   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01!
+
+    PHASE FCC_A1 % 2 1 1 !
+    CONSTITUENT FCC_A1 : MO,NB : C,VA : !
+
+    PARAMETER G(FCC_A1,MO,NB:C,VA;0) 298.15 -300000; 6000 N !
+    PARAMETER G(FCC_A1,MO,NB:C,VA;1) 298.15 -200000; 6000 N !
+    PARAMETER G(FCC_A1,MO,NB:C,VA;2) 298.15 -100000; 6000 N !
+    """
+    # tests that model is for yMo*yNb*yC*yVa*(-300000 + -200000*(yMo-yNb) + -100000*(yC-yVa))
+    dbf = Database(test_tdb)
+    sMO = v.Species("MO")
+    sNB = v.Species("NB")
+    sC = v.Species("C")
+    sVA = v.Species("VA")
+
+    yMO, yNB, yC, yVA = 0.3, 0.7, 0.8, 0.2
+    T = 1773.15
+
+    mod = Model(dbf, ["MO", "NB", "C", "VA"], "FCC_A1")
+    subs_dict = {
+        v.Y("FCC_A1", 0, sMO): yMO,
+        v.Y("FCC_A1", 0, sNB): yNB,
+        v.Y("FCC_A1", 1, sC): yC,
+        v.Y("FCC_A1", 1, sVA): yVA,
+        v.T: T
+    }
+    # hard-coded calculation of what the model should give
+    excess_energy = yMO*yNB*yC*yVA*(-300000 + -200000*(yMO-yNB) + -100000*(yC-yVA))
+    ideal_energy = 8.3145*T*(yMO*np.log(yMO) + yNB*np.log(yNB) + yC*np.log(yC) + yVA*np.log(yVA))
+    normalization = (yMO + yNB) + yC
+    mixing_energy = (excess_energy + ideal_energy) / normalization
+    check_output(mod, subs_dict, 'GM_MIX', mixing_energy, mode='sympy')

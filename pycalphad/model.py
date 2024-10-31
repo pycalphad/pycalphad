@@ -768,9 +768,31 @@ class Model(object):
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
-                    # interacting sublattice, add the interaction polynomial
-                    mixing_term *= Pow(comp_symbols[0] - \
-                        comp_symbols[1], param['parameter_order'])
+                    subl_indices = []
+                    comps_list = []
+                    for subl_index_2, comps_2 in enumerate(param['constituent_array']):
+                        if len(comps_2) == 2:
+                            subl_indices.append(subl_index_2)
+                            comps_list.append(comps_2)
+                    if len(comps_list) > 1:
+                        # only add (yA - yB) if the sublattice corresponds to the parameter order
+                        # this is based off the equation from HL Lukas, SG Fries, B Sundman
+                        #   Computational Thermodynamics - The Calphad Method, 
+                        #   Ch5 Models for the Gibbs Free Energy, Section 5.8.1. Reciprocal solutions
+                        #   Equation 5.99
+                        # TODO: check if this generalizes for mixing on more than two sublattices
+                        #       Ex. L_A,B:C,D:E,F
+                        #           1st order -> (yA-yB)
+                        #           2nd order -> (yC-yD)
+                        #           3rd order -> (yE-yF)
+                        #       This may not be necessary since its highly unlikely a parameter
+                        #       of this order would be used, and it should be discouraged anyways
+                        if subl_indices.index(subl_index) == param['parameter_order'] - 1:
+                            mixing_term *= (comp_symbols[0] - comp_symbols[1])
+                    else:
+                        # interacting sublattice, add the interaction polynomial
+                        mixing_term *= Pow(comp_symbols[0] - \
+                            comp_symbols[1], param['parameter_order'])
                 if len(comps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
