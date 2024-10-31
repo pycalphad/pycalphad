@@ -130,6 +130,8 @@ def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5
     gm = np.atleast_1d(np.squeeze(points.GM))
     x = np.atleast_2d(np.squeeze(points.X))
     y = np.atleast_2d(np.squeeze(points.Y))
+    if y.shape[1] == gm.shape[0]:
+        y = y.T
     phase_ids = np.atleast_1d(np.squeeze(points.Phase))
     mu = np.atleast_2d(np.squeeze(point.chemical_potentials))
     g_chempot = x * mu

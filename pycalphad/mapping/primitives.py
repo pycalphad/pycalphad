@@ -78,7 +78,7 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : b
         Whether variable should be phase local or global
     """
     if is_global:
-        return var
+        return as_property(var)
     if isinstance(var, v.X):
         # If phase in v.X is already defined, then don't override phase
         phase = phase if var.phase_name is None else var.phase_name

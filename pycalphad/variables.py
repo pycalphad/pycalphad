@@ -833,6 +833,9 @@ class ChemicalPotential(StateVariable):
         return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
+    
+    def __reduce__(self):
+        return self.__class__, (self.species,)
 
     def _latex(self, printer=None):
         "LaTeX representation."

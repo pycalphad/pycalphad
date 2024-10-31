@@ -210,6 +210,7 @@ class StepStrategy(MapStrategy):
         # For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)
         # Then get the max and min of x and y values to update xlim and ylim
         phase_data = {}
+
         for p in phases:
             x_array = []
             y_array = []
