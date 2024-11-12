@@ -1293,6 +1293,7 @@ def test_higher_order_reciprocal_parameter():
     ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7423E+00!
     ELEMENT MO   BCC_A2                    9.5940E+01  4.5890E+03  2.8560E+01!
     ELEMENT NB   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01!
+    ELEMENT AL   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01!
 
     PHASE FCC_A1 % 2 1 1 !
     CONSTITUENT FCC_A1 : MO,NB : C,VA : !
@@ -1300,6 +1301,13 @@ def test_higher_order_reciprocal_parameter():
     PARAMETER G(FCC_A1,MO,NB:C,VA;0) 298.15 -300000; 6000 N !
     PARAMETER G(FCC_A1,MO,NB:C,VA;1) 298.15 -200000; 6000 N !
     PARAMETER G(FCC_A1,MO,NB:C,VA;2) 298.15 -100000; 6000 N !
+
+    PHASE FCC_A1_NO_VA % 2 1 1 !
+    CONSTITUENT FCC_A1_NO_VA : C,AL : MO,NB : !
+
+    PARAMETER G(FCC_A1_NO_VA,C,AL:MO,NB;0) 298.15 -300000; 6000 N !
+    PARAMETER G(FCC_A1_NO_VA,C,AL:MO,NB;1) 298.15 -200000; 6000 N !
+    PARAMETER G(FCC_A1_NO_VA,C,AL:MO,NB;2) 298.15 -100000; 6000 N !
     """
     # tests that model is for yMo*yNb*yC*yVa*(-300000 + -200000*(yMo-yNb) + -100000*(yC-yVa))
     dbf = Database(test_tdb)
@@ -1319,9 +1327,33 @@ def test_higher_order_reciprocal_parameter():
         v.Y("FCC_A1", 1, sVA): yVA,
         v.T: T
     }
-    # hard-coded calculation of what the model should give
-    excess_energy = yMO*yNB*yC*yVA*(-300000 + -200000*(yMO-yNB) + -100000*(yC-yVA))
-    ideal_energy = 8.3145*T*(yMO*np.log(yMO) + yNB*np.log(yNB) + yC*np.log(yC) + yVA*np.log(yVA))
-    normalization = (yMO + yNB) + yC
-    mixing_energy = (excess_energy + ideal_energy) / normalization
-    check_output(mod, subs_dict, 'GM_MIX', mixing_energy, mode='sympy')
+    check_output(mod, subs_dict, 'GM', -16195.14703, mode='sympy')
+
+    # Since thermo-calc seems to flip the composition dependent reciprocal parameters
+    # This is a test on a phase with no VA to check if the order of the reciprocal
+    # parameters was dependent on whether a sublattice has VA or not
+    dbf = Database(test_tdb)
+    sMO = v.Species("MO")
+    sNB = v.Species("NB")
+    sC = v.Species("C")
+    sAL = v.Species("AL")
+
+    yMO, yNB, yC, yAL = 0.75, 0.25, 0.1, 0.9
+    T = 1000
+
+    mod = Model(dbf, ["MO", "NB", "C", "AL"], "FCC_A1_NO_VA")
+    subs_dict = {
+        v.Y("FCC_A1_NO_VA", 0, sAL): yAL,
+        v.Y("FCC_A1_NO_VA", 0, sC): yC,
+        v.Y("FCC_A1_NO_VA", 1, sMO): yMO,
+        v.Y("FCC_A1_NO_VA", 1, sNB): yNB,
+        v.T: T
+    }
+    check_output(mod, subs_dict, 'GM', -7739.223, mode='sympy')
+
+def test_error_raised_for_reciprocal_parameter_with_three_sublattices():
+    """
+    The composition dependent reciprocal parameter on more than two sublattices
+    should not be supported and should raise an error if a database has these parameters
+    """
+    return
