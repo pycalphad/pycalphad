@@ -77,23 +77,26 @@ class IsoplethStrategy(MapStrategy):
                 step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
                 step.initialize()
                 step.do_map()
+                self.add_starting_points_from_step(step)
 
-                # Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction
-                # NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
-                #      as starting points (which has no parents), so no starting points for isopleth mapping would be added
-                for node in step.node_queue.nodes:
-                    if node.parent is not None:
-                        _log.info(f"Adding node {node.fixed_phases}, {node.free_phases}, {node.global_conditions}")
-                        node.axis_var = None
-                        node.axis_direction = Direction.POSITIVE
-                        node.exit_hint = ExitHint.POINT_IS_EXIT
-                        self.node_queue.add_node(node, True)
+    def add_starting_points_from_step(self, step: StepStrategy):
+        # Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction
+        # NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
+        #      as starting points (which has no parents), so no starting points for isopleth mapping would be added
+        for node in step.node_queue.nodes:
+            if node.parent is not None:
+                # Add node with both positive and negative step direction
+                _log.info(f"Adding node {node.fixed_phases}, {node.free_phases}, {node.global_conditions}")
+                node.axis_var = None
+                node.axis_direction = Direction.POSITIVE
+                node.exit_hint = ExitHint.POINT_IS_EXIT
+                self.node_queue.add_node(node, True)
 
-                        alt_node = Node(node.global_conditions, node.chemical_potentials, node.fixed_composition_sets, node.free_composition_sets, node.parent)
-                        alt_node.axis_var = None
-                        alt_node.axis_direction = Direction.NEGATIVE
-                        alt_node.exit_hint = ExitHint.POINT_IS_EXIT
-                        self.node_queue.add_node(alt_node, True)
+                alt_node = Node(node.global_conditions, node.chemical_potentials, node.fixed_composition_sets, node.free_composition_sets, node.parent)
+                alt_node.axis_var = None
+                alt_node.axis_direction = Direction.NEGATIVE
+                alt_node.exit_hint = ExitHint.POINT_IS_EXIT
+                self.node_queue.add_node(alt_node, True)
 
     def _validate_custom_starting_point(self, point: Point, direction: Direction):
         """
@@ -348,7 +351,7 @@ class IsoplethStrategy(MapStrategy):
                     if phase_NP is None:
                         continue
 
-                    # If phase combination is value, then extract x and y values
+                    # If phase combination is valid, then extract x and y values
                     if all(phase_NP > 0):
                         if map_utils.is_state_variable(x):
                             x_vals.append(node.get_property(x))

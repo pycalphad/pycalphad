@@ -651,6 +651,17 @@ class MassFraction(StateVariable):
         self.phase_name = phase_name
         self.species = species
 
+    def expand_wildcard(self, phase_names=None, components=None):
+        if phase_names is not None:
+            return [self.__class__(phase_name, self.species) for phase_name in phase_names]
+        elif components is not None:
+            if self.phase_name is None:
+                return [self.__class__(comp) for comp in components]
+            else:
+                return [self.__class__(self.phase_name, comp) for comp in components]
+        else:
+            raise ValueError('Both phase_names and components are None')
+
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan

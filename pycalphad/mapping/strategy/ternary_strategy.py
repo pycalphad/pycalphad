@@ -142,7 +142,7 @@ class TernaryStrategy(MapStrategy):
             step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
             step.initialize()
             step.do_map()
-            self._add_starting_points_from_step(step)
+            self.add_starting_points_from_step(step)
 
         # Additional step where we switch axis conditions to the unlisted variable
         conds = copy.deepcopy(self.conditions)
@@ -153,9 +153,9 @@ class TernaryStrategy(MapStrategy):
         step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
         step.initialize()
         step.do_map()
-        self._add_starting_points_from_step(step)
+        self.add_starting_points_from_step(step)
 
-    def _add_starting_points_from_step(self, step: StepStrategy):
+    def add_starting_points_from_step(self, step: StepStrategy):
         """
         Adds all 2-phase and 3-phase regions from step as starting points
         We also do a global min check to make sure these phase regions are truly the phases they say they are
@@ -329,7 +329,7 @@ class TernaryStrategy(MapStrategy):
             _log.info("Global eq check failed. New node is metastable. Removing current zpf line.")
             self.zpf_lines.pop(-1)
 
-    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False):
         """
         Create a dictionary of data for invariant plotting.
 
@@ -353,10 +353,10 @@ class TernaryStrategy(MapStrategy):
 
             The indices in `x` and `y` will match the indices in `phases`.
         """
-        return get_invariant_data_from_tieline_strategy(self, x, y)
+        return get_invariant_data_from_tieline_strategy(self, x, y, global_x, global_y)
 
     
-    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False):
         """
         Create a dictionary of data for plotting ZPF lines.
 
@@ -381,4 +381,4 @@ class TernaryStrategy(MapStrategy):
 
             The lengths of the "x" and "y" lists should be equal for each phase in a ZPF line.
         """
-        return get_tieline_data_from_tieline_strategy(self, x, y)
+        return get_tieline_data_from_tieline_strategy(self, x, y, global_x, global_y)

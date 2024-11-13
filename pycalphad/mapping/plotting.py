@@ -18,8 +18,11 @@ import pycalphad.mapping.utils as map_utils
 
 def get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
-    if var == v.NP:
-        return 'Phase Fraction'
+    if isinstance(var, v.NP):
+        if var.phase_name is None or var.phase_name == '*':
+            return 'Phase Fraction'
+        else:
+            return 'Phase Fraction ({})'.format(var.phase_name)
     elif isinstance(var, v.X):
         if var.phase_name is None:
             return 'X({})'.format(var.species.name.capitalize())
@@ -60,17 +63,17 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
 
     # If x is None, then use axis variable and state that x is global
     # (this is useful for v.X where we can distinguish v.X(sp,ph) vs. v.X(sp)
-    x_is_global = False
+    global_x = False
     if x is None:
         x = strategy.axis_vars[0]
     if x == strategy.axis_vars[0]:
-        x_is_global = True
+        global_x = True
 
     # If y is None, then use phase fractions
     if y is None:
-        y = v.NP
+        y = v.NP('*')
 
-    step_data = strategy.get_data(x, y, x_is_global, set_nan_to_zero=set_nan_to_zero)
+    step_data = strategy.get_data(x, y, global_x = global_x, set_nan_to_zero=set_nan_to_zero)
     data = step_data['data']
     xlim = step_data['xlim']
     ylim = step_data['ylim']

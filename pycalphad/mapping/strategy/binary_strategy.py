@@ -99,9 +99,9 @@ class BinaryStrategy(MapStrategy):
                 step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
                 step.initialize()
                 step.do_map()
-                self._add_starting_points_from_step(step)
+                self.add_starting_points_from_step(step)
 
-    def _add_starting_points_from_step(self, step: StepStrategy):
+    def add_starting_points_from_step(self, step: StepStrategy):
         """
         Grabs starting points from a step calc
             For stepping in a state variable (T or P), this is all the nodes of the step calc
@@ -240,7 +240,7 @@ class BinaryStrategy(MapStrategy):
             _log.info("Global eq check failed. New node is metastable. Removing current zpf line.")
             self.zpf_lines.pop(-1)
 
-    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False):
         """
         Create a dictionary of data for invariant plotting.
 
@@ -261,9 +261,9 @@ class BinaryStrategy(MapStrategy):
 
             The indices in "x" and "y" match the indices in "phases".
         """
-        return get_invariant_data_from_tieline_strategy(self, x, y)
+        return get_invariant_data_from_tieline_strategy(self, x, y, global_x, global_y)
     
-    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False):
         """
         Create a dictionary of data for plotting ZPF lines.
 
@@ -288,6 +288,6 @@ class BinaryStrategy(MapStrategy):
 
             The lengths of the "x" and "y" lists should be equal for each phase in a ZPFLine.
         """
-        return get_tieline_data_from_tieline_strategy(self, x, y)
+        return get_tieline_data_from_tieline_strategy(self, x, y, global_x, global_y)
 
 

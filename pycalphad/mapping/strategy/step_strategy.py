@@ -168,7 +168,7 @@ class StepStrategy(MapStrategy):
                 if success:
                     return
                 
-    def get_data(self, x: v.StateVariable, y: v.StateVariable, x_is_global: bool = False, set_nan_to_zero=False):
+    def get_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False, set_nan_to_zero=False):
         """
         Utility function to get data from StepStrategy for plotting.
 
@@ -200,8 +200,26 @@ class StepStrategy(MapStrategy):
                 "ylim": list of float   # min and max for all y values
             }
         """
-        # Get all phases in strategy (including multiplicity)
-        phases = sorted(self.get_all_phases())
+        if hasattr(x, 'phase_name') and x.phase_name is None:
+            if not global_x:
+                x = copy.deepcopy(x)
+                x.phase_name = '*'
+
+        if hasattr(y, 'phase_name') and y.phase_name is None:
+            if not global_y:
+                y = copy.deepcopy(y)
+                y.phase_name = '*'
+
+        # if x and y are to be computed for the entire system, the we only have a single x vs y line
+        # as opposed to something like v.T vs v.NP(*) where we have a T vs NP line for each phase
+        # we determine whether x or y is computed globally based of whether or not the phase_name is a wildcard
+        global_x = getattr(x, 'phase_name', None) != '*'
+        global_y = getattr(y, 'phase_name', None) != '*'
+        if global_x and global_y:
+            phases = ['SYSTEM']
+        else:
+            # Get all phases in strategy (including multiplicity)
+            phases = sorted(self.get_all_phases())
 
         # Axis limits for x and y
         xlim = [np.inf, -np.inf]
@@ -209,13 +227,13 @@ class StepStrategy(MapStrategy):
 
         # For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)
         # Then get the max and min of x and y values to update xlim and ylim
-        phase_data = {}
+        data = {}
 
         for p in phases:
             x_array = []
             y_array = []
             for zpf_lines in self.zpf_lines:
-                x_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, x, x_is_global))
+                x_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, x))
                 y_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, y))
                 if set_nan_to_zero:
                     x_data[np.isnan(x_data)] = 0
@@ -232,7 +250,7 @@ class StepStrategy(MapStrategy):
             x_array = x_array[argsort]
             y_array = y_array[argsort]
 
-            phase_data[p] = {'x': x_array, 'y': y_array}
+            data[p] = {'x': x_array, 'y': y_array}
 
             # Can this be done outside of this loop, or is this the easiest way?
             xlim[0] = np.amin([xlim[0], np.amin(x_array[~np.isnan(x_array)])])
@@ -241,7 +259,7 @@ class StepStrategy(MapStrategy):
             ylim[1] = np.amax([ylim[1], np.amax(y_array[~np.isnan(y_array)])])
 
         step_data = {
-            'data': phase_data,
+            'data': data,
             'xlim': xlim,
             'ylim': ylim,
         }
