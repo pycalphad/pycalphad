@@ -33,7 +33,7 @@ NOTES:
 def test_binary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = binplot(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1000, 2500, 40), v.X("CR"): (0, 1, 0.01), v.P: 101325}, return_strategy=True)
+    ax, strategy = binplot(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1500, 2500, 40), v.X("CR"): (0, 1, 0.02), v.P: 101325}, return_strategy=True)
     
     # Two-phase regions intended to show up in the Cr-Ni system
     desired_zpf_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2", "LIQUID"}, {"L12_FCC", "LIQUID"}]
@@ -56,7 +56,7 @@ def test_binary_strategy(load_database):
 def test_ternary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("CR"): (0, 1, 0.01), v.X("TI"): (0, 1, 0.01), v.T: 923, v.P: 101325}, return_strategy=True)
+    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("CR"): (0, 1, 0.02), v.X("TI"): (0, 1, 0.02), v.T: 923, v.P: 101325}, return_strategy=True)
     
     # Two-phase regions intended to show up in the Cr--Ti-V system
     desired_zpf_sets = [{"BCC_A2", "LAVES_C15"}, {"BCC_A2", "HCP_A3"}, {"HCP_A3", "LAVES_C15"}]
@@ -135,7 +135,7 @@ def test_step_strategy_through_node(load_database):
 def test_isopleth_strategy(load_database):
     dbf = load_database()
 
-    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1073, 2073, 20), v.X("TI"): (0, 0.8, 0.01), v.X("V"): 0.2, v.P: 101325})
+    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1273, 2073, 20), v.X("TI"): (0, 0.8, 0.02), v.X("V"): 0.2, v.P: 101325})
     strategy.initialize()
     strategy.do_map()
 
