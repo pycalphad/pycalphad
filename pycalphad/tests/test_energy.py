@@ -1350,10 +1350,3 @@ def test_higher_order_reciprocal_parameter():
         v.T: T
     }
     check_output(mod, subs_dict, 'GM', -7739.223, mode='sympy')
-
-def test_error_raised_for_reciprocal_parameter_with_three_sublattices():
-    """
-    The composition dependent reciprocal parameter on more than two sublattices
-    should not be supported and should raise an error if a database has these parameters
-    """
-    return

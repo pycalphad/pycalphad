@@ -772,6 +772,8 @@ class Model(object):
                     if len(comps_list) > 2:
                         raise ValueError("Composition dependent reciprocal parameter is not supported for more than 2 sublattices")
                     elif len(comps_list) > 1:
+                        if param['parameter_order'] > 2:
+                            raise ValueError("Order of reciprocal parameter is limited to 0, 1 or 2")
                         # only add (yA - yB) if the sublattice corresponds to the parameter order
                         # this is based off the equation from HL Lukas, SG Fries, B Sundman
                         #   Computational Thermodynamics - The Calphad Method, 
