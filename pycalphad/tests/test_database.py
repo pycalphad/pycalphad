@@ -750,7 +750,7 @@ def test_tdb_parser_correct_lineno():
     # The PARAMETER G(BCC,FE:H;0) parameter is not terminated by an `!`.
     # The parser merges all newlines until the `!`, meaning both parameters
     # will be joined on one "line". The parser should raise an error.
-    UNTERMINATED_PARAM_STR = """     PARAMETER G(BCC,FE:H;0) 298.15  +GHSERFE+1.5*GHSERHH
+    UNTERMINATED_PARAM_STR = r"""     PARAMETER G(BCC,FE:H;0) 298.15  +GHSERFE+1.5*GHSERHH
         +258000-3170*T+498*T*LN(T)-0.275*T**2; 1811.00  Y
         +232264+82*T+1*GHSERFE+1.5*GHSERHH; 6000.00  N
 
