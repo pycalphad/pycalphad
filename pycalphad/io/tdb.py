@@ -978,7 +978,7 @@ def read_tdb(dbf, fd):
             # context variable includes a helpful cursor aligned with the 'error character'
             # this requires being on a newline so it renders correctly in consoles
             e.msg = f'Invalid TDB syntax.\n{context}'
-            # In pyparsing >=3.2.0, e.column and e.line are cached_property's and need to be reset, since pstr and loc were mutated above
+            # In pyparsing >=3.2.0, e.column and e.line are cached_property objects and need to be reset, since pstr and loc were mutated above
             # Details of how this works can be found in https://stackoverflow.com/questions/62662564/how-do-i-clear-the-cache-from-cached-property-decorator
             e.__dict__.pop('column', None)
             e.__dict__.pop('line', None)
