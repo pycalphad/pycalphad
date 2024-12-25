@@ -44,8 +44,8 @@ class MapStrategy:
     GLOBAL_MIN_NUM_CANDIDATES : int
         Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1000).
         NOTE: this is not actually how many candidates the global eq check will solve the driving force. This value represents the N number of samples with the lowest sampled driving forces, then the driving
-              force is computed for all unique phases from the candidates (which in large databases, this might be as high as 10-20)
-              So increasing it to a high value does not significantly degrade performance and the phase diagrams will look better
+            force is computed for all unique phases from the candidates (which in large databases, this might be as high as 10-20)
+            So increasing it to a high value does not significantly degrade performance and the phase diagrams will look better
     """
 
     def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):

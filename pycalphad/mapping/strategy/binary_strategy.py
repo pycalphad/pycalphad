@@ -108,16 +108,16 @@ class BinaryStrategy(MapStrategy):
             For stepping in composition, this is all the 2 phase regions
         
         NOTE: Grabbing starting points is different for whether the axis variable on the step calculation
-              is a state variable or not
-              
-              For stepping along a state variable where the composition is likely near an end point,
-              the two-phase regions are usually too small to be resolved in the stepping resolution, 
-              thus, getting starting points from the node is more consistent. Only one starting point
-              is added for each phase transition since for alpha->beta, the zpf line for alpha will end
-              with the parent and the zpf line for beta will start with the node
+            is a state variable or not
 
-              For stepping along a composition axis, just grab a single point from a zpf line.
-              If we were to grab the nodes, there would be two nodes for every two-phase regions:
+            For stepping along a state variable where the composition is likely near an end point,
+            the two-phase regions are usually too small to be resolved in the stepping resolution, 
+            thus, getting starting points from the node is more consistent. Only one starting point
+            is added for each phase transition since for alpha->beta, the zpf line for alpha will end
+            with the parent and the zpf line for beta will start with the node
+
+            For stepping along a composition axis, just grab a single point from a zpf line.
+            If we were to grab the nodes, there would be two nodes for every two-phase regions:
                 alpha -> alpha + beta - Node for beginning of alpha + beta zpf line
                 alpha + beta -> beta - Node for beginning of beta zpf line
         """
