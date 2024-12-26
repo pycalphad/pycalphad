@@ -482,6 +482,9 @@ class PhaseFraction(StateVariable):
 
     def expand_wildcard(self, phase_names):
         return [self.__class__(phase_name) for phase_name in phase_names]
+    
+    def __reduce__(self):
+        return self.__class__, (self.phase_name,)
 
     def _latex(self, printer=None):
         "LaTeX representation."

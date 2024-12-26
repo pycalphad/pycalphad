@@ -178,9 +178,10 @@ class StepStrategy(MapStrategy):
             The state variable to be used for the x-axis.
         y : v.StateVariable
             The state variable to be used for the y-axis.
-        x_is_global : bool, optional
-            Indicates whether `x` is a global or phase-local variable.
-            For example, if plotting global composition (`x`) vs. phase fraction (`y`), then `x` is global.
+        global_x : bool
+            Whether variable x applies to the global system
+        global_y : bool
+            Whether variable y applies to the global system
         set_nan_to_zero : bool, optional
             If True, NaN values will be set to zero in the data.
 

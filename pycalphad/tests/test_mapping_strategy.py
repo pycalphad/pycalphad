@@ -14,6 +14,7 @@ from pycalphad.mapping import StepStrategy, IsoplethStrategy, TernaryStrategy, p
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
 from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState
+from pycalphad.mapping.plotting import get_label
 
 import pycalphad.tests.databases
 
@@ -33,7 +34,7 @@ NOTES:
 def test_binary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = binplot(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1500, 2500, 40), v.X("CR"): (0, 1, 0.02), v.P: 101325}, return_strategy=True)
+    ax, strategy = binplot(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1500, 1800, 40), v.X("CR"): (0, 1, 0.02), v.P: 101325}, return_strategy=True)
     
     # Two-phase regions intended to show up in the Cr-Ni system
     desired_zpf_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2", "LIQUID"}, {"L12_FCC", "LIQUID"}]
@@ -52,11 +53,20 @@ def test_binary_strategy(load_database):
     for dnz in desired_node_sets:
         assert dnz in node_sets
 
+    num_nodes = len(strategy.node_queue.nodes)
+    strategy.add_nodes_from_conditions({v.T: 1600, v.P: 101325, v.X('CR'): 0.3})
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes
+
+    strategy.add_nodes_from_conditions({v.T: 1600, v.P: 101325, v.X('CR'): 0.6})
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes + 2
+
 @select_database("crtiv_ghosh.tdb")
 def test_ternary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("CR"): (0, 1, 0.02), v.X("TI"): (0, 1, 0.02), v.T: 923, v.P: 101325}, return_strategy=True)
+    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("CR"): (0, 1, 0.02), v.X("TI"): (0, 1, 0.02), v.T: 923, v.P: 101325}, return_strategy=True, label_nodes=True)
     
     # Two-phase regions intended to show up in the Cr--Ti-V system
     desired_zpf_sets = [{"BCC_A2", "LAVES_C15"}, {"BCC_A2", "HCP_A3"}, {"HCP_A3", "LAVES_C15"}]
@@ -75,12 +85,26 @@ def test_ternary_strategy(load_database):
     for dnz in desired_node_sets:
         assert dnz in node_sets
 
+    num_nodes = len(strategy.node_queue.nodes)
+    strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.2, v.X('TI'): 0.2})
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes
+
+    strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.4, v.X('TI'): 0.4})
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes + 2
+
+    num_nodes = len(strategy.node_queue.nodes)
+    strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.129, v.X('TI'): 0.861}, force_add=True)
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes + 1
+
 @select_database("alcocrni.tdb")
 def test_step_strategy_through_single_phase(load_database):
     dbf = load_database()
 
     # Step strategy through single phase regions
-    strategy = StepStrategy(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1200, 2200, 10), v.X("CR"): 0.8, v.P: 101325})
+    strategy = StepStrategy(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1300, 2000, 10), v.X("CR"): 0.8, v.P: 101325})
     strategy.initialize()
     strategy.do_map()
 
@@ -103,12 +127,34 @@ def test_step_strategy_through_single_phase(load_database):
     for dnz in desired_node_sets:
         assert dnz in node_sets
 
+    # Test behavior of data outputs
+
+    # For T vs. CPM, x and y refers to properties of the entire system -> phases = ['SYSTEM']
+    data = strategy.get_data(v.T, 'CPM')
+    assert len(data['data']) == 1 and 'SYSTEM' in data['data']
+
+    # v.X('CR') has phase wildcard '*' implicitly added, so phases = ['BCC_B2', 'L12_FCC', 'LIQUID']
+    data = strategy.get_data(v.T, v.X('CR'))
+    assert len(set(list(data['data'].keys())).symmetric_difference({'BCC_B2', 'L12_FCC', 'LIQUID'})) == 0
+
+    # We force y to be global and x is already global, so phases = ['SYSTEM']
+    data = strategy.get_data(v.T, v.X('CR'), global_y=True)
+    assert len(data['data']) == 1 and 'SYSTEM' in data['data']
+
+    # x is phase specific, so both x and y are global -> phases = ['SYSTEM']
+    data = strategy.get_data(v.X('BCC_B2', 'CR'), v.T)
+    assert len(data['data']) == 1 and 'SYSTEM' in data['data']
+
+    # We force x to be global -> phases = ['SYSTEM']
+    data = strategy.get_data(v.X('CR'), v.T, global_x=True)
+    assert len(data['data']) == 1 and 'SYSTEM' in data['data']
+
 @select_database("pbsn.tdb")
 def test_step_strategy_through_node(load_database):
     dbf = load_database()
 
     # Step strategy through single phase regions
-    strategy = StepStrategy(dbf, ["PB", "SN", "VA"], None, conditions={v.T: (373, 623, 5), v.X("SN"): 0.5, v.P: 101325})
+    strategy = StepStrategy(dbf, ["PB", "SN", "VA"], None, conditions={v.T: (425, 550, 5), v.X("SN"): 0.5, v.P: 101325})
     strategy.initialize()
     strategy.do_map()
 
@@ -390,4 +436,18 @@ def test_ternary_strategy_process_metastable_node(load_database):
     assert len(strategy.zpf_lines) == num_zpf_lines
     assert len(strategy.node_queue.nodes) == 1+num_nodes
     assert strategy.node_queue.nodes[-1] == stable_node
+
+def test_plot_labels():
+    assert get_label(v.NP('*')) == 'Phase Fraction'
+    assert get_label(v.NP('BCC_A2')) == 'Phase Fraction (BCC_A2)'
+
+    assert get_label(v.X('CR')) == 'X(Cr)'
+    assert get_label(v.X('BCC_A2', 'CR')) == 'X(BCC_A2, Cr)'
+
+    assert get_label(v.W('CR')) == 'W(Cr)'
+    assert get_label(v.W('BCC_A2', 'CR')) == 'W(BCC_A2, Cr)'
+
+    assert get_label(v.MU('CR')) == 'MU(Cr)'
+    assert get_label('CPM') == 'CPM'
+    assert get_label(v.T) == 'Temperature'
 

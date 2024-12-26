@@ -176,16 +176,16 @@ class MapStrategy:
         """
         point = point_from_equilibrium(self.dbf, self.components, self.phases, conditions, models=self.models, phase_record_factory=self.phase_records)
         if point is None:
-            _log.warning(f"Point could not be found from {conditions}")
+            _log.info(f"Point could not be found from {conditions}")
             return False
         
         exit_hint, direction, err_reason = self._validate_custom_starting_point(point, direction)
         if err_reason is not None:
-            _log.warning(f"Point could not be added at {conditions}. {err_reason}")
+            _log.info(f"Point could not be added at {conditions}. {err_reason}")
             return False
         
         if exit_hint == ExitHint.NORMAL:
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, None, exit_hint))
+            self.node_queue.add_node(self._create_node_from_point(point, None, None, None, exit_hint), force_add)
         else:
             if direction is None:
                 _log.info(f"No direction is given, adding point from {conditions} with both directions")
