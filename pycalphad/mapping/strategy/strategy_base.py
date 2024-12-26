@@ -43,9 +43,9 @@ class MapStrategy:
         Minimum driving force for a composition set to pass the global minimum check (default: 1e-4).
     GLOBAL_MIN_NUM_CANDIDATES : int
         Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1000).
-        NOTE: this is not actually how many candidates the global eq check will solve the driving force. This value represents the N number of samples with the lowest sampled driving forces, then the driving
-            force is computed for all unique phases from the candidates (which in large databases, this might be as high as 10-20)
-            So increasing it to a high value does not significantly degrade performance and the phase diagrams will look better
+        (NOTE: this is not actually how many candidates the global eq check will solve the driving force. This value represents the N number of samples with the lowest sampled driving forces, then the driving
+        force is computed for all unique phases from the candidates (which in large databases, this might be as high as 10-20),
+        So increasing it to a high value does not significantly degrade performance and mapping using models with high DOF may be better)
     """
 
     def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
@@ -134,7 +134,7 @@ class MapStrategy:
         """
         Goes through ZPF lines to get all unique phases. For miscibility gaps, phases will have #n added to it
 
-        In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set
+        In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set.
         There should always be nodes in the node_queue since it includes starting points (even if they're not nodes in the mapping sense)
         """
         if len(self.zpf_lines) > 0:

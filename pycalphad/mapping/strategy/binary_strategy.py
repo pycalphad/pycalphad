@@ -104,22 +104,19 @@ class BinaryStrategy(MapStrategy):
     def add_starting_points_from_step(self, step: StepStrategy):
         """
         Grabs starting points from a step calc
-            For stepping in a state variable (T or P), this is all the nodes of the step calc
-            For stepping in composition, this is all the 2 phase regions
+            - For stepping in a state variable (T or P), this is all the nodes of the step calc
+            - For stepping in composition, this is all the 2 phase regions
         
-        NOTE: Grabbing starting points is different for whether the axis variable on the step calculation
-            is a state variable or not
-
+        NOTE: Grabbing starting points is different for whether the axis variable on the step calculation is a state variable or not
             For stepping along a state variable where the composition is likely near an end point,
             the two-phase regions are usually too small to be resolved in the stepping resolution, 
             thus, getting starting points from the node is more consistent. Only one starting point
             is added for each phase transition since for alpha->beta, the zpf line for alpha will end
             with the parent and the zpf line for beta will start with the node
-
             For stepping along a composition axis, just grab a single point from a zpf line.
             If we were to grab the nodes, there would be two nodes for every two-phase regions:
-                alpha -> alpha + beta - Node for beginning of alpha + beta zpf line
-                alpha + beta -> beta - Node for beginning of beta zpf line
+                - alpha -> alpha + beta - Node for beginning of alpha + beta zpf line
+                - alpha + beta -> beta - Node for beginning of beta zpf line
         """
         # If stepping in a state variable, then grab all the nodes
         if map_utils.is_state_variable(step.axis_vars[0]):
