@@ -114,9 +114,10 @@ class BinaryStrategy(MapStrategy):
             is added for each phase transition since for alpha->beta, the zpf line for alpha will end
             with the parent and the zpf line for beta will start with the node
             For stepping along a composition axis, just grab a single point from a zpf line.
+            
             If we were to grab the nodes, there would be two nodes for every two-phase regions:
-                - alpha -> alpha + beta - Node for beginning of alpha + beta zpf line
-                - alpha + beta -> beta - Node for beginning of beta zpf line
+                alpha -> alpha + beta - Node for beginning of alpha + beta zpf line
+                alpha + beta -> beta - Node for beginning of beta zpf line
         """
         # If stepping in a state variable, then grab all the nodes
         if map_utils.is_state_variable(step.axis_vars[0]):
