@@ -946,13 +946,13 @@ def test_MQMQA_species_of_different_moles(load_database):
     """Ternary ideal"""
     dbf = load_database()
     comps = ['F', 'LI', 'BE', 'VA']
-    eq = equilibrium(dbf, comps, ['MSFL'], {v.N: 1, v.P: 101325, v.T: 1450, v.X('LI'):0.333333333333333, v.X('BE'):0.111111111111111}, calc_opts={'pdens': 2000})
+    eq = equilibrium(dbf, comps, ['MSFL'], {v.N: 1, v.P: 101325, v.T: 1200, v.X('LI'):0.2, v.X('BE'):0.2}, calc_opts={'pdens': 50000})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
-    assert np.isclose(eq.GM.values.squeeze(), -3.83970E+05)  # Thermochimica result
+    assert np.isclose(eq.GM.values.squeeze(), -3.75743E+05)  # Thermochimica result
     assert np.all(eq.Phase.squeeze() == ['MSFL', '', '', ''])
-    assert np.allclose(eq.Y.values.squeeze()[0, :],[0.00040389,0.0021286, 0.18883, 0.0028044, 0.27308, 0.53275], atol=1e-5)  # Thermochimica result
+    assert np.allclose(eq.Y.values.squeeze()[0, :],[5.4835E-05, 6.8482E-03, 2.6583E-02, 0.21381, 0.65434, 9.8365E-02], atol=1e-5)  # Thermochimica result
 
 @select_database("NaCl-AlCl3.dat")
 def test_MQMQA_when_vacancy_is_a_species(load_database):

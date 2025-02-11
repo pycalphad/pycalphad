@@ -1268,3 +1268,31 @@ def test_QKTO_multicomponent_extrapolation(load_database):
     assert np.isclose(float(mod.moles("TC").subs(subs_dict)), 0.500, 1e-5)
     assert np.isclose(float(mod.moles("RU").subs(subs_dict)), 0.400, 1e-5)
     assert np.isclose(float(mod.moles("PD").subs(subs_dict)), 0.075, 1e-5)
+    
+    
+    
+@select_database("Be-F-Li.dat")
+def test_MQMQA_species_of_different_moles_internal_degrees_of_freedom(load_database):
+    """Ternary ideal"""
+    dbf = load_database()
+    comps = ['F', 'LI', 'BE', 'VA']
+
+    F = v.Species('F-1.0',constituents={'F':1.0}, charge=-1)
+    LI = v.Species('LI+1.0',constituents={'LI':1.0}, charge=1)
+    BE = v.Species('BE+2.0',constituents={'BE':1.0}, charge=2)
+    BE2 = v.Species('BE+4.0',constituents={'BE':2.0}, charge=4)    
+    mod = ModelMQMQA(dbf, comps, "MSFL")
+    
+    subs_dict = {  # Thermochimica site fractions
+        mod._X_ijkl(LI,LI,F,F): 9.8365E-02,
+        mod._X_ijkl(BE,BE,F,F): 5.4835E-05,
+        mod._X_ijkl(BE2,BE2,F,F):0.21381,
+        mod._X_ijkl(LI,BE,F,F): 2.6583E-02,
+        mod._X_ijkl(LI,BE2,F,F):0.65434,
+        mod._X_ijkl(BE,BE2,F,F):6.8482E-03,
+        v.T: 1200.0
+    }
+    check_energy(mod, subs_dict, -3.75743E+05, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("BE").subs(subs_dict)), 0.2, 1e-5)
+    assert np.isclose(float(mod.moles("LI").subs(subs_dict)), 0.2, 1e-5)
+    assert np.isclose(float(mod.moles("F").subs(subs_dict)), 0.6, 1e-5)
