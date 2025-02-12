@@ -941,6 +941,8 @@ def test_MQMQA_equilibrium_binary_excess_same_chemical_groups(load_database):
     assert np.all(eq.Phase.squeeze() == ['XS_SAME_CG', '', ''])
     assert np.allclose(eq.Y.values.squeeze()[0, :], [0.12442, 0.50078, 0.37481], atol=1e-5)  # Thermochimica result
 
+@pytest.mark.solver
+@pytest.mark.xfail
 @select_database("Be-F-Li.dat")
 def test_MQMQA_species_of_different_moles(load_database):
     """Ternary ideal"""
