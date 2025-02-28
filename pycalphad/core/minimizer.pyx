@@ -747,12 +747,12 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
     equilibrium_soln[:] = 0
 
     # delta mole fractions must sum to zero; we have degrees of freedom to decide how to distribute
-    # for now, redistribute evenly over all other fixed components
+    # for now, specify one dependent component
     for i in range(spec.prescribed_mole_fraction_coefficients.shape[0]):
         if np.all(np.asarray(spec.prescribed_mole_fraction_coefficients[i]) == comparison_array):
             equilibrium_soln[num_stable_phases + num_fixed_phases + i] = 1
         else:
-            equilibrium_soln[num_stable_phases + num_fixed_phases + i] = -1/(num_fixed_mole_fraction_conditions)
+            equilibrium_soln[num_stable_phases + num_fixed_phases + i] = 0
     lstsq_check_infeasible(equilibrium_matrix, equilibrium_soln, equilibrium_soln)
     for i in range(spec.free_chemical_potential_indices.shape[0]):
         chempot_idx = spec.free_chemical_potential_indices[i]
