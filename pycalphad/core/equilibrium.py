@@ -68,8 +68,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     # Compute equilibrium values of any additional user-specified properties
     # We already computed these properties so don't recompute them
     properties = wks.eq
+    
     conds_keys = [str(k) for k in properties.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
     output = sorted(set(output) - {'GM', 'MU'})
+
     for out in output:
         cprop = as_property(out)
         out = str(cprop)

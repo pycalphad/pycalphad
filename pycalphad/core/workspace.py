@@ -312,7 +312,6 @@ class Workspace:
     solver: SolverBase = SolverField(lambda obj: Solver(verbose=obj.verbose), depends_on=['verbose'])
     # eq is set by a callback in the EquilibriumCalculationField (TypedField)
     eq: Optional[LightDataset] = EquilibriumCalculationField(depends_on=['phase_record_factory', 'conditions', 'calc_opts', 'solver'])
-
     def __init__(self, *args, **kwargs):
         self._suspend_dependency_updates = True
         self._eq = None # manually initialized since we don't initialize the public name 'eq' (see below)
@@ -338,6 +337,7 @@ class Workspace:
             setattr(self, kwarg_name, kwarg_val)
         self._suspend_dependency_updates = False
 
+        
     def recompute(self):
         # Assumes implementation units from this point
         unitless_conds = OrderedDict((key, as_quantity(key, value).to(key.implementation_units).magnitude) for key, value in self.conditions.items())
@@ -485,7 +485,7 @@ class Workspace:
             if len(self.eq.coords[str(k)]) > 1:
                 conds_keys[cond_idx] = k
         return [c for c in conds_keys if c is not None]
-
+    
     def get_dict(self, *args: Tuple[ComputableProperty]):
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
@@ -495,8 +495,9 @@ class Workspace:
 
         arr_size = self.eq.GM.size
         results = dict()
-
+        print('Hi test',self.database)
         prop_MU_values = self.eq.MU
+
         str_conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
         conds_keys = [None] * len(str_conds_keys)
         for k in self.conditions.keys():
@@ -523,7 +524,6 @@ class Workspace:
         conds_shape = tuple(len(self.eq.coords[str(b)]) for b in self.condition_axis_order)
         for arg in results.keys():
             results[arg] = results[arg].reshape(conds_shape + arg.shape)
-
         return results
 
     def get(self, *args: Tuple[ComputableProperty]):
