@@ -495,11 +495,10 @@ class Workspace:
 
         arr_size = self.eq.GM.size
         results = dict()
-        print('Hi test',self.database)
         prop_MU_values = self.eq.MU
-
         str_conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
         conds_keys = [None] * len(str_conds_keys)
+        print('what are the args',args)
         for k in self.conditions.keys():
             cond_idx = str_conds_keys.index(str(k))
             conds_keys[cond_idx] = k
