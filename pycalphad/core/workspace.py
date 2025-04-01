@@ -498,12 +498,10 @@ class Workspace:
         prop_MU_values = self.eq.MU
         str_conds_keys = [str(k) for k in self.eq.coords.keys() if k not in ('vertex', 'component', 'internal_dof')]
         conds_keys = [None] * len(str_conds_keys)
-        print('what are the args',args)
         for k in self.conditions.keys():
             cond_idx = str_conds_keys.index(str(k))
             conds_keys[cond_idx] = k
         local_index = 0
-
         for index, composition_sets in self.enumerate_composition_sets():
             cur_conds = OrderedDict(zip(conds_keys,
                                         [np.asarray(self.eq.coords[b][a], dtype=np.float64)
@@ -511,6 +509,7 @@ class Workspace:
             chemical_potentials = prop_MU_values[index]
 
             for arg in args:
+                print('THis is arg in args',arg)
                 prop_implementation_units, prop_display_units = arg_units[arg]
                 context = unit_conversion_context(composition_sets, arg)
                 if results.get(arg, None) is None:
