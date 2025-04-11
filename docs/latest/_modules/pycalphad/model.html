@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>pycalphad.model - pycalphad 0.11.1.dev11+g00b1ff80 documentation</title>
+        <title>pycalphad.model - pycalphad 0.11.1.dev12+g74af10b7 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.1.dev11+g00b1ff80 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.1.dev12+g74af10b7 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -192,7 +192,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev11+g00b1ff80 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev12+g74af10b7 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1032,6 +1032,10 @@
         <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
             <span class="c1"># iterate over every sublattice</span>
             <span class="n">mixing_term</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span>
+            <span class="n">param_subl_dof</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">subl</span><span class="p">)</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;constituent_array&quot;</span><span class="p">]]</span>
+            <span class="n">mixing_sublattice_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">subl_index</span> <span class="k">for</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">dof</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">param_subl_dof</span><span class="p">)</span> <span class="k">if</span> <span class="n">dof</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mixing_sublattice_indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">max</span><span class="p">(</span><span class="n">param_subl_dof</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameters with mixing on multiple sublattices cannot include interactions beyond binary. Got mixing on </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mixing_sublattice_indices</span><span class="p">)</span><span class="si">}</span><span class="s2"> sublattices with one sublattice having mixing between </span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">param_subl_dof</span><span class="p">)</span><span class="si">}</span><span class="s2"> constituents for parameter </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">comps</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">]):</span>
                 <span class="n">comp_symbols</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="c1"># convert strings to symbols</span>
@@ -1083,9 +1087,23 @@
                     <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Mul</span><span class="p">(</span><span class="o">*</span><span class="n">comp_symbols</span><span class="p">)</span>
                 <span class="c1"># is this a higher-order interaction parameter?</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="c1"># interacting sublattice, add the interaction polynomial</span>
-                    <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Pow</span><span class="p">(</span><span class="n">comp_symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> \
-                        <span class="n">comp_symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">])</span>
+                    <span class="c1"># multiply in (y_A - y_B) terms</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mixing_sublattice_indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># Normal R-K interaction parameter for mixing on one sublattice</span>
+                        <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Pow</span><span class="p">(</span><span class="n">comp_symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">comp_symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">])</span>
+                    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">mixing_sublattice_indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="c1"># We have a reciprocal parameter</span>
+                        <span class="c1"># Similar to the ternary case, the parameter order has a special meaning for reciprocal parameters.</span>
+                        <span class="c1"># We only multiply by (y_A - y_B) if the sublattice corresponds to a specific parameter order</span>
+                        <span class="c1"># See Eq 5.99 in Section 5.8.1 of Lukas, Fries and Sundman [2].</span>
+                        <span class="c1"># Testing with Thermo-Calc indicates that that L1 corresponds to the second sublattice</span>
+                        <span class="c1"># with mixing and L2 corresponds to the first sublattice with mixing.</span>
+                        <span class="k">if</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># L0 case doesn&#39;t have a (yA - yB) term</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reciprocal parameters can only use parameter order 0, 1, or 2. Got </span><span class="si">{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">subl_index</span> <span class="o">==</span> <span class="n">mixing_sublattice_indices</span><span class="p">[</span><span class="o">-</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]]:</span>
+                            <span class="n">mixing_term</span> <span class="o">*=</span> <span class="p">(</span><span class="n">comp_symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">comp_symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reciprocal interaction parameters beyond order L0 for more than 2 sublattices are not supported. Got mixing on </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mixing_sublattice_indices</span><span class="p">)</span><span class="si">}</span><span class="s2"> sublattices for parameter </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                     <span class="c1"># &#39;parameter_order&#39; is an index to a variable when</span>
                     <span class="c1"># we are in the ternary interaction parameter case</span>
@@ -1932,7 +1950,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=12c2098e"></script>
+</div><script src="../../_static/documentation_options.js?v=1176a427"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=5fa4622c"></script>
