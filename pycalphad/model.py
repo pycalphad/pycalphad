@@ -719,8 +719,6 @@ class Model(object):
             mixing_term = S.One
             param_subl_dof = [len(subl) for subl in param["constituent_array"]]
             mixing_sublattice_indices = [subl_index for subl_index, dof in enumerate(param_subl_dof) if dof > 1]
-            print("if len(mixing_sublattice_indices) > 1 and max(param_subl_dof) > 2:")
-            print(f"{len(mixing_sublattice_indices)} {max(param_subl_dof)}")
             if len(mixing_sublattice_indices) > 1 and max(param_subl_dof) > 2:
                 raise ValueError(f"Parameters with mixing on multiple sublattices cannot include interactions beyond binary. Got mixing on {len(mixing_sublattice_indices)} sublattices with one sublattice having mixing between {max(param_subl_dof)} constituents for parameter {param}.")
             for subl_index, comps in enumerate(param['constituent_array']):
