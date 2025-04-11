@@ -328,7 +328,7 @@ def test_magnetic_reference_energy_is_zero(load_database):
 @pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
-    
+
     VA_INTERACTION_TDB = """
     ELEMENT AL   FCC_A1                    26.981539   4577.296    28.3215!
     ELEMENT VA   BLANK                     0.0 0.0 0.0 !
@@ -946,7 +946,7 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
 @select_database("KF-NIF2_switched.dat")
 def test_DAT_coordination_numbers_are_order_invariant(load_database):
     """Coordination number parameters should have the coordinations sorted in the correct order.
-    
+
     This test confirms that if database cation ordering is not alphabetical in
     the source database (in particular, for coordination numbers), the energy
     will be correctly computed.
@@ -1347,7 +1347,7 @@ def test_higher_order_reciprocal_parameter():
     }
     check_output(mod, subs_dict, 'GM', -16195.14703, mode='sympy')
 
-    # Since thermo-calc seems to flip the composition dependent reciprocal parameters
+    # Since Thermo-Calc seems to flip the composition-dependent reciprocal parameters
     # This is a test on a phase with no VA to check if the order of the reciprocal
     # parameters was dependent on whether a sublattice has VA or not
     yMO, yNB, yC, yAL = 0.75, 0.25, 0.1, 0.9
@@ -1368,7 +1368,7 @@ def test_higher_order_reciprocal_parameter():
     #       with a message: Only 2 interacting constituents on 2 sublattices are supported for reciprocal parameters
     #       However, it will still give the same value as here
     #       For higher order parameters such as PARAMETER G(PHASE_THREE,MO,NB:CR,TA:C,VA;1), equilibrium in TC will
-    #       fail is a message: Illegal composition dependency, but this behavior is addressed in 
+    #       fail is a message: Illegal composition dependency, but this behavior is addressed in
     #       test_model.py::test_error_raised_for_higher_order_reciprocal_parameter
     yMO, yNB, yCR, yTA, yC, yVA = 0.3, 0.7, 0.2, 0.8, 0.4, 0.6
     T = 1000
@@ -1400,4 +1400,3 @@ def test_higher_order_reciprocal_parameter():
         v.T: T
     }
     check_output(mod, subs_dict, 'GM', -12817.416, mode='sympy')
-
