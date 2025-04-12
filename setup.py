@@ -68,7 +68,7 @@ setup(
         'runtype',
         'scipy',
         'setuptools_scm[toml]>=6.0',
-        'symengine>=0.9.2',  # python-symengine on conda-forge
+        'symengine>=0.9.2,<0.14',  # python-symengine on conda-forge
         'tinydb>=3.8',
         'typing_extensions', # drop when pycalphad drops support for Python<3.13
         'xarray>=0.11.2',
