@@ -947,6 +947,7 @@ class SystemMolesType(StateVariable):
 temperature = T = TemperatureType()
 pressure = P = PressureType()
 moles = N = SystemMolesType()
+B = Mass
 site_fraction = Y = SiteFraction
 X = MoleFraction
 W = MassFraction
