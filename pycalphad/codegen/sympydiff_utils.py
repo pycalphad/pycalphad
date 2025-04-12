@@ -119,7 +119,7 @@ def build_functions(symengine_graph, variables, parameters=None, wrt=None,
     # to have negligible (1e-16*j) complex parts, which raises runtime errors
     # for the default lambdify(..., real=True).
     # In practice, this is probably a reasonable workaround, but would drop
-    # cases where we have legtimate, non-negligble complex numbers (e.g. negative
+    # cases where we have legitimate, non-negligble complex numbers (e.g. negative
     # bases for non-integer exponents). Although we have been doing this all
     # along internally inside `lambdify`.
     # We have to do this graph.atoms() method to get complex numbers because
