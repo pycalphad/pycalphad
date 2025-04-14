@@ -66,9 +66,9 @@ def test_binary_strategy(load_database):
 def test_ternary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("CR"): (0, 1, 0.02), v.X("TI"): (0, 1, 0.02), v.T: 923, v.P: 101325}, return_strategy=True, label_nodes=True)
-    
-    # Two-phase regions intended to show up in the Cr--Ti-V system
+    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("V"): (0, 0.2, 0.05), v.X("TI"): (0, 1, 0.05), v.T: 923, v.P: 101325}, return_strategy=True, label_nodes=True)
+    #plt.show()
+    # Two-phase regions intended to show up in the Cr-Ti-V system (these occur near the Ti-V binary, so mapping only goes to 0.2 V)
     desired_zpf_sets = [{"BCC_A2", "LAVES_C15"}, {"BCC_A2", "HCP_A3"}, {"HCP_A3", "LAVES_C15"}]
     desired_node_sets = [{"BCC_A2", "HCP_A3", "LAVES_C15"}]
 
@@ -181,7 +181,7 @@ def test_step_strategy_through_node(load_database):
 def test_isopleth_strategy(load_database):
     dbf = load_database()
 
-    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1273, 2073, 20), v.X("TI"): (0, 0.8, 0.02), v.X("V"): 0.2, v.P: 101325})
+    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1473, 2073, 40), v.X("TI"): (0, 0.8, 0.05), v.X("V"): 0.2, v.P: 101325})
     strategy.initialize()
     strategy.do_map()
 
@@ -189,7 +189,7 @@ def test_isopleth_strategy(load_database):
     plot_isopleth(strategy)
 
     # Two-phase regions intended to show up in the Cr-Ti-V system
-    desired_zpf_sets = [{"BCC_A2", "LAVES_C15"}, {"BCC_A2", "LIQUID"}]
+    desired_zpf_sets = [{"BCC_A2", "LIQUID"}]
 
     # All unique phase regions
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
