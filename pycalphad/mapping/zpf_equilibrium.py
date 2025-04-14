@@ -112,30 +112,32 @@ def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5
 
     # Get driving force and find index that maximized driving force
     state_conds = {str(key): point.global_conditions[key] for key in point.global_conditions if map_utils.is_state_variable(key)}
-    points = calculate(dbf, comps, phases, model=models, phase_records=phase_records, output="GM", to_xarray=False, pdens=pdens, **state_conds)
+    samples = calculate(dbf, comps, phases, model=models, phase_records=phase_records, output="GM", to_xarray=False, pdens=pdens, **state_conds)
     # Since we index y, phase_ids and dGs, we need to make sure they have 
     # the following shape (where N = number of samples, C = number of components, 
     # DOF = internal degrees of freedom):
-    # gm - (N)
-    # x  - (N x C)
-    # y  - (N x DOF)
-    # phase_ids - (N)
-    # mu - (N x C)
-    # g_chempot - (N x C)
-    # dGs - (N)
+    # gm - (N,)
+    # x  - (N,C)
+    # y  - (N,DOF)
+    # phase_ids - (N,)
+    # mu - (C,)     mu is from point, so no N
+    # dGs - (N,)
     # For most systems, these shapes are given after squeezing, however, two special cases exists:
-    # a) Unaries, where C = 1, so squeezing x and mu will give a shape of (N)
-    # b) Single stoichiometric phase where DOF = 1, so squeezing y will give (N)
+    # a) Unaries, where C = 1, so squeezing x will give a shape of (N,) and mu will give a scalar
+    # b) Single stoichiometric phase where DOF = 1, so squeezing y will give (N,)
     #       Sampling a single stoichiometric phase may also give N = 1 as well
-    gm = np.atleast_1d(np.squeeze(points.GM))
-    x = np.atleast_2d(np.squeeze(points.X))
-    y = np.atleast_2d(np.squeeze(points.Y))
+    gm = np.atleast_1d(np.squeeze(samples.GM))
+    x = np.atleast_2d(np.squeeze(samples.X))
+    y = np.atleast_2d(np.squeeze(samples.Y))
+    # Make sure y is (N,DOF) instead of (DOF,N). This can occur if there's a single stoichiometric phase and N=1
     if y.shape[1] == gm.shape[0]:
         y = y.T
-    phase_ids = np.atleast_1d(np.squeeze(points.Phase))
-    mu = np.atleast_2d(np.squeeze(point.chemical_potentials))
-    g_chempot = x * mu
-    dGs = np.sum(g_chempot, axis=1) - gm
+    # Make sure x is (N,C) instead of (C,N). This can occur in unaries where C=1
+    if x.shape[1] == gm.shape[0]:
+        x = x.T
+    phase_ids = np.atleast_1d(np.squeeze(samples.Phase))
+    mu = np.atleast_1d(np.squeeze(point.chemical_potentials))
+    dGs = np.dot(x, mu) - gm
 
     # Get list of phase indices for each unique phase as candidates
     # 1. Sort the phase ID array by driving force

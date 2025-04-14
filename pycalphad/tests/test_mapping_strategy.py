@@ -178,6 +178,21 @@ def test_step_strategy_through_node(load_database):
         assert dnz in node_sets
 
 @select_database("crtiv_ghosh.tdb")
+def test_unary_strategy(load_database):
+    """
+    Tests that strategy works on unary system
+    The strategy needs to maintain certain array shapes for site fractions, composition, 
+    chemical potentials, etc. when working with unaries, since squeezing arrays can remove
+    a needed dimension from an array. More details are given in the _find_global_min_cs function
+    in pycalphad.mapping.zpf_equilibrium
+    """
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["CR", "VA"], None, conditions={v.T: (2150, 2250, 10), v.P: 101325})
+    strategy.initialize()
+    strategy.do_map()
+    plot_step(strategy, v.T, 'CPM')
+
+@select_database("crtiv_ghosh.tdb")
 def test_isopleth_strategy(load_database):
     dbf = load_database()
 
