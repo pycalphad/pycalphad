@@ -34,11 +34,12 @@ NOTES:
 def test_binary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = binplot(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1500, 1800, 40), v.X("CR"): (0, 1, 0.02), v.P: 101325}, return_strategy=True)
+    ax, strategy = binplot(dbf, ["CR", "NI", "VA"], ['BCC_A2', 'FCC_A1', 'LIQUID'], conditions={v.T: (1500, 2200, 50), v.X("CR"): (0, 1, 0.05), v.P: 101325}, return_strategy=True)
+    #plt.show()
     
     # Two-phase regions intended to show up in the Cr-Ni system
-    desired_zpf_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2", "LIQUID"}, {"L12_FCC", "LIQUID"}]
-    desired_node_sets = [{"BCC_B2", "L12_FCC", "LIQUID"}]
+    desired_zpf_sets = [{"BCC_A2", "FCC_A1"}, {"BCC_A2", "LIQUID"}, {"FCC_A1", "LIQUID"}]
+    desired_node_sets = [{"BCC_A2", "FCC_A1", "LIQUID"}]
 
     # All two-phase regions and invariants from mapping
     # NOTE: phase regions that start at terminal phases may have duplicates
@@ -54,10 +55,12 @@ def test_binary_strategy(load_database):
         assert dnz in node_sets
 
     num_nodes = len(strategy.node_queue.nodes)
+    # Attempting to add node in single phase region will not add a new node
     strategy.add_nodes_from_conditions({v.T: 1600, v.P: 101325, v.X('CR'): 0.3})
     new_num_nodes = len(strategy.node_queue.nodes)
     assert new_num_nodes == num_nodes
 
+    # Attempt to add node in two phase region. 2 will be created for positive and negative direction
     strategy.add_nodes_from_conditions({v.T: 1600, v.P: 101325, v.X('CR'): 0.6})
     new_num_nodes = len(strategy.node_queue.nodes)
     assert new_num_nodes == num_nodes + 2
@@ -66,9 +69,8 @@ def test_binary_strategy(load_database):
 def test_ternary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("V"): (0, 0.2, 0.05), v.X("TI"): (0, 1, 0.05), v.T: 923, v.P: 101325}, return_strategy=True, label_nodes=True)
+    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], ['BCC_A2', 'HCP_A3', 'LAVES_C15'], conds={v.X("V"): (0, 0.2, 0.05), v.X("TI"): (0, 1, 0.05), v.T: 923, v.P: 101325}, return_strategy=True, label_nodes=True)
     #plt.show()
-    # Two-phase regions intended to show up in the Cr-Ti-V system (these occur near the Ti-V binary, so mapping only goes to 0.2 V)
     desired_zpf_sets = [{"BCC_A2", "LAVES_C15"}, {"BCC_A2", "HCP_A3"}, {"HCP_A3", "LAVES_C15"}]
     desired_node_sets = [{"BCC_A2", "HCP_A3", "LAVES_C15"}]
 
@@ -85,15 +87,18 @@ def test_ternary_strategy(load_database):
     for dnz in desired_node_sets:
         assert dnz in node_sets
 
+    #Attempt to add node in single-phase region - no nodes added
     num_nodes = len(strategy.node_queue.nodes)
     strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.2, v.X('TI'): 0.2})
     new_num_nodes = len(strategy.node_queue.nodes)
     assert new_num_nodes == num_nodes
 
+    #Attempt to add node in two-phase region - two nodes added for pos/neg direction
     strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.4, v.X('TI'): 0.4})
     new_num_nodes = len(strategy.node_queue.nodes)
     assert new_num_nodes == num_nodes + 2
 
+    #Attempt to add node in three-phase region (force adding) - one node is added where directions are determined from the node
     num_nodes = len(strategy.node_queue.nodes)
     strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.129, v.X('TI'): 0.861}, force_add=True)
     new_num_nodes = len(strategy.node_queue.nodes)
@@ -104,7 +109,7 @@ def test_step_strategy_through_single_phase(load_database):
     dbf = load_database()
 
     # Step strategy through single phase regions
-    strategy = StepStrategy(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1300, 2000, 10), v.X("CR"): 0.8, v.P: 101325})
+    strategy = StepStrategy(dbf, ["CR", "NI", "VA"], ["BCC_A2", "FCC_A1", "LIQUID"], conditions={v.T: (1300, 2000, 10), v.X("CR"): 0.8, v.P: 101325})
     strategy.initialize()
     strategy.do_map()
 
@@ -112,8 +117,8 @@ def test_step_strategy_through_single_phase(load_database):
     plot_step(strategy)
 
     # Two-phase regions intended to show up in the Cr-Ni system
-    desired_zpf_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2"}, {"BCC_B2", "LIQUID"}, {"LIQUID"}]
-    desired_node_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2", "LIQUID"}]
+    desired_zpf_sets = [{"BCC_A2", "FCC_A1"}, {"BCC_A2"}, {"BCC_A2", "LIQUID"}, {"LIQUID"}]
+    desired_node_sets = [{"BCC_A2", "FCC_A1"}, {"BCC_A2", "LIQUID"}]
 
     # All unique phase regions
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
@@ -133,16 +138,16 @@ def test_step_strategy_through_single_phase(load_database):
     data = strategy.get_data(v.T, 'CPM')
     assert len(data['data']) == 1 and 'SYSTEM' in data['data']
 
-    # v.X('CR') has phase wildcard '*' implicitly added, so phases = ['BCC_B2', 'L12_FCC', 'LIQUID']
+    # v.X('CR') has phase wildcard '*' implicitly added, so phases = ['BCC_A2', 'FCC_A1', 'LIQUID']
     data = strategy.get_data(v.T, v.X('CR'))
-    assert len(set(list(data['data'].keys())).symmetric_difference({'BCC_B2', 'L12_FCC', 'LIQUID'})) == 0
+    assert len(set(list(data['data'].keys())).symmetric_difference({'BCC_A2', 'FCC_A1', 'LIQUID'})) == 0
 
     # We force y to be global and x is already global, so phases = ['SYSTEM']
     data = strategy.get_data(v.T, v.X('CR'), global_y=True)
     assert len(data['data']) == 1 and 'SYSTEM' in data['data']
 
     # x is phase specific, so both x and y are global -> phases = ['SYSTEM']
-    data = strategy.get_data(v.X('BCC_B2', 'CR'), v.T)
+    data = strategy.get_data(v.X('BCC_A2', 'CR'), v.T)
     assert len(data['data']) == 1 and 'SYSTEM' in data['data']
 
     # We force x to be global -> phases = ['SYSTEM']
@@ -187,7 +192,7 @@ def test_unary_strategy(load_database):
     in pycalphad.mapping.zpf_equilibrium
     """
     dbf = load_database()
-    strategy = StepStrategy(dbf, ["CR", "VA"], None, conditions={v.T: (2150, 2250, 10), v.P: 101325})
+    strategy = StepStrategy(dbf, ["CR", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (2150, 2250, 10), v.P: 101325})
     strategy.initialize()
     strategy.do_map()
     plot_step(strategy, v.T, 'CPM')
@@ -196,12 +201,13 @@ def test_unary_strategy(load_database):
 def test_isopleth_strategy(load_database):
     dbf = load_database()
 
-    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1473, 2073, 40), v.X("TI"): (0, 0.8, 0.05), v.X("V"): 0.2, v.P: 101325})
+    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): 0.2, v.P: 101325})
     strategy.initialize()
     strategy.do_map()
 
     # Check that plot_isopleth runs without fail
     plot_isopleth(strategy)
+    #plt.show()
 
     # Two-phase regions intended to show up in the Cr-Ti-V system
     desired_zpf_sets = [{"BCC_A2", "LIQUID"}]
