@@ -456,6 +456,11 @@ def test_shallow_ternary_with_isolated_phase(load_database):
     only about 1.15 J/mol, so this is a tricky system that can be sensitive to starting
     points and phase changes within the minimizer.
     """
+    # When this test was added, the main failure mode is that composition sets were too
+    # aggressively removed, leading to finding the metastable solution inside the
+    # miscibility gap. Since the stable set of phases is about a J below, composition
+    # sets that have driving force are not picked up with low point densities and we
+    # fail to converge after only one global minimization iteration.
     dbf = load_database()
     comps = ['CR', 'FE', 'NI', 'VA']
     phases = ['BCC_A2']
@@ -465,6 +470,9 @@ def test_shallow_ternary_with_isolated_phase(load_database):
     # Values confirmed by turning point density up to 1e7
     global_GM = wks.get("GM")
     global_MU = np.asarray(wks.get("MU(*)"))
+    # Composition Sets solution:
+    # CompositionSet(BCC_A2, [0.5504, 0.36119, 0.08841], NP=0.40359, GM=-55404.75228)
+    # CompositionSet(BCC_A2, [0.69728, 0.25859, 0.04413], NP=0.59641, GM=-52834.04102)
     assert_allclose(global_GM, -53871.55575966857)
     assert_allclose(global_MU, np.array([-47947.48767057, -62817.25958317, -71546.46372217]))
     # TODO: test isolated phase MU? Might need https://github.com/pycalphad/pycalphad/pull/595
