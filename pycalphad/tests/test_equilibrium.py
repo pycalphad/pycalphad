@@ -340,14 +340,25 @@ def test_eq_large_vacancy_hessian(load_database):
 
 @pytest.mark.solver
 @select_database("alni_tough_chempot.tdb")
-def test_eq_stepsize_reduction(load_database):
+def test_eq_stoichiometric_phase_in_binary(load_database):
     """
-    Step size reduction required for convergence.
+    A stoichiometric phase in a binary system should converge.
+
+    As of PyCalphad 0.11, this test relied on the behavior that we converge within
+    the solver to a single phase (AL3NI5 - which is the correct answer), but we didn't
+    converge with respect to global min (because it kept adding another phase with
+    driving force that were below the (meaningless) chemical potentials and
+    eventually the global min loop would fail and return the single phase solution.
     """
     dbf = load_database()
     eq = equilibrium(dbf, ['AL', 'NI', 'VA'], list(dbf.phases.keys()),
                      {v.P: 101325, v.T: 780, v.X('NI'): 0.625}, verbose=True)
-    assert not np.isnan(np.squeeze(eq.GM.values))
+    # GM = -84676.46413558903
+    # Chempots are meaningless, i.e. as of 0.11 we get something like [-59771.62174277 -99619.36957128]
+    # Proper chemical potentials on the Al-rich side of the stoichiometric phase are:
+    # [-130391.1791948, -57247.63510006] and the Ni-rich side: [-138436.02031521, -52420.73042782]
+    assert eq.Phase.values.squeeze().tolist() == ["AL3NI5", "", ""]
+    assert_allclose(eq.GM, -84676.46413558903)
 
 def test_eq_issue62_last_component_not_va():
     """
@@ -1087,6 +1098,7 @@ def test_issue589_global_min(load_database):
     print("Equilibrium Phase", res.Phase.values.squeeze())
     print("Equilibrium NP", res.NP.values.squeeze())
     print("Equilibrium GM", res.GM.values.squeeze())
+    assert res.Phase.values.squeeze().tolist() == ["FCC_A1", "FCC_A1", "FCC_A1", '', '', '']
     # Confirmed by turning point density up to 1e7
     assert_allclose(res.GM.values.squeeze(), np.array([-39263.10130208]))
     assert_allclose(res.MU.values.squeeze(), np.array([-73190.455829,  55931.596253, -59900.399453, -79250.493316, -80354.857076]))
