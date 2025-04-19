@@ -429,7 +429,7 @@ def test_constituents_are_updated_when_components_change(load_database):
 
 @select_database("pbsn.tdb")
 def test_chemical_potentials_for_isolated_phases(load_database):
-    """IsolatedPhase chemical potentials should correspond to the """
+    """IsolatedPhase chemical potentials should correspond to the constrained, metastable composition set"""
     dbf = load_database()
     temperature = 100 # K
     wks = Workspace(dbf, phases=["BCT_A5"], components=["PB", "SN", "VA"], conditions={v.T: temperature, v.P:101325, v.X("SN"): 0.6})
