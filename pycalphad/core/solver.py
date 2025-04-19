@@ -188,6 +188,9 @@ class Solver(SolverBase):
         chemical_potentials = np.array(state.chemical_potentials)
 
         if self.verbose:
-            print('Chemical Potentials', chemical_potentials)
-            print(np.asarray(x))
+            soln_desc = f"Chemical Potentials: {np.round(chemical_potentials, 5).tolist()}; Composition Sets: {composition_sets}"
+            if converged:
+                print(f"Solver: (converged in {state.iteration+1} iterations): {soln_desc}", )
+            else:
+                print(f"Solver: (not converged): {soln_desc}", )
         return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)
