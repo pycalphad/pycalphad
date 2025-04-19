@@ -442,3 +442,34 @@ def test_multicomponent_jansson_derivative_dependent_component(load_database):
     # dGM / dX(Ti) = MU(Ti) - MU(Cr)
     np.testing.assert_allclose(dGM_dXTi, wks.get("MU(TI)") - wks.get("MU(CR)"))
     np.testing.assert_allclose(dGM_dXTi, -26856.725962)
+
+
+@pytest.mark.solver
+@select_database("Cr-Fe-Ni_shallow_bcc.tdb")
+def test_shallow_ternary_with_isolated_phase(load_database):
+    """
+    Test that a global min and isolated phase are computed correctly for a shallow miscibility gap.
+
+    This test was built from a out-of-band reported bug discoverd via running ESPEI.
+    The BCC energy is very shallow near the Cr-Fe edge with a very shallow miscibility
+    gap. The difference between the isolated phase energy and the global min energy is
+    only about 1.15 J/mol, so this is a tricky system that can be sensitive to starting
+    points and phase changes within the minimizer.
+    """
+    dbf = load_database()
+    comps = ['CR', 'FE', 'NI', 'VA']
+    phases = ['BCC_A2']
+    conditions = {v.T: 1170, v.P:101325, v.X('CR'): 0.638, v.X('NI'): 0.062}
+    wks = Workspace(dbf, phases=phases, components=comps, conditions=conditions, verbose=True)
+
+    # Values confirmed by turning point density up to 1e7
+    global_GM = wks.get("GM")
+    global_MU = np.asarray(wks.get("MU(*)"))
+    assert_allclose(global_GM, -53871.55575966857)
+    assert_allclose(global_MU, np.array([-47947.48767057, -62817.25958317, -71546.46372217]))
+    # TODO: test isolated phase MU? Might need https://github.com/pycalphad/pycalphad/pull/595
+    isolated_GM = wks.get(IsolatedPhase('BCC_A2',wks=wks)("GM"))
+    # TODO: switch notation to IsolatedPhase('BCC_A2',wks=wks)("MU(*)") when possible
+    isoalted_MU = np.asarray([wks.get(IsolatedPhase('BCC_A2',wks=wks)(x)) for x in ["MU(CR)", "MU(FE)", "MU(NI)"]])
+    assert_allclose(isolated_GM, -53870.40280079158)
+    # assert_allclose(isoalted_MU, ???)

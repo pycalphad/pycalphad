@@ -1067,3 +1067,26 @@ def test_issue_468_gibbs_phase_rule(load_database):
     eq = equilibrium(dbf, components, phases, {v.N:1, v.P:1e5, v.T:1080, v.X('C'):0.0053}, verbose=True)
     assert sorted(eq.Phase.values.squeeze()) == ["", "BCC_A2", "GRAPHITE"]
     assert np.allclose(np.sort(eq.NP.values.squeeze()), [0.00015170798706395827, 0.999848292010574, np.nan], atol=1e-7, equal_nan=True)
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_issue589_global_min(load_database):
+    dbf = load_database()
+    phases = dbf.phases
+    res = equilibrium(
+        dbf=dbf,
+        comps=["AL", "C", "CR", "FE", "CU", "VA"],
+        phases=["FCC_A1"],
+        conditions={v.N: 1, v.P: 1e5, v.T: 1173.5,
+                      v.X('AL'): 0.2,
+                      v.X('C'): 0.24648903489788575,
+                      v.X('CR'): 0.28915224916163424,
+                      v.X('CU'): 0.1370080709560772,
+            },
+        verbose=True)
+    print("Equilibrium Phase", res.Phase.values.squeeze())
+    print("Equilibrium NP", res.NP.values.squeeze())
+    print("Equilibrium GM", res.GM.values.squeeze())
+    # Confirmed by turning point density up to 1e7
+    assert_allclose(res.GM.values.squeeze(), np.array([-39263.10130208]))
+    assert_allclose(res.MU.values.squeeze(), np.array([-73190.455829,  55931.596253, -59900.399453, -79250.493316, -80354.857076]))
