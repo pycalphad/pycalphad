@@ -1009,6 +1009,8 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
                 state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
         else:
             state.free_stable_compset_indices = np.array(sorted(set(state.free_stable_compset_indices) - compset_indices_to_remove), dtype=np.int32)
+            for idx in compset_indices_to_remove:
+                state.times_compset_removed[idx] += 1
             phases_changed = True
     return phases_changed
 
