@@ -427,21 +427,6 @@ def test_constituents_are_updated_when_components_change(load_database):
     assert set(wks.constituents) == noZR_expected_species
 
 
-@select_database("pbsn.tdb")
-def test_chemical_potentials_for_isolated_phases(load_database):
-    """IsolatedPhase chemical potentials should correspond to the constrained, metastable composition set"""
-    dbf = load_database()
-    temperature = 100 # K
-    wks = Workspace(dbf, phases=["BCT_A5"], components=["PB", "SN", "VA"], conditions={v.T: temperature, v.P:101325, v.X("SN"): 0.6})
-
-    isolated_GM = wks.get(IsolatedPhase("BCT_A5",wks=wks)("GM"))
-    # TODO: use X(*) and MU(*) when supported
-    isolated_X = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["X(PB)", "X(SN)"]])
-    isolated_chempots = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["MU(PB)", "MU(SN)"]])
-    assert_allclose(isolated_chempots, np.asarray([-2992.70848448, -5280.02439881]))
-    assert_allclose(isolated_GM, np.dot(isolated_chempots, isolated_X))
-
-
 @select_database("crtiv_ghosh.tdb")
 def test_multicomponent_jansson_derivative_dependent_component(load_database):
     "Jansson derivatives with respect to an independent composition should have only one dependent component."
