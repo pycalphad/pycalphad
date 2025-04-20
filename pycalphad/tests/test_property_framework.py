@@ -222,5 +222,5 @@ def test_chemical_potentials_for_isolated_phases(load_database):
     # TODO: use X(*) and MU(*) when supported
     isolated_X = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["X(PB)", "X(SN)"]])
     isolated_chempots = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["MU(PB)", "MU(SN)"]])
-    assert_allclose(isolated_chempots, np.asarray([-2992.70848448, -5280.02439881]))
-    assert_allclose(isolated_GM, np.dot(isolated_chempots, isolated_X))
+    np.testing.assert_allclose(isolated_chempots, np.asarray([-2992.70848448, -5280.02439881]))
+    np.testing.assert_allclose(isolated_GM, np.dot(isolated_chempots, isolated_X))
