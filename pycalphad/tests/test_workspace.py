@@ -440,3 +440,17 @@ def test_chemical_potentials_for_isolated_phases(load_database):
     isolated_chempots = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["MU(PB)", "MU(SN)"]])
     assert_allclose(isolated_chempots, np.asarray([-2992.70848448, -5280.02439881]))
     assert_allclose(isolated_GM, np.dot(isolated_chempots, isolated_X))
+
+
+@select_database("crtiv_ghosh.tdb")
+def test_multicomponent_jansson_derivative_dependent_component(load_database):
+    "Jansson derivatives with respect to an independent composition should have only one dependent component."
+    dbf = load_database()
+    conds = {v.T: 2000.0, v.P: 101325, v.X("TI"): 0.2, v.X("V"): 0.3, v.N: 1}
+    wks = Workspace(dbf, ["CR", "TI", "V", "VA"], ["LIQUID"], conditions=conds)
+
+    dGM_dXTi = wks.get("GM.X(TI)")
+    # With Cr as the dependent component,
+    # dGM / dX(Ti) = MU(Ti) - MU(Cr)
+    np.testing.assert_allclose(dGM_dXTi, wks.get("MU(TI)") - wks.get("MU(CR)"))
+    np.testing.assert_allclose(dGM_dXTi, -26856.725962)
