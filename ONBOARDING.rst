@@ -5,15 +5,15 @@ Workplace setup & software tutorials
 ------------------------------------
 
 Unless you already have them, install VSCode (or other IDE for Python), Git, Build Tools for Visual Studio version 14.X, and Miniconda. You can follow a tutorial for all these `downloads <https://beenje.github.io/blog/posts/how-to-setup-a-windows-vm-to-build-conda-packages/#developer-tools-installation>`_. Follow the article up until "Testing", which is not essential but useful if you want to check that you installed everything properly. Make sure to download for the respective operating systems of the computer. Make sure Microsoft Visual C++ Build Tools is installed because it is essential towards installing pycalphad properly.
-After completing those downloads, `click <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ to download Microsoft’s Python extension. 
-As well, make sure your computer has `Python`_ 3.7+ (or a more updated version) downloaded. 
+After completing those downloads, `click <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ to download Microsoft’s Python extension.
+As well, make sure your computer has `Python`_ 3.7+ (or a more updated version) downloaded.
 Now, you can install the latest development branch of pycalphad. Run this command in Git Bash:
 
 .. code-block:: bash
 
    git clone https://github.com/pycalphad/pycalphad.git
 
-Next, you want to create a conda environment. 
+Next, you want to create a conda environment.
 
 How to create your conda environment
 ------------------------------------
@@ -21,7 +21,7 @@ How to create your conda environment
 Create your conda virtual environment using the application called Anaconda Prompt. You can find this by searching your computer in the bottom left bar.
  After ``-n`` is where we specify our environment name (in this case the name is ‘calphad’), and then the version of Python we want to install.
 
-``conda create -n calphad python=3.9``
+``conda create -n calphad python=3.13``
 
 Activate your conda environment in Anaconda Prompt
 --------------------------------------------------
@@ -56,7 +56,7 @@ Setting your VSCode environment
 
 We want to select the correct interpreter/environment in Visual Studio Code. Click into any file in the pycalphad codebase, and in the bottom right corner, you will be able to click on the Python version.
 
-At the top of Visual Studio, you will see a drop-down menu- click there and select the interpreter that has the name of your environment. In this case, it would be named something like this: Python 3.913 (‘calphad’).
+At the top of Visual Studio, you will see a drop-down menu- click there and select the interpreter that has the name of your environment. In this case, it would be named something like this: Python 3.13 (‘calphad’).
 
 Setting up your fork and remote repositories
 --------------------------------------------
@@ -76,12 +76,12 @@ Like so:
 .. code-block:: bash
 
     user@MT-102934 MINGW64 ~/pycalphad (branch_name)
-    $ git remote -v 
+    $ git remote -v
     origin     https://github.com/username/forkname.git (fetch)
     origin     https://github.com/username/forkname.git (push)
     upstream   https://github.com/pycalphad/pycalphad.git (fetch)
     upstream   https://github.com/pycalphad/pycalphad.git (push)
-    
+
 If either your origin or upstream does not match the above links, use the commands below:
 
 To remove a remote: ``git remote rm <remote-name>``
