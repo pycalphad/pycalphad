@@ -328,7 +328,7 @@ def test_magnetic_reference_energy_is_zero(load_database):
 @pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
 def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
-    
+
     VA_INTERACTION_TDB = """
     ELEMENT AL   FCC_A1                    26.981539   4577.296    28.3215!
     ELEMENT VA   BLANK                     0.0 0.0 0.0 !
@@ -946,7 +946,7 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
 @select_database("KF-NIF2_switched.dat")
 def test_DAT_coordination_numbers_are_order_invariant(load_database):
     """Coordination number parameters should have the coordinations sorted in the correct order.
-    
+
     This test confirms that if database cation ordering is not alphabetical in
     the source database (in particular, for coordination numbers), the energy
     will be correctly computed.
@@ -1286,3 +1286,117 @@ def test_QKTO_multicomponent_extrapolation(load_database):
     assert np.isclose(float(mod.moles("TC").subs(subs_dict)), 0.500, 1e-5)
     assert np.isclose(float(mod.moles("RU").subs(subs_dict)), 0.400, 1e-5)
     assert np.isclose(float(mod.moles("PD").subs(subs_dict)), 0.075, 1e-5)
+
+def test_higher_order_reciprocal_parameter():
+    test_tdb = """
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7423E+00!
+    ELEMENT MO   BCC_A2                    9.5940E+01  4.5890E+03  2.8560E+01!
+    ELEMENT NB   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01!
+    ELEMENT AL   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01!
+    ELEMENT CR   BCC_A2                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT TA   BCC_A2                    0.0000E+00  0.0000E+00  0.0000E+00!
+
+    PHASE FCC_A1 % 2 1 1 !
+    CONSTITUENT FCC_A1 : MO,NB : C,VA : !
+
+    PARAMETER G(FCC_A1,MO,NB:C,VA;0) 298.15 -300000; 6000 N !
+    PARAMETER G(FCC_A1,MO,NB:C,VA;1) 298.15 -200000; 6000 N !
+    PARAMETER G(FCC_A1,MO,NB:C,VA;2) 298.15 -100000; 6000 N !
+
+    PHASE FCC_A1_NO_VA % 2 1 1 !
+    CONSTITUENT FCC_A1_NO_VA : C,AL : MO,NB : !
+
+    PARAMETER G(FCC_A1_NO_VA,C,AL:MO,NB;0) 298.15 -300000; 6000 N !
+    PARAMETER G(FCC_A1_NO_VA,C,AL:MO,NB;1) 298.15 -200000; 6000 N !
+    PARAMETER G(FCC_A1_NO_VA,C,AL:MO,NB;2) 298.15 -100000; 6000 N !
+
+    PHASE PHASE_THREE % 3 1 1 1 !
+    CONSTITUENT PHASE_THREE : MO,NB : CR,TA : C,VA : !
+    PARAMETER G(PHASE_THREE,MO,NB:CR,TA:C,VA;0) 298.15 -200000; 6000 N !
+
+    PHASE PHASE_THREE_MIX % 3 1 1 1 !
+    CONSTITUENT PHASE_THREE_MIX : MO,NB : CR,TA : C,VA : !
+    PARAMETER G(PHASE_THREE_MIX,MO,NB:CR:C,VA;0) 298.15 -300000; 6000 N !
+    PARAMETER G(PHASE_THREE_MIX,MO,NB:CR:C,VA;1) 298.15 -200000; 6000 N !
+    PARAMETER G(PHASE_THREE_MIX,MO,NB:CR:C,VA;2) 298.15 -100000; 6000 N !
+    PARAMETER G(PHASE_THREE_MIX,MO,NB:TA:C,VA;0) 298.15 -600000; 6000 N !
+    PARAMETER G(PHASE_THREE_MIX,MO,NB:TA:C,VA;1) 298.15 -500000; 6000 N !
+    PARAMETER G(PHASE_THREE_MIX,MO,NB:TA:C,VA;2) 298.15 -400000; 6000 N !
+    """
+    # tests that model is for yMo*yNb*yC*yVa*(-300000 + -200000*(yMo-yNb) + -100000*(yC-yVa))
+    dbf = Database(test_tdb)
+    sMO = v.Species("MO")
+    sNB = v.Species("NB")
+    sC = v.Species("C")
+    sVA = v.Species("VA")
+    sAL = v.Species("AL")
+    sCR = v.Species("CR")
+    sTA = v.Species("TA")
+
+    yMO, yNB, yC, yVA = 0.3, 0.7, 0.8, 0.2
+    T = 1773.15
+
+    mod = Model(dbf, ["MO", "NB", "C", "VA"], "FCC_A1")
+    subs_dict = {
+        v.Y("FCC_A1", 0, sMO): yMO,
+        v.Y("FCC_A1", 0, sNB): yNB,
+        v.Y("FCC_A1", 1, sC): yC,
+        v.Y("FCC_A1", 1, sVA): yVA,
+        v.T: T
+    }
+    check_output(mod, subs_dict, 'GM', -16195.14703, mode='sympy')
+
+    # Since Thermo-Calc seems to flip the composition-dependent reciprocal parameters
+    # This is a test on a phase with no VA to check if the order of the reciprocal
+    # parameters was dependent on whether a sublattice has VA or not
+    yMO, yNB, yC, yAL = 0.75, 0.25, 0.1, 0.9
+    T = 1000
+
+    mod = Model(dbf, ["MO", "NB", "C", "AL"], "FCC_A1_NO_VA")
+    subs_dict = {
+        v.Y("FCC_A1_NO_VA", 0, sAL): yAL,
+        v.Y("FCC_A1_NO_VA", 0, sC): yC,
+        v.Y("FCC_A1_NO_VA", 1, sMO): yMO,
+        v.Y("FCC_A1_NO_VA", 1, sNB): yNB,
+        v.T: T
+    }
+    check_output(mod, subs_dict, 'GM', -7739.223, mode='sympy')
+
+    # Test mixing for phases with three sublattices
+    # NOTE: TC will throw a parsing error for PARAMETER G(PHASE_THREE,MO,NB:CR,TA:C,VA;0)
+    #       with a message: Only 2 interacting constituents on 2 sublattices are supported for reciprocal parameters
+    #       However, it will still give the same value as here
+    #       For higher order parameters such as PARAMETER G(PHASE_THREE,MO,NB:CR,TA:C,VA;1), equilibrium in TC will
+    #       fail is a message: Illegal composition dependency, but this behavior is addressed in
+    #       test_model.py::test_error_raised_for_higher_order_reciprocal_parameter
+    yMO, yNB, yCR, yTA, yC, yVA = 0.3, 0.7, 0.2, 0.8, 0.4, 0.6
+    T = 1000
+
+    mod = Model(dbf, ["MO", "NB", "CR", "TA", "C", "VA"], "PHASE_THREE")
+    subs_dict = {
+        v.Y("PHASE_THREE", 0, sMO): yMO,
+        v.Y("PHASE_THREE", 0, sNB): yNB,
+        v.Y("PHASE_THREE", 1, sCR): yCR,
+        v.Y("PHASE_THREE", 1, sTA): yTA,
+        v.Y("PHASE_THREE", 2, sC): yC,
+        v.Y("PHASE_THREE", 2, sVA): yVA,
+        v.T: T
+    }
+    check_output(mod, subs_dict, 'GM', -6853.4168, mode='sympy')
+
+    # Test mixing for phases with three sublattices where reciprocal parameter is on sublattice 0 and 2
+    yMO, yNB, yCR, yTA, yC, yVA = 0.3, 0.7, 0.2, 0.8, 0.4, 0.6
+    T = 1000
+
+    mod = Model(dbf, ["MO", "NB", "CR", "TA", "C", "VA"], "PHASE_THREE_MIX")
+    subs_dict = {
+        v.Y("PHASE_THREE_MIX", 0, sMO): yMO,
+        v.Y("PHASE_THREE_MIX", 0, sNB): yNB,
+        v.Y("PHASE_THREE_MIX", 1, sCR): yCR,
+        v.Y("PHASE_THREE_MIX", 1, sTA): yTA,
+        v.Y("PHASE_THREE_MIX", 2, sC): yC,
+        v.Y("PHASE_THREE_MIX", 2, sVA): yVA,
+        v.T: T
+    }
+    check_output(mod, subs_dict, 'GM', -12817.416, mode='sympy')

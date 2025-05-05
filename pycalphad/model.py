@@ -717,6 +717,10 @@ class Model(object):
         for param in params:
             # iterate over every sublattice
             mixing_term = S.One
+            param_subl_dof = [len(subl) for subl in param["constituent_array"]]
+            mixing_sublattice_indices = [subl_index for subl_index, dof in enumerate(param_subl_dof) if dof > 1]
+            if len(mixing_sublattice_indices) > 1 and max(param_subl_dof) > 2:
+                raise ValueError(f"Parameters with mixing on multiple sublattices cannot include interactions beyond binary. Got mixing on {len(mixing_sublattice_indices)} sublattices with one sublattice having mixing between {max(param_subl_dof)} constituents for parameter {param}.")
             for subl_index, comps in enumerate(param['constituent_array']):
                 comp_symbols = None
                 # convert strings to symbols
@@ -768,9 +772,23 @@ class Model(object):
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
-                    # interacting sublattice, add the interaction polynomial
-                    mixing_term *= Pow(comp_symbols[0] - \
-                        comp_symbols[1], param['parameter_order'])
+                    # multiply in (y_A - y_B) terms
+                    if len(mixing_sublattice_indices) == 1:
+                        # Normal R-K interaction parameter for mixing on one sublattice
+                        mixing_term *= Pow(comp_symbols[0] - comp_symbols[1], param['parameter_order'])
+                    elif len(mixing_sublattice_indices) == 2:
+                        # We have a reciprocal parameter
+                        # Similar to the ternary case, the parameter order has a special meaning for reciprocal parameters.
+                        # We only multiply by (y_A - y_B) if the sublattice corresponds to a specific parameter order
+                        # See Eq 5.99 in Section 5.8.1 of Lukas, Fries and Sundman [2].
+                        # Testing with Thermo-Calc indicates that that L1 corresponds to the second sublattice
+                        # with mixing and L2 corresponds to the first sublattice with mixing.
+                        if param['parameter_order'] > 2:  # L0 case doesn't have a (yA - yB) term
+                            raise ValueError(f"Reciprocal parameters can only use parameter order 0, 1, or 2. Got {param['parameter_order']} for {param}.")
+                        if subl_index == mixing_sublattice_indices[-param['parameter_order']]:
+                            mixing_term *= (comp_symbols[0] - comp_symbols[1])
+                    else:
+                        raise ValueError(f"Reciprocal interaction parameters beyond order L0 for more than 2 sublattices are not supported. Got mixing on {len(mixing_sublattice_indices)} sublattices for parameter {param}.")
                 if len(comps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
