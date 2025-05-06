@@ -178,6 +178,8 @@ class MapStrategy:
         if point is None:
             _log.info(f"Point could not be found from {conditions}")
             return False
+        _log.info(f"Adding point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}")
+            
         
         exit_hint, direction, err_reason = self._validate_custom_starting_point(point, direction)
         if err_reason is not None:
@@ -428,7 +430,7 @@ class MapStrategy:
         # For stepping, we will force add. Most nodes will be unique, however, if we're stepping along composition
         # in a binary, then the nodes won't be unique
         if len(self.axis_vars) == 1:
-            self.node_queue.add_node(new_node, True)
+            self.node_queue.add_node(new_node, True, check_parent=True)
         else:
             if not self.node_queue.add_node(new_node):
                 _log.info(f"Node {new_node.fixed_phases}, {new_node.free_phases} has already been added")

@@ -423,7 +423,7 @@ class NodeQueue():
         self.nodes: list[Node] = []
         self._current_node_index = 0
 
-    def add_node(self, candidate_node: Node, force = False) -> bool:
+    def add_node(self, candidate_node: Node, force = False, check_parent = False) -> bool:
         """
         Checks candidate_node to see if it has been added before
             If it has been added before, add parent to the encountered points list in the node
@@ -433,6 +433,12 @@ class NodeQueue():
         Force will force add candidate_node, this is useful for starting the zpf line within a two-phase field
         """
         if force:
+            if check_parent:
+                # Don't add node if there's another same node with the same parent
+                for other in self.nodes:
+                    if other == candidate_node:
+                        if other.parent == candidate_node.parent:
+                            return False
             self.nodes.append(candidate_node)
             return True
         else:
