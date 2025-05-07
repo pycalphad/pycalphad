@@ -110,7 +110,7 @@ def test_step_strategy_through_single_phase(load_database):
 
     # Step strategy through single phase regions
     strategy = StepStrategy(dbf, ["CR", "NI", "VA"], ["BCC_A2", "FCC_A1", "LIQUID"], conditions={v.T: (1300, 2000, 10), v.X("CR"): 0.8, v.P: 101325})
-    strategy.initialize()
+    #strategy.initialize()
     strategy.do_map()
 
     # Just check that plot_step runs without failing
@@ -160,7 +160,7 @@ def test_step_strategy_through_node(load_database):
 
     # Step strategy through single phase regions
     strategy = StepStrategy(dbf, ["PB", "SN", "VA"], None, conditions={v.T: (425, 550, 5), v.X("SN"): 0.5, v.P: 101325})
-    strategy.initialize()
+    #strategy.initialize()
     strategy.do_map()
 
     # Just check that plot_step runs without failing
@@ -193,7 +193,7 @@ def test_unary_strategy(load_database):
     """
     dbf = load_database()
     strategy = StepStrategy(dbf, ["CR", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (2150, 2250, 10), v.P: 101325})
-    strategy.initialize()
+    #strategy.initialize()
     strategy.do_map()
     plot_step(strategy, v.T, 'CPM')
 
@@ -202,7 +202,7 @@ def test_isopleth_strategy(load_database):
     dbf = load_database()
 
     strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): 0.2, v.P: 101325})
-    strategy.initialize()
+    #strategy.initialize()
     strategy.do_map()
 
     # Check that plot_isopleth runs without fail
@@ -246,7 +246,9 @@ def test_isopleth_strategy_node_exit():
     dbf = Database(TDB)
     phases = list(dbf.phases.keys())
 
-    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.2, v.X('B'): (0, 0.8, 0.01)})
+    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, 
+                                conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.2, v.X('B'): (0, 0.8, 0.01)},
+                                initialize=False)
 
     phase_comps = {
         'ALPHA': [0.9, 0.05, 0.05],
@@ -276,7 +278,9 @@ def test_isopleth_strategy_node_exit():
         assert set(point.free_phases) in desired_free_phases
 
     # Invariant node with 6 total exits
-    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.5, v.X('B'): (0, 0.5, 0.01)})
+    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, 
+                                conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.5, v.X('B'): (0, 0.5, 0.01)},
+                                initialize=False)
     conds = {v.T: 700, v.P: 101325, v.N: 1, v.X('A'): 0.5, v.X('B'): 0.2}
     node = Node(conds, [0, 0, 0], [comp_sets[0], comp_sets[1]], [comp_sets[2], comp_sets[3]], None)
     exits, exit_dirs = strategy._find_exits_from_node(node)
@@ -357,7 +361,7 @@ def test_strategy_adjust_composition_limits():
     # v.X('B'): (0, 1, 0.01) -> v.X('B'): (0, 0.9, 0.01)
     comps = ['A', 'B', 'C']
     conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('B'): (0, 1, 0.01)}
-    strategy = StepStrategy(dbf, comps, None, conds)
+    strategy = StepStrategy(dbf, comps, None, conds, initialize=False)
 
     assert np.isclose(strategy.axis_lims[v.X('B')][0], 0)
     assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.9)
@@ -366,7 +370,7 @@ def test_strategy_adjust_composition_limits():
     # v.T should not change
     comps = ['A', 'B']
     conds = {v.T: (1, 2, 0.01), v.P: 101325, v.X('A'): 0.1}
-    strategy = StepStrategy(dbf, comps, None, conds)
+    strategy = StepStrategy(dbf, comps, None, conds, initialize=False)
 
     assert np.isclose(strategy.axis_lims[v.T][0], 1)
     assert np.isclose(strategy.axis_lims[v.T][1], 2)
@@ -376,7 +380,7 @@ def test_strategy_adjust_composition_limits():
     # v.X('C'): (0, 1, 0.01) -> v.X('C'): (0, 0.7, 0.01)
     comps = ['A', 'B', 'C', 'D']
     conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('D'): 0.2, v.X('B'): (0, 1, 0.01), v.X('C'): (0, 1, 0.01)}
-    strategy = IsoplethStrategy(dbf, comps, None, conds)
+    strategy = IsoplethStrategy(dbf, comps, None, conds, initialize=False)
 
     assert np.isclose(strategy.axis_lims[v.X('B')][0], 0)
     assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.7)
@@ -388,7 +392,7 @@ def test_strategy_adjust_composition_limits():
     # v.X('C'): (0.25, 1, 0.01) -> v.X('C'): (0, 0.55, 0.01)
     comps = ['A', 'B', 'C', 'D']
     conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('D'): 0.2, v.X('B'): (0.15, 1, 0.01), v.X('C'): (0.25, 1, 0.01)}
-    strategy = IsoplethStrategy(dbf, comps, None, conds)
+    strategy = IsoplethStrategy(dbf, comps, None, conds, initialize=False)
     
     assert np.isclose(strategy.axis_lims[v.X('B')][0], 0.15)
     assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.45)
@@ -412,7 +416,7 @@ def test_ternary_strategy_process_metastable_node(load_database):
     phases = list(dbf.phases.keys())
     map_conds = {v.T: 1323, v.P: 101325, v.N: 1, v.X('CR'): (0, 1, 0.01), v.X('FE'): (0, 1, 0.01)}
 
-    strategy = TernaryStrategy(dbf, comps, phases, map_conds)
+    strategy = TernaryStrategy(dbf, comps, phases, map_conds, initialize=False)
 
     # Conditions where BCC_A2 and LAVES_C14 is stable
     # Add this point as a starting zpf line in the strategy

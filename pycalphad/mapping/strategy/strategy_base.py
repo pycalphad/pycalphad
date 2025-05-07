@@ -48,7 +48,7 @@ class MapStrategy:
         So increasing it to a high value does not significantly degrade performance and mapping using models with high DOF may be better)
     """
 
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
+    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], initialize=True, **kwargs):
         if isinstance(dbf, str):
             dbf = Database(dbf)
         self.dbf = dbf
@@ -62,7 +62,6 @@ class MapStrategy:
         # Add v.N to conditions. Mapping assumes that v.N is in conditions
         if v.N not in self.conditions:
             self.conditions[v.N] = 1
-
 
         self.axis_vars = [key for key, val in self.conditions.items() if len(np.atleast_1d(val)) > 1]
 
@@ -115,6 +114,9 @@ class MapStrategy:
         self.GLOBAL_MIN_PDENS = kwargs.get("GLOBAL_MIN_PDENS", 500)
         self.GLOBAL_MIN_TOL = kwargs.get("GLOBAL_MIN_TOL", 1e-4)
         self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1)
+
+        if initialize:
+            self.initialize()
 
     def _constant_kwargs(self):
         """
@@ -180,7 +182,6 @@ class MapStrategy:
             return False
         _log.info(f"Adding point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}")
             
-        
         exit_hint, direction, err_reason = self._validate_custom_starting_point(point, direction)
         if err_reason is not None:
             _log.info(f"Point could not be added at {conditions}. {err_reason}")
@@ -214,6 +215,15 @@ class MapStrategy:
         new_node.axis_direction = start_dir
         new_node.exit_hint = exit_hint
         return new_node
+    
+    def initialize(self):
+        """
+        Automatically finds starting points based off input conditions
+        Map strategies should be able to still run even without automatic starting
+        point finding as long as there is another method to add starting points (which could
+        be add_nodes_from_conditions)
+        """
+        pass
 
     def iterate(self):
         """

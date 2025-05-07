@@ -49,9 +49,6 @@ def _point_slope(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.St
         return options_tests[best_index][1]
 
 class IsoplethStrategy(MapStrategy):
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
-        super().__init__(dbf, components, phases, conditions, **kwargs)
-
     def initialize(self):
         """
         Searches axis limits to find starting points

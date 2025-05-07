@@ -113,11 +113,13 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable]):
         return options_tests[best_index][0], options_tests[best_index][1], options_tests[best_index][2], normal
 
 class TernaryStrategy(MapStrategy):
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
-        super().__init__(dbf, components, phases, conditions, **kwargs)
+    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], initialize=True, **kwargs):
+        super().__init__(dbf, components, phases, conditions, initialize=False, **kwargs)
         # TODO: This assumes pure elements and will likely change with the generalize component support
         unlisted_element = list(set(self.components) - {'VA'} - set([str(av.species) for av in self.axis_vars]))[0]
         self.all_vars = self.axis_vars + [v.X(unlisted_element)]
+        if initialize:
+            self.initialize()
 
     def initialize(self):
         """
