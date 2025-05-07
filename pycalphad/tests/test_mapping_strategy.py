@@ -110,7 +110,6 @@ def test_step_strategy_through_single_phase(load_database):
 
     # Step strategy through single phase regions
     strategy = StepStrategy(dbf, ["CR", "NI", "VA"], ["BCC_A2", "FCC_A1", "LIQUID"], conditions={v.T: (1300, 2000, 10), v.X("CR"): 0.8, v.P: 101325})
-    #strategy.initialize()
     strategy.do_map()
 
     # Just check that plot_step runs without failing
@@ -160,7 +159,6 @@ def test_step_strategy_through_node(load_database):
 
     # Step strategy through single phase regions
     strategy = StepStrategy(dbf, ["PB", "SN", "VA"], None, conditions={v.T: (425, 550, 5), v.X("SN"): 0.5, v.P: 101325})
-    #strategy.initialize()
     strategy.do_map()
 
     # Just check that plot_step runs without failing
@@ -193,7 +191,6 @@ def test_unary_strategy(load_database):
     """
     dbf = load_database()
     strategy = StepStrategy(dbf, ["CR", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (2150, 2250, 10), v.P: 101325})
-    #strategy.initialize()
     strategy.do_map()
     plot_step(strategy, v.T, 'CPM')
 
@@ -202,7 +199,6 @@ def test_isopleth_strategy(load_database):
     dbf = load_database()
 
     strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): 0.2, v.P: 101325})
-    #strategy.initialize()
     strategy.do_map()
 
     # Check that plot_isopleth runs without fail
@@ -463,16 +459,19 @@ def test_ternary_strategy_process_metastable_node(load_database):
     assert strategy.node_queue.nodes[-1] == stable_node
 
 def test_plot_labels():
-    assert get_label(v.NP('*')) == 'Phase Fraction'
-    assert get_label(v.NP('BCC_A2')) == 'Phase Fraction (BCC_A2)'
+    assert get_label(v.NP('*')) == 'Phase Fraction (fraction)'
+    assert get_label(v.NP('BCC_A2')) == 'Phase Fraction (BCC_A2) (fraction)'
 
-    assert get_label(v.X('CR')) == 'X(Cr)'
-    assert get_label(v.X('BCC_A2', 'CR')) == 'X(BCC_A2, Cr)'
+    assert get_label(v.X('CR')) == 'X(Cr) (fraction)'
+    assert get_label(v.X('BCC_A2', 'CR')) == 'X(BCC_A2, Cr) (fraction)'
 
-    assert get_label(v.W('CR')) == 'W(Cr)'
-    assert get_label(v.W('BCC_A2', 'CR')) == 'W(BCC_A2, Cr)'
+    assert get_label(v.W('CR')) == 'W(Cr) (fraction)'
+    assert get_label(v.W('BCC_A2', 'CR')) == 'W(BCC_A2, Cr) (fraction)'
 
-    assert get_label(v.MU('CR')) == 'MU(Cr)'
-    assert get_label('CPM') == 'CPM'
-    assert get_label(v.T) == 'Temperature'
+    assert get_label(v.MU('CR')) == 'MU(Cr) (J / mol)'
+    assert get_label('CPM') == 'Heat Capacity (J / mol / K)'
+    assert get_label(v.T) == 'Temperature (kelvin)'
+
+    # A string argument that doesn't have built in units will just return the string
+    assert get_label('Custom Prop') == 'Custom Prop'
 

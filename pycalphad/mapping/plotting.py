@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 
 from pycalphad import variables as v
+from pycalphad.property_framework import as_property
 from pycalphad.plot.utils import phase_legend
 from pycalphad.plot import triangular  # register triangular projection
 
@@ -20,26 +21,30 @@ def get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
     if isinstance(var, v.NP):
         if var.phase_name is None or var.phase_name == '*':
-            return 'Phase Fraction'
+            return f'Phase Fraction ({var.display_units})'
         else:
-            return 'Phase Fraction ({})'.format(var.phase_name)
+            return f'Phase Fraction ({var.phase_name}) ({var.display_units})'
     elif isinstance(var, v.X):
         if var.phase_name is None:
-            return 'X({})'.format(var.species.name.capitalize())
+            return f'X({var.species.name.capitalize()}) ({var.display_units})'
         else:
-            return 'X({}, {})'.format(var.phase_name, var.species.name.capitalize())
+            return f'X({var.phase_name}, {var.species.name.capitalize()}) ({var.display_units})'
     elif isinstance(var, v.W):
         if var.phase_name is None:
-            return 'W({})'.format(var.species.name.capitalize())
+            return f'W({var.species.name.capitalize()}) ({var.display_units})'
         else:
-            return 'W({}, {})'.format(var.phase_name, var.species.name.capitalize())
+            return f'W({var.phase_name}, {var.species.name.capitalize()}) ({var.display_units})'
     elif isinstance(var, v.MU):
-        return 'MU({})'.format(var.species.name.capitalize())
+        return f'MU({var.species.name.capitalize()}) ({var.display_units})'
     elif isinstance(var, str):
-        return var
+        prop = as_property(var)
+        if prop.display_units == '':
+            return f'{prop.display_name}'
+        else:
+            return f'{prop.display_name} ({prop.display_units})'
     # Otherwise, we can just use the display name
     else:
-        return var.display_name
+        return f'{var.display_name} ({var.display_units})'
 
 def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, set_nan_to_zero = True, *args, **kwargs):
     """

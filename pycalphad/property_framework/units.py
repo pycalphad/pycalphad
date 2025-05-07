@@ -35,6 +35,9 @@ H_display_name = 'Enthalpy'
 entropy_implementation_units = SM_implementation_units = 'J / mol / K'
 entropy_display_units = SM_display_units = 'J / mol / K'
 entropy_display_name = SM_display_name = 'Entropy'
+cpm_implementation_units = CPM_implementation_units = 'J / mol / K'
+cpm_display_units = CPM_display_units = 'J / mol / K'
+cpm_display_name = CPM_display_name = 'Heat Capacity'
 
 def _conversions_per_formula_unit(compset):
     components = compset.phase_record.nonvacant_elements

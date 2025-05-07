@@ -82,20 +82,6 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable):
         return var.expand_wildcard(phase_names=[phase])[0]
     else:
         return as_property(var)
-    # if is_global:
-    #     return as_property(var)
-    # if isinstance(var, v.X):
-    #     # If phase in v.X is already defined, then don't override phase
-    #     phase = phase if var.phase_name is None else var.phase_name
-    #     return v.X(phase, var.species)
-    # elif isinstance(var, v.W):
-    #     # If phase in v.W is already defined, then don't override phase
-    #     phase = phase if var.phase_name is None else var.phase_name
-    #     return v.W(phase, var.species)
-    # elif isinstance(var, v.NP) or var == v.NP:
-    #     return v.NP(phase)
-    # else:
-    #     return as_property(var)
 
 @dataclass
 class Point():
