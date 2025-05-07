@@ -209,3 +209,18 @@ def test_jansson_derivative_zero_and_undefined(load_database):
     dxdt = v.X('AL').jansson_derivative(comp_sets, conds, chem_pots, T_deltas)
     np.testing.assert_allclose(dxdt_phase, dxdt)
     np.testing.assert_allclose(dxdt_phase, -0.00034853908, rtol=1e-8)
+
+
+@select_database("pbsn.tdb")
+def test_chemical_potentials_for_isolated_phases(load_database):
+    """IsolatedPhase chemical potentials should correspond to the constrained, metastable composition set"""
+    dbf = load_database()
+    temperature = 100 # K
+    wks = Workspace(dbf, phases=["BCT_A5"], components=["PB", "SN", "VA"], conditions={v.T: temperature, v.P:101325, v.X("SN"): 0.6})
+
+    isolated_GM = wks.get(IsolatedPhase("BCT_A5",wks=wks)("GM"))
+    # TODO: use X(*) and MU(*) when supported
+    isolated_X = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["X(PB)", "X(SN)"]])
+    isolated_chempots = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["MU(PB)", "MU(SN)"]])
+    np.testing.assert_allclose(isolated_chempots, np.asarray([-2992.70848448, -5280.02439881]))
+    np.testing.assert_allclose(isolated_GM, np.dot(isolated_chempots, isolated_X))

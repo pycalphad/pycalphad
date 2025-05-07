@@ -214,8 +214,9 @@ class IsolatedPhase:
                             chemical_potentials: npt.ArrayLike) -> float:
                 if self._compset is None:
                     return prop.compute_property([], cur_conds, chemical_potentials)
-                self.solver.solve([self._compset], cur_conds)
-                return prop.compute_property([self._compset], cur_conds, chemical_potentials)
+                res = self.solver.solve([self._compset], cur_conds)
+                new_chemical_potentials = res.chemical_potentials
+                return prop.compute_property([self._compset], cur_conds, new_chemical_potentials)
 
             @staticmethod
             def jansson_derivative(compsets, cur_conds, chemical_potentials, deltas):
