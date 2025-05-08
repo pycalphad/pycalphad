@@ -265,7 +265,7 @@ class Node(Point):
     axis_var : v.StateVariable
         Axis variable that parent was stepping in to find node
     axis_direction : Direction
-        Axis direction that parent was steppig in to find node
+        Axis direction that parent was stepping in to find node
     exit_hint : ExitHint
         Hints for how exits should be found from this node
     """
@@ -419,12 +419,6 @@ class NodeQueue():
         Force will force add candidate_node, this is useful for starting the zpf line within a two-phase field
         """
         if force:
-            if check_parent:
-                # Don't add node if there's another same node with the same parent
-                for other in self.nodes:
-                    if other == candidate_node:
-                        if other.parent == candidate_node.parent:
-                            return False
             self.nodes.append(candidate_node)
             return True
         else:
@@ -432,8 +426,13 @@ class NodeQueue():
             # of encountered points in the node
             for other in self.nodes:
                 if other == candidate_node:
-                    other.encountered_points.append(candidate_node.parent)
-                    return False
+                    # If checking that the parent is also the same (and from the same direction)
+                    if check_parent:
+                        if (other.parent == candidate_node.parent) and (other.axis_var == candidate_node.axis_var) and (other.axis_direction == candidate_node.axis_direction):
+                            return False
+                    else:
+                        other.encountered_points.append(candidate_node.parent)
+                        return False
             else:
                 self.nodes.append(candidate_node)
                 return True

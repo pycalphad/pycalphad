@@ -437,10 +437,16 @@ class MapStrategy:
         new_node.axis_direction = zpf_line.axis_direction
 
         # Add to node queue
-        # For stepping, we will force add. Most nodes will be unique, however, if we're stepping along composition
+        # For stepping, we will check whether the node parent is also the same before adding
+        #    This is for cases where stepping in compostion along a binary, then the two ends of
+        #    a two phase region will be the same node. In this case, we check that the parent
+        #    is also the same and that it came from the same direction (this second part is for
+        #    an edge case a starting point is in a thin two-phase region and a step in both directions
+        #    will lead to a node)
         # in a binary, then the nodes won't be unique
         if len(self.axis_vars) == 1:
-            self.node_queue.add_node(new_node, True, check_parent=True)
+            if not self.node_queue.add_node(new_node, check_parent=True):
+                _log.info(f"Node {new_node.fixed_phases}, {new_node.free_phases} has already been added")
         else:
             if not self.node_queue.add_node(new_node):
                 _log.info(f"Node {new_node.fixed_phases}, {new_node.free_phases} has already been added")
