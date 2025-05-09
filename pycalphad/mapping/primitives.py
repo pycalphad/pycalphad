@@ -210,6 +210,19 @@ class Point():
         output += "\nConditions: " + str(self.global_conditions)
         output += "\nChem_pot: " + str(self.chemical_potentials)
         return output
+    
+    def __repr__(self):
+        conds_str = 'global_conditions=' + str(self.global_conditions)
+        chem_pot = 'chemical_potentials=' + str(self.chemical_potentials)
+        fixed_cs_str = [repr(cs) for cs in self._fixed_composition_sets]
+        for i in range(len(self._fixed_composition_sets)):
+            fixed_cs_str[i] = fixed_cs_str[i][:-1] + ', dof=' + str(list(self._fixed_composition_sets[i].dof)) + ')'
+        free_cs_str = [repr(cs) for cs in self._free_composition_sets]
+        for i in range(len(self._free_composition_sets)):
+            free_cs_str[i] = free_cs_str[i][:-1] + ', dof=' + str(list(self._free_composition_sets[i].dof)) + ')'
+        fixed_cs_str = '_fixed_composition_sets=[' + ', '.join(fixed_cs_str) + ']'
+        free_cs_str = '_free_composition_sets=[' + ', '.join(free_cs_str) + ']'
+        return str(self.__class__.__name__) + f"({conds_str}, {chem_pot}, {fixed_cs_str}, {free_cs_str})"
 
     def get_property(self, var: v.StateVariable):
         """
@@ -297,8 +310,16 @@ class Node(Point):
 
     def __str__(self):
         output = super().__str__()
-        output += "\nAxis: " + str([self.axis_var, self.axis_direction])
+        output += f"\nAxis: [{self.axis_var}, {self.axis_direction}]"
         return output
+    
+    def __repr__(self):
+        point_repr = super().__repr__()
+        parent_str = 'parent=' + repr(self.parent)
+        av_str = 'axis_var=' + str(self.axis_var)
+        dir_str = 'axis_direction=' + str(self.axis_direction)
+        exit_str = 'exit_hint=' + str(self.exit_hint)
+        return point_repr[:-1] + f", {parent_str}, {av_str}, {dir_str}, {exit_str})"
 
 class ZPFState(Enum):
     """
