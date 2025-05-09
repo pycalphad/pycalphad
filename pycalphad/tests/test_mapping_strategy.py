@@ -135,23 +135,23 @@ def test_step_strategy_through_single_phase(load_database):
 
     # For T vs. CPM, x and y refers to properties of the entire system -> phases = ['SYSTEM']
     data = strategy.get_data(v.T, 'CPM')
-    assert len(data['data']) == 1 and 'SYSTEM' in data['data']
+    assert len(data.data) == 1 and data.data[0].phase == 'SYSTEM'
 
     # v.X('CR') has phase wildcard '*' implicitly added, so phases = ['BCC_A2', 'FCC_A1', 'LIQUID']
     data = strategy.get_data(v.T, v.X('CR'))
-    assert len(set(list(data['data'].keys())).symmetric_difference({'BCC_A2', 'FCC_A1', 'LIQUID'})) == 0
+    assert len(set(data.phases).symmetric_difference({'BCC_A2', 'FCC_A1', 'LIQUID'})) == 0
 
     # We force y to be global and x is already global, so phases = ['SYSTEM']
     data = strategy.get_data(v.T, v.X('CR'), global_y=True)
-    assert len(data['data']) == 1 and 'SYSTEM' in data['data']
+    assert len(data.data) == 1 and data.data[0].phase == 'SYSTEM'
 
     # x is phase specific, so both x and y are global -> phases = ['SYSTEM']
     data = strategy.get_data(v.X('BCC_A2', 'CR'), v.T)
-    assert len(data['data']) == 1 and 'SYSTEM' in data['data']
+    assert len(data.data) == 1 and data.data[0].phase == 'SYSTEM'
 
     # We force x to be global -> phases = ['SYSTEM']
     data = strategy.get_data(v.X('CR'), v.T, global_x=True)
-    assert len(data['data']) == 1 and 'SYSTEM' in data['data']
+    assert len(data.data) == 1 and data.data[0].phase == 'SYSTEM'
 
 @select_database("pbsn.tdb")
 def test_step_strategy_through_node(load_database):

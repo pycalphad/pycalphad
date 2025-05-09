@@ -79,22 +79,16 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
         y = v.NP('*')
 
     step_data = strategy.get_data(x, y, global_x = global_x, set_nan_to_zero=set_nan_to_zero)
-    data = step_data['data']
-    xlim = step_data['xlim']
-    ylim = step_data['ylim']
+    
+    handles, colors = legend_generator(sorted(step_data.phases))
+    for single_phase_data in step_data.data:
+        ax.plot(single_phase_data.x, single_phase_data.y, color=colors[single_phase_data.phase], lw=1, solid_capstyle="butt")
+    ax.set_xlim(step_data.xlim)
+    ax.set_ylim(step_data.ylim)
 
-    handles, colors = legend_generator(sorted(data.keys()))
-
-    for p in data:
-        x_data = data[p]['x']
-        y_data = data[p]['y']
-        ax.plot(x_data, y_data, color=colors[p], lw=1, solid_capstyle="butt")
-
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-
-    # Add legend
-    ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
+    # Add legend if more than 1 item in list
+    if len(step_data.data) > 1:
+        ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
     ax.set_xlabel(get_label(x))
@@ -119,13 +113,14 @@ def plot_invariants(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.S
         Color to plot node
     """
     invariant_data = strategy.get_invariant_data(x, y)
-    for data in invariant_data:
-        x_data, y_data, phases = data['x'], data['y'], data['phases']
-        ax.plot(x_data + [x_data[0]], y_data + [y_data[0]], color=tie_triangle_color, zorder=2.5, lw=1, solid_capstyle="butt")
+    for single_invariant in invariant_data:
+        x_plot = np.concatenate((single_invariant.x, [single_invariant.x[0]]))
+        y_plot = np.concatenate((single_invariant.y, [single_invariant.y[0]]))
+        ax.plot(x_plot, y_plot, color=tie_triangle_color, zorder=2.5, lw=1, solid_capstyle="butt")
 
         # If labeling end points, add a scatter point on each phase coordinate in the node
         if label_end_points:
-            for xp, yp, p in zip(x_data, y_data, phases):
+            for xp, yp, p in zip(single_invariant.x, single_invariant.y, single_invariant.phases):
                 ax.scatter([xp], [yp], color=phase_colors[p], s=8, zorder=3)
 
 def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, tielines = 1, tieline_color=(0, 1, 0, 1)):
@@ -145,17 +140,21 @@ def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
         False - only plots phase boundaries
     tieline_color : color
     """
-    zpf_data = strategy.get_tieline_data(x, y)
-    for data in zpf_data:
-        for p in data:
-            x_data, y_data = data[p]['x'], data[p]['y']
-            if not all((y_data == 0) | (y_data == np.nan)):
-                ax.plot(x_data, y_data, color=phase_colors[p], lw=1, solid_capstyle="butt")
+    tieline_data = strategy.get_tieline_data(x, y)
+    for single_tieline in tieline_data:
+        for single_phase_data in single_tieline.data:
+            x, y, p = single_phase_data.x, single_phase_data.y, single_phase_data.phase
+            if not all((single_phase_data.y == 0) | (single_phase_data.y == np.nan)):
+                ax.plot(single_phase_data.x, single_phase_data.y, color=phase_colors[p], lw=1, solid_capstyle="butt")
 
         if tielines:
-            x_list = [data[p]['x'] for p in data]
-            y_list = [data[p]['y'] for p in data]
-            tieline_collection = LineCollection(np.asarray([x_list, y_list]).T[::tielines, ...], zorder=1, linewidths=0.5, capstyle="butt", colors=[tieline_color for _ in range(len(x_list[0]))])
+            x = single_tieline.x
+            y = single_tieline.y
+            # x,y is [phases, points]
+            # np.asarray([x,y]) is [xy, phases, points]
+            # We want to transpose to [points, phases, xy]
+            lines = np.transpose(np.asarray([x, y]), axes=(2,1,0))
+            tieline_collection = LineCollection(lines[::tielines,...], zorder=1, linewidths=0.5, capstyle="butt", colors=[tieline_color for _ in range(len(x[0]))])
             ax.add_collection(tieline_collection)
 
 def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, tielines = 1, label_nodes = False, legend_generator = phase_legend, tieline_color=(0, 1, 0, 1), tie_triangle_color=(1, 0, 0, 1), *args, **kwargs):
@@ -303,18 +302,24 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
 
     # Plot zpf lines
     zpf_data = strategy.get_zpf_data(x, y)
-    xlim, ylim = zpf_data['xlim'], zpf_data['ylim']
-    for data in zpf_data['data']:
-        zero_phase = data['phase']
-        x_data, y_data = data['x'], data['y']
+    xlim, ylim = zpf_data.xlim, zpf_data.ylim
+    for single_phase_data in zpf_data.data:
+        x_data, y_data, zero_phase = single_phase_data.x, single_phase_data.y, single_phase_data.phase
         if not all((y_data == 0) | (y_data == np.nan)):
             ax.plot(x_data, y_data, color=colors[zero_phase], lw=1, solid_capstyle="butt")
 
     # Plot nodes
     node_data = strategy.get_invariant_data(x, y)
     for data in node_data:
-        x_data, y_data = data['x'], data['y']
-        ax.plot(x_data, y_data, color=tie_triangle_color, zorder=2.5, lw=1, solid_capstyle="butt")
+        x_data, y_data = data.x, data.y
+        x_comb = list(itertools.combinations(x_data, 2))
+        y_comb = list(itertools.combinations(y_data, 2))
+        # x_comb, y_comb is (number of lines, pair)
+        # np.asarray([x_comb, y_comb]) is (xy coords, number of lines, pair)
+        # We want to transform to (number of lines, pair, xy coord)
+        inv_lines = np.transpose(np.asarray([x_comb, y_comb]), axes=(1,2,0))
+        invariant_collection = LineCollection(inv_lines, zorder=2.5, linewidths=1, capstyle="butt", colors=[tie_triangle_color for _ in inv_lines])
+        ax.add_collection(invariant_collection)
 
     # Set axis limits
     # If variable is a strategy axis variables, then set limits to axis variable limits

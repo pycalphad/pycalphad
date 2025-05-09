@@ -11,6 +11,7 @@ from pycalphad.core.constants import MIN_PHASE_FRACTION
 from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, ZPFState, _get_phase_specific_variable
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
+from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyData
 
 _log = logging.getLogger(__name__)
 
@@ -165,7 +166,7 @@ class StepStrategy(MapStrategy):
                 if success:
                     return
                 
-    def get_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False, set_nan_to_zero=False):
+    def get_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False, set_nan_to_zero=False) -> StrategyData:
         """
         Utility function to get data from StepStrategy for plotting.
 
@@ -184,19 +185,15 @@ class StepStrategy(MapStrategy):
 
         Returns
         -------
-        dict
-            A dictionary with the following structure::
-
-            {
-                "data": {
-                    "<phase_name>": {
-                        "x": list of float,
-                        "y": list of float
-                    }
-                },
-                "xlim": list of float,  # min and max for all x values
-                "ylim": list of float   # min and max for all y values
-            }
+        StrategyData
+            If x and y are unique for the system, then the data in StrategyData will be labeled as "SYSTEM"
+            otherwise, the data in StrategyData will be labeled for all stable phases
+            Examples of unique variables:
+                State variables (N, P, T)
+                Values such as GM, HM, CPM
+                Phase specific variable (i.e. v.X(phase, component) or v.NP(phase))
+                    This is in contrast to v.X(component) or v.NP where composition or phase fraction will be
+                    taken for all stable phases
         """
         if hasattr(x, 'phase_name') and x.phase_name is None:
             if not global_x:
@@ -219,13 +216,9 @@ class StepStrategy(MapStrategy):
             # Get all phases in strategy (including multiplicity)
             phases = sorted(self.get_all_phases())
 
-        # Axis limits for x and y
-        xlim = [np.inf, -np.inf]
-        ylim = [np.inf, -np.inf]
-
         # For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)
         # Then get the max and min of x and y values to update xlim and ylim
-        data = {}
+        data = []
 
         for p in phases:
             x_array = []
@@ -247,19 +240,7 @@ class StepStrategy(MapStrategy):
             argsort = np.argsort(x_array)
             x_array = x_array[argsort]
             y_array = y_array[argsort]
+            
+            data.append(SinglePhaseData(p, x_array, y_array))
 
-            data[p] = {'x': x_array, 'y': y_array}
-
-            # Can this be done outside of this loop, or is this the easiest way?
-            xlim[0] = np.amin([xlim[0], np.amin(x_array[~np.isnan(x_array)])])
-            xlim[1] = np.amax([xlim[1], np.amax(x_array[~np.isnan(x_array)])])
-            ylim[0] = np.amin([ylim[0], np.amin(y_array[~np.isnan(y_array)])])
-            ylim[1] = np.amax([ylim[1], np.amax(y_array[~np.isnan(y_array)])])
-
-        step_data = {
-            'data': data,
-            'xlim': xlim,
-            'ylim': ylim,
-        }
-
-        return step_data
+        return StrategyData(data)

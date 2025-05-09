@@ -7,10 +7,49 @@ TODO: Once BinaryStrategy and TernaryStrategy are merged into a more general Tie
 """
 import copy
 from typing import Union
+from dataclasses import dataclass, field
+
+import numpy as np
 
 from pycalphad import variables as v
-
 from pycalphad.mapping.primitives import _get_phase_specific_variable
+
+@dataclass
+class SinglePhaseData:
+    phase: str
+    x: float | list[float]
+    y: float | list[float]
+
+@dataclass
+class StrategyData:
+    data: list[SinglePhaseData]
+    xlim: list[float] = field(init=False)
+    ylim: list[float] = field(init=False)
+
+    def __post_init__(self):
+        all_x = np.concatenate([np.atleast_1d(d.x) for d in self.data], axis=0)
+        all_y = np.concatenate([np.atleast_1d(d.y) for d in self.data], axis=0)
+        self.xlim = [np.amin(all_x[~np.isnan(all_x)]), np.amax(all_x[~np.isnan(all_x)])]
+        self.ylim = [np.amin(all_y[~np.isnan(all_y)]), np.amax(all_y[~np.isnan(all_y)])]
+
+    def __getitem__(self, key: str) -> SinglePhaseData:
+        phases = [d.phase for d in self.data]
+        if key in phases:
+            return self.data[phases.index(key)]
+        else:
+            raise KeyError(f"{key} not in dataset.")
+        
+    @property
+    def phases(self):
+        return [d.phase for d in self.data]
+    
+    @property
+    def x(self):
+        return [d.x for d in self.data]
+    
+    @property
+    def y(self):
+        return [d.y for d in self.data]
 
 def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False):
     """
@@ -53,14 +92,12 @@ def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.
         # Nodes in binary and ternary mappings are always 3 composition sets
         if len(node.stable_composition_sets) == 3:
             node_phases = node.stable_phases_with_multiplicity
-            x_data = [node.get_property(_get_phase_specific_variable(p, x)) for p in node_phases]
-            y_data = [node.get_property(_get_phase_specific_variable(p, y)) for p in node_phases]
-            data = {
-                'phases': node_phases,
-                'x': x_data,
-                'y': y_data,
-            }
-            invariant_data.append(data)
+            data = []
+            for p in node_phases:
+                x_data = node.get_property(_get_phase_specific_variable(p, x))
+                y_data = node.get_property(_get_phase_specific_variable(p, y))
+                data.append(SinglePhaseData(p, x_data, y_data))
+            invariant_data.append(StrategyData(data))
 
     return invariant_data
 
@@ -104,13 +141,11 @@ def get_tieline_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.St
     zpf_data = []
     for zpf_line in strategy.zpf_lines:
         phases = zpf_line.stable_phases_with_multiplicity
-        phase_data = {}
+        data = []
         for p in phases:
             x_data = zpf_line.get_var_list(_get_phase_specific_variable(p, x))
             y_data = zpf_line.get_var_list(_get_phase_specific_variable(p, y))
-            phase_data[p] = {
-                'x': x_data,
-                'y': y_data,
-                }
-        zpf_data.append(phase_data)
+            data.append(SinglePhaseData(p, x_data, y_data))
+        zpf_data.append(StrategyData(data))
+
     return zpf_data
