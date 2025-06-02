@@ -509,7 +509,7 @@ class Workspace:
             chemical_potentials = prop_MU_values[index]
 
             for arg in args:
-                print('THis is arg in args',arg)
+#                print('THis is arg in args',arg)
                 prop_implementation_units, prop_display_units = arg_units[arg]
                 context = unit_conversion_context(composition_sets, arg)
                 if results.get(arg, None) is None:

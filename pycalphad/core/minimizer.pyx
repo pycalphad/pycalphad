@@ -587,7 +587,7 @@ cdef class SystemState:
             phase_comp_sum = 0.0
             for comp_idx in range(num_components):
                 phase_comp_sum += self.phase_compositions[idx, comp_idx]
-            print('this is the phase amount',self.system_amount)
+#            print('this is the phase amount',self.system_amount)
             compset.update(x[spec.num_statevars:], self.phase_amt[idx] * phase_comp_sum, x[:spec.num_statevars])
             csst.energy = 0
             csst.mass_jac[:,:] = 0
@@ -634,7 +634,7 @@ cdef class SystemState:
                     for j in range(self.chemical_potentials.shape[0]):
                         mu_c_sum += csst.c_component[j, i] * self.chemical_potentials[j]
                     self.delta_ms[idx, comp_idx] += csst.mass_jac[comp_idx, spec.num_statevars + i] * (mu_c_sum + csst.c_G[i])
-                    print('Ok is it the delt_ms?',csst.mass_jac[comp_idx, spec.num_statevars + i] * (mu_c_sum + csst.c_G[i]))
+#                    print('Ok is it the delt_ms?',csst.mass_jac[comp_idx, spec.num_statevars + i] * (mu_c_sum + csst.c_G[i]))
             for comp_idx in range(num_components):
                 csst.moles_normalization += csst.masses[comp_idx, 0]
                 for i in range(num_phase_dof+spec.num_statevars):

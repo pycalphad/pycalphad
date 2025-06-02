@@ -63,7 +63,7 @@ class ModelComputedProperty(object):
             return None
 
     def compute_property(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike) -> npt.ArrayLike:
-        print('Is this the compute property in get?')
+#        print('Is this the compute property in get?')
         if len(compsets) == 0:
             return np.nan
         if self.phase_name is None:
@@ -89,16 +89,16 @@ class ModelComputedProperty(object):
         "Compute Jansson derivative with self as numerator, with the given deltas"
         state_variables = compsets[0].phase_record.state_variables
         grad_values = self._compute_property_gradient(compsets, cur_conds, chemical_potentials)
-        print('These are grad values in computed property in property framework',grad_values)
-        print('what are the deltas?',deltas)
+#        print('These are grad values in computed property in property framework',grad_values)
+#        print('what are the deltas?',deltas)
         # Sundman et al, 2015, Eq. 73
         jansson_derivative = np.nan
         for idx, compset in enumerate(compsets):
             if compset.NP == 0 and not (compset.fixed):
                 continue
             func_value = self._compute_per_phase_property(compset, cur_conds)
-            print('This is func value',func_value)
-            print('compset',compset)
+#            print('This is func value',func_value)
+#            print('compset',compset)
             if np.isnan(func_value):
                 continue
             if np.isnan(jansson_derivative):
@@ -110,7 +110,7 @@ class ModelComputedProperty(object):
                 jansson_derivative += deltas.delta_phase_amounts[idx] * func_value
                 jansson_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
                 jansson_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
-                print('Made it to this specific statement',deltas.delta_phase_amounts[idx] * func_value)
+#                print('Made it to this specific statement',deltas.delta_phase_amounts[idx] * func_value)
             else:
                 jansson_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
                 jansson_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
@@ -301,7 +301,7 @@ class JanssonDerivative:
         state.chemical_potentials[:] = chemical_potentials
         state.recompute(spec)
         deltas = self.denominator.jansson_deltas(spec, state)
-        print('Triple check how these spec and state properties are calculated',state)
+#        print('Triple check how these spec and state properties are calculated',state)
         return self.numerator.jansson_derivative(compsets, cur_conds, chemical_potentials, deltas)
 
     def __str__(self):
