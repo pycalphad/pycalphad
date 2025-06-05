@@ -1065,4 +1065,4 @@ def test_issue_468_gibbs_phase_rule(load_database):
     phases = ['LIQUID', 'FCC_A1', 'BCC_A2', 'GRAPHITE', 'CEMENTITE', 'DIAMOND_A4']
     eq = equilibrium(dbf, components, phases, {v.N:1, v.P:1e5, v.T:1080, v.X('C'):0.0053}, verbose=True)
     assert sorted(eq.Phase.values.squeeze()) == ["", "BCC_A2", "GRAPHITE"]
-    assert np.allclose(sorted(eq.NP.values.squeeze()), [0.00015170798706395827, 0.999848292010574, np.nan], atol=1e-7, equal_nan=True)
+    assert np.allclose(np.sort(eq.NP.values.squeeze()), [0.00015170798706395827, 0.999848292010574, np.nan], atol=1e-7, equal_nan=True)

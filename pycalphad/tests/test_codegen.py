@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 from symengine.lib.symengine_wrapper import LambdaDouble, LLVMDouble
 from symengine import zoo
-from pycalphad import Model, variables as v
+from pycalphad import Database, Model, variables as v
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.codegen.sympydiff_utils import build_functions, build_constraint_functions
 from pycalphad.tests.fixtures import select_database, load_database
@@ -93,4 +93,40 @@ def test_complex_infinity_can_build_callables_successfully(load_database):
     build_functions(mod.GM, mod_vars, include_obj=True, include_grad=False, include_hess=False)
 
     int_cons = mod.get_internal_constraints()
+    build_constraint_functions(mod_vars, int_cons)
+
+
+def test_exponents_of_negative_bases_can_be_built():
+    """A simple expression that substitues to an exponent of a negative base does not raise an exception."""
+    # This is a canary test for the simplest case
+    dbf = Database("""
+    ELEMENT C GRAPHITE 1.2011E+01  1.0540E+03  5.7400E+00!
+    PHASE LIQUID:L %  1  1.0  !
+    CONSTITUENT LIQUID:L :C:  !
+    FUNCTION X 298.15 -1; 6000 N !
+    PARAMETER G(LIQUID,C;0) 298.15 X**(2); 6000 N !
+    """)
+    mod = Model(dbf, ["C"], "LIQUID")
+    mod_vars = [v.N, v.P, v.T] + mod.site_fractions
+    int_cons = mod.get_internal_constraints()
+
+    # lambdify uses real=True by default, which raises if the expression contains complex numbers
+    # (-1)**(2.0) evaluates to a number with a (small) complex part in SymEngine, even though (-1)**(2) is real.
+    # calling our build functions should not raise if this is the case
+    build_functions(mod.GM, mod_vars, include_obj=True, include_grad=True, include_hess=True)
+    build_constraint_functions(mod_vars, int_cons)
+
+
+@select_database("cfe_broshe.tdb")
+def test_complex_numbers_generated_in_complicated_models_can_be_built(load_database):
+    """A real model with deeply nested complex numbers should build without raising."""
+    # Solutions to the simplest approach might not be sufficient for a real
+    # case, due to bugs and specific behavior in our Model and build implementations.
+    # In this case, the base of an exponent expression in GPCL2C evaluates to a constant, negative number.
+    dbf = load_database()
+    mod = Model(dbf, ["C"], "LIQUID")
+    mod_vars = [v.N, v.P, v.T] + mod.site_fractions
+    int_cons = mod.get_internal_constraints()
+
+    build_functions(mod.GM, mod_vars, include_obj=True, include_grad=True, include_hess=True)
     build_constraint_functions(mod_vars, int_cons)
