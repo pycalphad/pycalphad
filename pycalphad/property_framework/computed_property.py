@@ -108,9 +108,14 @@ class ModelComputedProperty(object):
 
             if self.phase_name is None:
                 jansson_derivative += deltas.delta_phase_amounts[idx] * func_value
+#                print('This is the jansson_derivative',jansson_derivative,deltas.delta_phase_amounts[idx],func_value)
                 jansson_derivative += compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
+#                print('This is the jansson_derivative',compset.NP * np.dot(deltas.delta_statevars, grad_value[:len(state_variables)]))
+
                 jansson_derivative += compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):])
-#                print('Made it to this specific statement',deltas.delta_phase_amounts[idx] * func_value)
+#                print('This is the jansson_derivative',compset.NP * np.dot(delta_sitefracs, grad_value[len(state_variables):]))
+
+                #print('Made it to this specific statement',deltas.delta_phase_amounts[idx] * func_value)
             else:
                 jansson_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
                 jansson_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
