@@ -719,7 +719,7 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
             delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
         for i in range(spec.free_statevar_indices.shape[0]):
             statevar_idx = spec.free_statevar_indices[i]
-            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
+            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                              state.free_stable_compset_indices.shape[0] + i]
         return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
     finally:
@@ -767,7 +767,7 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
         delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
     for i in range(spec.free_statevar_indices.shape[0]):
         statevar_idx = spec.free_statevar_indices[i]
-        delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
+        delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                             state.free_stable_compset_indices.shape[0] + i]
     return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
 
@@ -808,7 +808,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
             delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
         for i in range(spec.free_statevar_indices.shape[0]):
             statevar_idx = spec.free_statevar_indices[i]
-            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
+            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                              state.free_stable_compset_indices.shape[0] + i]
         return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
     finally:
