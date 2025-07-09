@@ -68,7 +68,7 @@ def unit_conversion_context(compsets, prop):
     context.add_transformation(
         per_moles,
         per_mass,
-        lambda ureg, x: (x / molar_weight).to_reduced_units()
+        lambda ureg, x: np.true_divide(x, molar_weight).to_reduced_units(),
     )
     context.add_transformation(
         per_mass,

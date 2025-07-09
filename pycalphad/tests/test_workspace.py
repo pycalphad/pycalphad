@@ -442,3 +442,12 @@ def test_multicomponent_jansson_derivative_dependent_component(load_database):
     # dGM / dX(Ti) = MU(Ti) - MU(Cr)
     np.testing.assert_allclose(dGM_dXTi, wks.get("MU(TI)") - wks.get("MU(CR)"))
     np.testing.assert_allclose(dGM_dXTi, -26856.725962)
+
+@select_database("cfe_broshe.tdb")
+def test_unit_conversion(load_database):
+    dbf = load_database()
+    conds = {v.P: 101325, v.T: (1530, 1570, 10), v.N: 1, v.W("C"): 0.02}
+    wks = Workspace(dbf, ["FE", "C", "VA"], ["LIQUID", "FCC_A1"], conditions=conds)
+
+    # Test that it did not raise any exception (gh-609)
+    wks.get(v.T, as_property("enthalpy")["J/g"])
