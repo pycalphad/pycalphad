@@ -343,6 +343,7 @@ def test_issue_503_suspend_phase_infeasible_internal_constraints():
     # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
     wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 0.5, v.T: 1000})
     print(wks.get_dict('X(*,*)'))
+    print(wks.get_dict('NP(*)'))
     assert np.isnan(wks.get('NP(SPINEL)'))
     np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
 
