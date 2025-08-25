@@ -25,6 +25,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'IPython.sphinxext.ipython_console_highlighting', # Fix per https://github.com/dynamicslab/pysindy/pull/266#issuecomment-1336220315
+    'matplotlib.sphinxext.roles',  # Fix for docstrings that inherit from matplotlib types that use custom sphinx roles https://github.com/matplotlib/matplotlib/pull/28289
     'nbsphinx_link',
 ]
 autosummary_generate = True
