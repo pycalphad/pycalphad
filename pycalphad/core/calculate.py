@@ -256,39 +256,49 @@ def _compute_phase_values(components, statevar_dict, str_phase_local_conditions,
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
+    param_symbols, parameter_array = extract_parameters(parameters)
+    parameter_array_length = parameter_array.shape[0]
     if points.size > 0:
         pts = points.reshape(-1, points.shape[-1])
         dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
-    else:
-        dof = np.ascontiguousarray(bc_statevars.T)
-    phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
+        phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
 
-    param_symbols, parameter_array = extract_parameters(parameters)
-    parameter_array_length = parameter_array.shape[0]
-    if parameter_array_length == 0:
-        # No parameters specified
-        phase_output = np.zeros(dof.shape[0], order='C')
-        phase_record.prop_2d(phase_output, dof, output.encode('utf-8'))
-    else:
-        # Vectorized parameter arrays
-        phase_output = np.zeros((dof.shape[0], parameter_array_length), order='C')
-        phase_record.prop_parameters_2d(phase_output, dof, parameter_array, output.encode('utf-8'))
+        if parameter_array_length == 0:
+            # No parameters specified
+            phase_output = np.zeros(dof.shape[0], order='C')
+            phase_record.prop_2d(phase_output, dof, output.encode('utf-8'))
+        else:
+            # Vectorized parameter arrays
+            phase_output = np.zeros((dof.shape[0], parameter_array_length), order='C')
+            phase_record.prop_parameters_2d(phase_output, dof, parameter_array, output.encode('utf-8'))
 
-    for el_idx in range(len(pure_elements)):
-        phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)
+        for el_idx in range(len(pure_elements)):
+            phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)
 
-    max_tieline_vertices = len(pure_elements)
-    if isinstance(phase_output, (float, int)):
-        phase_output = broadcast_to(phase_output, points.shape[:-1])
-    if isinstance(phase_compositions, (float, int)):
-        phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
-    phase_output = np.asarray(phase_output, dtype=np.float64)
-    if parameter_array_length <= 1:
-        phase_output.shape = points.shape[:-1]
+        max_tieline_vertices = len(pure_elements)
+        if isinstance(phase_output, (float, int)):
+            phase_output = broadcast_to(phase_output, points.shape[:-1])
+        if isinstance(phase_compositions, (float, int)):
+            phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
+        phase_output = np.asarray(phase_output, dtype=np.float64)
+        if parameter_array_length <= 1:
+            phase_output.shape = points.shape[:-1]
+        else:
+            phase_output.shape = points.shape[:-1] + (parameter_array_length,)
+        phase_compositions = np.asarray(phase_compositions, dtype=np.float64)
+        phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
     else:
-        phase_output.shape = points.shape[:-1] + (parameter_array_length,)
-    phase_compositions = np.asarray(phase_compositions, dtype=np.float64)
-    phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
+        # We still need phase_output and phase_compositions to have the correct dimensions
+        # even if there were no points in case fake_points are added (as they will be
+        # concatenated along the points dimension). These arrays will be zero size for now.
+        # The size of the points dimension will be hardcoded to zero (np.atleast_2d will have the new dimension be size 1 even if the input array is size zero).
+        points = points.reshape(points.shape[:-2] + (0, points.shape[-1],))  # np.atleast_2d always makes a (1, N) even if size is zero, here we just make it consistent
+        if parameter_array_length <= 1:
+            phase_output = np.empty(points.shape[:-1], dtype=np.float64)
+        else:
+            phase_output = np.empty(points.shape[:-1] + (parameter_array_length,), dtype=np.float64)
+        phase_compositions = np.empty(points.shape[:-1] + (len(pure_elements),), dtype=np.float64)
+
     if fake_points:
         output_shape = points.shape[:-2] + (max_tieline_vertices,)
         if parameter_array_length > 1:
