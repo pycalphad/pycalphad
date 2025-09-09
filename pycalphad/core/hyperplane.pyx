@@ -57,15 +57,100 @@ cdef int argmax(double* a, int a_shape) nogil:
     return result
 
 @cython.boundscheck(False)
+cpdef void hyperplane_coefficients(double[:,::1] compositions,
+                                   size_t[::1] fixed_chempot_indices,
+                                   int[::1] trial_simplex,
+                                   double[::1] out_plane_coefs) except * nogil:
+    cdef int i, j
+    cdef int plane_rows = trial_simplex.shape[0] + fixed_chempot_indices.shape[0]
+    if plane_rows != compositions.shape[1]:
+        raise ValueError('Hyperplane coefficient matrix is not square')
+    cdef double* f_plane_matrix = <double*>malloc(plane_rows * compositions.shape[1] * sizeof(double))
+    cdef int* int_tmp = <int*>malloc(plane_rows * sizeof(int))
+    for i in range(trial_simplex.shape[0]):
+        for j in range(compositions.shape[1]):
+            f_plane_matrix[i + j*plane_rows] = compositions[trial_simplex[i], j]
+        out_plane_coefs[i] = 1
+    for i in range(fixed_chempot_indices.shape[0]):
+        for j in range(compositions.shape[1]):
+            f_plane_matrix[i + trial_simplex.shape[0] + j*plane_rows] = 0
+        f_plane_matrix[i + trial_simplex.shape[0] + fixed_chempot_indices[i]*plane_rows] = 1
+        out_plane_coefs[i + trial_simplex.shape[0]] = 0
+    solve(f_plane_matrix, plane_rows, &out_plane_coefs[0], int_tmp)
+    free(f_plane_matrix)
+    free(int_tmp)
+
+@cython.boundscheck(False)
+cpdef void intersecting_point(double[:,::1] compositions,
+                              size_t[::1] fixed_chempot_indices,
+                              int[::1] trial_simplex,
+                              double[:,::1] fixed_lincomb_molefrac_coefs,
+                              double[::1] fixed_lincomb_molefrac_rhs,
+                              double[::1] out_intersecting_point) except * nogil:
+    cdef int i, j
+    if trial_simplex.shape[0] == 1:
+        # Simplex is zero-dimensional, so there is no intersection; just return the point defining the 0-simplex
+        for i in range(compositions.shape[1]):
+            out_intersecting_point[i] = compositions[trial_simplex[0], i]
+        return
+    if (fixed_lincomb_molefrac_rhs.shape[0] + 1 != compositions.shape[1]) and fixed_chempot_indices.shape[0] > 0:
+        raise ValueError('Constraint matrix is not square')
+    cdef int* int_tmp = <int*>malloc(compositions.shape[1] * sizeof(int))
+    cdef double* constraint_matrix = <double*>malloc((fixed_lincomb_molefrac_rhs.shape[0] + 1) * compositions.shape[1] * sizeof(double))
+    cdef double* constraint_rhs = <double*>malloc((fixed_lincomb_molefrac_rhs.shape[0] + 1) * sizeof(double))
+    out_intersecting_point[:] = 0
+    cdef double[::1] plane_coefs = out_intersecting_point
+    hyperplane_coefficients(compositions, fixed_chempot_indices, trial_simplex, plane_coefs)
+    for j in range(compositions.shape[1]):
+        for i in range(fixed_lincomb_molefrac_rhs.shape[0]):
+            constraint_matrix[i + j*compositions.shape[1]] = fixed_lincomb_molefrac_coefs[i, j]
+            constraint_rhs[i] = fixed_lincomb_molefrac_rhs[i]
+        constraint_matrix[fixed_lincomb_molefrac_rhs.shape[0] + j*compositions.shape[1]] = plane_coefs[j]
+        constraint_rhs[fixed_lincomb_molefrac_rhs.shape[0]] = 1
+    solve(constraint_matrix, compositions.shape[1], constraint_rhs, int_tmp)
+    for i in range(compositions.shape[1]):
+        out_intersecting_point[i] = constraint_rhs[i]
+    free(int_tmp)
+    free(constraint_matrix)
+    free(constraint_rhs)
+
+@cython.boundscheck(False)
+cdef void simplex_fractions(double[:,::1] compositions,
+                             size_t[::1] fixed_chempot_indices,
+                             int[::1] trial_simplex,
+                             double[:,::1] fixed_lincomb_molefrac_coefs,
+                             double[::1] fixed_lincomb_molefrac_rhs,
+                             double* out_fractions) except *:
+    cdef int simplex_size = trial_simplex.shape[0]
+    # Note that compositions.shape[1] = simplex_size + fixed_chempot_indices.shape[0], by construction
+    cdef int i, j
+    cdef double* f_coord_matrix = <double*>malloc(simplex_size * simplex_size * sizeof(double))
+    cdef double* target_point = <double*>malloc(compositions.shape[1] * sizeof(double))
+    cdef int* int_tmp = <int*>malloc(simplex_size * sizeof(int))
+    cdef size_t[::1] free_chempot_indices = np.array(list(set(range(compositions.shape[1])) - set(fixed_chempot_indices)), dtype=np.uintp)
+    # Get target point for calculation
+    intersecting_point(compositions, fixed_chempot_indices, trial_simplex,
+                       fixed_lincomb_molefrac_coefs, fixed_lincomb_molefrac_rhs,
+                       <double[:compositions.shape[1]]>target_point)
+    # Fill coordinate matrix
+    for j in range(simplex_size):
+        for i in range(simplex_size):
+            f_coord_matrix[j + simplex_size*i] = compositions[trial_simplex[i], free_chempot_indices[j]]
+        out_fractions[j] = target_point[free_chempot_indices[j]]
+    solve(f_coord_matrix, simplex_size, &out_fractions[0], int_tmp)
+    free(f_coord_matrix)
+    free(target_point)
+    free(int_tmp)
+
+@cython.boundscheck(False)
 cpdef double hyperplane(double[:,::1] compositions,
                         double[::1] energies,
-                        double[::1] composition,
                         double[::1] chemical_potentials,
-                        double total_moles,
                         size_t[::1] fixed_chempot_indices,
-                        size_t[::1] fixed_comp_indices,
+                        double[:, ::1] fixed_lincomb_molefrac_coefs,
+                        double[::1] fixed_lincomb_molefrac_rhs,
                         double[::1] result_fractions,
-                        int[::1] result_simplex) nogil except *:
+                        int[::1] result_simplex) except *:
     """
     Find chemical potentials which approximate the tangent hyperplane
     at the given composition.
@@ -80,17 +165,14 @@ cpdef double hyperplane(double[:,::1] compositions,
         A sample of the energy surface of the system.
         Aligns with 'compositions'.
         Shape of (M,)
-    composition : ndarray
-        Target composition for the hyperplane.
-        Shape of (N,)
     chemical_potentials : ndarray
         Shape of (N,)
         Will be overwritten
-    total_moles : double
-        Total number of moles in the system.
     fixed_chempot_indices : ndarray
         Variable shape from (0,) to (N-1,)
-    fixed_comp_indices : ndarray
+    fixed_lincomb_molefrac_coefs : ndarray
+        Variable shape from (0,P) to (N-1, P)
+    fixed_lincomb_molefrac_rhs : ndarray
         Variable shape from (0,) to (N-1,)
     result_fractions : ndarray
         Relative amounts of the points making up the hyperplane simplex. Shape of (P,).
@@ -131,11 +213,6 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef double lowest_df = 0
     cdef double out_energy = 0
     # 1-D
-    # composition index of -1 indicates total number of moles, i.e., N=1 condition
-    cdef int* included_composition_indices = <int*>malloc((fixed_comp_indices.shape[0] + 1) * sizeof(int))
-    for i in range(fixed_comp_indices.shape[0]):
-        included_composition_indices[i] = fixed_comp_indices[i]
-    included_composition_indices[fixed_comp_indices.shape[0]] = -1
     cdef int* best_guess_simplex = <int*>malloc(simplex_size * sizeof(int))
     for i in range(num_components):
         skip_index = False
@@ -170,32 +247,13 @@ cpdef double hyperplane(double[:,::1] compositions,
 
     while iterations < max_iterations:
         iterations += 1
-        for trial_idx in range(simplex_size):
-            #smallest_fractions[trial_idx] = 0
-            for comp_idx in range(simplex_size):
-                ici = included_composition_indices[comp_idx]
-                for simplex_idx in range(simplex_size):
-                    if ici >= 0:
-                        f_trial_matrix[comp_idx + simplex_idx*simplex_size + trial_idx*simplex_size*simplex_size] = \
-                            compositions[trial_simplices[trial_idx*simplex_size + simplex_idx], ici]
-                    else:
-                        # ici = -1, refers to N=1 condition
-                        f_trial_matrix[comp_idx + simplex_idx*simplex_size + trial_idx*simplex_size*simplex_size] = 1 # 1 mole-formula per formula unit of a phase
 
         for trial_idx in range(simplex_size):
-            for i in range(simplex_size):
-                for j in range(simplex_size):
-                    f_contig_trial[i + j*simplex_size] = f_trial_matrix[i + j*simplex_size + trial_idx*simplex_size*simplex_size]
             for simplex_idx in range(simplex_size):
-                ici = included_composition_indices[simplex_idx]
-                if ici >= 0:
-                    fractions[trial_idx*simplex_size + simplex_idx] = composition[ici]
-                else:
-                    # ici = -1, refers to N=1 condition
-                    fractions[trial_idx*simplex_size + simplex_idx] = total_moles
-            solve(f_contig_trial, simplex_size, &fractions[trial_idx*simplex_size], int_tmp)
+                fractions[trial_idx*simplex_size + simplex_idx] = 0
+            simplex_fractions(compositions, fixed_chempot_indices, <int[:simplex_size]>&trial_simplices[trial_idx*simplex_size],
+                              fixed_lincomb_molefrac_coefs, fixed_lincomb_molefrac_rhs, &fractions[trial_idx*simplex_size])
             smallest_fractions[trial_idx] = _min(&fractions[trial_idx*simplex_size], simplex_size)
-
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions, simplex_size)
         if smallest_fractions[saved_trial] < -simplex_size:
@@ -262,7 +320,6 @@ cpdef double hyperplane(double[:,::1] compositions,
     result_simplex[simplex_size:] = 0
 
     # 1-D
-    free(included_composition_indices)
     free(best_guess_simplex)
     free(free_chempot_indices)
     free(candidate_simplex)

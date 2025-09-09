@@ -10,7 +10,7 @@ from pyparsing import delimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
-from symengine import Symbol, LessThan, StrictLessThan, S, E
+from symengine import Float, Symbol, LessThan, StrictLessThan, S, E
 from tinydb import where
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
@@ -31,10 +31,9 @@ import warnings
 import hashlib
 from copy import deepcopy
 
-# ast.Num is deprecated in Python 3.8 in favor of as ast.Constant
-# Both are whitelisted for compatability across versions
+
 _AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Constant, ast.Div,
-                  ast.Expression, ast.Load, ast.Mult, ast.Name, ast.Num,
+                  ast.Expression, ast.Load, ast.Mult, ast.Name,
                   ast.Pow, ast.Sub, ast.UAdd, ast.UnaryOp, ast.USub]
 
 def _sympify_string(math_string):
@@ -59,7 +58,7 @@ def _sympify_string(math_string):
         if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
-    return sympify(expr_string).xreplace(v.supported_variables_in_databases).n()
+    return sympify(expr_string).xreplace(get_supported_variables()).n()
 
 def _parse_action(func):
     """
@@ -378,10 +377,29 @@ def _process_species(db, sp_name, sp_comp, charge=0, *args):
     constituents = {sp_comp[i]: sp_comp[i+1] for i in range(0, len(sp_comp), 2)}
     db.species.add(Species(sp_name, constituents, charge=charge))
 
+# g/mol
+_molmass = \
+    {"H": 1.008, "HE": 4.003, "LI": 6.941, "BE": 9.012, "B": 10.811, "C": 12.011, "N": 14.007, "O": 15.999,
+     "F": 18.998, "NE": 20.18, "NA": 22.99, "MG": 24.305, "AL": 26.982, "SI": 28.086, "P": 30.974, "S": 32.065,
+     "CL": 35.453, "AR": 39.948, "K": 39.098, "CA": 40.078, "SC": 44.956, "TI": 47.867, "V": 50.942, "CR": 51.996,
+     "MN": 54.938, "FE": 55.845, "CO": 58.933, "NI": 58.693, "CU": 63.546, "ZN": 65.39, "GA": 69.723, "GE": 72.64,
+     "AS": 74.922, "SE": 78.96, "BR": 79.904, "KR": 83.8, "RB": 85.468, "SR": 87.62, "Y": 88.906, "ZR": 91.224,
+     "NB": 92.906, "MO": 95.94, "TC": 98, "RU": 101.07, "RH": 102.906, "PD": 106.42, "AG": 107.868, "CD": 112.411,
+     "IN": 114.818, "SN": 118.71, "SB": 121.76, "TE": 127.6, "I": 126.905, "XE": 131.293, "CS": 132.906,
+     "BA": 137.327, "LA": 138.906, "CE": 140.116, "PR": 140.908, "ND": 144.24, "PM": 145, "SM": 150.36,
+     "EU": 151.964, "GD": 157.25, "TB": 158.925, "DY": 162.5, "HO": 164.93, "ER": 167.259, "TM": 168.934,
+     "YB": 173.04, "LU": 174.967, "HF": 178.49, "TA": 180.948, "W": 183.84, "RE": 186.207, "OS": 190.23,
+     "IR": 192.217, "PT": 195.078, "AU": 196.967, "HG": 200.59, "TL": 204.383, "PB": 207.2, "BI": 208.98,
+     "PO": 209, "AT": 210, "RN": 222, "FR": 223, "RA": 226, "AC": 227, "TH": 232.038, "PA": 231.036, "U": 238.029,
+     "NP": 237, "PU": 244, "AM": 243, "CM": 247, "BK": 247, "CF": 251, "ES": 252, "FM": 257, "MD": 258, "NO": 259,
+     "LR": 262, "RF": 261, "DB": 262, "SG": 266, "BH": 264, "HS": 277, "MT": 268
+     }
+
 def _process_reference_state(db, el, refphase, mass, H298, S298):
+    # If user database doesn't specify mass, use periodic table values (if the element exists)
     db.refstates[el] = {
         'phase': refphase,
-        'mass': mass,
+        'mass': mass if mass != 0.0 else _molmass.get(el, 0.0),
         'H298': H298,
         'S298': S298,
     }
@@ -452,6 +470,12 @@ class TCPrinter(object):
     """
     Prints Thermo-Calc style function expressions.
     """
+
+    def __init__(self, if_incompatible='warn'):
+        if if_incompatible not in ('warn', 'raise', 'ignore', 'fix'):
+            raise ValueError('Incorrect options passed to \'if_incompatible\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
+        self.if_incompatible = if_incompatible
+
     def doprint(self, expr):
         return self._print_Piecewise(expr)
 
@@ -463,12 +487,22 @@ class TCPrinter(object):
                 if adding_term[0] == '-':
                     terms += adding_term
                 else:
-                    terms += ' + ' + adding_term
+                    terms += '+' + adding_term
             return terms
         elif isinstance(expr, Mul):
-            terms = self._stringify_expr(expr.args[0])
-            for arg in expr.args[1:]:
-                terms += ' * ' + self._stringify_expr(arg)
+            #For cases like: A*(B+C) where an Add object is one of the arguments in Mul
+            #We want to explicitly add the parenthesis around Add(B,C)
+            #and save it to A*(B+C) rather than A*B+C
+            #For other types of expr, this shouldn't be an issue since:
+            #    Mul should not need extra parenthesis, e.g. A*(B*C) -> A*B*C
+            #    Pow will explicitly add parenthesis (in the next elif block)
+            #    Other functions such as Log, Sin, etc should
+            #        include the parenthesis when converting to string
+            
+            #All the arguments in Mul should be tested and they're all combined to a single expression by '*'
+            #    So we could stringify each argument as a list and join them together is '*'
+            term_list = ['(' + self._stringify_expr(arg) + ')' if isinstance(arg,Add) else self._stringify_expr(arg) for arg in expr.args]
+            terms = '*'.join(term_list)
             return terms
         elif isinstance(expr, Pow):
             if expr.args[0] == E:
@@ -476,9 +510,25 @@ class TCPrinter(object):
                 terms = 'exp(' + self._stringify_expr(expr.args[1]) + ')'
             else:
                 argument = self._stringify_expr(expr.args[0])
-                if isinstance(expr.args[0], (Add, Mul)):
+                if isinstance(expr.args[0], (Add, Mul, Pow)):
                     argument = '( ' + argument + ' )'
-                terms = argument + '**' + '(' + self._stringify_expr(expr.args[1]) + ')'
+                # Try coercing the exponent to an int (TC-compatible) or float
+                try:
+                    exponent = float(expr.args[1])
+                    if exponent == int(exponent):
+                        exponent = int(exponent)
+                    else:
+                        if self.if_incompatible in ('fix', 'raise'):
+                            raise DatabaseExportError(f'Non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                        elif self.if_incompatible == 'warn':
+                            warnings.warn(f'Ignoring that non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                except (TypeError, RuntimeError):
+                    if self.if_incompatible in ('fix', 'raise'):
+                        raise DatabaseExportError(f'Non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                    elif self.if_incompatible == 'warn':
+                        warnings.warn(f'Ignoring that non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                    exponent = expr.args[1]
+                terms = argument + '**' + '(' + self._stringify_expr(exponent) + ')'
             return terms
         else:
             return str(expr)
@@ -541,7 +591,8 @@ def reflow_text(text, linewidth=80):
         else:
             while len(line) > linewidth:
                 linebreak_idx = linewidth - 1
-                while linebreak_idx > 0 and line[linebreak_idx] not in linebreak_chars:
+                # Makes expressions breakable at `linebreak_chars` plus at [+-][0-9], since they are not preceded by 'E' or '('. This should prevent breaking lines inside EXP or LN/LOG or power expression: '6.14599E-07', 'T**(-3)', and 'LOG(-3)'
+                while linebreak_idx > 0 and not re.match(r'[^E\(][+-][0-9]', line[linebreak_idx-1:linebreak_idx+2]) and line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
                 # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
                 if linebreak_idx <= 2:
@@ -614,6 +665,10 @@ def _symmetry_added_parameter(dbf, param):
                 return True
     return False
 
+def get_supported_variables():
+    "When loading databases, these symbols should be replaced by their IndependentPotential counterparts"
+    return {Symbol(x): getattr(v, x) for x in v.__dict__ if isinstance(getattr(v, x), (v.IndependentPotential, Float))}
+
 
 def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
     """
@@ -652,8 +707,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         The 'fix' option will rectify the incompatibilities e.g. through name mangling.
     """
     # Before writing anything, check that the TDB is valid and take the appropriate action if not
-    if if_incompatible not in ['warn', 'raise', 'ignore', 'fix']:
-        raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
+    if if_incompatible not in ('warn', 'raise', 'ignore', 'fix'):
+        raise ValueError('Incorrect options passed to \'if_incompatible\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
     # Handle function names > 8 characters
     long_function_names = {k for k in dbf.symbols.keys() if len(k) > 8}
     if len(long_function_names) > 0:
@@ -823,7 +878,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             # Non-piecewise parameters need to be wrapped to print correctly
             # Otherwise TC's TDB parser will fail
             paramx = Piecewise((paramx, And(v.T >= 1, v.T < 10000)))
-        exprx = TCPrinter().doprint(paramx).upper()
+        exprx = TCPrinter(if_incompatible=if_incompatible).doprint(paramx).upper()
         if ';' not in exprx:
             exprx += '; N'
         if param_to_write.diffusing_species != Species(None):
@@ -886,13 +941,10 @@ def read_tdb(dbf, fd):
     """
     lines = fd.read().upper()
     lines = lines.replace('\t', ' ')
-    lines = lines.strip()
     # Split the string by newlines
     splitlines = lines.split('\n')
-    # Remove extra whitespace inside line
-    splitlines = [' '.join(k.split()) for k in splitlines]
     # Remove comments
-    splitlines = [k.strip().split('$', 1)[0] for k in splitlines]
+    splitlines = [k.split('$', 1)[0] for k in splitlines]
     # Remove everything after command delimiter, but keep the delimiter so we can split later
     splitlines = [k.split('!')[0] + ('!' if len(k.split('!')) > 1 else '') for k in splitlines]
     # Combine everything back together
@@ -908,17 +960,31 @@ def read_tdb(dbf, fd):
 
     grammar = _tdb_grammar()
 
+    char_idx = 0
     for command in commands:
         if len(command) == 0:
             continue
-        tokens = None
         try:
             tokens = grammar.parseString(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
-        except:
-            print("Failed while parsing: " + command)
-            print("Tokens: " + str(tokens))
-            raise
+        except ParseException as e:
+            context = e.line + '\n' + (" " * (e.column - 1) + "^")
+            # pyparsing is only given one line at a time, so we modify
+            # the exception metadata to correspond with the original input
+            err_char_idx = char_idx + (e.column - 1) # e.column is an index that starts at 1
+            joinedlines = "\n".join(splitlines)
+            e.pstr = joinedlines
+            e.loc = err_char_idx
+            # context variable includes a helpful cursor aligned with the 'error character'
+            # this requires being on a newline so it renders correctly in consoles
+            e.msg = f'Invalid TDB syntax.\n{context}'
+            # In pyparsing >=3.2.0, e.column and e.line are cached_property objects and need to be reset, since pstr and loc were mutated above
+            # Details of how this works can be found in https://stackoverflow.com/questions/62662564/how-do-i-clear-the-cache-from-cached-property-decorator
+            e.__dict__.pop('column', None)
+            e.__dict__.pop('line', None)
+            raise e
+        # Add 1 for removed '!' delimiter
+        char_idx += len(command) + 1
 
     # Process type definitions last, updating model_hints for defined phases.
     for typechar, line in dbf._typedefs_queue:

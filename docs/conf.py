@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pycalphad'
-copyright = '2015, pycalphad Development Team'
+copyright = '2015-2022, pycalphad Development Team'
 author = 'pycalphad Developers'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -64,7 +64,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -77,7 +77,7 @@ language = None
 exclude_patterns = ['_build', '_autosummary']
 
 extlinks = {'issue': ('https://github.com/pycalphad/pycalphad/issues/%s',
-                      'issue ')}
+                      'issue %s')}
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -105,6 +105,10 @@ pygments_dark_style = "native"
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
+
+show_warning_types = True
+# https://github.com/sphinx-doc/sphinx/issues/12300
+suppress_warnings = ["config.cache"]
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True

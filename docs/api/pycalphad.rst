@@ -10,8 +10,10 @@ Subpackages
    pycalphad.codegen
    pycalphad.core
    pycalphad.io
+   pycalphad.mapping
    pycalphad.models
    pycalphad.plot
+   pycalphad.property_framework
 
 Submodules
 ----------

@@ -107,7 +107,7 @@ class Database(object): #pylint: disable=R0902
                     fmt = ext[1:].lower()
             except (AttributeError, TypeError):
                 pass
-            if hasattr(fname, 'read'):
+            if hasattr(fname, 'read') or hasattr(fname, 'open'):
                 # File descriptor
                 return cls.from_file(fname, fmt=fmt)
             elif fname.find('\n') == -1:
@@ -118,6 +118,10 @@ class Database(object): #pylint: disable=R0902
                 return cls.from_string(fname, fmt=fmt)
         else:
             raise ValueError('Invalid number of parameters: '+len(args))
+
+    @classmethod
+    def cast_from(cls, val):
+        return cls(val)
 
     def __hash__(self):
         return fhash(self.__dict__)

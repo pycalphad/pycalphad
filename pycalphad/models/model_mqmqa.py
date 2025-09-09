@@ -6,7 +6,7 @@ from symengine import log, S, Symbol
 from tinydb import where
 from pycalphad.model import _MAX_PARAM_NESTING
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, wrap_symbol
+from pycalphad.core.utils import unpack_species, wrap_symbol
 from pycalphad import Model
 from pycalphad.core.errors import DofError
 
@@ -79,7 +79,7 @@ class ModelMQMQA(Model):
         phase = dbe.phases[self.phase_name]
         self.site_ratios = tuple(list(phase.sublattices))
 
-        active_species = unpack_components(dbe, comps)
+        active_species = unpack_species(dbe, comps)
         constituents = []
         for sublattice in dbe.phases[phase_name].constituents:
             sublattice_comps = set(sublattice).intersection(active_species)

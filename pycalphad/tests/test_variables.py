@@ -35,3 +35,29 @@ def test_mole_and_mass_fraction_conversions(load_database):
     # Conversion back works
     round_trip_mass_fracs = v.get_mass_fractions(mole_fracs, v.Species('O'), md)
     assert all(np.isclose(round_trip_mass_fracs[mf], mass_fracs[mf]) for mf in round_trip_mass_fracs.keys())
+
+
+def test_component_and_species_repr_str_methods():
+    comp = v.Component("O2", {"O": 2})
+    assert repr(comp) == "Component('O2', 'O2')"
+    assert str(comp) == "O2"
+
+    comp = v.Component("*", {})
+    assert repr(comp) == "Component('*')"
+    assert str(comp) == "*"
+
+    comp = v.Component(None)
+    assert repr(comp) == "Component(None)"
+    assert str(comp) == ""
+
+    sp = v.Species("O2-4", {"O": 2}, charge=-4)
+    assert repr(sp) == "Species('O2-4', 'O2', charge=-4)"
+    assert str(sp) == "O2-4"
+
+    sp = v.Species("*", {})
+    assert repr(sp) == "Species('*')"
+    assert str(sp) == "*"
+
+    sp = v.Species(None)
+    assert repr(sp) == "Species(None)"
+    assert str(sp) == ""

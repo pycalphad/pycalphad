@@ -19,3 +19,26 @@ def build_constraints(mod, variables, parameters=None):
     return ConstraintTuple(internal_cons_func=internal_cons_func, internal_cons_jac=internal_cons_jac,
                            internal_cons_hess=internal_cons_hess,
                            num_internal_cons=len(internal_constraints))
+
+def build_phase_local_constraints(mod, variables, phase_local_conditions, parameters=None):
+    import pycalphad.variables as v
+    phase_local_constraints = []
+    for key, value in phase_local_conditions.items():
+        if isinstance(key, v.MoleFraction):
+            cons = mod.moles(key.species, per_formula_unit=True) - \
+                value * sum(mod.moles(v.Species(el), per_formula_unit=True) for el in mod.nonvacant_elements)
+        elif isinstance(key, v.SiteFraction):
+            cons = key - value
+        else:
+            raise ValueError(f'Unsupported phase-local condition: {key}')
+        phase_local_constraints.append(cons.expand())
+
+    cf_output = build_constraint_functions(variables, phase_local_constraints,
+                                           parameters=parameters)
+    internal_cons_func = cf_output.cons_func
+    internal_cons_jac = cf_output.cons_jac
+    internal_cons_hess = cf_output.cons_hess
+
+    return ConstraintTuple(internal_cons_func=internal_cons_func, internal_cons_jac=internal_cons_jac,
+                           internal_cons_hess=internal_cons_hess,
+                           num_internal_cons=len(phase_local_constraints))

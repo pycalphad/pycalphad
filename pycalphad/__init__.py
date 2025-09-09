@@ -4,18 +4,20 @@ warnings.filterwarnings('ignore', message='invalid value encountered in true_div
 
 from pycalphad.core.errors import *
 import pycalphad.variables as v
-from pycalphad.model import Model, ReferenceState
 from pycalphad.io.database import Database
 
 # Trigger format extension hooks
 import pycalphad.io.tdb
 import pycalphad.io.cs_dat
 
+from pycalphad.model import Model, ReferenceState
+
 from pycalphad.core.calculate import calculate
 from pycalphad.core.equilibrium import equilibrium
-from pycalphad.plot.binary import binplot
-from pycalphad.plot.ternary import ternplot
+from pycalphad.core.workspace import Workspace
 from pycalphad.plot.eqplot import eqplot
+from pycalphad.property_framework import as_property
+from pycalphad.mapping.compat_api import binplot, ternplot
 
 # Set the version of pycalphad
 try:
@@ -26,11 +28,7 @@ try:
     del get_version
 except ImportError:
     # Fall back on the metadata of the installed package
-    try:
-        from importlib.metadata import version
-    except ImportError:
-        # backport for Python<3.8
-        from importlib_metadata import version
+    from importlib.metadata import version
     __version__ = version("pycalphad")
     del version
 

@@ -6,13 +6,14 @@ import warnings
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from symengine import lambdify, Symbol
+from pycalphad.property_framework.units import Q_
+from symengine import Symbol
 import numpy as np
 import operator
 import functools
 import itertools
 import collections
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, KeysView
 
 
 def point_sample(comp_count, pdof=10):
@@ -88,12 +89,14 @@ def unpack_condition(tup):
         if len(tup) == 1:
             return [float(tup[0])]
         elif len(tup) == 2:
-            return np.arange(tup[0], tup[1], dtype=np.float_)
+            return np.arange(tup[0], tup[1], dtype=np.float64)
         elif len(tup) == 3:
-            return np.arange(tup[0], tup[1], tup[2], dtype=np.float_)
+            return np.arange(tup[0], tup[1], tup[2], dtype=np.float64)
         else:
             raise ValueError('Condition tuple is length {}'.format(len(tup)))
-    elif isinstance(tup, Iterable):
+    elif isinstance(tup, Q_):
+        return tup
+    elif isinstance(tup, Iterable) and np.ndim(tup) != 0:
         return [float(x) for x in tup]
     else:
         return [float(tup)]
@@ -101,12 +104,14 @@ def unpack_condition(tup):
 def unpack_phases(phases):
     "Convert a phases list/dict into a sorted list."
     active_phases = None
-    if isinstance(phases, (list, tuple, set)):
+    if isinstance(phases, (list, tuple, set, KeysView)):
         active_phases = sorted(phases)
     elif isinstance(phases, dict):
         active_phases = sorted(phases.keys())
     elif type(phases) is str:
         active_phases = [phases]
+    else:
+        raise ValueError(f'Cannot unpack phases into recognizable input. Got {phases} of type {type(phases)}')
     return active_phases
 
 def generate_dof(phase, active_comps):
@@ -147,7 +152,7 @@ def endmember_matrix(dof, vacancy_indices=None):
     >>> endmember_matrix([3,3,1], vacancy_indices=[[2], [2], [0]])
     """
     total_endmembers = functools.reduce(operator.mul, dof, 1)
-    res_matrix = np.empty((total_endmembers, sum(dof)), dtype=np.float_)
+    res_matrix = np.empty((total_endmembers, sum(dof)), dtype=np.float64)
     dof_arrays = [np.eye(d).tolist() for d in dof]
     row_idx = 0
     for row in itertools.product(*dof_arrays):
@@ -222,7 +227,7 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
     return new_dict
 
 
-def unpack_components(dbf, comps):
+def unpack_species(dbf, comps):
     """
 
     Parameters
@@ -267,7 +272,7 @@ def get_pure_elements(dbf, comps):
     list
         A list of pure elements in the Database
     """
-    comps = sorted(unpack_components(dbf, comps))
+    comps = sorted(unpack_species(dbf, comps))
     components = [x for x in comps]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
@@ -305,9 +310,10 @@ def filter_phases(dbf, comps, candidate_phases=None):
         candidate_phases = dbf.phases.keys()
     else:
         candidate_phases = set(candidate_phases).intersection(dbf.phases.keys())
+    species = unpack_species(dbf, comps)
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
-                all_sublattices_active(comps, dbf.phases[phase]) and
+                all_sublattices_active(species, dbf.phases[phase]) and
                 (phase not in disordered_phases or (phase in disordered_phases and
                 dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
     return sorted(phases)
@@ -327,7 +333,12 @@ def extract_parameters(parameters):
     tuple
         Tuple of parameter symbols (list) and parameter values (parameter_array_length, # parameters)
     """
-    parameter_array_lengths = set(np.atleast_1d(val).size for val in parameters.values())
+    parameter_array_lengths = set()
+    for val in parameters.values():
+        if isinstance(val, (float, int)):
+            parameter_array_lengths.add(1)
+        else:
+            parameter_array_lengths.add(len(val))
     if len(parameter_array_lengths) > 1:
         raise ValueError('parameters kwarg does not contain arrays of equal length')
     if len(parameters) > 0:
@@ -417,7 +428,7 @@ def get_state_variables(models=None, conds=None):
         for c in conds:
             # StateVariable instances are ok (e.g. P, T, N, V, S),
             # however, subclasses (X, Y, MU, NP) are not ok.
-            if type(c) is v.StateVariable:
+            if isinstance(c, (v.IndependentPotential, v.SystemMolesType)):
                 state_vars.add(c)
     return state_vars
 
@@ -526,4 +537,3 @@ def generate_symmetric_group(configuration, symmetry):
             new_config.insert(fixed_idx, configuration[fixed_idx])
         symmetrically_distinct_configurations.add(tuple(new_config))
     return sorted(symmetrically_distinct_configurations, key=canonical_sort_key)
-

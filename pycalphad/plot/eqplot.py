@@ -86,7 +86,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
                          for key, value in sorted(eq.coords.items(), key=str)
                          if (key in ('T', 'P', 'N')) or (key.startswith('X_'))])
     indep_comps = sorted([key for key, value in conds.items() if isinstance(key, v.MoleFraction) and len(value) > 1], key=str)
-    indep_pots = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(value) > 1]
+    indep_pots = [key for key, value in conds.items() if isinstance(key, v.IndependentPotential) and len(value) > 1]
 
     # determine what the type of plot will be
     if len(indep_comps) == 1 and len(indep_pots) == 1:
@@ -94,7 +94,8 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
     elif len(indep_comps) == 2 and len(indep_pots) == 0:
         projection = 'triangular'
     else:
-        raise ValueError('The eqplot projection is not defined and cannot be autodetected. There are {} independent compositions and {} indepedent potentials.'.format(len(indep_comps), len(indep_pots)))
+        projection = None
+#        raise ValueError('The eqplot projection is not defined and cannot be autodetected. There are {} independent compositions and {} indepedent potentials.'.format(len(indep_comps), len(indep_pots)))
     if z is not None:
         raise NotImplementedError('3D plotting is not yet implemented')
     if ax is None:

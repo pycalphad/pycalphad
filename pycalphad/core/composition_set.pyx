@@ -1,9 +1,10 @@
 # distutils: language = c++
-from pycalphad.core.phase_rec cimport PhaseRecord
+from pycalphad.core.phase_rec cimport PhaseRecord, FastFunction
 cimport numpy as np
 import numpy as np
 from libc.string cimport memset
 cimport cython
+from pycalphad.core.constraints import build_phase_local_constraints
 
 cdef public class CompositionSet(object)[type CompositionSetType, object CompositionSetObject]:
     """
@@ -35,18 +36,32 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         other._energy_2d_view = <double[:1]>&other.energy
         other.NP = 1.0*self.NP
         other.fixed = bool(self.fixed)
+        other.phase_local_cons_func = self.phase_local_cons_func
+        other.phase_local_cons_jac = self.phase_local_cons_jac
+        other.num_phase_local_conditions = int(self.num_phase_local_conditions)
         return other
 
     def __repr__(self):
         return str(self.__class__.__name__) + "({0}, {1}, NP={2}, GM={3})".format(self.phase_record.phase_name,
                                                                           np.asarray(self.X), self.NP, self.energy)
 
+    cpdef void set_local_conditions(self, dict phase_local_conditions):
+        mod = self.phase_record.phase_record_factory.models[self.phase_record.phase_name]
+        cfuncs = build_phase_local_constraints(mod, self.phase_record.state_variables + self.phase_record.variables,
+                                               phase_local_conditions,
+                                               parameters=self.phase_record.phase_record_factory.param_symbols)
+        self.phase_local_cons_func = FastFunction(cfuncs.internal_cons_func)
+        self.phase_local_cons_jac = FastFunction(cfuncs.internal_cons_jac)
+        self.num_phase_local_conditions = cfuncs.num_internal_cons
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables):
         cdef int comp_idx
-        self.dof[:state_variables.shape[0]] = state_variables
-        self.dof[state_variables.shape[0]:] = site_fracs
+        for comp_idx in range(state_variables.shape[0]):
+            self.dof[comp_idx] = state_variables[comp_idx]
+        for comp_idx in range(site_fracs.shape[0]):
+            self.dof[state_variables.shape[0] + comp_idx] = site_fracs[comp_idx]
         self.NP = phase_amt
         self.energy = 0
         memset(&self.X[0], 0, self.X.shape[0] * sizeof(double))

@@ -1,0 +1,130 @@
+$ RENB
+$
+$ TDB-file for the thermodynamic assessment of the RE-NB system
+$
+$-----------------------------------------------------------------------------
+$ 2013.05.013
+$ 
+$ TDB file created by T.Abe, T.Bolotova, Y.Sawada, K.Hashimoto
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for 
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ e-mail: abe.taichi @ nims.go.jp
+$ Copyright (C) NIMS 2014
+$
+$ ------------------------------------------------------------------------------
+$ PARAMETERS ARE TAKEN FROM
+$ First-principles aided thermodynamic modeling o fthe NB-RE system,
+$ X.L.Liu, C.Z.Hargather,Z.-K.Liu, CALPHAD, 41 (2013) 119-127.
+$
+$ ------------------------------------------------------------------------------
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT RE   HCP_A3                    1.8621E+02  5.3555E+03  3.6526E+01 !
+ ELEMENT NB   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01 !
+$ ------------------------------------------------------------------------------
+$ Lattice stability 
+$ ------------------------------------------------------------------------------
+ FUNCTION GHSERRE 298.15 -7695.279+128.421589*T-24.348*T*LN(T)
+    -2.53505E-3*T**2+0.192818E-6*T**3+32915*T**(-1); 1200 Y
+    -15775.998+194.667426*T-33.586*T*LN(T)+2.24565E-3*T**2-0.281835E-6*T**3
+    +1376270*T**(-1); 2400 Y
+    -70882.739+462.110749*T-67.956*T*LN(T)+11.84945E-3*T**2-0.788955E-6*T**3
+    +18075200*T**(-1); 3458 Y
+    346325.888-1211.371859*T+140.8316548*T*LN(T)-33.764567E-3*T**2
+    +1.053726E-6*T**3-134548866*T**(-1); 5000 Y
+    -78564.296+346.997842*T-49.519*T*LN(T); 6000 N !
+ FUNCTION GLIQRE 298.15 16125.604+122.076209*T-24.348*T*LN(T)
+    -2.53505E-3*T**2+0.192818E-6*T**3+32915*T**(-1); 1200 Y
+    8044.885+188.322047*T-33.586*T*LN(T)+2.24565E-3*T**2-0.281835E-6*T**3
+    +1376270*T**(-1); 2000 Y
+    568842.665-2527.838455*T+314.1788975*T*LN(T)-89.39817E-3*T**2
+    +3.92854E-6*T**3-163100987*T**(-1); 3458 Y
+    -39044.888+335.723691*T-49.519*T*LN(T); 6000 N !
+ FUNCTION GBCCRE 298.15 17000-3.7*T+GHSERRE; 6000 N !
+  FUNCTION GFCCRE 298.15 11000-1.5*T+GHSERRE; 6000 N !
+$ 
+ FUNCTION GHSERNB  298.15
+    -8519.353+142.045475*T-26.4711*T*LN(T)+0.203475E-3*T**2-0.35012E-6*T**3
+    +93399*T**(-1);  2750.00 Y
+    -37669.3+271.720843*T-41.77*T*LN(T)+1528.238E29*T**(-9);  6000.00 N !
+  FUNCTION GLIQNB 298.15 29781.555-10.816418*T-306.098E-25*T**7+GHSERNB; 2750 Y
+    -7499.398+260.756148*T-41.77*T*LN(T);  6000.00 N !
+ FUNCTION GFCCNB 298.15 13500+1.7*T+GHSERNB; 6000 N !
+ FUNCTION GHCPNB 298.15 10000+2.4*T+GHSERNB; 6000 N !
+
+$------------------------------------------------------------------------------
+ TYPE_DEFINITION % SEQ *!
+ DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+ DEFAULT_COMMAND DEF_SYS_ELEMENT VA /- !
+$
+$------------------------------------------------------------------------------- 
+$ PARAMETERS FOR  BCC_RENB
+$-------------------------------------------------------------------------------
+PHASE  BCC_RENB  % 1 1 !
+CONSTITUENT   BCC_RENB : RE, NB : !
+PARAMETER G( BCC_RENB,RE;0) 298.5 GBCCRE; 6000 N !
+PARAMETER G( BCC_RENB,NB;0) 298.5 GHSERNB; 6000 N !
+PARAMETER G( BCC_RENB,RE,NB;0) 298.5 -101060+10.568*T ; 6000 N !
+PARAMETER G( BCC_RENB,RE,NB;1) 298.5 -2300 ; 6000 N !
+
+$------------------------------------------------------------------------------- 
+$ PARAMETERS FOR HCPRENB
+$-------------------------------------------------------------------------------
+PHASE HCP_RENB  % 1 1 !
+CONSTITUENT  HCP_RENB : RE, NB : !
+PARAMETER G(HCP_RENB,RE;0) 298.5 GHSERRE; 6000 N !
+PARAMETER G(HCP_RENB,NB;0) 298.5 GHCPNB; 6000 N !
+PARAMETER G(HCP_RENB,RE,NB;0) 298.5 64957-33.387*T ; 6000 N !
+
+$------------------------------------------------------------------------------- 
+$ PARAMETERS FOR LIQUID_RENB
+$-------------------------------------------------------------------------------
+PHASE LIQUID_RENB  % 1 1 !
+CONSTITUENT  LIQUID_RENB : RE, NB : !
+PARAMETER G(LIQUID_RENB,RE;0) 298.5 GLIQRE; 6000 N !
+PARAMETER G(LIQUID_RENB,NB;0) 298.5 GLIQNB; 6000 N !
+PARAMETER G(LIQUID_RENB,RE,NB;0) 298.5 -8017 -23.406*T; 6000 N !
+PARAMETER G(LIQUID_RENB,RE,NB;1) 298.5 -2001 ; 6000 N !
+$------------------------------------------------------------------------------- 
+$ PARAMETERS FOR FCC_RENB
+$-------------------------------------------------------------------------------
+PHASE FCC_RENB  % 1 1 !
+CONSTITUENT  FCC_RENB : RE, NB : !
+PARAMETER G( FCC_RENB,RE;0) 298.5 GFCCRE; 6000 N !
+PARAMETER G( FCC_RENB,NB;0) 298.5 GFCCNB; 6000 N !
+PARAMETER G(FCC_RENB,RE,NB;0) 298.5 27628 ; 6000 N !
+
+$------------------------------------------------------------------------------- 
+$ PARAMETERS FOR SIGMARENB
+$-------------------------------------------------------------------------------
+PHASE SIGMARENB  %  3 10 4 16 !
+CONSTITUENT SIGMARENB :RE:NB:RE,NB: !
+PARAMETER G(SIGMARENB,RE:NB:RE;0) 298.5 
+                      -67437+2.033*T+10*GHSERRE+4*GHSERNB+16*GHSERRE ; 6000 N !
+PARAMETER G(SIGMARENB,RE:NB:NB;0) 298.5 
+   -407760 +0.692*T+8.769*0.001*T**2+10*GHSERRE+4*GHSERNB+16*GHSERNB ; 6000 N !
+PARAMETER G(SIGMARENB,RE:NB:RE,NB;0) 298.5 -479251 -498.110*T ; 6000 N !
+
+$------------------------------------------------------------------------------- 
+$ PARAMETERS FOR CHI_RENB
+$-------------------------------------------------------------------------------
+ 
+PHASE CHI_RENB  %  3 24 10 24 !
+CONSTITUENT CHI_RENB :RE:RE,NB:NB,RE: !
+$PARAMETER G(CHI_RENB,RE:RE:RE;0) 298.5  256567 -25.456*T  ; 6000 N !
+PARAMETER G(CHI_RENB,RE:RE:RE;0) 298.5  +256567
+-25.456*T+24*GHSERRE+10*GHSERRE+24*GHSERRE; 6000 N !
+PARAMETER G(CHI_RENB,RE:NB:RE;0)  298.5  
+                 -758795 -28.528*T+24*GHSERRE+10*GHSERNB+24*GHSERRE  ; 6000 N !
+PARAMETER G(CHI_RENB,RE:RE:NB;0)  298.5  
+                 +252854+24*GHSERRE+10*GHSERRE+24*GHSERNB   ; 6000 N !
+PARAMETER G(CHI_RENB,RE:NB:NB;0)  298.5  
+                 -610088 -13.751*T+24*GHSERRE+10*GHSERNB+24*GHSERNB  ; 6000 N !
+PARAMETER G(CHI_RENB,RE:NB:RE,NB;0)   298.5  -1648141 -289.844*T  ; 6000 N !
+PARAMETER G(CHI_RENB,RE:RE,NB:RE ;0)  298.5  -749989 +280.032*T   ; 6000 N !
+PARAMETER G(CHI_RENB,RE:RE:RE,NB ;0)  298.5  -1200286   ; 6000 N !
+PARAMETER G(CHI_RENB,re:RE,NB:NB ;0)  298.5  -352931    ; 6000 N !
+
+$-------------------------------------------------------------------------------
+$RE-NB End

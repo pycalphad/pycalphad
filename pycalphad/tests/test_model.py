@@ -81,8 +81,8 @@ def test_degree_of_ordering(load_database):
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 300, v.P: 101325, v.X('AL'): 0.25}
     eqx = equilibrium(dbf, comps, my_phases, conds, output='degree_of_ordering', verbose=True)
-    print('Degree of ordering: {}'.format(eqx.degree_of_ordering.sel(vertex=0).values.flatten()))
-    assert np.isclose(eqx.degree_of_ordering.sel(vertex=0).values.flatten(), np.array([0.6666]), atol=1e-4)
+    print('Degree of ordering: {}'.format(eqx.degree_of_ordering.values.flatten()))
+    assert np.isclose(eqx.degree_of_ordering.values.flatten(), np.array([0.6666]), atol=1e-4)
 
 def test_detect_pure_vacancy_phases():
     "Detecting a pure vacancy phase"
@@ -164,6 +164,7 @@ def test_order_disorder_interstital_sublattice_validation():
     with pytest.raises(ValueError):
         Model(DBF_OrderDisorder_broken, ["A", "B", "VA"], "ORD_SUBS_INSTL")
 
+@pytest.mark.filterwarnings("ignore:The order-disorder model for \"ORD_FCC\" has a contribution from the physical property model*:UserWarning")
 @select_database("FeNi_deep_branching.tdb")
 def test_model_deep_branching(load_database):
     "Models with very deep piecewise branching are optimized at construction time"
@@ -221,3 +222,42 @@ def test_model_extrapolate_temperature():
                v.Y('ORDERED', 2, 'VA'): 1.0}
     assert mod.GM.subs(dof).subs({v.T: 200}).n(real=True) == -9900.
     assert mod.GM.subs(dof).subs({v.T: 50000}).n(real=True) == -43000.
+
+def test_error_raised_for_higher_order_reciprocal_parameter():
+    """
+    The composition dependent reciprocal parameter on more than two sublattices
+    should not be supported and should raise an error if a database has these parameters
+    """
+    test_tdb = """
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7423E+00!
+    ELEMENT MO   BCC_A2                    9.5940E+01  4.5890E+03  2.8560E+01!
+    ELEMENT NB   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01!
+    ELEMENT AL   BCC_A2                    9.2906E+01  5.2200E+03  3.6270E+01!
+
+    PHASE PHASE_CORRECT % 3 1 1 1 !
+    CONSTITUENT PHASE_CORRECT : MO,NB : NB,AL : C,VA : !
+
+    PARAMETER G(PHASE_CORRECT,MO,NB:NB,AL:C,VA;0) 298.15 -300000; 6000 N !
+
+    PHASE PHASE_SUBLATTICE % 3 1 1 1 !
+    CONSTITUENT PHASE_SUBLATTICE : MO,NB : NB,AL : C,VA : !
+
+    PARAMETER G(PHASE_SUBLATTICE,MO,NB:NB,AL:C,VA;1) 298.15 -300000; 6000 N !
+
+    PHASE PHASE_HIGH_ORDER % 3 1 1 1 !
+    CONSTITUENT PHASE_HIGH_ORDER : MO,NB : C,VA : !
+
+    PARAMETER G(PHASE_HIGH_ORDER,MO,NB:C,VA;3) 298.15 -300000; 6000 N !
+    """
+    dbf = Database(test_tdb)
+    # Check that a model with 0th order reciprocal parameter loads correctly
+    mod = Model(dbf, ["AL", "MO", "NB", "C", "VA"], "PHASE_CORRECT")
+
+    # Check that a model with a higher order reciprocal parameter on three sublattices throws an error
+    with pytest.raises(ValueError):
+        mod = Model(dbf, ["AL", "MO", "NB", "C", "VA"], "PHASE_SUBLATTICE")
+
+    # Check that a model with a higher order reciprocal parameter > 2 throws an error
+    with pytest.raises(ValueError):
+        mod = Model(dbf, ["MO", "NB", "C", "VA"], "PHASE_HIGH_ORDER")
