@@ -1,20 +1,34 @@
 What's New
 ==========
 
+0.11.1 (2025-05-21)
+-------------------
+
+This is maintenance and bugfix release that addresses several dependency-related regressions and fixes related to new features introduced in 0.11.
+
+* MAINT: Support Python version 3.13, drop support for Python 3.9; test and dependency fixes (:issue:`602`)
+* FIX: Fix incorrect implementation of recriprocal Redlich-Kister interaction parameters (:issue:`581`).
+* FIX: Fix ``IsolatedPhase`` chemical potentials to correctly refer to the constrainted, isolated phase state rather than the equilibrium state (:issue:`595`).
+* FIX: Correct the implemententation of Jansson derivatives in multi-component cases with composition denominators (:issue:`595`).
+* FIX: Mitigate an issue where SymEngine expression that contain complex numbers can fail to lambdifying (:issue:`599`).
+* FIX: Regression in handling TDB parsing errors caused by ``ParseException`` changes in pyparsing 3.2.0 (:issue:`584`).
+* FIX: Allow creating empty ``Workspace`` creation (without a ``Database`` object) (:issue:`563`).
+
+
 0.11.0 (2024-08-09)
 -------------------
 
 This is a feature-rich release with several enhancements, bug fixes, and improvements in general usability. In particular, this release introduces the new Workspace and Mapping APIs.
 
 * ENH: Introduce the Workspace API, a new object-oriented framework for managing and calculating thermodynamic properties, enabling more flexible and efficient computations. This API supports the definition of custom properties, physical units, complex condition-setting, and JIT compilation of model properties. It also enables the calculation of driving forces, T0, and other advanced properties (:issue:`432`).
-* ENH: Add support for 1D stepping and 2D phase diagram mapping, including improved plotting for binary and ternary phase diagrams, isopleths, and enhanced visual quality. This update also introduces a new API for accessing phase boundaries and equilibria, and provides drop-in replacements for `binplot` and `ternplot` (:issue:`543`).
-* ENH: Add Component implementation in variables. This adds a new `Component` class to distinguish between `Component` and `Species`, and renames various utility functions for clarity and future-proofing (:issue:`546`).
-* FIX: Better handle convergence failures in Workspace. Introduces a `ConvergenceFailureSolver` for testing and fixes issues with getting properties from unconverged states (:issue:`558`).
+* ENH: Add support for 1D stepping and 2D phase diagram mapping, including improved plotting for binary and ternary phase diagrams, isopleths, and enhanced visual quality. This update also introduces a new API for accessing phase boundaries and equilibria, and provides drop-in replacements for ``binplot`` and ``ternplot`` (:issue:`543`).
+* ENH: Add Component implementation in variables. This adds a new ``Component`` class to distinguish between ``Component`` and ``Species``, and renames various utility functions for clarity and future-proofing (:issue:`546`).
+* FIX: Better handle convergence failures in Workspace. Introduces a ``ConvergenceFailureSolver`` for testing and fixes issues with getting properties from unconverged states (:issue:`558`).
 * ENH: Workspace: Suspend attribute dependency updates during initialization to improve performance and robustness. Includes several optimizations in condition-setting and local conditions handling (:issue:`554`).
 * FIX: Improve wildcard support. This includes expanding wildcards in component and sublattice index contexts, and improving the handling of site fractions in unstable phases (:issue:`560`).
 * ENH: tdb: ParseException now returns correct line and column numbers for better error reporting (:issue:`550`).
-* ENH: PhaseRecord: Refactor `FastFunctionFactory.getfunc()` to optimize tight loops (:issue:`552`).
-* ENH: Add pathlib support to Database reading, allowing seamless use of `Path` objects in the Workspace API (:issue:`545`).
+* ENH: PhaseRecord: Refactor ``FastFunctionFactory.getfunc()`` to optimize tight loops (:issue:`552`).
+* ENH: Add pathlib support to Database reading, allowing seamless use of ``Path`` objects in the Workspace API (:issue:`545`).
 
 0.10.5 (2024-07-12)
 -------------------
@@ -162,7 +176,7 @@ This is a major release including a new minimizer, support for installing from P
   * Bump SymEngine.py pin to v0.7.2 ( :issue:`289` )
   * Switch to matplotlib-base; bump to v3.3 ( :issue:`327` )
   * Fix NumPy deprecation warnings introduced in v1.20 ( :issue:`312` )
-  * Use `setup_requires` for build Python build dependences ( :issue:`325` )
+  * Use ``setup_requires`` for build Python build dependences ( :issue:`325` )
   * The pycalphad conda channel is no longer required for installation ( :issue:`297` )
 
 
@@ -213,7 +227,7 @@ This is a minor release with bug fixes and performance improvements.
 * DOC: Typo in documentation. Thanks @jwsiegel2150 ( :issue:`237` )
 * FIX: SymPy namespace clash with TDBs, and other deprecation fixes ( :issue:`234` )
 * DOC: Update installation instructions ( :issue:`241` )
-* MNT: Relax dask requirements to the minimum required for `scheduler=` syntax ( :issue:`223` )
+* MNT: Relax dask requirements to the minimum required for ``scheduler=`` syntax ( :issue:`223` )
 
 0.8 (2019-05-31)
 ----------------
@@ -487,9 +501,9 @@ This is a minor release with new features and bug fixes.
 This is a minor release with bug fixes and performance improvements.
 
 * Optional, experimental support for numba_ has been added to ``calculate``.
-  If numba>=0.22 is installed and ``calculate`` is directly called without the `mode`
+  If numba>=0.22 is installed and ``calculate`` is directly called without the ``mode``
   keyword argument, a numba-optimized function will be generated for the calculation.
-  You can force the old behavior with `mode='numpy'`.
+  You can force the old behavior with ``mode='numpy'``.
   ``equilibrium`` does not currently use this code path regardless.
 * A performance improvement to how ``lower_convex_hull`` computes driving force
   gives a nice speedup when calling ``equilibrium``.
@@ -514,7 +528,7 @@ This is a minor release with bug fixes and performance improvements.
   For some users (mainly Fe or Ni systems), the difference will be dramatic.
 * Numerical stability improvements to the energy minimizer ( :issue:`23` ).
   The minimizer now solves using exact Hessians and is generally more robust.
-  `pycalphad.core.equilibrium.MIN_STEP_LENGTH` has been removed.
+  ``pycalphad.core.equilibrium.MIN_STEP_LENGTH`` has been removed.
   There are still issues computing dilute compositions; these will continue to be addressed.
   Please report these numerical issues if you run into them because they are difficult to find through automated testing.
 * Automated testing is now enabled for Mac OSX and Windows, as well as Linux (previously enabled).
@@ -528,7 +542,7 @@ This is a minor bugfix release.
 
 * Numerical stability improvements to the energy minimizer ( :issue:`23` ).
   If you're still getting singular matrix errors occasionally, you can try adjusting
-  the value of `pycalphad.core.equilibrium.MIN_STEP_LENGTH` as discussed in the issue above.
+  the value of ``pycalphad.core.equilibrium.MIN_STEP_LENGTH`` as discussed in the issue above.
   Please report these numerical issues if you run into them because they are difficult to find through automated testing.
 * Fixes for the minimizer sometimes giving type conversion errors on numpy 1.10 ( :issue:`24` ).
 
