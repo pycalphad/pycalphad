@@ -41,18 +41,18 @@ def get_label(var: v.StateVariable):
     # For other units, use ~ to display the abbreviated version of the units
     # i.e. kelvin -> K, Pascal -> Pa
     elif isinstance(var, v.MU):
-        units_label = ureg[var.display_units]
+        units_label = ureg.parse_expression(var.display_units)
         return f'MU({var.species.name.capitalize()}) ({units_label.u:~})'
     elif isinstance(var, str):
         prop = as_property(var)
         if prop.display_units == '':
             return f'{prop.display_name}'
         else:
-            units_label = ureg[prop.display_units]
+            units_label = ureg.parse_expression(prop.display_units)
             return f'{prop.display_name} ({units_label.u:~})'
     # Otherwise, we can just use the display name
     else:
-        units_label = ureg[var.display_units]
+        units_label = ureg.parse_expression(var.display_units)
         return f'{var.display_name} ({units_label.u:~})'
 
 def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, set_nan_to_zero = True, *args, **kwargs):
