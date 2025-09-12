@@ -9,6 +9,7 @@ from pycalphad import variables as v
 from pycalphad.property_framework import as_property
 from pycalphad.plot.utils import phase_legend
 from pycalphad.plot import triangular  # register triangular projection
+from pycalphad.property_framework.units import Q_, ureg
 
 from pycalphad.mapping.primitives import _get_phase_specific_variable
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
@@ -19,32 +20,40 @@ import pycalphad.mapping.utils as map_utils
 
 def get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
+    # Phase fraction, mole fraction and weight fraction all has 
+    # units of "fraction", so I think we can leave it out
     if isinstance(var, v.NP):
         if var.phase_name is None or var.phase_name == '*':
-            return f'Phase Fraction ({var.display_units})'
+            return f'Phase Fraction'
         else:
-            return f'Phase Fraction ({var.phase_name}) ({var.display_units})'
+            return f'Phase Fraction ({var.phase_name})'
     elif isinstance(var, v.X):
         if var.phase_name is None:
-            return f'X({var.species.name.capitalize()}) ({var.display_units})'
+            return f'X({var.species.name.capitalize()})'
         else:
-            return f'X({var.phase_name}, {var.species.name.capitalize()}) ({var.display_units})'
+            return f'X({var.phase_name}, {var.species.name.capitalize()})'
     elif isinstance(var, v.W):
         if var.phase_name is None:
-            return f'W({var.species.name.capitalize()}) ({var.display_units})'
+            return f'W({var.species.name.capitalize()})'
         else:
-            return f'W({var.phase_name}, {var.species.name.capitalize()}) ({var.display_units})'
+            return f'W({var.phase_name}, {var.species.name.capitalize()})'
+        
+    # For other units, use ~ to display the abbreviated version of the units
+    # i.e. kelvin -> K, Pascal -> Pa
     elif isinstance(var, v.MU):
-        return f'MU({var.species.name.capitalize()}) ({var.display_units})'
+        units_label = ureg[var.display_units]
+        return f'MU({var.species.name.capitalize()}) ({units_label.u:~})'
     elif isinstance(var, str):
         prop = as_property(var)
         if prop.display_units == '':
             return f'{prop.display_name}'
         else:
-            return f'{prop.display_name} ({prop.display_units})'
+            units_label = ureg[prop.display_units]
+            return f'{prop.display_name} ({units_label.u:~})'
     # Otherwise, we can just use the display name
     else:
-        return f'{var.display_name} ({var.display_units})'
+        units_label = ureg[var.display_units]
+        return f'{var.display_name} ({units_label.u:~})'
 
 def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVariable = None, ax = None, legend_generator = phase_legend, set_nan_to_zero = True, *args, **kwargs):
     """

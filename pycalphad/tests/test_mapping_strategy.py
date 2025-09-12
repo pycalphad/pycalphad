@@ -459,18 +459,24 @@ def test_ternary_strategy_process_metastable_node(load_database):
     assert strategy.node_queue.nodes[-1] == stable_node
 
 def test_plot_labels():
-    assert get_label(v.NP('*')) == 'Phase Fraction (fraction)'
-    assert get_label(v.NP('BCC_A2')) == 'Phase Fraction (BCC_A2) (fraction)'
+    assert get_label(v.NP('*')) == 'Phase Fraction'
+    assert get_label(v.NP('BCC_A2')) == 'Phase Fraction (BCC_A2)'
 
-    assert get_label(v.X('CR')) == 'X(Cr) (fraction)'
-    assert get_label(v.X('BCC_A2', 'CR')) == 'X(BCC_A2, Cr) (fraction)'
+    assert get_label(v.X('CR')) == 'X(Cr)'
+    assert get_label(v.X('BCC_A2', 'CR')) == 'X(BCC_A2, Cr)'
 
-    assert get_label(v.W('CR')) == 'W(Cr) (fraction)'
-    assert get_label(v.W('BCC_A2', 'CR')) == 'W(BCC_A2, Cr) (fraction)'
+    assert get_label(v.W('CR')) == 'W(Cr)'
+    assert get_label(v.W('BCC_A2', 'CR')) == 'W(BCC_A2, Cr)'
 
     assert get_label(v.MU('CR')) == 'MU(Cr) (J / mol)'
-    assert get_label('CPM') == 'Heat Capacity (J / mol / K)'
-    assert get_label(v.T) == 'Temperature (kelvin)'
+    # The abbreviated notation in pint converts J/mol/K to J/K/mol. This
+    # seems to be some internal canonical ordering
+    # While this is still correct, I do not like it
+    # TODO: check if there is a way to override the default canonical
+    # ordering in pint so that mol comes before K
+    assert get_label('CPM') == 'Heat Capacity (J / K / mol)'
+    assert get_label(v.T) == 'Temperature (K)'
+    assert get_label(v.P) == 'Pressure (Pa)'
 
     # A string argument that doesn't have built in units will just return the string
     assert get_label('Custom Prop') == 'Custom Prop'
