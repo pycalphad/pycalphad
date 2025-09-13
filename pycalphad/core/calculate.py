@@ -524,6 +524,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast, parameters=parameters,
                                          largest_energy=float(largest_energy), fake_points=fp)
+        if phase_ds[output].size == 0:
+            warnings.warn(f"No valid points found for phase {phase_name}. This can be caused by the point samplers failing to produce feasible points with the given conditions ({conditions}) and state variables ({statevar_dict}).")
         all_phase_data.append(phase_ds)
 
     fp_offset = len(nonvacant_elements) if fake_points else 0
