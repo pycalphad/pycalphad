@@ -548,6 +548,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     else:
         final_ds = all_phase_data[0]
     final_ds.attrs['phase_indices'] = islice_by_phase
+    if final_ds[output].size == 0:
+        raise ConditionError(f"No valid points found in any of the active phases ({active_phases}). This can be caused by the point samplers failing to produce feasible points with the given conditions ({conditions}) and state variables ({statevar_dict}).")
     if to_xarray:
         return final_ds.get_dataset()
     else:
