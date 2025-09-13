@@ -354,6 +354,7 @@ def test_magnetic_volume_contribution():
     assert np.allclose(np.squeeze(res2['molar_volume']).values, 1.0e-6)
 
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
 def test_calculate_raises_if_no_feasible_points_exist():
     "calculate should raise if there are no feasible points produced"
 
