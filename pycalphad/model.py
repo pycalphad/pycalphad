@@ -1250,7 +1250,6 @@ class Model(object):
         constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
         disordered_phase = dbe.phases[disordered_phase_name]
         disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
-
         # Get substitutional sublattice indices (for the ordered phase) and
         # validate that the number of interstitial sublattices is consistent
         # with the disordered phase.
@@ -1313,11 +1312,11 @@ class Model(object):
         # Needs to extract a copy of self.models.values because the values will
         # be updated to the disordered energy contributions later
         ordered_energy = Add(*list(self.models.values()))
-
         # Compute the molefraction_dict, which will map ordered phase site
         # fractions to the quasi mole fractions representing the disordered state
         molefraction_dict = {}
         ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
+        print('what re the ordered sitefracs',ordered_sitefracs)
         for sitefrac in ordered_sitefracs:
             if sitefrac.sublattice_index in substitutional_sublattice_idxs:
                 molefraction_dict[sitefrac] = \
