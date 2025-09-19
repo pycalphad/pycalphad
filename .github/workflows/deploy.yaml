@@ -63,7 +63,7 @@ jobs:
           git update-index --assume-unchanged pyproject.toml
         if: github.event_name == 'push' && github.ref_name == 'develop'
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         name: Install Python
         with:
           python-version: '3.13'
