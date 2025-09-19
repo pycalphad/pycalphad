@@ -481,3 +481,12 @@ def test_shallow_ternary_with_isolated_phase(load_database):
     isoalted_MU = np.asarray([wks.get(IsolatedPhase('BCC_A2',wks=wks)(x)) for x in ["MU(CR)", "MU(FE)", "MU(NI)"]])
     assert_allclose(isolated_GM, -53870.40280079158)
     # assert_allclose(isoalted_MU, ???)
+
+@select_database("cfe_broshe.tdb")
+def test_unit_conversion(load_database):
+    dbf = load_database()
+    conds = {v.P: 101325, v.T: (1530, 1570, 10), v.N: 1, v.W("C"): 0.02}
+    wks = Workspace(dbf, ["FE", "C", "VA"], ["LIQUID", "FCC_A1"], conditions=conds)
+
+    # Test that it did not raise any exception (gh-609)
+    wks.get(v.T, as_property("enthalpy")["J/g"])
