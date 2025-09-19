@@ -326,6 +326,7 @@ def test_jansson_derivative_chempot_condition(load_database):
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
 def test_issue_503_suspend_phase_infeasible_internal_constraints():
     "Phases that cannot satisfy internal constraints are correctly suspended (gh-503)"
     TDB = """
@@ -342,7 +343,9 @@ def test_issue_503_suspend_phase_infeasible_internal_constraints():
     """
     # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
     wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 0.5, v.T: 1000})
+    wks.verbose = True
     print(wks.get_dict('X(*,*)'))
+    print(wks.get_dict('NP(*)'))
     assert np.isnan(wks.get('NP(SPINEL)'))
     np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
 
@@ -425,3 +428,17 @@ def test_constituents_are_updated_when_components_change(load_database):
         v.Species('VA'),
     }
     assert set(wks.constituents) == noZR_expected_species
+
+
+@select_database("crtiv_ghosh.tdb")
+def test_multicomponent_jansson_derivative_dependent_component(load_database):
+    "Jansson derivatives with respect to an independent composition should have only one dependent component."
+    dbf = load_database()
+    conds = {v.T: 2000.0, v.P: 101325, v.X("TI"): 0.2, v.X("V"): 0.3, v.N: 1}
+    wks = Workspace(dbf, ["CR", "TI", "V", "VA"], ["LIQUID"], conditions=conds)
+
+    dGM_dXTi = wks.get("GM.X(TI)")
+    # With Cr as the dependent component,
+    # dGM / dX(Ti) = MU(Ti) - MU(Cr)
+    np.testing.assert_allclose(dGM_dXTi, wks.get("MU(TI)") - wks.get("MU(CR)"))
+    np.testing.assert_allclose(dGM_dXTi, -26856.725962)

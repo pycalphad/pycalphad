@@ -1014,6 +1014,7 @@ def test_eq_charge_ndzro(load_database):
     assert np.allclose(Y_PYRO, [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01,
                                 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase HALITE*:UserWarning")  # Filter out an expected warning so we don't fail the test
 @pytest.mark.solver
 def test_issue_503_suspend_pure_vacancy_configuration():
     "equilibrium suspends a phase with a pure-vacancy endmember as the only feasible configuration (gh-503)"
@@ -1065,4 +1066,4 @@ def test_issue_468_gibbs_phase_rule(load_database):
     phases = ['LIQUID', 'FCC_A1', 'BCC_A2', 'GRAPHITE', 'CEMENTITE', 'DIAMOND_A4']
     eq = equilibrium(dbf, components, phases, {v.N:1, v.P:1e5, v.T:1080, v.X('C'):0.0053}, verbose=True)
     assert sorted(eq.Phase.values.squeeze()) == ["", "BCC_A2", "GRAPHITE"]
-    assert np.allclose(sorted(eq.NP.values.squeeze()), [0.00015170798706395827, 0.999848292010574, np.nan], atol=1e-7, equal_nan=True)
+    assert np.allclose(np.sort(eq.NP.values.squeeze()), [0.00015170798706395827, 0.999848292010574, np.nan], atol=1e-7, equal_nan=True)
