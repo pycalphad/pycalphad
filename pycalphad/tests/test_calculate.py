@@ -375,4 +375,10 @@ def test_calculate_raises_if_no_feasible_points_exist():
     # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
     # as it is the only active phase, there will be no points and should raise
     with pytest.raises(ConditionError):
-        grid = calculate(dbf, ['O', 'ZR', 'VA'], ['SPINEL'], P=1e5, T=1000, fake_points=False, to_xarray=False)
+        grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # SPINEL still suspended, but doesn't raise because GAS phase provides points
+    with pytest.warns(match="No valid points found for phase SPINEL"):
+        grid = calculate(dbf, ["O", "ZR", "VA"], ["GAS", "SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # fake_points provides points and therefore calculate should not raise for having no points
+    # fake_points also prevents the warning here
+    grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)

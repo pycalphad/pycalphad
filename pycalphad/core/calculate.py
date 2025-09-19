@@ -258,6 +258,7 @@ def _compute_phase_values(components, statevar_dict, str_phase_local_conditions,
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
     param_symbols, parameter_array = extract_parameters(parameters)
     parameter_array_length = parameter_array.shape[0]
+    max_tieline_vertices = len(pure_elements)
     if points.size > 0:
         pts = points.reshape(-1, points.shape[-1])
         dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
@@ -275,7 +276,6 @@ def _compute_phase_values(components, statevar_dict, str_phase_local_conditions,
         for el_idx in range(len(pure_elements)):
             phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)
 
-        max_tieline_vertices = len(pure_elements)
         if isinstance(phase_output, (float, int)):
             phase_output = broadcast_to(phase_output, points.shape[:-1])
         if isinstance(phase_compositions, (float, int)):
