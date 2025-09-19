@@ -326,6 +326,7 @@ def test_jansson_derivative_chempot_condition(load_database):
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
 def test_issue_503_suspend_phase_infeasible_internal_constraints():
     "Phases that cannot satisfy internal constraints are correctly suspended (gh-503)"
     TDB = """

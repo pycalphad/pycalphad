@@ -1014,6 +1014,7 @@ def test_eq_charge_ndzro(load_database):
     assert np.allclose(Y_PYRO, [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01,
                                 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase HALITE*:UserWarning")  # Filter out an expected warning so we don't fail the test
 @pytest.mark.solver
 def test_issue_503_suspend_pure_vacancy_configuration():
     "equilibrium suspends a phase with a pure-vacancy endmember as the only feasible configuration (gh-503)"
