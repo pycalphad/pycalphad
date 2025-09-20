@@ -78,7 +78,7 @@ class IsoplethStrategy(MapStrategy):
                 self.add_starting_points_from_step(step)
 
     def add_starting_points_from_step(self, step: StepStrategy):
-        # Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction
+        # Get all nodes that have a parent. We set axis variable to None so that the node will find a good starting direction
         # NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
         #      as starting points (which has no parents), so no starting points for isopleth mapping would be added
         for node in step.node_queue.nodes:
@@ -127,19 +127,19 @@ class IsoplethStrategy(MapStrategy):
         """
         Maximum number of exits from a node along an isopleth section is 2*p - a ZPF line entering and exiting the node for each phase
         However, the number of ZPF surfaces leaving a node is 2*comb(p,p-2)
-            Note: a node contain p phases and is found by fixing 2 phases, then a ZPF surface coming out of a node
+            Note: if a node containing p phases is found by fixing 2 phases, then a ZPF surface coming out of a node
                   has at most p-1 phases and is defined by fixing 1 phase
-                  so for any combination of p-2 phases, we can fixe 1 of the other phase to construct the ZPF surface
-        We test the exits by going through combinations of n-2 phases (assume a and b being the other two phases)
-          Create a matrix of NP*x = X and test if NP is positive fo all phases
+                  so for any combination of p-2 phases, we can fix 1 of the other phases to construct the ZPF surface
+        We test the exits by going through combinations of n-2 phases (assuming a and b are the other two phases)
+          Create a matrix of NP*x = X and test if NP is positive for all phases
           If this is true, then we create two exits, one with (n-2) (a) and (n-2) (b) and only add it as
-          a candidate exit if the node has not encountered it before or if it has not been calculated (although this shouldnt happen)
+          a candidate exit if the node has not encountered it before or if it has not been calculated (although this should not happen)
         """
         # Make a list of indices for bookkeeping free and fixed composition sets
         indices = np.arange(len(node.stable_composition_sets))
-        # Free composition sets will be all combination of p-2 phases
+        # Free composition sets will be all combinations of p-2 phases
         for free_indices in itertools.combinations(indices, len(indices)-2):
-            # Fixed compostion sets will be the remaining 2 phases
+            # Fixed composition sets will be the remaining 2 phases
             fixed_indices = list(set(indices) - set(free_indices))
             trial_stable_compsets = [node.stable_composition_sets[free_ind] for free_ind in free_indices]
             cs_phase_names = [cs.phase_record.phase_name for cs in trial_stable_compsets]
@@ -151,7 +151,7 @@ class IsoplethStrategy(MapStrategy):
 
             if all(phase_NP > 0):
                 for fixed_ind in fixed_indices:
-                    # Set fixed phase as the phase in the trail comp set that we didn't test for
+                    # Set fixed phase as the phase in the trial comp set that we didn't test for
                     candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [node.stable_composition_sets[fixed_ind]], list(trial_stable_compsets))
 
                     # Define the fixed CS as fixed to NP=0

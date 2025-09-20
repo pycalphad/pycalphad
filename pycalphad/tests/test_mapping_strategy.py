@@ -87,18 +87,18 @@ def test_ternary_strategy(load_database):
     for dnz in desired_node_sets:
         assert dnz in node_sets
 
-    #Attempt to add node in single-phase region - no nodes added
+    # Attempt to add node in single-phase region - no nodes added
     num_nodes = len(strategy.node_queue.nodes)
     strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.2, v.X('TI'): 0.2})
     new_num_nodes = len(strategy.node_queue.nodes)
     assert new_num_nodes == num_nodes
 
-    #Attempt to add node in two-phase region - two nodes added for pos/neg direction
+    # Attempt to add node in two-phase region - two nodes added for pos/neg direction
     strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.4, v.X('TI'): 0.4})
     new_num_nodes = len(strategy.node_queue.nodes)
     assert new_num_nodes == num_nodes + 2
 
-    #Attempt to add node in three-phase region (force adding) - one node is added where directions are determined from the node
+    # Attempt to add node in three-phase region (force adding) - one node is added where directions are determined from the node
     num_nodes = len(strategy.node_queue.nodes)
     strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.129, v.X('TI'): 0.861}, force_add=True)
     new_num_nodes = len(strategy.node_queue.nodes)

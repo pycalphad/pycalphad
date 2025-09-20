@@ -166,7 +166,7 @@ class StepStrategy(MapStrategy):
                 if success:
                     return
                 
-    def get_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False, set_nan_to_zero=False) -> StrategyData:
+    def get_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False, set_nan_to_zero: bool = False) -> StrategyData:
         """
         Utility function to get data from StepStrategy for plotting.
 
@@ -180,8 +180,8 @@ class StepStrategy(MapStrategy):
             Whether variable x applies to the global system
         global_y : bool
             Whether variable y applies to the global system
-        set_nan_to_zero : bool, optional
-            If True, NaN values will be set to zero in the data.
+        set_nan_to_zero : bool
+            If True, NaN values will be set to zero in the data, defaults to false
 
         Returns
         -------

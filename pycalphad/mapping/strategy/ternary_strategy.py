@@ -210,7 +210,7 @@ class TernaryStrategy(MapStrategy):
 
     def _find_exits_from_node(self, node: Node):
         """
-        A node on for a ternary system has three exits, which are combinations of 2 CS in the node
+        A node in a ternary system has three exits, which are combinations of 2 CS in the node
         Since the node is found from one pair of CS, one of the exits are already accounted for, so
         practically, it's only 2 exits
             However, if there are multiple starting points, a node may be found from multiple zpf lines
@@ -331,7 +331,7 @@ class TernaryStrategy(MapStrategy):
             _log.info("Global eq check failed. New node is metastable. Removing current zpf line.")
             self.zpf_lines.pop(-1)
 
-    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False) -> list[StrategyData]:
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[StrategyData]:
         """
         Create a dictionary of data for invariant plotting.
 
@@ -341,6 +341,10 @@ class TernaryStrategy(MapStrategy):
             The state variable to be used for the x-axis.
         y : v.StateVariable
             The state variable to be used for the y-axis.
+        global_x : bool
+            Whether variable x applies to the global system
+        global_y : bool
+            Whether variable y applies to the global system
 
         Returns
         -------
@@ -349,7 +353,7 @@ class TernaryStrategy(MapStrategy):
         return get_invariant_data_from_tieline_strategy(self, x, y, global_x, global_y)
 
     
-    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False) -> list[StrategyData]:
+    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[StrategyData]:
         """
         Create a dictionary of data for plotting ZPF lines.
 
@@ -359,6 +363,10 @@ class TernaryStrategy(MapStrategy):
             The state variable to be used for the x-axis.
         y : v.StateVariable
             The state variable to be used for the y-axis.
+        global_x : bool
+            Whether variable x applies to the global system
+        global_y : bool
+            Whether variable y applies to the global system
 
         Returns
         -------
