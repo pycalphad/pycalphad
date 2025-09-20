@@ -127,14 +127,11 @@ def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5
     # b) Single stoichiometric phase where DOF = 1, so squeezing y will give (N,)
     #       Sampling a single stoichiometric phase may also give N = 1 as well
     gm = np.atleast_1d(np.squeeze(samples.GM))
-    x = np.atleast_2d(np.squeeze(samples.X))
-    y = np.atleast_2d(np.squeeze(samples.Y))
-    # Make sure y is (N,DOF) instead of (DOF,N). This can occur if there's a single stoichiometric phase and N=1
-    if y.shape[1] == gm.shape[0]:
-        y = y.T
-    # Make sure x is (N,C) instead of (C,N). This can occur in unaries where C=1
-    if x.shape[1] == gm.shape[0]:
-        x = x.T
+    # Reshape x to 2D array of (N,C)
+    x = np.reshape(samples.X, (gm.shape[0], -1))
+    # Reshape y to 2D array of (N,DOF)
+    y = np.reshape(samples.Y, (gm.shape[0], -1))
+
     phase_ids = np.atleast_1d(np.squeeze(samples.Phase))
     mu = np.atleast_1d(np.squeeze(point.chemical_potentials))
     dGs = np.dot(x, mu) - gm

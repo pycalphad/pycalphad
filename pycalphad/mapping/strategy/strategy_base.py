@@ -48,7 +48,7 @@ class MapStrategy:
         So increasing it to a high value does not significantly degrade performance and mapping using models with high DOF may be better)
     """
 
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], initialize=True, **kwargs):
+    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
         if isinstance(dbf, str):
             dbf = Database(dbf)
         self.dbf = dbf
@@ -114,9 +114,6 @@ class MapStrategy:
         self.GLOBAL_MIN_PDENS = kwargs.get("GLOBAL_MIN_PDENS", 500)
         self.GLOBAL_MIN_TOL = kwargs.get("GLOBAL_MIN_TOL", 1e-4)
         self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1)
-
-        if initialize:
-            self.initialize()
 
     def _constant_kwargs(self):
         """
@@ -216,7 +213,7 @@ class MapStrategy:
         new_node.exit_hint = exit_hint
         return new_node
     
-    def initialize(self):
+    def generate_automatic_starting_points(self):
         """
         Automatically finds starting points based off input conditions
         Map strategies should be able to still run even without automatic starting
@@ -257,6 +254,18 @@ class MapStrategy:
         """
         Wrapper over iterate to run until finished
         """
+        # If no there are nodes to start the mapping from, then run
+        # generate_automatic_starting points to get a set of starting points 
+        # (the methods to find the starting points are strategy specific)
+        # If the user adds a node manually (which may be done through
+        # add_nodes_from_conditions or add_starting_points_from_step (binary,
+        # ternary or isopleth specific)), then we use those as the starting 
+        # points instead
+        # And if we already have zpf lines, then assume we do not need to
+        # generate starting points (this assumes that the user has ran
+        # do_map once and intends to add a starting point to run do_map again)
+        if len(self.node_queue.nodes) == 0 and len(self.zpf_lines) == 0:
+            self.generate_automatic_starting_points()
         finished = False
         while not finished:
             finished = self.iterate()

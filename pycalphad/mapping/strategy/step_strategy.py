@@ -16,7 +16,7 @@ from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyDa
 _log = logging.getLogger(__name__)
 
 class StepStrategy(MapStrategy):
-    def initialize(self):
+    def generate_automatic_starting_points(self):
         """
         Adds initial starting point in middle of free condition
         """

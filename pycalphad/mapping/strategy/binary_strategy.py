@@ -66,7 +66,7 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
         return options_tests[best_index][1], options_tests[best_index][2]
 
 class BinaryStrategy(MapStrategy):
-    def initialize(self):
+    def generate_automatic_starting_points(self):
         """
         Searches axis limits to find starting points
 
@@ -94,7 +94,6 @@ class BinaryStrategy(MapStrategy):
                 # Step map
                 map_kwargs = self._constant_kwargs()
                 step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
-                step.initialize()
                 step.do_map()
                 self.add_starting_points_from_step(step)
 
