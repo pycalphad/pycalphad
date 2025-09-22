@@ -67,10 +67,12 @@ class Solver(SolverBase):
             if len(phase_local_conditions) > 0:
                 compset.set_local_conditions(phase_local_conditions)
         for cond, value in conditions.items():
+            # values should all be scalar floats
+            value = float(np.asarray(value).flat[0])
             if isinstance(cond, MoleFraction) and cond.phase_name is None:
                 el = str(cond)[2:]
                 el_idx = list(nonvacant_elements).index(el)
-                prescribed_mole_fraction_rhs.append(np.asarray(value).flat[0])
+                prescribed_mole_fraction_rhs.append(value)
                 coefs = np.zeros(num_components)
                 coefs[el_idx] = 1.0
                 prescribed_mole_fraction_coefficients.append(coefs)
@@ -102,12 +104,12 @@ class Solver(SolverBase):
                     el_idx = list(nonvacant_elements).index(el)
                     coefs[el_idx] = coef
                 if cond.denominator == 1:
-                    prescribed_mole_fraction_rhs.append(float(value) - float(constant))
+                    prescribed_mole_fraction_rhs.append(value - float(constant))
                 else:
                     # Adjust coefficients to account for molar ratio
                     prescribed_mole_fraction_rhs.append(-float(constant))
                     denominator_idx = cond.symbols.index(cond.denominator)
-                    coefs[denominator_idx] -= float(value)
+                    coefs[denominator_idx] -= value
                 prescribed_mole_fraction_coefficients.append(coefs)
         prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
         prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)
