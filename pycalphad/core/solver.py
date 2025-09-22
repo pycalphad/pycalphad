@@ -159,7 +159,7 @@ class Solver(SolverBase):
 
         """
         if self.verbose:
-            print(f"Attempting to solve system at conditions {conditions} with starting point: {composition_sets}")
+            print(f"Solver: Attempting to solve system at conditions {conditions} with starting point: {composition_sets}")
         spec = self.get_system_spec(composition_sets, conditions)
         self._fix_state_variables_in_compsets(composition_sets, conditions)
         state = spec.get_new_state(composition_sets)
