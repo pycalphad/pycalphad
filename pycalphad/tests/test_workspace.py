@@ -326,6 +326,7 @@ def test_jansson_derivative_chempot_condition(load_database):
     np.testing.assert_almost_equal(molefrac1, 0.3)
     np.testing.assert_almost_equal(result2, (molefrac2 - molefrac1) / 1.0, decimal=2)
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
 def test_issue_503_suspend_phase_infeasible_internal_constraints():
     "Phases that cannot satisfy internal constraints are correctly suspended (gh-503)"
     TDB = """
@@ -342,7 +343,9 @@ def test_issue_503_suspend_phase_infeasible_internal_constraints():
     """
     # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
     wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 0.5, v.T: 1000})
+    wks.verbose = True
     print(wks.get_dict('X(*,*)'))
+    print(wks.get_dict('NP(*)'))
     assert np.isnan(wks.get('NP(SPINEL)'))
     np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
 
@@ -439,3 +442,12 @@ def test_multicomponent_jansson_derivative_dependent_component(load_database):
     # dGM / dX(Ti) = MU(Ti) - MU(Cr)
     np.testing.assert_allclose(dGM_dXTi, wks.get("MU(TI)") - wks.get("MU(CR)"))
     np.testing.assert_allclose(dGM_dXTi, -26856.725962)
+
+@select_database("cfe_broshe.tdb")
+def test_unit_conversion(load_database):
+    dbf = load_database()
+    conds = {v.P: 101325, v.T: (1530, 1570, 10), v.N: 1, v.W("C"): 0.02}
+    wks = Workspace(dbf, ["FE", "C", "VA"], ["LIQUID", "FCC_A1"], conditions=conds)
+
+    # Test that it did not raise any exception (gh-609)
+    wks.get(v.T, as_property("enthalpy")["J/g"])

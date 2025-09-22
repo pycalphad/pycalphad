@@ -1,7 +1,9 @@
-import os, sys
-from setuptools import setup, Extension
-from Cython.Build import cythonize
+import os
+
 import numpy as np
+from Cython.Build import cythonize
+from setuptools import Extension, setup
+from setuptools.command.build_ext import build_ext
 
 
 # Utility function to read the README file.
@@ -28,6 +30,22 @@ CYTHON_EXTENSION_MODULES = [
     Extension('pycalphad.core.minimizer', sources=['pycalphad/core/minimizer.pyx'], define_macros=CYTHON_DEFINE_MACROS),
 ]
 
+# https://cython.readthedocs.io/en/latest/src/tutorial/appendix.html
+mingw32_link_args = [
+    "-static-libgcc",
+    "-static-libstdc++",
+    "-Wl,-Bstatic,--whole-archive",
+    "-lwinpthread",
+    "-Wl,--no-whole-archive",
+]
+
+class Build(build_ext):
+    def build_extensions(self):
+        if self.compiler.compiler_type == "mingw32":
+            for ext in self.extensions:
+                ext.extra_link_args = mingw32_link_args
+        return super().build_extensions()
+
 setup(
     name='pycalphad',
     author='Richard Otis',
@@ -40,6 +58,7 @@ setup(
         include_path=CYTHON_EXTENSION_INCLUDES,
         compiler_directives=CYTHON_COMPILER_DIRECTIVES,
     ),
+    cmdclass={"build_ext": Build},
     package_data={
         'pycalphad.core': ['*.pxd'] + (['*.pyx', '*.c', '*.h', '*.cpp', '*.hpp'] if os.getenv('CYTHON_COVERAGE', False) else []),
         'pycalphad.tests.databases': ['*'],
@@ -90,7 +109,6 @@ setup(
 
         # Supported Python versions
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',

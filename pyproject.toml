@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "Cython",
-    "numpy>=2; python_version>='3.10'",
+    "numpy>=2",
     "scipy",
     "setuptools",
     "setuptools_scm[toml]>=6.0",
@@ -40,6 +40,7 @@ source_pkgs = [
 omit = [
     "pycalphad/core/*.pxd", # workaround for https://github.com/nedbat/coveragepy/issues/972
     "stringsource",
+    "*/numpy/*",  # fix for Cython.Coverage.Plugin did not provide a file reporter for numpy/__init__.cython-30.pxd
 ]
 
 [tool.coverage.report]
