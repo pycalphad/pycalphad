@@ -1,9 +1,14 @@
 """
-Helper functions to grab data from tieline strategies (BinaryStrategy and TernaryStrategy)
-This is to avoid repeating get_XXX_data functions for the two strategies
+Data classes to hold outputs from map strategies
 
-TODO: Once BinaryStrategy and TernaryStrategy are merged into a more general TielineStrategy,
-      these two functions can be moved into TieLineStrategy and strategy_utils.py as be removed
+SinglePhaseData - holds x, y coordinates for a given phase
+StrategyData - holds a list of SinglePhaseData with some functions to loop
+    over phases, x and y in each SinglePhaseData object and to get x and y limits
+PhaseRegionData - alias of StrategyData. This is done to clarify what 
+    BinaryStrategy.get_zpf_data, BinaryStrategy.get_invariant_data
+    TernaryStrategy.get_zpf_data, TernaryStrategy.get_invariant_data and
+    IsoplethStrategy.get_invariant_data does compared to StepStrategy.get_data
+    and IsoplethStrategy.get_zpf_data
 """
 import copy
 from typing import Union
@@ -50,8 +55,17 @@ class StrategyData:
     @property
     def y(self):
         return [d.y for d in self.data]
+    
+PhaseRegionData = StrategyData
 
-def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False):
+"""
+Helper functions to grab data from tieline strategies (BinaryStrategy and TernaryStrategy)
+This is to avoid repeating get_XXX_data functions for the two strategies
+
+TODO: Once BinaryStrategy and TernaryStrategy are merged into a more general TielineStrategy,
+      these two functions can be moved into TieLineStrategy and strategy_utils.py as be removed
+"""
+def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False) -> list[PhaseRegionData]:
     """
     Create a dictionary of data for node plotting in binary and ternary plots.
 
@@ -101,7 +115,7 @@ def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.
 
     return invariant_data
 
-def get_tieline_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False):
+def get_tieline_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False) -> list[PhaseRegionData]:
     """
     Create a dictionary of data for plotting ZPF lines.
 

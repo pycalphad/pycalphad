@@ -13,7 +13,7 @@ import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
-from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyData
+from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyData, PhaseRegionData
 
 _log = logging.getLogger(__name__)
 
@@ -289,7 +289,7 @@ class IsoplethStrategy(MapStrategy):
 
         return StrategyData(data)
 
-    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable) -> list[StrategyData]:
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable) -> list[PhaseRegionData]:
         """
         Create a dictionary of data for plotting invariants for isopleths.
 
@@ -341,6 +341,6 @@ class IsoplethStrategy(MapStrategy):
                 # than a single phase
                 for x_data, y_data, ph_data in zip(x_vals, y_vals, phase_set):
                     data.append(SinglePhaseData(set(ph_data), x_data, y_data))
-                node_data.append(StrategyData(data))
+                node_data.append(PhaseRegionData(data))
 
         return node_data

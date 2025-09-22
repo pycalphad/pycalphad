@@ -15,7 +15,7 @@ import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
-from pycalphad.mapping.strategy.strategy_data import StrategyData, get_invariant_data_from_tieline_strategy, get_tieline_data_from_tieline_strategy
+from pycalphad.mapping.strategy.strategy_data import PhaseRegionData, get_invariant_data_from_tieline_strategy, get_tieline_data_from_tieline_strategy
 
 _log = logging.getLogger(__name__)
 
@@ -327,7 +327,7 @@ class TernaryStrategy(MapStrategy):
             _log.info("Global eq check failed. New node is metastable. Removing current zpf line.")
             self.zpf_lines.pop(-1)
 
-    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[StrategyData]:
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[PhaseRegionData]:
         """
         Create a dictionary of data for invariant plotting.
 
@@ -349,7 +349,7 @@ class TernaryStrategy(MapStrategy):
         return get_invariant_data_from_tieline_strategy(self, x, y, global_x, global_y)
 
     
-    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[StrategyData]:
+    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[PhaseRegionData]:
         """
         Create a dictionary of data for plotting ZPF lines.
 
