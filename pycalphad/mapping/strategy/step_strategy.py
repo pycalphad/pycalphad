@@ -165,7 +165,7 @@ class StepStrategy(MapStrategy):
                 success = self.add_nodes_from_conditions(new_conds, axis_dir, True)
                 if success:
                     return
-                
+
     def get_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False, set_nan_to_zero: bool = False) -> StrategyData:
         """
         Utility function to get data from StepStrategy for plotting.
@@ -189,11 +189,12 @@ class StepStrategy(MapStrategy):
             If x and y are unique for the system, then the data in StrategyData will be labeled as "SYSTEM"
             otherwise, the data in StrategyData will be labeled for all stable phases
             Examples of unique variables:
-                State variables (N, P, T)
-                Values such as GM, HM, CPM
-                Phase specific variable (i.e. v.X(phase, component) or v.NP(phase))
-                    This is in contrast to v.X(component) or v.NP where composition or phase fraction will be
-                    taken for all stable phases
+
+            - State variables (N, P, T)
+            - Values such as GM, HM, CPM
+            - Phase specific variable (i.e. v.X(phase, component) or v.NP(phase))
+              This is in contrast to v.X(component) or v.NP where composition or phase fraction will be
+              taken for all stable phases
         """
         if hasattr(x, 'phase_name') and x.phase_name is None:
             if not global_x:
@@ -240,7 +241,7 @@ class StepStrategy(MapStrategy):
             argsort = np.argsort(x_array)
             x_array = x_array[argsort]
             y_array = y_array[argsort]
-            
+
             data.append(SinglePhaseData(p, x_array, y_array))
 
         return StrategyData(data)
