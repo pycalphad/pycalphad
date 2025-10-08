@@ -39,6 +39,7 @@ source_pkgs = [
 ]
 omit = [
     "pycalphad/core/*.pxd", # workaround for https://github.com/nedbat/coveragepy/issues/972
+    "*/pycalphad/tests/*", # don't include tests in coverage
     "stringsource",
     "*/numpy/*",  # fix for Cython.Coverage.Plugin did not provide a file reporter for numpy/__init__.cython-30.pxd
 ]

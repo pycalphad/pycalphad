@@ -67,10 +67,12 @@ class Solver(SolverBase):
             if len(phase_local_conditions) > 0:
                 compset.set_local_conditions(phase_local_conditions)
         for cond, value in conditions.items():
+            # values should all be scalar floats
+            value = float(np.asarray(value).flat[0])
             if isinstance(cond, MoleFraction) and cond.phase_name is None:
                 el = str(cond)[2:]
                 el_idx = list(nonvacant_elements).index(el)
-                prescribed_mole_fraction_rhs.append(np.asarray(value).flat[0])
+                prescribed_mole_fraction_rhs.append(value)
                 coefs = np.zeros(num_components)
                 coefs[el_idx] = 1.0
                 prescribed_mole_fraction_coefficients.append(coefs)
@@ -102,12 +104,12 @@ class Solver(SolverBase):
                     el_idx = list(nonvacant_elements).index(el)
                     coefs[el_idx] = coef
                 if cond.denominator == 1:
-                    prescribed_mole_fraction_rhs.append(float(value) - float(constant))
+                    prescribed_mole_fraction_rhs.append(value - float(constant))
                 else:
                     # Adjust coefficients to account for molar ratio
                     prescribed_mole_fraction_rhs.append(-float(constant))
                     denominator_idx = cond.symbols.index(cond.denominator)
-                    coefs[denominator_idx] -= float(value)
+                    coefs[denominator_idx] -= value
                 prescribed_mole_fraction_coefficients.append(coefs)
         prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
         prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)
@@ -159,7 +161,7 @@ class Solver(SolverBase):
 
         """
         if self.verbose:
-            print(f"Attempting to solve system at conditions {conditions} with starting point: {composition_sets}")
+            print(f"Solver: Attempting to solve system at conditions {conditions} with starting point: {composition_sets}")
         spec = self.get_system_spec(composition_sets, conditions)
         self._fix_state_variables_in_compsets(composition_sets, conditions)
         state = spec.get_new_state(composition_sets)
@@ -188,6 +190,9 @@ class Solver(SolverBase):
         chemical_potentials = np.array(state.chemical_potentials)
 
         if self.verbose:
-            print('Chemical Potentials', chemical_potentials)
-            print(np.asarray(x))
+            soln_desc = f"Chemical Potentials: {np.round(chemical_potentials, 5).tolist()}; Composition Sets: {composition_sets}"
+            if converged:
+                print(f"Solver: (converged in {state.iteration+1} iterations): {soln_desc}", )
+            else:
+                print(f"Solver: (not converged): {soln_desc}", )
         return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)
