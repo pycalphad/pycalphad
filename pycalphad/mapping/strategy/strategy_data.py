@@ -4,7 +4,7 @@ Data classes to hold outputs from map strategies
 SinglePhaseData - holds x, y coordinates for a given phase
 StrategyData - holds a list of SinglePhaseData with some functions to loop
     over phases, x and y in each SinglePhaseData object and to get x and y limits
-PhaseRegionData - alias of StrategyData. This is done to clarify what 
+PhaseRegionData - alias of StrategyData. This is done to clarify what
     BinaryStrategy.get_zpf_data, BinaryStrategy.get_invariant_data
     TernaryStrategy.get_zpf_data, TernaryStrategy.get_invariant_data and
     IsoplethStrategy.get_invariant_data does compared to StepStrategy.get_data
@@ -43,19 +43,19 @@ class StrategyData:
             return self.data[phases.index(key)]
         else:
             raise KeyError(f"{key} not in dataset.")
-        
+
     @property
     def phases(self):
         return [d.phase for d in self.data]
-    
+
     @property
     def x(self):
         return [d.x for d in self.data]
-    
+
     @property
     def y(self):
         return [d.y for d in self.data]
-    
+
 PhaseRegionData = StrategyData
 
 """
@@ -63,7 +63,7 @@ Helper functions to grab data from tieline strategies (BinaryStrategy and Ternar
 This is to avoid repeating get_XXX_data functions for the two strategies
 
 TODO: Once BinaryStrategy and TernaryStrategy are merged into a more general TielineStrategy,
-      these two functions can be moved into TieLineStrategy and strategy_utils.py as be removed
+      these two functions can be moved into TieLineStrategy
 """
 def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.StateVariable, global_x = False, global_y = False) -> list[PhaseRegionData]:
     """
