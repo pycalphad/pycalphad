@@ -12,6 +12,10 @@ from collections import deque
 from symengine import S, log, Piecewise, And
 from pycalphad import Database, variables as v
 from .grammar import parse_chemical_formula
+import datetime
+import getpass
+from sympy import simplify, piecewise_fold, expand
+from pycalphad.io.database import DatabaseExportError
 
 # From ChemApp Documentation, section 11.1 "The format of a ChemApp data-file"
 # We use a leading zero term because the data file's indices are 1-indexed and
@@ -46,7 +50,7 @@ class TokenParser():
         self._lines_deque = deque(string.split("\n"))
         self._current_line = self._lines_deque.popleft()
         self._tokens_deque = deque(self._current_line.split())
-    
+
     def __getitem__(self, i: int):
         # Instantiate a new TokenParser for the current state so we can look ahead without messing up our line numbers
         lines = "\n".join(deque([" ".join(self._tokens_deque)]) + self._lines_deque)
@@ -73,7 +77,7 @@ class TokenParser():
         try:
             obj = cls(next_token)
         except ValueError as e:
-            # Return the token and re-raise with a ParseError 
+            # Return the token and re-raise with a ParseError
             self._tokens_deque.appendleft(next_token)
             raise TokenParserError(f"Error at line number {self._line_number + 1}: {e.args} for line:\n    {self._current_line}") from e
         else:
@@ -1159,6 +1163,1041 @@ def parse_cs_dat(instring):
     return header, solution_phases, stoichiometric_phases
 
 
+def reflow_text(text, linewidth=80):
+    """
+    Add line breaks to ensure text doesn't exceed a certain line width.
+
+    Parameters
+    ----------
+    text : str
+    linewidth : int, optional
+
+    Returns
+    -------
+    reflowed_text : str
+    """
+    lines = text.split("\n")
+    linebreak_chars = [" "]
+    output_lines = []
+    line_counter = 0
+    for line in lines:
+        # Don't break lines below set width, or first (comment) line of DAT
+        if len(line) <= linewidth or line_counter == 0:
+            output_lines.append(line.rstrip())
+        else:
+            while len(line) > linewidth:
+                linebreak_idx = linewidth - 1
+                while linebreak_idx > 0 and line[linebreak_idx] not in linebreak_chars:
+                    linebreak_idx -= 1
+                # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
+                if linebreak_idx <= 2:
+                    raise ValueError(f"Unable to reflow the following line of length {len(line)} below the maximum length of {linewidth}: \n{line}")
+                output_lines.append(line[:linebreak_idx].rstrip())
+                line = line[linebreak_idx:]
+            output_lines.append(line.rstrip())
+        line_counter += 1
+    # CRLF for FactSage compatibility
+    return "\r\n".join(output_lines)
+
+
+atomic_number_map = [
+    'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
+    'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
+    'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh',
+    'Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd',
+    'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re',
+    'Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
+    'Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db',
+    'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
+]
+
+
+def write_cs_dat(dbf: Database, fd, if_incompatible='warn'):
+    """
+    Write a DAT file from a pycalphad Database object.
+
+    The goal is to produce DATs that conform to the most restrictive subset of database specifications. FactSage requires
+    fixed value widths and a maximum line length of 80 characters. FactSage 8.0 (and earlier) format will be produced.
+    The default is to warn the user when attempting to write an incompatible database and the user must choose whether to
+    warn and write the file anyway or to fix the incompatibility.
+
+    Other DAT compatibility issues required by FactSage or other software should be reported to the issue tracker.
+
+    Parameters
+    ----------
+    dbf : Database
+        A pycalphad Database.
+    fd : file-like
+        File descriptor.
+    if_incompatible : string, optional ['raise', 'warn', 'ignore', 'fix']
+        Strategy if the database does not conform to the most restrictive database specification.
+        The 'warn' option (default) will write out the incompatible database with a warning.
+        The 'raise' option will raise a DatabaseExportError.
+        The 'ignore' option will write out the incompatible database silently.
+        The 'fix' option will rectify the incompatibilities e.g. through name mangling.
+    """
+    # Needed for database queries
+    from tinydb import where
+    # Before writing anything, check that the TDB is valid and take the appropriate action if not
+    if if_incompatible not in ['warn', 'raise', 'ignore', 'fix']:
+        raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', \'ignore\', or \'fix\'.')
+
+    def incompatibility(inc_message):
+        if   if_incompatible == 'warn':
+            warnings.warn(inc_message)
+            print()
+        elif if_incompatible == 'raise':
+            raise DatabaseExportError(inc_message)
+        elif if_incompatible == 'ignore':
+            pass
+        elif if_incompatible == 'fix':
+            warnings.warn(inc_message)
+            warnings.warn('No fixes implemented for this incompatibility.')
+            print()
+
+    # Begin constructing the written database
+    writetime = datetime.datetime.now()
+    maxlen = 80
+    output = ""
+    # Comment header block
+    # Import here to prevent circular imports
+    from pycalphad import __version__
+    try:
+        # getuser() will raise on Windows if it can't find a username: https://bugs.python.org/issue32731
+        username = getpass.getuser()
+    except:
+        # if we can't find a good username, just choose a default and move on
+        username = 'user'
+    output += " Date: {} ".format(writetime.strftime("%Y-%m-%d %H:%M"))
+
+    # DAT standard is elements written from highest atomic number to lowest
+    element_order = []
+    elements = []
+    for element in dbf.elements:
+        try:
+            element_order.append(atomic_number_map.index(element.capitalize())+1)
+            elements.append(element)
+        except ValueError:
+            if element.capitalize() not in ('Va','/-'):
+                inc_message = f'Element {element} not found in element list.\n'
+                inc_message += f'{element} will be ignored and database write will attempt to continue.'
+                incompatibility(inc_message)
+
+    element_order = np.argsort(element_order)[::-1]
+    elements_ordered = [elements[i] for i in element_order]
+    n_elements = len(elements_ordered)
+    output += "System: {} ".format('-'.join([elements[i] for i in element_order]))
+    output += "| Generated by {} (pycalphad {})\n".format(username, __version__)
+
+    # Make a list of phase types (models) to support for writing DAT
+    supported_phase_types = ['IDMX','QKTO','RKMP','SUBL','RKMPM','SUBLM','SUBG','SUBQ'] # TODO: 'SUBI', 'PITZ'
+
+    # Get numbers of solution phases (and type/species for each) and pure condensed phases
+    solution_phases = []
+    stoichiometric_phases = []
+    solution_phase_types = []
+    solution_phase_species = []
+
+    # DAT *always* includes ideal gas phase (gas_ideal) in header (in first solution phase position), even if not used
+    solution_phases.insert(0,'GAS_IDEAL')
+    solution_phase_types.insert(0,'IDMX')
+    # If there isn't really an ideal gas phase, need empty list of species, so just insert this right away
+    solution_phase_species.insert(0,[])
+
+    # Loop over phases and find stoichiometric and supported solution phases
+    # TODO: append phase (and info) again for miscibility gaps (from an argument?)
+    # Also this gets the species names but only really needs a count at this point
+    for phase_name in dbf.phases:
+        # Not an ordered contribution by default
+        ordered_contribution = False
+        # Look at all model hints
+        all_hints = dbf.phases[phase_name].model_hints
+        for hint in all_hints:
+            if   hint in ('ihj_magnetic_afm_factor','ihj_magnetic_structure_factor','chemical_groups','mqmqa'):
+                # Recognized hint, will be used later
+                pass
+            elif hint == 'ordered_phase':
+                # There is a phase with ordered/disordered contributions
+                # The disordered should be SUBL, and ordered SUBO
+                if dbf.phases[phase_name].model_hints[hint] == phase_name:
+                    # Mark ordered
+                    ordered_contribution = True
+            elif hint == 'disordered_phase':
+                # Just going to skip this, assume the ordered_phase will handle everything
+                pass
+            else:
+                # Anything else should be sent to incompatibility
+                incompatibility(f'Unknown/unsupported model hint {hint} for phase {phase_name}')
+        # If all sublattices are singly occupied, it is a stoichiometric phase
+        if all([len(subl) == 1 for subl in dbf.phases[phase_name].constituents]):
+            stoichiometric_phases.append(phase_name)
+        else:
+            # Check if an ideal gas phase
+            if phase_name.upper() == 'GAS_IDEAL':
+                # Replace blank species list in first position with actual ideal gas species
+                solution_phase_species[0] = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
+                continue
+            # Check if a MQMQA phase
+            if 'mqmqa' in all_hints:
+                try:
+                    mqm_version = dbf.phases[phase_name].model_hints['mqmqa']['type']
+                except KeyError:
+                    raise DatabaseExportError(f'MQMQA phases must have \'type\' model hint. Missing for phase {phase_name}.')
+                # This is an MQMQA-type phase
+                solution_phases.append(phase_name)
+                # Save MQMQA sub-type (SUBG or SUBQ)
+                solution_phase_types.append(mqm_version)
+                # Determine species for phase
+                constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
+                # Species will be quadruplets for counting purposes
+                species = []
+                for i in range(len(constituents[0])):
+                    for j in range(i,len(constituents[0])):
+                        for k in range(len(constituents[1])):
+                            for l in range(k,len(constituents[1])):
+                                species.append(f'{constituents[0][i]},{constituents[0][j]}/{constituents[1][k]},{constituents[1][l]}')
+                solution_phase_species.append(species)
+                continue
+            # Check if QKTO: if phase has any "QKT" parameters, it is QKTO
+            detect_query = (
+                (where("phase_name") == phase_name) & \
+                (where("parameter_type") == "QKT")
+            )
+            params = list(dbf._parameters.search(detect_query))
+            if len(params) > 0:
+                # This phase is QKTO
+                solution_phases.append(phase_name)
+                solution_phase_types.append("QKTO")
+                species = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
+                solution_phase_species.append(species)
+                continue
+
+            # TODO: Check for more incompatible phase models
+            if not ordered_contribution:
+                # Everything else is a CEF variant
+                nSublattices = len(dbf.phases[phase_name].sublattices)
+                if nSublattices > 1:
+                    # If multiple sublattices, identify type
+                    solution_phases.append(phase_name)
+                    solution_phase_types.append("SUBL")
+                    constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
+                    # Make species from products of constituents
+                    species = [':'.join([con.capitalize() for con in end]) for end in list(itertools.product(*constituents))]
+                    solution_phase_species.append(species)
+                else:
+                    # Otherwise RKMP phase
+                    solution_phases.append(phase_name)
+                    solution_phase_types.append("RKMP")
+                    species = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents][0]
+                    solution_phase_species.append(species)
+
+                # Check if magnetic
+                if 'ihj_magnetic_structure_factor' in all_hints:
+                    solution_phase_types[-1] += ('M')
+            else:
+                # Placeholder for incompatible
+                incompatibility(f'Unknown/unsupported phase model for phase {phase_name}')
+
+
+    # Number of elements, phases, species line
+    solution_phase_species_counts = ' '.join([f'{len(species):4}' for species in solution_phase_species])
+    output += f" {n_elements:4} {len(solution_phases):4} {solution_phase_species_counts} {len(stoichiometric_phases):4}"
+
+    # List of elements lines
+    for i in range(n_elements):
+        if np.mod(i,3) == 0:
+            output += "\n"
+        output += f" {elements[element_order[i]].capitalize():24}"
+
+    # Element masses lines
+    for i in range(n_elements):
+        if np.mod(i,3) == 0:
+            output += "\n"
+            mass = f"{dbf.refstates[elements[element_order[i]]]['mass']:15.8f}"
+        else:
+            mass = f"{dbf.refstates[elements[element_order[i]]]['mass']:25.8f}"
+        output += f"{mass}"
+    output += "\n"
+
+    # Two lines to list Gibbs energy parameters used. Hardcoded for now.
+    # TODO: Detect these for database.
+    # TODO: Implement heat capacity model parameter lists.
+    output += '   6   1   2   3   4   5   6\n'
+    output += '   6   1   2   3   4   5   6\n'
+
+    # Loop over solution phases and write parameters depending on phase model
+    for i in range(len(solution_phases)):
+        # Grab info for current phase... a dict might be smarter but would mess up the easiest miscibility gap implementation
+        phase_name = solution_phases[i]
+        phase_model = solution_phase_types[i]
+        phase_species = solution_phase_species[i]
+        if len(phase_species) == 0:
+            continue
+        output += f' {phase_name}\n'
+        output += f' {phase_model}\n'
+
+        # Get all parameters for phase
+        param_query = (
+            where("phase_name") == phase_name
+        )
+        all_params = dbf._parameters.search(param_query)
+
+        # Sort parameters into reference, magnetic, excess
+        endmember_params = []
+        quadruplet_params = []
+        excess_params = []
+        tcs = []
+        bmagns = []
+        for param in all_params:
+            if   param['parameter_type'] == 'G':
+                is_endmember = all([len(subl) == 1 for subl in param['constituent_array']])
+                if is_endmember:
+                    endmember_params.append(param)
+                else:
+                    excess_params.append(param)
+            elif param['parameter_type'] == 'MQMG':
+                endmember_params.append(param)
+            elif param['parameter_type'] == 'MQMZ':
+                quadruplet_params.append(param)
+            elif param['parameter_type'] in ('QKT','L','MQMX'):
+                excess_params.append(param)
+            elif param['parameter_type'] == 'TC':
+                tcs.append(param)
+            elif param['parameter_type'] == 'BMAGN':
+                bmagns.append(param)
+            else:
+                # raise, or warn, etc., depending on strategy
+                incompatibility(f"Unknown parameter type {param['parameter_type']} in phase {phase_name}")
+
+        # Find magnetic parameters for phase
+        if phase_model in ('RKMPM', 'SUBLM'):
+            ihj_magnetic_structure_factor = dbf.phases[phase_name].model_hints['ihj_magnetic_structure_factor']
+            ihj_magnetic_afm_factor = -1/dbf.phases[phase_name].model_hints['ihj_magnetic_afm_factor']
+            output += f'  {ihj_magnetic_afm_factor:.5f}     {ihj_magnetic_structure_factor:.5f}\n'
+
+        # Get endmembers and other parameters depending on phase model
+        if phase_model in ('SUBG', 'SUBQ'):
+            # Write zeta for SUBG
+            if phase_model == 'SUBG':
+                # All zetas are the same, so grab the first one
+                zeta = endmember_params[0]['zeta']
+                output += f'{zeta:9.5f}\n'
+            # Write number of endmembers and number of non-default coordination sets next
+            number_of_endmembers = len(endmember_params)
+            number_of_non_default_quadruplets = len(quadruplet_params)
+            output += f'{number_of_endmembers:4} {number_of_non_default_quadruplets:3}\n'
+
+        # Get sublattice weights
+        if phase_model in ('SUBL','SUBLM'):
+            sublattice_weights = itertools.cycle(dbf.phases[phase_name].sublattices)
+        else:
+            sublattice_weights = itertools.cycle([1])
+
+        # Write endmember data
+        endmember_names = []
+        for endmember in endmember_params:
+            # Generate species names and stoichiometries
+            name = ''
+            stoichiometry = [0 for _ in elements_ordered]
+            # Overwrite sublattice_weights for MQM phases
+            if phase_model in ('SUBG', 'SUBQ'):
+                sublattice_weights = itertools.cycle(endmember['stoichiometry'])
+            for speciesList in endmember['constituent_array']:
+                for species in speciesList:
+                    for element in species.constituents:
+                        # Get current sublattice weight
+                        weight = next(sublattice_weights)
+                        try:
+                            stoichiometry[elements_ordered.index(element)] += species.constituents[element] * weight
+                        except ValueError:
+                            if element.capitalize() != 'Va':
+                                raise ValueError(f'Constituent {element} not found in element list')
+                        else:
+                            # Add element name to endmember name if not vacancy
+                            if element.capitalize() != 'Va':
+                                name += element.capitalize()
+                                stoich = species.constituents[element] * weight
+                                # Add stoichiometric factor to name if not 1
+                                if stoich != 1:
+                                    if stoich % 1 == 0:
+                                        name += f'{int(stoich)}'
+                                    else:
+                                        name += f'{stoich:.2g}'
+            output += f' {name}\n'
+            endmember_names.append(name)
+
+            # Get writeable stoichiometry
+            stoichiometry_string = write_stoichiometry(stoichiometry)
+
+            # Get reference Gibbs energy equation
+            gibbs_equation = simplify_reference_gibbs(endmember['parameter'],dbf.symbols)
+            eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation,incompatibility)
+
+            # Adjust eq_type for magnetic phases
+            if phase_model in ('RKMPM', 'SUBLM'):
+                eq_type += 12
+
+            # Write equation type and stoichiometry line
+            output += f'{eq_type:4} {number_of_intervals:2}{stoichiometry_string}\n'
+            # Write Gibbs parameters line
+            output += gibbs_parameters
+
+            # Write stoichiometric factor and chemical group
+            # It looks like these aren't actually read/supported currently, so just writing "  1.00000      1" for now
+            if phase_model == 'QKTO':
+                output += '  1.00000      1\n'
+            elif phase_model in ('SUBG', 'SUBQ'):
+                stoich_string = '      '.join([f"{n:.5f}" for n in endmember['stoichiometry']])
+                output += f'  {stoich_string}\n'
+
+            # Get magnetic parameters for endmember
+            if phase_model in ('RKMPM', 'SUBLM'):
+                tc_value = 0
+                bmagn_value = 0
+                caps_name = name.upper()
+                # Find tc for endmember
+                for tc in tcs:
+                    # These will have length 1 constituent arrays, I think (longer are for mixing)
+                    if len(tc['constituent_array'][0]) > 1:
+                        continue
+                    # Check if endmember name matches
+                    if str(tc['constituent_array'][0][0]) != caps_name:
+                        continue
+                    tc_value = tc['parameter']
+                    # Delete parameter from array: thus at the end only mixing terms will remain
+                    tcs.remove(tc)
+                    break
+                # Find bmagn for endmember
+                for bmagn in bmagns:
+                    # These will have length 1 constituent arrays, I think (longer are for mixing)
+                    if len(bmagn['constituent_array'][0]) > 1:
+                        continue
+                    # Check if endmember name matches
+                    if str(bmagn['constituent_array'][0][0]) != caps_name:
+                        continue
+                    bmagn_value = bmagn['parameter']
+                    # Delete parameter from array: thus at the end only mixing terms will remain
+                    bmagns.remove(bmagn)
+                    break
+                # Check if magnetic parameters are provided as piecewise
+                if type(tc_value) == type(Piecewise([0,True])):
+                    inc_message = f'Piecewise Curie temperature in species {name} of phase {phase_name} not permitted.\n'
+                    inc_message += f'Value from first temperature interval will be used.\n'
+                    inc_message += f'Check original expression to determine if this is acceptable:\n'
+                    inc_message += f'{tc_value}'
+                    incompatibility(inc_message)
+                    tc_value = float(tc_value.args[0])
+                if type(bmagn_value) == type(Piecewise([0,True])):
+                    inc_message = f'Piecewise magnetic moment in species {name} of phase {phase_name} not permitted.\n'
+                    inc_message += f'Value from first temperature interval will be used.\n'
+                    inc_message += f'Check original expression to determine if this is acceptable:\n'
+                    inc_message += f'{tc_value}'
+                    incompatibility(inc_message)
+                    bmagn_value = float(bmagn_value.args[0])
+                # Write magnetic parameters line
+                output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
+
+        # Do constituent mapping for sublattice phases
+        if phase_model in ('SUBL','SUBLM','SUBG', 'SUBQ'):
+            # Make list of constituents
+            if phase_model in ('SUBL','SUBLM'):
+                constituents = [[i.name for i in constituent] for constituent in dbf.phases[phase_name].constituents]
+            elif phase_model in ('SUBG', 'SUBQ'):
+                chemical_groups = dbf.phases[phase_name].model_hints['mqmqa']['chemical_groups']
+                constituents = [[species.name for species in chemical_groups[ion].keys()] for ion in ['cations','anions']]
+            flat_constituents = [constituent for sublattice in constituents for constituent in sublattice]
+
+            # Get constituent mapping
+            constituent_mapping = make_constituent_mapping(constituents, endmember_params)
+
+            # Get sublattice info
+            sublattices = dbf.phases[phase_name].sublattices
+            nSublattices = len(sublattices)
+
+            # Write sublattice information
+            if phase_model in ('SUBL','SUBLM'):
+                # Number of sublattices and weights only for SUBL
+                output += f'{nSublattices:4}\n'
+                output += f'  {"      ".join([f"{weight:.5f}" for weight in sublattices])}\n'
+            output += f'{"".join([f"{len(sub):4}" for sub in constituents])}\n'
+
+            # Write constituent names
+            for sub in constituents:
+                output += f'  {"".join([f"{constituent.capitalize():25}" for constituent in sub])}\n'
+
+            # Write charge magnitudes and chemical groups for MQM
+            if phase_model in ('SUBG', 'SUBQ'):
+                for ion in ['cations','anions']:
+                    charges = [abs(species.charge) for species in chemical_groups[ion].keys()]
+                    groups = [chemical_groups[ion][species] for species in chemical_groups[ion].keys()]
+                    # Write charges for ion type
+                    output += f'  {"      ".join([f"{charges[i]:.5f}" for i in range(len(charges))])}\n'
+                    # Write chemical groups for ion type
+                    output += f'   {"".join([f"{groups[i]:4}" for i in range(len(charges))])}\n'
+
+            # Write constituent-to-endmember pairing arrays
+            for sub in constituent_mapping:
+                output += f'{"".join([f"{constituent:4}" for constituent in sub])}\n'
+
+            # Write quadruplet coordination numbers for MQM
+            if phase_model in ('SUBG', 'SUBQ'):
+                detect_query = (
+                    (where("phase_name") == phase_name) & \
+                    (where("parameter_type") == "MQMZ")
+                )
+                params = dbf._parameters.search(detect_query)
+                for param in params:
+                    con = []
+                    for ion in param['constituent_array']:
+                        for species in ion:
+                            con.append(flat_constituents.index(species.name) + 1)
+                    con_string = ''.join([f"{c:4}" for c in con])
+                    z_string = '      '.join([f"{z:.7f}" for z in param['coordinations']])
+                    output += f'{con_string}  {z_string}\n'
+
+        # Write magnetic excess mixing data
+        if phase_model in ('RKMPM', 'SUBLM'):
+            # Get excess magnetic parameters
+            tcs_remove = []
+            for tc in tcs:
+                tc_value = tc['parameter']
+                tc_constituents = tc['constituent_array']
+                tcs_remove.append(tc)
+                bmagn_value = 0
+                for bmagn in bmagns:
+                    # Look for matching bmagn
+                    if bmagn['constituent_array'] != tc_constituents:
+                        continue
+                    bmagn_value = bmagn['parameter']
+                    bmagns.remove(bmagn)
+                    break
+
+                # Index calculation depends on model
+                if   phase_model == 'RKMPM':
+                    # Get indices of participating constituents in phase (order of printed endmembers)
+                    indices = []
+                    for species in constituent_set:
+                        name = ''
+                        for element in species.constituents:
+                            # Add element name to endmember name if not vacancy
+                            if element.capitalize() != 'Va':
+                                name += element.capitalize()
+                                stoich = species.constituents[element] * weight
+                                # Add stoichiometric factor to name if not 1
+                                if stoich != 1:
+                                    if stoich % 1 == 0:
+                                        name += f'{int(stoich)}'
+                                    else:
+                                        name += f'{stoich:.2g}'
+                        try:
+                            indices.append(1 + endmember_names.index(name))
+                        except ValueError:
+                            err_message = f'Endmember {name} not found in phase {phase_name}\n'
+                            err_message += f'List of known endmembers: {endmember_names}\n'
+                            err_message += 'Write aborted'
+                            raise ValueError(err_message)
+                elif phase_model == 'SUBLM':
+                    # Get indices of participating constituents in phase (order of printed endmembers)
+                    indices = []
+                    for sublattice in tc_constituents:
+                        for species in sublattice:
+                            try:
+                                indices.append(1 + flat_constituents.index(species.name))
+                            except ValueError:
+                                print(f'Can\'t find constituent {species.name}')
+                # Now write excess magnetic terms for current constituent_set
+                output += f'{len(indices):4}\n'
+                # TODO: Get order properly if possible
+                order = 1
+                output += f'{"".join([f"{ind:4}" for ind in indices])}{order:4}\n'
+                # Check if magnetic parameters are provided as piecewise
+                if type(tc_value) == type(Piecewise([0,True])):
+                    inc_message = f'Piecewise Curie temperature excess term of phase {phase_name} not permitted.\n'
+                    inc_message += f'Value from first temperature interval will be used.\n'
+                    inc_message += f'Check original expression to determine if this is acceptable:\n'
+                    inc_message += f'{tc_value}'
+                    incompatibility(inc_message)
+                    tc_value = float(tc_value.args[0])
+                if type(bmagn_value) == type(Piecewise([0,True])):
+                    inc_message = f'Piecewise magnetic moment excess term of phase {phase_name} not permitted.\n'
+                    inc_message += f'Value from first temperature interval will be used.\n'
+                    inc_message += f'Check original expression to determine if this is acceptable:\n'
+                    inc_message += f'{tc_value}'
+                    incompatibility(inc_message)
+                    bmagn_value = float(bmagn_value.args[0])
+                # Write excess magnetic parameters line
+                output += f' {format_coefficient_mag(tc_value)}{format_coefficient_mag(bmagn_value)}\n'
+            
+            # Remove 'consumed' tcs
+            for tc in tcs_remove:
+                tcs.remove(tc)
+
+            # Check lists to make sure all magnetic parameters have been consumed
+            if tcs or bmagns:
+                inc_message = f'Not all magnetic parameters were used in phase {phase_name}'
+                incompatibility(inc_message)
+
+            # Write end-of-magnetic-excess '0'
+            output += f'   0\n'
+
+        # Write excess mixing data
+        if   phase_model == 'QKTO':
+            for param in excess_params:
+                # Constituents participating in this mixing term
+                param_constituents = param['constituent_array'][0]
+                n_param_constituents = len(param_constituents)
+                output += f'{n_param_constituents:4}\n'
+
+                # Get indices of participating constituents in phase (order of printed endmembers)
+                indices = []
+                for species in param_constituents:
+                    name = ''
+                    for element in species.constituents:
+                        # Add element name to endmember name if not vacancy
+                        if element.capitalize() != 'Va':
+                            name += element.capitalize()
+                            stoich = species.constituents[element] * weight
+                            # Add stoichiometric factor to name if not 1
+                            if stoich != 1:
+                                if stoich % 1 == 0:
+                                    name += f'{int(stoich)}'
+                                else:
+                                    name += f'{stoich:.2g}'
+                    try:
+                        indices.append(1 + endmember_names.index(name))
+                    except ValueError:
+                        err_message = f'Endmember {name} not found in phase {phase_name}\n'
+                        err_message += f'List of known endmembers: {endmember_names}\n'
+                        err_message += 'Write aborted'
+                        raise ValueError(err_message)
+                output += f'{"".join([f"{index:4}" for index in indices])}'
+
+                # Add 1 to stored exponents to match DAT format
+                exponents = [1 + exp for exp in param['exponents']]
+                output += f'{"".join([f"{exp:4}" for exp in exponents])}'
+
+                # Parse T coefficients
+                simplified_parameter = param['parameter']
+                if type(simplified_parameter) == type(Piecewise([0,True])):
+                    inc_message = f'Piecewise excess term of phase {phase_name} not permitted.\n'
+                    inc_message += f'Value from first temperature interval will be used.\n'
+                    inc_message += f'Check original expression to determine if this is acceptable:\n'
+                    inc_message += f'{simplified_parameter}'
+                    incompatibility(inc_message)
+                    simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols).args[0]
+                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.as_coefficients_dict(),incompatibility)
+                coefficients_string = ''.join(coefficients)
+                output += f' {coefficients_string}\n'
+
+            # Write end-of-excess '0'
+            output += f'   0\n'
+        elif phase_model in ('RKMP','RKMPM'):
+            # For RKMP we have to collect all terms for each set of constituents
+            unique_constituent_sets = set([param['constituent_array'][0] for param in excess_params])
+            for constituent_set in unique_constituent_sets:
+                # Get indices of participating constituents in phase (order of printed endmembers)
+                indices = []
+                for species in constituent_set:
+                    name = ''
+                    for element in species.constituents:
+                        # Add element name to endmember name if not vacancy
+                        if element.capitalize() != 'Va':
+                            name += element.capitalize()
+                            stoich = species.constituents[element] * weight
+                            # Add stoichiometric factor to name if not 1
+                            if stoich != 1:
+                                if stoich % 1 == 0:
+                                    name += f'{int(stoich)}'
+                                else:
+                                    name += f'{stoich:.2g}'
+                    try:
+                        indices.append(1 + endmember_names.index(name))
+                    except ValueError:
+                        err_message = f'Endmember {name} not found in phase {phase_name}\n'
+                        err_message += f'List of known endmembers: {endmember_names}\n'
+                        err_message += 'Write aborted'
+                        raise ValueError(err_message)
+                # Store all exponents (orders) for constituents
+                orders = []
+                # Sum coefficients that are for the same order (abnormal case of repeated order)
+                equations = []
+                for param in excess_params:
+                    # Constituents participating in this mixing term
+                    param_constituents = param['constituent_array'][0]
+                    # Check if param belongs to current constituent_set
+                    if param_constituents != constituent_set:
+                        continue
+                    order = param['parameter_order'] + 1
+                    equation = param['parameter']
+                    if order in orders:
+                        equations[orders.index(order)] += equation
+                    else:
+                        orders.append(order)
+                        equations.append(equation)
+
+                # Now write excess mixing terms for current constituent_set
+                output += f'{len(indices):4}\n'
+                output += f'{"".join([f"{ind:4}" for ind in indices])}{max(orders):4}\n'
+                for order in range(1,max(orders)+1):
+                    if order in orders:
+                        order_index = orders.index(order)
+                        simplified_parameter = equations[order_index]
+                        if type(simplified_parameter) == type(Piecewise([0,True])):
+                            inc_message = f'Piecewise excess term of phase {phase_name} not permitted.\n'
+                            inc_message += f'Value from first temperature interval will be used.\n'
+                            inc_message += f'Check original expression to determine if this is acceptable:\n'
+                            inc_message += f'{simplified_parameter}'
+                            incompatibility(inc_message)
+                            simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols).args[0]
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.as_coefficients_dict(),incompatibility)
+                        coefficients_string = ''.join(coefficients)
+                        output += f' {coefficients_string}\n'
+            # Write end-of-excess '0'
+            output += f'   0\n'
+        elif phase_model in ('SUBL','SUBLM'):
+            # For SUBL we have to collect all terms for each set of constituents
+            unique_constituent_sets = set([param['constituent_array'] for param in excess_params])
+            for constituent_set in unique_constituent_sets:
+                # Get indices of participating constituents in phase (order of printed endmembers)
+                indices = []
+                for sublattice in constituent_set:
+                    for species in sublattice:
+                        try:
+                            indices.append(1 + flat_constituents.index(species.name))
+                        except ValueError:
+                            raise ValueError(f'Can\'t find constituent {species.name} in phase {phase_name}')
+                # Store all exponents (orders) for constituents
+                orders = []
+                # Sum coefficients that are for the same order (abnormal case of repeated order)
+                equations = []
+                for param in excess_params:
+                    # Constituents participating in this mixing term
+                    param_constituents = param['constituent_array']
+                    # Check if param belongs to current constituent_set
+                    if param_constituents != constituent_set:
+                        continue
+                    order = param['parameter_order'] + 1
+                    equation = param['parameter']
+                    if order in orders:
+                        equations[orders.index(order)] += equation
+                    else:
+                        orders.append(order)
+                        equations.append(equation)
+
+                # Now write excess mixing terms for current constituent_set
+                output += f'{len(indices):4}\n'
+                output += f'{"".join([f"{ind:4}" for ind in indices])}{max(orders):4}\n'
+                for order in range(1,max(orders)+1):
+                    if order in orders:
+                        order_index = orders.index(order)
+                        simplified_parameter = equations[order_index]
+                        if type(simplified_parameter) == type(Piecewise([0,True])):
+                            inc_message = f'Piecewise excess term of phase {phase_name} not permitted.\n'
+                            inc_message += f'Value from first temperature interval will be used.\n'
+                            inc_message += f'Check original expression to determine if this is acceptable:\n'
+                            inc_message += f'{simplified_parameter}'
+                            incompatibility(inc_message)
+                            simplified_parameter = iterative_substitution(simplified_parameter,dbf.symbols).args[0]
+                        coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(simplified_parameter.as_coefficients_dict(),incompatibility)
+                        coefficients_string = ''.join(coefficients)
+                        output += f' {coefficients_string}\n'
+            # Write end-of-excess '0'
+            output += f'   0\n'
+        elif phase_model in ('SUBG', 'SUBQ'):
+            for param in excess_params:
+                con = []
+                for ion in param['constituent_array']:
+                    for species in ion:
+                        con.append(flat_constituents.index(species.name) + 1)
+                con_string = ''.join([f"{c:4}" for c in con])
+
+                # Determine mixing order by checking number of unique constituents
+                if (con[0] == con[1]) or (con[2] == con[3]):
+                    mix_order = 3
+                else:
+                    mix_order = 4
+                # Write mixing order
+                output += f'{mix_order:4}\n'
+
+                # Write type, constituents, exponents
+                exp_string = ''.join([f"{z:4}" for z in param['exponents']])
+                output += f' {param["mixing_code"]}{con_string}{exp_string}\n'
+
+                # Write lines of apparent nonsense
+                output += '     0.00000000   1.00     0.00000000   1.00     0.00000000   1.00\n'
+                output += '     0.00000000   0.00     0.00000000   0.00     0.00000000   0.00\n'
+
+                # Get extra constituent data
+                additional_index = 0
+                if param["additional_mixing_constituent"].name:
+                    additional_index = flat_constituents.index(param["additional_mixing_constituent"].name) + 1
+
+                # Get mixing coefficients
+                coefficients, extra_parameters, has_extra_parameters = parse_gibbs_coefficients(param['parameter'].as_coefficients_dict(),incompatibility)
+                coefficients_string = ''.join(coefficients)
+
+                # Write extra constituent data and mixing coefficients
+                output += f'{additional_index:4}{param["additional_mixing_exponent"]:4} {coefficients_string}\n'
+
+
+            # Write end-of-excess '0'
+            output += f'   0\n'
+
+    # Loop over stoichiometric
+    for phase_name in stoichiometric_phases:
+        # TODO: detect dummies and format accordingly
+        # Write phase name
+        output += f' {phase_name}\n'
+
+        # Get Gibbs energy parameters
+        # Get all parameters for phase
+        param_query = (
+            where("phase_name") == phase_name
+        )
+        all_params = dbf._parameters.search(param_query)
+
+        # Collect reference energy parameters
+        stoichiometric_phase_params = []
+        for param in all_params:
+            if   param['parameter_type'] == 'G':
+                stoichiometric_phase_params.append(param)
+            else:
+                # raise, or warn, etc., depending on strategy
+                incompatibility(f"Unknown parameter type {param['parameter_type']} in phase {phase_name}")
+
+        # Calculate stoichiometry of phase
+        endmember = stoichiometric_phase_params[0]
+        stoichiometry = [0 for _ in elements_ordered]
+        species_index = 0
+        for speciesList in endmember['constituent_array']:
+            for species in speciesList:
+                for element in species.constituents:
+                    # Get stoichiometric coefficient of sublattice
+                    sublattice_coefficient = dbf.phases[phase_name].sublattices[species_index]
+                    stoichiometry[elements_ordered.index(element)] += species.constituents[element]*sublattice_coefficient
+                    species_index += 1
+
+        # Get writeable stoichiometry
+        stoichiometry_string = write_stoichiometry(stoichiometry)
+
+        # Get reference Gibbs energy equation
+        gibbs_equation = simplify_reference_gibbs(endmember['parameter'],dbf.symbols)
+        eq_type, number_of_intervals, gibbs_parameters = parse_gibbs_coefficients_piecewise(gibbs_equation,incompatibility)
+
+        # Write equation type and stoichiometry line
+        output += f'{eq_type:4} {number_of_intervals:2}{stoichiometry_string}\n'
+        # Write Gibbs parameters line
+        output += gibbs_parameters
+
+
+
+
+
+    fd.write(reflow_text(output, linewidth=maxlen))
+
+def write_stoichiometry(stoichiometry):
+    # Create the stoichiometry segment of a species line
+    stoichiometry_string = ''
+    for stoich in stoichiometry:
+        if np.isclose(stoich % 0.1, 0.0) or np.isclose(stoich % 0.1, 0.1):
+            # If stoichiometry fits neatly in one decimal place, use that
+            stoichiometry_string += f'{stoich:7.1f}'
+        else:
+            # Otherwise, ignore the usual spacing and write the digits necessary
+            stoichiometry_string += f'    {stoich:.6f}'
+    return stoichiometry_string
+
+def parse_gibbs_coefficients_piecewise(piecewise_equation,incompatibility):
+    # Set eq_type to 1 by default
+    eq_type = 1
+    # With simplifies in place, each interval is (eq,cond), but the last one is always (0,True) (skip this)
+    number_of_intervals = int((len(piecewise_equation) - 1))
+    # If one interval has extra parameters, must use equation type that supports them
+    has_extra_parameters = False
+    gibbs_parameters = ''
+    # Make lists of strings to write
+    coefficients = []
+    extra_parameters = []
+    max_t_string = []
+    for interval in range(number_of_intervals):
+        equation = piecewise_equation[interval][0].as_coefficients_dict()
+        # Parse coefficients from equation
+        c, e_p, interval_has_extra_parameters = parse_gibbs_coefficients(equation,incompatibility)
+        coefficients.append(c)
+        extra_parameters.append(e_p)
+        has_extra_parameters = has_extra_parameters or interval_has_extra_parameters
+
+        # Get temperature range part of equation
+        temperature_range = piecewise_equation[interval][1]
+
+        # This is rough, not sure how to reliably extract bounds from pairs of inequalities
+        # Seems like simplify is always going to put the higher temperature second... may need to revisit
+        # Is this try/except abuse? ...maybe
+        try:
+            max_t = float(temperature_range.args[1].args[1])
+        except RuntimeError:
+            # Some ranges didn't get expanded earlier and have to be handled differently.
+            # So far these only come from default G params in TDBs, and the max is in the first argument.
+            max_t = float(temperature_range.args[0].args[1])
+        except IndexError:
+            # Sometimes there might be only a maximum without a minimum
+            max_t = float(temperature_range.args[1])
+
+
+        # Trailing 0 padding for temperatures is weird
+        max_t_string.append(f'{max_t:.3f}'.ljust(9,'0'))
+
+    # Now write strings: needs to be separate loop to get has_extra_parameters correctly set
+    for interval in range(number_of_intervals):
+        # Put the line together
+        gibbs_parameters += f'  {max_t_string[interval]}     {"".join(coefficients[interval])}\n'
+
+        # Add extra parameters if necessary
+        if has_extra_parameters:
+            # Base parameter set to 4 if there are extra parameters
+            eq_type = 4
+            if extra_parameters[interval]:
+                extra_parameters_string = ''
+                for parameter in extra_parameters[interval]:
+                    extra_parameters_string += f' {parameter[0]} {parameter[1]}'
+                gibbs_parameters += f' {len(extra_parameters[interval])}{extra_parameters_string}\n'
+            else:
+                gibbs_parameters += f' 1 0.00000000       0.00\n'
+
+    return eq_type, number_of_intervals, gibbs_parameters
+
+def parse_gibbs_coefficients(equation,incompatibility):
+    # Initialize all standard coefficients to 0
+    coefficients = ['0.00000000     ' for _ in range(6)]
+    # Arrays for extra parameters
+    extra_parameters = []
+    has_extra_parameters = False
+    # Check order in temperature and put coefficient in matching slot
+    for t_order in equation:
+        # Truncation error is introduced here
+        coeff = float(equation[t_order])
+        coeff_string = format_coefficient(coeff)
+
+        # Compare order to standard orders for coefficients
+        if   str(t_order) == '1':
+            coefficients[0] = coeff_string
+        elif str(t_order) in ('T','T**1.0'):
+            coefficients[1] = coeff_string
+        elif str(t_order) in ('T*log(T)','T**1.0*log(T)'):
+            coefficients[2] = coeff_string
+        elif str(t_order) == 'T**2.0':
+            coefficients[3] = coeff_string
+        elif str(t_order) == 'T**3.0':
+            coefficients[4] = coeff_string
+        elif str(t_order) == 'T**(-1.0)':
+            coefficients[5] = coeff_string
+        # These are common extra parameters
+        elif str(t_order) == 'log(T)':
+            has_extra_parameters = True
+            extra_parameters.append((coeff_string,'99.00'))
+        elif str(t_order) == 'T**0.5':
+            has_extra_parameters = True
+            extra_parameters.append((coeff_string,' 0.50'))
+        # TODO: Add other supported extra parameters (i.e. T**X)
+        # TODO: Handle non-supported parameters properly
+        elif coeff == 1:
+            # This indicates the constant term had order/coefficient flipped
+            coeff_string = format_coefficient(float(t_order))
+            coefficients[0] = coeff_string
+        else:
+            # Try parsing as T**x polynomial
+            splitOrder = str(t_order).split('**')
+            if len(splitOrder) == 2:
+                if splitOrder[0] == 'T':
+                    try:
+                        orderStrip = splitOrder[1].replace('(','').replace(')','')
+                        extra_parameters.append((coeff_string,f'{float(orderStrip):.2f}'))
+                        has_extra_parameters = True
+                        continue
+                    except ValueError:
+                        pass
+            incompatibility(f'Skipped parameter with order {t_order} and coefficient {coeff_string}')
+
+    return coefficients, extra_parameters, has_extra_parameters
+
+def format_coefficient(coeff):
+    # The formatting is inconsistent, so unfortunately each value range is custom
+    if   coeff == 0:
+        coeff_string = '0.00000000     '
+    elif abs(coeff) < 0.1 or abs(coeff) >= 1e8:
+        coeff_string = f'{coeff*10: .7E}'[:15]
+        if coeff < 0:
+            coeff_string = '-.' + coeff_string[1] + coeff_string[3:] + ' '
+        else:
+            coeff_string = '0.' + coeff_string[1] + coeff_string[3:] + ' '
+    elif abs(coeff) < 1:
+        coeff_string = f'{coeff: .16f}'[:10] + '     '
+        if coeff < 0:
+            coeff_string = ' -' + coeff_string[2:]
+    else:
+        coeff_string = f'{coeff: .16f}'[:10] + '     '
+
+    return coeff_string
+
+def format_coefficient_mag(coeff):
+    # The formatting is inconsistent, so unfortunately each value range is custom
+    if   coeff == 0:
+        coeff_string = '0.000000     '
+    elif abs(coeff) < 0.1 or abs(coeff) >= 1e6:
+        coeff_string = f'{coeff*10: .5E}'[:13]
+        if coeff < 0:
+            coeff_string = '-.' + coeff_string[1] + coeff_string[3:] + ' '
+        else:
+            coeff_string = '0.' + coeff_string[1] + coeff_string[3:] + ' '
+    elif abs(coeff) < 1:
+        coeff_string = f'{coeff: .16f}'[:8] + '     '
+        if coeff < 0:
+            coeff_string = ' -' + coeff_string[2:]
+    else:
+        coeff_string = f'{coeff: .16f}'[:8] + '     '
+
+    return coeff_string
+
+def make_constituent_mapping(constituents, endmember_params):
+    # Match endmembers to constituents they are composed of
+    constituent_mapping = [[] for _ in range(len(constituents))]
+    for endmember in endmember_params:
+        sublattice = 0
+        for speciesList in endmember['constituent_array']:
+            for species in speciesList:
+                constituent_mapping[sublattice].append(constituents[sublattice].index(species.name) + 1)
+                sublattice += 1
+    return constituent_mapping
+
+def iterative_substitution(param,symbols):
+    # Iteratively subsitutes a list of symbols into an equation
+    # Doesn't check for circular dependence
+    subs_param = param
+    requires_substitution = True
+    while requires_substitution:
+        requires_substitution = False
+        param_symbols = [s.name for s in subs_param.free_symbols]
+        # Check if any of the symbols in symbols are still in the parameter
+        common_symbols = [s for s in symbols if s in param_symbols]
+        if common_symbols:
+            # Do another round of substitutions if so
+            subs_param = piecewise_fold(simplify(subs_param.subs(symbols)))
+            requires_substitution = True
+    return subs_param
+
+def simplify_reference_gibbs(equation,symbols):
+    # Determine equation type and number of intervals
+    # Is this monstrosity necessary? Yes, it would seem so.
+    simplified_parameter = iterative_substitution(equation,symbols)
+    gibbs_equation = expand(simplify(simplify(simplified_parameter))).args
+    if not gibbs_equation:
+        # If all ranges have 0 value, simplify returns empty set, so revert
+        simplified_parameter = equation.args
+        gibbs_equation = []
+        for i in range(int(len(simplified_parameter)/2)):
+            gibbs_equation.append((simplified_parameter[i*2],simplified_parameter[i*2+1]))
+    return gibbs_equation
+
 def read_cs_dat(dbf: Database, fd):
     """
     Parse a ChemSage DAT file into a pycalphad Database object.
@@ -1199,4 +2238,4 @@ def read_cs_dat(dbf: Database, fd):
     # process all the parameters that got added with dbf.add_parameter
     dbf.process_parameter_queue()
 
-Database.register_format("dat", read=read_cs_dat, write=None)
+Database.register_format("dat", read=read_cs_dat, write=write_cs_dat)
