@@ -113,7 +113,7 @@ class MapStrategy:
         self.GLOBAL_CHECK_INTERVAL = kwargs.get("GLOBAL_CHECK_INTERVAL", 1)
         self.GLOBAL_MIN_PDENS = kwargs.get("GLOBAL_MIN_PDENS", 500)
         self.GLOBAL_MIN_TOL = kwargs.get("GLOBAL_MIN_TOL", 1e-4)
-        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1)
+        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1000)
 
     def _constant_kwargs(self):
         """
@@ -557,7 +557,8 @@ class MapStrategy:
             extra_args = {
                 "system_info": self.system_info,
                 "pdens": self.GLOBAL_MIN_PDENS,
-                "tol": self.GLOBAL_MIN_TOL
+                "tol": self.GLOBAL_MIN_TOL,
+                "global_num_candidates": self.GLOBAL_MIN_NUM_CANDIDATES,
             }
 
             # Check valid equilibrium, global min and change in phases

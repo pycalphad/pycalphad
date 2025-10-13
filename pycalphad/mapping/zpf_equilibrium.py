@@ -212,7 +212,7 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
     else:
         cs, dG = min_cs_result
         
-        _log.info(f'Global min potentially detected. {point.stable_phases} + {cs.phase_record.phase_name} with dG = {dG}')
+        _log.info(f'Global min potentially detected. {point.stable_phases} + {cs.phase_record.phase_name} ({cs}) with dG = {dG}')
         if _detect_degenerate_phase(point, cs):
             new_point = Point(point.global_conditions, point.chemical_potentials, point.fixed_composition_sets, point.free_composition_sets)
             map_utils.update_cs_phase_frac(cs, 1e-6)
@@ -259,7 +259,9 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
         ref_cs_copy.update(cs.dof[num_sv:], 1, cs.dof[:num_sv])
         new_cs_copy = CompositionSet(new_cs.phase_record)
         new_cs_copy.update(new_cs.dof[num_sv:], 1e-6, new_cs.dof[:num_sv])
-        conds = {key: point.get_property(key) for key in point.global_conditions}
+        # Take conditions from current cs (use ref_cs_copy since we set moles to 1) rather than from point.global_conditions
+        # We want the composition conditions to be on the ref_cs_copy. This is sometimes not the case if ref_cs_copy is the zero-fraction phase
+        conds = {key: key.compute_property([ref_cs_copy], point.global_conditions, point.chemical_potentials) for key in point.global_conditions}
         _log.info(f"Testing free equilibrium with {ref_cs_copy}, {new_cs_copy}")
         try:
             solver = Solver(remove_metastable=True)
