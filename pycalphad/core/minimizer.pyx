@@ -580,11 +580,9 @@ cdef class SystemState:
                 self.phase_compositions[idx, comp_idx] = csst.masses[comp_idx, 0]
         for comp_idx in range(self.mole_fractions.shape[0]):
             self.mole_fractions[comp_idx] /= self.system_amount
-
         self.mass_residual = 0.0
         for fixed_molefrac_cond_idx in range(spec.prescribed_mole_fraction_rhs.shape[0]):
             self.mass_residual += abs(np.dot(spec.prescribed_mole_fraction_coefficients[fixed_molefrac_cond_idx,:], self.mole_fractions) - spec.prescribed_mole_fraction_rhs[fixed_molefrac_cond_idx])
-
         for idx in range(len(self.compsets)):
             compset = self.compsets[idx]
             csst = self.cs_states[idx]
@@ -644,7 +642,7 @@ cdef class SystemState:
                 csst.moles_normalization += csst.masses[comp_idx, 0]
                 for i in range(num_phase_dof+spec.num_statevars):
                     csst.moles_normalization_grad[i] += csst.mass_jac[comp_idx, i]
-
+                    
     cdef double[::1] driving_forces(self):
         cdef int idx, comp_idx
         cdef CompositionSet compset
@@ -836,7 +834,6 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
     state.recompute(spec)
 
     equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 0)
-
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
           &equilibrium_soln[0], 1e-16)
 

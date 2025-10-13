@@ -569,7 +569,6 @@ class MoleFraction(StateVariable):
         "Compute Jansson derivative with self as numerator, with the given deltas"
         state_variables = compsets[0].phase_record.state_variables
         grad_values = self.compute_property_gradient(compsets, cur_conds, chemical_potentials)
-
         # Sundman et al, 2015, Eq. 73
         jansson_derivative = np.nan
         for idx, compset in enumerate(compsets):

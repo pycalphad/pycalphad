@@ -896,20 +896,45 @@ def test_MQMQA_equilibrium_binary_excess_same_chemical_groups(load_database):
     assert np.all(eq.Phase.squeeze() == ['XS_SAME_CG', '', ''])
     assert np.allclose(eq.Y.values.squeeze()[0, :], [0.12442, 0.50078, 0.37481], atol=1e-5)  # Thermochimica result
 
-
 @select_database("MQMQA-tern-tests.dat")
-def test_MQMQA_ternary_equilibrium_ideal(load_database):
-    """Ternary ideal"""
+def test_MQMQA_equilibrium_binary_excess_same_chemical_groups(load_database):
+    """Binary excess terms with the same chemical group"""
     dbf = load_database()
-    comps = ['CU', 'MG', 'NI', 'VA']
-    eq = equilibrium(dbf, comps, ['TERN_IDEAL'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3})
+    comps = ['CU', 'NI', 'VA']
+    eq = equilibrium(dbf, comps, ['XS_SAME_CG'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
-    assert np.isclose(eq.GM.values.squeeze(), -2.65610E+04)  # Thermochimica result
-    assert np.all(eq.Phase.squeeze() == ['TERN_IDEAL', '', '', ''])
-    assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25000, 0.20000, 0.30000, 4.0000E-02, 0.12000, 9.0000E-02], atol=1e-5)  # Thermochimica result
+    assert np.isclose(eq.GM.values.squeeze(), -9.29581E+03)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['XS_SAME_CG', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [0.12442, 0.50078, 0.37481], atol=1e-5)  # Thermochimica result
 
+@pytest.mark.solver
+@pytest.mark.xfail
+@select_database("Be-F-Li.dat")
+def test_MQMQA_species_of_different_moles(load_database):
+    """Ternary ideal"""
+    dbf = load_database()
+    comps = ['F', 'LI', 'BE', 'VA']
+    eq = equilibrium(dbf, comps, ['MSFL'], {v.N: 1, v.P: 101325, v.T: 1200, v.X('LI'):0.2, v.X('BE'):0.2}, calc_opts={'pdens': 50000})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -3.75743E+05)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['MSFL', '', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :],[5.4835E-05, 6.8482E-03, 2.6583E-02, 0.21381, 0.65434, 9.8365E-02], atol=1e-5)  # Thermochimica result
+
+@select_database("NaCl-AlCl3.dat")
+def test_MQMQA_when_vacancy_is_a_species(load_database):
+    """Ternary ideal"""
+    dbf = load_database()
+    comps = ['CL', 'AL', 'NA', 'VA']
+    eq = equilibrium(dbf, comps, ['MSSOLN'], {v.N: 1, v.P: 101325, v.T: 1400, v.X('NA'):0.5, v.X('CL'):0.375})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -2.44826E+05)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['MSSOLN', 'MSSOLN', '', ''])
 
 @select_database("MQMQA-tern-tests.dat")
 def test_MQMQA_ternary_equilibrium_xs_symm_111(load_database):
