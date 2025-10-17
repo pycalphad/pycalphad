@@ -622,6 +622,73 @@ class MoleFraction(StateVariable):
         else:
             return 'x_{'+self.species.escaped_name+'}'
 
+class Mass(StateVariable):
+    """
+    """
+    implementation_units = 'gram'
+    display_units = 'gram'
+    def __init__(self, *args):  # pylint: disable=W0221
+        varname = None
+        phase_name = None
+        species = None
+        # TODO: system-level mass support (i.e. not component, or phase specific)
+        if len(args) == 1:
+            # this is an overall composition variable
+            species = Component(args[0])
+            varname = 'B_' + species.escaped_name.upper()
+        elif len(args) == 2:
+            # this is a phase-specific composition variable
+            phase_name = args[0].upper()
+            species = Component(args[1])
+            varname = 'B_' + phase_name + '_' + species.escaped_name.upper()
+        else:
+            # not defined
+            raise ValueError('Mass not defined for args: '+args)
+
+        # pylint: disable=E1121
+        super().__init__(varname)
+        self.phase_name = phase_name
+        self.species = species
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        result = np.atleast_1d(np.zeros(self.shape))
+        result[:] = np.nan
+        for _, compset in self.filtered(compsets):
+            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+            if np.isnan(result[0]):
+                result[0] = 0
+            if self.phase_name is None:
+                result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+            else:
+                result[0] += compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+        return result
+
+    def expand_wildcard(self, phase_names=None, components=None):
+        if phase_names is not None:
+            return [self.__class__(phase_name, self.species) for phase_name in phase_names]
+        elif components is not None:
+            if self.phase_name is None:
+                return [self.__class__(comp) for comp in components]
+            else:
+                return [self.__class__(self.phase_name, comp) for comp in components]
+        else:
+            raise ValueError('Both phase_names and components are None')
+
+    def __reduce__(self):
+        if self.phase_name is None:
+            return self.__class__, (self.species,)
+        else:
+            return self.__class__, (self.phase_name, self.species,)
+
+    def _latex(self, printer=None):
+        "LaTeX representation."
+        # pylint: disable=E1101
+        if self.phase_name:
+            return 'b^{'+self.phase_name.replace('_', '-') + \
+                '}_{'+self.species.escaped_name+'}'
+        else:
+            return 'b_{'+self.species.escaped_name+'}'
+
 
 class MassFraction(StateVariable):
     """
@@ -880,6 +947,7 @@ class SystemMolesType(StateVariable):
 temperature = T = TemperatureType()
 pressure = P = PressureType()
 moles = N = SystemMolesType()
+B = Mass
 site_fraction = Y = SiteFraction
 X = MoleFraction
 W = MassFraction
