@@ -1,12 +1,38 @@
-# Unified Extrapolation Model (UEM) Implementation in Pycalphad
+# Redlich-Kister-UEM Implementation in Pycalphad
 
 ## Overview
 
-The Unified Extrapolation Model (UEM) is now implemented in pycalphad for calculating thermodynamic properties of multicomponent solution phases. This document describes the implementation, usage, and theoretical background.
+The Redlich-Kister-UEM extrapolation method is now implemented in pycalphad for calculating thermodynamic properties of multicomponent solution phases. This document describes the implementation, usage, and theoretical background.
+
+## Understanding the CALPHAD Hierarchy
+
+### Two-Step Process in CALPHAD Modeling
+
+When modeling multicomponent solution phases, CALPHAD employs a two-step approach:
+
+**Step 1: Binary System Description**
+- All methods use **Redlich-Kister polynomials** to describe binary interactions
+- Form: G_ex^ij = x_i·x_j · Σ_n L^n_ij · (x_i - x_j)^n
+- Parameters (L⁰, L¹, L², ...) obtained from binary phase diagram assessments
+- This step is **IDENTICAL** for Muggianu, Kohler, Toop, and UEM methods
+
+**Step 2: Multicomponent Extrapolation**
+- Traditional methods: Muggianu, Kohler, Toop (geometric averaging)
+- UEM method: Property-difference-based effective mole fractions
+- This step is where methods **DIFFER**
+
+### Correct Terminology
+
+❌ **INCORRECT**: "UEM model" vs "Redlich-Kister model"
+✅ **CORRECT**: "Redlich-Kister-UEM" vs "Redlich-Kister-Muggianu"
+
+Both use Redlich-Kister polynomials for binary systems. They differ **only** in how binary data is extrapolated to multicomponent systems.
 
 ## What is UEM?
 
-The UEM is a method for predicting thermodynamic properties of multicomponent systems from binary subsystem data. It addresses the fundamental challenge in CALPHAD modeling: how to extrapolate from well-established binary parameters to multicomponent systems without requiring ternary (or higher) interaction parameters.
+UEM (Unified Extrapolation Model) is an **extrapolation method** for predicting thermodynamic properties of multicomponent systems from binary subsystem data.
+
+It addresses the fundamental challenge in CALPHAD: how to extrapolate from well-established binary Redlich-Kister parameters to multicomponent systems without requiring ternary (or higher) interaction parameters.
 
 ### Key Concepts
 
@@ -211,24 +237,45 @@ Physical interpretation:
 - If k is similar to j (small δ_kj): r_ki is smaller (k contributes less to i)
 - The exponential term exp(-δ_ki) enhances similarity effects
 
-## Advantages and Limitations
+## Comparison: Redlich-Kister-UEM vs Redlich-Kister-Muggianu
 
-### Advantages
+### Common Features (Binary Description)
 
-1. **Physical Basis**: Uses property differences rather than arbitrary geometric rules
-2. **Binary Parameters Only**: No need for ternary or higher-order parameters
-3. **Smooth Extrapolation**: Provides continuous predictions across composition space
-4. **Unified Framework**: Can reduce to Kohler, Muggianu, etc. as special cases
-5. **Asymmetric Systems**: Better handles highly asymmetric component interactions
+Both methods use **identical** binary interaction descriptions:
+- Redlich-Kister polynomial form: G_ex^ij = x_i·x_j · Σ_n L^n_ij · (x_i - x_j)^n
+- Same database parameters (L⁰, L¹, L², ...)
+- Same binary phase diagram fitting procedures
+- For **binary systems**: Give **identical results**
 
-### Limitations
+### Key Difference (Multicomponent Extrapolation)
 
-1. **Computational Cost**: More complex than simple geometric averaging
-2. **Symbolic Complexity**: Expressions can become large for many components
-3. **Database Requirements**: Requires well-characterized binary parameters
-4. **Validation**: Should be compared with experimental data when available
+**Redlich-Kister-Muggianu** (Traditional):
+- Geometric symmetric averaging of binary contributions
+- Composition-weighted averaging: G_ex = Σ_{i<j} (2·x_i·x_j / (x_i + x_j)) · G_ex^ij
+- Treats all components equally (symmetric)
+- Fast and simple to compute
 
-### When to Use UEM
+**Redlich-Kister-UEM** (This Implementation):
+- Property-difference-based effective mole fractions
+- Similarity-weighted contributions from third components
+- Accounts for component dissimilarity (asymmetric when needed)
+- More computationally intensive but more physically based
+
+### Advantages of UEM over Muggianu
+
+1. **Physical Basis**: Uses property differences (from binary data) rather than arbitrary geometry
+2. **Better for Asymmetric Systems**: Handles components with very different properties
+3. **Unified Framework**: Can reduce to Muggianu, Kohler, Toop as special cases
+4. **Same Data Requirements**: Uses only binary Redlich-Kister parameters (no ternary needed)
+
+### Limitations of UEM
+
+1. **Computational Cost**: More complex symbolic expressions than simple geometric averaging
+2. **Symbolic Complexity**: Expressions grow with number of components
+3. **Same Data Needed**: Still requires well-characterized binary Redlich-Kister parameters
+4. **Validation Needed**: Should compare with experimental data when available
+
+### When to Use Redlich-Kister-UEM
 
 Use UEM when:
 - Working with 3+ component systems
@@ -237,10 +284,12 @@ Use UEM when:
 - No ternary experimental data available for validation
 - Exploring uncertainty in multicomponent extrapolation
 
-Compare with standard models:
+Compare extrapolation methods:
 - Always validate against available experimental data
-- Use both UEM and Muggianu to assess prediction uncertainty
-- Consider the specific chemistry of your system
+- Use both Redlich-Kister-UEM and Redlich-Kister-Muggianu to assess uncertainty
+- For binary systems, both methods give identical results (pure Redlich-Kister)
+- Differences appear only in ternary and higher systems
+- Consider the specific chemistry and asymmetry of your system
 
 ## Testing
 

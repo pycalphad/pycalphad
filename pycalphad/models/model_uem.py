@@ -1,22 +1,56 @@
 """
-UEM (Unified Extrapolation Model) Thermodynamic Model Implementation
+Redlich-Kister-UEM Thermodynamic Model Implementation
 
-This module provides a pycalphad-compatible implementation of the Unified Extrapolation
-Model (UEM) for calculating thermodynamic properties of multicomponent solution phases.
+This module provides a pycalphad-compatible implementation of the Redlich-Kister-UEM
+method for calculating thermodynamic properties of multicomponent solution phases.
 
-The UEM model extrapolates from binary subsystem data to predict multicomponent behavior
-by introducing effective mole fractions that account for component similarity.
+Method Overview:
+---------------
+In CALPHAD modeling, two steps are needed to describe multicomponent solutions:
+
+Step 1: Binary Interaction Description
+   - Uses Redlich-Kister polynomials: G_ex^ij = x_i*x_j * Σ_n L^n_ij*(x_i-x_j)^n
+   - Parameters L^n_ij are obtained from binary phase diagram assessments
+   - This step is IDENTICAL for all methods (Muggianu, Kohler, Toop, UEM)
+
+Step 2: Multicomponent Extrapolation (from binary to ternary, quaternary, etc.)
+   - Traditional: Redlich-Kister-Muggianu (symmetric geometric averaging)
+   - Traditional: Redlich-Kister-Kohler (asymmetric geometric averaging)
+   - Traditional: Redlich-Kister-Toop (asymmetric with designated component)
+   - This module: Redlich-Kister-UEM (property-difference-based extrapolation)
+
+UEM Extrapolation Principle:
+---------------------------
+Instead of geometric averaging, UEM calculates "effective mole fractions" for each
+binary pair based on how similar the third (and higher) components are to the pair.
+Similarity is quantified by property differences (δ) derived from binary parameters.
+
+Key Advantages over Muggianu:
+- Physical basis (property differences) vs arbitrary geometry
+- Better for highly asymmetric systems
+- Includes Muggianu, Kohler, Toop as special limiting cases
+- Uses ONLY binary parameters (no ternary terms needed)
+
+Correct Terminology:
+-------------------
+- NOT: "UEM model" vs "Redlich-Kister model"
+- CORRECT: "Redlich-Kister-UEM" vs "Redlich-Kister-Muggianu"
+- Binary description: Same Redlich-Kister polynomials for both
+- Difference: Only in how binary data is extrapolated to multicomponent
 
 Key Features:
+------------
 - Compatible with standard pycalphad workflow
-- Uses only binary interaction parameters (no ternary+ parameters needed)
-- Provides smooth extrapolation across composition space
-- Reduces to standard models for binary systems
+- Uses same binary Redlich-Kister parameters as traditional models
+- Provides alternative extrapolation to multicomponent systems
+- Smooth predictions across composition space
+- Reduces to standard Redlich-Kister for binary systems
 
 References:
-- Chou, K. C. (2020). On the definition of the components' difference in properties
-  in the unified extrapolation model. Fluid Phase Equilibria.
-- Chou, K. C. (2024). Latest UEM formulations. Thermochimica Acta.
+----------
+- Chou, K. C. (2020). Fluid Phase Equilibria, 507, 112416.
+- Chou, K. C., Wei, S. K. (2020). J. Molecular Liquids, 298, 111951.
+- Chou, K. C. et al. (2024). Thermochimica Acta, 179824.
 """
 from pycalphad import Model
 from pycalphad import variables as v
@@ -32,16 +66,28 @@ logger = logging.getLogger(__name__)
 
 class ModelUEM(Model):
     """
-    PyCalphad-compatible Unified Extrapolation Model (UEM) for solution phases.
+    PyCalphad-compatible Redlich-Kister-UEM model for solution phases.
 
-    The UEM calculates excess Gibbs energy of multicomponent solution phases by
-    extrapolating from binary subsystem data using effective mole fractions that
-    account for component similarities.
+    This model implements the UEM extrapolation method for multicomponent systems.
+    It uses the SAME Redlich-Kister polynomials for binary interactions as the
+    standard Model class, but employs a DIFFERENT extrapolation scheme to predict
+    multicomponent behavior.
 
-    The model follows the standard pycalphad Model architecture with contributions:
-    - Reference energy: Pure component endmember energies
-    - Ideal mixing energy: Configurational entropy of mixing
-    - Excess mixing energy: UEM-based excess Gibbs energy from binary parameters
+    Comparison with Standard Model:
+    ------------------------------
+    Standard Model (pycalphad.Model):
+        Binary: Redlich-Kister polynomials
+        Extrapolation: Muggianu (symmetric geometric averaging)
+
+    This Model (ModelUEM):
+        Binary: Redlich-Kister polynomials (SAME as standard)
+        Extrapolation: UEM (property-difference-based)
+
+    Energy Contributions:
+    --------------------
+    - Reference energy: Pure component endmember energies (same as standard)
+    - Ideal mixing energy: Configurational entropy -T*S_config (same as standard)
+    - Excess mixing energy: Redlich-Kister-UEM extrapolation (DIFFERENT from standard)
 
     Parameters
     ----------
@@ -76,16 +122,24 @@ class ModelUEM(Model):
 
     Notes
     -----
-    - The UEM requires binary interaction parameters for all component pairs
+    - Uses standard Redlich-Kister polynomials for binary interactions (L0, L1, L2, ...)
+    - Only differs from standard Model in multicomponent extrapolation method
+    - For binary systems: Identical to standard Model (pure Redlich-Kister)
+    - For ternary+: UEM extrapolation instead of Muggianu extrapolation
     - Missing binary parameters are treated as ideal (zero excess)
-    - For binary systems, UEM gives identical results to standard Redlich-Kister
-    - The model automatically handles vacancies (VA) by excluding them from excess energy
-    - Numerical stability is maintained through careful handling of edge cases
+    - Vacancies (VA) are automatically excluded from excess energy calculations
+    - Numerical stability ensured through careful handling of edge cases
+
+    Terminology:
+    -----------
+    - Correct: "Redlich-Kister-UEM" vs "Redlich-Kister-Muggianu"
+    - NOT: "UEM" vs "Redlich-Kister"
+    - Both use Redlich-Kister for binaries; differ only in multicomponent extrapolation
 
     See Also
     --------
-    pycalphad.Model : Base model class
-    pycalphad.models.uem_symbolic : UEM symbolic expression builders
+    pycalphad.Model : Standard model (Redlich-Kister-Muggianu)
+    pycalphad.models.uem_symbolic : UEM extrapolation symbolic functions
     """
 
     # Define energy contribution terms
@@ -98,27 +152,40 @@ class ModelUEM(Model):
 
     def excess_mixing_energy(self, dbe):
         """
-        Calculate excess mixing energy using the UEM formulation.
+        Calculate excess mixing energy using Redlich-Kister-UEM extrapolation.
 
         This method overrides the standard excess mixing energy calculation to use
-        the Unified Extrapolation Model instead of the traditional Redlich-Kister-
-        Muggianu approach.
+        UEM extrapolation instead of Muggianu extrapolation for multicomponent systems.
+
+        Important: Binary Interactions
+        ------------------------------
+        - Uses the SAME Redlich-Kister polynomial form as standard Model
+        - Queries the SAME binary parameters (L0, L1, L2, ...) from database
+        - For binary systems: Results are IDENTICAL to standard Model
+
+        Difference: Multicomponent Extrapolation
+        ----------------------------------------
+        - Standard Model: Muggianu extrapolation (geometric symmetric averaging)
+        - This Model: UEM extrapolation (property-difference-based effective mole fractions)
 
         Parameters
         ----------
         dbe : Database
-            Thermodynamic database containing binary interaction parameters
+            Thermodynamic database containing binary Redlich-Kister parameters
 
         Returns
         -------
         SymPy expression
             Excess Gibbs energy expression (J/mol of formula unit)
+            Using Redlich-Kister-UEM extrapolation
 
         Notes
         -----
-        - Vacancies (VA) are automatically excluded from the calculation
-        - The expression is normalized by site ratio normalization factor
-        - Uses binary parameters only; ternary+ parameters are ignored
+        - Binary interactions: Standard Redlich-Kister polynomials
+        - Multicomponent: UEM extrapolation method
+        - Vacancies (VA) are automatically excluded
+        - Expression normalized by site ratio normalization factor
+        - Uses only binary parameters; ternary+ parameters ignored
         """
         # Get list of components excluding vacancies
         comps = [str(c) for c in self.components if str(c) != 'VA']

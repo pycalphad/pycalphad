@@ -1,22 +1,46 @@
 """
 UEM (Unified Extrapolation Model) Symbolic Computation Module
 
-This module implements the Unified Extrapolation Model (UEM) for calculating
-thermodynamic properties of multicomponent solution phases from binary subsystem data.
+This module implements the Redlich-Kister-UEM method for calculating thermodynamic
+properties of multicomponent solution phases.
 
-The UEM introduces a contribution coefficient that depends on the property difference
-between components to extrapolate from binary to multicomponent systems. This allows
-the model to cover all traditional extrapolation models (Kohler, Muggianu, Toop, etc.)
-as special cases.
+CALPHAD Modeling Hierarchy:
+-------------------------
+1. Binary systems: Described by Redlich-Kister polynomials
+   G_ex^ij = x_i*x_j * Σ_n L^n_ij * (x_i - x_j)^n
+
+2. Multicomponent extrapolation: Traditional vs UEM approaches
+   - Traditional: Redlich-Kister-Muggianu (geometric symmetric averaging)
+   - Traditional: Redlich-Kister-Kohler (geometric asymmetric averaging)
+   - Traditional: Redlich-Kister-Toop (asymmetric with selected component)
+   - This module: Redlich-Kister-UEM (property-difference-based averaging)
+
+UEM Methodology:
+---------------
+The UEM provides an alternative extrapolation method from binary to multicomponent
+systems. It uses the SAME Redlich-Kister polynomials for binary interactions, but
+employs a different extrapolation scheme based on:
+
+1. Property differences (δ) between components (calculated from binary parameters)
+2. Contribution coefficients (r) that weight how third components affect binary pairs
+3. Effective mole fractions that account for component similarity
+
+This allows UEM to cover traditional extrapolation models as special cases while
+providing better predictions for highly asymmetric systems.
+
+Correct Terminology:
+-------------------
+- Binary description: Redlich-Kister polynomials (L0, L1, L2, ...)
+- Multicomponent extrapolation: UEM method
+- Complete name: Redlich-Kister-UEM
 
 Key References:
+--------------
 - Chou, K. C. (2020). On the definition of the components' difference in properties
-  in the unified extrapolation model. Fluid Phase Equilibria.
-- Latest formulations described in Thermochimica Acta (2024).
-
-Mathematical Foundation:
-The model calculates effective mole fractions for each binary subsystem by considering
-contributions from third components based on property similarity.
+  in the unified extrapolation model. Fluid Phase Equilibria, 507, 112416.
+- Chou, K. C., Wei, S. K. (2020). New expression for property difference in components
+  for the Unified Extrapolation Model. Journal of Molecular Liquids, 298, 111951.
+- Chou, K. C. et al. (2024). Thermochimica Acta, 179824.
 """
 from sympy import Symbol, Add, Mul, Pow, Abs, exp, simplify, S, Piecewise, nan, Basic, Float
 from pycalphad import variables as v

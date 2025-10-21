@@ -1,11 +1,18 @@
 """
-Unified Extrapolation Model (UEM) Usage Examples
+Redlich-Kister-UEM Usage Examples
 
-This script demonstrates how to use the UEM model in pycalphad for calculating
-thermodynamic properties of multicomponent solution phases.
+This script demonstrates how to use the UEM extrapolation method in pycalphad for
+calculating thermodynamic properties of multicomponent solution phases.
 
-The UEM extrapolates from binary subsystem data to predict multicomponent behavior,
-providing an alternative to traditional Muggianu/Kohler/Toop extrapolation methods.
+IMPORTANT TERMINOLOGY:
+---------------------
+- Binary systems: Both methods use Redlich-Kister polynomials (IDENTICAL)
+- Multicomponent: UEM vs Muggianu extrapolation (DIFFERENT)
+- Correct naming: "Redlich-Kister-UEM" vs "Redlich-Kister-Muggianu"
+- NOT: "UEM" vs "Redlich-Kister"
+
+The UEM extrapolation method provides an alternative to traditional Muggianu/Kohler/Toop
+geometric extrapolation by using property-difference-based effective mole fractions.
 """
 
 import numpy as np
@@ -17,13 +24,15 @@ import matplotlib.pyplot as plt
 
 def example_1_binary_comparison():
     """
-    Example 1: Compare UEM with standard model for binary system.
+    Example 1: Compare Redlich-Kister-UEM with Redlich-Kister-Muggianu for binary system.
 
-    For binary systems, UEM should give identical results to the standard
-    Redlich-Kister formulation since no extrapolation is needed.
+    For binary systems, both methods give IDENTICAL results because:
+    - Both use the same Redlich-Kister polynomials
+    - No multicomponent extrapolation is needed (only 2 components)
+    - This verifies correct implementation
     """
     print("=" * 70)
-    print("Example 1: Binary System - UEM vs Standard Model")
+    print("Example 1: Binary System - Redlich-Kister (UEM vs Muggianu)")
     print("=" * 70)
 
     # Load database
@@ -284,28 +293,38 @@ def example_6_model_comparison_summary():
     """
     Example 6: Summary comparison of different extrapolation methods.
 
-    Shows when UEM predictions differ most from standard models.
+    Shows when Redlich-Kister-UEM predictions differ most from Redlich-Kister-Muggianu.
     """
     print("\n" + "=" * 70)
-    print("Example 6: UEM vs Standard Model - Key Differences")
+    print("Example 6: Redlich-Kister-UEM vs Muggianu - Key Differences")
     print("=" * 70)
 
     print("""
-    The Unified Extrapolation Model (UEM) differs from standard models in how
-    it extrapolates from binary to multicomponent systems:
+    CALPHAD Two-Step Modeling Process:
+    ==================================
 
-    Standard Models (Muggianu, Kohler, Toop):
-    - Use geometric averaging of binary contributions
-    - Treat all components equally (Muggianu) or with asymmetric weighting
-    - Do not consider component similarity
+    Step 1: Binary Interaction Description (SAME for all methods)
+    --------------------------------------------------------------
+    - Redlich-Kister polynomials: G_ex^ij = x_i*x_j * Σ L^n_ij*(x_i-x_j)^n
+    - Parameters L^n_ij from binary phase diagram assessments
+    - Both UEM and Muggianu use IDENTICAL binary descriptions
 
-    UEM Model:
-    - Uses effective mole fractions based on component similarity
+    Step 2: Multicomponent Extrapolation (DIFFERENT)
+    ------------------------------------------------
+
+    Redlich-Kister-Muggianu (Traditional):
+    - Geometric symmetric averaging of binary contributions
+    - G_ex = Σ_{i<j} (2*x_i*x_j/(x_i+x_j)) * G_ex^ij
+    - Treats all components equally
+    - Fast and simple
+
+    Redlich-Kister-UEM (This Implementation):
+    - Property-difference-based effective mole fractions
     - Components with similar properties contribute more to each other
-    - Property difference (delta) calculated from binary phase diagram slopes
-    - Provides unified framework covering other models as special cases
+    - Property difference (delta) calculated from binary Redlich-Kister slopes
+    - Provides unified framework covering Muggianu/Kohler/Toop as special cases
 
-    When UEM differs most:
+    When Extrapolation Methods Differ Most:
     1. Systems with highly dissimilar components
     2. Asymmetric binary subsystems (large L1, L2 parameters)
     3. Multicomponent systems (4+ components)
