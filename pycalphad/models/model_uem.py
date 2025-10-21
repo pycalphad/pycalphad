@@ -9,42 +9,60 @@ Method Overview:
 In CALPHAD modeling, two steps are needed to describe multicomponent solutions:
 
 Step 1: Binary Interaction Description
-   - Uses Redlich-Kister polynomials: G_ex^ij = x_i*x_j * Σ_n L^n_ij*(x_i-x_j)^n
-   - Parameters L^n_ij are obtained from binary phase diagram assessments
-   - This step is IDENTICAL for all methods (Muggianu, Kohler, Toop, UEM)
+   - Common choice: Redlich-Kister polynomials
+     G_ex^ij = x_i*x_j * Σ_n L^n_ij*(x_i-x_j)^n
+   - Alternative: MQMQA (Modified Quasichemical Model)
+   - Alternative: Associate solution models
+   - Parameters obtained from binary phase diagram assessments
+   - This step is IDENTICAL for all extrapolation methods (Muggianu, UEM, etc.)
 
 Step 2: Multicomponent Extrapolation (from binary to ternary, quaternary, etc.)
-   - Traditional: Redlich-Kister-Muggianu (symmetric geometric averaging)
-   - Traditional: Redlich-Kister-Kohler (asymmetric geometric averaging)
-   - Traditional: Redlich-Kister-Toop (asymmetric with designated component)
-   - This module: Redlich-Kister-UEM (property-difference-based extrapolation)
+   - Traditional: Muggianu, Kohler, Toop (geometric averaging)
+   - This module: UEM (property-difference-based extrapolation)
+   - This step is where methods DIFFER
+
+UEM as Universal Extrapolation Framework:
+-----------------------------------------
+UEM can work with ANY binary description model:
+   - Redlich-Kister-UEM (this implementation)
+   - MQMQA-UEM (possible extension)
+   - Associate-UEM (possible extension)
+   - [Any Model]-UEM
+
+The key is that UEM calculates property differences from whatever binary
+energy function is provided, then uses those to determine effective mole
+fractions for multicomponent extrapolation.
 
 UEM Extrapolation Principle:
 ---------------------------
 Instead of geometric averaging, UEM calculates "effective mole fractions" for each
 binary pair based on how similar the third (and higher) components are to the pair.
-Similarity is quantified by property differences (δ) derived from binary parameters.
+Similarity is quantified by property differences (δ) derived from binary energy
+derivatives (works for any binary model, not just Redlich-Kister).
 
 Key Advantages over Muggianu:
 - Physical basis (property differences) vs arbitrary geometry
 - Better for highly asymmetric systems
 - Includes Muggianu, Kohler, Toop as special limiting cases
 - Uses ONLY binary parameters (no ternary terms needed)
+- Can combine with different binary models (RK, MQMQA, etc.)
 
 Correct Terminology:
 -------------------
 - NOT: "UEM model" vs "Redlich-Kister model"
 - CORRECT: "Redlich-Kister-UEM" vs "Redlich-Kister-Muggianu"
-- Binary description: Same Redlich-Kister polynomials for both
+- ALSO CORRECT: "MQMQA-UEM" vs "MQMQA-Muggianu"
+- Binary description: Can be RK, MQMQA, Associate, etc.
 - Difference: Only in how binary data is extrapolated to multicomponent
 
 Key Features:
 ------------
 - Compatible with standard pycalphad workflow
-- Uses same binary Redlich-Kister parameters as traditional models
+- Currently implements Redlich-Kister-UEM
+- Extensible to other binary models (MQMQA-UEM, etc.)
 - Provides alternative extrapolation to multicomponent systems
 - Smooth predictions across composition space
-- Reduces to standard Redlich-Kister for binary systems
+- Reduces to standard binary model for two-component systems
 
 References:
 ----------
