@@ -7,7 +7,7 @@
         <link rel="prefetch" href="_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>What’s New - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
+        <title>What’s New - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
+      <a href="index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -285,16 +285,20 @@
           <section id="what-s-new">
 <h1>What’s New<a class="headerlink" href="#what-s-new" title="Link to this heading">¶</a></h1>
 <section id="id1">
-<h2>0.11.1 (2025-05-21)<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<h2>0.11.1 (2025-10-22)<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <p>This is maintenance and bugfix release that addresses several dependency-related regressions and fixes related to new features introduced in 0.11.</p>
 <ul class="simple">
-<li><p>MAINT: Support Python version 3.13, drop support for Python 3.9; test and dependency fixes (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/602">issue 602</a>)</p></li>
+<li><p>MAINT: Support Python version 3.13, drop support for Python 3.9 and 3.10; test and dependency fixes mitigating CI instabilities (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/602">issue 602</a>, <a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/622">issue 622</a>)</p></li>
+<li><p>ENH: Improve minimizer convergence behavior and correctness (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/605">issue 605</a>)</p></li>
+<li><p>FIX: Improve correctness and usage of the stepping and mapping functions, including usability improvements for automatic starting point generation (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/564">issue 564</a>)</p></li>
 <li><p>FIX: Fix incorrect implementation of recriprocal Redlich-Kister interaction parameters (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/581">issue 581</a>).</p></li>
 <li><p>FIX: Fix <code class="docutils literal notranslate"><span class="pre">IsolatedPhase</span></code> chemical potentials to correctly refer to the constrainted, isolated phase state rather than the equilibrium state (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/595">issue 595</a>).</p></li>
 <li><p>FIX: Correct the implemententation of Jansson derivatives in multi-component cases with composition denominators (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/595">issue 595</a>).</p></li>
 <li><p>FIX: Mitigate an issue where SymEngine expression that contain complex numbers can fail to lambdifying (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/599">issue 599</a>).</p></li>
 <li><p>FIX: Regression in handling TDB parsing errors caused by <code class="docutils literal notranslate"><span class="pre">ParseException</span></code> changes in pyparsing 3.2.0 (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/584">issue 584</a>).</p></li>
 <li><p>FIX: Allow creating empty <code class="docutils literal notranslate"><span class="pre">Workspace</span></code> creation (without a <code class="docutils literal notranslate"><span class="pre">Database</span></code> object) (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/563">issue 563</a>).</p></li>
+<li><p>FIX: Fix <code class="docutils literal notranslate"><span class="pre">_compute_phase_values</span></code> adding a point with garbage data when the size of feasible <code class="docutils literal notranslate"><span class="pre">points</span></code> is zero. (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/627">issue 627</a>)</p></li>
+<li><p>FIX: Avoid <code class="docutils literal notranslate"><span class="pre">ZeroDivisionError</span></code> on converting units (<a class="extlink-issue reference external" href="https://github.com/pycalphad/pycalphad/issues/615">issue 615</a>)</p></li>
 </ul>
 </section>
 <section id="id2">
@@ -935,7 +939,7 @@ It requires the unlisted dependency <code class="docutils literal notranslate"><
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">What’s New</a><ul>
-<li><a class="reference internal" href="#id1">0.11.1 (2025-05-21)</a></li>
+<li><a class="reference internal" href="#id1">0.11.1 (2025-10-22)</a></li>
 <li><a class="reference internal" href="#id2">0.11.0 (2024-08-09)</a></li>
 <li><a class="reference internal" href="#id3">0.10.5 (2024-07-12)</a></li>
 <li><a class="reference internal" href="#id4">0.10.4 (2024-01-29)</a></li>
@@ -989,7 +993,7 @@ It requires the unlisted dependency <code class="docutils literal notranslate"><
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=59b035c8"></script>
+</div><script src="_static/documentation_options.js?v=b8ed5f4a"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
