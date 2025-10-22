@@ -12,7 +12,7 @@ import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
-from pycalphad.mapping.strategy.strategy_utils import get_invariant_data_from_tieline_strategy, get_tieline_data_from_tieline_strategy
+from pycalphad.mapping.strategy.strategy_data import PhaseRegionData, get_invariant_data_from_tieline_strategy, get_tieline_data_from_tieline_strategy
 
 _log = logging.getLogger(__name__)
 
@@ -66,10 +66,7 @@ def _sort_point(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.Sta
         return options_tests[best_index][1], options_tests[best_index][2]
 
 class BinaryStrategy(MapStrategy):
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
-        super().__init__(dbf, components, phases, conditions, **kwargs)
-
-    def initialize(self):
+    def generate_automatic_starting_points(self):
         """
         Searches axis limits to find starting points
 
@@ -97,27 +94,24 @@ class BinaryStrategy(MapStrategy):
                 # Step map
                 map_kwargs = self._constant_kwargs()
                 step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
-                step.initialize()
                 step.do_map()
-                self._add_starting_points_from_step(step)
+                self.add_starting_points_from_step(step)
 
-    def _add_starting_points_from_step(self, step: StepStrategy):
+    def add_starting_points_from_step(self, step: StepStrategy):
         """
         Grabs starting points from a step calc
-            For stepping in a state variable (T or P), this is all the nodes of the step calc
-            For stepping in composition, this is all the 2 phase regions
+            - For stepping in a state variable (T or P), this is all the nodes of the step calc
+            - For stepping in composition, this is all the 2 phase regions
         
-        NOTE: Grabbing starting points is different for whether the axis variable on the step calculation
-              is a state variable or not
-              
-              For stepping along a state variable where the composition is likely near an end point,
-              the two-phase regions are usually too small to be resolved in the stepping resolution, 
-              thus, getting starting points from the node is more consistent. Only one starting point
-              is added for each phase transition since for alpha->beta, the zpf line for alpha will end
-              with the parent and the zpf line for beta will start with the node
-
-              For stepping along a composition axis, just grab a single point from a zpf line.
-              If we were to grab the nodes, there would be two nodes for every two-phase regions:
+        NOTE: Grabbing starting points is different for whether the axis variable on the step calculation is a state variable or not
+            For stepping along a state variable where the composition is likely near an end point,
+            the two-phase regions are usually too small to be resolved in the stepping resolution, 
+            thus, getting starting points from the node is more consistent. Only one starting point
+            is added for each phase transition since for alpha->beta, the zpf line for alpha will end
+            with the parent and the zpf line for beta will start with the node
+            For stepping along a composition axis, just grab a single point from a zpf line.
+            
+            If we were to grab the nodes, there would be two nodes for every two-phase regions:
                 alpha -> alpha + beta - Node for beginning of alpha + beta zpf line
                 alpha + beta -> beta - Node for beginning of beta zpf line
         """
@@ -157,9 +151,27 @@ class BinaryStrategy(MapStrategy):
                         node = self._create_node_from_point(new_point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT)
                         self.node_queue.add_node(node, True)
 
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        Modifies exit hint and direction based off number of composition sets
+            Single phase -> cannot be added
+            Two phase    -> point is exit, direction stays the same as input
+            Three phase  -> normal exit finding strategy, no direction needed
+
+        The three phase option is more than likely not needed, but added for completeness
+        """
+        if len(point.stable_composition_sets) <= 1:
+            return None, None, "Single phase detected"
+        elif len(point.stable_composition_sets) == 2:
+            return ExitHint.POINT_IS_EXIT, direction, None
+        elif len(point.stable_composition_sets) == 3:
+            return ExitHint.NORMAL, None, None
+        else:
+            return None, None, "More than three phases detected"
+
     def _find_exits_from_node(self, node: Node):
         """
-        A node on for a binary system has three exits, which are combinations of 2 CS in the node
+        A node in a binary system has three exits, which are combinations of 2 CS in the node
         Since the node is found from one pair of CS, one of the exits are already accounted for, so
         practically, it's only 2 exits
             However, if there are multiple starting points, a node may be found from multiple zpf lines
@@ -211,7 +223,7 @@ class BinaryStrategy(MapStrategy):
     
     def _process_new_node(self, zpf_line: ZPFLine, new_node: Node):
         """
-        Post global eq check after finding node to ensure it's not a metastable node
+        Post global min check after finding node to ensure it's not a metastable node
         """
         _log.info("Checking if new node is metastable")
         cs_result = zeq._find_global_min_cs(new_node, system_info=self.system_info, pdens=self.GLOBAL_MIN_PDENS, tol=self.GLOBAL_MIN_TOL, num_candidates=self.GLOBAL_MIN_NUM_CANDIDATES)
@@ -222,7 +234,7 @@ class BinaryStrategy(MapStrategy):
             _log.info("Global eq check failed. New node is metastable. Removing current zpf line.")
             self.zpf_lines.pop(-1)
 
-    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[PhaseRegionData]:
         """
         Create a dictionary of data for invariant plotting.
 
@@ -232,20 +244,18 @@ class BinaryStrategy(MapStrategy):
             The state variable to be used for the x-axis.
         y : v.StateVariable
             The state variable to be used for the y-axis.
+        global_x : bool
+            Whether variable x applies to the global system
+        global_y : bool
+            Whether variable y applies to the global system
 
         Returns
         -------
-        list of dict
-            A list where each dictionary contains the following keys:
-                - "phases" (list of str): The list of phases.
-                - "x" (list of float): The corresponding values for the x-axis.
-                - "y" (list of float): The corresponding values for the y-axis.
-
-            The indices in "x" and "y" match the indices in "phases".
+        list of Strategy pertaining to each invariant
         """
-        return get_invariant_data_from_tieline_strategy(self, x, y)
+        return get_invariant_data_from_tieline_strategy(self, x, y, global_x, global_y)
     
-    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[PhaseRegionData]:
         """
         Create a dictionary of data for plotting ZPF lines.
 
@@ -255,21 +265,15 @@ class BinaryStrategy(MapStrategy):
             The state variable to be used for the x-axis.
         y : v.StateVariable
             The state variable to be used for the y-axis.
+        global_x : bool
+            Whether variable x applies to the global system
+        global_y : bool
+            Whether variable y applies to the global system
         
         Returns
         -------
-        list of dict
-            A list where each dictionary has the following structure::
-
-            {
-                "<phase_name>": {
-                    "x": list of float,
-                    "y": list of float
-                }
-            }
-
-            The lengths of the "x" and "y" lists should be equal for each phase in a ZPFLine.
+        list of Strategy pertaining to each tieline
         """
-        return get_tieline_data_from_tieline_strategy(self, x, y)
+        return get_tieline_data_from_tieline_strategy(self, x, y, global_x, global_y)
 
 

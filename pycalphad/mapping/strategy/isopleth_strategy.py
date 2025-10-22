@@ -13,6 +13,7 @@ import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
+from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyData, PhaseRegionData
 
 _log = logging.getLogger(__name__)
 
@@ -49,10 +50,7 @@ def _point_slope(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.St
         return options_tests[best_index][1]
 
 class IsoplethStrategy(MapStrategy):
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
-        super().__init__(dbf, components, phases, conditions, **kwargs)
-
-    def initialize(self):
+    def generate_automatic_starting_points(self):
         """
         Searches axis limits to find starting points
 
@@ -75,26 +73,34 @@ class IsoplethStrategy(MapStrategy):
                 # Step map
                 map_kwargs = self._constant_kwargs()
                 step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
-                step.initialize()
                 step.do_map()
+                self.add_starting_points_from_step(step)
 
-                # Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction
-                # NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
-                #      as starting points (which has no parents), so no starting points for isopleth mapping would be added
-                for node in step.node_queue.nodes:
-                    if node.parent is not None:
-                        _log.info(f"Adding node {node.fixed_phases}, {node.free_phases}, {node.global_conditions}")
-                        node.axis_var = None
-                        node.axis_direction = Direction.POSITIVE
-                        node.exit_hint = ExitHint.POINT_IS_EXIT
-                        self.node_queue.add_node(node, True)
+    def add_starting_points_from_step(self, step: StepStrategy):
+        # Get all nodes that have a parent. We set axis variable to None so that the node will find a good starting direction
+        # NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
+        #      as starting points (which has no parents), so no starting points for isopleth mapping would be added
+        for node in step.node_queue.nodes:
+            if node.parent is not None:
+                # Add node with both positive and negative step direction
+                _log.info(f"Adding node {node.fixed_phases}, {node.free_phases}, {node.global_conditions}")
+                node.axis_var = None
+                node.axis_direction = Direction.POSITIVE
+                node.exit_hint = ExitHint.POINT_IS_EXIT
+                self.node_queue.add_node(node, True)
 
-                        alt_node = Node(node.global_conditions, node.chemical_potentials, node.fixed_composition_sets, node.free_composition_sets, node.parent)
-                        alt_node.axis_var = None
-                        alt_node.axis_direction = Direction.NEGATIVE
-                        alt_node.exit_hint = ExitHint.POINT_IS_EXIT
-                        self.node_queue.add_node(alt_node, True)
+                alt_node = Node(node.global_conditions, node.chemical_potentials, node.fixed_composition_sets, node.free_composition_sets, node.parent)
+                alt_node.axis_var = None
+                alt_node.axis_direction = Direction.NEGATIVE
+                alt_node.exit_hint = ExitHint.POINT_IS_EXIT
+                self.node_queue.add_node(alt_node, True)
 
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        Isopleth strategies will use a different API for custom starting points
+        since they require a point with a fixed composition set at 0
+        """
+        return None, None, "Isopleth strategy does not support single point equilibrium as starting points"
 
     def _find_exits_from_node(self, node: Node):
         """
@@ -118,45 +124,57 @@ class IsoplethStrategy(MapStrategy):
 
     def _invariant_exits(self, node: Node, exits: list[Point], exit_dirs: list[Direction]):
         """
-        Maximum number of exits is 2*p - a ZPF line entering and exiting the node for each phase
-        We test the exits by going through combinations of n-1 phases (assume a and b are fixed or forbidden)
+        Maximum number of exits from a node along an isopleth section is 2*p - a ZPF line entering and exiting the node for each phase
+        However, the number of ZPF surfaces leaving a node is 2*comb(p,p-2)
+            Note: if a node containing p phases is found by fixing 2 phases, then a ZPF surface coming out of a node
+                  has at most p-1 phases and is defined by fixing 1 phase
+                  so for any combination of p-2 phases, we can fix 1 of the other phases to construct the ZPF surface
+        We test the exits by going through combinations of n-2 phases (assuming a and b are the other two phases)
           Create a matrix of NP*x = X and test if NP is positive for all phases
-          If this is true, then we create two exits, one with (n-1) (a) and (n-1) (b)
-          Rather than keeping track of the two missing phases, we'll create combinations of all composition sets
-              Then the nth phase will be fixed to 0 and n+1 th phase will be ignored if the candidate point passes
-              This leads to some double calculations, but the linear system we solve is pretty small, so whatever
+          If this is true, then we create two exits, one with (n-2) (a) and (n-2) (b) and only add it as
+          a candidate exit if the node has not encountered it before or if it has not been calculated (although this should not happen)
         """
-        for trial_stable_compsets in itertools.permutations(node.stable_composition_sets, len(node.stable_composition_sets)):
-            phase_NP = self._invariant_phase_fractions(node, trial_stable_compsets[:-2])
+        # Make a list of indices for bookkeeping free and fixed composition sets
+        indices = np.arange(len(node.stable_composition_sets))
+        # Free composition sets will be all combinations of p-2 phases
+        for free_indices in itertools.combinations(indices, len(indices)-2):
+            # Fixed composition sets will be the remaining 2 phases
+            fixed_indices = list(set(indices) - set(free_indices))
+            trial_stable_compsets = [node.stable_composition_sets[free_ind] for free_ind in free_indices]
+            cs_phase_names = [cs.phase_record.phase_name for cs in trial_stable_compsets]
+            _log.info(f"Testing {cs_phase_names} for exit.")
+
+            phase_NP = self._invariant_phase_fractions(node, trial_stable_compsets)
             if phase_NP is None:
                 continue
 
             if all(phase_NP > 0):
-                # Set fixed phase as the phase in the trail comp set that we didn't test for
-                candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [trial_stable_compsets[-2]], list(trial_stable_compsets[:-2]))
+                for fixed_ind in fixed_indices:
+                    # Set fixed phase as the phase in the trial comp set that we didn't test for
+                    candidate_point = Point.with_copy(node.global_conditions, node.chemical_potentials, [node.stable_composition_sets[fixed_ind]], list(trial_stable_compsets))
 
-                for cs in candidate_point._fixed_composition_sets:
-                    cs.fixed = True
-                    map_utils.update_cs_phase_frac(cs, 0.0)
+                    # Define the fixed CS as fixed to NP=0
+                    for cs in candidate_point._fixed_composition_sets:
+                        cs.fixed = True
+                        map_utils.update_cs_phase_frac(cs, 0.0)
 
-                # Minimum phase amount set to 1e-6 (this is to account for pycalphad ignoring all phases with NP=0 when computing deltas and causing indexing issues)
-                i = 0
-                for cs in candidate_point._free_composition_sets:
-                    cs.fixed = False
-                    map_utils.update_cs_phase_frac(cs, np.amax([phase_NP[i], 1e-6]))
-                    i += 1
+                    # Minimum phase amount set to 1e-6 (this is to account for pycalphad ignoring all phases with NP=0 when computing deltas and causing indexing issues)
+                    for cs, ph_amt in zip(candidate_point._free_composition_sets, phase_NP):
+                        cs.fixed = False
+                        map_utils.update_cs_phase_frac(cs, np.amax([ph_amt, 1e-6]))
 
-                # Update axis variables with new point
-                for av in self.axis_vars:
-                    candidate_point.global_conditions[av] = candidate_point.get_property(av)
+                    # Update axis variables with new point
+                    for av in self.axis_vars:
+                        candidate_point.global_conditions[av] = candidate_point.get_property(av)
 
-                # Check if a) candidate has already been added as an exit (does this really happen?) and b) node has already encountered this exit
-                added = any(candidate_point.compare_consider_fixed_cs(candidate_exits) for candidate_exits in exits)
-                exit_has_been_encountered = node.has_point_been_encountered(candidate_point, True)
-                if not added and not exit_has_been_encountered:
-                    _log.info(f"Found candidate exit: {candidate_point.fixed_phases}, {candidate_point.free_phases}, {candidate_point.global_conditions}")
-                    exits.append(candidate_point)
-                    exit_dirs.append(None)
+                    # Check if a) candidate has already been added as an exit (this shouldn't happen) and b) node has already encountered this exit
+                    added = any(candidate_point.compare_consider_fixed_cs(candidate_exits) for candidate_exits in exits)
+                    exit_has_been_encountered = node.has_point_been_encountered(candidate_point, True)
+                    _log.info(f"Attempting to add {candidate_point.fixed_phases}, {candidate_point.free_phases} for exit.")
+                    if not added and not exit_has_been_encountered:
+                        _log.info(f"Found candidate exit: {candidate_point.fixed_phases}, {candidate_point.free_phases}, {candidate_point.global_conditions}")
+                        exits.append(candidate_point)
+                        exit_dirs.append(None)
 
     def _invariant_phase_fractions(self, node: Node, trial_stable_compsets: list[CompositionSet]):
         """
@@ -174,6 +192,7 @@ class IsoplethStrategy(MapStrategy):
 
         NOTE: this is its own function since we use this for plotting as well
         """
+        # NOTE: Since the map strategy implicitly adds v.N to conditions, then fixed_var will always contain v.N, which we need
         fixed_var = [av for av in node.global_conditions if (av != v.T and av != v.P and av not in self.axis_vars)]
 
         # Phase matrix is all conditions of fixed variable (for v.X, we use the composition set value, rather than global)
@@ -249,7 +268,7 @@ class IsoplethStrategy(MapStrategy):
 
         return None
     
-    def get_zpf_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_zpf_data(self, x: v.StateVariable, y: v.StateVariable) -> StrategyData:
         """
         Create a dictionary of data for plotting ZPF lines for isopleths.
 
@@ -262,52 +281,15 @@ class IsoplethStrategy(MapStrategy):
 
         Returns
         -------
-        dict
-            A dictionary with the following structure::
-
-            {
-                "data": [
-                    {
-                        "phase": str,
-                        "x": list of float,
-                        "y": list of float
-                    }
-                ],
-                "xlim": list of float,
-                "ylim": list of float
-            }
-
-            The "phase" in the "data" section refers to the fixed phase at zero-phase fraction.
+        StrategyData where the data pertains to each ZPF line
         """
-        xlim = [np.inf, -np.inf]
-        ylim = [np.inf, -np.inf]
         data = []
         for zpf_line in self.zpf_lines:
-            zero_phase = zpf_line.fixed_phases[0]
-            x_data = zpf_line.get_var_list(x)
-            y_data = zpf_line.get_var_list(y)
+            data.append(SinglePhaseData(zpf_line.fixed_phases[0], zpf_line.get_var_list(x), zpf_line.get_var_list(y)))
 
-            zpf_data = {
-                'phase': zero_phase,
-                'x': x_data,
-                'y': y_data,
-            }
-            data.append(zpf_data)
+        return StrategyData(data)
 
-            xlim[0] = np.amin([xlim[0], np.amin(x_data[~np.isnan(x_data)])])
-            xlim[1] = np.amin([xlim[1], np.amin(x_data[~np.isnan(x_data)])])
-            ylim[0] = np.amin([ylim[0], np.amin(y_data[~np.isnan(y_data)])])
-            ylim[1] = np.amin([ylim[1], np.amin(y_data[~np.isnan(y_data)])])
-
-        zpf_data = {
-            'data': data,
-            'xlim': xlim,
-            'ylim': ylim,
-        }
-
-        return zpf_data
-
-    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable) -> list[PhaseRegionData]:
         """
         Create a dictionary of data for plotting invariants for isopleths.
 
@@ -322,13 +304,10 @@ class IsoplethStrategy(MapStrategy):
 
         Returns
         -------
-        list of dict
-            A list where each dictionary has the following structure::
-
-            {
-                "x": list of float,
-                "y": list of float
-            }
+        list of StrategyData each pertaining to an invariant
+            NOTE: the data in each StrategyData does not pertain to a single phase
+                  but rather the p-2 phases where the p-2 phase region intersects with
+                  the fixed isopleth conditions
         """
         node_data = []
         for node in self.node_queue.nodes:
@@ -336,13 +315,15 @@ class IsoplethStrategy(MapStrategy):
             if is_invariant:
                 x_vals = []
                 y_vals = []
+                phase_set = []
+                
                 for trial_stable_compsets in itertools.permutations(node.stable_composition_sets, len(node.stable_composition_sets)-2):
                     # Get phase fraction for combination of phases and node conditions
                     phase_NP = self._invariant_phase_fractions(node, trial_stable_compsets)
                     if phase_NP is None:
                         continue
 
-                    # If phase combination is value, then extract x and y values
+                    # If phase combination is valid, then extract x and y values
                     if all(phase_NP > 0):
                         if map_utils.is_state_variable(x):
                             x_vals.append(node.get_property(x))
@@ -352,13 +333,14 @@ class IsoplethStrategy(MapStrategy):
                             y_vals.append(node.get_property(y))
                         else:
                             y_vals.append(sum(node.get_local_property(cs, y)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP)))
+                        phase_set.append(sorted([cs.phase_record.phase_name for cs in trial_stable_compsets]))
 
-                for p1, p2 in itertools.combinations(range(len(x_vals)), 2):
-                    x_data = [x_vals[p1], x_vals[p2]]
-                    y_data = [y_vals[p1], y_vals[p2]]
-                    data = {
-                        'x': x_data,
-                        'y': y_data,
-                    }
-                    node_data.append(data)
+                data = []
+                # We break the rules here since a point on an isopleth node corresponds to
+                # where the p-2 phase region intersects the fixed isopleth conditions rather
+                # than a single phase
+                for x_data, y_data, ph_data in zip(x_vals, y_vals, phase_set):
+                    data.append(SinglePhaseData(set(ph_data), x_data, y_data))
+                node_data.append(PhaseRegionData(data))
+
         return node_data

@@ -14,6 +14,7 @@ from pycalphad.mapping import StepStrategy, IsoplethStrategy, TernaryStrategy, p
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
 from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState
+from pycalphad.mapping.plotting import get_label
 
 import pycalphad.tests.databases
 
@@ -33,11 +34,12 @@ NOTES:
 def test_binary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = binplot(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1000, 2500, 40), v.X("CR"): (0, 1, 0.01), v.P: 101325}, return_strategy=True)
+    ax, strategy = binplot(dbf, ["CR", "NI", "VA"], ['BCC_A2', 'FCC_A1', 'LIQUID'], conditions={v.T: (1500, 2200, 50), v.X("CR"): (0, 1, 0.05), v.P: 101325}, return_strategy=True)
+    #plt.show()
     
     # Two-phase regions intended to show up in the Cr-Ni system
-    desired_zpf_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2", "LIQUID"}, {"L12_FCC", "LIQUID"}]
-    desired_node_sets = [{"BCC_B2", "L12_FCC", "LIQUID"}]
+    desired_zpf_sets = [{"BCC_A2", "FCC_A1"}, {"BCC_A2", "LIQUID"}, {"FCC_A1", "LIQUID"}]
+    desired_node_sets = [{"BCC_A2", "FCC_A1", "LIQUID"}]
 
     # All two-phase regions and invariants from mapping
     # NOTE: phase regions that start at terminal phases may have duplicates
@@ -52,13 +54,23 @@ def test_binary_strategy(load_database):
     for dnz in desired_node_sets:
         assert dnz in node_sets
 
+    num_nodes = len(strategy.node_queue.nodes)
+    # Attempting to add node in single phase region will not add a new node
+    strategy.add_nodes_from_conditions({v.T: 1600, v.P: 101325, v.X('CR'): 0.3})
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes
+
+    # Attempt to add node in two phase region. 2 will be created for positive and negative direction
+    strategy.add_nodes_from_conditions({v.T: 1600, v.P: 101325, v.X('CR'): 0.6})
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes + 2
+
 @select_database("crtiv_ghosh.tdb")
 def test_ternary_strategy(load_database):
     dbf = load_database()
 
-    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], None, conds={v.X("CR"): (0, 1, 0.01), v.X("TI"): (0, 1, 0.01), v.T: 923, v.P: 101325}, return_strategy=True)
-    
-    # Two-phase regions intended to show up in the Cr--Ti-V system
+    ax, strategy = ternplot(dbf, ["CR", "TI", "V", "VA"], ['BCC_A2', 'HCP_A3', 'LAVES_C15'], conds={v.X("V"): (0, 0.2, 0.05), v.X("TI"): (0, 1, 0.05), v.T: 923, v.P: 101325}, return_strategy=True, label_nodes=True)
+    #plt.show()
     desired_zpf_sets = [{"BCC_A2", "LAVES_C15"}, {"BCC_A2", "HCP_A3"}, {"HCP_A3", "LAVES_C15"}]
     desired_node_sets = [{"BCC_A2", "HCP_A3", "LAVES_C15"}]
 
@@ -75,21 +87,37 @@ def test_ternary_strategy(load_database):
     for dnz in desired_node_sets:
         assert dnz in node_sets
 
+    # Attempt to add node in single-phase region - no nodes added
+    num_nodes = len(strategy.node_queue.nodes)
+    strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.2, v.X('TI'): 0.2})
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes
+
+    # Attempt to add node in two-phase region - two nodes added for pos/neg direction
+    strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.4, v.X('TI'): 0.4})
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes + 2
+
+    # Attempt to add node in three-phase region (force adding) - one node is added where directions are determined from the node
+    num_nodes = len(strategy.node_queue.nodes)
+    strategy.add_nodes_from_conditions({v.T: 923, v.P: 101325, v.X('CR'): 0.129, v.X('TI'): 0.861}, force_add=True)
+    new_num_nodes = len(strategy.node_queue.nodes)
+    assert new_num_nodes == num_nodes + 1
+
 @select_database("alcocrni.tdb")
 def test_step_strategy_through_single_phase(load_database):
     dbf = load_database()
 
     # Step strategy through single phase regions
-    strategy = StepStrategy(dbf, ["CR", "NI", "VA"], None, conditions={v.T: (1200, 2200, 10), v.X("CR"): 0.8, v.P: 101325})
-    strategy.initialize()
+    strategy = StepStrategy(dbf, ["CR", "NI", "VA"], ["BCC_A2", "FCC_A1", "LIQUID"], conditions={v.T: (1300, 2000, 10), v.X("CR"): 0.8, v.P: 101325})
     strategy.do_map()
 
     # Just check that plot_step runs without failing
     plot_step(strategy)
 
     # Two-phase regions intended to show up in the Cr-Ni system
-    desired_zpf_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2"}, {"BCC_B2", "LIQUID"}, {"LIQUID"}]
-    desired_node_sets = [{"BCC_B2", "L12_FCC"}, {"BCC_B2", "LIQUID"}]
+    desired_zpf_sets = [{"BCC_A2", "FCC_A1"}, {"BCC_A2"}, {"BCC_A2", "LIQUID"}, {"LIQUID"}]
+    desired_node_sets = [{"BCC_A2", "FCC_A1"}, {"BCC_A2", "LIQUID"}]
 
     # All unique phase regions
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
@@ -103,13 +131,34 @@ def test_step_strategy_through_single_phase(load_database):
     for dnz in desired_node_sets:
         assert dnz in node_sets
 
+    # Test behavior of data outputs
+
+    # For T vs. CPM, x and y refers to properties of the entire system -> phases = ['SYSTEM']
+    data = strategy.get_data(v.T, 'CPM')
+    assert len(data.data) == 1 and data.data[0].phase == 'SYSTEM'
+
+    # v.X('CR') has phase wildcard '*' implicitly added, so phases = ['BCC_A2', 'FCC_A1', 'LIQUID']
+    data = strategy.get_data(v.T, v.X('CR'))
+    assert len(set(data.phases).symmetric_difference({'BCC_A2', 'FCC_A1', 'LIQUID'})) == 0
+
+    # We force y to be global and x is already global, so phases = ['SYSTEM']
+    data = strategy.get_data(v.T, v.X('CR'), global_y=True)
+    assert len(data.data) == 1 and data.data[0].phase == 'SYSTEM'
+
+    # x is phase specific, so both x and y are global -> phases = ['SYSTEM']
+    data = strategy.get_data(v.X('BCC_A2', 'CR'), v.T)
+    assert len(data.data) == 1 and data.data[0].phase == 'SYSTEM'
+
+    # We force x to be global -> phases = ['SYSTEM']
+    data = strategy.get_data(v.X('CR'), v.T, global_x=True)
+    assert len(data.data) == 1 and data.data[0].phase == 'SYSTEM'
+
 @select_database("pbsn.tdb")
 def test_step_strategy_through_node(load_database):
     dbf = load_database()
 
     # Step strategy through single phase regions
-    strategy = StepStrategy(dbf, ["PB", "SN", "VA"], None, conditions={v.T: (373, 623, 5), v.X("SN"): 0.5, v.P: 101325})
-    strategy.initialize()
+    strategy = StepStrategy(dbf, ["PB", "SN", "VA"], None, conditions={v.T: (425, 550, 5), v.X("SN"): 0.5, v.P: 101325})
     strategy.do_map()
 
     # Just check that plot_step runs without failing
@@ -132,18 +181,32 @@ def test_step_strategy_through_node(load_database):
         assert dnz in node_sets
 
 @select_database("crtiv_ghosh.tdb")
+def test_unary_strategy(load_database):
+    """
+    Tests that strategy works on unary system
+    The strategy needs to maintain certain array shapes for site fractions, composition, 
+    chemical potentials, etc. when working with unaries, since squeezing arrays can remove
+    a needed dimension from an array. More details are given in the _find_global_min_cs function
+    in pycalphad.mapping.zpf_equilibrium
+    """
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["CR", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (2150, 2250, 10), v.P: 101325})
+    strategy.do_map()
+    plot_step(strategy, v.T, 'CPM')
+
+@select_database("crtiv_ghosh.tdb")
 def test_isopleth_strategy(load_database):
     dbf = load_database()
 
-    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], None, conditions={v.T: (1073, 2073, 20), v.X("TI"): (0, 0.8, 0.01), v.X("V"): 0.2, v.P: 101325})
-    strategy.initialize()
+    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): 0.2, v.P: 101325})
     strategy.do_map()
 
     # Check that plot_isopleth runs without fail
     plot_isopleth(strategy)
+    #plt.show()
 
     # Two-phase regions intended to show up in the Cr-Ti-V system
-    desired_zpf_sets = [{"BCC_A2", "LAVES_C15"}, {"BCC_A2", "LIQUID"}]
+    desired_zpf_sets = [{"BCC_A2", "LIQUID"}]
 
     # All unique phase regions
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
@@ -179,7 +242,9 @@ def test_isopleth_strategy_node_exit():
     dbf = Database(TDB)
     phases = list(dbf.phases.keys())
 
-    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.2, v.X('B'): (0, 0.8, 0.01)})
+    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, 
+                                conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.2, v.X('B'): (0, 0.8, 0.01)},
+                                initialize=False)
 
     phase_comps = {
         'ALPHA': [0.9, 0.05, 0.05],
@@ -209,7 +274,9 @@ def test_isopleth_strategy_node_exit():
         assert set(point.free_phases) in desired_free_phases
 
     # Invariant node with 6 total exits
-    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.5, v.X('B'): (0, 0.5, 0.01)})
+    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, 
+                                conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.5, v.X('B'): (0, 0.5, 0.01)},
+                                initialize=False)
     conds = {v.T: 700, v.P: 101325, v.N: 1, v.X('A'): 0.5, v.X('B'): 0.2}
     node = Node(conds, [0, 0, 0], [comp_sets[0], comp_sets[1]], [comp_sets[2], comp_sets[3]], None)
     exits, exit_dirs = strategy._find_exits_from_node(node)
@@ -290,7 +357,7 @@ def test_strategy_adjust_composition_limits():
     # v.X('B'): (0, 1, 0.01) -> v.X('B'): (0, 0.9, 0.01)
     comps = ['A', 'B', 'C']
     conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('B'): (0, 1, 0.01)}
-    strategy = StepStrategy(dbf, comps, None, conds)
+    strategy = StepStrategy(dbf, comps, None, conds, initialize=False)
 
     assert np.isclose(strategy.axis_lims[v.X('B')][0], 0)
     assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.9)
@@ -299,7 +366,7 @@ def test_strategy_adjust_composition_limits():
     # v.T should not change
     comps = ['A', 'B']
     conds = {v.T: (1, 2, 0.01), v.P: 101325, v.X('A'): 0.1}
-    strategy = StepStrategy(dbf, comps, None, conds)
+    strategy = StepStrategy(dbf, comps, None, conds, initialize=False)
 
     assert np.isclose(strategy.axis_lims[v.T][0], 1)
     assert np.isclose(strategy.axis_lims[v.T][1], 2)
@@ -309,7 +376,7 @@ def test_strategy_adjust_composition_limits():
     # v.X('C'): (0, 1, 0.01) -> v.X('C'): (0, 0.7, 0.01)
     comps = ['A', 'B', 'C', 'D']
     conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('D'): 0.2, v.X('B'): (0, 1, 0.01), v.X('C'): (0, 1, 0.01)}
-    strategy = IsoplethStrategy(dbf, comps, None, conds)
+    strategy = IsoplethStrategy(dbf, comps, None, conds, initialize=False)
 
     assert np.isclose(strategy.axis_lims[v.X('B')][0], 0)
     assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.7)
@@ -321,7 +388,7 @@ def test_strategy_adjust_composition_limits():
     # v.X('C'): (0.25, 1, 0.01) -> v.X('C'): (0, 0.55, 0.01)
     comps = ['A', 'B', 'C', 'D']
     conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('D'): 0.2, v.X('B'): (0.15, 1, 0.01), v.X('C'): (0.25, 1, 0.01)}
-    strategy = IsoplethStrategy(dbf, comps, None, conds)
+    strategy = IsoplethStrategy(dbf, comps, None, conds, initialize=False)
     
     assert np.isclose(strategy.axis_lims[v.X('B')][0], 0.15)
     assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.45)
@@ -334,9 +401,10 @@ def test_ternary_strategy_process_metastable_node(load_database):
     Tests how TernaryStrategy deals with nodes that are metastable
 
     This is done by purposely creating a known metastable node, which
-    the TernaryStrategy should be able to detect and add a stable node,
-    remove a zpf line, or adjust a zpf line delta depending on the current
-    state of the zpf line
+    the TernaryStrategy should be able to detect whether a node is metastable
+    and perform the following:
+        a) if node is metastable, do not add to node queue and remove zpf line
+        b) if node is stable, add to node queue
     """
     # Create system
     dbf = load_database()
@@ -344,7 +412,7 @@ def test_ternary_strategy_process_metastable_node(load_database):
     phases = list(dbf.phases.keys())
     map_conds = {v.T: 1323, v.P: 101325, v.N: 1, v.X('CR'): (0, 1, 0.01), v.X('FE'): (0, 1, 0.01)}
 
-    strategy = TernaryStrategy(dbf, comps, phases, map_conds)
+    strategy = TernaryStrategy(dbf, comps, phases, map_conds, initialize=False)
 
     # Conditions where BCC_A2 and LAVES_C14 is stable
     # Add this point as a starting zpf line in the strategy
@@ -365,39 +433,12 @@ def test_ternary_strategy_process_metastable_node(load_database):
     metastable_point = point_from_equilibrium(dbf, comps, metastable_phases, eq_conds, models=models, phase_record_factory=phase_record_factory)
     metastable_node = Node(metastable_point.global_conditions, metastable_point.chemical_potentials, [], metastable_point.stable_composition_sets, None)
 
-    # In _process_new_node
-    #    _check_full_global_equilibrium will return (False, Point)
-    #        Equilibrium check will detect metastable node and return new point if successful
-    #        New point will be BCC_A2 + LAVES_C14
-    #    test point phases and zpf line phases will differ by 0, so new point cannot be added as a node
-    #    zpf_line.current_delta is greater than minimum delta, so the current delta will be scaled down
+    # In _process_new_node, this will fail the global min check and remove the zpf line
     num_nodes = len(strategy.node_queue.nodes)
-    num_zpf_lines = len(strategy.zpf_lines)
-    old_zpf_delta = strategy.zpf_lines[0].current_delta
     strategy._process_new_node(strategy.zpf_lines[0], metastable_node)
-    # Test that zpf line was not removed
-    assert len(strategy.zpf_lines) == num_zpf_lines
-    # Test that zpf line can still continue
-    assert strategy.zpf_lines[0].status == ZPFState.NOT_FINISHED
-    # Test that zpf line delta was scaled down accordingly
-    assert np.isclose(old_zpf_delta*strategy.DELTA_SCALE, strategy.zpf_lines[0].current_delta)
-    # Test that no nodes were added
+    # Test that zpf line was removed for being a metastable node
+    assert len(strategy.zpf_lines) == 0
     assert len(strategy.node_queue.nodes) == num_nodes
-
-    # If zpf_line.current_delta is below minimum
-    #    _process_new node takes same path as before except
-    #    A new node will be created from the point returned by _check_full_global_equilibrium
-    #    and will be added to the node queue. The current zpf line will be removed since it
-    #    led to an incorrect node
-    num_nodes = len(strategy.node_queue.nodes)
-    num_zpf_lines = len(strategy.zpf_lines)
-    # Make current delta smaller than minimum
-    strategy.zpf_lines[0].current_delta = strategy.axis_delta[strategy.zpf_lines[0].axis_var] * 0.5 * strategy.MIN_DELTA_RATIO
-    strategy._process_new_node(strategy.zpf_lines[-1], metastable_node)
-    # Check that the zpf line was removed
-    assert len(strategy.zpf_lines) == num_zpf_lines - 1
-    # Check that a node was added to the queue
-    assert len(strategy.node_queue.nodes) == 1+num_nodes
 
     # _process_new_node with correct/stable node
     # This will pass the _check_full_global_equilibrium test and the node will be added
@@ -416,4 +457,68 @@ def test_ternary_strategy_process_metastable_node(load_database):
     assert len(strategy.zpf_lines) == num_zpf_lines
     assert len(strategy.node_queue.nodes) == 1+num_nodes
     assert strategy.node_queue.nodes[-1] == stable_node
+
+def test_plot_labels():
+    assert get_label(v.NP('*')) == 'Phase Fraction'
+    assert get_label(v.NP('BCC_A2')) == 'Phase Fraction (BCC_A2)'
+
+    assert get_label(v.X('CR')) == 'X(Cr)'
+    assert get_label(v.X('BCC_A2', 'CR')) == 'X(BCC_A2, Cr)'
+
+    assert get_label(v.W('CR')) == 'W(Cr)'
+    assert get_label(v.W('BCC_A2', 'CR')) == 'W(BCC_A2, Cr)'
+
+    assert get_label(v.MU('CR')) == 'MU(Cr) (J / mol)'
+    # The abbreviated notation in pint converts J/mol/K to J/K/mol. This
+    # seems to be some internal canonical ordering
+    # While this is still correct, I do not like it
+    # TODO: check if there is a way to override the default canonical
+    # ordering in pint so that mol comes before K
+    assert get_label('CPM') == 'Heat Capacity (J / K / mol)'
+    assert get_label(v.T) == 'Temperature (K)'
+    assert get_label(v.P) == 'Pressure (Pa)'
+
+    # A string argument that doesn't have built in units will just return the string
+    assert get_label('Custom Prop') == 'Custom Prop'
+
+@select_database("crtiv_ghosh.tdb")
+def test_primitive_representation(load_database):
+    """
+    Tests that str and repr of Point and Node show the necessary information to describe each object
+    """
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["CR", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (2150, 2250, 10), v.P: 101325})
+    strategy.do_map()
+
+    node_str_keywords = ['Fixed CS', 'Free CS', 'Conditions', 'Chem_pot', 'Axis']
+    node_repr_keywords = ['Node', 'global_conditions', 'chemical_potentials', 
+                          '_fixed_composition_sets', '_free_composition_sets', 'parent', 
+                          'axis_var', 'axis_direction', 'exit_hint'
+                          ]
+    point_str_keywords = ['Fixed CS', 'Free CS', 'Conditions', 'Chem_pot']
+    point_repr_keywords = ['Point', 'global_conditions', 'chemical_potentials',
+                           '_fixed_composition_sets', '_free_composition_sets'
+                           ]
+
+    # First point in the first zpf line should be a node
+    zpf_line = strategy.zpf_lines[0]
+    assert isinstance(zpf_line.points[0], Node)
+    node_str = str(zpf_line.points[0])
+    node_repr = repr(zpf_line.points[0])
+
+    for keyword in node_str_keywords:
+        assert keyword in node_str
+    for keyword in node_repr_keywords:
+        assert keyword in node_repr
+
+    assert isinstance(zpf_line.points[1], Point)
+    point_str = str(zpf_line.points[1])
+    point_repr = repr(zpf_line.points[1])
+
+    for keyword in point_str_keywords:
+        assert keyword in point_str
+    for keyword in point_repr_keywords:
+        assert keyword in point_repr
+
+
 

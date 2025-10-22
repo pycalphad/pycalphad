@@ -11,14 +11,12 @@ from pycalphad.core.constants import MIN_PHASE_FRACTION
 from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, ZPFState, _get_phase_specific_variable
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
+from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyData
 
 _log = logging.getLogger(__name__)
 
 class StepStrategy(MapStrategy):
-    def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
-        super().__init__(dbf, components, phases, conditions, **kwargs)
-
-    def initialize(self):
+    def generate_automatic_starting_points(self):
         """
         Adds initial starting point in middle of free condition
         """
@@ -113,7 +111,6 @@ class StepStrategy(MapStrategy):
 
         return exits, exit_dirs
 
-
     def _determine_start_direction(self, node: Node, exit_point: Point, proposed_direction: Direction):
         """
         For stepping, only one direction is possible from a node since we either step positive or negative
@@ -168,8 +165,8 @@ class StepStrategy(MapStrategy):
                 success = self.add_nodes_from_conditions(new_conds, axis_dir, True)
                 if success:
                     return
-                
-    def get_data(self, x: v.StateVariable, y: v.StateVariable, x_is_global: bool = False, set_nan_to_zero=False):
+
+    def get_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False, set_nan_to_zero: bool = False) -> StrategyData:
         """
         Utility function to get data from StepStrategy for plotting.
 
@@ -179,43 +176,56 @@ class StepStrategy(MapStrategy):
             The state variable to be used for the x-axis.
         y : v.StateVariable
             The state variable to be used for the y-axis.
-        x_is_global : bool, optional
-            Indicates whether `x` is a global or phase-local variable.
-            For example, if plotting global composition (`x`) vs. phase fraction (`y`), then `x` is global.
-        set_nan_to_zero : bool, optional
-            If True, NaN values will be set to zero in the data.
+        global_x : bool
+            Whether variable x applies to the global system
+        global_y : bool
+            Whether variable y applies to the global system
+        set_nan_to_zero : bool
+            If True, NaN values will be set to zero in the data, defaults to false
 
         Returns
         -------
-        dict
-            A dictionary with the following structure::
+        StrategyData
+            If x and y are unique for the system, then the data in StrategyData will be labeled as "SYSTEM"
+            otherwise, the data in StrategyData will be labeled for all stable phases
+            Examples of unique variables:
 
-            {
-                "data": {
-                    "<phase_name>": {
-                        "x": list of float,
-                        "y": list of float
-                    }
-                },
-                "xlim": list of float,  # min and max for all x values
-                "ylim": list of float   # min and max for all y values
-            }
+            - State variables (N, P, T)
+            - Values such as GM, HM, CPM
+            - Phase specific variable (i.e. v.X(phase, component) or v.NP(phase))
+              This is in contrast to v.X(component) or v.NP where composition or phase fraction will be
+              taken for all stable phases
         """
-        # Get all phases in strategy (including multiplicity)
-        phases = sorted(self.get_all_phases())
+        if hasattr(x, 'phase_name') and x.phase_name is None:
+            if not global_x:
+                x = copy.deepcopy(x)
+                x.phase_name = '*'
 
-        # Axis limits for x and y
-        xlim = [np.inf, -np.inf]
-        ylim = [np.inf, -np.inf]
+        if hasattr(y, 'phase_name') and y.phase_name is None:
+            if not global_y:
+                y = copy.deepcopy(y)
+                y.phase_name = '*'
+
+        # if x and y are to be computed for the entire system, the we only have a single x vs y line
+        # as opposed to something like v.T vs v.NP(*) where we have a T vs NP line for each phase
+        # we determine whether x or y is computed globally based of whether or not the phase_name is a wildcard
+        global_x = getattr(x, 'phase_name', None) != '*'
+        global_y = getattr(y, 'phase_name', None) != '*'
+        if global_x and global_y:
+            phases = ['SYSTEM']
+        else:
+            # Get all phases in strategy (including multiplicity)
+            phases = sorted(self.get_all_phases())
 
         # For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)
         # Then get the max and min of x and y values to update xlim and ylim
-        phase_data = {}
+        data = []
+
         for p in phases:
             x_array = []
             y_array = []
             for zpf_lines in self.zpf_lines:
-                x_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, x, x_is_global))
+                x_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, x))
                 y_data = zpf_lines.get_var_list(_get_phase_specific_variable(p, y))
                 if set_nan_to_zero:
                     x_data[np.isnan(x_data)] = 0
@@ -232,18 +242,6 @@ class StepStrategy(MapStrategy):
             x_array = x_array[argsort]
             y_array = y_array[argsort]
 
-            phase_data[p] = {'x': x_array, 'y': y_array}
+            data.append(SinglePhaseData(p, x_array, y_array))
 
-            # Can this be done outside of this loop, or is this the easiest way?
-            xlim[0] = np.amin([xlim[0], np.amin(x_array[~np.isnan(x_array)])])
-            xlim[1] = np.amax([xlim[1], np.amax(x_array[~np.isnan(x_array)])])
-            ylim[0] = np.amin([ylim[0], np.amin(y_array[~np.isnan(y_array)])])
-            ylim[1] = np.amax([ylim[1], np.amax(y_array[~np.isnan(y_array)])])
-
-        step_data = {
-            'data': phase_data,
-            'xlim': xlim,
-            'ylim': ylim,
-        }
-
-        return step_data
+        return StrategyData(data)
