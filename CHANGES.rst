@@ -1,12 +1,12 @@
 What's New
 ==========
 
-0.11.1 (2025-05-21)
+0.11.1 (2025-10-22)
 -------------------
 
 This is maintenance and bugfix release that addresses several dependency-related regressions and fixes related to new features introduced in 0.11.
 
-* MAINT: Support Python version 3.13, drop support for Python 3.9 and 3.10; test and dependency fixes (:issue:`602`, :issue:`622`)
+* MAINT: Support Python version 3.13, drop support for Python 3.9 and 3.10; test and dependency fixes mitigating CI instabilities (:issue:`602`, :issue:`622`)
 * ENH: Improve minimizer convergence behavior and correctness (:issue:`605`)
 * FIX: Improve correctness and usage of the stepping and mapping functions, including usability improvements for automatic starting point generation (:issue:`564`)
 * FIX: Fix incorrect implementation of recriprocal Redlich-Kister interaction parameters (:issue:`581`).
