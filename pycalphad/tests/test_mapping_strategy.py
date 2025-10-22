@@ -481,3 +481,44 @@ def test_plot_labels():
     # A string argument that doesn't have built in units will just return the string
     assert get_label('Custom Prop') == 'Custom Prop'
 
+@select_database("crtiv_ghosh.tdb")
+def test_primitive_representation(load_database):
+    """
+    Tests that str and repr of Point and Node show the necessary information to describe each object
+    """
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["CR", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (2150, 2250, 10), v.P: 101325})
+    strategy.do_map()
+
+    node_str_keywords = ['Fixed CS', 'Free CS', 'Conditions', 'Chem_pot', 'Axis']
+    node_repr_keywords = ['Node', 'global_conditions', 'chemical_potentials', 
+                          '_fixed_composition_sets', '_free_composition_sets', 'parent', 
+                          'axis_var', 'axis_direction', 'exit_hint'
+                          ]
+    point_str_keywords = ['Fixed CS', 'Free CS', 'Conditions', 'Chem_pot']
+    point_repr_keywords = ['Point', 'global_conditions', 'chemical_potentials',
+                           '_fixed_composition_sets', '_free_composition_sets'
+                           ]
+
+    # First point in the first zpf line should be a node
+    zpf_line = strategy.zpf_lines[0]
+    assert isinstance(zpf_line.points[0], Node)
+    node_str = str(zpf_line.points[0])
+    node_repr = repr(zpf_line.points[0])
+
+    for keyword in node_str_keywords:
+        assert keyword in node_str
+    for keyword in node_repr_keywords:
+        assert keyword in node_repr
+
+    assert isinstance(zpf_line.points[1], Point)
+    point_str = str(zpf_line.points[1])
+    point_repr = repr(zpf_line.points[1])
+
+    for keyword in point_str_keywords:
+        assert keyword in point_str
+    for keyword in point_repr_keywords:
+        assert keyword in point_repr
+
+
+
