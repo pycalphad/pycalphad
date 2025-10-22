@@ -6,14 +6,17 @@ What's New
 
 This is maintenance and bugfix release that addresses several dependency-related regressions and fixes related to new features introduced in 0.11.
 
-* MAINT: Support Python version 3.13, drop support for Python 3.9; test and dependency fixes (:issue:`602`)
+* MAINT: Support Python version 3.13, drop support for Python 3.9 and 3.10; test and dependency fixes (:issue:`602`, :issue:`622`)
+* ENH: Improve minimizer convergence behavior and correctness (:issue:`605`)
+* FIX: Improve correctness and usage of the stepping and mapping functions, including usability improvements for automatic starting point generation (:issue:`564`)
 * FIX: Fix incorrect implementation of recriprocal Redlich-Kister interaction parameters (:issue:`581`).
 * FIX: Fix ``IsolatedPhase`` chemical potentials to correctly refer to the constrainted, isolated phase state rather than the equilibrium state (:issue:`595`).
 * FIX: Correct the implemententation of Jansson derivatives in multi-component cases with composition denominators (:issue:`595`).
 * FIX: Mitigate an issue where SymEngine expression that contain complex numbers can fail to lambdifying (:issue:`599`).
 * FIX: Regression in handling TDB parsing errors caused by ``ParseException`` changes in pyparsing 3.2.0 (:issue:`584`).
 * FIX: Allow creating empty ``Workspace`` creation (without a ``Database`` object) (:issue:`563`).
-
+* FIX: Fix ``_compute_phase_values`` adding a point with garbage data when the size of feasible ``points`` is zero. (:issue:`627`)
+* FIX: Avoid ``ZeroDivisionError`` on converting units (:issue:`615`)
 
 0.11.0 (2024-08-09)
 -------------------
