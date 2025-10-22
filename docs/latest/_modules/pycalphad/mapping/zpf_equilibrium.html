@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.zpf_equilibrium - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>pycalphad.mapping.zpf_equilibrium - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -393,37 +393,58 @@
 
     <span class="c1"># Get driving force and find index that maximized driving force</span>
     <span class="n">state_conds</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span> <span class="k">if</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">is_state_variable</span><span class="p">(</span><span class="n">key</span><span class="p">)}</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">phase_records</span><span class="o">=</span><span class="n">phase_records</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;GM&quot;</span><span class="p">,</span> <span class="n">to_xarray</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="n">pdens</span><span class="p">,</span> <span class="o">**</span><span class="n">state_conds</span><span class="p">)</span>
-    <span class="n">gm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">GM</span><span class="p">)</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">Y</span><span class="p">)</span>
-    <span class="n">phase_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">Phase</span><span class="p">)</span>
-    <span class="n">g_chempot</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">point</span><span class="o">.</span><span class="n">chemical_potentials</span>
-    <span class="n">dGs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">g_chempot</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">gm</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">phase_records</span><span class="o">=</span><span class="n">phase_records</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;GM&quot;</span><span class="p">,</span> <span class="n">to_xarray</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="n">pdens</span><span class="p">,</span> <span class="o">**</span><span class="n">state_conds</span><span class="p">)</span>
+    <span class="c1"># Since we index y, phase_ids and dGs, we need to make sure they have </span>
+    <span class="c1"># the following shape (where N = number of samples, C = number of components, </span>
+    <span class="c1"># DOF = internal degrees of freedom):</span>
+    <span class="c1"># gm - (N,)</span>
+    <span class="c1"># x  - (N,C)</span>
+    <span class="c1"># y  - (N,DOF)</span>
+    <span class="c1"># phase_ids - (N,)</span>
+    <span class="c1"># mu - (C,)     mu is from point, so no N</span>
+    <span class="c1"># dGs - (N,)</span>
+    <span class="c1"># For most systems, these shapes are given after squeezing, however, two special cases exists:</span>
+    <span class="c1"># a) Unaries, where C = 1, so squeezing x will give a shape of (N,) and mu will give a scalar</span>
+    <span class="c1"># b) Single stoichiometric phase where DOF = 1, so squeezing y will give (N,)</span>
+    <span class="c1">#       Sampling a single stoichiometric phase may also give N = 1 as well</span>
+    <span class="n">gm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">GM</span><span class="p">))</span>
+    <span class="c1"># Reshape x to 2D array of (N,C)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="n">gm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="c1"># Reshape y to 2D array of (N,DOF)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="p">(</span><span class="n">gm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
 
+    <span class="n">phase_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">Phase</span><span class="p">))</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">))</span>
+    <span class="n">dGs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">)</span> <span class="o">-</span> <span class="n">gm</span>
+
+    <span class="c1"># Get list of phase indices for each unique phase as candidates</span>
+    <span class="c1"># 1. Sort the phase ID array by driving force</span>
+    <span class="c1"># 2. Get all the unique phases in the truncated sorted ID array (truncated by number of candidates)</span>
+    <span class="c1"># 3. For each phase, get the first index it shows up</span>
+    <span class="c1">#    The index will correspond to the sorted_indices list, so we have to get the unsorted index</span>
+    <span class="c1">#    From there</span>
     <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">dGs</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">sorted_phases</span> <span class="o">=</span> <span class="n">phase_ids</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">][:</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">num_candidates</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_indices</span><span class="p">)])]</span>
+    <span class="n">unique_phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">sorted_phases</span><span class="p">)</span>
+    <span class="n">phase_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">sorted_phases</span> <span class="o">==</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">unique_phases</span><span class="p">]</span>
+
     <span class="n">cs</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">dG</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="c1"># Record phases that driving force is checked</span>
-    <span class="c1"># Each phase will be checked once to avoid redundant calculations</span>
-    <span class="n">tested_phases</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">num_candidates</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_indices</span><span class="p">)])):</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">phase_ids</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tested_phases</span><span class="p">:</span>
-            <span class="n">tested_phases</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phase_ids</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
-            <span class="n">test_cs</span> <span class="o">=</span> <span class="n">CompositionSet</span><span class="p">(</span><span class="n">phase_records</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">phase_ids</span><span class="p">[</span><span class="n">index</span><span class="p">])])</span>
-            <span class="c1"># Create numpy array for site fractions. There seems to be some models where</span>
-            <span class="c1"># np.squeeze(points.Y) returns a non-writable array. Not sure why, but when it does,</span>
-            <span class="c1"># updating the composition set will fail with a ValueError: buffer source array</span>
-            <span class="c1"># is read only. Creating a new array for the site fractions seems to fix this issue</span>
-            <span class="n">site_fracs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">index</span><span class="p">][:</span><span class="n">test_cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_dof</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-            <span class="n">test_cs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">site_fracs</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">get_statevars_array</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">test_cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">state_variables</span><span class="p">))</span>
-            <span class="n">dormant_phase</span> <span class="o">=</span> <span class="n">DormantPhase</span><span class="p">(</span><span class="n">test_cs</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">test_dg</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">dormant_phase</span><span class="o">.</span><span class="n">driving_force</span><span class="p">)</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Testing phase </span><span class="si">{</span><span class="n">phase_ids</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="si">}</span><span class="s2"> with dG=</span><span class="si">{</span><span class="n">dGs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">test_dg</span><span class="si">}</span><span class="s2"> for global min.&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">test_dg</span> <span class="o">&gt;</span> <span class="n">dG</span><span class="p">:</span>
-                <span class="n">dG</span> <span class="o">=</span> <span class="n">test_dg</span>
-                <span class="n">cs</span> <span class="o">=</span> <span class="n">test_cs</span>
+    <span class="k">for</span> <span class="n">phi</span> <span class="ow">in</span> <span class="n">phase_indices</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">sorted_indices</span><span class="p">[</span><span class="n">phi</span><span class="p">]</span>
+        <span class="n">test_cs</span> <span class="o">=</span> <span class="n">CompositionSet</span><span class="p">(</span><span class="n">phase_records</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">phase_ids</span><span class="p">[</span><span class="n">index</span><span class="p">])])</span>
+        <span class="c1"># Create numpy array for site fractions. There seems to be some models where</span>
+        <span class="c1"># np.squeeze(points.Y) returns a non-writable array. Not sure why, but when it does,</span>
+        <span class="c1"># updating the composition set will fail with a ValueError: buffer source array</span>
+        <span class="c1"># is read only. Creating a new array for the site fractions seems to fix this issue</span>
+        <span class="n">site_fracs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">index</span><span class="p">][:</span><span class="n">test_cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_dof</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">test_cs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">site_fracs</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">get_statevars_array</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">test_cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">state_variables</span><span class="p">))</span>
+        <span class="n">dormant_phase</span> <span class="o">=</span> <span class="n">DormantPhase</span><span class="p">(</span><span class="n">test_cs</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">test_dg</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">dormant_phase</span><span class="o">.</span><span class="n">driving_force</span><span class="p">)</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Testing phase </span><span class="si">{</span><span class="n">phase_ids</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="si">}</span><span class="s2"> with dG=</span><span class="si">{</span><span class="n">dGs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">test_dg</span><span class="si">}</span><span class="s2"> for global min.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">test_dg</span> <span class="o">&gt;</span> <span class="n">dG</span><span class="p">:</span>
+            <span class="n">dG</span> <span class="o">=</span> <span class="n">test_dg</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">test_cs</span>
 
     <span class="c1"># If driving force is above tolerance, then create a new point with the additional composition set</span>
     <span class="k">if</span> <span class="n">dG</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
@@ -474,7 +495,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">cs</span><span class="p">,</span> <span class="n">dG</span> <span class="o">=</span> <span class="n">min_cs_result</span>
         
-        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Global min potentially detected. </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s1"> + </span><span class="si">{</span><span class="n">cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s1"> with dG = </span><span class="si">{</span><span class="n">dG</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Global min potentially detected. </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s1"> + </span><span class="si">{</span><span class="n">cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">cs</span><span class="si">}</span><span class="s1">) with dG = </span><span class="si">{</span><span class="n">dG</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">_detect_degenerate_phase</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">cs</span><span class="p">):</span>
             <span class="n">new_point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">free_composition_sets</span><span class="p">)</span>
             <span class="n">map_utils</span><span class="o">.</span><span class="n">update_cs_phase_frac</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
@@ -522,7 +543,9 @@
         <span class="n">ref_cs_copy</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cs</span><span class="o">.</span><span class="n">dof</span><span class="p">[</span><span class="n">num_sv</span><span class="p">:],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cs</span><span class="o">.</span><span class="n">dof</span><span class="p">[:</span><span class="n">num_sv</span><span class="p">])</span>
         <span class="n">new_cs_copy</span> <span class="o">=</span> <span class="n">CompositionSet</span><span class="p">(</span><span class="n">new_cs</span><span class="o">.</span><span class="n">phase_record</span><span class="p">)</span>
         <span class="n">new_cs_copy</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_cs</span><span class="o">.</span><span class="n">dof</span><span class="p">[</span><span class="n">num_sv</span><span class="p">:],</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="n">new_cs</span><span class="o">.</span><span class="n">dof</span><span class="p">[:</span><span class="n">num_sv</span><span class="p">])</span>
-        <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">}</span>
+        <span class="c1"># Take conditions from current cs (use ref_cs_copy since we set moles to 1) rather than from point.global_conditions</span>
+        <span class="c1"># We want the composition conditions to be on the ref_cs_copy. This is sometimes not the case if ref_cs_copy is the zero-fraction phase</span>
+        <span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">key</span><span class="o">.</span><span class="n">compute_property</span><span class="p">([</span><span class="n">ref_cs_copy</span><span class="p">],</span> <span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">}</span>
         <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Testing free equilibrium with </span><span class="si">{</span><span class="n">ref_cs_copy</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_cs_copy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span><span class="n">remove_metastable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -693,7 +716,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../../../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.strategy_utils - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>pycalphad.mapping.strategy.strategy_data - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -275,24 +275,81 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <h1>Source code for pycalphad.mapping.strategy.strategy_utils</h1><div class="highlight"><pre>
+          <h1>Source code for pycalphad.mapping.strategy.strategy_data</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Helper functions to grab data from tieline strategies (BinaryStrategy and TernaryStrategy)</span>
-<span class="sd">This is to avoid repeating get_XXX_data functions for the two strategies</span>
+<span class="sd">Data classes to hold outputs from map strategies</span>
 
-<span class="sd">TODO: Once BinaryStrategy and TernaryStrategy are merged into a more general TielineStrategy,</span>
-<span class="sd">      these two functions can be moved into TieLineStrategy and strategy_utils.py as be removed</span>
+<span class="sd">- ``SinglePhaseData`` - holds x, y coordinates for a given phase</span>
+<span class="sd">- ``StrategyData`` - holds a list of ``SinglePhaseData`` with some functions to loop</span>
+<span class="sd">  over phases, x and y in each ``SinglePhaseData`` object and to get x and y limits</span>
+<span class="sd">- ``PhaseRegionData`` - alias of ``StrategyData``. This is done to clarify what</span>
+<span class="sd">  ``BinaryStrategy.get_zpf_data``, ``BinaryStrategy.get_invariant_data``</span>
+<span class="sd">  ``TernaryStrategy.get_zpf_data``, ``TernaryStrategy.get_invariant_data`` and</span>
+<span class="sd">  ``IsoplethStrategy.get_invariant_data`` does compared to ``StepStrategy.get_data``</span>
+<span class="sd">  and ``IsoplethStrategy.get_zpf_data``</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">_get_phase_specific_variable</span>
 
+<div class="viewcode-block" id="SinglePhaseData">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_data.SinglePhaseData">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">SinglePhaseData</span><span class="p">:</span>
+    <span class="n">phase</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+    <span class="n">y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="StrategyData">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_data.StrategyData">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">StrategyData</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SinglePhaseData</span><span class="p">]</span>
+    <span class="n">xlim</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ylim</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">all_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">all_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xlim</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">all_x</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">all_x</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">all_x</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">all_x</span><span class="p">)])]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ylim</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">all_y</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">all_y</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">all_y</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">all_y</span><span class="p">)])]</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SinglePhaseData</span><span class="p">:</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">phase</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">phases</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> not in dataset.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">phase</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">]</span></div>
+
+
+<span class="n">PhaseRegionData</span> <span class="o">=</span> <span class="n">StrategyData</span>
+
+
+<span class="c1"># Helper functions to grab data from tieline strategies (BinaryStrategy and TernaryStrategy)</span>
+<span class="c1"># This is to avoid repeating get_XXX_data functions for the two strategies</span>
+<span class="c1"># TODO: Once BinaryStrategy and TernaryStrategy are merged into a more general TielineStrategy,</span>
+<span class="c1">#       these two functions can be moved into TieLineStrategy</span>
 <div class="viewcode-block" id="get_invariant_data_from_tieline_strategy">
-<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_utils.get_invariant_data_from_tieline_strategy">[docs]</a>
-<span class="k">def</span> <span class="nf">get_invariant_data_from_tieline_strategy</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_data.get_invariant_data_from_tieline_strategy">[docs]</a>
+<span class="k">def</span> <span class="nf">get_invariant_data_from_tieline_strategy</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a dictionary of data for node plotting in binary and ternary plots.</span>
 
@@ -318,26 +375,34 @@
 
 <span class="sd">        The indices in `x` and `y` match the indices in `phases`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">global_y</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+
     <span class="n">invariant_data</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
         <span class="c1"># Nodes in binary and ternary mappings are always 3 composition sets</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">node_phases</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">stable_phases_with_multiplicity</span>
-            <span class="n">x_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">node_phases</span><span class="p">]</span>
-            <span class="n">y_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">node_phases</span><span class="p">]</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;phases&#39;</span><span class="p">:</span> <span class="n">node_phases</span><span class="p">,</span>
-                <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x_data</span><span class="p">,</span>
-                <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y_data</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="n">invariant_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">node_phases</span><span class="p">:</span>
+                <span class="n">x_data</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+                <span class="n">y_data</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SinglePhaseData</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">))</span>
+            <span class="n">invariant_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">StrategyData</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">invariant_data</span></div>
 
 
 <div class="viewcode-block" id="get_tieline_data_from_tieline_strategy">
-<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_utils.get_tieline_data_from_tieline_strategy">[docs]</a>
-<span class="k">def</span> <span class="nf">get_tieline_data_from_tieline_strategy</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_data.get_tieline_data_from_tieline_strategy">[docs]</a>
+<span class="k">def</span> <span class="nf">get_tieline_data_from_tieline_strategy</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a dictionary of data for plotting ZPF lines.</span>
 
@@ -364,18 +429,26 @@
 
 <span class="sd">        The lengths of the &quot;x&quot; and &quot;y&quot; lists should be equal for each phase in a ZPFLine.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">global_y</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+
     <span class="n">zpf_data</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">zpf_line</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">:</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases_with_multiplicity</span>
-        <span class="n">phase_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
             <span class="n">x_data</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
             <span class="n">y_data</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
-            <span class="n">phase_data</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x_data</span><span class="p">,</span>
-                <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y_data</span><span class="p">,</span>
-                <span class="p">}</span>
-        <span class="n">zpf_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phase_data</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SinglePhaseData</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">))</span>
+        <span class="n">zpf_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">StrategyData</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
     <span class="k">return</span> <span class="n">zpf_data</span></div>
 
 </pre></div>
@@ -410,7 +483,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../../../../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

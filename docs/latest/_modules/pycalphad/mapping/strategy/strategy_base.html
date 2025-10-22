@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.strategy_base - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>pycalphad.mapping.strategy.strategy_base - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -322,7 +322,10 @@
 <span class="sd">    GLOBAL_MIN_TOL : float</span>
 <span class="sd">        Minimum driving force for a composition set to pass the global minimum check (default: 1e-4).</span>
 <span class="sd">    GLOBAL_MIN_NUM_CANDIDATES : int</span>
-<span class="sd">        Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1).</span>
+<span class="sd">        Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1000).</span>
+<span class="sd">        (NOTE: this is not actually how many candidates the global eq check will solve the driving force. This value represents the N number of samples with the lowest sampled driving forces, then the driving</span>
+<span class="sd">        force is computed for all unique phases from the candidates (which in large databases, this might be as high as 10-20),</span>
+<span class="sd">        So increasing it to a high value does not significantly degrade performance and mapping using models with high DOF may be better)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -339,7 +342,6 @@
         <span class="c1"># Add v.N to conditions. Mapping assumes that v.N is in conditions</span>
         <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-
 
         <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
 
@@ -362,11 +364,11 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">instantiate_models</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;models&#39;</span><span class="p">,</span> <span class="n">instantiate_models</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">))</span>
 
         <span class="n">state_vars</span> <span class="o">=</span> <span class="n">get_state_variables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_potential_condition</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">av</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_lims</span> <span class="k">if</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">state_vars</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">phase_records</span> <span class="o">=</span> <span class="n">PhaseRecordFactory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">state_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase_records</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;phase_record_factory&#39;</span><span class="p">,</span> <span class="n">PhaseRecordFactory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">state_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">))</span>
 
         <span class="c1"># In case we need to call pycalphad functions outside this class</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">system_info</span> <span class="o">=</span> <span class="p">{</span>
@@ -391,7 +393,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_CHECK_INTERVAL</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GLOBAL_CHECK_INTERVAL&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_PDENS</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GLOBAL_MIN_PDENS&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_TOL</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GLOBAL_MIN_TOL&quot;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GLOBAL_MIN_NUM_CANDIDATES&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GLOBAL_MIN_NUM_CANDIDATES&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_constant_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -413,7 +415,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Goes through ZPF lines to get all unique phases. For miscibility gaps, phases will have #n added to it</span>
 
-<span class="sd">        In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set</span>
+<span class="sd">        In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set.</span>
 <span class="sd">        There should always be nodes in the node_queue since it includes starting points (even if they&#39;re not nodes in the mapping sense)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -461,16 +463,32 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">point</span> <span class="o">=</span> <span class="n">point_from_equilibrium</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">models</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">phase_record_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_records</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Point could not be found from </span><span class="si">{</span><span class="n">conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Point could not be found from </span><span class="si">{</span><span class="n">conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">direction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No direction is given, adding point from </span><span class="si">{</span><span class="n">conditions</span><span class="si">}</span><span class="s2"> with both directions&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Direction</span><span class="o">.</span><span class="n">POSITIVE</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Direction</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding point </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+        <span class="n">exit_hint</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">err_reason</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_custom_starting_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">err_reason</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Point could not be added at </span><span class="si">{</span><span class="n">conditions</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">err_reason</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="k">if</span> <span class="n">exit_hint</span> <span class="o">==</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">exit_hint</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">direction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No direction is given, adding point from </span><span class="si">{</span><span class="n">conditions</span><span class="si">}</span><span class="s2"> with both directions&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Direction</span><span class="o">.</span><span class="n">POSITIVE</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Direction</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">),</span> <span class="n">force_add</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
+    
+    <span class="k">def</span> <span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For some strategy, we may need to modify the exit hint or direction based off the point conditions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_create_node_from_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">start_ax</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">start_dir</span><span class="p">:</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">exit_hint</span><span class="p">:</span> <span class="n">ExitHint</span> <span class="o">=</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -483,6 +501,18 @@
         <span class="n">new_node</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">=</span> <span class="n">start_dir</span>
         <span class="n">new_node</span><span class="o">.</span><span class="n">exit_hint</span> <span class="o">=</span> <span class="n">exit_hint</span>
         <span class="k">return</span> <span class="n">new_node</span>
+    
+<div class="viewcode-block" id="MapStrategy.generate_automatic_starting_points">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.generate_automatic_starting_points">[docs]</a>
+    <span class="k">def</span> <span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Automatically finds starting points based off input conditions</span>
+<span class="sd">        Map strategies should be able to still run even without automatic starting</span>
+<span class="sd">        point finding as long as there is another method to add starting points (which could</span>
+<span class="sd">        be add_nodes_from_conditions)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
 
 <div class="viewcode-block" id="MapStrategy.iterate">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.iterate">[docs]</a>
@@ -521,6 +551,18 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wrapper over iterate to run until finished</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If no there are nodes to start the mapping from, then run</span>
+        <span class="c1"># generate_automatic_starting points to get a set of starting points </span>
+        <span class="c1"># (the methods to find the starting points are strategy specific)</span>
+        <span class="c1"># If the user adds a node manually (which may be done through</span>
+        <span class="c1"># add_nodes_from_conditions or add_starting_points_from_step (binary,</span>
+        <span class="c1"># ternary or isopleth specific)), then we use those as the starting </span>
+        <span class="c1"># points instead</span>
+        <span class="c1"># And if we already have zpf lines, then assume we do not need to</span>
+        <span class="c1"># generate starting points (this assumes that the user has ran</span>
+        <span class="c1"># do_map once and intends to add a starting point to run do_map again)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_automatic_starting_points</span><span class="p">()</span>
         <span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
             <span class="n">finished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterate</span><span class="p">()</span></div>
@@ -685,6 +727,7 @@
             <span class="n">p2_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p2</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">])</span>
             <span class="n">v21</span> <span class="o">=</span> <span class="n">p1_pos</span> <span class="o">-</span> <span class="n">p2_pos</span>
             <span class="n">vnode1</span> <span class="o">=</span> <span class="n">node_pos</span> <span class="o">-</span> <span class="n">p1_pos</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Backtrack: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">p1_pos</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">p2_pos</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">node_pos</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v21</span><span class="p">,</span><span class="w"> </span><span class="n">vnode1</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v21</span><span class="p">,</span> <span class="n">vnode1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">del</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
@@ -701,10 +744,16 @@
         <span class="n">new_node</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_direction</span>
 
         <span class="c1"># Add to node queue</span>
-        <span class="c1"># For stepping, we will force add. Most nodes will be unique, however, if we&#39;re stepping along composition</span>
+        <span class="c1"># For stepping, we will check whether the node parent is also the same before adding</span>
+        <span class="c1">#    This is for cases where stepping in compostion along a binary, then the two ends of</span>
+        <span class="c1">#    a two phase region will be the same node. In this case, we check that the parent</span>
+        <span class="c1">#    is also the same and that it came from the same direction (this second part is for</span>
+        <span class="c1">#    an edge case a starting point is in a thin two-phase region and a step in both directions</span>
+        <span class="c1">#    will lead to a node)</span>
         <span class="c1"># in a binary, then the nodes won&#39;t be unique</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">,</span> <span class="n">check_parent</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> has already been added&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">):</span>
                 <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> has already been added&quot;</span><span class="p">)</span>
@@ -806,7 +855,8 @@
             <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">&quot;system_info&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_info</span><span class="p">,</span>
                 <span class="s2">&quot;pdens&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_PDENS</span><span class="p">,</span>
-                <span class="s2">&quot;tol&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_TOL</span>
+                <span class="s2">&quot;tol&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_TOL</span><span class="p">,</span>
+                <span class="s2">&quot;global_num_candidates&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span><span class="p">,</span>
             <span class="p">}</span>
 
             <span class="c1"># Check valid equilibrium, global min and change in phases</span>
@@ -862,7 +912,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../../../../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

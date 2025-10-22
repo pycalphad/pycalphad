@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.ternary_strategy - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>pycalphad.mapping.strategy.ternary_strategy - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -293,7 +293,7 @@
 <span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_base</span> <span class="kn">import</span> <span class="n">MapStrategy</span>
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.step_strategy</span> <span class="kn">import</span> <span class="n">StepStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_utils</span> <span class="kn">import</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">,</span> <span class="n">get_tieline_data_from_tieline_strategy</span>
+<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_data</span> <span class="kn">import</span> <span class="n">PhaseRegionData</span><span class="p">,</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">,</span> <span class="n">get_tieline_data_from_tieline_strategy</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -399,9 +399,9 @@
         <span class="n">unlisted_element</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;VA&#39;</span><span class="p">}</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">av</span><span class="o">.</span><span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span> <span class="o">+</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="n">unlisted_element</span><span class="p">)]</span>
 
-<div class="viewcode-block" id="TernaryStrategy.initialize">
-<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.initialize">[docs]</a>
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TernaryStrategy.generate_automatic_starting_points">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.generate_automatic_starting_points">[docs]</a>
+    <span class="k">def</span> <span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Searches axis limits to find starting points</span>
 
@@ -422,9 +422,8 @@
 
             <span class="c1"># Step map</span>
             <span class="n">step</span> <span class="o">=</span> <span class="n">StepStrategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="o">**</span><span class="n">map_kwargs</span><span class="p">)</span>
-            <span class="n">step</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
             <span class="n">step</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_add_starting_points_from_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_starting_points_from_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
 
         <span class="c1"># Additional step where we switch axis conditions to the unlisted variable</span>
         <span class="n">conds</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">)</span>
@@ -433,12 +432,13 @@
 
         <span class="c1"># Step map</span>
         <span class="n">step</span> <span class="o">=</span> <span class="n">StepStrategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="o">**</span><span class="n">map_kwargs</span><span class="p">)</span>
-        <span class="n">step</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
         <span class="n">step</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_add_starting_points_from_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_starting_points_from_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
+<div class="viewcode-block" id="TernaryStrategy.add_starting_points_from_step">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.add_starting_points_from_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds all 2-phase and 3-phase regions from step as starting points</span>
 <span class="sd">        We also do a global min check to make sure these phase regions are truly the phases they say they are</span>
@@ -446,10 +446,15 @@
         <span class="k">for</span> <span class="n">zpf_line</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">num_phases</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases</span><span class="p">)</span>
+
+                <span class="c1"># Iterate through the zpf line until we find a point with the same number of phases as the</span>
+                <span class="c1"># zpf line itself. This seems redundant, but it is because the first point of the zpf line</span>
+                <span class="c1"># is likely going to be a node or a node parent, where the number of phases may differ by 1</span>
                 <span class="n">p_index</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">p_index</span><span class="p">]</span><span class="o">.</span><span class="n">stable_phases</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_phases</span><span class="p">:</span>
                     <span class="n">p_index</span> <span class="o">+=</span> <span class="mi">1</span>
 
+                <span class="c1"># If we do find a good point on the zpf line, then we can process it to be a starting point</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">p_index</span><span class="p">]</span><span class="o">.</span><span class="n">stable_phases</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_phases</span><span class="p">:</span>
                     <span class="n">new_point</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">p_index</span><span class="p">]</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_vars</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">new_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">:</span>
@@ -457,15 +462,37 @@
                         <span class="n">new_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">new_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                     <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding node </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+                    <span class="c1"># New point will be make with all composition sets as free, since we set</span>
+                    <span class="c1"># which CS to fix when finding an exit</span>
                     <span class="n">free_point</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">_generate_point_with_free_cs</span><span class="p">(</span><span class="n">new_point</span><span class="p">)</span>
 
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_full_global_equilibrium</span><span class="p">(</span><span class="n">free_point</span><span class="p">,</span> <span class="n">add_global_point_if_false</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+                    <span class="n">cs_result</span> <span class="o">=</span> <span class="n">zeq</span><span class="o">.</span><span class="n">_find_global_min_cs</span><span class="p">(</span><span class="n">free_point</span><span class="p">,</span> <span class="n">system_info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_info</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_PDENS</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_TOL</span><span class="p">,</span> <span class="n">num_candidates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">cs_result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">new_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">free_point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Modifies exit hint and direction based off number of composition sets</span>
+<span class="sd">            Single phase -&gt; cannot be added</span>
+<span class="sd">            Two phase    -&gt; point is exit, direction stays the same as input</span>
+<span class="sd">            Three phase  -&gt; normal exit finding strategy, no direction needed</span>
+
+<span class="sd">        This is the same as BinaryStrategy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Single phase detected&quot;</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;More than three phases detected&quot;</span>
 
     <span class="k">def</span> <span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A node on for a binary system has three exits, which are combinations of 2 CS in the node</span>
+<span class="sd">        A node in a ternary system has three exits, which are combinations of 2 CS in the node</span>
 <span class="sd">        Since the node is found from one pair of CS, one of the exits are already accounted for, so</span>
 <span class="sd">        practically, it&#39;s only 2 exits</span>
 <span class="sd">            However, if there are multiple starting points, a node may be found from multiple zpf lines</span>
@@ -535,87 +562,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_add_starting_point_at_new_condition</span><span class="p">(</span><span class="n">exit_point</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">Direction</span><span class="o">.</span><span class="n">POSITIVE</span> <span class="k">if</span> <span class="n">norm_delta_dot</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">Direction</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">def</span> <span class="nf">_check_full_global_equilibrium</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">add_global_point_if_false</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Does a full global equilibrium calculation to check if point is global min</span>
-
-<span class="sd">        Sometimes, a false global min invariant will be added, so this is a final check to make sure an invariant is real</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># We&#39;ll bias the composition towards the free composition sets, this can sometimes help with equilibrium (especially if the node</span>
-        <span class="c1"># is found from different ZPF lines, then we have multiple compositions to check that this node exists)</span>
-        <span class="c1"># There seems to be some cases where a phase is not detected even when it&#39;s supposed to be there</span>
-        <span class="n">free_point</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">_generate_point_with_free_cs</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">bias_towards_free</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checking global eq at </span><span class="si">{</span><span class="n">free_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">test_point</span> <span class="o">=</span> <span class="n">point_from_equilibrium</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">,</span> <span class="n">free_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">models</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">phase_record_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_records</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">test_point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span>
-
-        <span class="c1"># If the test point has the same composition sets as the free point, then it&#39;s valid node</span>
-        <span class="k">if</span> <span class="n">free_point</span> <span class="o">==</span> <span class="n">test_point</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">test_point</span>
-
-        <span class="c1"># If test point has a different set of phases, then we can add the new point as a starting point</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">add_global_point_if_false</span><span class="p">:</span>
-                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Global eq check failed. Adding test point as a starting point </span><span class="si">{</span><span class="n">test_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">test_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">new_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">test_point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">test_point</span>
-
-    <span class="k">def</span> <span class="nf">_process_new_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">new_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Some extra checks before adding a new node to the node queue</span>
-
-<span class="sd">        1. Check global equilibrium to make sure node is true global eq</span>
-<span class="sd">            If global eq failed (convergence issue), then decrease step size and try stepping again</span>
-<span class="sd">              If step size is too small, then fail zpf line and remove it</span>
-<span class="sd">        2. If passed, then add new node like normal</span>
-<span class="sd">        3. If node is not true equilibrium, check if the zpf line phases is a subset of the node phases</span>
-<span class="sd">            If subset, then set the last zpf point as a parent and add new node like normal</span>
-<span class="sd">            If not, then decrease step size and try stepping again</span>
-<span class="sd">              If step size is too small, then fail zpf line and add node as a new starting point</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Do a global equilibrium check before attempting to add the new node</span>
-        <span class="n">global_eq_check</span><span class="p">,</span> <span class="n">test_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_full_global_equilibrium</span><span class="p">(</span><span class="n">new_node</span><span class="p">,</span> <span class="n">add_global_point_if_false</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">test_point</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Global eq check on new node could not be determined&quot;</span><span class="p">)</span>
-
-            <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DELTA_SCALE</span>
-            <span class="k">if</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_delta</span><span class="p">[</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MIN_DELTA_RATIO</span><span class="p">:</span>
-                <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">FAILED</span>
-
-                <span class="c1"># Removes the last ZPF line if we determine that the new node is not connected to the current zpf line</span>
-                <span class="c1"># Since the last zpf line has finished (or is non-existent if this is the first zpf line), this will</span>
-                <span class="c1"># cause the iteration to go directly to the next node or exit</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">NOT_FINISHED</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">global_eq_check</span><span class="p">:</span>
-                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Global eq check on new node passed&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_process_new_node</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">,</span> <span class="n">new_node</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">zpf_line_phases</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases_with_multiplicity</span>
-                <span class="n">test_node_phases</span> <span class="o">=</span> <span class="n">test_point</span><span class="o">.</span><span class="n">stable_phases_with_multiplicity</span>
-                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Global eq check failed. New node is metastable. Comparing zpf line </span><span class="si">{</span><span class="n">zpf_line_phases</span><span class="si">}</span><span class="s2"> with node phases </span><span class="si">{</span><span class="n">test_node_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">test_node_phases</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">zpf_line_phases</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Node can be added as a proper node&quot;</span><span class="p">)</span>
-                    <span class="n">new_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">test_point</span><span class="p">,</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_process_new_node</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">,</span> <span class="n">new_node</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DELTA_SCALE</span>
-                    <span class="k">if</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_delta</span><span class="p">[</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MIN_DELTA_RATIO</span><span class="p">:</span>
-                        <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">FAILED</span>
-                        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Node is added as a starting point. Removing current zpf line.&quot;</span><span class="p">)</span>
-                        <span class="n">new_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">test_point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">):</span>
-                            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> has already been added&quot;</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">NOT_FINISHED</span>
-
+    
     <span class="k">def</span> <span class="nf">_add_starting_point_at_new_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">normal</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If we made it here, then no direction has worked. This could be a case where</span>
@@ -651,9 +598,24 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Could not find a new node from conditions&quot;</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_process_new_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">new_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Post global min check after finding node to ensure it&#39;s not a metastable node</span>
+
+<span class="sd">        This is the same as _process_new_node in the BinaryStrategy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Checking if new node is metastable&quot;</span><span class="p">)</span>
+        <span class="n">cs_result</span> <span class="o">=</span> <span class="n">zeq</span><span class="o">.</span><span class="n">_find_global_min_cs</span><span class="p">(</span><span class="n">new_node</span><span class="p">,</span> <span class="n">system_info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_info</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_PDENS</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_TOL</span><span class="p">,</span> <span class="n">num_candidates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cs_result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Global eq check on new node passed&quot;</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_process_new_node</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">,</span> <span class="n">new_node</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Global eq check failed. New node is metastable. Removing current zpf line.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
 <div class="viewcode-block" id="TernaryStrategy.get_invariant_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_invariant_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for invariant plotting.</span>
 
@@ -663,27 +625,22 @@
 <span class="sd">            The state variable to be used for the x-axis.</span>
 <span class="sd">        y : v.StateVariable</span>
 <span class="sd">            The state variable to be used for the y-axis.</span>
+<span class="sd">        global_x : bool</span>
+<span class="sd">            Whether variable x applies to the global system</span>
+<span class="sd">        global_y : bool</span>
+<span class="sd">            Whether variable y applies to the global system</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list of dict</span>
-<span class="sd">            A list where each dictionary has the following structure::</span>
-
-<span class="sd">            {</span>
-<span class="sd">                &quot;phases&quot;: list of str,</span>
-<span class="sd">                &quot;x&quot;: list of float,</span>
-<span class="sd">                &quot;y&quot;: list of float</span>
-<span class="sd">            }</span>
-
-<span class="sd">            The indices in `x` and `y` will match the indices in `phases`.</span>
+<span class="sd">        list of StrategyData pertaining to each invariant</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">global_x</span><span class="p">,</span> <span class="n">global_y</span><span class="p">)</span></div>
 
 
     
 <div class="viewcode-block" id="TernaryStrategy.get_tieline_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_tieline_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_tieline_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_tieline_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for plotting ZPF lines.</span>
 
@@ -693,22 +650,16 @@
 <span class="sd">            The state variable to be used for the x-axis.</span>
 <span class="sd">        y : v.StateVariable</span>
 <span class="sd">            The state variable to be used for the y-axis.</span>
+<span class="sd">        global_x : bool</span>
+<span class="sd">            Whether variable x applies to the global system</span>
+<span class="sd">        global_y : bool</span>
+<span class="sd">            Whether variable y applies to the global system</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list of dict</span>
-<span class="sd">            A list where each dictionary has the following structure::</span>
-
-<span class="sd">            {</span>
-<span class="sd">                &quot;&lt;phase_name&gt;&quot;: {</span>
-<span class="sd">                    &quot;x&quot;: list of float,</span>
-<span class="sd">                    &quot;y&quot;: list of float</span>
-<span class="sd">                }</span>
-<span class="sd">            }</span>
-
-<span class="sd">            The lengths of the &quot;x&quot; and &quot;y&quot; lists should be equal for each phase in a ZPF line.</span>
+<span class="sd">        list of Strategy pertaining to each tieline</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">get_tieline_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">get_tieline_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">global_x</span><span class="p">,</span> <span class="n">global_y</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
@@ -743,7 +694,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../../../../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

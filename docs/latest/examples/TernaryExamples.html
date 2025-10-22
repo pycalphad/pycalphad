@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>Plotting Ternary Phase Diagrams and Using Triangular Axes - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>Plotting Ternary Phase Diagrams and Using Triangular Axes - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -311,8 +311,8 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-CPU times: total: 38.9 s
-Wall time: 39.2 s
+CPU times: total: 11.8 s
+Wall time: 33.9 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -354,8 +354,8 @@ Wall time: 39.2 s
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-CPU times: total: 40.7 s
-Wall time: 40.9 s
+CPU times: total: 8.61 s
+Wall time: 28.2 s
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -374,11 +374,60 @@ Wall time: 40.9 s
 <img alt="../_images/examples_TernaryExamples_4_2.png" src="../_images/examples_TernaryExamples_4_2.png" />
 </div>
 </div>
+<p>By default, the mapping code will attempt to generate a list of starting points by searching around the axes of the phase diagram. However, in some cases, phase regions in the phase diagram will not connect to the axis. This is the case if we want to plot the Al-Cu-Y ternary at higher temperatures (ex. &gt;1360K). The following will show how to use the mapping API to add custom starting points to generate the correct phase diagram.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.mapping</span> <span class="kn">import</span> <span class="n">TernaryStrategy</span><span class="p">,</span> <span class="n">plot_ternary</span>
+
+<span class="n">db_al_cu_y</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;Al-Cu-Y.tdb&#39;</span><span class="p">)</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1360</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">)}</span>
+<span class="n">strat</span> <span class="o">=</span> <span class="n">TernaryStrategy</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>
+<span class="c1"># Add automatic starting points by searching along the axes</span>
+<span class="n">strat</span><span class="o">.</span><span class="n">generate_automatic_starting_points</span><span class="p">()</span>
+<span class="c1"># Add custom starting point near middle of phase diagram</span>
+<span class="n">strat</span><span class="o">.</span><span class="n">add_nodes_from_conditions</span><span class="p">({</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1770</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">0.35</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">):</span> <span class="mf">0.3</span><span class="p">})</span>
+<span class="o">%</span><span class="k">time</span> strat.do_map()
+<span class="n">plot_ternary</span><span class="p">(</span><span class="n">strat</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">),</span> <span class="n">label_nodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CPU times: total: 1.73 s
+Wall time: 6.86 s
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;TriangularAxes: title={&#39;center&#39;: &#39;Al-Cu-Y&#39;}, xlabel=&#39;X(Al)&#39;, ylabel=&#39;X(Y)&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_TernaryExamples_6_2.png" src="../_images/examples_TernaryExamples_6_2.png" />
+</div>
+</div>
 </section>
 <section id="Molar-Ratios-and-Linear-Combination-Conditions">
 <h2>Molar Ratios and Linear Combination Conditions<a class="headerlink" href="#Molar-Ratios-and-Linear-Combination-Conditions" title="Link to this heading">¶</a></h2>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">Workspace</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
@@ -482,7 +531,7 @@ Wall time: 40.9 s
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

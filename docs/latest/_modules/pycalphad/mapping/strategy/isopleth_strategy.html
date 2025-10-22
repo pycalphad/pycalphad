@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.isopleth_strategy - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>pycalphad.mapping.strategy.isopleth_strategy - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,6 +291,7 @@
 <span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_base</span> <span class="kn">import</span> <span class="n">MapStrategy</span>
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.step_strategy</span> <span class="kn">import</span> <span class="n">StepStrategy</span>
+<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_data</span> <span class="kn">import</span> <span class="n">SinglePhaseData</span><span class="p">,</span> <span class="n">StrategyData</span><span class="p">,</span> <span class="n">PhaseRegionData</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -329,12 +330,9 @@
 <div class="viewcode-block" id="IsoplethStrategy">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy">[docs]</a>
 <span class="k">class</span> <span class="nc">IsoplethStrategy</span><span class="p">(</span><span class="n">MapStrategy</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-<div class="viewcode-block" id="IsoplethStrategy.initialize">
-<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.initialize">[docs]</a>
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="IsoplethStrategy.generate_automatic_starting_points">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.generate_automatic_starting_points">[docs]</a>
+    <span class="k">def</span> <span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Searches axis limits to find starting points</span>
 
@@ -357,27 +355,38 @@
                 <span class="c1"># Step map</span>
                 <span class="n">map_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_kwargs</span><span class="p">()</span>
                 <span class="n">step</span> <span class="o">=</span> <span class="n">StepStrategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="o">**</span><span class="n">map_kwargs</span><span class="p">)</span>
-                <span class="n">step</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
                 <span class="n">step</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
-
-                <span class="c1"># Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction</span>
-                <span class="c1"># NOTE: if a stepping has a lot of failed equilibrium calculations, it&#39;s possible that the all nodes are generated</span>
-                <span class="c1">#      as starting points (which has no parents), so no starting points for isopleth mapping would be added</span>
-                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding node </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                        <span class="n">node</span><span class="o">.</span><span class="n">axis_var</span> <span class="o">=</span> <span class="kc">None</span>
-                        <span class="n">node</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">POSITIVE</span>
-                        <span class="n">node</span><span class="o">.</span><span class="n">exit_hint</span> <span class="o">=</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-
-                        <span class="n">alt_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">free_composition_sets</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
-                        <span class="n">alt_node</span><span class="o">.</span><span class="n">axis_var</span> <span class="o">=</span> <span class="kc">None</span>
-                        <span class="n">alt_node</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">NEGATIVE</span>
-                        <span class="n">alt_node</span><span class="o">.</span><span class="n">exit_hint</span> <span class="o">=</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">alt_node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_starting_points_from_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="IsoplethStrategy.add_starting_points_from_step">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.add_starting_points_from_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
+        <span class="c1"># Get all nodes that have a parent. We set axis variable to None so that the node will find a good starting direction</span>
+        <span class="c1"># NOTE: if a stepping has a lot of failed equilibrium calculations, it&#39;s possible that the all nodes are generated</span>
+        <span class="c1">#      as starting points (which has no parents), so no starting points for isopleth mapping would be added</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Add node with both positive and negative step direction</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding node </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">axis_var</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">POSITIVE</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">exit_hint</span> <span class="o">=</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+                <span class="n">alt_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">free_composition_sets</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+                <span class="n">alt_node</span><span class="o">.</span><span class="n">axis_var</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">alt_node</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">NEGATIVE</span>
+                <span class="n">alt_node</span><span class="o">.</span><span class="n">exit_hint</span> <span class="o">=</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">alt_node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Isopleth strategies will use a different API for custom starting points</span>
+<span class="sd">        since they require a point with a fixed composition set at 0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Isopleth strategy does not support single point equilibrium as starting points&quot;</span>
 
     <span class="k">def</span> <span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -401,45 +410,57 @@
 
     <span class="k">def</span> <span class="nf">_invariant_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">],</span> <span class="n">exit_dirs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Direction</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Maximum number of exits is 2*p - a ZPF line entering and exiting the node for each phase</span>
-<span class="sd">        We test the exits by going through combinations of n-1 phases (assume a and b are fixed or forbidden)</span>
+<span class="sd">        Maximum number of exits from a node along an isopleth section is 2*p - a ZPF line entering and exiting the node for each phase</span>
+<span class="sd">        However, the number of ZPF surfaces leaving a node is 2*comb(p,p-2)</span>
+<span class="sd">            Note: if a node containing p phases is found by fixing 2 phases, then a ZPF surface coming out of a node</span>
+<span class="sd">                  has at most p-1 phases and is defined by fixing 1 phase</span>
+<span class="sd">                  so for any combination of p-2 phases, we can fix 1 of the other phases to construct the ZPF surface</span>
+<span class="sd">        We test the exits by going through combinations of n-2 phases (assuming a and b are the other two phases)</span>
 <span class="sd">          Create a matrix of NP*x = X and test if NP is positive for all phases</span>
-<span class="sd">          If this is true, then we create two exits, one with (n-1) (a) and (n-1) (b)</span>
-<span class="sd">          Rather than keeping track of the two missing phases, we&#39;ll create combinations of all composition sets</span>
-<span class="sd">              Then the nth phase will be fixed to 0 and n+1 th phase will be ignored if the candidate point passes</span>
-<span class="sd">              This leads to some double calculations, but the linear system we solve is pretty small, so whatever</span>
+<span class="sd">          If this is true, then we create two exits, one with (n-2) (a) and (n-2) (b) and only add it as</span>
+<span class="sd">          a candidate exit if the node has not encountered it before or if it has not been calculated (although this should not happen)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">trial_stable_compsets</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)):</span>
-            <span class="n">phase_NP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invariant_phase_fractions</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">trial_stable_compsets</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="c1"># Make a list of indices for bookkeeping free and fixed composition sets</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">))</span>
+        <span class="c1"># Free composition sets will be all combinations of p-2 phases</span>
+        <span class="k">for</span> <span class="n">free_indices</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+            <span class="c1"># Fixed composition sets will be the remaining 2 phases</span>
+            <span class="n">fixed_indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">free_indices</span><span class="p">))</span>
+            <span class="n">trial_stable_compsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">[</span><span class="n">free_ind</span><span class="p">]</span> <span class="k">for</span> <span class="n">free_ind</span> <span class="ow">in</span> <span class="n">free_indices</span><span class="p">]</span>
+            <span class="n">cs_phase_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">trial_stable_compsets</span><span class="p">]</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Testing </span><span class="si">{</span><span class="n">cs_phase_names</span><span class="si">}</span><span class="s2"> for exit.&quot;</span><span class="p">)</span>
+
+            <span class="n">phase_NP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invariant_phase_fractions</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">trial_stable_compsets</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">phase_NP</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
 
             <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">phase_NP</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="c1"># Set fixed phase as the phase in the trail comp set that we didn&#39;t test for</span>
-                <span class="n">candidate_point</span> <span class="o">=</span> <span class="n">Point</span><span class="o">.</span><span class="n">with_copy</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">,</span> <span class="p">[</span><span class="n">trial_stable_compsets</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]],</span> <span class="nb">list</span><span class="p">(</span><span class="n">trial_stable_compsets</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">fixed_ind</span> <span class="ow">in</span> <span class="n">fixed_indices</span><span class="p">:</span>
+                    <span class="c1"># Set fixed phase as the phase in the trial comp set that we didn&#39;t test for</span>
+                    <span class="n">candidate_point</span> <span class="o">=</span> <span class="n">Point</span><span class="o">.</span><span class="n">with_copy</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">,</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">[</span><span class="n">fixed_ind</span><span class="p">]],</span> <span class="nb">list</span><span class="p">(</span><span class="n">trial_stable_compsets</span><span class="p">))</span>
 
-                <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">candidate_point</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">:</span>
-                    <span class="n">cs</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="n">map_utils</span><span class="o">.</span><span class="n">update_cs_phase_frac</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                    <span class="c1"># Define the fixed CS as fixed to NP=0</span>
+                    <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">candidate_point</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">:</span>
+                        <span class="n">cs</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="n">map_utils</span><span class="o">.</span><span class="n">update_cs_phase_frac</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
 
-                <span class="c1"># Minimum phase amount set to 1e-6 (this is to account for pycalphad ignoring all phases with NP=0 when computing deltas and causing indexing issues)</span>
-                <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">candidate_point</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">:</span>
-                    <span class="n">cs</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="kc">False</span>
-                    <span class="n">map_utils</span><span class="o">.</span><span class="n">update_cs_phase_frac</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">([</span><span class="n">phase_NP</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mf">1e-6</span><span class="p">]))</span>
-                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1"># Minimum phase amount set to 1e-6 (this is to account for pycalphad ignoring all phases with NP=0 when computing deltas and causing indexing issues)</span>
+                    <span class="k">for</span> <span class="n">cs</span><span class="p">,</span> <span class="n">ph_amt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">,</span> <span class="n">phase_NP</span><span class="p">):</span>
+                        <span class="n">cs</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="n">map_utils</span><span class="o">.</span><span class="n">update_cs_phase_frac</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">([</span><span class="n">ph_amt</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">]))</span>
 
-                <span class="c1"># Update axis variables with new point</span>
-                <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">:</span>
-                    <span class="n">candidate_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">[</span><span class="n">av</span><span class="p">]</span> <span class="o">=</span> <span class="n">candidate_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span>
+                    <span class="c1"># Update axis variables with new point</span>
+                    <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">:</span>
+                        <span class="n">candidate_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">[</span><span class="n">av</span><span class="p">]</span> <span class="o">=</span> <span class="n">candidate_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span>
 
-                <span class="c1"># Check if a) candidate has already been added as an exit (does this really happen?) and b) node has already encountered this exit</span>
-                <span class="n">added</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">compare_consider_fixed_cs</span><span class="p">(</span><span class="n">candidate_exits</span><span class="p">)</span> <span class="k">for</span> <span class="n">candidate_exits</span> <span class="ow">in</span> <span class="n">exits</span><span class="p">)</span>
-                <span class="n">exit_has_been_encountered</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">has_point_been_encountered</span><span class="p">(</span><span class="n">candidate_point</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">added</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exit_has_been_encountered</span><span class="p">:</span>
-                    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found candidate exit: </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">exits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_point</span><span class="p">)</span>
-                    <span class="n">exit_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                    <span class="c1"># Check if a) candidate has already been added as an exit (this shouldn&#39;t happen) and b) node has already encountered this exit</span>
+                    <span class="n">added</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">compare_consider_fixed_cs</span><span class="p">(</span><span class="n">candidate_exits</span><span class="p">)</span> <span class="k">for</span> <span class="n">candidate_exits</span> <span class="ow">in</span> <span class="n">exits</span><span class="p">)</span>
+                    <span class="n">exit_has_been_encountered</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">has_point_been_encountered</span><span class="p">(</span><span class="n">candidate_point</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to add </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> for exit.&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">added</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exit_has_been_encountered</span><span class="p">:</span>
+                        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found candidate exit: </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">exits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_point</span><span class="p">)</span>
+                        <span class="n">exit_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_invariant_phase_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">trial_stable_compsets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -457,6 +478,7 @@
 
 <span class="sd">        NOTE: this is its own function since we use this for plotting as well</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># NOTE: Since the map strategy implicitly adds v.N to conditions, then fixed_var will always contain v.N, which we need</span>
         <span class="n">fixed_var</span> <span class="o">=</span> <span class="p">[</span><span class="n">av</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">global_conditions</span> <span class="k">if</span> <span class="p">(</span><span class="n">av</span> <span class="o">!=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="ow">and</span> <span class="n">av</span> <span class="o">!=</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span> <span class="ow">and</span> <span class="n">av</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">)]</span>
 
         <span class="c1"># Phase matrix is all conditions of fixed variable (for v.X, we use the composition set value, rather than global)</span>
@@ -534,7 +556,7 @@
     
 <div class="viewcode-block" id="IsoplethStrategy.get_zpf_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_zpf_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_zpf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_zpf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StrategyData</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for plotting ZPF lines for isopleths.</span>
 
@@ -547,55 +569,18 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            A dictionary with the following structure::</span>
-
-<span class="sd">            {</span>
-<span class="sd">                &quot;data&quot;: [</span>
-<span class="sd">                    {</span>
-<span class="sd">                        &quot;phase&quot;: str,</span>
-<span class="sd">                        &quot;x&quot;: list of float,</span>
-<span class="sd">                        &quot;y&quot;: list of float</span>
-<span class="sd">                    }</span>
-<span class="sd">                ],</span>
-<span class="sd">                &quot;xlim&quot;: list of float,</span>
-<span class="sd">                &quot;ylim&quot;: list of float</span>
-<span class="sd">            }</span>
-
-<span class="sd">            The &quot;phase&quot; in the &quot;data&quot; section refers to the fixed phase at zero-phase fraction.</span>
+<span class="sd">        StrategyData where the data pertains to each ZPF line</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">xlim</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
-        <span class="n">ylim</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">zpf_line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">:</span>
-            <span class="n">zero_phase</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">fixed_phases</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">x_data</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-            <span class="n">y_data</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SinglePhaseData</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">fixed_phases</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
 
-            <span class="n">zpf_data</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;phase&#39;</span><span class="p">:</span> <span class="n">zero_phase</span><span class="p">,</span>
-                <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x_data</span><span class="p">,</span>
-                <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y_data</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zpf_data</span><span class="p">)</span>
-
-            <span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">x_data</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_data</span><span class="p">)])])</span>
-            <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">x_data</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_data</span><span class="p">)])])</span>
-            <span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">y_data</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_data</span><span class="p">)])])</span>
-            <span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">y_data</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_data</span><span class="p">)])])</span>
-
-        <span class="n">zpf_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
-            <span class="s1">&#39;xlim&#39;</span><span class="p">:</span> <span class="n">xlim</span><span class="p">,</span>
-            <span class="s1">&#39;ylim&#39;</span><span class="p">:</span> <span class="n">ylim</span><span class="p">,</span>
-        <span class="p">}</span>
-
-        <span class="k">return</span> <span class="n">zpf_data</span></div>
+        <span class="k">return</span> <span class="n">StrategyData</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="IsoplethStrategy.get_invariant_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_invariant_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for plotting invariants for isopleths.</span>
 
@@ -610,13 +595,10 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list of dict</span>
-<span class="sd">            A list where each dictionary has the following structure::</span>
-
-<span class="sd">            {</span>
-<span class="sd">                &quot;x&quot;: list of float,</span>
-<span class="sd">                &quot;y&quot;: list of float</span>
-<span class="sd">            }</span>
+<span class="sd">        list of StrategyData each pertaining to an invariant</span>
+<span class="sd">            NOTE: the data in each StrategyData does not pertain to a single phase</span>
+<span class="sd">                  but rather the p-2 phases where the p-2 phase region intersects with</span>
+<span class="sd">                  the fixed isopleth conditions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">node_data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
@@ -624,13 +606,15 @@
             <span class="k">if</span> <span class="n">is_invariant</span><span class="p">:</span>
                 <span class="n">x_vals</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">y_vals</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">phase_set</span> <span class="o">=</span> <span class="p">[]</span>
+                
                 <span class="k">for</span> <span class="n">trial_stable_compsets</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
                     <span class="c1"># Get phase fraction for combination of phases and node conditions</span>
                     <span class="n">phase_NP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invariant_phase_fractions</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">trial_stable_compsets</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">phase_NP</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="k">continue</span>
 
-                    <span class="c1"># If phase combination is value, then extract x and y values</span>
+                    <span class="c1"># If phase combination is valid, then extract x and y values</span>
                     <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">phase_NP</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
                         <span class="k">if</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">is_state_variable</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                             <span class="n">x_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
@@ -640,15 +624,16 @@
                             <span class="n">y_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">y_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get_local_property</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">*</span><span class="n">cs_NP</span> <span class="k">for</span> <span class="n">cs</span><span class="p">,</span> <span class="n">cs_NP</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">trial_stable_compsets</span><span class="p">,</span> <span class="n">phase_NP</span><span class="p">)))</span>
+                        <span class="n">phase_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">trial_stable_compsets</span><span class="p">]))</span>
 
-                <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_vals</span><span class="p">)),</span> <span class="mi">2</span><span class="p">):</span>
-                    <span class="n">x_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_vals</span><span class="p">[</span><span class="n">p1</span><span class="p">],</span> <span class="n">x_vals</span><span class="p">[</span><span class="n">p2</span><span class="p">]]</span>
-                    <span class="n">y_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">y_vals</span><span class="p">[</span><span class="n">p1</span><span class="p">],</span> <span class="n">y_vals</span><span class="p">[</span><span class="n">p2</span><span class="p">]]</span>
-                    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-                        <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x_data</span><span class="p">,</span>
-                        <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y_data</span><span class="p">,</span>
-                    <span class="p">}</span>
-                    <span class="n">node_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="c1"># We break the rules here since a point on an isopleth node corresponds to</span>
+                <span class="c1"># where the p-2 phase region intersects the fixed isopleth conditions rather</span>
+                <span class="c1"># than a single phase</span>
+                <span class="k">for</span> <span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">,</span> <span class="n">ph_data</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_vals</span><span class="p">,</span> <span class="n">y_vals</span><span class="p">,</span> <span class="n">phase_set</span><span class="p">):</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SinglePhaseData</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ph_data</span><span class="p">),</span> <span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">))</span>
+                <span class="n">node_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PhaseRegionData</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
         <span class="k">return</span> <span class="n">node_data</span></div>
 </div>
 
@@ -684,7 +669,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../../../../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

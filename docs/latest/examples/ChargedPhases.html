@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>Phases with Electrically Charged Species - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>Phases with Electrically Charged Species - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -323,7 +323,6 @@
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad.mapping</span> <span class="kn">import</span> <span class="n">StepStrategy</span><span class="p">,</span> <span class="n">plot_step</span>
 
 <span class="n">strategy</span> <span class="o">=</span> <span class="n">StepStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">],</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mf">1e5</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">0.55</span><span class="p">})</span>
-<span class="n">strategy</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
 <span class="n">strategy</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -373,19 +372,21 @@ Text(0.5, 1.0, &#39;Phase fractions vs T @ X(O) = 0.55&#39;)
     <span class="k">if</span> <span class="n">charge</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">charge</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="k">elif</span> <span class="n">charge</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">charge</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;\!+&#39;</span>
+        <span class="n">charge</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;+&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">charge</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">charge</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;\!-&#39;</span>
+        <span class="n">charge</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">charge</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;-&#39;</span>
     <span class="n">label_name</span> <span class="o">=</span> <span class="s1">&#39;$^</span><span class="si">{1}{0}</span><span class="s1">^{{</span><span class="si">{2}</span><span class="s1">}}$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species_constituents</span><span class="p">,</span> <span class="n">subl_idx</span><span class="p">,</span> <span class="n">charge</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">label_name</span>
 
 <span class="n">desired_phase</span> <span class="o">=</span> <span class="s1">&#39;SPINEL&#39;</span>
 <span class="n">mod</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">],</span> <span class="n">desired_phase</span><span class="p">)</span>
 
+<span class="c1"># Since the site fraction variable is specific to SPINEL and constituent, the strategy will return a</span>
+<span class="c1"># single x,y line corresponding to the entire system</span>
 <span class="k">for</span> <span class="n">sf_idx</span><span class="p">,</span> <span class="n">sf_sym</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">site_fractions</span><span class="p">):</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">sf_sym</span><span class="p">)[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="n">desired_phase</span><span class="p">]</span>
-    <span class="n">indices</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">][</span><span class="n">indices</span><span class="p">]</span><span class="o">-</span><span class="mf">273.15</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">][</span><span class="n">indices</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">create_label</span><span class="p">(</span><span class="n">sf_idx</span><span class="p">,</span> <span class="n">sf_sym</span><span class="p">))</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">sf_sym</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span><span class="o">-</span><span class="mf">273.15</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">indices</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">create_label</span><span class="p">(</span><span class="n">sf_idx</span><span class="p">,</span> <span class="n">sf_sym</span><span class="p">))</span>
 
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.01</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Temperature (Celsius)&#39;</span><span class="p">)</span>
@@ -443,7 +444,7 @@ Text(0.5, 1.0, &#39;Phase fractions vs T @ X(O) = 0.55&#39;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x1ca89dc73d0&gt;
+&lt;matplotlib.legend.Legend at 0x1f44ba92120&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -476,9 +477,9 @@ Text(0.5, 1.0, &#39;Phase fractions vs T @ X(O) = 0.55&#39;)
     <span class="k">if</span> <span class="n">charge</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">charge</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="k">elif</span> <span class="n">charge</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">charge</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;\!+&#39;</span>
+        <span class="n">charge</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;+&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">charge</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">charge</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;\!-&#39;</span>
+        <span class="n">charge</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">charge</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;-&#39;</span>
     <span class="n">label_name</span> <span class="o">=</span> <span class="s1">&#39;$^</span><span class="si">{1}{0}</span><span class="s1">^{{</span><span class="si">{2}</span><span class="s1">}}$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species_constituents</span><span class="p">,</span> <span class="n">subl_idx</span><span class="p">,</span> <span class="n">charge</span><span class="p">)</span>
     <span class="n">temperature_in_celsius</span> <span class="o">=</span> <span class="n">masked_eq_res</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">masked_eq_res</span><span class="o">.</span><span class="n">Y</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span> <span class="o">-</span> <span class="mf">273.15</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">temperature_in_celsius</span><span class="p">,</span> <span class="n">masked_eq_res</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label_name</span><span class="p">)</span>
@@ -556,7 +557,7 @@ Text(0.5, 1.0, &#39;Phase fractions vs T @ X(O) = 0.55&#39;)
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

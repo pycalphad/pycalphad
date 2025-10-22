@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.primitives - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>pycalphad.mapping.primitives - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,7 +276,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.mapping.primitives</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span>
@@ -284,6 +284,7 @@
 
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.composition_set</span> <span class="kn">import</span> <span class="n">CompositionSet</span>
+<span class="kn">from</span> <span class="nn">pycalphad.property_framework</span> <span class="kn">import</span> <span class="n">as_property</span>
 
 <span class="n">CS_EQ_TOL</span> <span class="o">=</span> <span class="mf">1e-8</span>
 <span class="n">MIN_COMPOSITION</span> <span class="o">=</span> <span class="mf">1e-6</span>
@@ -343,7 +344,7 @@
         <span class="n">u_phases</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">u_phases</span>
 
-<span class="k">def</span> <span class="nf">_get_phase_specific_variable</span><span class="p">(</span><span class="n">phase</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">is_global</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_get_phase_specific_variable</span><span class="p">(</span><span class="n">phase</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function for ZPFLine.get_var_list</span>
 
@@ -360,20 +361,11 @@
 <span class="sd">    is_global : bool</span>
 <span class="sd">        Whether variable should be phase local or global</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">is_global</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">var</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">):</span>
-        <span class="c1"># If phase in v.X is already defined, then don&#39;t override phase</span>
-        <span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span> <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">var</span><span class="o">.</span><span class="n">phase_name</span>
-        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">W</span><span class="p">):</span>
-        <span class="c1"># If phase in v.W is already defined, then don&#39;t override phase</span>
-        <span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span> <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">var</span><span class="o">.</span><span class="n">phase_name</span>
-        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">W</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">NP</span><span class="p">)</span> <span class="ow">or</span> <span class="n">var</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">NP</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">NP</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
+    <span class="c1"># If variable has a phase_name attribute that is a wildcard, then set to phase</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">&quot;phase_name&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">var</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">var</span><span class="o">.</span><span class="n">expand_wildcard</span><span class="p">(</span><span class="n">phase_names</span><span class="o">=</span><span class="p">[</span><span class="n">phase</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">var</span>
+        <span class="k">return</span> <span class="n">as_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Point">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point">[docs]</a>
@@ -450,7 +442,7 @@
 <div class="viewcode-block" id="Point.create_copy">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point.create_copy">[docs]</a>
     <span class="k">def</span> <span class="nf">create_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
     <span class="c1"># Creates point with deep copy of inputs (composition sets, conditions, chemical potentials)</span>
@@ -458,7 +450,7 @@
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point.with_copy">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">with_copy</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="o">**</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="o">**</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span></div>
 
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -513,6 +505,19 @@
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Conditions: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Chem_pot: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span>
+    
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">conds_str</span> <span class="o">=</span> <span class="s1">&#39;global_conditions=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
+        <span class="n">chem_pot</span> <span class="o">=</span> <span class="s1">&#39;chemical_potentials=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
+        <span class="n">fixed_cs_str</span> <span class="o">=</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">)):</span>
+            <span class="n">fixed_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;, dof=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dof</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+        <span class="n">free_cs_str</span> <span class="o">=</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">)):</span>
+            <span class="n">free_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">free_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;, dof=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dof</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+        <span class="n">fixed_cs_str</span> <span class="o">=</span> <span class="s1">&#39;_fixed_composition_sets=[&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fixed_cs_str</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+        <span class="n">free_cs_str</span> <span class="o">=</span> <span class="s1">&#39;_free_composition_sets=[&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">free_cs_str</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">conds_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">chem_pot</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">fixed_cs_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">free_cs_str</span><span class="si">}</span><span class="s2">)&quot;</span>
 
 <div class="viewcode-block" id="Point.get_property">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point.get_property">[docs]</a>
@@ -521,7 +526,13 @@
 <span class="sd">        Wrapper around compute property so I don&#39;t have long lines of code getting composition sets, conditions and chemical potentials everywhere</span>
 <span class="sd">        We will also squeeze the results since v.MoleFraction seems to return an array</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">compute_property</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">))</span></div>
+        <span class="c1"># Remove the last n conditions for each fixed composition set (points will have all conditions set regardless of the number of fixed composition sets)</span>
+        <span class="c1"># This allows for properties such as Jansson derivatives to compute since they require the Gibbs phase rule to be satisfied</span>
+        <span class="n">adjusted_conds</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
+        <span class="n">adjusted_conds_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">)):</span>
+            <span class="n">adjusted_conds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">adjusted_conds_keys</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">compute_property</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="n">adjusted_conds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Point.get_local_property">
@@ -571,7 +582,7 @@
 <span class="sd">    axis_var : v.StateVariable</span>
 <span class="sd">        Axis variable that parent was stepping in to find node</span>
 <span class="sd">    axis_direction : Direction</span>
-<span class="sd">        Axis direction that parent was steppig in to find node</span>
+<span class="sd">        Axis direction that parent was stepping in to find node</span>
 <span class="sd">    exit_hint : ExitHint</span>
 <span class="sd">        Hints for how exits should be found from this node</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -606,8 +617,16 @@
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Axis: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">output</span></div>
+        <span class="n">output</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Axis: [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="si">}</span><span class="s2">]&quot;</span>
+        <span class="k">return</span> <span class="n">output</span>
+    
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">point_repr</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+        <span class="n">parent_str</span> <span class="o">=</span> <span class="s1">&#39;parent=&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">av_str</span> <span class="o">=</span> <span class="s1">&#39;axis_var=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="p">)</span>
+        <span class="n">dir_str</span> <span class="o">=</span> <span class="s1">&#39;axis_direction=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">)</span>
+        <span class="n">exit_str</span> <span class="o">=</span> <span class="s1">&#39;exit_hint=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exit_hint</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">point_repr</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;, </span><span class="si">{</span><span class="n">parent_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">av_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">dir_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">exit_str</span><span class="si">}</span><span class="s2">)&quot;</span></div>
 
 
 <div class="viewcode-block" id="ZPFState">
@@ -744,7 +763,7 @@
 
 <div class="viewcode-block" id="NodeQueue.add_node">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.NodeQueue.add_node">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">force</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">force</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">check_parent</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks candidate_node to see if it has been added before</span>
 <span class="sd">            If it has been added before, add parent to the encountered points list in the node</span>
@@ -761,8 +780,13 @@
             <span class="c1"># of encountered points in the node</span>
             <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="n">candidate_node</span><span class="p">:</span>
-                    <span class="n">other</span><span class="o">.</span><span class="n">encountered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_node</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="kc">False</span>
+                    <span class="c1"># If checking that the parent is also the same (and from the same direction)</span>
+                    <span class="k">if</span> <span class="n">check_parent</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="n">candidate_node</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">axis_var</span> <span class="o">==</span> <span class="n">candidate_node</span><span class="o">.</span><span class="n">axis_var</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">==</span> <span class="n">candidate_node</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">):</span>
+                            <span class="k">return</span> <span class="kc">False</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">other</span><span class="o">.</span><span class="n">encountered_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_node</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="kc">False</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_node</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span></div>
@@ -832,7 +856,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../../../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.binary_strategy - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>pycalphad.mapping.strategy.binary_strategy - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -290,7 +290,7 @@
 <span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_base</span> <span class="kn">import</span> <span class="n">MapStrategy</span>
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.step_strategy</span> <span class="kn">import</span> <span class="n">StepStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_utils</span> <span class="kn">import</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">,</span> <span class="n">get_tieline_data_from_tieline_strategy</span>
+<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_data</span> <span class="kn">import</span> <span class="n">PhaseRegionData</span><span class="p">,</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">,</span> <span class="n">get_tieline_data_from_tieline_strategy</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -346,12 +346,9 @@
 <div class="viewcode-block" id="BinaryStrategy">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy">[docs]</a>
 <span class="k">class</span> <span class="nc">BinaryStrategy</span><span class="p">(</span><span class="n">MapStrategy</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-<div class="viewcode-block" id="BinaryStrategy.initialize">
-<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.initialize">[docs]</a>
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BinaryStrategy.generate_automatic_starting_points">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.generate_automatic_starting_points">[docs]</a>
+    <span class="k">def</span> <span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Searches axis limits to find starting points</span>
 
@@ -379,28 +376,27 @@
                 <span class="c1"># Step map</span>
                 <span class="n">map_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_kwargs</span><span class="p">()</span>
                 <span class="n">step</span> <span class="o">=</span> <span class="n">StepStrategy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="o">**</span><span class="n">map_kwargs</span><span class="p">)</span>
-                <span class="n">step</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
                 <span class="n">step</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_add_starting_points_from_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_starting_points_from_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
+<div class="viewcode-block" id="BinaryStrategy.add_starting_points_from_step">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.add_starting_points_from_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Grabs starting points from a step calc</span>
-<span class="sd">            For stepping in a state variable (T or P), this is all the nodes of the step calc</span>
-<span class="sd">            For stepping in composition, this is all the 2 phase regions</span>
+<span class="sd">            - For stepping in a state variable (T or P), this is all the nodes of the step calc</span>
+<span class="sd">            - For stepping in composition, this is all the 2 phase regions</span>
 <span class="sd">        </span>
-<span class="sd">        NOTE: Grabbing starting points is different for whether the axis variable on the step calculation</span>
-<span class="sd">              is a state variable or not</span>
-<span class="sd">              </span>
-<span class="sd">              For stepping along a state variable where the composition is likely near an end point,</span>
-<span class="sd">              the two-phase regions are usually too small to be resolved in the stepping resolution, </span>
-<span class="sd">              thus, getting starting points from the node is more consistent. Only one starting point</span>
-<span class="sd">              is added for each phase transition since for alpha-&gt;beta, the zpf line for alpha will end</span>
-<span class="sd">              with the parent and the zpf line for beta will start with the node</span>
-
-<span class="sd">              For stepping along a composition axis, just grab a single point from a zpf line.</span>
-<span class="sd">              If we were to grab the nodes, there would be two nodes for every two-phase regions:</span>
+<span class="sd">        NOTE: Grabbing starting points is different for whether the axis variable on the step calculation is a state variable or not</span>
+<span class="sd">            For stepping along a state variable where the composition is likely near an end point,</span>
+<span class="sd">            the two-phase regions are usually too small to be resolved in the stepping resolution, </span>
+<span class="sd">            thus, getting starting points from the node is more consistent. Only one starting point</span>
+<span class="sd">            is added for each phase transition since for alpha-&gt;beta, the zpf line for alpha will end</span>
+<span class="sd">            with the parent and the zpf line for beta will start with the node</span>
+<span class="sd">            For stepping along a composition axis, just grab a single point from a zpf line.</span>
+<span class="sd">            </span>
+<span class="sd">            If we were to grab the nodes, there would be two nodes for every two-phase regions:</span>
 <span class="sd">                alpha -&gt; alpha + beta - Node for beginning of alpha + beta zpf line</span>
 <span class="sd">                alpha + beta -&gt; beta - Node for beginning of beta zpf line</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -438,11 +434,30 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
                         <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">new_point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Direction</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Modifies exit hint and direction based off number of composition sets</span>
+<span class="sd">            Single phase -&gt; cannot be added</span>
+<span class="sd">            Two phase    -&gt; point is exit, direction stays the same as input</span>
+<span class="sd">            Three phase  -&gt; normal exit finding strategy, no direction needed</span>
+
+<span class="sd">        The three phase option is more than likely not needed, but added for completeness</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Single phase detected&quot;</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;More than three phases detected&quot;</span>
 
     <span class="k">def</span> <span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A node on for a binary system has three exits, which are combinations of 2 CS in the node</span>
+<span class="sd">        A node in a binary system has three exits, which are combinations of 2 CS in the node</span>
 <span class="sd">        Since the node is found from one pair of CS, one of the exits are already accounted for, so</span>
 <span class="sd">        practically, it&#39;s only 2 exits</span>
 <span class="sd">            However, if there are multiple starting points, a node may be found from multiple zpf lines</span>
@@ -494,7 +509,7 @@
     
     <span class="k">def</span> <span class="nf">_process_new_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">new_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Post global eq check after finding node to ensure it&#39;s not a metastable node</span>
+<span class="sd">        Post global min check after finding node to ensure it&#39;s not a metastable node</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Checking if new node is metastable&quot;</span><span class="p">)</span>
         <span class="n">cs_result</span> <span class="o">=</span> <span class="n">zeq</span><span class="o">.</span><span class="n">_find_global_min_cs</span><span class="p">(</span><span class="n">new_node</span><span class="p">,</span> <span class="n">system_info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_info</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_PDENS</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_TOL</span><span class="p">,</span> <span class="n">num_candidates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span><span class="p">)</span>
@@ -507,7 +522,7 @@
 
 <div class="viewcode-block" id="BinaryStrategy.get_invariant_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.get_invariant_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for invariant plotting.</span>
 
@@ -517,23 +532,21 @@
 <span class="sd">            The state variable to be used for the x-axis.</span>
 <span class="sd">        y : v.StateVariable</span>
 <span class="sd">            The state variable to be used for the y-axis.</span>
+<span class="sd">        global_x : bool</span>
+<span class="sd">            Whether variable x applies to the global system</span>
+<span class="sd">        global_y : bool</span>
+<span class="sd">            Whether variable y applies to the global system</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list of dict</span>
-<span class="sd">            A list where each dictionary contains the following keys:</span>
-<span class="sd">                - &quot;phases&quot; (list of str): The list of phases.</span>
-<span class="sd">                - &quot;x&quot; (list of float): The corresponding values for the x-axis.</span>
-<span class="sd">                - &quot;y&quot; (list of float): The corresponding values for the y-axis.</span>
-
-<span class="sd">            The indices in &quot;x&quot; and &quot;y&quot; match the indices in &quot;phases&quot;.</span>
+<span class="sd">        list of Strategy pertaining to each invariant</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">global_x</span><span class="p">,</span> <span class="n">global_y</span><span class="p">)</span></div>
 
     
 <div class="viewcode-block" id="BinaryStrategy.get_tieline_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.binary_strategy.BinaryStrategy.get_tieline_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_tieline_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_tieline_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for plotting ZPF lines.</span>
 
@@ -543,22 +556,16 @@
 <span class="sd">            The state variable to be used for the x-axis.</span>
 <span class="sd">        y : v.StateVariable</span>
 <span class="sd">            The state variable to be used for the y-axis.</span>
+<span class="sd">        global_x : bool</span>
+<span class="sd">            Whether variable x applies to the global system</span>
+<span class="sd">        global_y : bool</span>
+<span class="sd">            Whether variable y applies to the global system</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list of dict</span>
-<span class="sd">            A list where each dictionary has the following structure::</span>
-
-<span class="sd">            {</span>
-<span class="sd">                &quot;&lt;phase_name&gt;&quot;: {</span>
-<span class="sd">                    &quot;x&quot;: list of float,</span>
-<span class="sd">                    &quot;y&quot;: list of float</span>
-<span class="sd">                }</span>
-<span class="sd">            }</span>
-
-<span class="sd">            The lengths of the &quot;x&quot; and &quot;y&quot; lists should be equal for each phase in a ZPFLine.</span>
+<span class="sd">        list of Strategy pertaining to each tieline</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">get_tieline_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">get_tieline_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">global_x</span><span class="p">,</span> <span class="n">global_y</span><span class="p">)</span></div>
 </div>
 
 
@@ -595,7 +602,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../../../../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

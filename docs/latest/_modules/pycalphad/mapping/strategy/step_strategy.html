@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.step_strategy - pycalphad 0.11.1.dev29+gde8523b4a documentation</title>
+        <title>pycalphad.mapping.strategy.step_strategy - pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev29+gde8523b4a documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev29+gde8523b4a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.1.dev30+g5cbc2dcf3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -289,18 +289,16 @@
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ExitHint</span><span class="p">,</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">ZPFState</span><span class="p">,</span> <span class="n">_get_phase_specific_variable</span>
 <span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
 <span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_base</span> <span class="kn">import</span> <span class="n">MapStrategy</span>
+<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_data</span> <span class="kn">import</span> <span class="n">SinglePhaseData</span><span class="p">,</span> <span class="n">StrategyData</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="StepStrategy">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.step_strategy.StepStrategy">[docs]</a>
 <span class="k">class</span> <span class="nc">StepStrategy</span><span class="p">(</span><span class="n">MapStrategy</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-<div class="viewcode-block" id="StepStrategy.initialize">
-<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.step_strategy.StepStrategy.initialize">[docs]</a>
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="StepStrategy.generate_automatic_starting_points">
+<a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.step_strategy.StepStrategy.generate_automatic_starting_points">[docs]</a>
+    <span class="k">def</span> <span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds initial starting point in middle of free condition</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -396,7 +394,6 @@
 
         <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
 
-
     <span class="k">def</span> <span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        For stepping, only one direction is possible from a node since we either step positive or negative</span>
@@ -451,10 +448,10 @@
                 <span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes_from_conditions</span><span class="p">(</span><span class="n">new_conds</span><span class="p">,</span> <span class="n">axis_dir</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
                     <span class="k">return</span>
-                
+
 <div class="viewcode-block" id="StepStrategy.get_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.step_strategy.StepStrategy.get_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">x_is_global</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">set_nan_to_zero</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">set_nan_to_zero</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StrategyData</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Utility function to get data from StepStrategy for plotting.</span>
 
@@ -464,43 +461,56 @@
 <span class="sd">            The state variable to be used for the x-axis.</span>
 <span class="sd">        y : v.StateVariable</span>
 <span class="sd">            The state variable to be used for the y-axis.</span>
-<span class="sd">        x_is_global : bool, optional</span>
-<span class="sd">            Indicates whether `x` is a global or phase-local variable.</span>
-<span class="sd">            For example, if plotting global composition (`x`) vs. phase fraction (`y`), then `x` is global.</span>
-<span class="sd">        set_nan_to_zero : bool, optional</span>
-<span class="sd">            If True, NaN values will be set to zero in the data.</span>
+<span class="sd">        global_x : bool</span>
+<span class="sd">            Whether variable x applies to the global system</span>
+<span class="sd">        global_y : bool</span>
+<span class="sd">            Whether variable y applies to the global system</span>
+<span class="sd">        set_nan_to_zero : bool</span>
+<span class="sd">            If True, NaN values will be set to zero in the data, defaults to false</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            A dictionary with the following structure::</span>
+<span class="sd">        StrategyData</span>
+<span class="sd">            If x and y are unique for the system, then the data in StrategyData will be labeled as &quot;SYSTEM&quot;</span>
+<span class="sd">            otherwise, the data in StrategyData will be labeled for all stable phases</span>
+<span class="sd">            Examples of unique variables:</span>
 
-<span class="sd">            {</span>
-<span class="sd">                &quot;data&quot;: {</span>
-<span class="sd">                    &quot;&lt;phase_name&gt;&quot;: {</span>
-<span class="sd">                        &quot;x&quot;: list of float,</span>
-<span class="sd">                        &quot;y&quot;: list of float</span>
-<span class="sd">                    }</span>
-<span class="sd">                },</span>
-<span class="sd">                &quot;xlim&quot;: list of float,  # min and max for all x values</span>
-<span class="sd">                &quot;ylim&quot;: list of float   # min and max for all y values</span>
-<span class="sd">            }</span>
+<span class="sd">            - State variables (N, P, T)</span>
+<span class="sd">            - Values such as GM, HM, CPM</span>
+<span class="sd">            - Phase specific variable (i.e. v.X(phase, component) or v.NP(phase))</span>
+<span class="sd">              This is in contrast to v.X(component) or v.NP where composition or phase fraction will be</span>
+<span class="sd">              taken for all stable phases</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Get all phases in strategy (including multiplicity)</span>
-        <span class="n">phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_all_phases</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
 
-        <span class="c1"># Axis limits for x and y</span>
-        <span class="n">xlim</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
-        <span class="n">ylim</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">global_y</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+
+        <span class="c1"># if x and y are to be computed for the entire system, the we only have a single x vs y line</span>
+        <span class="c1"># as opposed to something like v.T vs v.NP(*) where we have a T vs NP line for each phase</span>
+        <span class="c1"># we determine whether x or y is computed globally based of whether or not the phase_name is a wildcard</span>
+        <span class="n">global_x</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;*&#39;</span>
+        <span class="n">global_y</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;*&#39;</span>
+        <span class="k">if</span> <span class="n">global_x</span> <span class="ow">and</span> <span class="n">global_y</span><span class="p">:</span>
+            <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SYSTEM&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Get all phases in strategy (including multiplicity)</span>
+            <span class="n">phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_all_phases</span><span class="p">())</span>
 
         <span class="c1"># For each phase, grab x and y values and plot, setting all nan values to 0 (if phase is unstable in zpf line, it will return nan for any variable)</span>
         <span class="c1"># Then get the max and min of x and y values to update xlim and ylim</span>
-        <span class="n">phase_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
             <span class="n">x_array</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">y_array</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">zpf_lines</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">:</span>
-                <span class="n">x_data</span> <span class="o">=</span> <span class="n">zpf_lines</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_is_global</span><span class="p">))</span>
+                <span class="n">x_data</span> <span class="o">=</span> <span class="n">zpf_lines</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
                 <span class="n">y_data</span> <span class="o">=</span> <span class="n">zpf_lines</span><span class="o">.</span><span class="n">get_var_list</span><span class="p">(</span><span class="n">_get_phase_specific_variable</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">set_nan_to_zero</span><span class="p">:</span>
                     <span class="n">x_data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_data</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -517,21 +527,9 @@
             <span class="n">x_array</span> <span class="o">=</span> <span class="n">x_array</span><span class="p">[</span><span class="n">argsort</span><span class="p">]</span>
             <span class="n">y_array</span> <span class="o">=</span> <span class="n">y_array</span><span class="p">[</span><span class="n">argsort</span><span class="p">]</span>
 
-            <span class="n">phase_data</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x_array</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y_array</span><span class="p">}</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SinglePhaseData</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">x_array</span><span class="p">,</span> <span class="n">y_array</span><span class="p">))</span>
 
-            <span class="c1"># Can this be done outside of this loop, or is this the easiest way?</span>
-            <span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">x_array</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_array</span><span class="p">)])])</span>
-            <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">([</span><span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">x_array</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_array</span><span class="p">)])])</span>
-            <span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">y_array</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_array</span><span class="p">)])])</span>
-            <span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">([</span><span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">y_array</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_array</span><span class="p">)])])</span>
-
-        <span class="n">step_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">phase_data</span><span class="p">,</span>
-            <span class="s1">&#39;xlim&#39;</span><span class="p">:</span> <span class="n">xlim</span><span class="p">,</span>
-            <span class="s1">&#39;ylim&#39;</span><span class="p">:</span> <span class="n">ylim</span><span class="p">,</span>
-        <span class="p">}</span>
-
-        <span class="k">return</span> <span class="n">step_data</span></div>
+        <span class="k">return</span> <span class="n">StrategyData</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
@@ -566,7 +564,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=37fe41a9"></script>
+</div><script src="../../../../_static/documentation_options.js?v=59b035c8"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>
