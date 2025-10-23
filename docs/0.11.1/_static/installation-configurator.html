@@ -1,0 +1,238 @@
+ <html>
+<head>
+<script language="JavaScript">
+
+function find_value(element_name) {
+    const elements = document.getElementsByName(element_name)
+    for (var i = 0; i < elements.length; i++) {
+        if (elements[i].checked) {
+            return elements[i].value
+        }
+    }
+}
+
+ function update_instruction_state(){
+    var pkg = find_value("package-manager")
+    var plt = find_value("platform")
+    var jup = document.getElementById("jupyter_flag")
+    var env = document.getElementById("environment_flag")
+
+    // Loop over all code samples and set their state to hidden
+    var code_samples = document.getElementById("install-samples").children
+    for (var i = 0; i < code_samples.length; i++) {
+      code_samples[i].hidden = true;
+    }
+
+   // Construct id of the preformatted text to show
+   var id_to_show = ""
+   id_to_show += pkg + "_"
+   id_to_show += plt + "_"
+   if (env.checked) {
+       id_to_show += "env_"
+   } else {
+       id_to_show += "noenv_"
+   }
+   if (jup.checked) {
+       id_to_show += "jupyter"
+   } else {
+       id_to_show += "nojupyter"
+   }
+
+   // Unhide the desired element
+   document.getElementById(id_to_show).hidden = false;
+}
+
+/*Update the state on page load*/
+document.addEventListener("DOMContentLoaded", function() {
+  update_instruction_state();
+});
+</script>
+<style>
+.install-configurator {
+    /* sized to contents */
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: var(--color-background-secondary);
+  border: solid 1px var(--color-background-border);
+  color: var(--color-foreground);
+  border-radius: 4px 4px 4px 4px;
+}
+
+.install-configurator p {
+    /* needs auto so it can center itself within the flexbox */
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+
+.install-configurator-container {
+    display: flex;
+    flex-direction: column;
+    margin: 2rem;
+}
+
+.install-configurator p {
+  color: var(--color-foreground-secondary);
+    padding-right: 2rem;
+}
+
+.install-toggle {
+  box-sizing: border-box;
+  font-size: 0;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.install-toggle input {
+  /* Off screen because we want to hide it */
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: -9999px;
+}
+
+.install-toggle input + label {
+  margin: 0;
+  padding: 0.75rem 2rem;
+  box-sizing: border-box;
+  position: relative;
+  display: inline-block;
+  border: solid 1px var(--color-background-border);
+  background-color: var(--color-background-primary);
+  font-size: 1rem;
+  text-align: center;
+}
+
+.install-toggle input + label:first-of-type {
+  border-radius: 6px 0 0 6px;
+  border-right: none;
+}
+
+.install-toggle input + label:last-of-type {
+  border-radius: 0 6px 6px 0;
+  border-left: none;
+}
+
+.install-toggle input:checked + label {
+  background-color: #4B9DEA;
+  color: #FFF;
+  z-index: 1;
+}
+
+.install-checkbox input[type=checkbox] {
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: -9999px;
+}
+
+.install-checkbox input[type=checkbox] + label {
+  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTkgMTYuMTcyTDE5LjU5NCA1LjU3OCAyMSA2Ljk4NGwtMTIgMTItNS41NzgtNS41NzhMNC44MjggMTJ6Ii8+PC9zdmc+);
+  height: 1.2rem;
+  width: 1.2rem;
+  display: inline-block;
+  padding: 0 0 0 0px;
+  border: solid 1px var(--color-background-border);
+  background-color: #FFF;
+  border-radius: 4px 4px 4px 4px;
+  background-size: contain;
+  margin: 0.2rem;
+  min-width: 1.2rem;
+  min-height: 1.2rem;
+}
+
+.install-checkbox input[type=checkbox] + label + label {
+    margin-right: 1.4rem;
+}
+
+.install-checkbox {
+    padding: 0 0 0 0px;
+    margin: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+
+.install-checkbox label {
+  margin: 0;
+}
+
+input[type=checkbox]:checked + label {
+  background-color: #4B9DEA;
+  border-color: var(--color-background-border);
+}
+
+.install-field-row {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: start;
+    align-items: center;
+    margin: 0.75rem 0 0.75rem;
+}
+
+@media (max-width: 800px) {
+  .install-configurator-container {
+    margin: 0.2rem;
+}
+  .install-field-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .install-toggle input + label {
+    padding: 0.25rem 0.25rem;
+    flex: 0 0 35%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+}
+</style>
+</head>
+<body>
+  <fieldset class="install-configurator">
+  <div class="install-configurator-container">
+  <div class="install-field-row">
+      <p>Operating System</p>
+  <div class="install-toggle">
+    <input onclick="update_instruction_state()" type="radio" value="linux" id="pltlinux" name="platform" checked/>
+    <label for="pltlinux">Linux</label>
+    <input onclick="update_instruction_state()" type="radio" value="windows" id="pltwindows" name="platform"/>
+    <label for="pltwindows">Windows</label>
+    <input onclick="update_instruction_state()" type="radio" value="linux" id="pltmacos" name="platform"/>
+    <label for="pltmacos">macOS/OSX</label>
+  </div>
+  </div>
+  <div class="install-field-row">
+    <p>Package manager</p>
+    <div class="install-toggle">
+    <input onclick="update_instruction_state()" type="radio" value="pip" id="pkgpip" name="package-manager" checked />
+      <label for="pkgpip">pip</label>
+    <input onclick="update_instruction_state()" type="radio" value="conda" id="pkgconda" name="package-manager"/>
+    <label for="pkgconda">conda</label>
+    <input onclick="update_instruction_state()" type="radio" value="source" id="pkgsource" name="package-manager"/>
+    <label for="pkgsource">source</label>
+    </div>
+  </div>
+  <div class="install-field-row">
+      <p style="padding-right:4rem;">Configuration</p>
+  <div class="install-checkbox">
+    <input onclick="update_instruction_state()" type="checkbox" id="jupyter_flag"/><label for="jupyter_flag"></label>
+    <label for="jupyter_flag">Jupyter Lab</label>
+    <input onclick="update_instruction_state()" type="checkbox" value="env" id="environment_flag"/><label for="environment_flag"></label>
+    <label for="environment_flag">Virtual environment</label>
+  </div>
+  </div>
+  </div>
+</fieldset>
+
+<br><br>
+
+<!-- AUTOGENERATED CONFIGURATIONS START (DO NOT EDIT MANUALLY) -->
+<div id="install-samples"><div id=pip_linux_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>pip install -U pycalphad</pre></div></div></div><div id=pip_linux_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>pip install -U pycalphad jupyterlab</pre></div></div></div><div id=pip_linux_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>source pycalphad-env/bin/activate<br>pip install -U pycalphad</pre></div></div></div><div id=pip_linux_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>source pycalphad-env/bin/activate<br>pip install -U pycalphad jupyterlab</pre></div></div></div><div id=pip_windows_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>pip install -U pycalphad</pre></div></div></div><div id=pip_windows_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>pip install -U pycalphad jupyterlab</pre></div></div></div><div id=pip_windows_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>pycalphad-env\Scripts\activate<br>pip install -U pycalphad</pre></div></div></div><div id=pip_windows_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>pycalphad-env\Scripts\activate<br>pip install -U pycalphad jupyterlab</pre></div></div></div><div id=conda_linux_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda install -c conda-forge pycalphad</pre></div></div></div><div id=conda_linux_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda install -c conda-forge pycalphad jupyterlab</pre></div></div></div><div id=conda_linux_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda create -n pycalphad-env python<br>conda activate pycalphad-env<br>conda install -c conda-forge pycalphad</pre></div></div></div><div id=conda_linux_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda create -n pycalphad-env python<br>conda activate pycalphad-env<br>conda install -c conda-forge pycalphad jupyterlab</pre></div></div></div><div id=conda_windows_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda install -c conda-forge pycalphad</pre></div></div></div><div id=conda_windows_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda install -c conda-forge pycalphad jupyterlab</pre></div></div></div><div id=conda_windows_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda create -n pycalphad-env python<br>conda activate pycalphad-env<br>conda install -c conda-forge pycalphad</pre></div></div></div><div id=conda_windows_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda create -n pycalphad-env python<br>conda activate pycalphad-env<br>conda install -c conda-forge pycalphad jupyterlab</pre></div></div></div><div id=source_linux_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U -r requirements-dev.txt<br>pip install -U --no-build-isolation --editable .</pre></div></div></div><div id=source_linux_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U -r requirements-dev.txt<br>pip install -U --no-build-isolation --editable .<br>pip install -U jupyterlab</pre></div></div></div><div id=source_linux_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>source pycalphad-env/bin/activate<br>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U -r requirements-dev.txt<br>pip install -U --no-build-isolation --editable .</pre></div></div></div><div id=source_linux_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>source pycalphad-env/bin/activate<br>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U -r requirements-dev.txt<br>pip install -U --no-build-isolation --editable .<br>pip install -U jupyterlab</pre></div></div></div><div id=source_windows_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U -r requirements-dev.txt<br>pip install -U --no-build-isolation --editable .</pre></div></div></div><div id=source_windows_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U -r requirements-dev.txt<br>pip install -U --no-build-isolation --editable .<br>pip install -U jupyterlab</pre></div></div></div><div id=source_windows_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>pycalphad-env\Scripts\activate<br>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U -r requirements-dev.txt<br>pip install -U --no-build-isolation --editable .</pre></div></div></div><div id=source_windows_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>pycalphad-env\Scripts\activate<br>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U -r requirements-dev.txt<br>pip install -U --no-build-isolation --editable .<br>pip install -U jupyterlab</pre></div></div></div></div>
+<!-- AUTOGENERATED CONFIGURATIONS END (DO NOT EDIT MANUALLY) -->
+</body>
+</html>

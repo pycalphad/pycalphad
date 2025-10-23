@@ -1,0 +1,787 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
+        <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
+        <title>pycalphad.mapping.zpf_checks - pycalphad 0.11.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+
+
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+
+      }
+    }
+  }
+</style></head>
+  <body>
+
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
+  </div>
+
+  <span class="sidebar-brand-text">pycalphad 0.11.1 documentation</span>
+
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Install pycalphad</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/Metastability.html">Plot energy curves for several phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/Metastability.html#Driving-force-calculation">Driving force calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/Metastability.html#Calculate-T0-(t-zero)-as-a-function-of-composition">Calculate T0 (t-zero) as a function of composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html#advanced-examples">Advanced Examples</a><input aria-label="Toggle navigation of Advanced Examples" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/LegacyReferenceState.html#Calculations-at-specific-site-fractions">Calculations at specific site fractions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ChargedPhases.html">Phases with Electrically Charged Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/Mapping.html">Plotting using the Mapping API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../releasing.html">Releasing pycalphad</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../onboarding.html">Onboarding as a Developer</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/modules.html">API Documentation</a><input aria-label="Toggle navigation of API Documentation" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/pycalphad.html">pycalphad package</a><input aria-label="Toggle navigation of pycalphad package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.codegen.html">pycalphad.codegen package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/pycalphad.mapping.html">pycalphad.mapping package</a><input aria-label="Toggle navigation of pycalphad.mapping package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pycalphad.mapping.strategy.html">pycalphad.mapping.strategy package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.models.html">pycalphad.models package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/pycalphad.plot.html">pycalphad.plot package</a><input aria-label="Toggle navigation of pycalphad.plot package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pycalphad.property_framework.html">pycalphad.property_framework package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for pycalphad.mapping.zpf_checks</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">COMP_DIFFERENCE_TOL</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.composition_set</span> <span class="kn">import</span> <span class="n">CompositionSet</span>
+
+<span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ZPFState</span>
+<span class="kn">import</span> <span class="nn">pycalphad.mapping.zpf_equilibrium</span> <span class="k">as</span> <span class="nn">zeq</span>
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Two types of checking functions in this module</span>
+
+<span class="sd">Simple checks</span>
+<span class="sd">    simple_check_valid_point</span>
+<span class="sd">    simple_check_change_in_phases</span>
+<span class="sd">    simple_check_global_min</span>
+
+<span class="sd">    These quickly check a step result and returns </span>
+<span class="sd">    a bool whether the step result is valid or not</span>
+
+<span class="sd">    These are intended for exit/direction finding, where we just need to know if </span>
+<span class="sd">    an exit/direction is valid</span>
+
+<span class="sd">Normal checks</span>
+<span class="sd">    check_valid_point</span>
+<span class="sd">    check_axis_values</span>
+<span class="sd">    check_change_in_phases</span>
+<span class="sd">    check_global_min</span>
+<span class="sd">    check_similar_phase_composition</span>
+
+<span class="sd">    These will check whether the step result is valid or</span>
+<span class="sd">    if not valid, then will modify the zpf line or create</span>
+<span class="sd">    a new node</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="simple_check_valid_point">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.simple_check_valid_point">[docs]</a>
+<span class="k">def</span> <span class="nf">simple_check_valid_point</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True or False for whether step result was successful equilibria</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool whether step result is valid or not (None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Invalid equilibrium results&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="simple_check_change_in_phases">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.simple_check_change_in_phases">[docs]</a>
+<span class="k">def</span> <span class="nf">simple_check_change_in_phases</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True or False for whether step result resulted in same number of phases</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool whether step result resulted in a phase change</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span> <span class="o">=</span> <span class="n">step_results</span>
+    <span class="n">num_different_phases</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">orig_cs</span><span class="p">)</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">num_different_phases</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of stable phases changed from </span><span class="si">{</span><span class="p">[</span><span class="n">cs</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">cs</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">orig_cs</span><span class="p">]</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">num_different_phases</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="simple_check_global_min">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.simple_check_global_min">[docs]</a>
+<span class="k">def</span> <span class="nf">simple_check_global_min</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True or False for whether step result is still global min</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool whether step result is global min or not</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">pdens</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pdens&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+    <span class="n">tol</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tol&quot;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+    <span class="n">system_info</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;system_info&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">num_candidates</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;global_num_candidates&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span> <span class="o">=</span> <span class="n">step_results</span>
+    <span class="n">global_test_point</span> <span class="o">=</span> <span class="n">zeq</span><span class="o">.</span><span class="n">find_global_min_point</span><span class="p">(</span><span class="n">new_point</span><span class="p">,</span> <span class="n">system_info</span><span class="p">,</span> <span class="n">pdens</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">num_candidates</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">global_test_point</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Point is not global minimum. Current CS: </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2">, new CS: </span><span class="si">{</span><span class="n">global_test_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">global_test_point</span> <span class="ow">is</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="check_valid_point">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_valid_point">[docs]</a>
+<span class="k">def</span> <span class="nf">check_valid_point</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    3 possible outcomes</span>
+<span class="sd">        a) Converged equilibrium -&gt; pass</span>
+<span class="sd">        b) Failed equilibrium, reduce axis delta -&gt; don&quot;t add point and attempt stepping again</span>
+<span class="sd">        c) Failed equilibrium and axis delta reached minimum -&gt; end zpf line with unexpected ending</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zpf_line : ZPFLine</span>
+<span class="sd">        ZPFLine that the point is stepping in</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    axis_data : dict</span>
+<span class="sd">        Axis variable data from a map strategy class</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None - this check does not produce any new nodes</span>
+<span class="sd">    However, this will end zpf_line if step_result is invalid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">axis_vars</span><span class="p">,</span> <span class="n">axis_delta</span><span class="p">,</span> <span class="n">axis_lims</span> <span class="o">=</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_vars&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_delta&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_lims&quot;</span><span class="p">]</span>
+    <span class="n">delta_scale</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;delta_scale&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">min_delta_ratio</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;min_delta_ratio&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid equilibrium result, reducing step size from </span><span class="si">{</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span><span class="o">*</span><span class="n">delta_scale</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">*=</span> <span class="n">delta_scale</span>
+        <span class="k">if</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">/</span> <span class="n">axis_delta</span><span class="p">[</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_delta_ratio</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step size has reached minimum </span><span class="si">{</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">axis_delta</span><span class="p">[</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">]</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">min_delta_ratio</span><span class="si">}</span><span class="s2">. Failing ZPF line&quot;</span><span class="p">)</span>
+
+            <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">FAILED</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">ATTEMPT_NEW_STEP</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="k">def</span> <span class="nf">_check_axis_values_within_limit</span><span class="p">(</span><span class="n">new_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks that axis values are within the axis limits</span>
+
+<span class="sd">    NOTE: I think prev_point_vars (unused) and new_point_vars are called this rather</span>
+<span class="sd">          than conditions since they are taken from v.StateVariable.compute_property</span>
+<span class="sd">          rather than from the global conditions</span>
+
+<span class="sd">    NOTE: There were some issues before with X-C systems where a zpf line containing</span>
+<span class="sd">          graphite and another stoichiometric phase would stop midway due to the </span>
+<span class="sd">          composition of graphite being at X(C)=1</span>
+
+<span class="sd">          Adding an offset to slightly extend the axis limits seems to help this issue. </span>
+<span class="sd">          Local tests with the Bengt mpea-05 database on all X-C systems (X = Al, Co, Cr, Fe, Ni, Mn) </span>
+<span class="sd">          appears to have to have all zpf lines correctly present</span>
+
+<span class="sd">          I will also justify this offset with the following:</span>
+<span class="sd">            1) Stepping will automatically step the stepping variable to be within axis limits</span>
+<span class="sd">            2) For stoichiometric phases at an endmember, finite precision may cause the composition to be slightly above/below 1 (within numerical precision)</span>
+<span class="sd">            3) For non-stoichiometric phases, composition will be limited between 0 and 1 due to the constraints in the minimizer</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    prev_point_vars : dict[v.StateVariable, float]</span>
+<span class="sd">        Conditions of last point in zpf line</span>
+<span class="sd">    new_point_vars : dict[v.StateVariable, float]</span>
+<span class="sd">        Conditions of new point</span>
+<span class="sd">    axis_data : dict</span>
+<span class="sd">        Axis variable information from map strategy</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool for whether new point is within axis limits</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">axis_vars</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">axis_lims</span> <span class="o">=</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_vars&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_delta&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_lims&quot;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">:</span>
+        <span class="c1"># Allow some leeway below and above the axis limits. See note in docstring for details</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mf">1e-6</span>
+
+        <span class="k">if</span> <span class="n">new_point_vars</span><span class="p">[</span><span class="n">av</span><span class="p">]</span> <span class="o">&lt;</span> <span class="nb">min</span><span class="p">(</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">av</span><span class="p">])</span> <span class="o">-</span> <span class="n">offset</span> <span class="ow">or</span> <span class="n">new_point_vars</span><span class="p">[</span><span class="n">av</span><span class="p">]</span> <span class="o">&gt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">av</span><span class="p">])</span> <span class="o">+</span> <span class="n">offset</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;New point outside axis limits. </span><span class="si">{</span><span class="n">av</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">new_point_vars</span><span class="p">[</span><span class="n">av</span><span class="p">]</span><span class="si">}</span><span class="s2">. Limits = </span><span class="si">{</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">av</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+<span class="k">def</span> <span class="nf">_check_axis_values_by_distance</span><span class="p">(</span><span class="n">prev_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">new_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks that the normalized distance between the previous point and the new point is within reasonable values</span>
+
+<span class="sd">    NOTE: a threshold of 3 is quite large since the axis swapping should limit this to 1 (give/take some leeway if the swapping hadn&#39;t occured yet)</span>
+<span class="sd">    NOTE: this should scale with the global_check_interval defined in the map strategy</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    prev_point_vars : dict[v.StateVariable, float]</span>
+<span class="sd">        Conditions of last point in zpf line</span>
+<span class="sd">    new_point_vars : dict[v.StateVariable, float]</span>
+<span class="sd">        Conditions of new point</span>
+<span class="sd">    axis_data : dict</span>
+<span class="sd">        Axis variable information from map strategy</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool for whether new point is within distance threshold of previous point</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">axis_vars</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_vars&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_delta&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_lims&quot;</span><span class="p">]</span>
+    <span class="n">normalize_factor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;normalize_factor&quot;</span><span class="p">,</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">})</span>
+
+    <span class="n">dist_threshold</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance_threshold&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="c1"># Squeezing here since v.MoleFraction.compute_property will return an array instead of a scalar</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">new_point_vars</span><span class="p">[</span><span class="n">av</span><span class="p">]</span> <span class="o">-</span> <span class="n">prev_point_vars</span><span class="p">[</span><span class="n">av</span><span class="p">])</span><span class="o">/</span><span class="n">normalize_factor</span><span class="p">[</span><span class="n">av</span><span class="p">]))</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">]</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="n">dist_threshold</span><span class="p">:</span>
+        <span class="n">av</span> <span class="o">=</span> <span class="n">axis_vars</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">distances</span><span class="p">)]</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Axis variable moved more than threshold distance. </span><span class="si">{</span><span class="n">av</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">prev_point_vars</span><span class="p">[</span><span class="n">av</span><span class="p">]</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">new_point_vars</span><span class="p">[</span><span class="n">av</span><span class="p">]</span><span class="si">}</span><span class="s2">. Distance = </span><span class="si">{</span><span class="n">dist</span><span class="o">*</span><span class="n">normalize_factor</span><span class="p">[</span><span class="n">av</span><span class="p">]</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">dist_threshold</span><span class="si">}</span><span class="s2">*</span><span class="si">{</span><span class="n">normalize_factor</span><span class="p">[</span><span class="n">av</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">dist_threshold</span>
+
+<div class="viewcode-block" id="check_axis_values">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_axis_values">[docs]</a>
+<span class="k">def</span> <span class="nf">check_axis_values</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks both if axis values are within axis limits and if the axis values hadn&quot;t moved to far from previous point</span>
+
+<span class="sd">    The two checks are separated from here so that we can use them in _check_global_min and _check_change_in_phases</span>
+
+<span class="sd">    3 possible outcomes</span>
+<span class="sd">        a) Axes are within limits and minimal distance change -&gt; pass</span>
+<span class="sd">        b) Axes are outside limits -&gt; end zpf line with graceful ending</span>
+<span class="sd">        c) Distance changed too much -&gt; end zpf line with unexpected ending</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zpf_line : ZPFLine</span>
+<span class="sd">        ZPFLine that the point is stepping in</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    axis_data : dict</span>
+<span class="sd">        Axis variable data from a map strategy class</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None - this check does not produce any new nodes</span>
+<span class="sd">    This will end zpf_line with FAILED or REACHED_LIMIT depending on test that failed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">axis_vars</span><span class="p">,</span> <span class="n">axis_delta</span><span class="p">,</span> <span class="n">axis_lims</span> <span class="o">=</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_vars&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_delta&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_lims&quot;</span><span class="p">]</span>
+
+    <span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span> <span class="o">=</span> <span class="n">step_results</span>
+    <span class="n">prev_point</span> <span class="o">=</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">new_point_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="n">new_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">}</span>
+    <span class="n">prev_point_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="n">prev_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_check_axis_values_by_distance</span><span class="p">(</span><span class="n">prev_point_vars</span><span class="p">,</span> <span class="n">new_point_vars</span><span class="p">,</span> <span class="n">axis_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Variable more than distance threshold. Failing ZPF line&quot;</span><span class="p">)</span>
+        <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">FAILED</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_check_axis_values_within_limit</span><span class="p">(</span><span class="n">new_point_vars</span><span class="p">,</span> <span class="n">axis_data</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Variable reach axis limit. Ending ZPF line&quot;</span><span class="p">)</span>
+        <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">REACHED_LIMIT</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="check_change_in_phases">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_change_in_phases">[docs]</a>
+<span class="k">def</span> <span class="nf">check_change_in_phases</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If the number of phases changed upon stepping, then attempt to create a new node</span>
+<span class="sd">        If making the new node was unsuccessful, then we end the zpf line anyways</span>
+
+<span class="sd">    3 possible outcomes</span>
+<span class="sd">        a) No change in phases -&gt; pass</span>
+<span class="sd">        b) Change in phases, node successfully found -&gt; process new node and end zpf line with graceful ending</span>
+<span class="sd">        c) Change in phases, node not found -&gt; end zpf line with unexpected ending</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zpf_line : ZPFLine</span>
+<span class="sd">        ZPFLine that the point is stepping in</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    axis_data : dict</span>
+<span class="sd">        Axis variable data from a map strategy class</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    new_node : Node</span>
+<span class="sd">        Node from step_results if there is a change in phases</span>
+<span class="sd">    </span>
+<span class="sd">    or</span>
+
+<span class="sd">    None : if step_results does not result in a change in phase</span>
+<span class="sd">           or new node cannot be found (zpf_line will be ended)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">axis_vars</span><span class="p">,</span> <span class="n">axis_delta</span><span class="p">,</span> <span class="n">axis_lims</span> <span class="o">=</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_vars&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_delta&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_lims&quot;</span><span class="p">]</span>
+    <span class="n">do_not_create_node</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;do_not_create_node&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>    <span class="c1">#For testing/debugging purposes</span>
+
+    <span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span> <span class="o">=</span> <span class="n">step_results</span>
+    <span class="n">new_point_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="n">new_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">}</span>
+    <span class="n">num_different_phases</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">orig_cs</span><span class="p">)</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">num_different_phases</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of phases changed&quot;</span><span class="p">)</span>
+        <span class="c1"># By default, assumed the zpf failed. When we successfully find a new node, then we change this</span>
+        <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">FAILED</span>
+
+        <span class="c1"># Make sure the set of phases only change by one</span>
+        <span class="c1"># Since we step along a single axis variable, we can only fix one additional phase to satisfy Gibbs phase rule</span>
+        <span class="k">if</span> <span class="n">num_different_phases</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of phases changes by more than one. Failing ZPF line&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">do_not_create_node</span><span class="p">:</span>
+            <span class="n">new_node</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_node</span> <span class="o">=</span> <span class="n">zeq</span><span class="o">.</span><span class="n">create_node_from_different_points</span><span class="p">(</span><span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">)</span>
+
+        <span class="c1"># If the new node was successfully created, then process the node, otherwise, we unexpectedly ended</span>
+        <span class="k">if</span> <span class="n">new_node</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_node_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="n">new_node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">}</span>
+            <span class="c1"># Check that new node satisfy axis limits and distance between nodes</span>
+            <span class="c1"># If not, then the zpf line ends unexpectedly</span>
+            <span class="n">check_axis</span> <span class="o">=</span> <span class="n">_check_axis_values_within_limit</span><span class="p">(</span><span class="n">new_node_vars</span><span class="p">,</span> <span class="n">axis_data</span><span class="p">)</span>
+            <span class="n">check_dist</span> <span class="o">=</span><span class="n">_check_axis_values_by_distance</span><span class="p">(</span><span class="n">new_point_vars</span><span class="p">,</span> <span class="n">new_node_vars</span><span class="p">,</span> <span class="n">axis_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">check_axis</span> <span class="ow">and</span> <span class="n">check_dist</span><span class="p">:</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;New node found successfully. </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">NEW_NODE_FOUND</span>
+                <span class="k">return</span> <span class="n">new_node</span>
+
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New node could not be found. Failing ZPF line&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="check_global_min">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_global_min">[docs]</a>
+<span class="k">def</span> <span class="nf">check_global_min</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if the point is global minimum</span>
+<span class="sd">    1. Check if a new composition set can be added that can lower free energy</span>
+<span class="sd">    2. Create a new node with the additional composition set</span>
+<span class="sd">    3. Check that the new node is valid</span>
+
+<span class="sd">    3 possible outcomes</span>
+<span class="sd">        a) No change in phases -&gt; pass</span>
+<span class="sd">        b) Change in phases, node successfully found -&gt; process new node and end zpf line with graceful ending</span>
+<span class="sd">        c) Change in phases, node not found -&gt; end zpf line with unexpected ending</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zpf_line : ZPFLine</span>
+<span class="sd">        ZPFLine that the point is stepping in</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    axis_data : dict</span>
+<span class="sd">        Axis variable data from a map strategy class</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    new_node : Node</span>
+<span class="sd">        Node from step_results if global min is found</span>
+<span class="sd">    </span>
+<span class="sd">    or</span>
+
+<span class="sd">    None : if step_results is still global min</span>
+<span class="sd">           or new node cannot be found (zpf_line will be ended)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">axis_vars</span><span class="p">,</span> <span class="n">axis_delta</span><span class="p">,</span> <span class="n">axis_lims</span> <span class="o">=</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_vars&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_delta&quot;</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">[</span><span class="s2">&quot;axis_lims&quot;</span><span class="p">]</span>
+    <span class="n">global_check_interval</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;global_check_interval&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">pdens</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pdens&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+    <span class="n">tol</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tol&quot;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+    <span class="n">num_candidates</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;global_num_candidates&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">system_info</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;system_info&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">do_not_create_node</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;do_not_create_node&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>    <span class="c1">#For testing/debugging purposes</span>
+
+    <span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span> <span class="o">=</span> <span class="n">step_results</span>
+    <span class="n">new_point_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="n">new_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">)</span> <span class="o">%</span> <span class="n">global_check_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">global_test_point</span> <span class="o">=</span> <span class="n">zeq</span><span class="o">.</span><span class="n">find_global_min_point</span><span class="p">(</span><span class="n">new_point</span><span class="p">,</span> <span class="n">system_info</span><span class="p">,</span> <span class="n">pdens</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">num_candidates</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">global_test_point</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Global min detected. </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">global_test_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># By default, assumed the zpf failed. When we successfully find a new node, then we change this</span>
+            <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">FAILED</span>
+
+            <span class="k">if</span> <span class="n">do_not_create_node</span><span class="p">:</span>
+                <span class="n">new_node</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_node</span> <span class="o">=</span> <span class="n">zeq</span><span class="o">.</span><span class="n">create_node_from_different_points</span><span class="p">(</span><span class="n">global_test_point</span><span class="p">,</span> <span class="n">new_point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">new_node</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_node_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">av</span><span class="p">:</span> <span class="n">new_node</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">av</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="n">axis_vars</span><span class="p">}</span>
+                <span class="c1"># Check that new node satisfy axis limits and distance between nodes</span>
+                <span class="c1"># If not, then the zpf line ends unexpectedly</span>
+                <span class="n">check_axis</span> <span class="o">=</span> <span class="n">_check_axis_values_within_limit</span><span class="p">(</span><span class="n">new_node_vars</span><span class="p">,</span> <span class="n">axis_data</span><span class="p">)</span>
+                <span class="n">check_dist</span> <span class="o">=</span><span class="n">_check_axis_values_by_distance</span><span class="p">(</span><span class="n">new_point_vars</span><span class="p">,</span> <span class="n">new_node_vars</span><span class="p">,</span> <span class="n">axis_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="c1"># check_dist = True</span>
+                <span class="k">if</span> <span class="n">check_axis</span> <span class="ow">and</span> <span class="n">check_dist</span><span class="p">:</span>
+                    <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">NEW_NODE_FOUND</span>
+                    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;New node found successfully. </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">new_node</span>
+
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New node could not be found. Failing ZPF line&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="check_similar_phase_composition">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_similar_phase_composition">[docs]</a>
+<span class="k">def</span> <span class="nf">check_similar_phase_composition</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If two composition sets are close in composition, then we stop zpf line pre-maturely so that they don&quot;t go on top of each other</span>
+
+<span class="sd">    If the composition are the same, it can result in ill-defined matrices in the solver</span>
+
+<span class="sd">    2 possible outcomes</span>
+<span class="sd">        a) Composition sets are separate -&gt; pass</span>
+<span class="sd">        b) Composition sets are similar -&gt; end zpf line with unexpected ending</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zpf_line : ZPFLine</span>
+<span class="sd">        ZPFLine that the point is stepping in</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    axis_data : dict</span>
+<span class="sd">        Axis variable data from a map strategy class</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None : this check does not attempt to make a new node</span>
+<span class="sd">    However, the zpf line will end if this check fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">step_results</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span> <span class="o">=</span> <span class="n">step_results</span>
+    <span class="n">comp_sets</span> <span class="o">=</span> <span class="n">new_point</span><span class="o">.</span><span class="n">stable_composition_sets</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">)):</span>
+            <span class="n">same_comp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="n">COMP_DIFFERENCE_TOL</span><span class="p">)</span>
+            <span class="n">same_phase</span> <span class="o">=</span> <span class="n">comp_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="n">comp_sets</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span>
+            <span class="k">if</span> <span class="n">same_comp</span> <span class="ow">and</span> <span class="n">same_phase</span><span class="p">:</span>
+                <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">REACHED_LIMIT</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Two composition sets have the same composition. Ending ZPF line. </span><span class="si">{</span><span class="n">comp_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">comp_sets</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+
+        <div class="related-pages">
+
+
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2015-2022, pycalphad Development Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+
+          </div>
+          <div class="right-details">
+
+          </div>
+        </div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+
+
+
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

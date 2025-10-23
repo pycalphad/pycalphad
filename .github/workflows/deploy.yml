@@ -9,7 +9,7 @@ jobs:
     name: Deploy branch to S3
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -19,3 +19,4 @@ jobs:
       - name: Copy docs to the website with the AWS CLI
         run: |
           aws s3 sync docs/latest s3://pycalphad.org/docs/latest
+          aws s3 sync docs/0.11.1 s3://pycalphad.org/docs/0.11.1

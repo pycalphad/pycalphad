@@ -1,0 +1,597 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Calculating Energy Surfaces [Legacy Method]" href="LegacyEnergySurface.html"><link rel="prev" title="Heat Capacity of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html">
+        <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
+        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.11.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+
+
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+
+      }
+    }
+  }
+</style></head>
+  <body>
+
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">pycalphad 0.11.1 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
+  </div>
+
+  <span class="sidebar-brand-text">pycalphad 0.11.1 documentation</span>
+
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install pycalphad</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metastability.html">Plot energy curves for several phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metastability.html#Driving-force-calculation">Driving force calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metastability.html#Calculate-T0-(t-zero)-as-a-function-of-composition">Calculate T0 (t-zero) as a function of composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html#advanced-examples">Advanced Examples</a><input aria-label="Toggle navigation of Advanced Examples" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html#Calculations-at-specific-site-fractions">Calculations at specific site fractions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ChargedPhases.html">Phases with Electrically Charged Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Mapping.html">Plotting using the Mapping API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing pycalphad</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../onboarding.html">Onboarding as a Developer</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/modules.html">API Documentation</a><input aria-label="Toggle navigation of API Documentation" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/pycalphad.html">pycalphad package</a><input aria-label="Toggle navigation of pycalphad package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.codegen.html">pycalphad.codegen package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/pycalphad.mapping.html">pycalphad.mapping package</a><input aria-label="Toggle navigation of pycalphad.mapping package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/pycalphad.mapping.strategy.html">pycalphad.mapping.strategy package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.models.html">pycalphad.models package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/pycalphad.plot.html">pycalphad.plot package</a><input aria-label="Toggle navigation of pycalphad.plot package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.property_framework.html">pycalphad.property_framework package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/examples/UsingCalculationResults.nblink.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="Exploring-calculate-and-equilibrium-xarray-Datasets">
+<h1>Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets<a class="headerlink" href="#Exploring-calculate-and-equilibrium-xarray-Datasets" title="Link to this heading">¶</a></h1>
+<section id="xarray-Datasets">
+<h2>xarray Datasets<a class="headerlink" href="#xarray-Datasets" title="Link to this heading">¶</a></h2>
+<p>Results returned from calling <code class="docutils literal notranslate"><span class="pre">calculate</span></code> or <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> in pycalphad are <a class="reference external" href="http://xarray.pydata.org/en/stable/">xarray</a> Datasets. An xarray Dataset is a data structure that represents N-dimensional tabular data. It is an N-dimensional analog to the Pandas DataFrame.</p>
+<p>This notebook will walk through the structure of xarray Datasets in pycalphad and some basics of using them. For more in-depth tutorials and documentation on using xarray Datasets and DataArray’s fully, see the <a class="reference external" href="http://xarray.pydata.org/en/stable/index.html">xarray documentation</a>.</p>
+</section>
+<section id="Dataset-structure">
+<h2>Dataset structure<a class="headerlink" href="#Dataset-structure" title="Link to this heading">¶</a></h2>
+<p>Each Dataset stores the conditions that properties are calculated at and the values of the properties as a function of the different conditions. There are three key terms:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Dimensions</span></code>: these are the conditions that are calculated over, e.g. pressure (P) and temperature (T). They are essentially labels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates</span></code>: these are the actual <em>values</em> that are taken on by the dimensions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">variables</span></code>: these are the properties calculated by pycalphad, such as the Gibbs energy, mixing energy, composition, etc.</p></li>
+</ul>
+</section>
+<section id="calculate()-results">
+<h2><code class="docutils literal notranslate"><span class="pre">calculate()</span></code> results<a class="headerlink" href="#calculate()-results" title="Link to this heading">¶</a></h2>
+<p>Calculate is used to sample properties of a single phase. There are five dimensions/coordinates:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">component</span></code>: the string names of the components in the system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: The internal_dof (internal degrees of freedom) is the index of the site in any phase’s site fraction array. Below the FCC_A1 phase has the sublattice model (AL, ZN) and thus the internal_dof are integers 0 and 1 referring to the AL site (index 0) and the ZN site (index 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">points</span></code>: By default, the calculate function samples points over all of the internal degrees of freedom. Each coordinate point simply represents the index is a list of all configurations of the internal_dof sampled. There is no underlying physical meaning or order.</p></li>
+</ul>
+<p>There are also at least four Data variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase. For <code class="docutils literal notranslate"><span class="pre">calculate</span></code>, this will always be the phase name passed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code>: The composition of each component in mole fraction as a function of the temperature, pressure, and the index of the points (there is one composition for each point).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Y</span></code>: The site fraction of each index in the internal_dof array for the given temperature, pressure and point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: “output” is always whatever property is calculated by the output keyword passed to <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. The default is the molar Gibbs energy, GM.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="n">calc_result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;xarray.Dataset&gt; Size: 512kB
+Dimensions:    (N: 1, P: 1, T: 2, points: 4002, component: 2, internal_dof: 2)
+Coordinates:
+  * component  (component) &lt;U2 16B &#39;AL&#39; &#39;ZN&#39;
+  * N          (N) float64 8B 1.0
+  * P          (P) float64 8B 1.013e+05
+  * T          (T) float64 16B 500.0 1e+03
+Dimensions without coordinates: points, internal_dof
+Data variables:
+    X          (N, P, T, points, component) float64 128kB 1.0 1e-14 ... 0.2561
+    Phase      (N, P, T, points) &lt;U6 192kB &#39;FCC_A1&#39; &#39;FCC_A1&#39; ... &#39;FCC_A1&#39;
+    Y          (N, P, T, points, internal_dof) float64 128kB 1.0 ... 0.2561
+    GM         (N, P, T, points) float64 64kB -1.559e+04 -2.01e+04 ... -4.81e+04
+Attributes:
+    phase_indices:  {&#39;FCC_A1&#39;: slice(0, np.int64(4002), None)}
+</pre></div></div>
+</div>
+<p>We can manipulate this by selecting data by value (of a coordinate) using <code class="docutils literal notranslate"><span class="pre">sel</span></code> or index (of a coordinate) using <code class="docutils literal notranslate"><span class="pre">isel</span></code> similar to a Pandas array. Below we get the site fraction of ZN (internal_dof index of 1 selected by index) at 1000K (selected by value) for the 50th point (selected by index).</p>
+<p>The results of selecting over Data variables gives an xarray DataArray which is useful for plotting or performing computations on (see <a class="reference external" href="http://xarray.pydata.org/en/stable/data-structures.html">DataArrays vs Datasets</a>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">internal_dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;xarray.DataArray &#39;Y&#39; (N: 1, P: 1)&gt; Size: 8B
+array([[0.97648824]])
+Coordinates:
+  * N        (N) float64 8B 1.0
+  * P        (P) float64 8B 1.013e+05
+    T        float64 8B 1e+03
+</pre></div></div>
+</div>
+<p>accessing the <code class="docutils literal notranslate"><span class="pre">values</span></code> attribute on any on any DataArray returns the multidimensional NumPy array</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[[[[[1.00000000e+00 1.00000000e-14]
+    [1.00000000e-14 1.00000000e+00]
+    [1.00000000e-14 1.00000000e+00]
+    ...
+    [1.56995650e-01 8.43004350e-01]
+    [1.12072782e-01 8.87927218e-01]
+    [7.43933641e-01 2.56066359e-01]]
+
+   [[1.00000000e+00 1.00000000e-14]
+    [1.00000000e-14 1.00000000e+00]
+    [1.00000000e-14 1.00000000e+00]
+    ...
+    [1.56995650e-01 8.43004350e-01]
+    [1.12072782e-01 8.87927218e-01]
+    [7.43933641e-01 2.56066359e-01]]]]]
+</pre></div></div>
+</div>
+</section>
+<section id="equilibrium()-results">
+<h2><code class="docutils literal notranslate"><span class="pre">equilibrium()</span></code> results<a class="headerlink" href="#equilibrium()-results" title="Link to this heading">¶</a></h2>
+<p>The Datasets returned by equilibrium are very similar to calculate, however there are several key differences worth discussing. In equilibrium Datasets, there are six dimensions/coordinates:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">component</span></code>: (Same as calculate) The string names of the components in the system.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: (Same as calculate, except it will be the longest possible internal_dof for all phases) The internal_dof (internal degrees of freedom) is the index of the site in any phase’s site fraction array. Below the FCC_A1 phase has the sublattice model (AL, ZN) and thus the internal_dof are integers 0 and 1 referring to the AL site (index 0) and the ZN site (index 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">X_ZN</span></code>: This is the composition of the species that was passed into the conditions array. Since we passed <code class="docutils literal notranslate"><span class="pre">v.X('ZN')</span></code> to the conditions dictionary, this is <code class="docutils literal notranslate"><span class="pre">X_ZN</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vertex</span></code>: The vertex is the index of the phase in equilibrium. The vertex has no inherent physical meaning. There will automatically be enough to describe the number of phases present in any equilibria calculated, implying that vertex can never be large enough to invalidate Gibbs phase rule.</p></li>
+</ul>
+<p>There are also at least six Data variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase in equilibrium at the conditions. There are as many as <code class="docutils literal notranslate"><span class="pre">len(vertex)</span></code> phases. Any time there are fewer phases in equilibrium than the indices described by <code class="docutils literal notranslate"><span class="pre">vertex</span></code>, the values of phase are paded by <code class="docutils literal notranslate"><span class="pre">''</span></code>, e.g. for a single phase region for FCC_A1, the values of Phase will be <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>. When more than one phase is present, it is important to note that they are not necessarily sorted.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NP</span></code>: Phase fraction of each phase in equilibrium. When there is no other equilibrium phase (e.g. single phase <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>) then the value of <code class="docutils literal notranslate"><span class="pre">NP</span></code> will be <code class="docutils literal notranslate"><span class="pre">nan</span></code> for the absence of a phase, rather than 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MU</span></code>: The chemical potentials of each component for the conditions calculated.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code>: The equilibrium composition of each element in each phase for the calculated conditions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Y</span></code>: The equilibrium site fraction of each site in each phase for the calculated conditions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GM</span></code>: Same as <code class="docutils literal notranslate"><span class="pre">output</span></code> for <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. It is always reported no matter the value of <code class="docutils literal notranslate"><span class="pre">output</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: (optional) “output” is always whatever equilibrium property is calculated by the output keyword passed to <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>. Unlike <code class="docutils literal notranslate"><span class="pre">calculate</span></code>, this will be in addition to the <code class="docutils literal notranslate"><span class="pre">GM</span></code> because <code class="docutils literal notranslate"><span class="pre">GM</span></code> is always reported.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
+<span class="n">eq_result</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span> <span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.05</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;xarray.Dataset&gt; Size: 23kB
+Dimensions:    (N: 1, P: 1, T: 5, X_ZN: 20, vertex: 3, component: 2,
+                internal_dof: 2)
+Coordinates:
+  * N          (N) float64 8B 1.0
+  * P          (P) float64 8B 1.013e+05
+  * T          (T) float64 40B 500.0 600.0 700.0 800.0 900.0
+  * X_ZN       (X_ZN) float64 160B 1e-10 0.05 0.1 0.15 0.2 ... 0.8 0.85 0.9 0.95
+  * vertex     (vertex) int64 24B 0 1 2
+  * component  (component) &lt;U2 16B &#39;AL&#39; &#39;ZN&#39;
+Dimensions without coordinates: internal_dof
+Data variables:
+    NP         (N, P, T, X_ZN, vertex) float64 2kB 1.0 nan nan ... 1.0 nan nan
+    GM         (N, P, T, X_ZN) float64 800B -1.559e+04 -1.615e+04 ... -5.068e+04
+    MU         (N, P, T, X_ZN, component) float64 2kB -1.559e+04 ... -5.065e+04
+    X          (N, P, T, X_ZN, vertex, component) float64 5kB 1.0 1e-10 ... nan
+    Y          (N, P, T, X_ZN, vertex, internal_dof) float64 5kB 1.0 ... nan
+    Phase      (N, P, T, X_ZN, vertex) &lt;U6 7kB &#39;FCC_A1&#39; &#39;&#39; &#39;&#39; ... &#39;LIQUID&#39; &#39;&#39; &#39;&#39;
+    HM         (N, P, T, X_ZN) float64 800B 5.194e+03 5.859e+03 ... 2.528e+04
+Attributes:
+    engine:   pycalphad 0.10.4.post2.dev240+g48541ab8.d20240707
+    created:  2024-07-07T15:32:45.599856
+</pre></div></div>
+</div>
+<p>A common operation might be to find the phase fractions of the HCP_A3 phase as a function of composition for T=800.</p>
+<p>However, the only way we can access the values of the phase fraction is by either the indices or values of the coordinates, we would have to know which index the HCP_A3 phase is in before hand to use the <code class="docutils literal notranslate"><span class="pre">sel</span></code> or <code class="docutils literal notranslate"><span class="pre">isel</span></code> commands.</p>
+<p>Since we do not know this, we can do what is called <a class="reference external" href="http://xarray.pydata.org/en/stable/indexing.html#masking-with-where">masking</a> to find the data values that match a condition (the Phase is FCC_A1):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">Phase</span><span class="o">==</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">800</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;xarray.DataArray &#39;NP&#39; (N: 1, X_ZN: 20, vertex: 3)&gt; Size: 480B
+array([[[1.        ,        nan,        nan],
+        [1.        ,        nan,        nan],
+        [1.        ,        nan,        nan],
+        [1.        ,        nan,        nan],
+        [0.89739922,        nan,        nan],
+        [0.71825009,        nan,        nan],
+        [0.53910096,        nan,        nan],
+        [0.35995184,        nan,        nan],
+        [0.18080271,        nan,        nan],
+        [       nan, 0.00165358,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan]]])
+Coordinates:
+  * N        (N) float64 8B 1.0
+    P        float64 8B 1.013e+05
+    T        float64 8B 800.0
+  * X_ZN     (X_ZN) float64 160B 1e-10 0.05 0.1 0.15 0.2 ... 0.8 0.85 0.9 0.95
+  * vertex   (vertex) int64 24B 0 1 2
+</pre></div></div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+
+        <div class="related-pages">
+          <a class="next-page" href="LegacyEnergySurface.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Calculating Energy Surfaces [Legacy Method]</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="CementiteAnalysis.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+
+                <div class="title">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</div>
+
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2015-2022, pycalphad Development Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+
+          </div>
+          <div class="right-details">
+
+          </div>
+        </div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+
+
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a><ul>
+<li><a class="reference internal" href="#xarray-Datasets">xarray Datasets</a></li>
+<li><a class="reference internal" href="#Dataset-structure">Dataset structure</a></li>
+<li><a class="reference internal" href="#calculate()-results"><code class="docutils literal notranslate"><span class="pre">calculate()</span></code> results</a></li>
+<li><a class="reference internal" href="#equilibrium()-results"><code class="docutils literal notranslate"><span class="pre">equilibrium()</span></code> results</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+
+
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=b8ed5f4a"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>
