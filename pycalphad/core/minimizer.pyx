@@ -380,7 +380,7 @@ cdef class SystemSpecification:
             (state.largest_statevar_change[0] < ALLOWED_DELTA_STATEVAR) and
             (state.mass_residual < self.ALLOWED_MASS_RESIDUAL)
         )
-        if solution_is_feasible and (state.iterations_since_last_phase_change >= 5):
+        if solution_is_feasible and (state.iterations_since_last_phase_change >= 10):
             return True
         else:
             return False
@@ -393,6 +393,7 @@ cdef class SystemSpecification:
 
     cpdef bint run_loop(self, SystemState state, int max_iterations):
         cdef double step_size = 1.0
+        cdef double target_step_size = 1.0
         cdef bint converged = False
         cdef bint phases_changed = False
         cdef size_t iteration
@@ -403,20 +404,24 @@ cdef class SystemSpecification:
             eq_soln = solve_state(self, state)
             if not self.post_solve_hook(state):
                 break
-            phases_changed = remove_and_consolidate_phases(self, state)
+            if state.iterations_since_last_phase_change >= 5:
+                phases_changed = remove_and_consolidate_phases(self, state)
+            else:
+                phases_changed = False
             converged = self.check_convergence(state)
             if converged:
                 phases_changed = phases_changed or change_phases(self, state)
-                if phases_changed:
-                    # TODO: this preserves old logic about phase changes, but should we
-                    # reset the counter `if phases_changed and not converged` -
-                    # i.e. phases were changed by remove_and_consolidate_phases?
-                    state.iterations_since_last_phase_change = 0
-                else:
+                if not phases_changed:
                     break
-            state.iterations_since_last_phase_change += 1
             state.increment_phase_metastability_counters()
-            if not phases_changed:
+            if phases_changed:
+                state.iterations_since_last_phase_change = 0
+            else:
+                state.iterations_since_last_phase_change += 1
+                # slowly ramp up step size at the beginning of solves to
+                # prevent large changes from the starting point
+                step_size_inital = target_step_size * (state.iteration + 1) / (20)
+                step_size = min(target_step_size, step_size_inital)
                 advance_state(self, state, eq_soln, step_size)
         if state.free_stable_compset_indices.shape[0] > self.max_num_free_stable_phases:
             # Gibbs phase rule violation in solution
@@ -714,7 +719,7 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
             delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
         for i in range(spec.free_statevar_indices.shape[0]):
             statevar_idx = spec.free_statevar_indices[i]
-            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
+            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                              state.free_stable_compset_indices.shape[0] + i]
         return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
     finally:
@@ -762,7 +767,7 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
         delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
     for i in range(spec.free_statevar_indices.shape[0]):
         statevar_idx = spec.free_statevar_indices[i]
-        delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
+        delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                             state.free_stable_compset_indices.shape[0] + i]
     return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
 
@@ -803,7 +808,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
             delta_phase_amounts[cs_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + i]
         for i in range(spec.free_statevar_indices.shape[0]):
             statevar_idx = spec.free_statevar_indices[i]
-            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] + 
+            delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                              state.free_stable_compset_indices.shape[0] + i]
         return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
     finally:
@@ -1009,6 +1014,8 @@ cdef bint remove_and_consolidate_phases(SystemSpecification spec, SystemState st
                 state.chemical_potentials[comp_idx] = spec.initial_chemical_potentials[comp_idx]
         else:
             state.free_stable_compset_indices = np.array(sorted(set(state.free_stable_compset_indices) - compset_indices_to_remove), dtype=np.int32)
+            for idx in compset_indices_to_remove:
+                state.times_compset_removed[idx] += 1
             phases_changed = True
     return phases_changed
 

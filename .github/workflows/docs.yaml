@@ -11,10 +11,10 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m venv pycalphad-env
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: pycalphad-documentation
           path: pycalphad-docs-html
@@ -68,10 +68,10 @@ jobs:
       TARGET_BRANCH: website
       DEPLOY_NAME: latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee the TARGET_BRANCH exists
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: pycalphad-documentation
           path: pycalphad-docs-html

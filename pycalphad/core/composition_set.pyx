@@ -42,8 +42,10 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         return other
 
     def __repr__(self):
-        return str(self.__class__.__name__) + "({0}, {1}, NP={2}, GM={3})".format(self.phase_record.phase_name,
-                                                                          np.asarray(self.X), self.NP, self.energy)
+       return str(self.__class__.__name__) + "({0}, {1}, NP={2}, GM={3})".format(self.phase_record.phase_name, np.asarray(self.X).tolist(), self.NP, self.energy)
+
+    def __str__(self):
+        return str(self.__class__.__name__) + "({0}, {1}, NP={2:0.5e}, GM={3})".format(self.phase_record.phase_name, np.round(np.asarray(self.X), 5).tolist(), self.NP, np.round(self.energy, 5))
 
     cpdef void set_local_conditions(self, dict phase_local_conditions):
         mod = self.phase_record.phase_record_factory.models[self.phase_record.phase_name]

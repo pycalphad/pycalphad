@@ -1,4 +1,4 @@
-from copy import deepcopy
+import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Mapping
@@ -6,6 +6,7 @@ import numpy as np
 
 from pycalphad import variables as v
 from pycalphad.core.composition_set import CompositionSet
+from pycalphad.property_framework import as_property
 
 CS_EQ_TOL = 1e-8
 MIN_COMPOSITION = 1e-6
@@ -59,7 +60,7 @@ def _get_phase_list_with_multiplicity(phases: list[str]):
         u_phases.append(test_name)
     return u_phases
 
-def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : bool = False):
+def _get_phase_specific_variable(phase: str, var: v.StateVariable):
     """
     Helper function for ZPFLine.get_var_list
 
@@ -76,20 +77,11 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable, is_global : b
     is_global : bool
         Whether variable should be phase local or global
     """
-    if is_global:
-        return var
-    if isinstance(var, v.X):
-        # If phase in v.X is already defined, then don't override phase
-        phase = phase if var.phase_name is None else var.phase_name
-        return v.X(phase, var.species)
-    elif isinstance(var, v.W):
-        # If phase in v.W is already defined, then don't override phase
-        phase = phase if var.phase_name is None else var.phase_name
-        return v.W(phase, var.species)
-    elif isinstance(var, v.NP) or var == v.NP:
-        return v.NP(phase)
+    # If variable has a phase_name attribute that is a wildcard, then set to phase
+    if hasattr(var, "phase_name") and var.phase_name == "*":
+        return var.expand_wildcard(phase_names=[phase])[0]
     else:
-        return var
+        return as_property(var)
 
 @dataclass
 class Point():
@@ -162,12 +154,12 @@ class Point():
 
     # Creates a deep copy of the point
     def create_copy(self):
-        return deepcopy(self)
+        return copy.deepcopy(self)
 
     # Creates point with deep copy of inputs (composition sets, conditions, chemical potentials)
     @classmethod
     def with_copy(cls, *args, **kwargs):
-        return cls(*deepcopy(args), **deepcopy(kwargs))
+        return cls(*copy.deepcopy(args), **copy.deepcopy(kwargs))
 
     def __eq__(self, other):
         """
@@ -218,13 +210,32 @@ class Point():
         output += "\nConditions: " + str(self.global_conditions)
         output += "\nChem_pot: " + str(self.chemical_potentials)
         return output
+    
+    def __repr__(self):
+        conds_str = 'global_conditions=' + str(self.global_conditions)
+        chem_pot = 'chemical_potentials=' + str(self.chemical_potentials)
+        fixed_cs_str = [repr(cs) for cs in self._fixed_composition_sets]
+        for i in range(len(self._fixed_composition_sets)):
+            fixed_cs_str[i] = fixed_cs_str[i][:-1] + ', dof=' + str(list(self._fixed_composition_sets[i].dof)) + ')'
+        free_cs_str = [repr(cs) for cs in self._free_composition_sets]
+        for i in range(len(self._free_composition_sets)):
+            free_cs_str[i] = free_cs_str[i][:-1] + ', dof=' + str(list(self._free_composition_sets[i].dof)) + ')'
+        fixed_cs_str = '_fixed_composition_sets=[' + ', '.join(fixed_cs_str) + ']'
+        free_cs_str = '_free_composition_sets=[' + ', '.join(free_cs_str) + ']'
+        return str(self.__class__.__name__) + f"({conds_str}, {chem_pot}, {fixed_cs_str}, {free_cs_str})"
 
     def get_property(self, var: v.StateVariable):
         """
         Wrapper around compute property so I don't have long lines of code getting composition sets, conditions and chemical potentials everywhere
         We will also squeeze the results since v.MoleFraction seems to return an array
         """
-        return np.squeeze(var.compute_property(self.stable_composition_sets, self.global_conditions, self.chemical_potentials))
+        # Remove the last n conditions for each fixed composition set (points will have all conditions set regardless of the number of fixed composition sets)
+        # This allows for properties such as Jansson derivatives to compute since they require the Gibbs phase rule to be satisfied
+        adjusted_conds = copy.copy(self.global_conditions)
+        adjusted_conds_keys = list(self.global_conditions.keys())
+        for i in range(len(self.fixed_composition_sets)):
+            adjusted_conds.pop(adjusted_conds_keys[len(self.global_conditions)-1-i])
+        return np.squeeze(var.compute_property(self.stable_composition_sets, adjusted_conds, self.chemical_potentials))
 
     def get_local_property(self, comp_set: CompositionSet, var: v.StateVariable):
         """
@@ -267,7 +278,7 @@ class Node(Point):
     axis_var : v.StateVariable
         Axis variable that parent was stepping in to find node
     axis_direction : Direction
-        Axis direction that parent was steppig in to find node
+        Axis direction that parent was stepping in to find node
     exit_hint : ExitHint
         Hints for how exits should be found from this node
     """
@@ -299,8 +310,16 @@ class Node(Point):
 
     def __str__(self):
         output = super().__str__()
-        output += "\nAxis: " + str([self.axis_var, self.axis_direction])
+        output += f"\nAxis: [{self.axis_var}, {self.axis_direction}]"
         return output
+    
+    def __repr__(self):
+        point_repr = super().__repr__()
+        parent_str = 'parent=' + repr(self.parent)
+        av_str = 'axis_var=' + str(self.axis_var)
+        dir_str = 'axis_direction=' + str(self.axis_direction)
+        exit_str = 'exit_hint=' + str(self.exit_hint)
+        return point_repr[:-1] + f", {parent_str}, {av_str}, {dir_str}, {exit_str})"
 
 class ZPFState(Enum):
     """
@@ -411,7 +430,7 @@ class NodeQueue():
         self.nodes: list[Node] = []
         self._current_node_index = 0
 
-    def add_node(self, candidate_node: Node, force = False) -> bool:
+    def add_node(self, candidate_node: Node, force = False, check_parent = False) -> bool:
         """
         Checks candidate_node to see if it has been added before
             If it has been added before, add parent to the encountered points list in the node
@@ -428,8 +447,13 @@ class NodeQueue():
             # of encountered points in the node
             for other in self.nodes:
                 if other == candidate_node:
-                    other.encountered_points.append(candidate_node.parent)
-                    return False
+                    # If checking that the parent is also the same (and from the same direction)
+                    if check_parent:
+                        if (other.parent == candidate_node.parent) and (other.axis_var == candidate_node.axis_var) and (other.axis_direction == candidate_node.axis_direction):
+                            return False
+                    else:
+                        other.encountered_points.append(candidate_node.parent)
+                        return False
             else:
                 self.nodes.append(candidate_node)
                 return True
