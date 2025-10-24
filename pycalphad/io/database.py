@@ -63,21 +63,6 @@ class Database(object): #pylint: disable=R0902
     """
     Structured thermodynamic and/or kinetic data.
 
-    Attributes
-    ----------
-    elements : set[str]
-        Set of elements in database.
-    species : set[Species]
-        Set of species in database.
-    phases : dict[str, Phase]
-        Phase objects indexed by their system-local name.
-    symbols : dict[str, Expr]
-        SymEngine objects indexed by their name (FUNCTIONs in Thermo-Calc).
-    refstates: dict[str, ElementReferenceData]
-        Mapping of elements to their reference data
-    references : dict[str, Any]
-        Reference objects indexed by their system-local identifier.
-
     Examples
     --------
     >>> mydb = Database(open('crfeni_mie.tdb'))
@@ -87,11 +72,17 @@ class Database(object): #pylint: disable=R0902
     """
 
     elements: set[str]
+    """Set of elements in database."""
     species: set[Species]
+    """Set of species in database."""
     phases: dict[str, Phase]
+    """Phase objects indexed by their system-local name."""
     symbols: dict[str, Expr]
+    """SymEngine objects indexed by their name (FUNCTIONs in Thermo-Calc)."""
     refstates: dict[str, ElementReferenceData]
+    """Mapping of elements to their reference data"""
     references: dict[str, Any]
+    """Reference objects indexed by their system-local identifier."""
     _structure_dict: dict[str, Any]
 
     def __new__(cls, *args):
