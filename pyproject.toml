@@ -9,6 +9,74 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "pycalphad"
+authors = [
+    {name = "Richard Otis", email = "richard.otis@outlook.com"},
+    {name = "Brandon Bocklund", email = "brandonbocklund@gmail.com"},
+]
+description = "CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria."
+readme = {file = "README.rst", content-type = "text/x-rst"}
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.11"
+# NOTE: please try to keep any depedencies in alphabetic order so they
+# may be easily compared with other dependency lists
+# NOTE: these dependencies may differ in name from those in the
+# conda-forge Anaconda channel. For example, conda-forge/symengine
+# gives the C++ SymEngine library, while conda-forge/python-symengine
+# provides the Python package called `symengine`.
+dependencies = [
+    "matplotlib>=3.3",
+    "numpy>=1.13",
+    "pint",
+    "pyparsing>=2.4",
+    "pytest",
+    "pytest-cov",
+    "runtype",
+    "scipy",
+    "setuptools_scm[toml]>=6.0",
+    "symengine>=0.9.2,<0.14",
+    "tinydb>=3.8",
+    "typing_extensions",
+    "xarray>=0.11.2",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://pycalphad.org/"
+
+[tool.setuptools]
+# Do not include pycalphad._dev here as it should not be distributed
+packages = [
+    "pycalphad",
+    "pycalphad.codegen",
+    "pycalphad.core",
+    "pycalphad.io",
+    "pycalphad.plot",
+    "pycalphad.plot.binary",
+    "pycalphad.property_framework",
+    "pycalphad.tests",
+    "pycalphad.tests.databases",
+    "pycalphad.models",
+    "pycalphad.mapping",
+    "pycalphad.mapping.strategy",
+]
+
+[tool.setuptools.package-data]
+"pycalphad.core" = ["*.pxd"]
+"pycalphad.tests.databases" = ["*"]
+
 [tool.pytest.ini_options]
 markers = [
     "solver: mark for tests that verify the correctness of the solver",
@@ -47,6 +115,6 @@ omit = [
 [tool.coverage.report]
 ignore_errors = true # workaround for https://github.com/cython/cython/issues/5581
 
-# '[tool.setuptools.scm]\n' needs to be the last line because
+# '[tool.setuptools.scm]' needs to be the last line because
 # we do an append operation in the deploy.yaml GitHub Actions workflow
 [tool.setuptools_scm]
