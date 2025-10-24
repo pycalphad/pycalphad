@@ -56,6 +56,22 @@ dynamic = ["version"]
 [project.urls]
 Homepage = "https://pycalphad.org/"
 
+[dependency-groups]
+dev = [
+    "Cython",
+    "numpy>=2",
+    "scipy",
+    "setuptools",
+    "setuptools_scm[toml]>=6.0",
+    "wheel",
+    "furo>=2021.11.16",  # docs theme
+    "ipython",  # for pygments syntax highlighting
+    "pytest-cov",
+    "sphinx",
+    "nbsphinx-link",
+    "docutils<0.21", # workaround for https://github.com/vidartf/nbsphinx-link/issues/22
+]
+
 [tool.setuptools]
 # Do not include pycalphad._dev here as it should not be distributed
 packages = [
