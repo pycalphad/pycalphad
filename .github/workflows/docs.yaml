@@ -18,6 +18,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
+      - run: sudo wget https://github.com/jgm/pandoc/releases/download/2.18/pandoc-2.18-1-amd64.deb
+      - run: sudo dpkg -i pandoc-2.18-1-amd64.deb
       - run: uv sync --dev
       - run: uv run sphinx-build -W -b html docs docs/_build/html
       # Upload documentation html directory
