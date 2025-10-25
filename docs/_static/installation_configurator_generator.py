@@ -49,8 +49,7 @@ def get_config_install_lines(pkg, plt, env, jup) -> List[str]:
         install_lines.append("git clone https://github.com/pycalphad/pycalphad")
         install_lines.append("cd pycalphad")
         install_lines.append("pip install -U pip setuptools")
-        install_lines.append("pip install -U -r requirements-dev.txt")
-        install_lines.append("pip install -U --no-build-isolation --editable .")
+        install_lines.append("pip install -U --editable .")
         if jup == "jupyter":
             install_lines.append("pip install -U jupyterlab")
     else:  # assume pip
