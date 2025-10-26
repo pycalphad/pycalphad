@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.io.cs_dat - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.io.cs_dat - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,16 +280,16 @@
 <span class="sd">Support for reading ChemSage DAT files.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">S</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">And</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">.grammar</span> <span class="kn">import</span> <span class="n">parse_chemical_formula</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">symengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">S</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">And</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.grammar</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_chemical_formula</span>
 
 <span class="c1"># From ChemApp Documentation, section 11.1 &quot;The format of a ChemApp data-file&quot;</span>
 <span class="c1"># We use a leading zero term because the data file&#39;s indices are 1-indexed and</span>
@@ -300,7 +300,7 @@
 <span class="n">EXCESS_TERMS</span> <span class="o">=</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">**</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">**</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span>
 <span class="n">DEFAULT_T_MIN</span> <span class="o">=</span> <span class="mf">0.01</span>  <span class="c1"># The same as for TDBs when no minimum temperature is given.</span>
 
-<span class="k">def</span> <span class="nf">_parse_species_postfix_charge</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_species_postfix_charge</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">:</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">formula</span>
     <span class="c1"># handle postfix charge: FE[2+] CU[+] CL[-] O[2-]</span>
     <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\[([0-9]+)?([-+])\]&#39;</span><span class="p">,</span> <span class="n">formula</span><span class="p">)</span>
@@ -316,21 +316,21 @@
 
 <div class="viewcode-block" id="TokenParserError">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.TokenParserError">[docs]</a>
-<span class="k">class</span> <span class="nc">TokenParserError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TokenParserError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception raised when the TokenParser hits a parsing error.&quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="TokenParser">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.TokenParser">[docs]</a>
-<span class="k">class</span> <span class="nc">TokenParser</span><span class="p">():</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TokenParser</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_line_number</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># user facing, so make it one-indexed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lines_deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines_deque</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tokens_deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_line</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
     
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="c1"># Instantiate a new TokenParser for the current state so we can look ahead without messing up our line numbers</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">deque</span><span class="p">([</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tokens_deque</span><span class="p">)])</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines_deque</span><span class="p">)</span>
         <span class="n">tmp_parser</span> <span class="o">=</span> <span class="n">TokenParser</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
@@ -339,7 +339,7 @@
                 <span class="n">token</span> <span class="o">=</span> <span class="n">tmp_parser</span><span class="o">.</span><span class="n">_next</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">tmp_parser</span><span class="o">.</span><span class="n">_next</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokens_deque</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -353,21 +353,21 @@
 
 <div class="viewcode-block" id="TokenParser.parse">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.TokenParser.parse">[docs]</a>
-    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
         <span class="n">next_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">next_token</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># Return the token and re-raise with a ParseError </span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tokens_deque</span><span class="o">.</span><span class="n">appendleft</span><span class="p">(</span><span class="n">next_token</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">TokenParserError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error at line number </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_number</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="si">}</span><span class="s2"> for line:</span><span class="se">\n</span><span class="s2">    </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_line</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="k">raise</span> <span class="n">TokenParserError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error at line number </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_line_number</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="si">}</span><span class="s2"> for line:</span><span class="se">\n</span><span class="s2">    </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_line</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">obj</span></div>
 
 
 <div class="viewcode-block" id="TokenParser.parseN">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.TokenParser.parseN">[docs]</a>
-    <span class="k">def</span> <span class="nf">parseN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parseN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">N</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;N must be &gt;=1, got </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span></div>
@@ -378,7 +378,7 @@
 <div class="viewcode-block" id="Header">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Header">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Header</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Header</span><span class="p">:</span>
     <span class="n">list_soln_species_count</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="n">num_stoich_phases</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
@@ -391,13 +391,13 @@
 <div class="viewcode-block" id="AdditionalCoefficientPair">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.AdditionalCoefficientPair">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">AdditionalCoefficientPair</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AdditionalCoefficientPair</span><span class="p">:</span>
     <span class="n">coefficient</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">exponent</span><span class="p">:</span> <span class="nb">float</span>
 
 <div class="viewcode-block" id="AdditionalCoefficientPair.expr">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.AdditionalCoefficientPair.expr">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exponent</span> <span class="o">==</span> <span class="mi">99</span><span class="p">:</span>
             <span class="c1"># this is a special case and means log(v.T)</span>
             <span class="c1"># See ChemApp documentation, section 11.1 cosi.dat, Line 5</span>
@@ -412,7 +412,7 @@
 <div class="viewcode-block" id="PTVmTerms">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.PTVmTerms">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">PTVmTerms</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PTVmTerms</span><span class="p">:</span>
     <span class="n">terms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span></div>
 
 
@@ -420,18 +420,18 @@
 <div class="viewcode-block" id="IntervalBase">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.IntervalBase">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">IntervalBase</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IntervalBase</span><span class="p">:</span>
     <span class="n">T_max</span><span class="p">:</span> <span class="nb">float</span>
 
 <div class="viewcode-block" id="IntervalBase.expr">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.IntervalBase.expr">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Subclasses of IntervalBase must define an expression for the energy&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="IntervalBase.cond">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.IntervalBase.cond">[docs]</a>
-    <span class="k">def</span> <span class="nf">cond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T_min</span><span class="o">=</span><span class="n">DEFAULT_T_MIN</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T_min</span><span class="o">=</span><span class="n">DEFAULT_T_MIN</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">T_min</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_max</span><span class="p">:</span>
             <span class="c1"># To avoid an impossible, always False condition an open interval</span>
             <span class="c1"># is assumed. We choose 10000 K as the dummy (as in TDBs).</span>
@@ -441,7 +441,7 @@
 
 <div class="viewcode-block" id="IntervalBase.expr_cond_pair">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.IntervalBase.expr_cond_pair">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr_cond_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">T_min</span><span class="o">=</span><span class="n">DEFAULT_T_MIN</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr_cond_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">T_min</span><span class="o">=</span><span class="n">DEFAULT_T_MIN</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an (expr, cond) tuple used to construct Piecewise expressions&quot;&quot;&quot;</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">cond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span><span class="n">T_min</span><span class="p">)</span>
@@ -453,14 +453,14 @@
 <div class="viewcode-block" id="IntervalG">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.IntervalG">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">IntervalG</span><span class="p">(</span><span class="n">IntervalBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IntervalG</span><span class="p">(</span><span class="n">IntervalBase</span><span class="p">):</span>
     <span class="n">coefficients</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
     <span class="n">additional_coeff_pairs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AdditionalCoefficientPair</span><span class="p">]</span>
     <span class="n">PTVm_terms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PTVmTerms</span><span class="p">]</span>
 
 <div class="viewcode-block" id="IntervalG.expr">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.IntervalG.expr">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an expression for the energy in this temperature interval&quot;&quot;&quot;</span>
         <span class="n">energy</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="c1"># Add fixed energy terms</span>
@@ -479,7 +479,7 @@
 <div class="viewcode-block" id="IntervalCP">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.IntervalCP">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">IntervalCP</span><span class="p">(</span><span class="n">IntervalBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IntervalCP</span><span class="p">(</span><span class="n">IntervalBase</span><span class="p">):</span>
     <span class="c1"># Fixed term heat capacity interval with extended terms</span>
     <span class="n">H298</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">S298</span><span class="p">:</span> <span class="nb">float</span>
@@ -490,7 +490,7 @@
 
 <div class="viewcode-block" id="IntervalCP.expr">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.IntervalCP.expr">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">T_min</span><span class="o">=</span><span class="n">DEFAULT_T_MIN</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">T_min</span><span class="o">=</span><span class="n">DEFAULT_T_MIN</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an expression for the energy in this temperature interval&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Heat capacity descriptions of the Gibbs energy are not implemented.&quot;</span><span class="p">)</span></div>
 </div>
@@ -500,7 +500,7 @@
 <div class="viewcode-block" id="Endmember">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Endmember">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Endmember</span><span class="p">():</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Endmember</span><span class="p">():</span>
     <span class="n">species_name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">gibbs_eq_type</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">stoichiometry_pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
@@ -508,7 +508,7 @@
 
 <div class="viewcode-block" id="Endmember.expr">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Endmember.expr">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a Piecewise (in temperature) energy expression for this endmember (i.e. only the data from the energy intervals)&quot;&quot;&quot;</span>
         <span class="n">T_min</span> <span class="o">=</span> <span class="n">DEFAULT_T_MIN</span>
         <span class="n">expr_cond_pairs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -522,19 +522,19 @@
 
 <div class="viewcode-block" id="Endmember.constituents">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Endmember.constituents">[docs]</a>
-    <span class="k">def</span> <span class="nf">constituents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">constituents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">el</span><span class="p">:</span> <span class="n">amnt</span> <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">amnt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pure_elements</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stoichiometry_pure_elements</span><span class="p">)</span> <span class="k">if</span> <span class="n">amnt</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="Endmember.constituent_array">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Endmember.constituent_array">[docs]</a>
-    <span class="k">def</span> <span class="nf">constituent_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">constituent_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[[</span><span class="n">sp</span><span class="p">]</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)]</span></div>
 
 
 <div class="viewcode-block" id="Endmember.species">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Endmember.species">[docs]</a>
-    <span class="k">def</span> <span class="nf">species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an unordered list of Species objects detected in this endmember&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># If given in sublattice notation, assume species are pure elements</span>
@@ -548,7 +548,7 @@
 
 <div class="viewcode-block" id="Endmember.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Endmember.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="n">dbf</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">gibbs_coefficient_idxs</span><span class="p">),</span> <span class="n">force_insert</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 </div>
 
@@ -556,13 +556,13 @@
 <div class="viewcode-block" id="EndmemberQKTO">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.EndmemberQKTO">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">EndmemberQKTO</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EndmemberQKTO</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
     <span class="n">stoichiometric_factor</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">chemical_group</span><span class="p">:</span> <span class="nb">int</span>
 
 <div class="viewcode-block" id="EndmemberQKTO.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.EndmemberQKTO.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="n">dbf</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">gibbs_coefficient_idxs</span><span class="p">),</span> <span class="n">force_insert</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="c1"># Most databases in the wild use stoichiometric factors of unity,</span>
         <span class="c1"># so we&#39;re avoiding the complexity of non-unity factors for now.</span>
@@ -575,13 +575,13 @@
 <div class="viewcode-block" id="EndmemberMagnetic">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.EndmemberMagnetic">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">EndmemberMagnetic</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EndmemberMagnetic</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
     <span class="n">curie_temperature</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">magnetic_moment</span><span class="p">:</span> <span class="nb">float</span>
 
 <div class="viewcode-block" id="EndmemberMagnetic.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.EndmemberMagnetic.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="c1"># add Gibbs energy</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">,</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">)</span>
 
@@ -597,7 +597,7 @@
 <div class="viewcode-block" id="EndmemberRealGas">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.EndmemberRealGas">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">EndmemberRealGas</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EndmemberRealGas</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
     <span class="c1"># Tsonopoulos data</span>
     <span class="n">Tc</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">Pc</span><span class="p">:</span> <span class="nb">float</span>
@@ -607,7 +607,7 @@
 
 <div class="viewcode-block" id="EndmemberRealGas.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.EndmemberRealGas.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Inserting parameters for real gas Endmembers is not supported.&quot;</span><span class="p">)</span></div>
 </div>
 
@@ -616,12 +616,12 @@
 <div class="viewcode-block" id="EndmemberAqueous">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.EndmemberAqueous">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">EndmemberAqueous</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EndmemberAqueous</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
     <span class="n">charge</span><span class="p">:</span> <span class="nb">float</span>
 
 <div class="viewcode-block" id="EndmemberAqueous.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.EndmemberAqueous.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Inserting parameters for aqueous Endmembers is not supported.&quot;</span><span class="p">)</span></div>
 </div>
 
@@ -630,10 +630,10 @@
 <div class="viewcode-block" id="ExcessBase">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessBase">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">ExcessBase</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExcessBase</span><span class="p">:</span>
     <span class="n">interacting_species_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_map_const_idxs_to_subl_idxs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_subl_species</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_map_const_idxs_to_subl_idxs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_subl_species</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts from one-indexed linear phase species indices to zero-indexed</span>
 <span class="sd">        sublattice species indices.</span>
@@ -673,7 +673,7 @@
 
 <div class="viewcode-block" id="ExcessBase.constituent_array">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessBase.constituent_array">[docs]</a>
-    <span class="k">def</span> <span class="nf">constituent_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">constituent_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the constituent array of this interaction using the entire phase</span>
 <span class="sd">        sublattice model.</span>
@@ -696,7 +696,7 @@
 
 <div class="viewcode-block" id="ExcessBase.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessBase.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subclass </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> of ExcessBase must implement `insert` to add the phase, constituents and parameters to the Database.&quot;</span><span class="p">)</span></div>
 </div>
 
@@ -705,7 +705,7 @@
 <div class="viewcode-block" id="ExcessRKM">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessRKM">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">ExcessRKM</span><span class="p">(</span><span class="n">ExcessBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExcessRKM</span><span class="p">(</span><span class="n">ExcessBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -720,7 +720,7 @@
 
 <div class="viewcode-block" id="ExcessRKM.expr">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessRKM.expr">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an expression for the energy in this temperature interval&quot;&quot;&quot;</span>
         <span class="n">energy</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="c1"># Add fixed energy terms</span>
@@ -730,7 +730,7 @@
 
 <div class="viewcode-block" id="ExcessRKM.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessRKM.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Requires all Species in dbf.species to be defined.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -745,14 +745,14 @@
 <div class="viewcode-block" id="ExcessRKMMagnetic">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessRKMMagnetic">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">ExcessRKMMagnetic</span><span class="p">(</span><span class="n">ExcessBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExcessRKMMagnetic</span><span class="p">(</span><span class="n">ExcessBase</span><span class="p">):</span>
     <span class="n">parameter_order</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">curie_temperature</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">magnetic_moment</span><span class="p">:</span> <span class="nb">float</span>
 
 <div class="viewcode-block" id="ExcessRKMMagnetic.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessRKMMagnetic.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Requires all Species in dbf.species to be defined.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -767,13 +767,13 @@
 <div class="viewcode-block" id="ExcessQKTO">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessQKTO">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">ExcessQKTO</span><span class="p">(</span><span class="n">ExcessBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExcessQKTO</span><span class="p">(</span><span class="n">ExcessBase</span><span class="p">):</span>
     <span class="n">exponents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="n">coefficients</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
 
 <div class="viewcode-block" id="ExcessQKTO.expr">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessQKTO.expr">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an expression for the energy in this temperature interval&quot;&quot;&quot;</span>
         <span class="n">energy</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="c1"># Add fixed energy terms</span>
@@ -783,7 +783,7 @@
 
 <div class="viewcode-block" id="ExcessQKTO.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.ExcessQKTO.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="n">const_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituent_array</span><span class="p">(</span><span class="n">phase_constituents</span><span class="p">)</span>
         <span class="n">exponents</span> <span class="o">=</span> <span class="p">[</span><span class="n">exponent</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">exponent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exponents</span><span class="p">]</span>  <span class="c1"># For some reason, an exponent of 1 really means an exponent of zero</span>
         <span class="n">dbf</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
@@ -797,14 +797,14 @@
 <div class="viewcode-block" id="PhaseBase">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.PhaseBase">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">PhaseBase</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhaseBase</span><span class="p">:</span>
     <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">phase_type</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">endmembers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Endmember</span><span class="p">]</span>
 
 <div class="viewcode-block" id="PhaseBase.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.PhaseBase.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Enter this phase and its parameters into the Database.</span>
 
 <span class="sd">        This method should call:</span>
@@ -823,13 +823,13 @@
 <div class="viewcode-block" id="Phase_Stoichiometric">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Phase_Stoichiometric">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Phase_Stoichiometric</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Phase_Stoichiometric</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
     <span class="n">magnetic_afm_factor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
     <span class="n">magnetic_structure_factor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Phase_Stoichiometric.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Phase_Stoichiometric.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="n">model_hints</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnetic_afm_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnetic_structure_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># This follows the Redlich-Kister Muggianu IHJ model. The ChemSage</span>
@@ -862,7 +862,7 @@
 <div class="viewcode-block" id="Phase_CEF">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Phase_CEF">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Phase_CEF</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Phase_CEF</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
     <span class="n">subl_ratios</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
     <span class="n">constituent_array</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
     <span class="n">endmember_constituent_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
@@ -872,7 +872,7 @@
 
 <div class="viewcode-block" id="Phase_CEF.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Phase_CEF.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="n">model_hints</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnetic_afm_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnetic_structure_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># This follows the Redlich-Kister Muggianu IHJ model. The ChemSage</span>
@@ -959,7 +959,7 @@
 
 <div class="viewcode-block" id="rename_element_charge">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.rename_element_charge">[docs]</a>
-<span class="k">def</span> <span class="nf">rename_element_charge</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">charge</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rename_element_charge</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">charge</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;We use the _ to separate so we have something to split on.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">charge</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">element</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -973,13 +973,13 @@
 <div class="viewcode-block" id="SUBQPair">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.SUBQPair">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">SUBQPair</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SUBQPair</span><span class="p">(</span><span class="n">Endmember</span><span class="p">):</span>
     <span class="n">stoichiometry_quadruplet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
     <span class="n">zeta</span><span class="p">:</span> <span class="nb">float</span>
 
 <div class="viewcode-block" id="SUBQPair.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.SUBQPair.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="c1"># Here the constituent array should be the pair name using the corrected</span>
         <span class="c1"># names, i.e. CU1.0CL1.0</span>
         <span class="n">dbf</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
@@ -995,13 +995,13 @@
 <div class="viewcode-block" id="SUBQQuadrupletCoordinations">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.SUBQQuadrupletCoordinations">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">SUBQQuadrupletCoordinations</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SUBQQuadrupletCoordinations</span><span class="p">:</span>
     <span class="n">quadruplet_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># exactly four</span>
     <span class="n">quadruplet_coordinations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>  <span class="c1"># exactly four</span>
 
 <div class="viewcode-block" id="SUBQQuadrupletCoordinations.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.SUBQQuadrupletCoordinations.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">As</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Xs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">As</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Xs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a Z_i_AB:XY parameter for each species defined in the quadruplet&quot;&quot;&quot;</span>
         <span class="n">linear_species</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">As</span> <span class="o">+</span> <span class="n">Xs</span>  <span class="c1"># the leading &#39;&#39; element pads for one-indexed quadruplet_idxs</span>
         <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">linear_species</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadruplet_idxs</span><span class="p">)</span>
@@ -1024,7 +1024,7 @@
 <div class="viewcode-block" id="SUBQExcessQuadruplet">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.SUBQExcessQuadruplet">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">SUBQExcessQuadruplet</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SUBQExcessQuadruplet</span><span class="p">:</span>
     <span class="n">mixing_type</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">mixing_code</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># G, Q, B, or R</span>
     <span class="n">mixing_const</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># exactly four</span>
@@ -1036,7 +1036,7 @@
 
 <div class="viewcode-block" id="SUBQExcessQuadruplet.expr">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.SUBQExcessQuadruplet.expr">[docs]</a>
-    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an expression for the energy in this temperature interval&quot;&quot;&quot;</span>
         <span class="n">energy</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="c1"># Add fixed energy terms</span>
@@ -1046,7 +1046,7 @@
 
 <div class="viewcode-block" id="SUBQExcessQuadruplet.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.SUBQExcessQuadruplet.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">As</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Xs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">excess_coeff_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">As</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Xs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">excess_coeff_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="n">linear_species</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">As</span> <span class="o">+</span> <span class="n">Xs</span>  <span class="c1"># the leading &#39;&#39; element pads for one-indexed quadruplet_idxs</span>
         <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">linear_species</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mixing_const</span><span class="p">)</span>
         <span class="n">constituent_array</span> <span class="o">=</span> <span class="p">[[</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">],</span> <span class="p">[</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">]]</span>
@@ -1084,14 +1084,14 @@
 
 
 
-<span class="k">def</span> <span class="nf">_species</span><span class="p">(</span><span class="n">el_chg</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_species</span><span class="p">(</span><span class="n">el_chg</span><span class="p">):</span>
     <span class="n">el</span><span class="p">,</span> <span class="n">chg</span> <span class="o">=</span> <span class="n">el_chg</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">rename_element_charge</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">chg</span><span class="p">)</span>
     <span class="n">constituents</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parse_chemical_formula</span><span class="p">(</span><span class="n">el</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">constituents</span><span class="o">=</span><span class="n">constituents</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">chg</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_process_chemical_group_override_string</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_chemical_group_override_string</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse strings for special MQMQA (SUBG/SUBQ) parameters that indicate Kohler/Toop</span>
 <span class="sd">    mixing special cases that are not expressed in the specified chemical groups</span>
@@ -1135,7 +1135,7 @@
 <div class="viewcode-block" id="Phase_SUBQ">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Phase_SUBQ">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Phase_SUBQ</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Phase_SUBQ</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
     <span class="n">num_pairs</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">num_quadruplets</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">num_subl_1_const</span><span class="p">:</span> <span class="nb">int</span>
@@ -1153,7 +1153,7 @@
 
 <div class="viewcode-block" id="Phase_SUBQ.insert">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Phase_SUBQ.insert">[docs]</a>
-    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">pure_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">gibbs_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">excess_coefficient_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="c1"># First: get the pair and quadruplet species added to the database:</span>
         <span class="c1"># Here we rename the species names according to their charges, to avoid creating duplicate pairs/quadruplets</span>
         <span class="n">cation_el_chg_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subl_1_const</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subl_1_charges</span><span class="p">))</span>
@@ -1223,7 +1223,7 @@
 <div class="viewcode-block" id="Phase_RealGas">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Phase_RealGas">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Phase_RealGas</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Phase_RealGas</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
     <span class="n">endmembers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">EndmemberRealGas</span><span class="p">]</span></div>
 
 
@@ -1232,14 +1232,14 @@
 <div class="viewcode-block" id="Phase_Aqueous">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.Phase_Aqueous">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">Phase_Aqueous</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Phase_Aqueous</span><span class="p">(</span><span class="n">PhaseBase</span><span class="p">):</span>
     <span class="n">endmembers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">EndmemberAqueous</span><span class="p">]</span></div>
 
 
 
 <div class="viewcode-block" id="tokenize">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.tokenize">[docs]</a>
-<span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="n">instring</span><span class="p">,</span> <span class="n">startline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">force_upper</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">tokenize</span><span class="p">(</span><span class="n">instring</span><span class="p">,</span> <span class="n">startline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">force_upper</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">force_upper</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">TokenParser</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">instring</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="n">startline</span><span class="p">:]))</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1249,7 +1249,7 @@
 
 <div class="viewcode-block" id="parse_header">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_header">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_header</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Header</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_header</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Header</span><span class="p">:</span>
     <span class="n">num_pure_elements</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">num_soln_phases</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">list_soln_species_count</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="n">num_soln_phases</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
@@ -1267,7 +1267,7 @@
 
 <div class="viewcode-block" id="parse_additional_terms">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_additional_terms">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_additional_terms</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">AdditionalCoefficientPair</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_additional_terms</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">AdditionalCoefficientPair</span><span class="p">]:</span>
     <span class="n">num_additional_terms</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">AdditionalCoefficientPair</span><span class="p">(</span><span class="o">*</span><span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_additional_terms</span><span class="p">)]</span></div>
 
@@ -1275,7 +1275,7 @@
 
 <div class="viewcode-block" id="parse_PTVm_terms">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_PTVm_terms">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_PTVm_terms</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PTVmTerms</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_PTVm_terms</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PTVmTerms</span><span class="p">:</span>
     <span class="c1"># parse molar volume terms, there seem to always be 11 terms (at least in the one file I have)</span>
     <span class="k">return</span> <span class="n">PTVmTerms</span><span class="p">(</span><span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span></div>
 
@@ -1283,7 +1283,7 @@
 
 <div class="viewcode-block" id="parse_interval_Gibbs">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_interval_Gibbs">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_interval_Gibbs</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">has_additional_terms</span><span class="p">,</span> <span class="n">has_PTVm_terms</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IntervalG</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_interval_Gibbs</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">has_additional_terms</span><span class="p">,</span> <span class="n">has_PTVm_terms</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IntervalG</span><span class="p">:</span>
     <span class="n">temperature_max</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">coefficients</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
     <span class="n">additional_coeff_pairs</span> <span class="o">=</span> <span class="n">parse_additional_terms</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="k">if</span> <span class="n">has_additional_terms</span> <span class="k">else</span> <span class="p">[]</span>
@@ -1294,7 +1294,7 @@
 
 <div class="viewcode-block" id="parse_interval_heat_capacity">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_interval_heat_capacity">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_interval_heat_capacity</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">H298</span><span class="p">,</span> <span class="n">S298</span><span class="p">,</span> <span class="n">has_H_trans</span><span class="p">,</span> <span class="n">has_additional_terms</span><span class="p">,</span> <span class="n">has_PTVm_terms</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IntervalCP</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_interval_heat_capacity</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">H298</span><span class="p">,</span> <span class="n">S298</span><span class="p">,</span> <span class="n">has_H_trans</span><span class="p">,</span> <span class="n">has_additional_terms</span><span class="p">,</span> <span class="n">has_PTVm_terms</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IntervalCP</span><span class="p">:</span>
     <span class="c1"># 6 coefficients are required</span>
     <span class="k">assert</span> <span class="n">num_gibbs_coeffs</span> <span class="o">==</span> <span class="mi">6</span>
     <span class="k">if</span> <span class="n">has_H_trans</span><span class="p">:</span>
@@ -1311,7 +1311,7 @@
 
 <div class="viewcode-block" id="parse_endmember">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_endmember">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_endmember</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">is_stoichiometric</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_endmember</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">is_stoichiometric</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">species_name</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
         <span class="c1"># special case for stoichiometric phases, this is a dummy species, skip it</span>
@@ -1365,7 +1365,7 @@
 
 <div class="viewcode-block" id="parse_endmember_qkto">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_endmember_qkto">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_endmember_qkto</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_endmember_qkto</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
     <span class="c1"># add an extra &quot;pure element&quot; to parse the charge</span>
     <span class="n">em</span> <span class="o">=</span> <span class="n">parse_endmember</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">)</span>
     <span class="n">stoichiometric_factor</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
@@ -1376,7 +1376,7 @@
 
 <div class="viewcode-block" id="parse_endmember_aqueous">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_endmember_aqueous">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_endmember_aqueous</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_endmember_aqueous</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
     <span class="c1"># add an extra &quot;pure element&quot; to parse the charge</span>
     <span class="n">em</span> <span class="o">=</span> <span class="n">parse_endmember</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">EndmemberAqueous</span><span class="p">(</span><span class="n">em</span><span class="o">.</span><span class="n">species_name</span><span class="p">,</span> <span class="n">em</span><span class="o">.</span><span class="n">gibbs_eq_type</span><span class="p">,</span> <span class="n">em</span><span class="o">.</span><span class="n">stoichiometry_pure_elements</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">em</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span> <span class="n">em</span><span class="o">.</span><span class="n">stoichiometry_pure_elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
@@ -1385,7 +1385,7 @@
 
 <div class="viewcode-block" id="parse_endmember_subq">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_endmember_subq">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_endmember_subq</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">zeta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_endmember_subq</span><span class="p">(</span><span class="n">toks</span><span class="p">:</span> <span class="n">TokenParser</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">zeta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">em</span> <span class="o">=</span> <span class="n">parse_endmember</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">)</span>
     <span class="c1"># The first two entries are the stoichiometry of the pair (the cation and anion). It&#39;s unclear to what the last three are for.</span>
     <span class="n">stoichiometry_quadruplet</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
@@ -1398,7 +1398,7 @@
 
 <div class="viewcode-block" id="parse_quadruplet">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_quadruplet">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_quadruplet</span><span class="p">(</span><span class="n">toks</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_quadruplet</span><span class="p">(</span><span class="n">toks</span><span class="p">):</span>
     <span class="n">quad_idx</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
     <span class="n">quad_coords</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">SUBQQuadrupletCoordinations</span><span class="p">(</span><span class="n">quad_idx</span><span class="p">,</span> <span class="n">quad_coords</span><span class="p">)</span></div>
@@ -1407,7 +1407,7 @@
 
 <div class="viewcode-block" id="parse_subq_excess">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_subq_excess">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_subq_excess</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">mixing_type</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_subq_excess</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">mixing_type</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
     <span class="n">mixing_code</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
     <span class="n">mixing_const</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
     <span class="n">mixing_exponents</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parseN</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
@@ -1421,7 +1421,7 @@
 
 <div class="viewcode-block" id="parse_phase_subq">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_phase_subq">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_phase_subq</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_phase_subq</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">phase_type</span> <span class="o">==</span> <span class="s1">&#39;SUBG&#39;</span><span class="p">:</span>
         <span class="n">zeta</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1462,7 +1462,7 @@
 
 <div class="viewcode-block" id="parse_excess_magnetic_parameters">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_excess_magnetic_parameters">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_excess_magnetic_parameters</span><span class="p">(</span><span class="n">toks</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_excess_magnetic_parameters</span><span class="p">(</span><span class="n">toks</span><span class="p">):</span>
     <span class="n">excess_terms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">num_interacting_species</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -1480,7 +1480,7 @@
 
 <div class="viewcode-block" id="parse_excess_parameters">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_excess_parameters">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_excess_parameters</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_excess_parameters</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
     <span class="n">excess_terms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">num_interacting_species</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -1496,7 +1496,7 @@
 
 <div class="viewcode-block" id="parse_excess_parameters_pitz">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_excess_parameters_pitz">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_excess_parameters_pitz</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_excess_parameters_pitz</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
     <span class="n">excess_terms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">num_interacting_species</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -1518,7 +1518,7 @@
 
 <div class="viewcode-block" id="parse_excess_qkto">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_excess_qkto">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_excess_qkto</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_excess_qkto</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">):</span>
     <span class="n">excess_terms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">num_interacting_species</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -1534,7 +1534,7 @@
 
 <div class="viewcode-block" id="parse_phase_cef">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_phase_cef">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_phase_cef</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">,</span> <span class="n">num_const</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_phase_cef</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">,</span> <span class="n">num_const</span><span class="p">):</span>
     <span class="n">is_magnetic_phase_type</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">phase_type</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="ow">and</span> <span class="n">phase_type</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;M&#39;</span>
     <span class="n">sanitized_phase_type</span> <span class="o">=</span> <span class="n">phase_type</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>  <span class="c1"># drop the magnetic contribution, only used for matching later (i.e. SUBLM -&gt; SUBL)</span>
     <span class="k">if</span> <span class="n">is_magnetic_phase_type</span><span class="p">:</span>
@@ -1607,7 +1607,7 @@
 
 <div class="viewcode-block" id="parse_phase_real_gas">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_phase_real_gas">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_phase_real_gas</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_const</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_phase_real_gas</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_const</span><span class="p">):</span>
     <span class="n">endmembers</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_const</span><span class="p">):</span>
         <span class="n">em</span> <span class="o">=</span> <span class="n">parse_endmember</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">)</span>
@@ -1623,7 +1623,7 @@
 
 <div class="viewcode-block" id="parse_phase_aqueous">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_phase_aqueous">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_phase_aqueous</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_const</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_phase_aqueous</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_const</span><span class="p">):</span>
     <span class="n">endmembers</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse_endmember_aqueous</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_const</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">Phase_Aqueous</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_type</span><span class="p">,</span> <span class="n">endmembers</span><span class="p">)</span></div>
 
@@ -1631,7 +1631,7 @@
 
 <div class="viewcode-block" id="parse_phase">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_phase">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_phase</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">,</span> <span class="n">num_const</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_phase</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">num_excess_coeffs</span><span class="p">,</span> <span class="n">num_const</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dispatches to the correct parser depending on the phase type&quot;&quot;&quot;</span>
     <span class="n">phase_name</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
     <span class="n">phase_type</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
@@ -1652,7 +1652,7 @@
 
 <div class="viewcode-block" id="parse_stoich_phase">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_stoich_phase">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_stoich_phase</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_stoich_phase</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">):</span>
     <span class="n">endmember</span> <span class="o">=</span> <span class="n">parse_endmember</span><span class="p">(</span><span class="n">toks</span><span class="p">,</span> <span class="n">num_pure_elements</span><span class="p">,</span> <span class="n">num_gibbs_coeffs</span><span class="p">,</span> <span class="n">is_stoichiometric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">endmember</span><span class="p">,</span> <span class="n">EndmemberMagnetic</span><span class="p">):</span>
         <span class="n">magnetic_afm_factor</span> <span class="o">=</span> <span class="n">toks</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
@@ -1667,7 +1667,7 @@
 
 <div class="viewcode-block" id="parse_cs_dat">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.parse_cs_dat">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_cs_dat</span><span class="p">(</span><span class="n">instring</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_cs_dat</span><span class="p">(</span><span class="n">instring</span><span class="p">):</span>
     <span class="n">toks</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">instring</span><span class="p">,</span> <span class="n">startline</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">header</span> <span class="o">=</span> <span class="n">parse_header</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span>
     <span class="n">num_pure_elements</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">pure_elements</span><span class="p">)</span>
@@ -1685,7 +1685,7 @@
 
 <div class="viewcode-block" id="read_cs_dat">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.cs_dat.read_cs_dat">[docs]</a>
-<span class="k">def</span> <span class="nf">read_cs_dat</span><span class="p">(</span><span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">fd</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_cs_dat</span><span class="p">(</span><span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">fd</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse a ChemSage DAT file into a pycalphad Database object.</span>
 
@@ -1759,7 +1759,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.core.solver - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.core.solver - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,20 +276,20 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.core.solver</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.minimizer</span> <span class="kn">import</span> <span class="n">SystemSpecification</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.minimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SystemSpecification</span>
 
 <span class="n">SolverResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;SolverResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;converged&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;chemical_potentials&#39;</span><span class="p">])</span>
 
 <div class="viewcode-block" id="SolverBase">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SolverBase">[docs]</a>
-<span class="k">class</span> <span class="nc">SolverBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SolverBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;&quot;Base class for solvers.&quot;&quot;&quot;</span>
     <span class="n">ignore_convergence</span> <span class="o">=</span> <span class="kc">False</span>
 <div class="viewcode-block" id="SolverBase.solve">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SolverBase.solve">[docs]</a>
-    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        *Implement this method.*</span>
 <span class="sd">        Minimize the energy under the specified conditions using the given candidate composition sets.</span>
@@ -312,15 +312,15 @@
 
 <div class="viewcode-block" id="Solver">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver">[docs]</a>
-<span class="k">class</span> <span class="nc">Solver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">remove_metastable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Solver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">remove_metastable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">remove_metastable</span> <span class="o">=</span> <span class="n">remove_metastable</span>
 
 
 <div class="viewcode-block" id="Solver.get_system_spec">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver.get_system_spec">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_system_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_system_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a SystemSpecification object for the specified conditions.</span>
 
@@ -337,7 +337,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Prevent circular import</span>
-        <span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="kn">import</span> <span class="n">ChemicalPotential</span><span class="p">,</span> <span class="n">MassFraction</span><span class="p">,</span> <span class="n">MoleFraction</span><span class="p">,</span> \
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChemicalPotential</span><span class="p">,</span> <span class="n">MassFraction</span><span class="p">,</span> <span class="n">MoleFraction</span><span class="p">,</span> \
             <span class="n">SiteFraction</span>
         <span class="n">compsets</span> <span class="o">=</span> <span class="n">composition_sets</span>
         <span class="n">state_variables</span> <span class="o">=</span> <span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">state_variables</span>
@@ -424,7 +424,7 @@
 
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_fix_state_variables_in_compsets</span><span class="p">(</span><span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fix_state_variables_in_compsets</span><span class="p">(</span><span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
         <span class="s2">&quot;Ensure state variables in each CompositionSet are set to the fixed value.&quot;</span>
         <span class="n">str_state_variables</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">composition_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">state_variables</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">compset</span> <span class="ow">in</span> <span class="n">composition_sets</span><span class="p">:</span>
@@ -435,7 +435,7 @@
 
 <div class="viewcode-block" id="Solver.solve">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.Solver.solve">[docs]</a>
-    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">composition_sets</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Minimize the energy under the specified conditions using the given candidate composition sets.</span>
 
@@ -521,7 +521,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

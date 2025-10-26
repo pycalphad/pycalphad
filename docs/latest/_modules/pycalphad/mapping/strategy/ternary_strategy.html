@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html"><link rel="search" title="Search" href="../../../../search.html">
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.ternary_strategy - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.mapping.strategy.ternary_strategy - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,28 +276,28 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.mapping.strategy.ternary_strategy</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">copy</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.composition_set</span> <span class="kn">import</span> <span class="n">CompositionSet</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework.computed_property</span> <span class="kn">import</span> <span class="n">LinearCombination</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.composition_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositionSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.computed_property</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearCombination</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ExitHint</span><span class="p">,</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">MIN_COMPOSITION</span><span class="p">,</span> <span class="n">ZPFState</span><span class="p">,</span> <span class="n">_eq_compset</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.starting_points</span> <span class="kn">import</span> <span class="n">point_from_equilibrium</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.zpf_equilibrium</span> <span class="k">as</span> <span class="nn">zeq</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_base</span> <span class="kn">import</span> <span class="n">MapStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.step_strategy</span> <span class="kn">import</span> <span class="n">StepStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_data</span> <span class="kn">import</span> <span class="n">PhaseRegionData</span><span class="p">,</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">,</span> <span class="n">get_tieline_data_from_tieline_strategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ExitHint</span><span class="p">,</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">MIN_COMPOSITION</span><span class="p">,</span> <span class="n">ZPFState</span><span class="p">,</span> <span class="n">_eq_compset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.starting_points</span><span class="w"> </span><span class="kn">import</span> <span class="n">point_from_equilibrium</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.zpf_equilibrium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">zeq</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">map_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.strategy_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">MapStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.step_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.strategy_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseRegionData</span><span class="p">,</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">,</span> <span class="n">get_tieline_data_from_tieline_strategy</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_get_delta_cs_var</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">],</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_delta_cs_var</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">],</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given two composition sets, get the vector using axis_vars as coordinates</span>
 
@@ -309,7 +309,7 @@
     <span class="n">norm_factor</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">normalize</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dx</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">dy</span><span class="o">*</span><span class="n">dy</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="o">/</span><span class="n">norm_factor</span><span class="p">,</span> <span class="n">dy</span><span class="o">/</span><span class="n">norm_factor</span><span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">_get_norm</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_norm</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates normal vector of a tieline</span>
 
@@ -318,7 +318,7 @@
     <span class="n">vec</span> <span class="o">=</span> <span class="n">_get_delta_cs_var</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="o">-</span><span class="n">vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">vec</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
 
-<span class="k">def</span> <span class="nf">_create_linear_comb_conditions</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">],</span> <span class="n">normal</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_linear_comb_conditions</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">],</span> <span class="n">normal</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a linear combination along a normal vector</span>
 
@@ -333,7 +333,7 @@
     <span class="n">lc</span> <span class="o">=</span> <span class="n">LinearCombination</span><span class="p">(</span><span class="n">normal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">normal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">lc</span><span class="p">,</span> <span class="n">c</span>
 
-<span class="k">def</span> <span class="nf">_sort_point</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sort_point</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a point with 2 free phases, get derivative at both composition sets to</span>
 <span class="sd">    test with CS to fix and which direction to start</span>
@@ -392,8 +392,8 @@
 
 <div class="viewcode-block" id="TernaryStrategy">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy">[docs]</a>
-<span class="k">class</span> <span class="nc">TernaryStrategy</span><span class="p">(</span><span class="n">MapStrategy</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TernaryStrategy</span><span class="p">(</span><span class="n">MapStrategy</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># TODO: This assumes pure elements and will likely change with the generalize component support</span>
         <span class="n">unlisted_element</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;VA&#39;</span><span class="p">}</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">av</span><span class="o">.</span><span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
@@ -401,7 +401,7 @@
 
 <div class="viewcode-block" id="TernaryStrategy.generate_automatic_starting_points">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.generate_automatic_starting_points">[docs]</a>
-    <span class="k">def</span> <span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Searches axis limits to find starting points</span>
 
@@ -438,7 +438,7 @@
 
 <div class="viewcode-block" id="TernaryStrategy.add_starting_points_from_step">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.add_starting_points_from_step">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds all 2-phase and 3-phase regions from step as starting points</span>
 <span class="sd">        We also do a global min check to make sure these phase regions are truly the phases they say they are</span>
@@ -472,7 +472,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Modifies exit hint and direction based off number of composition sets</span>
 <span class="sd">            Single phase -&gt; cannot be added</span>
@@ -490,7 +490,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;More than three phases detected&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A node in a ternary system has three exits, which are combinations of 2 CS in the node</span>
 <span class="sd">        Since the node is found from one pair of CS, one of the exits are already accounted for, so</span>
@@ -520,7 +520,7 @@
 
         <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
 
-    <span class="k">def</span> <span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        For stepping, only one direction is possible from a node since we either step positive or negative</span>
 
@@ -563,7 +563,7 @@
 
         <span class="k">return</span> <span class="kc">None</span>
     
-    <span class="k">def</span> <span class="nf">_add_starting_point_at_new_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">normal</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_starting_point_at_new_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">normal</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If we made it here, then no direction has worked. This could be a case where</span>
 <span class="sd">        the two CS of the exit point are stoichiometric, so there is no ZPF line leading</span>
@@ -598,7 +598,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Could not find a new node from conditions&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_process_new_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">new_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_new_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">new_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Post global min check after finding node to ensure it&#39;s not a metastable node</span>
 
@@ -615,7 +615,7 @@
 
 <div class="viewcode-block" id="TernaryStrategy.get_invariant_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_invariant_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for invariant plotting.</span>
 
@@ -640,7 +640,7 @@
     
 <div class="viewcode-block" id="TernaryStrategy.get_tieline_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_tieline_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_tieline_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_tieline_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for plotting ZPF lines.</span>
 
@@ -694,7 +694,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

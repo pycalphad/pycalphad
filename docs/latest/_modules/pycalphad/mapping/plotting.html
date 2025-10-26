@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.plotting - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.mapping.plotting - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,29 +276,29 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.mapping.plotting</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">LineCollection</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">LineCollection</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework</span> <span class="kn">import</span> <span class="n">as_property</span>
-<span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
-<span class="kn">from</span> <span class="nn">pycalphad.plot</span> <span class="kn">import</span> <span class="n">triangular</span>  <span class="c1"># register triangular projection</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework.units</span> <span class="kn">import</span> <span class="n">Q_</span><span class="p">,</span> <span class="n">ureg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">as_property</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">phase_legend</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">triangular</span>  <span class="c1"># register triangular projection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Q_</span><span class="p">,</span> <span class="n">ureg</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">_get_phase_specific_variable</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.step_strategy</span> <span class="kn">import</span> <span class="n">StepStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.binary_strategy</span> <span class="kn">import</span> <span class="n">BinaryStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.ternary_strategy</span> <span class="kn">import</span> <span class="n">TernaryStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.isopleth_strategy</span> <span class="kn">import</span> <span class="n">IsoplethStrategy</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">_get_phase_specific_variable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.step_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.binary_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.ternary_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">TernaryStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.isopleth_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsoplethStrategy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">map_utils</span>
 
 <div class="viewcode-block" id="get_label">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.plotting.get_label">[docs]</a>
-<span class="k">def</span> <span class="nf">get_label</span><span class="p">(</span><span class="n">var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_label</span><span class="p">(</span><span class="n">var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
     <span class="c1"># If user just passes v.NP rather than an instance of v.NP, then label is just NP</span>
     <span class="c1"># Phase fraction, mole fraction and weight fraction all has </span>
     <span class="c1"># units of &quot;fraction&quot;, so I think we can leave it out</span>
@@ -338,7 +338,7 @@
 
 <div class="viewcode-block" id="plot_step">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.plotting.plot_step">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_step</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">legend_generator</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">,</span> <span class="n">set_nan_to_zero</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_step</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">legend_generator</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">,</span> <span class="n">set_nan_to_zero</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots step map using matplotlib</span>
 
@@ -391,7 +391,7 @@
 
 <div class="viewcode-block" id="plot_invariants">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.plotting.plot_invariants">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_invariants</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">TernaryStrategy</span><span class="p">],</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">phase_colors</span><span class="p">,</span> <span class="n">label_end_points</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">tie_triangle_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_invariants</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">TernaryStrategy</span><span class="p">],</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">phase_colors</span><span class="p">,</span> <span class="n">label_end_points</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">tie_triangle_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots node data from BinaryStrategy or TernaryStrategy onto matplotlib axis</span>
 
@@ -421,7 +421,7 @@
 
 <div class="viewcode-block" id="plot_tielines">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.plotting.plot_tielines">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_tielines</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">TernaryStrategy</span><span class="p">],</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">phase_colors</span><span class="p">,</span> <span class="n">tielines</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_tielines</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">TernaryStrategy</span><span class="p">],</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">phase_colors</span><span class="p">,</span> <span class="n">tielines</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots tieline data from BinaryStrategy or TernaryStrategy onto matplotlib axis</span>
 
@@ -458,7 +458,7 @@
 
 <div class="viewcode-block" id="plot_binary">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.plotting.plot_binary">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_binary</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tielines</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">label_nodes</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">legend_generator</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tie_triangle_color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_binary</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">BinaryStrategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tielines</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">label_nodes</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">legend_generator</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tie_triangle_color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots binary map using matplotlib</span>
 
@@ -529,7 +529,7 @@
 
 <div class="viewcode-block" id="plot_ternary">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.plotting.plot_ternary">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_ternary</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">TernaryStrategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tielines</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">label_nodes</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">legend_generator</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tie_triangle_color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_ternary</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">TernaryStrategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">tielines</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">label_nodes</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">legend_generator</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tie_triangle_color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots ternary map using matplotlib</span>
 
@@ -577,7 +577,7 @@
 
 <div class="viewcode-block" id="plot_isopleth">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.plotting.plot_isopleth">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_isopleth</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">IsoplethStrategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">legend_generator</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">,</span> <span class="n">tie_triangle_color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_isopleth</span><span class="p">(</span><span class="n">strategy</span><span class="p">:</span> <span class="n">IsoplethStrategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">legend_generator</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">,</span> <span class="n">tie_triangle_color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots isopleth map using matplotlib</span>
 
@@ -682,7 +682,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

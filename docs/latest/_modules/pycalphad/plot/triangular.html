@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.plot.triangular - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.plot.triangular - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,46 +291,46 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
-<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Polygon</span>
-<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">NullLocator</span>
-<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="kn">import</span> <span class="n">Affine2D</span><span class="p">,</span> <span class="n">BboxTransformTo</span>
-<span class="kn">from</span> <span class="nn">matplotlib.projections</span> <span class="kn">import</span> <span class="n">register_projection</span>
-<span class="kn">import</span> <span class="nn">matplotlib.spines</span> <span class="k">as</span> <span class="nn">mspines</span>
-<span class="kn">import</span> <span class="nn">matplotlib.axis</span> <span class="k">as</span> <span class="nn">maxis</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Polygon</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.ticker</span><span class="w"> </span><span class="kn">import</span> <span class="n">NullLocator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">Affine2D</span><span class="p">,</span> <span class="n">BboxTransformTo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.projections</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_projection</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.spines</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mspines</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.axis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">maxis</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 
 <div class="viewcode-block" id="TriangularAxes">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes">[docs]</a>
-<span class="k">class</span> <span class="nc">TriangularAxes</span><span class="p">(</span><span class="n">Axes</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TriangularAxes</span><span class="p">(</span><span class="n">Axes</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A custom class for triangular projections.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;triangular&#39;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;SW&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TriangularAxes.set">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.set">[docs]</a>
-    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span> <span class="c1"># Docstring overridden to resolve docs builds that raise warnings because https://github.com/matplotlib/matplotlib/pull/28289 does not resolve all warnings</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_init_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xaxis</span> <span class="o">=</span> <span class="n">maxis</span><span class="o">.</span><span class="n">XAxis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span> <span class="o">=</span> <span class="n">maxis</span><span class="o">.</span><span class="n">YAxis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_transScale</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TriangularAxes.clear">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.clear">[docs]</a>
-    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Hard-code axes limits to be on [0, 1] for both axes.</span>
 
@@ -355,7 +355,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="o">+</span><span class="n">y_spacing</span><span class="p">,</span> <span class="n">y_spacing</span><span class="p">))</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_set_lim_and_transforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_lim_and_transforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is called once when the plot is created to set up all the</span>
 <span class="sd">        transforms for the data, text and grids.</span>
@@ -405,43 +405,43 @@
 
 <div class="viewcode-block" id="TriangularAxes.get_xaxis_transform">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_xaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_xaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tick1&#39;</span><span class="p">,</span> <span class="s1">&#39;tick2&#39;</span><span class="p">,</span> <span class="s1">&#39;grid&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_transform</span></div>
 
 
 <div class="viewcode-block" id="TriangularAxes.get_xaxis_text1_transform">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_xaxis_text1_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_xaxis_text1_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_xaxis_text1_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span></div>
 
 
 <div class="viewcode-block" id="TriangularAxes.get_xaxis_text2_transform">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_xaxis_text2_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_xaxis_text2_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_xaxis_text2_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span></div>
 
 
 <div class="viewcode-block" id="TriangularAxes.get_yaxis_transform">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_yaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_yaxis_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;grid&#39;</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">which</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tick1&#39;</span><span class="p">,</span> <span class="s1">&#39;tick2&#39;</span><span class="p">,</span> <span class="s1">&#39;grid&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_transform</span></div>
 
 
 <div class="viewcode-block" id="TriangularAxes.get_yaxis_text1_transform">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_yaxis_text1_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_yaxis_text1_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_yaxis_text1_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span></div>
 
 
 <div class="viewcode-block" id="TriangularAxes.get_yaxis_text2_transform">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_yaxis_text2_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_yaxis_text2_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_yaxis_text2_transform</span><span class="p">(</span><span class="n">pad</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_gen_axes_spines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gen_axes_spines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># The dependent axis (right hand side) spine should be set to complete</span>
         <span class="c1"># the triangle, i.e. the spine from (1, 0) to (1, 1) will be</span>
         <span class="c1"># transformed to (1, 0) to (0.5, sqrt(3)/2).</span>
@@ -453,7 +453,7 @@
             <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="n">dep_spine</span><span class="p">,</span>
         <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">_gen_axes_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gen_axes_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Override this method to define the shape that is used for the</span>
 <span class="sd">        background of the plot.  It should be a subclass of Patch.</span>
@@ -465,7 +465,7 @@
     <span class="c1"># so we override all of the following methods to disable it.</span>
 <div class="viewcode-block" id="TriangularAxes.can_zoom">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.can_zoom">[docs]</a>
-    <span class="k">def</span> <span class="nf">can_zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">can_zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return True if this axes support the zoom box</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -474,25 +474,25 @@
 
 <div class="viewcode-block" id="TriangularAxes.start_pan">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.start_pan">[docs]</a>
-    <span class="k">def</span> <span class="nf">start_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">button</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">button</span><span class="p">):</span>
         <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="TriangularAxes.end_pan">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.end_pan">[docs]</a>
-    <span class="k">def</span> <span class="nf">end_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="TriangularAxes.drag_pan">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.drag_pan">[docs]</a>
-    <span class="k">def</span> <span class="nf">drag_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">button</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">drag_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">button</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="TriangularAxes.set_ylabel">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.set_ylabel">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the label for the y-axis. Default rotation=60 degrees.</span>
 
@@ -558,7 +558,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.zpf_equilibrium - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.mapping.zpf_equilibrium - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,26 +276,26 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.mapping.zpf_equilibrium</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.solver</span> <span class="kn">import</span> <span class="n">Solver</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.composition_set</span> <span class="kn">import</span> <span class="n">CompositionSet</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework.metaproperties</span> <span class="kn">import</span> <span class="n">DormantPhase</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">COMP_DIFFERENCE_TOL</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework.computed_property</span> <span class="kn">import</span> <span class="n">JanssonDerivative</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.composition_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositionSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.metaproperties</span><span class="w"> </span><span class="kn">import</span> <span class="n">DormantPhase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">COMP_DIFFERENCE_TOL</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.computed_property</span><span class="w"> </span><span class="kn">import</span> <span class="n">JanssonDerivative</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">map_utils</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="update_equilibrium_with_new_conditions">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_equilibrium.update_equilibrium_with_new_conditions">[docs]</a>
-<span class="k">def</span> <span class="nf">update_equilibrium_with_new_conditions</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">new_conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">free_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_equilibrium_with_new_conditions</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">new_conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">free_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Update the point with a new set of conditions.</span>
 
@@ -351,7 +351,7 @@
     <span class="k">return</span> <span class="n">new_point</span><span class="p">,</span> <span class="n">orig_cs</span></div>
 
 
-<span class="k">def</span> <span class="nf">_find_global_min_cs</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">system_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">pdens</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="n">num_candidates</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_find_global_min_cs</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">system_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">pdens</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="n">num_candidates</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Finds potential composition set for global min check</span>
 
@@ -454,7 +454,7 @@
     
 <div class="viewcode-block" id="find_global_min_point">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_equilibrium.find_global_min_point">[docs]</a>
-<span class="k">def</span> <span class="nf">find_global_min_point</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">system_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">pdens</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="n">num_candidates</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_global_min_point</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">system_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">pdens</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="n">num_candidates</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks global min on current point and attempts to find a new point </span>
 <span class="sd">    with a new composition set if current point is not global min</span>
@@ -506,7 +506,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<span class="k">def</span> <span class="nf">_detect_degenerate_phase</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">new_cs</span><span class="p">:</span> <span class="n">CompositionSet</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_detect_degenerate_phase</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">new_cs</span><span class="p">:</span> <span class="n">CompositionSet</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check that the new composition set detected during global min check is truely a new CS</span>
 
@@ -567,7 +567,7 @@
     
 <div class="viewcode-block" id="create_node_from_different_points">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_equilibrium.create_node_from_different_points">[docs]</a>
-<span class="k">def</span> <span class="nf">create_node_from_different_points</span><span class="p">(</span><span class="n">new_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">orig_cs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">axis_vars</span> <span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_node_from_different_points</span><span class="p">(</span><span class="n">new_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">orig_cs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">axis_vars</span> <span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Between two points with different composition sets (only 1 different CS)</span>
 <span class="sd">    Compute the node, freeing up the axis var and solving for it</span>
@@ -648,7 +648,7 @@
 
 <div class="viewcode-block" id="compute_derivative">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_equilibrium.compute_derivative">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_derivative</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">v_num</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">v_den</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">free_den</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_derivative</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">v_num</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">v_den</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">free_den</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes dot derivative of d v_num / d v_den, which handles removing the numerator variable</span>
 <span class="sd">        free_den is an unintuitive name, but it refers to the mapping code to state that the denominator variable</span>
@@ -716,7 +716,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

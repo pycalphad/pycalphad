@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.core.starting_point - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.core.starting_point - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,18 +276,18 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.core.starting_point</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.lower_convex_hull</span> <span class="kn">import</span> <span class="n">lower_convex_hull</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.light_dataset</span> <span class="kn">import</span> <span class="n">LightDataset</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework.computed_property</span> <span class="kn">import</span> <span class="n">LinearCombination</span>
-<span class="kn">from</span> <span class="nn">xarray</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.lower_convex_hull</span><span class="w"> </span><span class="kn">import</span> <span class="n">lower_convex_hull</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.light_dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">LightDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.computed_property</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearCombination</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
 
 
 <div class="viewcode-block" id="global_min_is_possible">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.starting_point.global_min_is_possible">[docs]</a>
-<span class="k">def</span> <span class="nf">global_min_is_possible</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">global_min_is_possible</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determine whether global minimization is possible</span>
 <span class="sd">    to perform under the given set of conditions.</span>
@@ -322,7 +322,7 @@
 
 <div class="viewcode-block" id="starting_point">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.starting_point.starting_point">[docs]</a>
-<span class="k">def</span> <span class="nf">starting_point</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">grid</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">starting_point</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">grid</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find a starting point for the solution using a sample of the system energy surface.</span>
 
@@ -343,7 +343,7 @@
 <span class="sd">    Dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">global_min_enabled</span> <span class="o">=</span> <span class="n">global_min_is_possible</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">pycalphad_version</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">pycalphad_version</span>
     <span class="n">active_phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">phase_records</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="c1"># Ensure that &#39;_FAKE_&#39; will fit in the phase name array</span>
     <span class="n">max_phase_name_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">]),</span> <span class="mi">6</span><span class="p">)</span>
@@ -425,7 +425,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html"><link rel="search" title="Search" href="../../../../search.html">
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.plot.binary.compsets - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.plot.binary.compsets - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,12 +276,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.plot.binary.compsets</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
 <div class="viewcode-block" id="BinaryCompset">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.BinaryCompset">[docs]</a>
-<span class="k">class</span> <span class="nc">BinaryCompset</span><span class="p">():</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BinaryCompset</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Composition set for representations of a phase equilibria in a two</span>
 <span class="sd">    component system with a temperature condition.</span>
@@ -307,20 +307,20 @@
     <span class="n">SITE_FRAC_ATOL</span> <span class="o">=</span> <span class="mf">0.001</span>
     <span class="n">TEMPERATURE_ATOL</span> <span class="o">=</span> <span class="mf">0.1</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">site_fracs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">site_fracs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">temperature</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indep_comp</span> <span class="o">=</span> <span class="n">indep_comp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">composition</span> <span class="o">=</span> <span class="n">composition</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">site_fracs</span> <span class="o">=</span> <span class="n">site_fracs</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;BinaryCompset(</span><span class="si">{0}</span><span class="s2">, T=</span><span class="si">{1:0.3f}</span><span class="s2">, X(</span><span class="si">{2}</span><span class="s2">)=</span><span class="si">{3:0.3f}</span><span class="s2">)&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indep_comp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;site_fracs&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;temperature&#39;</span><span class="p">):</span>
             <span class="n">same_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">phase_name</span>
             <span class="n">site_frac_close</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_fracs</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">site_fracs</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">SITE_FRAC_ATOL</span><span class="p">))</span>
@@ -332,7 +332,7 @@
 <div class="viewcode-block" id="BinaryCompset.from_dataset_vertices">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.BinaryCompset.from_dataset_vertices">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dataset_vertices</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">,</span> <span class="n">num_vertex</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dataset_vertices</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">,</span> <span class="n">num_vertex</span><span class="p">):</span>
         <span class="n">compsets</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">Phase</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;Phase&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
@@ -354,7 +354,7 @@
 
 <div class="viewcode-block" id="CompsetPair">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair">[docs]</a>
-<span class="k">class</span> <span class="nc">CompsetPair</span><span class="p">():</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CompsetPair</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pair of binary composition sets that make up an equilibrium</span>
 
@@ -387,7 +387,7 @@
 <span class="sd">    min_composition : float</span>
 <span class="sd">        Min composition of the CompSets</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">):</span>
         <span class="n">_composition_key_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">composition</span>
         <span class="n">sorted_compsets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_composition_key_func</span><span class="p">)</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sorted_compsets</span><span class="p">]</span>
@@ -414,7 +414,7 @@
 
 <div class="viewcode-block" id="CompsetPair.xdiscrepancy">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.xdiscrepancy">[docs]</a>
-    <span class="k">def</span> <span class="nf">xdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore_phase</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">xdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore_phase</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the composition discrepancy (absolute difference) between this</span>
 <span class="sd">        composition set and another.</span>
@@ -438,7 +438,7 @@
 
 <div class="viewcode-block" id="CompsetPair.ydiscrepancy">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy">[docs]</a>
-    <span class="k">def</span> <span class="nf">ydiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ydiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the discrepancy (absolute differences) between the site</span>
 <span class="sd">        fractions of the composition sets as an array of discrepancies.</span>
@@ -460,7 +460,7 @@
 
 <div class="viewcode-block" id="CompsetPair.ydiscrepancy_max">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy_max">[docs]</a>
-    <span class="k">def</span> <span class="nf">ydiscrepancy_max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ydiscrepancy_max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the maximum discrepancy (absolute difference) between the site</span>
 <span class="sd">        fractions of the composition sets.</span>
@@ -479,7 +479,7 @@
 
 <div class="viewcode-block" id="CompsetPair.Tdiscrepancy">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.Tdiscrepancy">[docs]</a>
-    <span class="k">def</span> <span class="nf">Tdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Tdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the temperature discrepancy (absolute difference) between this</span>
 <span class="sd">        pair of composition sets and another.</span>
@@ -496,16 +496,16 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
         <span class="n">compset_strs</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">:&lt;X(</span><span class="si">{1}</span><span class="s2">)=</span><span class="si">{2:0.3f}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">indep_comp</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">compsets</span><span class="p">])</span>
         <span class="k">return</span> <span class="s2">&quot;CompSet2D(T=</span><span class="si">{0:0.3f}</span><span class="s2">: (</span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="n">compset_strs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 
 <div class="viewcode-block" id="CompsetPair.pairwise_xdiscrepancy">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.pairwise_xdiscrepancy">[docs]</a>
-    <span class="k">def</span> <span class="nf">pairwise_xdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pairwise_xdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the ordered composition discrepancy between this and another</span>
 <span class="sd">        pair of CompSet2D objects.</span>
@@ -528,7 +528,7 @@
 
 <div class="viewcode-block" id="get_compsets">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.get_compsets">[docs]</a>
-<span class="k">def</span> <span class="nf">get_compsets</span><span class="p">(</span><span class="n">eq_dataset</span><span class="p">,</span> <span class="n">indep_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">indep_comp_index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_compsets</span><span class="p">(</span><span class="n">eq_dataset</span><span class="p">,</span> <span class="n">indep_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">indep_comp_index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a CompSet2D object if a pair of composition sets is found in an</span>
 <span class="sd">    equilibrium dataset. Otherwise return None.</span>
@@ -557,7 +557,7 @@
 
 <div class="viewcode-block" id="find_two_phase_region_compsets">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.find_two_phase_region_compsets">[docs]</a>
-<span class="k">def</span> <span class="nf">find_two_phase_region_compsets</span><span class="p">(</span><span class="n">hull</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">,</span> <span class="n">misc_gap_tol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">minimum_composition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_two_phase_region_compsets</span><span class="p">(</span><span class="n">hull</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">,</span> <span class="n">misc_gap_tol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">minimum_composition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    From a 1D convex hull at constant T and P, return the composition sets for</span>
 <span class="sd">    a two phase region or that have the smallest index composition coordinate</span>
@@ -645,7 +645,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

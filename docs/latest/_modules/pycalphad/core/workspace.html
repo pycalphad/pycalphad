@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.core.workspace - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.core.workspace - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,35 +276,35 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.core.workspace</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework.computed_property</span> <span class="kn">import</span> <span class="n">JanssonDerivative</span>
-<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">unpack_species</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_phases</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">instantiate_models</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.starting_point</span> <span class="kn">import</span> <span class="n">starting_point</span>
-<span class="kn">from</span> <span class="nn">pycalphad.codegen.phase_record_factory</span> <span class="kn">import</span> <span class="n">PhaseRecordFactory</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="kn">import</span> <span class="n">_solve_eq_at_conditions</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.composition_set</span> <span class="kn">import</span> <span class="n">CompositionSet</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.solver</span> <span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">SolverBase</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.light_dataset</span> <span class="kn">import</span> <span class="n">LightDataset</span>
-<span class="kn">from</span> <span class="nn">pycalphad.model</span> <span class="kn">import</span> <span class="n">Model</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="kn">import</span> <span class="n">Database</span>
-<span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">StateVariable</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.conditions</span> <span class="kn">import</span> <span class="n">Conditions</span><span class="p">,</span> <span class="n">ConditionError</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework</span> <span class="kn">import</span> <span class="n">ComputableProperty</span><span class="p">,</span> <span class="n">as_property</span>
-<span class="kn">from</span> <span class="nn">pycalphad.property_framework.units</span> <span class="kn">import</span> <span class="n">unit_conversion_context</span><span class="p">,</span> <span class="n">ureg</span><span class="p">,</span> <span class="n">as_quantity</span><span class="p">,</span> <span class="n">Q_</span>
-<span class="kn">from</span> <span class="nn">runtype</span> <span class="kn">import</span> <span class="n">isa</span>
-<span class="kn">from</span> <span class="nn">runtype.pytypes</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">SumType</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">NoneType</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.computed_property</span><span class="w"> </span><span class="kn">import</span> <span class="n">JanssonDerivative</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">unpack_species</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_phases</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">instantiate_models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.starting_point</span><span class="w"> </span><span class="kn">import</span> <span class="n">starting_point</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.codegen.phase_record_factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseRecordFactory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.eqsolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">_solve_eq_at_conditions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.composition_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositionSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">Solver</span><span class="p">,</span> <span class="n">SolverBase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.light_dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">LightDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">StateVariable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.conditions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Conditions</span><span class="p">,</span> <span class="n">ConditionError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComputableProperty</span><span class="p">,</span> <span class="n">as_property</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">unit_conversion_context</span><span class="p">,</span> <span class="n">ureg</span><span class="p">,</span> <span class="n">as_quantity</span><span class="p">,</span> <span class="n">Q_</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">runtype</span><span class="w"> </span><span class="kn">import</span> <span class="n">isa</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">runtype.pytypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">SumType</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">NoneType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeVar</span>
 
 
 
-<span class="k">def</span> <span class="nf">_adjust_conditions</span><span class="p">(</span><span class="n">conds</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OrderedDict</span><span class="p">[</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_adjust_conditions</span><span class="p">(</span><span class="n">conds</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OrderedDict</span><span class="p">[</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
     <span class="s2">&quot;Adjust conditions values to be in the implementation units of the quantity, and within the numerical limit of the solver.&quot;</span>
     <span class="n">new_conds</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
     <span class="n">minimum_composition</span> <span class="o">=</span> <span class="mf">1e-10</span>
@@ -328,11 +328,11 @@
 
 <div class="viewcode-block" id="ComponentList">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ComponentList">[docs]</a>
-<span class="k">class</span> <span class="nc">ComponentList</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ComponentList</span><span class="p">:</span>
 <div class="viewcode-block" id="ComponentList.cast_from">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ComponentList.cast_from">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">SumType</span><span class="p">([</span><span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Component</span><span class="p">])])</span> <span class="o">-&gt;</span> <span class="s2">&quot;ComponentList&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">SumType</span><span class="p">([</span><span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Component</span><span class="p">])])</span> <span class="o">-&gt;</span> <span class="s2">&quot;ComponentList&quot;</span><span class="p">:</span>
         <span class="c1"># no Database, so we don&#39;t get Species lookup support here, it&#39;s implemented in ComponentsField</span>
         <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
 </div>
@@ -340,22 +340,22 @@
 
 <div class="viewcode-block" id="ConstituentsList">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConstituentsList">[docs]</a>
-<span class="k">class</span> <span class="nc">ConstituentsList</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstituentsList</span><span class="p">:</span>
 <div class="viewcode-block" id="ConstituentsList.cast_from">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConstituentsList.cast_from">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ConstituentsList&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ConstituentsList&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">cast_from</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">s</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="PhaseList">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.PhaseList">[docs]</a>
-<span class="k">class</span> <span class="nc">PhaseList</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhaseList</span><span class="p">:</span>
 <div class="viewcode-block" id="PhaseList.cast_from">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.PhaseList.cast_from">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">SumType</span><span class="p">([</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]))</span> <span class="o">-&gt;</span> <span class="s2">&quot;PhaseList&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">SumType</span><span class="p">([</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]))</span> <span class="o">-&gt;</span> <span class="s2">&quot;PhaseList&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">]</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">PhaseName</span><span class="o">.</span><span class="n">cast_from</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">s</span><span class="p">)</span></div>
@@ -364,46 +364,46 @@
 
 <div class="viewcode-block" id="PhaseName">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.PhaseName">[docs]</a>
-<span class="k">class</span> <span class="nc">PhaseName</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhaseName</span><span class="p">:</span>
 <div class="viewcode-block" id="PhaseName.cast_from">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.PhaseName.cast_from">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PhaseName&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PhaseName&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span></div>
 </div>
 
 
 <div class="viewcode-block" id="ConditionValue">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConditionValue">[docs]</a>
-<span class="k">class</span> <span class="nc">ConditionValue</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConditionValue</span><span class="p">:</span>
 <div class="viewcode-block" id="ConditionValue.cast_from">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConditionValue.cast_from">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">SumType</span><span class="p">([</span><span class="nb">float</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]))</span> <span class="o">-&gt;</span> <span class="s2">&quot;ConditionValue&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">SumType</span><span class="p">([</span><span class="nb">float</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]))</span> <span class="o">-&gt;</span> <span class="s2">&quot;ConditionValue&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="ConditionKey">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConditionKey">[docs]</a>
-<span class="k">class</span> <span class="nc">ConditionKey</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConditionKey</span><span class="p">:</span>
 <div class="viewcode-block" id="ConditionKey.cast_from">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConditionKey.cast_from">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">SumType</span><span class="p">([</span><span class="nb">str</span><span class="p">,</span> <span class="n">StateVariable</span><span class="p">]))</span> <span class="o">-&gt;</span> <span class="s2">&quot;ConditionKey&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">SumType</span><span class="p">([</span><span class="nb">str</span><span class="p">,</span> <span class="n">StateVariable</span><span class="p">]))</span> <span class="o">-&gt;</span> <span class="s2">&quot;ConditionKey&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">as_property</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="TypedField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.TypedField">[docs]</a>
-<span class="k">class</span> <span class="nc">TypedField</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TypedField</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A descriptor for managing attributes with specific types in a class, supporting automatic type coercion and default values.</span>
 <span class="sd">    This class is designed to be used in scenarios (like `Workspace`) where one needs to implement an observer pattern. It enables the tracking of changes in attribute values and notifies dependent attributes of any updates.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default_factory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default_factory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attributes</span>
 <span class="sd">        ----------</span>
@@ -415,7 +415,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">default_factory</span> <span class="o">=</span> <span class="n">default_factory</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">depends_on</span> <span class="o">=</span> <span class="n">depends_on</span>
 
-    <span class="k">def</span> <span class="nf">__set_name__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_name__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="s2">&quot;Initializes the attribute, determining its private and public names and registering dependency callbacks if necessary.&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">owner</span><span class="o">.</span><span class="vm">__annotations__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">public_name</span> <span class="o">=</span> <span class="n">name</span>
@@ -424,7 +424,7 @@
             <span class="k">for</span> <span class="n">dependency</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">depends_on</span><span class="p">:</span>
                 <span class="n">owner</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="n">dependency</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_dependency_update</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="s2">&quot;Sets the value of the attribute in an object, handling type coercion via the `cast_from` method if the direct assignment isn&#39;t possible. It raises `TypeError` if coercion fails.&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">NoneType</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isa</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">cast_from</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -435,7 +435,7 @@
         <span class="k">for</span> <span class="n">cb</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">public_name</span><span class="p">]:</span>
             <span class="n">cb</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">public_name</span><span class="p">,</span> <span class="n">oldval</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="s2">&quot;Retrieves the value of the attribute, initializing it with default_factory if it hasn&#39;t been set before.&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">private_name</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -445,7 +445,7 @@
 
 <div class="viewcode-block" id="TypedField.on_dependency_update">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.TypedField.on_dependency_update">[docs]</a>
-    <span class="k">def</span> <span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
         <span class="s2">&quot;A callback method that can be overridden to define custom behavior when a dependent attribute is updated.&quot;</span>
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_suspend_dependency_updates</span><span class="p">:</span>
             <span class="k">return</span></div>
@@ -454,22 +454,22 @@
 
 <div class="viewcode-block" id="ComponentsField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ComponentsField">[docs]</a>
-<span class="k">class</span> <span class="nc">ComponentsField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ComponentsField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">get_pure_element_components</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">unpack_components</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">elements</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s1">&#39;/-&#39;</span><span class="p">),</span> <span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">get_pure_element_components</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="n">depends_on</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">comps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">))</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">comps</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">getobj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="n">objtype</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">getobj</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">))</span>
 
 <div class="viewcode-block" id="ComponentsField.on_dependency_update">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ComponentsField.on_dependency_update">[docs]</a>
-    <span class="k">def</span> <span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_suspend_dependency_updates</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_factory</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span></div>
@@ -478,21 +478,21 @@
 
 <div class="viewcode-block" id="ConstituentsField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConstituentsField">[docs]</a>
-<span class="k">class</span> <span class="nc">ConstituentsField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConstituentsField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">unpack_species</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">species</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;/-&#39;</span><span class="p">)),</span>
                          <span class="n">depends_on</span><span class="o">=</span><span class="n">depends_on</span><span class="p">)</span>
-    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">constituents</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpack_species</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constituents</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">getobj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="n">objtype</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpack_species</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">getobj</span><span class="p">))</span>
 
 <div class="viewcode-block" id="ConstituentsField.on_dependency_update">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConstituentsField.on_dependency_update">[docs]</a>
-    <span class="k">def</span> <span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_suspend_dependency_updates</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">unpack_species</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">components</span><span class="p">))</span></div>
@@ -501,70 +501,70 @@
 
 <div class="viewcode-block" id="PhasesField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.PhasesField">[docs]</a>
-<span class="k">class</span> <span class="nc">PhasesField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhasesField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">filter_phases</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">components</span><span class="p">),</span>
                          <span class="n">depends_on</span><span class="o">=</span><span class="n">depends_on</span><span class="p">)</span>
-    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpack_phases</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">phases</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">getobj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="n">objtype</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">filter_phases</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">getobj</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DictField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.DictField">[docs]</a>
-<span class="k">class</span> <span class="nc">DictField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DictField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
 <div class="viewcode-block" id="DictField.get_proxy">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.DictField.get_proxy">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-        <span class="k">class</span> <span class="nc">DictProxy</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">DictProxy</span><span class="p">:</span>
             <span class="nd">@staticmethod</span>
-            <span class="k">def</span> <span class="nf">unwrap</span><span class="p">():</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">unwrap</span><span class="p">():</span>
                 <span class="k">return</span> <span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
-            <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
                 <span class="n">getobj</span> <span class="o">=</span> <span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">getobj</span> <span class="o">==</span> <span class="n">pxy</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Proxy object points to itself&#39;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">getobj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-            <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="n">pxy</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="n">pxy</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
-            <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
                 <span class="c1"># we are careful not to mutate the original, by making a copy; if we don&#39;t, it will break cache invalidation</span>
                 <span class="n">conds</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">))</span>
                 <span class="n">conds</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
                 <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>
-            <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">new_conds</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">new_conds</span><span class="p">):</span>
                 <span class="c1"># we are careful not to mutate the original, by making a copy; if we don&#39;t, it will break cache invalidation</span>
                 <span class="n">conds</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">))</span>
                 <span class="n">conds</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_conds</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>
-            <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="n">pxy</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
                 <span class="c1"># we are careful not to mutate the original, by making a copy; if we don&#39;t, it will break cache invalidation</span>
                 <span class="n">conds</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">))</span>
                 <span class="k">del</span> <span class="n">conds</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">conds</span><span class="p">)</span>
-            <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="n">pxy</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="n">pxy</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">))</span>
-            <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="n">pxy</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="n">pxy</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">))</span>
-            <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="n">pxy</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="n">pxy</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">TypedField</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">DictProxy</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_proxy</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ConditionsField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ConditionsField">[docs]</a>
-<span class="k">class</span> <span class="nc">ConditionsField</span><span class="p">(</span><span class="n">DictField</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConditionsField</span><span class="p">(</span><span class="n">DictField</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">conds</span> <span class="o">=</span> <span class="n">Conditions</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">conds</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
@@ -573,12 +573,12 @@
 
 <div class="viewcode-block" id="ModelsField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ModelsField">[docs]</a>
-<span class="k">class</span> <span class="nc">ModelsField</span><span class="p">(</span><span class="n">DictField</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelsField</span><span class="p">(</span><span class="n">DictField</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">instantiate_models</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">phases</span><span class="p">,</span>
                                                                         <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">parameters</span><span class="p">),</span>
                          <span class="n">depends_on</span><span class="o">=</span><span class="n">depends_on</span><span class="p">)</span>
-    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="c1"># Unwrap proxy objects before being stored</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;unwrap&#39;</span><span class="p">):</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">unwrap</span><span class="p">()</span>
@@ -591,7 +591,7 @@
 
 <div class="viewcode-block" id="ModelsField.on_dependency_update">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.ModelsField.on_dependency_update">[docs]</a>
-    <span class="k">def</span> <span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_suspend_dependency_updates</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_factory</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span></div>
@@ -600,9 +600,9 @@
 
 <div class="viewcode-block" id="PRFField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.PRFField">[docs]</a>
-<span class="k">class</span> <span class="nc">PRFField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">def</span> <span class="nf">make_prf</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PRFField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">make_prf</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">prf</span> <span class="o">=</span> <span class="n">PhaseRecordFactory</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">conditions</span><span class="p">,</span>
                                          <span class="n">obj</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">unwrap</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="s1">&#39;unwrap&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">obj</span><span class="o">.</span><span class="n">models</span><span class="p">,</span>
@@ -614,7 +614,7 @@
 
 <div class="viewcode-block" id="PRFField.on_dependency_update">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.PRFField.on_dependency_update">[docs]</a>
-    <span class="k">def</span> <span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_suspend_dependency_updates</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="c1"># changes in conditions values (as opposed to keys) do not affect the PhaseRecordFactory</span>
@@ -627,10 +627,10 @@
 
 <div class="viewcode-block" id="SolverField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.SolverField">[docs]</a>
-<span class="k">class</span> <span class="nc">SolverField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SolverField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
 <div class="viewcode-block" id="SolverField.on_dependency_update">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.SolverField.on_dependency_update">[docs]</a>
-    <span class="k">def</span> <span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_suspend_dependency_updates</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_factory</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span></div>
@@ -639,8 +639,8 @@
 
 <div class="viewcode-block" id="EquilibriumCalculationField">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.EquilibriumCalculationField">[docs]</a>
-<span class="k">class</span> <span class="nc">EquilibriumCalculationField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EquilibriumCalculationField</span><span class="p">(</span><span class="n">TypedField</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">objtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">private_name</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">private_name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">default_value</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">recompute</span><span class="p">()</span>
@@ -651,7 +651,7 @@
 
 <div class="viewcode-block" id="EquilibriumCalculationField.on_dependency_update">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.EquilibriumCalculationField.on_dependency_update">[docs]</a>
-    <span class="k">def</span> <span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_dependency_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">updated_attribute</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_suspend_dependency_updates</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__set__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
@@ -667,7 +667,7 @@
 
 <div class="viewcode-block" id="Workspace">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.Workspace">[docs]</a>
-<span class="k">class</span> <span class="nc">Workspace</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Workspace</span><span class="p">:</span>
     <span class="n">_callbacks</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[])</span>
     <span class="n">database</span><span class="p">:</span> <span class="n">Database</span> <span class="o">=</span> <span class="n">TypedField</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">Database</span><span class="p">())</span>
     <span class="n">components</span><span class="p">:</span> <span class="n">ComponentList</span> <span class="o">=</span> <span class="n">ComponentsField</span><span class="p">(</span><span class="n">depends_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;database&#39;</span><span class="p">])</span>
@@ -683,7 +683,7 @@
     <span class="c1"># eq is set by a callback in the EquilibriumCalculationField (TypedField)</span>
     <span class="n">eq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">LightDataset</span><span class="p">]</span> <span class="o">=</span> <span class="n">EquilibriumCalculationField</span><span class="p">(</span><span class="n">depends_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;phase_record_factory&#39;</span><span class="p">,</span> <span class="s1">&#39;conditions&#39;</span><span class="p">,</span> <span class="s1">&#39;calc_opts&#39;</span><span class="p">,</span> <span class="s1">&#39;solver&#39;</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_suspend_dependency_updates</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eq</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># manually initialized since we don&#39;t initialize the public name &#39;eq&#39; (see below)</span>
         <span class="c1"># Assume positional arguments are specified in class typed-attribute definition order</span>
@@ -710,7 +710,7 @@
 
 <div class="viewcode-block" id="Workspace.recompute">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.Workspace.recompute">[docs]</a>
-    <span class="k">def</span> <span class="nf">recompute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">recompute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Assumes implementation units from this point</span>
         <span class="n">unitless_conds</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">as_quantity</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">implementation_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
         <span class="n">str_conds</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">unitless_conds</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
@@ -737,7 +737,7 @@
                                        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_detect_phase_multiplicity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detect_phase_multiplicity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">multiplicity</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_record_factory</span><span class="o">.</span><span class="n">keys</span><span class="p">())}</span>
         <span class="n">prop_GM_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eq</span><span class="o">.</span><span class="n">GM</span>
         <span class="n">prop_Phase_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span>
@@ -751,7 +751,7 @@
                 <span class="n">multiplicity</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">multiplicity</span>
 
-    <span class="k">def</span> <span class="nf">_expand_property_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ComputableProperty</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_expand_property_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ComputableProperty</span><span class="p">]):</span>
         <span class="s2">&quot;Mutates args&quot;</span>
         <span class="n">multiplicity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_phase_multiplicity</span><span class="p">()</span>
         <span class="n">indices_to_delete</span> <span class="o">=</span> <span class="p">[]</span>
@@ -806,7 +806,7 @@
             <span class="k">del</span> <span class="n">args</span><span class="p">[</span><span class="n">deletion_index</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">_ndim</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">cond_val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cond_val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -815,7 +815,7 @@
 
 <div class="viewcode-block" id="Workspace.enumerate_composition_sets">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.Workspace.enumerate_composition_sets">[docs]</a>
-    <span class="k">def</span> <span class="nf">enumerate_composition_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enumerate_composition_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="n">prop_GM_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eq</span><span class="o">.</span><span class="n">GM</span>
@@ -848,14 +848,14 @@
 
 <div class="viewcode-block" id="Workspace.get_composition_sets">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.Workspace.get_composition_sets">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_composition_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_composition_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;get_composition_sets() can only be used for point (0-D) calculations. Use enumerate_composition_sets() instead.&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enumerate_composition_sets</span><span class="p">())[</span><span class="mi">1</span><span class="p">]</span></div>
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">condition_axis_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">condition_axis_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">str_conds_keys</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">eq</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;vertex&#39;</span><span class="p">,</span> <span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_dof&#39;</span><span class="p">)]</span>
         <span class="n">conds_keys</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">str_conds_keys</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -867,7 +867,7 @@
 
 <div class="viewcode-block" id="Workspace.get_dict">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.Workspace.get_dict">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ComputableProperty</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ComputableProperty</span><span class="p">]):</span>
         <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">as_property</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_expand_property_arguments</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
         <span class="n">arg_units</span> <span class="o">=</span> <span class="p">{</span><span class="n">arg</span><span class="p">:</span> <span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="s1">&#39;implementation_units&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)),</span>
@@ -910,7 +910,7 @@
 
 <div class="viewcode-block" id="Workspace.get">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.Workspace.get">[docs]</a>
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ComputableProperty</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ComputableProperty</span><span class="p">]):</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">result</span>
@@ -921,7 +921,7 @@
 
 <div class="viewcode-block" id="Workspace.copy">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.workspace.Workspace.copy">[docs]</a>
-    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 </div>
 
@@ -957,7 +957,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

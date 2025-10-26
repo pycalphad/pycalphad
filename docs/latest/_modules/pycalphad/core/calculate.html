@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.core.calculate - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.core.calculate - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -281,26 +281,26 @@
 <span class="sd">property surface of a system.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">broadcast_to</span>
-<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">ConditionError</span>
-<span class="kn">from</span> <span class="nn">pycalphad.codegen.phase_record_factory</span> <span class="kn">import</span> <span class="n">PhaseRecordFactory</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="kn">import</span> <span class="n">cacheit</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.light_dataset</span> <span class="kn">import</span> <span class="n">LightDataset</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.polytope</span> <span class="kn">import</span> <span class="n">sample</span>
-<span class="kn">from</span> <span class="nn">pycalphad.model</span> <span class="kn">import</span> <span class="n">Model</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">extract_parameters</span><span class="p">,</span> \
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">broadcast_to</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConditionError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.codegen.phase_record_factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseRecordFactory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">cacheit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.light_dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">LightDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.polytope</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">extract_parameters</span><span class="p">,</span> \
     <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">point_sample</span><span class="p">,</span> \
     <span class="n">unpack_species</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_kwarg</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">,</span> <span class="n">MAX_ENDMEMBER_PAIRS</span><span class="p">,</span> <span class="n">MAX_EXTRA_POINTS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">,</span> <span class="n">MAX_ENDMEMBER_PAIRS</span><span class="p">,</span> <span class="n">MAX_EXTRA_POINTS</span>
 
 
-<span class="k">def</span> <span class="nf">_jacobian_from_constraints</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">variables</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_jacobian_from_constraints</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">variables</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate the Jacobian matrix and right-hand side vector from</span>
 <span class="sd">    a list of constraint equations.</span>
@@ -328,7 +328,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Constraint Jacobian is non-linear&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">constraint_jac</span><span class="p">,</span> <span class="n">constraint_rhs</span>
 
-<span class="k">def</span> <span class="nf">_get_local_constraint_equations</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">phase_local_conditions</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_local_constraint_equations</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">phase_local_conditions</span><span class="p">):</span>
     <span class="n">phase_local_constraints</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">phase_local_conditions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">):</span>
@@ -340,7 +340,7 @@
     <span class="k">return</span> <span class="n">phase_local_constraints</span>
 
 <span class="nd">@cacheit</span>
-<span class="k">def</span> <span class="nf">_sample_phase_constitution</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sampler</span><span class="p">,</span> <span class="n">fixed_grid</span><span class="p">,</span> <span class="n">pdens</span><span class="p">,</span> <span class="n">phase_local_conditions</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sample_phase_constitution</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sampler</span><span class="p">,</span> <span class="n">fixed_grid</span><span class="p">,</span> <span class="n">pdens</span><span class="p">,</span> <span class="n">phase_local_conditions</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sample the internal degrees of freedom of a phase.</span>
 
@@ -463,7 +463,7 @@
     <span class="k">return</span> <span class="n">points</span>
 
 
-<span class="k">def</span> <span class="nf">_compute_phase_values</span><span class="p">(</span><span class="n">components</span><span class="p">,</span> <span class="n">statevar_dict</span><span class="p">,</span> <span class="n">str_phase_local_conditions</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_phase_values</span><span class="p">(</span><span class="n">components</span><span class="p">,</span> <span class="n">statevar_dict</span><span class="p">,</span> <span class="n">str_phase_local_conditions</span><span class="p">,</span>
                           <span class="n">points</span><span class="p">,</span> <span class="n">phase_record</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                           <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                           <span class="n">largest_energy</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -639,7 +639,7 @@
 
 <div class="viewcode-block" id="calculate">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.calculate.calculate">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_xarray</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">phase_records</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_xarray</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">phase_records</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sample the property surface of &#39;output&#39; containing the specified</span>
 <span class="sd">    components and phases. Model parameters are taken from &#39;dbf&#39; and any</span>
@@ -869,7 +869,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

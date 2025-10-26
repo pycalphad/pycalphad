@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.io.tdb - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.io.tdb - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -281,40 +281,40 @@
 <span class="sd">Thermo-Calc TDB format.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">CaselessKeyword</span><span class="p">,</span> <span class="n">CharsNotIn</span><span class="p">,</span> <span class="n">Group</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">LineEnd</span><span class="p">,</span> <span class="n">MatchFirst</span><span class="p">,</span> <span class="n">OneOrMore</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">SkipTo</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">ZeroOrMore</span><span class="p">,</span> <span class="n">Suppress</span><span class="p">,</span> <span class="n">White</span><span class="p">,</span> <span class="n">Word</span><span class="p">,</span> <span class="n">alphanums</span><span class="p">,</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">nums</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">delimitedList</span><span class="p">,</span> <span class="n">ParseException</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">symengine.lib.symengine_wrapper</span> <span class="kn">import</span> <span class="n">UniversalSet</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Complement</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Not</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span>
-<span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="kn">import</span> <span class="n">DatabaseExportError</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.grammar</span> <span class="kn">import</span> <span class="n">float_number</span><span class="p">,</span> <span class="n">chemical_formula</span>
-<span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="kn">import</span> <span class="n">Species</span>
-<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.tdb_keywords</span> <span class="kn">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">generate_symmetric_group</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
-<span class="kn">import</span> <span class="nn">ast</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">getpass</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">hashlib</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyparsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">CaselessKeyword</span><span class="p">,</span> <span class="n">CharsNotIn</span><span class="p">,</span> <span class="n">Group</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyparsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">LineEnd</span><span class="p">,</span> <span class="n">MatchFirst</span><span class="p">,</span> <span class="n">OneOrMore</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">SkipTo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyparsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZeroOrMore</span><span class="p">,</span> <span class="n">Suppress</span><span class="p">,</span> <span class="n">White</span><span class="p">,</span> <span class="n">Word</span><span class="p">,</span> <span class="n">alphanums</span><span class="p">,</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">nums</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyparsing</span><span class="w"> </span><span class="kn">import</span> <span class="n">delimitedList</span><span class="p">,</span> <span class="n">ParseException</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">symengine.lib.symengine_wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">UniversalSet</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Complement</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">symengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Not</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">symengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tinydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">where</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseExportError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.grammar</span><span class="w"> </span><span class="kn">import</span> <span class="n">float_number</span><span class="p">,</span> <span class="n">chemical_formula</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="kn">import</span> <span class="n">Species</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.tdb_keywords</span><span class="w"> </span><span class="kn">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_symmetric_group</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">getpass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
 
 
 <span class="n">_AST_WHITELIST</span> <span class="o">=</span> <span class="p">[</span><span class="n">ast</span><span class="o">.</span><span class="n">Add</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">BinOp</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Call</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Div</span><span class="p">,</span>
                   <span class="n">ast</span><span class="o">.</span><span class="n">Expression</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Load</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Mult</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span>
                   <span class="n">ast</span><span class="o">.</span><span class="n">Pow</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Sub</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">UAdd</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">UnaryOp</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">USub</span><span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">_sympify_string</span><span class="p">(</span><span class="n">math_string</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sympify_string</span><span class="p">(</span><span class="n">math_string</span><span class="p">):</span>
     <span class="s2">&quot;Convert math string into SymEngine object.&quot;</span>
     <span class="c1"># drop pound symbols (&#39;#&#39;) since they denote function names</span>
     <span class="c1"># we detect those automatically</span>
@@ -338,7 +338,7 @@
                              <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">expr_string</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">sympify</span><span class="p">(</span><span class="n">expr_string</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">get_supported_variables</span><span class="p">())</span><span class="o">.</span><span class="n">n</span><span class="p">()</span>
 
-<span class="k">def</span> <span class="nf">_parse_action</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_action</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decorator for pyparsing parse actions to ease debugging.</span>
 
@@ -365,7 +365,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input function must take at most 3 parameters.&#39;</span><span class="p">)</span>
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">action</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="s2">&quot;Wrapped function.&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">num_args</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">exc_info</span><span class="p">:</span>
@@ -381,7 +381,7 @@
     <span class="k">return</span> <span class="n">action</span>
 
 <span class="nd">@_parse_action</span>
-<span class="k">def</span> <span class="nf">_make_piecewise_ast</span><span class="p">(</span><span class="n">toks</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_piecewise_ast</span><span class="p">(</span><span class="n">toks</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience function for converting tokens into a piecewise symengine object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -420,13 +420,13 @@
 
 <div class="viewcode-block" id="TCCommand">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCCommand">[docs]</a>
-<span class="k">class</span> <span class="nc">TCCommand</span><span class="p">(</span><span class="n">CaselessKeyword</span><span class="p">):</span> <span class="c1">#pylint: disable=R0903</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TCCommand</span><span class="p">(</span><span class="n">CaselessKeyword</span><span class="p">):</span> <span class="c1">#pylint: disable=R0903</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parser element for dealing with Thermo-Calc command abbreviations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="TCCommand.parseImpl">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCCommand.parseImpl">[docs]</a>
-    <span class="k">def</span> <span class="nf">parseImpl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instring</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">doActions</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parseImpl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instring</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">doActions</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="c1"># Find the end of the keyword by searching for an end character</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">loc</span>
         <span class="n">endchars</span> <span class="o">=</span> <span class="s1">&#39; ():,&#39;</span>
@@ -457,7 +457,7 @@
 </div>
 
 
-<span class="k">def</span> <span class="nf">_tdb_grammar</span><span class="p">():</span> <span class="c1">#pylint: disable=R0914</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_tdb_grammar</span><span class="p">():</span> <span class="c1">#pylint: disable=R0914</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience function for getting the pyparsing grammar of a TDB file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -549,7 +549,7 @@
                     <span class="n">cmd_diffusion</span>
     <span class="k">return</span> <span class="n">all_commands</span>
 
-<span class="k">def</span> <span class="nf">_process_typedef</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_typedef</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process a TYPE_DEFINITION command.</span>
 
@@ -617,7 +617,7 @@
 <span class="n">inv_phase_options</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span><span class="nb">reversed</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">phase_options</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
 
 
-<span class="k">def</span> <span class="nf">_process_phase</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">typedefs</span><span class="p">,</span> <span class="n">subls</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_phase</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">typedefs</span><span class="p">,</span> <span class="n">subls</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process the PHASE command.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -638,7 +638,7 @@
     <span class="c1"># Model hints are updated later based on the type definitions</span>
     <span class="n">targetdb</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">model_hints</span><span class="p">,</span> <span class="n">subls</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_process_parameter</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_parameter</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="p">,</span>
                        <span class="n">constituent_array</span><span class="p">,</span> <span class="n">param_order</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process the PARAMETER command.</span>
@@ -649,13 +649,13 @@
                             <span class="k">for</span> <span class="n">lx</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="o">.</span><span class="n">asList</span><span class="p">()],</span>
                            <span class="n">param_order</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="p">,</span> <span class="n">force_insert</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_unimplemented</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="c1">#pylint: disable=W0613</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_unimplemented</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="c1">#pylint: disable=W0613</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Null function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 
-<span class="k">def</span> <span class="nf">_process_species</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">sp_name</span><span class="p">,</span> <span class="n">sp_comp</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_species</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">sp_name</span><span class="p">,</span> <span class="n">sp_comp</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a species to the Database. If charge not specified, the Species will be neutral.&quot;&quot;&quot;</span>
     <span class="c1"># process the species composition list of [element1, ratio1, element2, ratio2, ..., elementN, ratioN]</span>
     <span class="n">constituents</span> <span class="o">=</span> <span class="p">{</span><span class="n">sp_comp</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">sp_comp</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sp_comp</span><span class="p">),</span> <span class="mi">2</span><span class="p">)}</span>
@@ -679,7 +679,7 @@
      <span class="s2">&quot;LR&quot;</span><span class="p">:</span> <span class="mi">262</span><span class="p">,</span> <span class="s2">&quot;RF&quot;</span><span class="p">:</span> <span class="mi">261</span><span class="p">,</span> <span class="s2">&quot;DB&quot;</span><span class="p">:</span> <span class="mi">262</span><span class="p">,</span> <span class="s2">&quot;SG&quot;</span><span class="p">:</span> <span class="mi">266</span><span class="p">,</span> <span class="s2">&quot;BH&quot;</span><span class="p">:</span> <span class="mi">264</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">:</span> <span class="mi">277</span><span class="p">,</span> <span class="s2">&quot;MT&quot;</span><span class="p">:</span> <span class="mi">268</span>
      <span class="p">}</span>
 
-<span class="k">def</span> <span class="nf">_process_reference_state</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="n">refphase</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">H298</span><span class="p">,</span> <span class="n">S298</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_reference_state</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="n">refphase</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">H298</span><span class="p">,</span> <span class="n">S298</span><span class="p">):</span>
     <span class="c1"># If user database doesn&#39;t specify mass, use periodic table values (if the element exists)</span>
     <span class="n">db</span><span class="o">.</span><span class="n">refstates</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;phase&#39;</span><span class="p">:</span> <span class="n">refphase</span><span class="p">,</span>
@@ -688,7 +688,7 @@
         <span class="s1">&#39;S298&#39;</span><span class="p">:</span> <span class="n">S298</span><span class="p">,</span>
     <span class="p">}</span>
 
-<span class="k">def</span> <span class="nf">_setitem_raise_duplicates</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_setitem_raise_duplicates</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;TDB contains duplicate FUNCTION </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
     <span class="n">dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
@@ -718,7 +718,7 @@
 
 <div class="viewcode-block" id="to_interval">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.to_interval">[docs]</a>
-<span class="k">def</span> <span class="nf">to_interval</span><span class="p">(</span><span class="n">relational</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_interval</span><span class="p">(</span><span class="n">relational</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">And</span><span class="p">):</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">UniversalSet</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
@@ -755,23 +755,23 @@
 
 <div class="viewcode-block" id="TCPrinter">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCPrinter">[docs]</a>
-<span class="k">class</span> <span class="nc">TCPrinter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TCPrinter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Prints Thermo-Calc style function expressions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">if_incompatible</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="s1">&#39;fix&#39;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Incorrect options passed to </span><span class="se">\&#39;</span><span class="s1">if_incompatible</span><span class="se">\&#39;</span><span class="s1">. Valid args are </span><span class="se">\&#39;</span><span class="s1">raise</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">warn</span><span class="se">\&#39;</span><span class="s1">, or </span><span class="se">\&#39;</span><span class="s1">fix</span><span class="se">\&#39;</span><span class="s1">.&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">if_incompatible</span> <span class="o">=</span> <span class="n">if_incompatible</span>
 
 <div class="viewcode-block" id="TCPrinter.doprint">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCPrinter.doprint">[docs]</a>
-    <span class="k">def</span> <span class="nf">doprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">doprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print_Piecewise</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_stringify_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_stringify_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Add</span><span class="p">):</span>
             <span class="n">terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
@@ -825,7 +825,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_print_Piecewise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_print_Piecewise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
         <span class="c1"># Filter out default zeros since they are implicit in a TDB</span>
         <span class="n">filtered_args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">iter</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)]</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">cond</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">x</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">))]</span>
         <span class="n">exprs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_stringify_expr</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">filtered_args</span><span class="p">]</span>
@@ -864,7 +864,7 @@
 
 <div class="viewcode-block" id="reflow_text">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.reflow_text">[docs]</a>
-<span class="k">def</span> <span class="nf">reflow_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reflow_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add line breaks to ensure text doesn&#39;t exceed a certain line width.</span>
 
@@ -905,7 +905,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_apply_new_symbol_names</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">symbol_name_map</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_new_symbol_names</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">symbol_name_map</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Push changes in symbol names through the SymEngine expressions in symbols and parameters</span>
 
@@ -934,7 +934,7 @@
 
 <div class="viewcode-block" id="add_phase_symmetry_ordering_parameters">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.add_phase_symmetry_ordering_parameters">[docs]</a>
-<span class="k">def</span> <span class="nf">add_phase_symmetry_ordering_parameters</span><span class="p">(</span><span class="n">dbf</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_phase_symmetry_ordering_parameters</span><span class="p">(</span><span class="n">dbf</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ordered_phase&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase_name</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">symmetry_hint</span><span class="p">,</span> <span class="n">symmetry</span> <span class="ow">in</span> <span class="n">KNOWN_SUBLATTICE_SYMMETRY_RELATIONS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -949,7 +949,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_symmetry_added_parameter</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_symmetry_added_parameter</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return true if parameter belongs to a phase with an active symmetry</span>
 <span class="sd">    option and the parameter was added by a symmetry option.</span>
@@ -966,7 +966,7 @@
 
 <div class="viewcode-block" id="get_supported_variables">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.get_supported_variables">[docs]</a>
-<span class="k">def</span> <span class="nf">get_supported_variables</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_supported_variables</span><span class="p">():</span>
     <span class="s2">&quot;When loading databases, these symbols should be replaced by their IndependentPotential counterparts&quot;</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">Symbol</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="vm">__dict__</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">IndependentPotential</span><span class="p">,</span> <span class="n">Float</span><span class="p">))}</span></div>
 
@@ -974,7 +974,7 @@
 
 <div class="viewcode-block" id="write_tdb">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.write_tdb">[docs]</a>
-<span class="k">def</span> <span class="nf">write_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;subsystem&#39;</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;subsystem&#39;</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write a TDB file from a pycalphad Database object.</span>
 
@@ -1035,7 +1035,7 @@
     <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="c1"># Comment header block</span>
     <span class="c1"># Import here to prevent circular imports</span>
-    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">__version__</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># getuser() will raise on Windows if it can&#39;t find a username: https://bugs.python.org/issue32731</span>
         <span class="n">username</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
@@ -1173,7 +1173,7 @@
                                                  <span class="n">param</span><span class="p">[</span><span class="s1">&#39;diffusing_species&#39;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">],</span>
                                                  <span class="n">param</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">]))</span>
 
-    <span class="k">def</span> <span class="nf">write_parameter</span><span class="p">(</span><span class="n">param_to_write</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_parameter</span><span class="p">(</span><span class="n">param_to_write</span><span class="p">):</span>
         <span class="n">constituents</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">]))</span>
                          <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">constituent_array</span><span class="p">])</span>
         <span class="c1"># TODO: Handle references</span>
@@ -1235,7 +1235,7 @@
 
 <div class="viewcode-block" id="read_tdb">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.read_tdb">[docs]</a>
-<span class="k">def</span> <span class="nf">read_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse a TDB file into a pycalphad Database object.</span>
 
@@ -1345,7 +1345,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

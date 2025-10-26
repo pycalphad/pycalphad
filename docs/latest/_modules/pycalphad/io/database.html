@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.io.database - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.io.database - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,20 +280,20 @@
 <span class="sd">The database module provides support for reading and writing data types</span>
 <span class="sd">associated with structured thermodynamic/kinetic data.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
-<span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">TinyDB</span>
-<span class="kn">from</span> <span class="nn">tinydb.storages</span> <span class="kn">import</span> <span class="n">MemoryStorage</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="kn">import</span> <span class="n">Species</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="kn">import</span> <span class="n">fhash</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">recursive_tuplify</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tinydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">TinyDB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tinydb.storages</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemoryStorage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="kn">import</span> <span class="n">Species</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">fhash</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">recursive_tuplify</span>
 
 
 <div class="viewcode-block" id="DatabaseExportError">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.DatabaseExportError">[docs]</a>
-<span class="k">class</span> <span class="nc">DatabaseExportError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DatabaseExportError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a database cannot be written.&quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
@@ -301,7 +301,7 @@
 
 <div class="viewcode-block" id="Phase">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Phase">[docs]</a>
-<span class="k">class</span> <span class="nc">Phase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1">#pylint: disable=R0903</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Phase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1">#pylint: disable=R0903</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Phase in the database.</span>
 
@@ -317,21 +317,21 @@
 <span class="sd">        Structured &quot;hints&quot; for a Model trying to read this phase.</span>
 <span class="sd">        Hints for major constituents and typedefs (Thermo-Calc) go here.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sublattices</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_hints</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;Phase(</span><span class="si">{0!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
-    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sublattices</span><span class="p">),</span>
                      <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">recursive_tuplify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">items</span><span class="p">())))))</span></div>
 
@@ -342,7 +342,7 @@
 
 <div class="viewcode-block" id="Database">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database">[docs]</a>
-<span class="k">class</span> <span class="nc">Database</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1">#pylint: disable=R0902</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Database</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1">#pylint: disable=R0902</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Structured thermodynamic and/or kinetic data.</span>
 
@@ -366,7 +366,7 @@
 <span class="sd">    &gt;&gt;&gt; f = StringIO(u&#39;$a complete TDB file as a string\\n&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; mydb = Database(f)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Database</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
             <span class="c1"># Should elements be rolled into a special case of species?</span>
@@ -408,15 +408,15 @@
 <div class="viewcode-block" id="Database.cast_from">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.cast_from">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">val</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">fhash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
 
 
-    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">pickle_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;_parameters&#39;</span><span class="p">:</span>
@@ -425,7 +425,7 @@
                 <span class="n">pickle_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">return</span> <span class="n">pickle_dict</span>
 
-    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;_parameters&#39;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">TinyDB</span><span class="p">(</span><span class="n">storage</span><span class="o">=</span><span class="n">MemoryStorage</span><span class="p">)</span>
@@ -433,7 +433,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">):</span>
         <span class="n">copy</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)()</span>
         <span class="n">memo</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span> <span class="o">=</span> <span class="n">copy</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -447,7 +447,7 @@
 <div class="viewcode-block" id="Database.register_format">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.register_format">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">register_format</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_format</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add support for reading and/or writing the specified format.</span>
 
@@ -470,7 +470,7 @@
 <div class="viewcode-block" id="Database.from_file">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.from_file">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_file</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a Database from a file.</span>
 
@@ -528,7 +528,7 @@
 <div class="viewcode-block" id="Database.from_string">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.from_string">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns Database from a string in the specified format.</span>
 <span class="sd">        This function is a wrapper for calling `from_file` with StringIO.</span>
@@ -549,7 +549,7 @@
 
 <div class="viewcode-block" id="Database.to_file">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.to_file">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">if_exists</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">write_kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">if_exists</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">write_kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write the Database to a file.</span>
 
@@ -605,7 +605,7 @@
 
 <div class="viewcode-block" id="Database.to_string">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.to_string">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns Database as a string.</span>
 <span class="sd">        This function is a wrapper for calling `to_file` with StringIO.</span>
@@ -624,7 +624,7 @@
         <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;Elements: </span><span class="si">{0}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">))</span>
         <span class="n">result</span> <span class="o">+=</span> <span class="s1">&#39;Species: </span><span class="si">{0}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">phase</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
@@ -633,7 +633,7 @@
         <span class="n">result</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> parameters in database</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">result</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
@@ -641,7 +641,7 @@
         <span class="k">elif</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">def</span> <span class="nf">param_sort_key</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">param_sort_key</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;phase_name&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">],</span> \
                        <span class="n">x</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;diffusing_species&#39;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -657,12 +657,12 @@
                     <span class="k">return</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Database.add_structure_entry">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.add_structure_entry">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_structure_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_name</span><span class="p">,</span> <span class="n">global_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_structure_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_name</span><span class="p">,</span> <span class="n">global_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define a relation between the system-local name of a phase and a</span>
 <span class="sd">        &quot;global&quot; identifier. This is used to link crystallographically</span>
@@ -684,7 +684,7 @@
 
 <div class="viewcode-block" id="Database.add_parameter">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.add_parameter">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_parameter</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span> <span class="n">param_order</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">diffusing_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_insert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">):</span>
@@ -735,7 +735,7 @@
 
 <div class="viewcode-block" id="Database.add_phase">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.add_phase">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">model_hints</span><span class="p">,</span> <span class="n">sublattices</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">model_hints</span><span class="p">,</span> <span class="n">sublattices</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a phase.</span>
 
@@ -762,7 +762,7 @@
 
 <div class="viewcode-block" id="Database.add_phase_constituents">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.add_phase_constituents">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_phase_constituents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituents</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_phase_constituents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituents</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a phase.</span>
 
@@ -788,7 +788,7 @@
 
 <div class="viewcode-block" id="Database.search">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.search">[docs]</a>
-    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Search for parameters matching the specified query.</span>
 
@@ -809,7 +809,7 @@
 
 <div class="viewcode-block" id="Database.process_parameter_queue">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.process_parameter_queue">[docs]</a>
-    <span class="k">def</span> <span class="nf">process_parameter_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_parameter_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Process the queue of parameters so they are added to the TinyDB in one transaction.</span>
 <span class="sd">        This avoids repeated (expensive) calls to insert().</span>
@@ -851,7 +851,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

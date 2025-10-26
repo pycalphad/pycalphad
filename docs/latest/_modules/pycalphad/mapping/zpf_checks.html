@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.zpf_checks - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.mapping.zpf_checks - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,17 +276,17 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.mapping.zpf_checks</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Mapping</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">COMP_DIFFERENCE_TOL</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.composition_set</span> <span class="kn">import</span> <span class="n">CompositionSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">COMP_DIFFERENCE_TOL</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.composition_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositionSet</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ZPFState</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.zpf_equilibrium</span> <span class="k">as</span> <span class="nn">zeq</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ZPFState</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.zpf_equilibrium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">zeq</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -318,7 +318,7 @@
 
 <div class="viewcode-block" id="simple_check_valid_point">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.simple_check_valid_point">[docs]</a>
-<span class="k">def</span> <span class="nf">simple_check_valid_point</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_check_valid_point</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns True or False for whether step result was successful equilibria</span>
 
@@ -339,7 +339,7 @@
 
 <div class="viewcode-block" id="simple_check_change_in_phases">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.simple_check_change_in_phases">[docs]</a>
-<span class="k">def</span> <span class="nf">simple_check_change_in_phases</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_check_change_in_phases</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns True or False for whether step result resulted in same number of phases</span>
 
@@ -365,7 +365,7 @@
 
 <div class="viewcode-block" id="simple_check_global_min">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.simple_check_global_min">[docs]</a>
-<span class="k">def</span> <span class="nf">simple_check_global_min</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_check_global_min</span><span class="p">(</span><span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns True or False for whether step result is still global min</span>
 
@@ -396,7 +396,7 @@
 
 <div class="viewcode-block" id="check_valid_point">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_valid_point">[docs]</a>
-<span class="k">def</span> <span class="nf">check_valid_point</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_valid_point</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    3 possible outcomes</span>
 <span class="sd">        a) Converged equilibrium -&gt; pass</span>
@@ -433,7 +433,7 @@
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<span class="k">def</span> <span class="nf">_check_axis_values_within_limit</span><span class="p">(</span><span class="n">new_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_axis_values_within_limit</span><span class="p">(</span><span class="n">new_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks that axis values are within the axis limits</span>
 
@@ -478,7 +478,7 @@
             <span class="k">return</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="kc">True</span>
 
-<span class="k">def</span> <span class="nf">_check_axis_values_by_distance</span><span class="p">(</span><span class="n">prev_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">new_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_axis_values_by_distance</span><span class="p">(</span><span class="n">prev_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">new_point_vars</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks that the normalized distance between the previous point and the new point is within reasonable values</span>
 
@@ -513,7 +513,7 @@
 
 <div class="viewcode-block" id="check_axis_values">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_axis_values">[docs]</a>
-<span class="k">def</span> <span class="nf">check_axis_values</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_axis_values</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks both if axis values are within axis limits and if the axis values hadn&quot;t moved to far from previous point</span>
 
@@ -561,7 +561,7 @@
 
 <div class="viewcode-block" id="check_change_in_phases">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_change_in_phases">[docs]</a>
-<span class="k">def</span> <span class="nf">check_change_in_phases</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_change_in_phases</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    If the number of phases changed upon stepping, then attempt to create a new node</span>
 <span class="sd">        If making the new node was unsuccessful, then we end the zpf line anyways</span>
@@ -634,7 +634,7 @@
 
 <div class="viewcode-block" id="check_global_min">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_global_min">[docs]</a>
-<span class="k">def</span> <span class="nf">check_global_min</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_global_min</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check if the point is global minimum</span>
 <span class="sd">    1. Check if a new composition set can be added that can lower free energy</span>
@@ -707,7 +707,7 @@
 
 <div class="viewcode-block" id="check_similar_phase_composition">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_similar_phase_composition">[docs]</a>
-<span class="k">def</span> <span class="nf">check_similar_phase_composition</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_similar_phase_composition</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    If two composition sets are close in composition, then we stop zpf line pre-maturely so that they don&quot;t go on top of each other</span>
 
@@ -778,7 +778,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

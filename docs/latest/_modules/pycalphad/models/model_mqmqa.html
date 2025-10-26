@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.models.model_mqmqa - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.models.model_mqmqa - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,20 +276,20 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.models.model_mqmqa</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">log</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">Symbol</span>
-<span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">where</span>
-<span class="kn">from</span> <span class="nn">pycalphad.model</span> <span class="kn">import</span> <span class="n">_MAX_PARAM_NESTING</span>
-<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">unpack_species</span><span class="p">,</span> <span class="n">wrap_symbol</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Model</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="kn">import</span> <span class="n">DofError</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">symengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">log</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">Symbol</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tinydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">where</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">_MAX_PARAM_NESTING</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">unpack_species</span><span class="p">,</span> <span class="n">wrap_symbol</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">DofError</span>
 
 
-<span class="k">def</span> <span class="nf">_get_species</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_species</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a Species for quadruplet given by constituents</span>
 
 <span class="sd">    Canonicalizes the Species by sorting among the cation and anion sublattices.</span>
@@ -315,7 +315,7 @@
 
 <div class="viewcode-block" id="ModelMQMQA">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA">[docs]</a>
-<span class="k">class</span> <span class="nc">ModelMQMQA</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelMQMQA</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Symbolic implementation of the modified quasichemical model in the</span>
 <span class="sd">    quadruplet approximation developed by Pelton _et al._ [1]_. The formulation</span>
@@ -350,7 +350,7 @@
         <span class="p">(</span><span class="s2">&quot;xsmix&quot;</span><span class="p">,</span> <span class="s2">&quot;excess_mixing_energy&quot;</span><span class="p">),</span>
     <span class="p">]</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span> <span class="o">=</span> <span class="n">dbe</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reference_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -416,7 +416,7 @@
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">symbols</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
@@ -424,29 +424,29 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span>
 
-    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
 
     <span class="c1"># Default methods, don&#39;t need to be overridden unless you want to change the behavior</span>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">state_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a sorted list of state variables used in the ast which are not site fractions.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">site_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">site_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a sorted list of site fractions used in the ast.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ast</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ast</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s2">&quot;Return the full abstract syntax tree of the model.&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">_pair_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pair_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if the constituent array represents a pair.</span>
 
 <span class="sd">        Pairs have only one species in each sublattice.</span>
@@ -459,7 +459,7 @@
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">_array_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_array_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if the constituent array is satisfies all components.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">constituent</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">:</span>
@@ -467,7 +467,7 @@
                     <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">_zeta_ik</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_zeta_ik</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
         <span class="n">pair_query</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;phase_name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">)</span> <span class="o">&amp;</span> \
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;parameter_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;MQMG&quot;</span><span class="p">)</span> <span class="o">&amp;</span> \
@@ -478,13 +478,13 @@
         <span class="n">param</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;zeta&quot;</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_X_ijkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_X_ijkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shorthand for creating a site fraction object v.Y for a quadruplet (ij/kl)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">_get_species</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_n_ik</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_n_ik</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the amount of pair, n_i/k, for the pair i/k.</span>
 
@@ -497,7 +497,7 @@
             <span class="n">n_ik</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X_ijkl</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">a</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="n">i</span><span class="p">))</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">k</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">n_ik</span>
 
-    <span class="k">def</span> <span class="nf">_n_ik_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_n_ik_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the amount of pair, n^*_i/k, for the pair i/k following Lambotte JCT 2011 Eq. A.3</span>
 
@@ -509,14 +509,14 @@
         <span class="n">n_ik</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zeta_ik</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">n_ik</span>
 
-    <span class="k">def</span> <span class="nf">_X_ik</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_X_ik</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the endmember fraction, X_i/k, for a the pair i/k following Poschmann Eq. 6</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X_ik</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_ik</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_ik</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pairs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">X_ik</span>
 
-    <span class="k">def</span> <span class="nf">_X_ik_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_X_ik_star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the endmember fraction, X^*_i/k, for a the pair i/k.</span>
 
@@ -529,7 +529,7 @@
         <span class="n">X_ik</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_ik_star</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_ik_star</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pairs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">X_ik</span>
 
-    <span class="k">def</span> <span class="nf">_n_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_n_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the mass of the species following Poschmann Eq. 7 and 8.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -546,7 +546,7 @@
                 <span class="n">n_i</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X_ijkl</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span> <span class="o">/</span> <span class="n">Z</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span> <span class="o">/</span> <span class="n">Z</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">n_i</span>
 
-    <span class="k">def</span> <span class="nf">_X_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_X_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the site fraction of species on it&#39;s sublattice. Poschmann Eq. 9 and 10.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -556,7 +556,7 @@
             <span class="k">assert</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">anions</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_i</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_i</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">anions</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_Y_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_Y_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the site equivalent fraction of species following Poschmann Eq. 11 and 12.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -572,7 +572,7 @@
                 <span class="n">Y_i</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X_ijkl</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">k</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="k">return</span> <span class="n">Y_i</span>
 
-    <span class="k">def</span> <span class="nf">_F_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_F_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the coordination-equivalent fraction of species, Poschmann Eq. 13 and 14.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -596,14 +596,14 @@
         <span class="k">return</span> <span class="n">F_i</span>
 
 
-    <span class="k">def</span> <span class="nf">_chemical_group_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">symmetric_species</span><span class="p">,</span> <span class="n">asymmetric_species</span><span class="p">,</span> <span class="n">sublattice</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_chemical_group_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">symmetric_species</span><span class="p">,</span> <span class="n">asymmetric_species</span><span class="p">,</span> <span class="n">sublattice</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a function ``f(m)`` that returns ``True`` if m is symmetric with</span>
 <span class="sd">        the symmetric_species and asymmetric with the asymmetric_species.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># sublattice should be &quot;cations&quot; or &quot;anions&quot;</span>
         <span class="n">chem_group_dict</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s2">&quot;mqmqa&quot;</span><span class="p">][</span><span class="s2">&quot;chemical_groups&quot;</span><span class="p">][</span><span class="n">sublattice</span><span class="p">]</span>
-        <span class="k">def</span> <span class="nf">_f</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_f</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="n">symmetric_species</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="n">asymmetric_species</span><span class="p">:</span>
@@ -614,7 +614,7 @@
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">_f</span>
 
-    <span class="k">def</span> <span class="nf">_Chi_mix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_Chi_mix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        (:math:`\\chi_{ij/k}`) following Poschmann Eq. 21 (SUBG-type model) or Eq. 22 (SUBQ-type models), respectively.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -685,7 +685,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing Chi_mix is not supported for reciprocal quadruplets. Got quadruplet </span><span class="si">{</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">l</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_Y_ik</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_Y_ik</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Poschmann Eq. 20</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -694,7 +694,7 @@
             <span class="n">term</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X_ijkl</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">a</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="n">i</span><span class="p">))</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">k</span><span class="p">))</span> <span class="o">/</span> <span class="mi">4</span>
         <span class="k">return</span> <span class="n">term</span>
 
-    <span class="k">def</span> <span class="nf">_Xi_mix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_Xi_mix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        (:math:`\\xi_{ij/k}`) following Poschmann Eq. 19</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -716,7 +716,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Computing Xi_mix is not supported for reciprocal quadruplets (there can only be mixing among cations _or_ anions). Got quadruplet </span><span class="si">{</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">l</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_calc_Z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_Z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
         <span class="c1"># In derivations of the MQMQA, charges are written as if they have the same sign. The absolute values of the charges are used here.</span>
         <span class="n">Z</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="p">,</span> <span class="n">dbe</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">species</span> <span class="o">==</span> <span class="n">A</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">species</span> <span class="o">==</span> <span class="n">B</span><span class="p">):</span>
@@ -772,7 +772,7 @@
 
 <div class="viewcode-block" id="ModelMQMQA.Z">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.Z">[docs]</a>
-    <span class="k">def</span> <span class="nf">Z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">A</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">species</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">A</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">B</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">):</span>
         <span class="c1"># Canonicalize the order of cations and anions in alphabetical order</span>
         <span class="c1"># Note that the coordination number parameters (the constituents and</span>
         <span class="c1"># the values) _must_ obey this canonical sorted order.</span>
@@ -794,7 +794,7 @@
 
 <div class="viewcode-block" id="ModelMQMQA.get_internal_constraints">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.get_internal_constraints">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_internal_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_internal_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Site fraction constraint</span>
         <span class="n">site_frac_sum</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
@@ -805,7 +805,7 @@
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">normalization</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">normalization</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Total number of moles of this phase.</span>
 
@@ -815,7 +815,7 @@
 
 <div class="viewcode-block" id="ModelMQMQA.moles">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.moles">[docs]</a>
-    <span class="k">def</span> <span class="nf">moles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">per_formula_unit</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">moles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">per_formula_unit</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="s2">&quot;Number of moles of species or elements.&quot;</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
@@ -849,7 +849,7 @@
 
 <div class="viewcode-block" id="ModelMQMQA.reference_energy">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.reference_energy">[docs]</a>
-    <span class="k">def</span> <span class="nf">reference_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reference_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns energies contributed by pairs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -874,7 +874,7 @@
 
 <div class="viewcode-block" id="ModelMQMQA.ideal_mixing_energy">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.ideal_mixing_energy">[docs]</a>
-    <span class="k">def</span> <span class="nf">ideal_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ideal_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="c1"># notational niceties</span>
         <span class="n">n_i</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_i</span><span class="p">,</span> <span class="n">dbe</span><span class="p">)</span>
         <span class="n">X_i</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X_i</span><span class="p">,</span> <span class="n">dbe</span><span class="p">)</span>
@@ -912,7 +912,7 @@
 
 <div class="viewcode-block" id="ModelMQMQA.excess_mixing_energy">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.excess_mixing_energy">[docs]</a>
-    <span class="k">def</span> <span class="nf">excess_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">excess_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;phase_name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">)</span> <span class="o">&amp;</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;parameter_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;MQMX&quot;</span><span class="p">)</span> <span class="o">&amp;</span>
@@ -1010,13 +1010,13 @@
 
 <div class="viewcode-block" id="ModelMQMQA.shift_reference_state">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.shift_reference_state">[docs]</a>
-    <span class="k">def</span> <span class="nf">shift_reference_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_states</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">contrib_mods</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;GM&quot;</span><span class="p">,</span> <span class="s2">&quot;HM&quot;</span><span class="p">,</span> <span class="s2">&quot;SM&quot;</span><span class="p">,</span> <span class="s2">&quot;CPM&quot;</span><span class="p">),</span> <span class="n">fmt_str</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">R&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shift_reference_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_states</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">contrib_mods</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;GM&quot;</span><span class="p">,</span> <span class="s2">&quot;HM&quot;</span><span class="p">,</span> <span class="s2">&quot;SM&quot;</span><span class="p">,</span> <span class="s2">&quot;CPM&quot;</span><span class="p">),</span> <span class="n">fmt_str</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">R&quot;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="ModelMQMQA.build_phase">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.build_phase">[docs]</a>
-    <span class="k">def</span> <span class="nf">build_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate the symbolic form of all the contributions to this phase.</span>
 
@@ -1032,7 +1032,7 @@
 <div class="viewcode-block" id="ModelMQMQA.symbol_replace">
 <a class="viewcode-back" href="../../../api/pycalphad.models.html#pycalphad.models.model_mqmqa.ModelMQMQA.symbol_replace">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">symbol_replace</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">symbols</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">symbol_replace</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">symbols</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Substitute values of symbols into &#39;obj&#39;.</span>
 
@@ -1059,11 +1059,11 @@
         <span class="k">return</span> <span class="n">obj</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_build_reference_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preserve_ideal</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_reference_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preserve_ideal</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">reference_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reference_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Endmember reference models do not have a physical meaning for MQMQA models&quot;</span><span class="p">)</span></div>
 
 </pre></div>
@@ -1098,7 +1098,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

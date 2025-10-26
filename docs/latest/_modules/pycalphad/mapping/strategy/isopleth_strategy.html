@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html"><link rel="search" title="Search" href="../../../../search.html">
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.isopleth_strategy - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.mapping.strategy.isopleth_strategy - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,26 +276,26 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.mapping.strategy.isopleth_strategy</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">copy</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.composition_set</span> <span class="kn">import</span> <span class="n">CompositionSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.composition_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositionSet</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ExitHint</span><span class="p">,</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">MIN_COMPOSITION</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.zpf_equilibrium</span> <span class="k">as</span> <span class="nn">zeq</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_base</span> <span class="kn">import</span> <span class="n">MapStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.step_strategy</span> <span class="kn">import</span> <span class="n">StepStrategy</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.strategy.strategy_data</span> <span class="kn">import</span> <span class="n">SinglePhaseData</span><span class="p">,</span> <span class="n">StrategyData</span><span class="p">,</span> <span class="n">PhaseRegionData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ExitHint</span><span class="p">,</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">MIN_COMPOSITION</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.zpf_equilibrium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">zeq</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">map_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.strategy_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">MapStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.step_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepStrategy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.strategy_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">SinglePhaseData</span><span class="p">,</span> <span class="n">StrategyData</span><span class="p">,</span> <span class="n">PhaseRegionData</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_point_slope</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">],</span> <span class="n">norm</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">]):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_point_slope</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">],</span> <span class="n">norm</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    For a point with a fixed phase, get the slope d av_1 / d av_2 to determine the best axis to step along</span>
 
@@ -329,10 +329,10 @@
 
 <div class="viewcode-block" id="IsoplethStrategy">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy">[docs]</a>
-<span class="k">class</span> <span class="nc">IsoplethStrategy</span><span class="p">(</span><span class="n">MapStrategy</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IsoplethStrategy</span><span class="p">(</span><span class="n">MapStrategy</span><span class="p">):</span>
 <div class="viewcode-block" id="IsoplethStrategy.generate_automatic_starting_points">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.generate_automatic_starting_points">[docs]</a>
-    <span class="k">def</span> <span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Searches axis limits to find starting points</span>
 
@@ -361,7 +361,7 @@
 
 <div class="viewcode-block" id="IsoplethStrategy.add_starting_points_from_step">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.add_starting_points_from_step">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
         <span class="c1"># Get all nodes that have a parent. We set axis variable to None so that the node will find a good starting direction</span>
         <span class="c1"># NOTE: if a stepping has a lot of failed equilibrium calculations, it&#39;s possible that the all nodes are generated</span>
         <span class="c1">#      as starting points (which has no parents), so no starting points for isopleth mapping would be added</span>
@@ -381,14 +381,14 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">alt_node</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Isopleth strategies will use a different API for custom starting points</span>
 <span class="sd">        since they require a point with a fixed composition set at 0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Isopleth strategy does not support single point equilibrium as starting points&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Exits will depend on whether node is invariant or not</span>
 <span class="sd">        For invariant, there&#39;s a max of 2*p exits (however, some of them will not be on the isopleth line and can be ignored)</span>
@@ -408,7 +408,7 @@
 
         <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
 
-    <span class="k">def</span> <span class="nf">_invariant_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">],</span> <span class="n">exit_dirs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Direction</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_invariant_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">],</span> <span class="n">exit_dirs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Direction</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Maximum number of exits from a node along an isopleth section is 2*p - a ZPF line entering and exiting the node for each phase</span>
 <span class="sd">        However, the number of ZPF surfaces leaving a node is 2*comb(p,p-2)</span>
@@ -462,7 +462,7 @@
                         <span class="n">exits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_point</span><span class="p">)</span>
                         <span class="n">exit_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_invariant_phase_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">trial_stable_compsets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_invariant_phase_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">trial_stable_compsets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of composition sets, compute the phase fraction for each phase using the fixed node global conditions</span>
 
@@ -498,7 +498,7 @@
         <span class="n">phase_NP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">phase_X_matrix</span><span class="p">),</span> <span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">phase_NP</span>
 
-    <span class="k">def</span> <span class="nf">_non_invariant_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">],</span> <span class="n">exit_dirs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Direction</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_non_invariant_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Point</span><span class="p">],</span> <span class="n">exit_dirs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Direction</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        For non-invariant cases, the node will have two fixed phases</span>
 <span class="sd">        There will always be three exits</span>
@@ -530,7 +530,7 @@
                 <span class="n">exits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_point</span><span class="p">)</span>
                 <span class="n">exit_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        For stepping, only one direction is possible from a node since we either step positive or negative</span>
 
@@ -556,7 +556,7 @@
     
 <div class="viewcode-block" id="IsoplethStrategy.get_zpf_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_zpf_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_zpf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StrategyData</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_zpf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StrategyData</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for plotting ZPF lines for isopleths.</span>
 
@@ -580,7 +580,7 @@
 
 <div class="viewcode-block" id="IsoplethStrategy.get_invariant_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.isopleth_strategy.IsoplethStrategy.get_invariant_data">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a dictionary of data for plotting invariants for isopleths.</span>
 
@@ -669,7 +669,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

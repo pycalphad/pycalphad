@@ -5,9 +5,9 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html"><link rel="search" title="Search" href="../../../../search.html">
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2025.09.25 -->
-        <title>pycalphad.mapping.strategy.strategy_base - pycalphad 0.11.1.dev32+gb9edbe109 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>pycalphad.mapping.strategy.strategy_base - pycalphad 0.11.2.dev1+g6182a0572 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.1.dev32+gb9edbe109 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.2.dev1+g6182a0572 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.1.dev32+gb9edbe109 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev1+g6182a0572 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -276,29 +276,29 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.mapping.strategy.strategy_base</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">copy</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-<span class="kn">from</span> <span class="nn">pycalphad.codegen.phase_record_factory</span> <span class="kn">import</span> <span class="n">PhaseRecordFactory</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">unpack_species</span><span class="p">,</span> <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">get_state_variables</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.composition_set</span> <span class="kn">import</span> <span class="n">CompositionSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.codegen.phase_record_factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseRecordFactory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">unpack_species</span><span class="p">,</span> <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">get_state_variables</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.composition_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositionSet</span>
 
 
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.primitives</span> <span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">NodeQueue</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ExitHint</span><span class="p">,</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">MIN_COMPOSITION</span><span class="p">,</span> <span class="n">ZPFState</span>
-<span class="kn">from</span> <span class="nn">pycalphad.mapping.starting_points</span> <span class="kn">import</span> <span class="n">point_from_equilibrium</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.zpf_equilibrium</span> <span class="k">as</span> <span class="nn">zeq</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.zpf_checks</span> <span class="k">as</span> <span class="nn">zchk</span>
-<span class="kn">import</span> <span class="nn">pycalphad.mapping.utils</span> <span class="k">as</span> <span class="nn">map_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">NodeQueue</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">ExitHint</span><span class="p">,</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">MIN_COMPOSITION</span><span class="p">,</span> <span class="n">ZPFState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.starting_points</span><span class="w"> </span><span class="kn">import</span> <span class="n">point_from_equilibrium</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.zpf_equilibrium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">zeq</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.zpf_checks</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">zchk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.mapping.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">map_utils</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MapStrategy">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy">[docs]</a>
-<span class="k">class</span> <span class="nc">MapStrategy</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MapStrategy</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base strategy class for phase diagram construction.</span>
 
@@ -328,7 +328,7 @@
 <span class="sd">        So increasing it to a high value does not significantly degrade performance and mapping using models with high DOF may be better)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">dbf</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dbf</span> <span class="o">=</span> <span class="n">dbf</span>
@@ -395,7 +395,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_TOL</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GLOBAL_MIN_TOL&quot;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GLOBAL_MIN_NUM_CANDIDATES&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_constant_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_constant_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates list of global constants to pass to zpf checks</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -411,7 +411,7 @@
 
 <div class="viewcode-block" id="MapStrategy.get_all_phases">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.get_all_phases">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_all_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Goes through ZPF lines to get all unique phases. For miscibility gaps, phases will have #n added to it</span>
 
@@ -432,14 +432,14 @@
 
 <div class="viewcode-block" id="MapStrategy.normalize_factor">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.normalize_factor">[docs]</a>
-    <span class="k">def</span> <span class="nf">normalize_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">av</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">normalize_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">av</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Since potential and composition variables are on different scales, we normalize by the delta value</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_delta</span><span class="p">[</span><span class="n">av</span><span class="p">]</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_other_av</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">av</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_other_av</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">av</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns other axis variable if there are two free variables</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -450,7 +450,7 @@
 
 <div class="viewcode-block" id="MapStrategy.add_nodes_from_conditions">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.add_nodes_from_conditions">[docs]</a>
-    <span class="k">def</span> <span class="nf">add_nodes_from_conditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">force_add</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_nodes_from_conditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">force_add</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes equilibrium and creates a point from input conditions</span>
 
@@ -484,13 +484,13 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
     
-    <span class="k">def</span> <span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        For some strategy, we may need to modify the exit hint or direction based off the point conditions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">_create_node_from_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">start_ax</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">start_dir</span><span class="p">:</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">exit_hint</span><span class="p">:</span> <span class="n">ExitHint</span> <span class="o">=</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_node_from_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">start_ax</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">start_dir</span><span class="p">:</span> <span class="n">Direction</span><span class="p">,</span> <span class="n">exit_hint</span><span class="p">:</span> <span class="n">ExitHint</span> <span class="o">=</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a point and a parent, create a node with a starting axis/direction</span>
 
@@ -504,7 +504,7 @@
     
 <div class="viewcode-block" id="MapStrategy.generate_automatic_starting_points">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.generate_automatic_starting_points">[docs]</a>
-    <span class="k">def</span> <span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Automatically finds starting points based off input conditions</span>
 <span class="sd">        Map strategies should be able to still run even without automatic starting</span>
@@ -516,7 +516,7 @@
 
 <div class="viewcode-block" id="MapStrategy.iterate">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.iterate">[docs]</a>
-    <span class="k">def</span> <span class="nf">iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Hierarchy of mapping iterations</span>
 <span class="sd">            1. Node queue</span>
@@ -547,7 +547,7 @@
 
 <div class="viewcode-block" id="MapStrategy.do_map">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_base.MapStrategy.do_map">[docs]</a>
-    <span class="k">def</span> <span class="nf">do_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">do_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wrapper over iterate to run until finished</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -568,7 +568,7 @@
             <span class="n">finished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterate</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_continue_zpf_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_continue_zpf_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        1. If more than two free axis, check if axis needs to be swapped</span>
 <span class="sd">              Ideally, we want the axis that will result in minimal change in the other axes</span>
@@ -585,7 +585,7 @@
         <span class="c1"># Check new point and try to add it to zpf line</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_attempt_to_add_point</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">step_results</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_test_swap_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_test_swap_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If there is only one axis variable, then we don&#39;t need to test for swapping the axis</span>
 
@@ -615,7 +615,7 @@
                     <span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">=</span> <span class="n">direction</span>
                     <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_delta</span><span class="p">[</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">]</span> <span class="o">*</span> <span class="n">delta_scale</span>
 
-    <span class="k">def</span> <span class="nf">_step_conditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">axis_delta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">axis_lims</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_step_conditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">axis_delta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">axis_lims</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a copy of condition and steps in proposed direction</span>
 
@@ -637,7 +637,7 @@
             <span class="n">hit_axis_limit</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">new_conds</span><span class="p">,</span> <span class="n">hit_axis_limit</span>
 
-    <span class="k">def</span> <span class="nf">_take_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">axis_delta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">axis_lims</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_take_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">axis_delta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">axis_lims</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adjust conditions and compute equilibrium, this will return a new point (or None if equilibrium fails)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -648,13 +648,13 @@
         <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stepping point </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2"> along </span><span class="si">{</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">axis_delta</span><span class="o">*</span><span class="n">direction</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">zeq</span><span class="o">.</span><span class="n">update_equilibrium_with_new_conditions</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">new_conds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_other_av</span><span class="p">(</span><span class="n">axis_var</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_step_zpf_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_step_zpf_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is the same as _take_step except we use the conditions from the current zpf line</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_take_step</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">,</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">],</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_attempt_to_add_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_attempt_to_add_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Go through list of check functions to see if the new point can be added</span>
 <span class="sd">        Rules</span>
@@ -711,7 +711,7 @@
             <span class="k">if</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_delta</span><span class="p">[</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">]:</span>
                 <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_delta</span><span class="p">[</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_var</span><span class="p">],</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">DELTA_SCALE</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">_process_new_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">new_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_new_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">new_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Back tracks zpf line until the angle between the last edge on the zpf line and the edge connect to the node is greater than 90 (dot product &gt; 0)</span>
 
@@ -758,7 +758,7 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">):</span>
                 <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> has already been added&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_start_zpf_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_start_zpf_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        1. Gets current exit from the node</span>
 <span class="sd">        2. Find start direction</span>
@@ -784,7 +784,7 @@
         <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting zpf line with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">current_delta</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis_direction</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ZPF starting from node </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_node</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_node</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_node</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        From an exit point, this will return an axis variable, direction and delta</span>
 <span class="sd">        that is suggested to give a good starting direction to a ZPF line</span>
@@ -794,7 +794,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_find_node_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_node_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        1. Get next node in queue</span>
 <span class="sd">        2. Find exits from node (implemented for each strategy)</span>
@@ -809,7 +809,7 @@
         <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found exits </span><span class="si">{</span><span class="n">exit_info</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_exit_index</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Default exit function which uses the node as an exit if the ExitHint says so</span>
 
@@ -827,7 +827,7 @@
                 <span class="n">exit_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
 
-    <span class="k">def</span> <span class="nf">_test_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_test_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given an axis variable and direction, test that we can step from the point</span>
 <span class="sd">            If stepping doesn&quot;t work, we continue to reduce the step size until it can (or until the step size is too small)</span>
@@ -912,7 +912,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=b8ed5f4a"></script>
+</div><script src="../../../../_static/documentation_options.js?v=2805af35"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>
