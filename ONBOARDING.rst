@@ -40,8 +40,7 @@ Now run these commands in Anaconda Prompt:
    conda install pip
    cd pycalphad
    pip install -U pip setuptools
-   pip install -U -r requirements-dev.txt
-   pip install -U --no-build-isolation --editable .
+   pip install -U --editable .
 
 Then ``cd ..`` out of the pycalphad path. Now, run the built-in tests using ``pytest pycalphad`` to ensure pycalphad is correctly installed.
 
