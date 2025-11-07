@@ -36,10 +36,10 @@ pycalphad.mapping.strategy.strategy\_base module
    :undoc-members:
    :show-inheritance:
 
-pycalphad.mapping.strategy.strategy\_utils module
--------------------------------------------------
+pycalphad.mapping.strategy.strategy\_data module
+------------------------------------------------
 
-.. automodule:: pycalphad.mapping.strategy.strategy_utils
+.. automodule:: pycalphad.mapping.strategy.strategy_data
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
 """
 Test variables module.
 """
-
+import copy
 import numpy as np
 from pycalphad import variables as v
 from pycalphad.tests.fixtures import select_database, load_database
@@ -61,3 +61,23 @@ def test_component_and_species_repr_str_methods():
     sp = v.Species(None)
     assert repr(sp) == "Species(None)"
     assert str(sp) == ""
+
+def test_deepcopy():
+    '''
+    Tests that deepcopy of variables produce the same variables
+    This addresses an unreported issue where copying the chemical potential
+    would use the name attribute rather than the species (this resulted in deepcopy(v.MU('A')) -> v.MU(v.MU('A')))
+    '''
+    assert copy.deepcopy(v.NP('*')) == v.NP('*')
+    assert copy.deepcopy(v.NP('A')) == v.NP('A')
+
+    assert copy.deepcopy(v.X('B')) == v.X('B')
+    assert copy.deepcopy(v.X('A','B')) == v.X('A','B')
+
+    assert copy.deepcopy(v.W('B')) == v.W('B')
+    assert copy.deepcopy(v.W('A','B')) == v.W('A','B')
+
+    assert copy.deepcopy(v.Y('A',0,'B')) == v.Y('A',0,'B')
+    assert copy.deepcopy(v.T) == v.T
+    assert copy.deepcopy(v.P) == v.P
+    assert copy.deepcopy(v.MU('A')) == v.MU('A')

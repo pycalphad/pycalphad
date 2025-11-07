@@ -112,37 +112,58 @@ def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5
 
     # Get driving force and find index that maximized driving force
     state_conds = {str(key): point.global_conditions[key] for key in point.global_conditions if map_utils.is_state_variable(key)}
-    points = calculate(dbf, comps, phases, model=models, phase_records=phase_records, output="GM", to_xarray=False, pdens=pdens, **state_conds)
-    gm = np.squeeze(points.GM)
-    x = np.squeeze(points.X)
-    y = np.squeeze(points.Y)
-    phase_ids = np.squeeze(points.Phase)
-    g_chempot = x * point.chemical_potentials
-    dGs = np.sum(g_chempot, axis=1) - gm
+    samples = calculate(dbf, comps, phases, model=models, phase_records=phase_records, output="GM", to_xarray=False, pdens=pdens, **state_conds)
+    # Since we index y, phase_ids and dGs, we need to make sure they have 
+    # the following shape (where N = number of samples, C = number of components, 
+    # DOF = internal degrees of freedom):
+    # gm - (N,)
+    # x  - (N,C)
+    # y  - (N,DOF)
+    # phase_ids - (N,)
+    # mu - (C,)     mu is from point, so no N
+    # dGs - (N,)
+    # For most systems, these shapes are given after squeezing, however, two special cases exists:
+    # a) Unaries, where C = 1, so squeezing x will give a shape of (N,) and mu will give a scalar
+    # b) Single stoichiometric phase where DOF = 1, so squeezing y will give (N,)
+    #       Sampling a single stoichiometric phase may also give N = 1 as well
+    gm = np.atleast_1d(np.squeeze(samples.GM))
+    # Reshape x to 2D array of (N,C)
+    x = np.reshape(samples.X, (gm.shape[0], -1))
+    # Reshape y to 2D array of (N,DOF)
+    y = np.reshape(samples.Y, (gm.shape[0], -1))
 
+    phase_ids = np.atleast_1d(np.squeeze(samples.Phase))
+    mu = np.atleast_1d(np.squeeze(point.chemical_potentials))
+    dGs = np.dot(x, mu) - gm
+
+    # Get list of phase indices for each unique phase as candidates
+    # 1. Sort the phase ID array by driving force
+    # 2. Get all the unique phases in the truncated sorted ID array (truncated by number of candidates)
+    # 3. For each phase, get the first index it shows up
+    #    The index will correspond to the sorted_indices list, so we have to get the unsorted index
+    #    From there
     sorted_indices = np.argsort(dGs)[::-1]
+    sorted_phases = phase_ids[sorted_indices][:np.amin([num_candidates, len(sorted_indices)])]
+    unique_phases = np.unique(sorted_phases)
+    phase_indices = [np.argmax(sorted_phases == p) for p in unique_phases]
+
     cs = None
     dG = 0
-    # Record phases that driving force is checked
-    # Each phase will be checked once to avoid redundant calculations
-    tested_phases = []
-    for i in range(np.amin([num_candidates, len(sorted_indices)])):
-        index = sorted_indices[i]
-        if phase_ids[index] not in tested_phases:
-            tested_phases.append(phase_ids[index])
-            test_cs = CompositionSet(phase_records[str(phase_ids[index])])
-            # Create numpy array for site fractions. There seems to be some models where
-            # np.squeeze(points.Y) returns a non-writable array. Not sure why, but when it does,
-            # updating the composition set will fail with a ValueError: buffer source array
-            # is read only. Creating a new array for the site fractions seems to fix this issue
-            site_fracs = np.array(y[index][:test_cs.phase_record.phase_dof], dtype=np.float64)
-            test_cs.update(site_fracs, 1.0, map_utils.get_statevars_array(point.global_conditions, test_cs.phase_record.state_variables))
-            dormant_phase = DormantPhase(test_cs, None)
-            test_dg = point.get_property(dormant_phase.driving_force)
-            _log.info(f"Testing phase {phase_ids[index]} with dG={dGs[index]} -> {test_dg} for global min.")
-            if test_dg > dG:
-                dG = test_dg
-                cs = test_cs
+    for phi in phase_indices:
+        index = sorted_indices[phi]
+        test_cs = CompositionSet(phase_records[str(phase_ids[index])])
+        # Create numpy array for site fractions. There seems to be some models where
+        # np.squeeze(points.Y) returns a non-writable array. Not sure why, but when it does,
+        # updating the composition set will fail with a ValueError: buffer source array
+        # is read only. Creating a new array for the site fractions seems to fix this issue
+        site_fracs = np.array(y[index][:test_cs.phase_record.phase_dof], dtype=np.float64)
+        test_cs.update(site_fracs, 1.0, map_utils.get_statevars_array(point.global_conditions, test_cs.phase_record.state_variables))
+        dormant_phase = DormantPhase(test_cs, None)
+        test_dg = point.get_property(dormant_phase.driving_force)
+        _log.debug(f"Testing phase {phase_ids[index]} with dG={dGs[index]} -> {test_dg} for global min.")
+        if test_dg > dG:
+            dG = test_dg
+            cs = test_cs
 
     # If driving force is above tolerance, then create a new point with the additional composition set
     if dG < tol:
@@ -191,7 +212,7 @@ def find_global_min_point(point: Point, system_info: dict, pdens = 500, tol = 1e
     else:
         cs, dG = min_cs_result
         
-        _log.info(f'Global min potentially detected. {point.stable_phases} + {cs.phase_record.phase_name} with dG = {dG}')
+        _log.info(f'Global min potentially detected. {point.stable_phases} + {cs.phase_record.phase_name} ({cs}) with dG = {dG}')
         if _detect_degenerate_phase(point, cs):
             new_point = Point(point.global_conditions, point.chemical_potentials, point.fixed_composition_sets, point.free_composition_sets)
             map_utils.update_cs_phase_frac(cs, 1e-6)
@@ -238,7 +259,9 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
         ref_cs_copy.update(cs.dof[num_sv:], 1, cs.dof[:num_sv])
         new_cs_copy = CompositionSet(new_cs.phase_record)
         new_cs_copy.update(new_cs.dof[num_sv:], 1e-6, new_cs.dof[:num_sv])
-        conds = {key: point.get_property(key) for key in point.global_conditions}
+        # Take conditions from current cs (use ref_cs_copy since we set moles to 1) rather than from point.global_conditions
+        # We want the composition conditions to be on the ref_cs_copy. This is sometimes not the case if ref_cs_copy is the zero-fraction phase
+        conds = {key: key.compute_property([ref_cs_copy], point.global_conditions, point.chemical_potentials) for key in point.global_conditions}
         _log.info(f"Testing free equilibrium with {ref_cs_copy}, {new_cs_copy}")
         try:
             solver = Solver(remove_metastable=True)
