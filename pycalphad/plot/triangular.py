@@ -36,6 +36,10 @@ class TriangularAxes(Axes):
         self.set_aspect(1, adjustable='box', anchor='SW')
         self.clear()
 
+    def set(*args, **kwargs):
+        """""" # Docstring overridden to resolve docs builds that raise warnings because https://github.com/matplotlib/matplotlib/pull/28289 does not resolve all warnings
+        super().set(*args, **kwargs)
+
     def _init_axis(self):
         self.xaxis = maxis.XAxis(self)
         self.yaxis = maxis.YAxis(self)

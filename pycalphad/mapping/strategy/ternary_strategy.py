@@ -15,7 +15,7 @@ import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
-from pycalphad.mapping.strategy.strategy_utils import get_invariant_data_from_tieline_strategy, get_tieline_data_from_tieline_strategy
+from pycalphad.mapping.strategy.strategy_data import PhaseRegionData, get_invariant_data_from_tieline_strategy, get_tieline_data_from_tieline_strategy
 
 _log = logging.getLogger(__name__)
 
@@ -119,7 +119,7 @@ class TernaryStrategy(MapStrategy):
         unlisted_element = list(set(self.components) - {'VA'} - set([str(av.species) for av in self.axis_vars]))[0]
         self.all_vars = self.axis_vars + [v.X(unlisted_element)]
 
-    def initialize(self):
+    def generate_automatic_starting_points(self):
         """
         Searches axis limits to find starting points
 
@@ -140,9 +140,8 @@ class TernaryStrategy(MapStrategy):
 
             # Step map
             step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
-            step.initialize()
             step.do_map()
-            self._add_starting_points_from_step(step)
+            self.add_starting_points_from_step(step)
 
         # Additional step where we switch axis conditions to the unlisted variable
         conds = copy.deepcopy(self.conditions)
@@ -151,11 +150,10 @@ class TernaryStrategy(MapStrategy):
 
         # Step map
         step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
-        step.initialize()
         step.do_map()
-        self._add_starting_points_from_step(step)
+        self.add_starting_points_from_step(step)
 
-    def _add_starting_points_from_step(self, step: StepStrategy):
+    def add_starting_points_from_step(self, step: StepStrategy):
         """
         Adds all 2-phase and 3-phase regions from step as starting points
         We also do a global min check to make sure these phase regions are truly the phases they say they are
@@ -163,10 +161,15 @@ class TernaryStrategy(MapStrategy):
         for zpf_line in step.zpf_lines:
             if len(zpf_line.stable_phases) == 2 or len(zpf_line.stable_phases) == 3:
                 num_phases = len(zpf_line.stable_phases)
+
+                # Iterate through the zpf line until we find a point with the same number of phases as the
+                # zpf line itself. This seems redundant, but it is because the first point of the zpf line
+                # is likely going to be a node or a node parent, where the number of phases may differ by 1
                 p_index = 0
                 while len(zpf_line.points[p_index].stable_phases) != num_phases:
                     p_index += 1
 
+                # If we do find a good point on the zpf line, then we can process it to be a starting point
                 if len(zpf_line.points[p_index].stable_phases) == num_phases:
                     new_point = zpf_line.points[p_index]
                     if self.all_vars[-1] in new_point.global_conditions:
@@ -174,15 +177,36 @@ class TernaryStrategy(MapStrategy):
                         new_point.global_conditions[self.axis_vars[0]] = new_point.get_property(self.axis_vars[0])
                     _log.info(f"Adding node {new_point.fixed_phases}, {new_point.free_phases}, {new_point.global_conditions}")
 
+                    # New point will be make with all composition sets as free, since we set
+                    # which CS to fix when finding an exit
                     free_point = map_utils._generate_point_with_free_cs(new_point)
 
-                    if self._check_full_global_equilibrium(free_point, add_global_point_if_false = True):
+                    cs_result = zeq._find_global_min_cs(free_point, system_info=self.system_info, pdens=self.GLOBAL_MIN_PDENS, tol=self.GLOBAL_MIN_TOL, num_candidates=self.GLOBAL_MIN_NUM_CANDIDATES)
+                    if cs_result is None:
                         new_node = self._create_node_from_point(free_point, None, None, None)
                         self.node_queue.add_node(new_node)
 
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        Modifies exit hint and direction based off number of composition sets
+            Single phase -> cannot be added
+            Two phase    -> point is exit, direction stays the same as input
+            Three phase  -> normal exit finding strategy, no direction needed
+
+        This is the same as BinaryStrategy
+        """
+        if len(point.stable_composition_sets) <= 1:
+            return None, None, "Single phase detected"
+        elif len(point.stable_composition_sets) == 2:
+            return ExitHint.POINT_IS_EXIT, direction, None
+        elif len(point.stable_composition_sets) == 3:
+            return ExitHint.NORMAL, None, None
+        else:
+            return None, None, "More than three phases detected"
+
     def _find_exits_from_node(self, node: Node):
         """
-        A node on for a binary system has three exits, which are combinations of 2 CS in the node
+        A node in a ternary system has three exits, which are combinations of 2 CS in the node
         Since the node is found from one pair of CS, one of the exits are already accounted for, so
         practically, it's only 2 exits
             However, if there are multiple starting points, a node may be found from multiple zpf lines
@@ -252,87 +276,7 @@ class TernaryStrategy(MapStrategy):
         self._add_starting_point_at_new_condition(exit_point, normal, Direction.POSITIVE if norm_delta_dot > 0 else Direction.NEGATIVE)
 
         return None
-
-    def _check_full_global_equilibrium(self, node: Node, add_global_point_if_false = True):
-        """
-        Does a full global equilibrium calculation to check if point is global min
-
-        Sometimes, a false global min invariant will be added, so this is a final check to make sure an invariant is real
-        """
-        # We'll bias the composition towards the free composition sets, this can sometimes help with equilibrium (especially if the node
-        # is found from different ZPF lines, then we have multiple compositions to check that this node exists)
-        # There seems to be some cases where a phase is not detected even when it's supposed to be there
-        free_point = map_utils._generate_point_with_free_cs(node, bias_towards_free=True)
-        _log.info(f"Checking global eq at {free_point.global_conditions}")
-        test_point = point_from_equilibrium(self.dbf, self.components, self.phases, free_point.global_conditions, models=self.models, phase_record_factory=self.phase_records)
-        if test_point is None:
-            return False, None
-
-        # If the test point has the same composition sets as the free point, then it's valid node
-        if free_point == test_point:
-            return True, test_point
-
-        # If test point has a different set of phases, then we can add the new point as a starting point
-        else:
-            if add_global_point_if_false:
-                _log.info(f"Global eq check failed. Adding test point as a starting point {test_point.fixed_phases}, {test_point.free_phases}")
-                new_node = self._create_node_from_point(test_point, None, None, None)
-                self.node_queue.add_node(new_node)
-            return False, test_point
-
-    def _process_new_node(self, zpf_line: ZPFLine, new_node: Node):
-        """
-        Some extra checks before adding a new node to the node queue
-
-        1. Check global equilibrium to make sure node is true global eq
-            If global eq failed (convergence issue), then decrease step size and try stepping again
-              If step size is too small, then fail zpf line and remove it
-        2. If passed, then add new node like normal
-        3. If node is not true equilibrium, check if the zpf line phases is a subset of the node phases
-            If subset, then set the last zpf point as a parent and add new node like normal
-            If not, then decrease step size and try stepping again
-              If step size is too small, then fail zpf line and add node as a new starting point
-        """
-        # Do a global equilibrium check before attempting to add the new node
-        global_eq_check, test_point = self._check_full_global_equilibrium(new_node, add_global_point_if_false = False)
-        if test_point is None:
-            _log.info("Global eq check on new node could not be determined")
-
-            zpf_line.current_delta *= self.DELTA_SCALE
-            if zpf_line.current_delta / self.axis_delta[zpf_line.axis_var] < self.MIN_DELTA_RATIO:
-                zpf_line.status = ZPFState.FAILED
-
-                # Removes the last ZPF line if we determine that the new node is not connected to the current zpf line
-                # Since the last zpf line has finished (or is non-existent if this is the first zpf line), this will
-                # cause the iteration to go directly to the next node or exit
-                self.zpf_lines.pop(-1)
-            else:
-                zpf_line.status = ZPFState.NOT_FINISHED
-
-        else:
-            if global_eq_check:
-                _log.info("Global eq check on new node passed")
-                return super()._process_new_node(zpf_line, new_node)
-            else:
-                zpf_line_phases = zpf_line.stable_phases_with_multiplicity
-                test_node_phases = test_point.stable_phases_with_multiplicity
-                _log.info(f"Global eq check failed. New node is metastable. Comparing zpf line {zpf_line_phases} with node phases {test_node_phases}")
-                if len(set(test_node_phases) - set(zpf_line_phases)) == 1:
-                    _log.info("Node can be added as a proper node")
-                    new_node = self._create_node_from_point(test_point, zpf_line.points[-1], None, None)
-                    return super()._process_new_node(zpf_line, new_node)
-                else:
-                    zpf_line.current_delta *= self.DELTA_SCALE
-                    if zpf_line.current_delta / self.axis_delta[zpf_line.axis_var] < self.MIN_DELTA_RATIO:
-                        zpf_line.status = ZPFState.FAILED
-                        _log.info("Node is added as a starting point. Removing current zpf line.")
-                        new_node = self._create_node_from_point(test_point, None, None, None)
-                        if not self.node_queue.add_node(new_node):
-                            _log.info(f"Node {new_node.fixed_phases}, {new_node.free_phases} has already been added")
-                        self.zpf_lines.pop(-1)
-                    else:
-                        zpf_line.status = ZPFState.NOT_FINISHED
-
+    
     def _add_starting_point_at_new_condition(self, point: Point, normal: list[float], direction: Direction):
         """
         If we made it here, then no direction has worked. This could be a case where
@@ -368,7 +312,22 @@ class TernaryStrategy(MapStrategy):
         else:
             _log.info("Could not find a new node from conditions")
 
-    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable):
+    def _process_new_node(self, zpf_line: ZPFLine, new_node: Node):
+        """
+        Post global min check after finding node to ensure it's not a metastable node
+
+        This is the same as _process_new_node in the BinaryStrategy
+        """
+        _log.info("Checking if new node is metastable")
+        cs_result = zeq._find_global_min_cs(new_node, system_info=self.system_info, pdens=self.GLOBAL_MIN_PDENS, tol=self.GLOBAL_MIN_TOL, num_candidates=self.GLOBAL_MIN_NUM_CANDIDATES)
+        if cs_result is None:
+            _log.info("Global eq check on new node passed")
+            super()._process_new_node(zpf_line, new_node)
+        else:
+            _log.info("Global eq check failed. New node is metastable. Removing current zpf line.")
+            self.zpf_lines.pop(-1)
+
+    def get_invariant_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[PhaseRegionData]:
         """
         Create a dictionary of data for invariant plotting.
 
@@ -378,24 +337,19 @@ class TernaryStrategy(MapStrategy):
             The state variable to be used for the x-axis.
         y : v.StateVariable
             The state variable to be used for the y-axis.
+        global_x : bool
+            Whether variable x applies to the global system
+        global_y : bool
+            Whether variable y applies to the global system
 
         Returns
         -------
-        list of dict
-            A list where each dictionary has the following structure::
-
-            {
-                "phases": list of str,
-                "x": list of float,
-                "y": list of float
-            }
-
-            The indices in `x` and `y` will match the indices in `phases`.
+        list of StrategyData pertaining to each invariant
         """
-        return get_invariant_data_from_tieline_strategy(self, x, y)
+        return get_invariant_data_from_tieline_strategy(self, x, y, global_x, global_y)
 
     
-    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable):
+    def get_tieline_data(self, x: v.StateVariable, y: v.StateVariable, global_x: bool = False, global_y: bool = False) -> list[PhaseRegionData]:
         """
         Create a dictionary of data for plotting ZPF lines.
 
@@ -405,19 +359,13 @@ class TernaryStrategy(MapStrategy):
             The state variable to be used for the x-axis.
         y : v.StateVariable
             The state variable to be used for the y-axis.
+        global_x : bool
+            Whether variable x applies to the global system
+        global_y : bool
+            Whether variable y applies to the global system
 
         Returns
         -------
-        list of dict
-            A list where each dictionary has the following structure::
-
-            {
-                "<phase_name>": {
-                    "x": list of float,
-                    "y": list of float
-                }
-            }
-
-            The lengths of the "x" and "y" lists should be equal for each phase in a ZPF line.
+        list of Strategy pertaining to each tieline
         """
-        return get_tieline_data_from_tieline_strategy(self, x, y)
+        return get_tieline_data_from_tieline_strategy(self, x, y, global_x, global_y)
