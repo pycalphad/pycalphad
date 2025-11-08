@@ -1,5 +1,5 @@
 import itertools
-from typing import List, Union
+from typing import List
 from collections import OrderedDict
 from functools import partial
 from symengine import log, S, Symbol
