@@ -898,6 +898,20 @@ def test_MQMQA_equilibrium_binary_excess_same_chemical_groups(load_database):
 
 
 @select_database("MQMQA-tern-tests.dat")
+def test_MQMQA_ternary_equilibrium_ideal(load_database):
+    """Ternary ideal"""
+    dbf = load_database()
+    comps = ['CU', 'MG', 'NI', 'VA']
+    eq = equilibrium(dbf, comps, ['TERN_IDEAL'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('MG'): 0.2, v.X('NI'): 0.3})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert np.isclose(eq.GM.values.squeeze(), -2.65610E+04)  # Thermochimica result
+    assert np.all(eq.Phase.squeeze() == ['TERN_IDEAL', '', '', ''])
+    assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25000, 0.20000, 0.30000, 4.0000E-02, 0.12000, 9.0000E-02], atol=1e-5)  # Thermochimica result
+
+
+@select_database("MQMQA-tern-tests.dat")
 def test_MQMQA_equilibrium_binary_excess_same_chemical_groups(load_database):
     """Binary excess terms with the same chemical group"""
     dbf = load_database()
