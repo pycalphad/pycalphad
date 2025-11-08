@@ -924,6 +924,8 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
     mod = ModelMQMQA(dbf, ["SB", "O","S"], "SLAG-LIQ")
 
+    assert FE2 not in mod.cations
+    assert FE3 not in mod.cations
     assert SB3 in mod.cations
     assert O in mod.anions
     assert S in mod.anions
@@ -980,6 +982,8 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_1000K(load_database):
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
     mod = ModelMQMQA(dbf, ["SB", "S", "O"], "SLAG-LIQ")
 
+    assert FE2 not in mod.cations
+    assert FE3 not in mod.cations
     assert SB3 in mod.cations
     assert O in mod.anions
     assert S in mod.anions
@@ -1010,6 +1014,7 @@ def test_MQMQA_SUBQ_Q_mixing_Fe_O_S(load_database):
 
     assert FE2 in mod.cations
     assert FE3 in mod.cations
+    assert SB3 not in mod.cations
     assert O in mod.anions
     assert S in mod.anions
 
@@ -1044,6 +1049,7 @@ def test_MQMQA_SUBQ_Q_mixing_Fe_O_S_2(load_database):
 
     assert FE2 in mod.cations
     assert FE3 in mod.cations
+    assert SB3 not in mod.cations
     assert O in mod.anions
     assert S in mod.anions
 
@@ -1080,6 +1086,7 @@ def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_S(load_database):
     assert FE2 in mod.cations
     assert FE3 in mod.cations
     assert SB3 in mod.cations
+    assert O not in mod.anions
     assert S in mod.anions
 
     subs_dict = {  # Thermochimica site fractions
@@ -1138,12 +1145,14 @@ def test_MQMQA_SUBQ_Q_mixing_Fe2_Fe3_Sb_S(load_database):
     FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
     FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
     SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
     mod = ModelMQMQA(dbf, ["FE", "SB", "S"], "SLAG-LIQ")
 
     assert FE2 in mod.cations
     assert FE3 in mod.cations
     assert SB3 in mod.cations
+    assert O not in mod.anions
     assert S in mod.anions
 
     subs_dict = {  # Thermochimica site fractions
@@ -1400,9 +1409,9 @@ def test_MQMQA_species_of_different_moles_internal_degrees_of_freedom(load_datab
     F = v.Species('F-1.0',constituents={'F':1.0}, charge=-1)
     LI = v.Species('LI+1.0',constituents={'LI':1.0}, charge=1)
     BE = v.Species('BE+2.0',constituents={'BE':1.0}, charge=2)
-    BE2 = v.Species('BE+4.0',constituents={'BE':2.0}, charge=4)    
+    BE2 = v.Species('BE+4.0',constituents={'BE':2.0}, charge=4)
     mod = ModelMQMQA(dbf, comps, "MSFL")
-    
+
     subs_dict = {  # Thermochimica site fractions
         mod._X_ijkl(LI,LI,F,F): 9.8365E-02,
         mod._X_ijkl(BE,BE,F,F): 5.4835E-05,
