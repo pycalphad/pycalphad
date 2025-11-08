@@ -830,8 +830,7 @@ class Phase_SUBQ(PhaseBase):
             # THIS PART OF THE CODE WILL WORK WITH VACANCIES JUST BY THE WAY IT IS WRITTEN. HOWEVER IT IS NOT GOING TO BE ABLE#
             # TO CORRECTLY DETECT THEM AND IT WILL ALWAYS RESULT IN NEVER PICKING UP DIMER FOR VACANCY. WHICH IS SOMETHING
             # THAT WAS ALREADY BEING ASSUMMED
-            endmember_pure_element = [j for count, j in enumerate(endmember.stoichiometry_pure_elements) if j != 0.0
-                                    and pure_elementsSUBQ[count] in ele_name_cat]
+            endmember_pure_element = [j for count, j in enumerate(endmember.stoichiometry_pure_elements) if j != 0.0 and pure_elementsSUBQ[count] in ele_name_cat]
             if len([i for i in endmember.stoichiometry_pure_elements if i != 0]) == 2:
                 endmember_pure_element_anion_contribution = [i for count, i in enumerate(endmember.stoichiometry_pure_elements) if i != 0.0 and pure_elementsSUBQ[count] in ele_name_an]
             else:
