@@ -296,7 +296,6 @@ class JanssonDerivative:
         state.chemical_potentials[:] = chemical_potentials
         state.recompute(spec)
         deltas = self.denominator.jansson_deltas(spec, state)
-#        print('Triple check how these spec and state properties are calculated',state)
         return self.numerator.jansson_derivative(compsets, cur_conds, chemical_potentials, deltas)
 
     def __str__(self):
