@@ -276,16 +276,6 @@ class ModelMQMQA(Model):
         Return the site fraction of species on it's sublattice. Poschmann Eq. 9 and 10.
         """
         if species in self.cations:
-            return self._n_i(dbe, species) / sum(self._n_i(dbe, a) for a in self.cations)
-        else:
-            assert species in self.anions
-            return self._n_i(dbe, species) / sum(self._n_i(dbe, x) for x in self.anions)
-
-    def _X_i_S(self, dbe, species: v.Species):
-        """
-        Return the site fraction of species on it's sublattice. Poschmann Eq. 9 and 10.
-        """
-        if species in self.cations:
             cons_spec = [cons for cons in species.constituents.values()][0]
             return (self._n_i(dbe, species)/cons_spec) / sum((self._n_i(dbe, a)/cons) for a in self.cations for cons in a.constituents.values())
         else:
@@ -600,7 +590,7 @@ class ModelMQMQA(Model):
     def ideal_mixing_energy(self, dbe):
         # notational niceties
         n_i = partial(self._n_i, dbe)
-        X_i = partial(self._X_i_S, dbe)
+        X_i = partial(self._X_i, dbe)
         X_ik = self._X_ik
         Y_i = self._Y_i
         F_i = self._F_i
