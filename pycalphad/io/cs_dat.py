@@ -53,13 +53,13 @@ class TokenParser():
         tmp_parser = TokenParser(lines)
         if i > 0:
             for _ in range(i - 1):
-                token = tmp_parser._next()
+                tmp_parser._next()
         return tmp_parser._next()
 
     def _next(self):
         try:
             token = self._tokens_deque.popleft()
-        except IndexError as e:
+        except IndexError:
             # If we're out of tokens, get the next line and try to grab a token again
             self._current_line = self._lines_deque.popleft()
             self._line_number += 1
@@ -761,9 +761,9 @@ class Phase_SUBQ(PhaseBase):
             pass
 
         pre_cations = [pure for el, chg in cation_el_chg_pairs\
-                   for pure in pure_elementsSUBQ if element_check(el,pure) == True]
+                   for pure in pure_elementsSUBQ if element_check(el,pure)]
         pre_anions = [pure for el, chg in anion_el_chg_pairs\
-                  for pure in pure_elementsSUBQ if element_check(el,pure) == True]
+                  for pure in pure_elementsSUBQ if element_check(el,pure)]
 
         cation_sublattice_elements = []
         anion_sunlattice_elements = []
@@ -778,9 +778,6 @@ class Phase_SUBQ(PhaseBase):
         else:
             common_anion_check = [i for i in list(itertools.chain.from_iterable(endmember_)) if i in pre_anions]
             common_cation_check = [i for i in list(itertools.chain.from_iterable(endmember_)) if i in pre_cations]
-
-            endmem_chec = {str(num):[ele for ele in i if ele in set(itertools.chain.from_iterable(endmember_))]\
-                                                      for num,i in enumerate(spec_endmember) if i not in endmember_}
 
             if len(common_anion_check) > 1:
                 for i in endmember_:
@@ -797,14 +794,14 @@ class Phase_SUBQ(PhaseBase):
                         elif ele not in common_cation_check:
                             anion_sunlattice_elements.append(ele)
             else:
-                raise ValueError(f'Too mamy degrees of liberty between elements depicted in endmembers and elements listed as species')
+                raise ValueError('Too mamy degrees of liberty between elements depicted in endmembers and elements listed as species')
         new_cation_el_chg_pair = list(zip(cation_sublattice_elements, self.subl_1_charges))
         new_anion_el_chg_pair = list(zip(anion_sunlattice_elements, [-1*c for c in self.subl_2_charges]))
 
         cations = [rename_element_charge(pure, chg) for el, chg in new_cation_el_chg_pair\
-                   for pure in pure_elementsSUBQ if element_check(el,pure) == True]
+                   for pure in pure_elementsSUBQ if element_check(el,pure)]
         anions = [rename_element_charge(pure, chg) for el, chg in new_anion_el_chg_pair\
-                  for pure in pure_elementsSUBQ if element_check(el,pure) == True]
+                  for pure in pure_elementsSUBQ if element_check(el,pure)]
 
 ######################################################################################################
 ###########################################################################################
@@ -826,9 +823,9 @@ class Phase_SUBQ(PhaseBase):
 ###WHICH CATION AND ANION IT IS REFERRING TO############
         for count,endmember in enumerate(self.endmembers):
             ele_name_cat = list([pure for el, chg in new_cation_el_chg_pair for pure in pure_elementsSUBQ if\
-                                   element_check(el,pure) == True])
+                                   element_check(el,pure)])
             ele_name_an = list([pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if\
-                                  element_check(el,pure) == True])
+                                  element_check(el,pure)])
 #################################################################################
 ###HERE the ENDMEMBER_PURE_ELEMENT list is made where a list of the stoichiometry of the pure elements in the######
 ### endmember specified in the current loop. (Probably need a better name)#####
