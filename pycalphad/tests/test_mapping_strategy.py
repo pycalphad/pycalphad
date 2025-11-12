@@ -520,5 +520,28 @@ def test_primitive_representation(load_database):
     for keyword in point_repr_keywords:
         assert keyword in point_repr
 
+@select_database("Al-Cu-Y.tdb")
+def test_degenerate_composition_set_on_new_nodes(load_database):
+    temperature = 1700
 
+    dbf = load_database()
+    comps = ['AL', 'CU', 'Y', 'VA']
+    phases = list(dbf.phases.keys())
+    conds = {v.T: temperature, v.P:101325, v.X('AL'): (0,1,0.015), v.X('Y'): (0,1,0.015)}
+    strat = TernaryStrategy(dbf, comps, phases, conds)
+
+    # this starting point should be in ['LIQUID', 'ALCU5Y']
+    # first two nodes should be ['LIQUID', 'ALCU5Y', 'AL7CU2Y3'] and ['LIQUID', 'ALCU5Y', 'ALCUY']
+    strat.add_nodes_from_conditions({v.T: temperature, v.P: 101325, v.X('AL'): 0.4, v.X('Y'): 0.1})
+
+    initial_nodes = len(strat.node_queue.nodes)
+    # stop until there's 4 nodes or if mapping finished
+    while strat.node_queue._current_node_index < (initial_nodes+1):
+        if strat.iterate():
+            break
+
+    nodes = [set(n.stable_phases) for n in strat.node_queue.nodes]
+    assert {'LIQUID', 'ALCU5Y'} in nodes
+    assert {'LIQUID', 'ALCU5Y', 'AL7CU2Y3'} in nodes
+    assert {'LIQUID', 'ALCU5Y', 'ALCUY'} in nodes
 
