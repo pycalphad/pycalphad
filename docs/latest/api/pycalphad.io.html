@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
-        <title>pycalphad.io package - pycalphad 0.11.2.dev4+gc3766376c documentation</title>
+        <title>pycalphad.io package - pycalphad 0.11.2.dev5+g8df051cbb documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev4+gc3766376c documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev5+g8df051cbb documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev4+gc3766376c documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev5+g8df051cbb documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1216,61 +1216,6 @@ associated with structured thermodynamic/kinetic data.</p>
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.io.database.</span></span><span class="sig-name descname"><span class="pre">Database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.io.database.Database" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Structured thermodynamic and/or kinetic data.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.io.database.Database.elements">
-<span class="sig-name descname"><span class="pre">elements</span></span><a class="headerlink" href="#pycalphad.io.database.Database.elements" title="Link to this definition">¶</a></dt>
-<dd><p>Set of elements in database.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>set</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.io.database.Database.species">
-<span class="sig-name descname"><span class="pre">species</span></span><a class="headerlink" href="#pycalphad.io.database.Database.species" title="Link to this definition">¶</a></dt>
-<dd><p>Set of species in database.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>set</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.io.database.Database.phases">
-<span class="sig-name descname"><span class="pre">phases</span></span><a class="headerlink" href="#pycalphad.io.database.Database.phases" title="Link to this definition">¶</a></dt>
-<dd><p>Phase objects indexed by their system-local name.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.io.database.Database.symbols">
-<span class="sig-name descname"><span class="pre">symbols</span></span><a class="headerlink" href="#pycalphad.io.database.Database.symbols" title="Link to this definition">¶</a></dt>
-<dd><p>SymEngine objects indexed by their name (FUNCTIONs in Thermo-Calc).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pycalphad.io.database.Database.references">
-<span class="sig-name descname"><span class="pre">references</span></span><a class="headerlink" href="#pycalphad.io.database.Database.references" title="Link to this definition">¶</a></dt>
-<dd><p>Reference objects indexed by their system-local identifier.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">)</span>
@@ -1358,6 +1303,12 @@ similar phases known by different colloquial names.</p>
 <em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cast_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.cast_from"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.io.database.Database.cast_from" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.Database.elements">
+<span class="sig-name descname"><span class="pre">elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.Database.elements" title="Link to this definition">¶</a></dt>
+<dd><p>Set of elements in database.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.io.database.Database.from_file">
 <em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_file" title="Link to this definition">¶</a></dt>
@@ -1401,11 +1352,29 @@ This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.Database.phases">
+<span class="sig-name descname"><span class="pre">phases</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#pycalphad.io.database.Phase" title="pycalphad.io.database.Phase"><span class="pre">Phase</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.Database.phases" title="Link to this definition">¶</a></dt>
+<dd><p>Phase objects indexed by their system-local name.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.io.database.Database.process_parameter_queue">
 <span class="sig-name descname"><span class="pre">process_parameter_queue</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.process_parameter_queue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.io.database.Database.process_parameter_queue" title="Link to this definition">¶</a></dt>
 <dd><p>Process the queue of parameters so they are added to the TinyDB in one transaction.
 This avoids repeated (expensive) calls to insert().</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.Database.references">
+<span class="sig-name descname"><span class="pre">references</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.Database.references" title="Link to this definition">¶</a></dt>
+<dd><p>Reference objects indexed by their system-local identifier.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.Database.refstates">
+<span class="sig-name descname"><span class="pre">refstates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData" title="pycalphad.io.database.ElementReferenceData"><span class="pre">ElementReferenceData</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.Database.refstates" title="Link to this definition">¶</a></dt>
+<dd><p>Mapping of elements to their reference data</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1439,6 +1408,18 @@ This avoids repeated (expensive) calls to insert().</p>
 &gt;&gt;&gt;&gt; db = Database()
 &gt;&gt;&gt;&gt; eid = db.add_parameter(…) #TODO
 &gt;&gt;&gt;&gt; db.search(where(‘eid’) == eid)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.Database.species">
+<span class="sig-name descname"><span class="pre">species</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.Species" title="pycalphad.variables.Species"><span class="pre">Species</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.Database.species" title="Link to this definition">¶</a></dt>
+<dd><p>Set of species in database.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.Database.symbols">
+<span class="sig-name descname"><span class="pre">symbols</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Expr</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.Database.symbols" title="Link to this definition">¶</a></dt>
+<dd><p>SymEngine objects indexed by their name (FUNCTIONs in Thermo-Calc).</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1505,6 +1486,32 @@ This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
 <span class="sig-name descname"><span class="pre">write</span></span><a class="headerlink" href="#pycalphad.io.database.DatabaseFormat.write" title="Link to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.io.database.ElementReferenceData">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.io.database.</span></span><span class="sig-name descname"><span class="pre">ElementReferenceData</span></span><a class="headerlink" href="#pycalphad.io.database.ElementReferenceData" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.ElementReferenceData.H298">
+<span class="sig-name descname"><span class="pre">H298</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pycalphad.io.database.ElementReferenceData.H298" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.ElementReferenceData.S298">
+<span class="sig-name descname"><span class="pre">S298</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pycalphad.io.database.ElementReferenceData.S298" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.ElementReferenceData.mass">
+<span class="sig-name descname"><span class="pre">mass</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pycalphad.io.database.ElementReferenceData.mass" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.ElementReferenceData.phase">
+<span class="sig-name descname"><span class="pre">phase</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pycalphad.io.database.ElementReferenceData.phase" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -1986,21 +1993,22 @@ Note that not all of these keywords are fully supported yet.</p>
 </li>
 <li><a class="reference internal" href="#module-pycalphad.io.database">pycalphad.io.database module</a><ul>
 <li><a class="reference internal" href="#pycalphad.io.database.Database"><code class="docutils literal notranslate"><span class="pre">Database</span></code></a><ul>
-<li><a class="reference internal" href="#pycalphad.io.database.Database.elements"><code class="docutils literal notranslate"><span class="pre">Database.elements</span></code></a></li>
-<li><a class="reference internal" href="#pycalphad.io.database.Database.species"><code class="docutils literal notranslate"><span class="pre">Database.species</span></code></a></li>
-<li><a class="reference internal" href="#pycalphad.io.database.Database.phases"><code class="docutils literal notranslate"><span class="pre">Database.phases</span></code></a></li>
-<li><a class="reference internal" href="#pycalphad.io.database.Database.symbols"><code class="docutils literal notranslate"><span class="pre">Database.symbols</span></code></a></li>
-<li><a class="reference internal" href="#pycalphad.io.database.Database.references"><code class="docutils literal notranslate"><span class="pre">Database.references</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.add_parameter"><code class="docutils literal notranslate"><span class="pre">Database.add_parameter()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.add_phase"><code class="docutils literal notranslate"><span class="pre">Database.add_phase()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.add_phase_constituents"><code class="docutils literal notranslate"><span class="pre">Database.add_phase_constituents()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.add_structure_entry"><code class="docutils literal notranslate"><span class="pre">Database.add_structure_entry()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.cast_from"><code class="docutils literal notranslate"><span class="pre">Database.cast_from()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.Database.elements"><code class="docutils literal notranslate"><span class="pre">Database.elements</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.from_file"><code class="docutils literal notranslate"><span class="pre">Database.from_file()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.from_string"><code class="docutils literal notranslate"><span class="pre">Database.from_string()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.Database.phases"><code class="docutils literal notranslate"><span class="pre">Database.phases</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.process_parameter_queue"><code class="docutils literal notranslate"><span class="pre">Database.process_parameter_queue()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.Database.references"><code class="docutils literal notranslate"><span class="pre">Database.references</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.Database.refstates"><code class="docutils literal notranslate"><span class="pre">Database.refstates</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.register_format"><code class="docutils literal notranslate"><span class="pre">Database.register_format()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.search"><code class="docutils literal notranslate"><span class="pre">Database.search()</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.Database.species"><code class="docutils literal notranslate"><span class="pre">Database.species</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.Database.symbols"><code class="docutils literal notranslate"><span class="pre">Database.symbols</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.to_file"><code class="docutils literal notranslate"><span class="pre">Database.to_file()</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.Database.to_string"><code class="docutils literal notranslate"><span class="pre">Database.to_string()</span></code></a></li>
 </ul>
@@ -2009,6 +2017,13 @@ Note that not all of these keywords are fully supported yet.</p>
 <li><a class="reference internal" href="#pycalphad.io.database.DatabaseFormat"><code class="docutils literal notranslate"><span class="pre">DatabaseFormat</span></code></a><ul>
 <li><a class="reference internal" href="#pycalphad.io.database.DatabaseFormat.read"><code class="docutils literal notranslate"><span class="pre">DatabaseFormat.read</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.DatabaseFormat.write"><code class="docutils literal notranslate"><span class="pre">DatabaseFormat.write</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData"><code class="docutils literal notranslate"><span class="pre">ElementReferenceData</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData.H298"><code class="docutils literal notranslate"><span class="pre">ElementReferenceData.H298</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData.S298"><code class="docutils literal notranslate"><span class="pre">ElementReferenceData.S298</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData.mass"><code class="docutils literal notranslate"><span class="pre">ElementReferenceData.mass</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData.phase"><code class="docutils literal notranslate"><span class="pre">ElementReferenceData.phase</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pycalphad.io.database.Phase"><code class="docutils literal notranslate"><span class="pre">Phase</span></code></a><ul>
@@ -2057,7 +2072,7 @@ Note that not all of these keywords are fully supported yet.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=9260b704"></script>
+</div><script src="../_static/documentation_options.js?v=f95ffa22"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
