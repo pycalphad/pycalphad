@@ -861,6 +861,7 @@ class Model(object):
                 if len(filtered_args) == 1:
                     param_val = filtered_args[0]
             rk_terms.append(mixing_term * param_val)
+        print('These are the rk terms',rk_terms)
         return Add(*rk_terms)
 
     def reference_energy(self, dbe):
@@ -878,6 +879,7 @@ class Model(object):
         param_search = dbe.search
         pure_energy_term = self.redlich_kister_sum(phase, param_search,
                                                    pure_param_query)
+        print('FUCK ME')
         return pure_energy_term / self._site_ratio_normalization
 
     def ideal_mixing_energy(self, dbe):
@@ -1316,7 +1318,6 @@ class Model(object):
         # fractions to the quasi mole fractions representing the disordered state
         molefraction_dict = {}
         ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
-        print('what re the ordered sitefracs',ordered_sitefracs)
         for sitefrac in ordered_sitefracs:
             if sitefrac.sublattice_index in substitutional_sublattice_idxs:
                 molefraction_dict[sitefrac] = \
