@@ -633,8 +633,6 @@ class Mass(StateVariable):
     def __init__(self, *args):  # pylint: disable=W0221
         varname = None
         phase_name = None
-        # We set species as an instance variable only if it's not none because
-        # the property framework sometimes uses hasattr("species") checks
         species = None
         if len(args) == 0:
             varname = "B"
