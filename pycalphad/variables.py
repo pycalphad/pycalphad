@@ -653,7 +653,6 @@ class Mass(StateVariable):
             # not defined
             raise ValueError('Mass not defined for args: '+args)
 
-        # pylint: disable=E1121
         super().__init__(varname)
         self.phase_name = phase_name
 
