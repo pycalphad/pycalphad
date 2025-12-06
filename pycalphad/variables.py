@@ -692,7 +692,6 @@ class Mass(StateVariable):
 
     def _latex(self, printer=None):
         "LaTeX representation."
-        # pylint: disable=E1101
         if self.phase_name:
             return 'b^{'+self.phase_name.replace('_', '-') + \
                 '}_{'+self.species.escaped_name+'}'
