@@ -396,7 +396,7 @@ class Workspace:
                 sublattice_indices = sorted(set([x.sublattice_index for x in self.phase_record_factory[args[i].phase_name].variables]))
                 additional_args = args[i].expand_wildcard(sublattice_indices=sublattice_indices)
                 args.extend(additional_args)
-            elif hasattr(args[i], 'species') and args[i].species.name == '*':
+            elif getattr(args[i], "species", None) is not None and args[i].species.name == '*':
                 indices_to_delete.append(i)
                 internal_to_phase = hasattr(args[i], 'sublattice_index')
                 if internal_to_phase:

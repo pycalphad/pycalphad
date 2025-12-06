@@ -641,13 +641,11 @@ class Mass(StateVariable):
         elif len(args) == 1:
             # this is an overall composition variable
             species = Component(args[0])
-            self.species = species
             varname = 'B_' + species.escaped_name.upper()
         elif len(args) == 2:
             # this is a phase-specific composition variable
             phase_name = args[0].upper()
             species = Component(args[1])
-            self.species = species
             varname = 'B_' + phase_name + '_' + species.escaped_name.upper()
         else:
             # not defined
@@ -655,6 +653,7 @@ class Mass(StateVariable):
 
         super().__init__(varname)
         self.phase_name = phase_name
+        self.species = species
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         result = np.atleast_1d(np.zeros(self.shape))

@@ -532,3 +532,6 @@ def test_workspace_calculating_mass_variables(load_database):
     mass_LIQUID = v.B()
     mass_LIQUID.phase_name = "LIQUID"
     assert_allclose(wks.get(mass_LIQUID), wks.get("B(LIQUID,AL)") + wks.get("B(LIQUID,NI)"))
+    assert_allclose(wks.get("B(*)"), [wks.get("B(AL)"), wks.get("B(NI)")])
+    assert_allclose(wks.get("B(*,AL)"), [wks.get("B(FCC_A1,AL)"), wks.get("B(LIQUID,AL)")])
+    assert_allclose(wks.get("B"), sum(wks.get("B(*,*)")))
