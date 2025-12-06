@@ -491,3 +491,44 @@ def test_unit_conversion(load_database):
 
     # Test that it did not raise any exception (gh-609)
     wks.get(v.T, as_property("enthalpy")["J/g"])
+
+
+@select_database("alnipt.tdb")
+def test_workspace_calculating_mass_variables(load_database):
+    dbf = load_database()
+    # Per TDB:
+    M_AL = 26.982 # g/mole
+    M_NI = 58.690  # g/mole
+    wks = Workspace(dbf, ["AL"], ["LIQUID"], {v.T: 298.15, v.P: 101325, v.N: 1})
+    # Pure element: 1 mole of Al
+    assert_allclose(wks.get("B(AL)"), M_AL)
+    assert_allclose(wks.get("B(LIQUID,AL)"), wks.get("B(AL)"))
+    assert_allclose(wks.get("B"), wks.get("B(AL)"))
+
+    # Single phase binary case
+    wks = Workspace(dbf, ["AL", "NI"], ["LIQUID"], {v.T: 298.15, v.P: 101325, v.N: 1, v.X("AL"): 0.25})
+    assert_allclose(wks.get("N"), 1.0)
+    assert_allclose(wks.get("X(AL)"), 0.25)
+    assert_allclose(wks.get("X(NI)"), 0.75)
+    assert_allclose(wks.get("B(AL)"), wks.get("N") * wks.get("X(AL)") * M_AL)
+    assert_allclose(wks.get("B(NI)"), wks.get("N") * wks.get("X(NI)") * M_NI)
+    assert_allclose(wks.get("B"), wks.get("N") * wks.get("X(AL)") * M_AL + wks.get("N") * wks.get("X(NI)") * M_NI)
+    assert_allclose(wks.get("B(LIQUID,AL)"), wks.get("B(AL)"))
+
+    # Two phase binary case
+    wks = Workspace(dbf, ["AL", "NI", "VA"], ["LIQUID", "FCC_A1"], {v.T: 1635, v.P: 101325, v.N: 1, v.X("AL"): 0.25})
+    assert_allclose(wks.get("NP(FCC_A1)", "NP(LIQUID)"), [0.679244, 0.320756])
+    # All these phase-non-specific should be the same as the single-phase cases
+    assert_allclose(wks.get("N"), 1.0)
+    assert_allclose(wks.get("X(AL)"), 0.25)
+    assert_allclose(wks.get("X(NI)"), 0.75)
+    # ensure "Mass" variant instead of "B" works
+    assert_allclose(wks.get("Mass(AL)"), wks.get("N") * wks.get("X(AL)") * M_AL)
+    assert_allclose(wks.get("Mass(NI)"), wks.get("N") * wks.get("X(NI)") * M_NI)
+    assert_allclose(wks.get("Mass"), wks.get("N") * wks.get("X(AL)") * M_AL + wks.get("N") * wks.get("X(NI)") * M_NI)
+    # Phase specific stuff should be different
+    assert_allclose(wks.get("B(LIQUID,AL)"), wks.get("NP(LIQUID)") * wks.get("X(LIQUID,AL)") * M_AL)
+    assert_allclose(wks.get("B(FCC_A1,NI)"), wks.get("NP(FCC_A1)") * wks.get("X(FCC_A1,NI)") * M_NI)
+    mass_LIQUID = v.B()
+    mass_LIQUID.phase_name = "LIQUID"
+    assert_allclose(wks.get(mass_LIQUID), wks.get("B(LIQUID,AL)") + wks.get("B(LIQUID,NI)"))

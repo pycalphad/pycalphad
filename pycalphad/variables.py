@@ -482,7 +482,7 @@ class PhaseFraction(StateVariable):
 
     def expand_wildcard(self, phase_names):
         return [self.__class__(phase_name) for phase_name in phase_names]
-    
+
     def __reduce__(self):
         return self.__class__, (self.phase_name,)
 
@@ -633,16 +633,21 @@ class Mass(StateVariable):
     def __init__(self, *args):  # pylint: disable=W0221
         varname = None
         phase_name = None
+        # We set species as an instance variable only if it's not none because
+        # the property framework sometimes uses hasattr("species") checks
         species = None
-        # TODO: system-level mass support (i.e. not component, or phase specific)
-        if len(args) == 1:
+        if len(args) == 0:
+            varname = "B"
+        elif len(args) == 1:
             # this is an overall composition variable
             species = Component(args[0])
+            self.species = species
             varname = 'B_' + species.escaped_name.upper()
         elif len(args) == 2:
             # this is a phase-specific composition variable
             phase_name = args[0].upper()
             species = Component(args[1])
+            self.species = species
             varname = 'B_' + phase_name + '_' + species.escaped_name.upper()
         else:
             # not defined
@@ -651,19 +656,22 @@ class Mass(StateVariable):
         # pylint: disable=E1121
         super().__init__(varname)
         self.phase_name = phase_name
-        self.species = species
 
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
         for _, compset in self.filtered(compsets):
-            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
-            if np.isnan(result[0]):
-                result[0] = 0
-            if self.phase_name is None:
-                result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+            if hasattr(self, "species") and self.species is not None:
+                element_indices = [compset.phase_record.nonvacant_elements.index(str(self.species))]
             else:
-                result[0] += compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+                element_indices = list(range(len(compset.phase_record.nonvacant_elements)))
+            for el_idx in element_indices:
+                if np.isnan(result[0]):
+                    result[0] = 0
+                if self.phase_name is None:
+                    result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+                else:
+                    result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
         return result
 
     def expand_wildcard(self, phase_names=None, components=None):
@@ -914,7 +922,7 @@ class ChemicalPotential(StateVariable):
         return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
-    
+
     def __reduce__(self):
         return self.__class__, (self.species,)
 

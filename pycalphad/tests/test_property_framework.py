@@ -14,6 +14,9 @@ def test_as_property_creation():
     assert as_property('T') == v.T
     assert as_property('X(ZN)') == v.X('ZN')
     assert as_property('X(FCC_A1#1,ZN)') == v.X('FCC_A1#1', 'ZN')
+    assert as_property('B') == v.B()
+    assert as_property('B(AL)') == v.B('AL')
+    assert as_property('B(LIQUID,AL)') == v.B("LIQUID", 'AL')
 
 def test_as_property_jansson_derivative_creation():
     assert as_property('HM.T') == JanssonDerivative(ModelComputedProperty('HM'), v.T)
