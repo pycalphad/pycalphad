@@ -630,7 +630,7 @@ class Mass(StateVariable):
     """
     implementation_units = 'gram'
     display_units = 'gram'
-    def __init__(self, *args):  # pylint: disable=W0221
+    def __init__(self, *args):
         varname = None
         phase_name = None
         species = None
