@@ -628,8 +628,8 @@ class MoleFraction(StateVariable):
 class Mass(StateVariable):
     """
     """
-    implementation_units = 'gram'
-    display_units = 'gram'
+    implementation_units = "gram"
+    display_units = "gram"
     def __init__(self, *args):
         varname = None
         phase_name = None
@@ -639,15 +639,15 @@ class Mass(StateVariable):
         elif len(args) == 1:
             # this is an overall composition variable
             species = Component(args[0])
-            varname = 'B_' + species.escaped_name.upper()
+            varname = "B_" + species.escaped_name.upper()
         elif len(args) == 2:
             # this is a phase-specific composition variable
             phase_name = args[0].upper()
             species = Component(args[1])
-            varname = 'B_' + phase_name + '_' + species.escaped_name.upper()
+            varname = "B_" + phase_name + "_" + species.escaped_name.upper()
         else:
             # not defined
-            raise ValueError('Mass not defined for args: '+args)
+            raise ValueError(f"Mass not defined for args: {args}")
 
         super().__init__(varname)
         self.phase_name = phase_name
@@ -679,7 +679,7 @@ class Mass(StateVariable):
             else:
                 return [self.__class__(self.phase_name, comp) for comp in components]
         else:
-            raise ValueError('Both phase_names and components are None')
+            raise ValueError("Both phase_names and components are None")
 
     def __reduce__(self):
         if self.phase_name is None:
@@ -690,10 +690,10 @@ class Mass(StateVariable):
     def _latex(self, printer=None):
         "LaTeX representation."
         if self.phase_name:
-            return 'b^{'+self.phase_name.replace('_', '-') + \
-                '}_{'+self.species.escaped_name+'}'
+            return "b^{"+self.phase_name.replace("_", "-") + \
+                "}_{"+self.species.escaped_name+"}"
         else:
-            return 'b_{'+self.species.escaped_name+'}'
+            return "b_{"+self.species.escaped_name+"}"
 
 
 class MassFraction(StateVariable):
