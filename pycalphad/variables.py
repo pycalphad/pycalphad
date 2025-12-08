@@ -664,10 +664,7 @@ class Mass(StateVariable):
             for el_idx in element_indices:
                 if np.isnan(result[0]):
                     result[0] = 0
-                if self.phase_name is None:
-                    result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
-                else:
-                    result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
+                result[0] += compset.NP * compset.phase_record.molar_masses[el_idx] * compset.X[el_idx]
         return result
 
     def expand_wildcard(self, phase_names=None, components=None):
