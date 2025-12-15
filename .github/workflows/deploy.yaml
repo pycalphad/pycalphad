@@ -85,7 +85,7 @@ jobs:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     # upload to PyPI when a GitHub Release is created
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           pattern: artifact-*
           path: dist
