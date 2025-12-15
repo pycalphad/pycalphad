@@ -23,7 +23,7 @@ jobs:
       - run: uv sync --dev
       - run: uv run sphinx-build -W -b html docs docs/_build/html
       # Upload documentation html directory
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           path: ./docs/_build/html
           name: pycalphad-documentation

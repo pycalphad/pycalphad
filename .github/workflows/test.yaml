@@ -25,7 +25,7 @@ jobs:
       - run: uv sync --dev
       - run: uv run pytest -v --import-mode=append --cov --cov-config=pyproject.toml --pyargs pycalphad
       - run: uv run coverage xml
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
           path: coverage.xml
