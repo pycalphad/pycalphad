@@ -482,7 +482,7 @@ class PhaseFraction(StateVariable):
 
     def expand_wildcard(self, phase_names):
         return [self.__class__(phase_name) for phase_name in phase_names]
-    
+
     def __reduce__(self):
         return self.__class__, (self.phase_name,)
 
@@ -572,6 +572,7 @@ class MoleFraction(StateVariable):
         "Compute Jansson derivative with self as numerator, with the given deltas"
         state_variables = compsets[0].phase_record.state_variables
         grad_values = self.compute_property_gradient(compsets, cur_conds, chemical_potentials)
+
         # Sundman et al, 2015, Eq. 73
         jansson_derivative = np.nan
         for idx, compset in enumerate(compsets):
@@ -846,7 +847,7 @@ class ChemicalPotential(StateVariable):
         return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
-    
+
     def __reduce__(self):
         return self.__class__, (self.species,)
 

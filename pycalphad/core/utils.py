@@ -303,7 +303,6 @@ def filter_phases(dbf, comps, candidate_phases=None):
     # TODO: filter phases that can not charge balance
 
     def all_sublattices_active(comps, phase):
-
         active_sublattices = [len(set(comps).intersection(subl)) > 0 for
                               subl in phase.constituents]
         return all(active_sublattices)
@@ -312,8 +311,6 @@ def filter_phases(dbf, comps, candidate_phases=None):
     else:
         candidate_phases = set(candidate_phases).intersection(dbf.phases.keys())
     species = unpack_species(dbf, comps)
-#    for phase in candidate_phases:
-#        print('These are the candidate phases',phase,all_sublattices_active(species, dbf.phases[phase]))
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
                 all_sublattices_active(species, dbf.phases[phase]) and

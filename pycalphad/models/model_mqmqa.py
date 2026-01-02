@@ -1,5 +1,5 @@
 import itertools
-from typing import List, Union
+from typing import List
 from collections import OrderedDict
 from functools import partial
 from symengine import log, S, Symbol
@@ -255,7 +255,7 @@ class ModelMQMQA(Model):
         """
         Z = partial(self.Z, dbe)  # alias for notation
         n_i = S.Zero
-        name=[key for key in species.constituents.keys()][0]
+        name = [key for key in species.constituents.keys()][0]
         if species in self.cations:
             i = species
             for a, b, x, y in self._quadruplets:
@@ -265,10 +265,10 @@ class ModelMQMQA(Model):
             k = species
             for a, b, x, y in self._quadruplets:
                 n_i += self._X_ijkl(a, b, x, y) * ((x == k) / Z(x, a, b, x, y) + (y == k) / Z(y, a, b, x, y))
-        if name!='VA':
-            n_i=n_i*species.number_of_atoms 
+        if name != 'VA':
+            n_i = n_i*species.number_of_atoms
         else:
-            n_i=n_i
+            n_i = n_i
         return n_i
 
     def _X_i(self, dbe, species: v.Species):
@@ -276,21 +276,11 @@ class ModelMQMQA(Model):
         Return the site fraction of species on it's sublattice. Poschmann Eq. 9 and 10.
         """
         if species in self.cations:
-            return self._n_i(dbe, species) / sum(self._n_i(dbe, a) for a in self.cations)
-        else:
-            assert species in self.anions
-            return self._n_i(dbe, species) / sum(self._n_i(dbe, x) for x in self.anions)
-
-    def _X_i_S(self, dbe, species: v.Species):
-        """
-        Return the site fraction of species on it's sublattice. Poschmann Eq. 9 and 10.
-        """
-        if species in self.cations:
-            cons_spec=[cons for cons in species.constituents.values()][0]
+            cons_spec = [cons for cons in species.constituents.values()][0]
             return (self._n_i(dbe, species)/cons_spec) / sum((self._n_i(dbe, a)/cons) for a in self.cations for cons in a.constituents.values())
         else:
             assert species in self.anions
-            cons_spec=[cons for cons in species.constituents.values()][0]
+            cons_spec = [cons for cons in species.constituents.values()][0]
             return (self._n_i(dbe, species)/cons_spec) / sum((self._n_i(dbe, x)/cons) for x in self.anions for cons in x.constituents.values())
 
     def _Y_i(self, species: v.Species):
@@ -597,12 +587,10 @@ class ModelMQMQA(Model):
             terms += X_ax * G_ax / param["stoichiometry"][0]
         return terms
 
-
-
     def ideal_mixing_energy(self, dbe):
         # notational niceties
         n_i = partial(self._n_i, dbe)
-        X_i = partial(self._X_i_S, dbe)
+        X_i = partial(self._X_i, dbe)
         X_ik = self._X_ik
         Y_i = self._Y_i
         F_i = self._F_i
@@ -618,10 +606,10 @@ class ModelMQMQA(Model):
         Sid = S.Zero
         # Individual constituents
         for A in self.cations:
-            cons=[cons for cons in A.constituents.values()][0]
+            cons = [cons for cons in A.constituents.values()][0]
             Sid += (n_i(A)/cons) * log(X_i(A))
         for X in self.anions:
-            cons=[cons for cons in X.constituents.values()][0]
+            cons = [cons for cons in X.constituents.values()][0]
             Sid += (n_i(X)/cons) * log(X_i(X))
         # Pairs
         if soln_type == "SUBG":
