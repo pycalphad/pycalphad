@@ -6,7 +6,7 @@ Thermo-Calc TDB format.
 from pyparsing import CaselessKeyword, CharsNotIn, Group
 from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
-from pyparsing import delimitedList, ParseException
+from pyparsing import DelimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
@@ -177,7 +177,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     """
     Convenience function for getting the pyparsing grammar of a TDB file.
     """
-    int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
+    int_number = Word(nums).set_parse_action(lambda t: [int(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
     ref_phase_name = symbol_name = Word(alphanums+'_-:()/', min=1)
@@ -186,13 +186,13 @@ def _tdb_grammar(): #pylint: disable=R0914
     reference_key = Word(alphanums+':_-')('reference_key')
     # constituent arrays are colon-delimited
     # each subarray can be comma- or space-delimited
-    constituent_array = Group(delimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
+    constituent_array = Group(DelimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
     param_types = MatchFirst([TCCommand(param_type) for param_type in TDB_PARAM_TYPES])
     # Let symengine do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details
-    func_expr = (float_number | ZeroOrMore(',').setParseAction(lambda t: 0.01)) + OneOrMore(SkipTo(';') \
+    func_expr = (float_number | ZeroOrMore(',').set_parse_action(lambda t: 0.01)) + OneOrMore(SkipTo(';') \
         + Suppress(';') + ZeroOrMore(Suppress(',')) + Optional(float_number) + \
-        Suppress(Optional(Word('Yy', exact=1))), stopOn=Word('Nn', exact=1)) + Suppress(Optional(Word('Nn', exact=1)))
+        Suppress(Optional(Word('Yy', exact=1))), stop_on=Word('Nn', exact=1)) + Suppress(Optional(Word('Nn', exact=1)))
     # ELEMENT
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + ref_phase_name + \
         float_number + float_number + float_number + LineEnd()
@@ -203,7 +203,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
     # FUNCTION
     cmd_function = TCCommand('FUNCTION') + symbol_name + \
-        func_expr.setParseAction(_make_piecewise_ast) + \
+        func_expr.set_parse_action(_make_piecewise_ast) + \
         Optional(Suppress(reference_key)) + LineEnd()
     # ASSESSED_SYSTEMS
     cmd_ass_sys = TCCommand('ASSESSED_SYSTEMS') + SkipTo(LineEnd())
@@ -238,7 +238,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Optional(Suppress('&') + Word(alphas+'/-', min=1, max=2), default=None) + \
         Suppress(',') + constituent_array + \
         Optional(Suppress(';') + int_number, default=0) + \
-        Suppress(')') + func_expr.setParseAction(_make_piecewise_ast) + \
+        Suppress(')') + func_expr.set_parse_action(_make_piecewise_ast) + \
         Optional(Suppress(reference_key)) + LineEnd()
     # ZEROVOLUME_SPECIES
     cmd_zerovolume = TCCommand('ZEROVOLUME_SPECIES') + SkipTo(LineEnd())
@@ -362,7 +362,7 @@ def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
     # sorting lx is _required_ here: see issue #17 on GitHub
     targetdb.add_parameter(param_type, phase_name.upper(),
                            [[c.upper() for c in sorted(lx)]
-                            for lx in constituent_array.asList()],
+                            for lx in constituent_array.as_list()],
                            param_order, param, ref, diffusing_species, force_insert=False)
 
 def _unimplemented(*args, **kwargs): #pylint: disable=W0613
@@ -965,7 +965,7 @@ def read_tdb(dbf, fd):
         if len(command) == 0:
             continue
         try:
-            tokens = grammar.parseString(command)
+            tokens = grammar.parse_string(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
         except ParseException as e:
             context = e.line + '\n' + (" " * (e.column - 1) + "^")
