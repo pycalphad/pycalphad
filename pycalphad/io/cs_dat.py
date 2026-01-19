@@ -727,11 +727,15 @@ class Phase_SUBQ(PhaseBase):
     chemical_group_overrides: List[str]
 
     def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
-        # THIS SECTION WILL HANDLE WHEN THE SPECIES ARE SWITCHED IN THE .DAT FILE. THE ASSUMPTIONS MADE HERE ARE THAT THE
+        # THIS SECTION WILL HANDLE WHEN THE SPECIES ARE SWITCHED IN THE .DAT FILE. Need to be more clear here but NiF2 system is a good example I think
+        #THE ASSUMPTIONS MADE HERE ARE THAT THE
         # CHARGES IN THE FILE ARE CORRECT BUT JUST NOT PROPERLY ASSIGNED AND THAT THE STOICHIOMETRY OF THE ENDMEMBERS ARE THE
         # CORRECT ONES
+        ########################################################################################################
+                                                  #(MAKE THE TEXT BELOW MORE CLEAR)
         # ANOTHER ASSUMPTION BEING MADE IS THAT THE ORDER OF THE ELEMENTS IN THE SPECIES NEED TO FOLLOW THE ORDER IN WHICH THEY ARE PRESENTED
         # BY THE ENDMEMBERS. THAT IS SOMETHING USUALLY OBSERVED WHEN THE CHEMSAGE FILES ARE CREATED
+        ###############################################################################################
         # ANOTHER MAJOR ASSUMPTION WILL BE THAT ANIONS WILL ONLY GET MIXED UP WITH ANIONS AND LIKEWISE FOR CATIONS
         # MEANING THAT AN ERROR OF PUTTING F IN THE CATION SUBLATTICE WILL NOT BE HANDLED BY THE CODE
 
@@ -743,7 +747,7 @@ class Phase_SUBQ(PhaseBase):
         anion_el_chg_pairs = list(zip(self.subl_2_const, [-1*c for c in self.subl_2_charges]))
         # pycalphad usually uses Species to differentiate charged species, for
         # example Species('CU', charge=1) vs. Species('CU', charge=2). In the
-        # implementation of the model, we will use Speices to refer to a
+        # implementation of the model, we will use Species to refer to a
         # quadruplet which may have both CU+1 and CU+2 species inside, so we
         # need to add an additional qualifier that mangles the name of the
         # elements in the species so that we can clearly differentiate the
@@ -762,40 +766,58 @@ class Phase_SUBQ(PhaseBase):
             pure_elementsSUBQ.append('VA')
         else:
             pass
-
+    #Making a list of the elements that are in the cation and anion sublattice after vacancies are introduced
+    #This list will only include elements and no information about the charge of the species
+    #In the pre_anions and pre_cations one will know where the vacancies will be 
         pre_cations = [pure for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el, pure)]
         pre_anions = [pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el, pure)]
 
         cation_sublattice_elements = []
         anion_sunlattice_elements = []
+    #endmember_ makes a list of the elements in the endmember/unary quadruplets. It does not incude VA in the nested list
+    #spec endmember makes a list of all the permutations of cations and anions 
+    #no_vac_endmember gives a list of the elements in the endmember and ignores it if it does not have vacancies
         endmember_ = [list(sorted([pure_elementsSUBQ[count] for count, i in enumerate(endmember.stoichiometry_pure_elements) if i != 0.0])) for endmember in self.endmembers]
         spec_endmember = [list(sorted(i)) for i in list(itertools.product(pre_cations, pre_anions))]
         no_vac_spec_endmember = [[ele for ele in endmember if ele != 'VA'] for endmember in spec_endmember]
+    #The first part of the if loop is to identify whether the elements have vacancies or not 
         if sorted(endmember_) == sorted(no_vac_spec_endmember):
+            print('I am here in the first part')
             cation_sublattice_elements = pre_cations
             anion_sunlattice_elements = pre_anions
+##########The second part I am thinking is not necessary. All databases are read well without it. Might delete 
+#        else:
+#            print('I am here')
+#            common_anion_check = [i for i in list(itertools.chain.from_iterable(endmember_)) if i in pre_anions]
+#            common_cation_check = [i for i in list(itertools.chain.from_iterable(endmember_)) if i in pre_cations]
+    #Endmember_ does not 
+#            if len(common_anion_check) > 1:
+#                for i in endmember_:
+#                    for ele in i:
+#                        print('This is endmember and element',i,ele)
+#                        if ele not in common_anion_check:
+#                            cation_sublattice_elements.append(ele)
+#                        elif ele in common_anion_check:
+#                            anion_sunlattice_elements.append(ele)
+#            elif len(common_cation_check) > 1:
+#                for i in endmember_:
+#                    for ele in i:
+#                        print('This is endmember and element',i,ele)
+#                        if ele in common_cation_check:
+#                            cation_sublattice_elements.append(ele)
+#                        elif ele not in common_cation_check:
+#                            anion_sunlattice_elements.append(ele)
         else:
-            common_anion_check = [i for i in list(itertools.chain.from_iterable(endmember_)) if i in pre_anions]
-            common_cation_check = [i for i in list(itertools.chain.from_iterable(endmember_)) if i in pre_cations]
+            raise ValueError('Too mamy degrees of liberty between elements depicted in endmembers and elements listed as species')
+#######################################################################################################################
 
-            if len(common_anion_check) > 1:
-                for i in endmember_:
-                    for ele in i:
-                        if ele not in common_anion_check:
-                            cation_sublattice_elements.append(ele)
-                        elif ele in common_anion_check:
-                            anion_sunlattice_elements.append(ele)
-            elif len(common_cation_check) > 1:
-                for i in endmember_:
-                    for ele in i:
-                        if ele in common_cation_check:
-                            cation_sublattice_elements.append(ele)
-                        elif ele not in common_cation_check:
-                            anion_sunlattice_elements.append(ele)
-            else:
-                raise ValueError('Too mamy degrees of liberty between elements depicted in endmembers and elements listed as species')
+    ##The new cation and anion el_chg assigns the elements to the respective charge rather than the name assigned
+    ##in the .dat file
         new_cation_el_chg_pair = list(zip(cation_sublattice_elements, self.subl_1_charges))
         new_anion_el_chg_pair = list(zip(anion_sunlattice_elements, [-1*c for c in self.subl_2_charges]))
+        
+        
+        print('what is this loop for?',cation_el_chg_pairs,anion_el_chg_pairs,new_cation_el_chg_pair,new_anion_el_chg_pair)
 
         cations = [rename_element_charge(pure, chg) for el, chg in new_cation_el_chg_pair for pure in pure_elementsSUBQ if element_check(el, pure)]
         anions = [rename_element_charge(pure, chg) for el, chg in new_anion_el_chg_pair for pure in pure_elementsSUBQ if element_check(el, pure)]
