@@ -227,3 +227,86 @@ def test_chemical_potentials_for_isolated_phases(load_database):
     isolated_chempots = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["MU(PB)", "MU(SN)"]])
     np.testing.assert_allclose(isolated_chempots, np.asarray([-2992.70848448, -5280.02439881]))
     np.testing.assert_allclose(isolated_GM, np.dot(isolated_chempots, isolated_X))
+
+
+@select_database("alzn_mey.tdb")
+def test_mass_jansson_derivatives_temperature(load_database):
+    """Test B.T, B(component).T, B(phase, component).T for single and multi-phase cases"""
+    # Single phase: derivative should be zero (no composition change possible)
+    dbf = load_database()
+    temperature = 700
+    wks = Workspace(dbf, ["AL", "ZN", "VA"], ["FCC_A1", "LIQUID", "HCP_A3"], {v.X("ZN"): 0.3, v.T: temperature, v.P: 101325, v.N: 1})
+
+    # Single phase dX/dT = 0, so dB/dT = 0
+    np.testing.assert_allclose(wks.get("NP(FCC_A1)"), 1.0)
+    np.testing.assert_allclose(wks.get("B.T"), 0.0, atol=1e-12)
+    np.testing.assert_allclose(wks.get("B(AL).T"), 0.0, atol=1e-12)
+    np.testing.assert_allclose(wks.get("B(FCC_A1,AL).T"), 0.0, atol=1e-12)
+
+    # Two-phase case at X(ZN) = 0.7
+    wks.conditions[v.X("ZN")] = 0.7
+    print(wks.get_dict("NP(*)"))
+    # System and component masses should still have zero temperature derivatives
+    result_total, result_al, result_zn = wks.get("B.T", "B(AL).T", "B(ZN).T")
+    np.testing.assert_allclose(result_total, 0.0, atol=1e-12)
+    np.testing.assert_allclose(result_al, 0.0, atol=1e-12)
+    np.testing.assert_allclose(result_zn, 0.0, atol=1e-12)
+    # Phase specific, check against finite difference
+    for phase_name in ["LIQUID", "FCC_A1"]:
+        wks.conditions[v.X("ZN")] = 0.7
+        print(f"Phase: {phase_name}")
+        assert wks.get(f"NP({phase_name})") > 1e-4
+        jansson_deriv = wks.get(f"B({phase_name},AL).T")
+        # finite difference
+        h = 0.01  # 0.01 K perturbation
+        wks.conditions[v.T] = temperature + h
+        b_plus = np.squeeze(wks.get(f"B({phase_name},AL)"))
+        wks.conditions[v.T] = temperature - h
+        b_minus = np.squeeze(wks.get(f"B({phase_name},AL)"))
+        wks.conditions[v.T] = temperature
+        finite_diff = (b_plus - b_minus) / (2 * h)
+        np.testing.assert_allclose(jansson_deriv, finite_diff, rtol=1e-4)
+
+
+@select_database("alzn_mey.tdb")
+def test_mass_jansson_derivative_molefracs(load_database):
+    """Test B(...).X(ZN) - mass derivatives with non-state-variable denominators in single and multi-phase cases"""
+    M_AL = 26.982  # g/mol
+    M_ZN = 65.390  # g/mol
+
+    dbf = load_database()
+    wks = Workspace(dbf, ["AL", "ZN", "VA"], ["FCC_A1", "LIQUID", "HCP_A3"], {v.X("ZN"): 0.3, v.T: 700, v.P: 101325, v.N: 1})
+
+    # Single-phase case at X(ZN) = 0.3
+    np.testing.assert_allclose(wks.get("NP(FCC_A1)"), 1.0)
+
+    # System mass analytically, dB/dX(ZN) = M_ZN - M_AL
+    np.testing.assert_allclose(wks.get("B.X(ZN)"), M_ZN - M_AL)
+
+    # Component mass analytically, dB(AL)/dX(ZN) = -M(AL)
+    np.testing.assert_allclose(wks.get("B(AL).X(ZN)"), -M_AL)
+    # Component mass analytically, dB(ZN)/dX(ZN) = M(ZN)
+    np.testing.assert_allclose(wks.get("B(ZN).X(ZN)"), M_ZN)
+
+    # Component mass for single phase analytically, dB(AL)/dX(ZN) = -M(AL)
+    np.testing.assert_allclose(wks.get("B(FCC_A1,AL).X(ZN)"), -M_AL)
+    # Component mass for single phase analytically, dB(ZN)/dX(ZN) = M(ZN)
+    np.testing.assert_allclose(wks.get("B(FCC_A1,ZN).X(ZN)"), M_ZN)
+
+    # Phase-specific, multi-phase cases
+    # check against finite difference
+    X_ZN = 0.7
+    for phase_name in ["LIQUID", "FCC_A1"]:
+        wks.conditions[v.X("ZN")] = X_ZN
+        print(f"Phase: {phase_name}")
+        assert wks.get(f"NP({phase_name})") > 1e-4
+        jansson_deriv = wks.get(f"B({phase_name},AL).X(ZN)")
+        # finite difference
+        h = 1e-6  # Small perturbation in mole fraction
+        wks.conditions[v.X("ZN")] = X_ZN + h
+        b_plus = np.squeeze(wks.get(f"B({phase_name},AL)"))
+        wks.conditions[v.X("ZN")] = X_ZN - h
+        b_minus = np.squeeze(wks.get(f"B({phase_name},AL)"))
+        wks.conditions[v.X("ZN")] = X_ZN
+        finite_diff = (b_plus - b_minus) / (2 * h)
+        np.testing.assert_allclose(jansson_deriv, finite_diff, rtol=1e-4)
