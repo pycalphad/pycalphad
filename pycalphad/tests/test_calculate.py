@@ -3,6 +3,7 @@ The calculate test module verifies that calculate() calculates
 Model quantities correctly.
 """
 
+import select
 import pytest
 from pycalphad import Database, calculate, Model, variables as v
 from itertools import chain
@@ -382,3 +383,39 @@ def test_calculate_raises_if_no_feasible_points_exist():
     # fake_points provides points and therefore calculate should not raise for having no points
     # fake_points also prevents the warning here
     grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
+
+
+@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
+def test_calculate_raises_correctly_when_charged_phases_cannot_charge_balance():
+    """calculate should _not_ raise if there are phases that are infeasible, but overall there are still points
+
+    This test tests against a special case where a phase is charged and has internal DOF, but cannot charge balance.
+    We should see the same failure modes as above.
+    """
+
+    TDB = """
+    ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT AL   BLANK                     0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT ZR   BLANK                     0.0000E+00  0.0000E+00  0.0000E+00!
+    SPECIES AL+3                        AL1/+3!
+    SPECIES ZR+4                        ZR1/+4!
+    PHASE SPINEL %  4 1 2 2 4 !
+    CONSTITUENT SPINEL : AL+3,ZR+4,VA : VA : VA :  !
+    PHASE GAS:G %  1  1.0  !
+    CONSTITUENT GAS:G :AL,VA,ZR :  !
+    """
+    dbf = Database(TDB)
+
+    # Gas can always charge balance, all is well
+    grid = calculate(dbf, ["AL", "ZR", "VA"], ["GAS"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # SPINEL cannot charge balance without a negative ion.
+    # As it is the only active phase, there will be no points and should raise.
+    with pytest.raises(ConditionError):
+        grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # SPINEL still suspended, but doesn't raise because GAS phase provides points
+    with pytest.warns(match="No valid points found for phase SPINEL"):
+        grid = calculate(dbf, ["AL", "ZR", "VA"], ["GAS", "SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # fake_points provides points and therefore calculate should not raise for having no points
+    # fake_points also prevents the warning here
+    grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
