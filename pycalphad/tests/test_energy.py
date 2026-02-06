@@ -1400,3 +1400,29 @@ def test_higher_order_reciprocal_parameter():
         v.T: T
     }
     check_output(mod, subs_dict, 'GM', -12817.416, mode='sympy')
+
+
+
+@select_database("CoV-20Wan.tdb")
+def test_never_disorder_model(load_database):
+    """Test energy for a simple never disorder model (no disordered interaction parameters)"""
+    dbf = load_database()
+    m = Model(dbf, ['CO', 'V', 'VA'], 'SIGMA_D8B')
+
+    statevars = {
+                    v.T: 1250.0,
+                    v.SiteFraction('SIGMA_D8B', 0, 'CO'): 1, v.SiteFraction('SIGMA_D8B', 0, 'V'): 0,
+                    v.SiteFraction('SIGMA_D8B', 1, 'CO'): 0, v.SiteFraction('SIGMA_D8B', 1, 'V'): 1,
+                    v.SiteFraction('SIGMA_D8B', 2, 'CO'): 1, v.SiteFraction('SIGMA_D8B', 2, 'V'): 0,
+                }
+    # Values checked in Thermo-Calc
+    check_output(m, statevars, 'GM', -61190.088)
+
+    statevars = {
+                    v.T: 1250.0,
+                    v.SiteFraction('SIGMA_D8B', 0, 'CO'): 0.5, v.SiteFraction('SIGMA_D8B', 0, 'V'): 0.5,
+                    v.SiteFraction('SIGMA_D8B', 1, 'CO'): 0.5, v.SiteFraction('SIGMA_D8B', 1, 'V'): 0.5,
+                    v.SiteFraction('SIGMA_D8B', 2, 'CO'): 0.5, v.SiteFraction('SIGMA_D8B', 2, 'V'): 0.5,
+                }
+    # Values checked in Thermo-Calc
+    check_output(m, statevars, 'GM', -73928.245)
