@@ -167,11 +167,12 @@ def test_no_neutral_endmembers_single():
     np.testing.assert_allclose(np.squeeze(calc_res.Y.values), np.array([1/3, 2/3, 1]))
 
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase PYROCHLORE*:UserWarning")  # Filter out an expected warning so we don't fail the test
 @select_database("zrlayalo.tdb")
 def test_pyrochlore_infeasible(load_database):
     "calculate raises an error when it is impossible to satisfy a phase's constraints"
     dbf = load_database()
-    with pytest.raises(ValueError):
+    with pytest.raises(ConditionError):
         calculate(dbf, ['LA', 'Y', 'O'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
 
 
