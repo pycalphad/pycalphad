@@ -1102,3 +1102,21 @@ def test_issue589_global_min(load_database):
     # Confirmed by turning point density up to 1e7
     assert_allclose(res.GM.values.squeeze(), np.array([-39263.10130208]))
     assert_allclose(res.MU.values.squeeze(), np.array([-73190.455829,  55931.596253, -59900.399453, -79250.493316, -80354.857076]))
+
+
+@select_database("CoV-20Wan.tdb")
+def test_equilibrium_never_disorder(load_database):
+    dbf = load_database()
+    comps = ["CO", "V", "VA"]
+    phases = list(dbf.phases.keys())
+    conditions = {v.N: 1, v.P: 1e5, v.T: 1250.0, v.X('V'): 0.60}
+    res = equilibrium(dbf, comps, phases, conditions, verbose=True)
+    print("Equilibrium Phase", res.Phase.values.squeeze())
+    print("Equilibrium NP", res.NP.values.squeeze())
+    print("Equilibrium GM", res.GM.values.squeeze())
+    print("Equilibrium Y", res.Y.values.squeeze())
+    assert res.Phase.values.squeeze().tolist() == ["SIGMA_D8B", "", ""]
+    # Values checked in Thermo-Calc
+    assert_allclose(res.GM.values.squeeze(), np.array([-80134.504]))
+    assert_allclose(res.MU.values.squeeze(), np.array([-84691.297, -77096.642]), rtol=1e-6)
+    assert_allclose(res.Y.values.squeeze()[0,:6], np.array([0.99942828, 5.7172171E-4, 1.2760143E-2, 0.98723986, 0.12216729, 0.87783271,]), rtol=2e-5)

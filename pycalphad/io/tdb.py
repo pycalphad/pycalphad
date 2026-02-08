@@ -286,7 +286,7 @@ def _process_typedef(targetdb, typechar, line):
     if 'IF' in tokens or 'THEN' in tokens:
         warnings.warn("Type definitions using IF/THEN logic is not supported")
         return
-    keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC'], tokens[3].upper())[0]
+    keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC', 'NEVER_DISORDER'], tokens[3].upper())[0]
     if len(keyword) == 0:
         raise ValueError('Unknown type definition keyword: {}'.format(tokens[3]))
     if len(matching_phases) == 0:
@@ -312,6 +312,28 @@ def _process_typedef(targetdb, typechar, line):
         hint = {
             'ordered_phase': ordered_phase,
             'disordered_phase': disordered_phase,
+        }
+        if ordered_phase in targetdb.phases:
+            targetdb.phases[ordered_phase].model_hints.update(hint)
+        else:
+            raise ValueError(f"The {ordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
+        if disordered_phase in targetdb.phases:
+            targetdb.phases[disordered_phase].model_hints.update(hint)
+        else:
+            raise ValueError(f"The {disordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
+
+    # GES A_P_D SIGMA_D8B NEVER_DIS SIGMA_DIS
+    if keyword == 'NEVER_DISORDER':
+        # never disorder model: since we need to add model_hints to both the
+        # ordered and disorderd phase, we special case to update the phase
+        # names defined by the TYPE_DEF, rather than the updating the phases
+        # with matching typechars.
+        ordered_phase = tokens[2].upper()
+        disordered_phase = tokens[4].upper()
+        hint = {
+            'ordered_phase': ordered_phase,
+            'disordered_phase': disordered_phase,
+            'never_disorder': True,
         }
         if ordered_phase in targetdb.phases:
             targetdb.phases[ordered_phase].model_hints.update(hint)
@@ -498,7 +520,7 @@ class TCPrinter(object):
             #    Pow will explicitly add parenthesis (in the next elif block)
             #    Other functions such as Log, Sin, etc should
             #        include the parenthesis when converting to string
-            
+
             #All the arguments in Mul should be tested and they're all combined to a single expression by '*'
             #    So we could stringify each argument as a list and join them together is '*'
             term_list = ['(' + self._stringify_expr(arg) + ')' if isinstance(arg,Add) else self._stringify_expr(arg) for arg in expr.args]
