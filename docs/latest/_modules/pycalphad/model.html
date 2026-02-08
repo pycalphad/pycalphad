@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html">
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
-        <title>pycalphad.model - pycalphad 0.11.2.dev10+ge8ab6e216 documentation</title>
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
+        <title>pycalphad.model - pycalphad 0.11.2.dev14+gf374077e0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.2.dev10+ge8ab6e216 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.2.dev14+gf374077e0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev10+ge8ab6e216 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev14+gf374077e0 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1550,6 +1550,13 @@
 <span class="sd">           3. Physical properties are partitioned in the same way as the</span>
 <span class="sd">           energy. See Section 5.8.6 of Lukas, Fries and Sundman [2]_.</span>
 
+<span class="sd">           4. There is a variant of the partitioning model for phases that never</span>
+<span class="sd">           undergo disordering. See Section 5.8.5 of Lukas, Fries and</span>
+<span class="sd">           Sundman [2]_. In this variant, the entropy from the disordered phase</span>
+<span class="sd">           does not contribute to the energy and the ordering energies does not</span>
+<span class="sd">           have to go to zero, i.e.</span>
+<span class="sd">           :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i)`.</span>
+
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        .. caution::</span>
@@ -1574,12 +1581,16 @@
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="n">ordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">disordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">never_disorder</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;never_disorder&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">ordered_phase_name</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="n">ordered_phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span>
         <span class="n">constituents</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
         <span class="n">disordered_phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase_name</span><span class="p">]</span>
         <span class="n">disordered_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">),</span> <span class="n">disordered_phase_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">never_disorder</span><span class="p">:</span>
+            <span class="c1"># Take configurational entropy from the ordered phase only</span>
+            <span class="n">disordered_model</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s2">&quot;idmix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
 
         <span class="c1"># Get substitutional sublattice indices (for the ordered phase) and</span>
         <span class="c1"># validate that the number of interstitial sublattices is consistent</span>
@@ -1682,7 +1693,13 @@
         <span class="c1"># contributions. There&#39;s no technical reason for doing it this way</span>
         <span class="c1"># compared to setting the AST to the _partitioned_expr for the total</span>
         <span class="c1"># energy - this is more for bookkeeping of the model contributions.</span>
-        <span class="n">ordering_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned_expr</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">ordered_energy</span><span class="p">,</span> <span class="p">{},</span> <span class="n">molefraction_dict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">never_disorder</span><span class="p">:</span>
+            <span class="c1"># Models that never disorder don&#39;t need to subtract out the</span>
+            <span class="c1"># ordering energy at disordered site fractions.</span>
+            <span class="c1"># See Lukas, Fries, Sundman Eq. 5.162</span>
+            <span class="n">ordering_energy</span> <span class="o">=</span> <span class="n">ordered_energy</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ordering_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned_expr</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">ordered_energy</span><span class="p">,</span> <span class="p">{},</span> <span class="n">molefraction_dict</span><span class="p">)</span>
 
         <span class="c1"># 2: Replace the ordered energy contributions with the disordered contributions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
@@ -1941,7 +1958,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=b0102654"></script>
+</div><script src="../../_static/documentation_options.js?v=61e1d005"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

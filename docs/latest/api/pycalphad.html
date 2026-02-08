@@ -6,10 +6,10 @@
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html"><link rel="prev" title="API Documentation" href="modules.html">
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
-        <title>pycalphad package - pycalphad 0.11.2.dev10+ge8ab6e216 documentation</title>
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
+        <title>pycalphad package - pycalphad 0.11.2.dev14+gf374077e0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev10+ge8ab6e216 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev14+gf374077e0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev10+ge8ab6e216 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev14+gf374077e0 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1425,7 +1425,7 @@ Calphad 15(2) (1991) 109-119 <a class="reference external" href="https://doi.org
 <p>If the current phase is anything other than the ordered phase in a
 paritioned order/disorder Gibbs energy model, this method will return
 zero. If the current phase is the ordered phase, ordering energy is
-computed by equation (18) of Connetable <em>et al.</em> <a class="footnote-reference brackets" href="#id3" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>:
+computed by equation (18) of Connetable <em>et al.</em> <a class="footnote-reference brackets" href="#id4" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>:
 <span class="math notranslate nohighlight">\(\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i) - G^\mathrm{ord}(y_i = x_i)\)</span></p>
 <p>This method must be the last energy contribution called because it plays
 several roles that require all other contributions to be defined:</p>
@@ -1439,7 +1439,13 @@ phase’s energy and the ordering energy. That is,
 not only computes the ordering energy, but also replaces the other
 model contributions by the disordered phase’s energy.</p>
 <p>3. Physical properties are partitioned in the same way as the
-energy. See Section 5.8.6 of Lukas, Fries and Sundman <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+energy. See Section 5.8.6 of Lukas, Fries and Sundman <a class="footnote-reference brackets" href="#id5" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<p>4. There is a variant of the partitioning model for phases that never
+undergo disordering. See Section 5.8.5 of Lukas, Fries and
+Sundman <a class="footnote-reference brackets" href="#id5" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>. In this variant, the entropy from the disordered phase
+does not contribute to the energy and the ordering energies does not
+have to go to zero, i.e.
+<span class="math notranslate nohighlight">\(\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i)\)</span>.</p>
 </div></blockquote>
 <p class="rubric">Notes</p>
 <div class="admonition caution">
@@ -1456,12 +1462,13 @@ ordered sublattices) and the interstitial sublattices will not have any
 site fractions substituted.</p>
 <p class="rubric">References</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id3" role="doc-footnote">
+<aside class="footnote brackets" id="id4" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>Connetable et al., Calphad 2008, 32 (2), 361–370. doi: 10.1016/j.calphad.2008.01.002</p>
 </aside>
-<aside class="footnote brackets" id="id4" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<aside class="footnote brackets" id="id5" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id3">2</a>)</span>
 <p>Lukas, Fries, and Sundman, Computational Thermodynamics: the Calphad Method, Cambridge University Press (2007).</p>
 </aside>
 </aside>
@@ -2595,7 +2602,7 @@ in the Database (3a) will not be possible.</p></li>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=b0102654"></script>
+</div><script src="../_static/documentation_options.js?v=61e1d005"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
