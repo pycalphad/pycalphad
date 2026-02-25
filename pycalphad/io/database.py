@@ -466,6 +466,7 @@ class Database(object): #pylint: disable=R0902
         try:
             # Need to convert constituents from ParseResults
             # Otherwise equality testing will be broken
+            
             self.phases[phase_name].constituents = tuple([frozenset([species_dict[s.upper()] for s in xs]) for xs in constituents])
         except KeyError:
             print("Undefined phase "+phase_name)
