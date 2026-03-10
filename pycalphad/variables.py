@@ -380,6 +380,35 @@ class StateVariable(Symbol):
         newobj.display_units = new_units
         return newobj
 
+    def __copy__(self):
+        """Create a shallow copy that bypasses the __new__ cache.
+
+        This is necessary because @lru_cache on __new__ would otherwise
+        return the same cached object, causing mutations on the 'copy'
+        to affect the original.
+        """
+        # Access the uncached __new__ via the __wrapped__ attribute
+        # that lru_cache provides
+        cls = self.__class__
+        wrapped_new = cls.__new__.__wrapped__
+
+        # Get the args needed to reconstruct this object from __reduce__
+        reduce_result = self.__reduce__()
+        _, args = reduce_result[0], reduce_result[1]
+
+        # Create new object bypassing the cache
+        newobj = wrapped_new(cls, *args)
+
+        # Run __init__ to set up instance attributes
+        newobj.__init__(*args)
+
+        # Copy any instance-level attribute overrides (like display_units)
+        # StateVariable subclasses may have __dict__ even though Symbol uses __slots__
+        if hasattr(self, '__dict__'):
+            newobj.__dict__.update(self.__dict__)
+
+        return newobj
+
 class SiteFraction(StateVariable):
     """
     Site fractions are symbols with built-in assumptions of being real
