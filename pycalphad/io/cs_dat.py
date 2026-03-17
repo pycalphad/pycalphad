@@ -802,7 +802,6 @@ class Phase_SUBQ(PhaseBase):
                 preliminary_cat=[]
                 preliminary_an=[]
                 for endmember in endmember_:
-                    print('This is endmember',endmember)
                     for ele in endmember:
                         if ele not in common_anion_check:
                             preliminary_cat.append(ele)
