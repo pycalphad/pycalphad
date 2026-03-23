@@ -10,7 +10,7 @@ from pycalphad.core.utils import instantiate_models, get_state_variables
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.composition_set import CompositionSet
 
-from pycalphad.mapping import StepStrategy, IsoplethStrategy, TernaryStrategy, plot_step, plot_isopleth
+from pycalphad.mapping import StepStrategy, IsoplethStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
 from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState
@@ -520,5 +520,62 @@ def test_primitive_representation(load_database):
     for keyword in point_repr_keywords:
         assert keyword in point_repr
 
+@select_database("Al-Cu-Y.tdb")
+def test_issue_638_degenerate_cs_ternary(load_database):
+    """
+    Checks that a node is not falsely flagged as not being global min
+    This can happen if the initial global min check detects a new composition
+    set that is the same phase but slightly different DOF to where it is 
+    below the tolerance required to be detected as a new global min. The fix
+    performs an equilibrium between the new CS and the CS in the node that 
+    has the same phase name to check whether they are the same or if there
+    is a miscibility gap
 
+    This is found in issue 638 on the Al-Cu-Y system at 1700K
+    """
+    temperature = 1700
+
+    dbf = load_database()
+    comps = ['AL', 'CU', 'Y', 'VA']
+    phases = list(dbf.phases.keys())
+    conds = {v.T: temperature, v.P:101325, v.X('AL'): (0,1,0.02), v.X('Y'): (0,1,0.02)}
+    strat = TernaryStrategy(dbf, comps, phases, conds)
+
+    # this starting point should be in ['LIQUID', 'ALCU5Y']
+    # first two nodes should be ['LIQUID', 'ALCU5Y', 'AL7CU2Y3'] and ['LIQUID', 'ALCU5Y', 'ALCUY']
+    strat.add_nodes_from_conditions({v.T: temperature, v.P: 101325, v.X('AL'): 0.4, v.X('Y'): 0.1})
+
+    initial_nodes = len(strat.node_queue.nodes)
+    # stop until there's 4 nodes or if mapping finished
+    while strat.node_queue._current_node_index < (initial_nodes+1):
+        if strat.iterate():
+            break
+
+    nodes = [set(n.stable_phases) for n in strat.node_queue.nodes]
+    assert {'LIQUID', 'ALCU5Y'} in nodes
+    assert {'LIQUID', 'ALCU5Y', 'AL7CU2Y3'} in nodes
+    assert {'LIQUID', 'ALCU5Y', 'ALCUY'} in nodes
+
+@select_database("AuSn-13Don.tdb")
+def test_issue_638_degenerate_cs_binary(load_database):
+    """
+    Same as test_issue638_degenerate_cs_ternary but for a binary system
+    This tests on the AuSn-13Don database which has issues with removing
+    the HCP_A3-LIQUID tielines due to being falsly flagged as not global min
+    """
+    dbf = load_database()
+    comps = ['AU', 'SN', 'VA']
+    phases = list(dbf.phases.keys())
+    conds = {v.T: (400, 1300, 20), v.P:101325, v.X('SN'): (0,1,0.02)}
+    strat = BinaryStrategy(dbf, comps, phases, conds)
+
+    strat.add_nodes_from_conditions({v.T: 650, v.P: 101325, v.X('SN'): 0.2})
+    initial_nodes = len(strat.node_queue.nodes)
+    # stop until there's 4 nodes or if mapping finished
+    while strat.node_queue._current_node_index < (initial_nodes+1):
+        if strat.iterate():
+            break
+
+    nodes = [set(n.stable_phases) for n in strat.node_queue.nodes]
+    assert {'LIQUID', 'HCP_A3', 'AUSN_B81'} in nodes
 

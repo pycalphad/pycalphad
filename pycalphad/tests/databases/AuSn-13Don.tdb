@@ -1,0 +1,257 @@
+$
+$ Database for Au-Sn from H.Q. Dong et al. 2013.
+$
+$ H.Q. Dong, X.M. Tao, T. Laurila, V. Vuorinen, M. Paulasto-Krockel,
+$ Calphad, 42, 38-50(2013).
+$
+$ Dataset created 2018.02.18 by Bengt Hallstedt.
+$ 2020.12.22: Modified for use with GES6.
+$
+$ Modified from 03Liu and 09Don. Current lattice stabilities for fcc-Sn and
+$ hcp-Sn.
+$
+$ There are misprints in the parameter table.
+$
+$ The structure of the Au10Sn phase seems not to be completely
+$ determined. In LB it is quoted as Ni3Ti_D024 or alpha-La (dhcp). Since it
+$ is stable between the disordered fcc and hcp phases it does not seem
+$ probable that it should have the ordered Ni3Ti_D024 structure. Thus, it is
+$ assumed here to have the dhcp structure. This is also consistent with
+$ modelling it as a disordered phase.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 298.15 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    ! 
+ ELEMENT AU   FCC_A1                    196.9665    6016.592   47.4884 ! 
+ ELEMENT SN   BCT_A5                    118.69      6323.      51.18   ! 
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : AU SN : !
+$
+$ Fcc (cF4) and MeX (cF8)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : AU% SN : VA : !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : AU SN : VA : !
+$
+$ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1), zeta
+$
+ PHASE HCP_A3 %A 2 1 0.5 !
+ CONST HCP_A3 : AU SN : VA : !
+$
+$ Prototype alpha-La (SB A3', hP4, P6_3/mmc), Au10Sn, beta
+$
+ PHASE DHCP %A 1 1 !
+ CONST DHCP : AU SN : !
+$
+$ Prototype C (cF8, Fd-3m)
+$
+ PHASE DIAMOND_A4 % 1 1 !
+ CONST DIAMOND_A4 : SN : !
+$
+$ Prototype beta-Sn (tI4, I4_1/amd)
+$
+ PHASE BCT_A5 % 1 1 !
+ CONST BCT_A5 : SN : !
+$
+$ Prototype Au5Sn (hR6, R32), zeta-prime
+$
+ PHASE AU5SN % 2 0.84 0.16 !
+ CONST AU5SN : AU : SN : !
+$
+$ Prototype NiAs (hP4, P6_3/mmc), delta
+$
+ PHASE AUSN_B81 % 3 1 1 1 !
+ CONST AUSN_B81 : AU : SN : SN VA : !
+$
+$ Prototype AuSn2 (oP24, Pbca), epsilon
+$
+ PHASE AUSN2 % 2 1 2 !
+ CONST AUSN2 : AU : SN : !
+$
+$ Prototype PtSn4 (oC20, Ccce), eta
+$
+ PHASE AUSN4_D1C % 2 1 4 !
+ CONST AUSN4_D1C : AU : SN : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+ FUNCTION ZERO      298.15  0;                                         6000 N !
+ FUNCTION UN_ASS    298.15  0;                                         6000 N !
+ FUNCTION R         298.15  +8.31451;                                  6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ Au
+$
+$ DHCP added in unary 5.0
+$ DHCP replaced by the value from 92Ans in SGSOL 5.0
+$
+$ HCP_A3 and BCT_A5 from 88Che1 not included in unary
+$
+$ The DHCP phase is labelled D0_24 in 03Liu and alpha-prime in 92Ans. The
+$ phase is present between the fcc and hcp phases in the Au-Sn and Au-In
+$ systems. The value for DHCP from 92Ans was used to model these systems,
+$ thus this value must be included in the unary database and not the 04Du
+$ value.
+$
+ PAR  G(FCC_A1,AU:VA),,                 +GHSERAU;                3200 N 91Din !
+ PAR  G(HCP_A3,AU:VA),,                 +GHSERAU+240.75+1.6*T;   3200 N 91Din !
+$PAR  G(HCP_A3,AU:VA),,                 +GHSERAU+550+0.3*T;      3200 N 88Che1 !
+ PAR  G(BCC_A2,AU:VA),,                 +GHSERAU+4250-1.1*T;     3200 N 91Din !
+$PAR  G(BCT_A5,AU),,                    +GHSERAU+4184;           3200 N 88Che1 !
+ PAR  G(DHCP,AU),,                      +GHSERAU+125+0.79*T;     3200 N 92Ans !
+$PAR  G(DHCP,AU),,                      +GHSERAU+5000;           3200 N 04Du !
+ PAR  G(LIQUID,AU),,                    +GHSERAU
+             +12552-9.385866*T;                                  3200 N 91Din !
+$
+ FUNCTION GHSERAU   298.15  -6938.856+106.830098*T-22.75455*T*LN(T)
+       -0.00385924*T**2+3.79625E-07*T**3-25097*T**(-1);
+       929.40  Y  -93586.481+1021.69543*T-155.706745*T*LN(T)
+       +0.08756015*T**2-1.1518713E-05*T**3+10637210*T**(-1);
+      1337.33  Y  +314067.829-2016.37825*T+263.252259*T*LN(T)
+       -0.118216828*T**2+8.923844E-06*T**3-67999832*T**(-1);
+      1735.80  Y  -12133.783+165.272524*T-30.9616*T*LN(T);
+      3200.00  N !
+$ ------------------------------------------------------------------------------
+$ Sn
+$
+$ FCC_A1 revised in unary 3.0
+$ HCP_A3 revised in unary 4.1
+$ TETRAGONAL_A6 added in unary 4.1
+$ CBCC_A12 and CUB_A13 added in unary 4.4
+$ FCC_A1 modified in unary 5.0
+$ DHCP and TET_ALPHA1_A6 added in unary 5.0
+$
+$ The DHCP phase is labelled D0_24 in 03Liu and alpha-prime in 92Ans. The
+$ phase is present between the fcc and hcp phases in the Au-Sn and Au-In
+$ systems.
+$
+ PAR  G(BCT_A5,SN)              100.00  +GHSERSN;                3000 N 91Din !
+ PAR  G(DIAMOND_A4,SN)          100.00  +GDIASN;                 3000 N 91Din !
+ PAR  G(FCC_A1,SN:VA)           100.00  +GHSERSN+5510-8.46*T;    3000 N 89Fec !
+$PAR  G(FCC_A1,SN:VA)           100.00  +GHSERSN+4150-5.2*T;     3000 N 91Din !
+ PAR  G(BCC_A2,SN:VA)           100.00  +GHSERSN+4400-6*T;       3000 N 91Din !
+ PAR  G(HCP_A3,SN:VA)           100.00  +GHSERSN+3900-7.646*T;   3000 N Ansar !
+$PAR  G(HCP_A3,SN:VA)           100.00  +GHSERSN+3900-4.4*T;     3000 N 91Din !
+ PAR  G(DHCP,SN)                100.00  +GHSERSN+3803.52-3.46*T; 3000 N 03Liu !
+$PAR  G(RHOMBOHEDRAL_A7,SN)     100.00  +GHSERSN+2035;           3000 N 91Din !
+$PAR  G(TETRAGONAL_A6,SN)       100.00  +GHSERSN+5387-8.26212*T; 3000 N 99Ans !
+$PAR  G(CBCC_A12,SN:VA)         100.00  +GHSERSN+2000;           3000 N 01Mie !
+$PAR  G(CUB_A13,SN:VA)          100.00  +GHSERSN+2000;           3000 N 01Mie !
+$PAR  G(TET_ALPHA1_A6,SN)       100.00  +GHSERSN+5510-8.46*T;    3000 N 99Ans !
+ PAR  G(LIQUID,SN)              100.00  +GLIQSN;                 3000 N 91Din !
+$
+ FUNCTION GHSERSN   100.00  -7958.517+122.765451*T-25.858*T*LN(T)
+       +5.1185E-04*T**2-3.192767E-06*T**3+18440*T**(-1);
+       250.00  Y  -5855.135+65.443315*T-15.961*T*LN(T)
+       -0.0188702*T**2+3.121167E-06*T**3-61960*T**(-1);
+       505.08  Y  +2524.724+4.005269*T-8.2590486*T*LN(T)
+       -0.016814429*T**2+2.623131E-06*T**3-1081244*T**(-1)-1.2307E+25*T**(-9);
+       800.00  Y  -8256.959+138.99688*T-28.4512*T*LN(T)-1.2307E+25*T**(-9);
+      3000.00  N !
+ FUNCTION GDIASN    100.00  -9579.608+114.007785*T-22.972*T*LN(T)
+       -0.00813975*T**2+2.7288E-06*T**3+25615*T**(-1);
+       298.15  Y  -9063.001+104.84654*T-21.5750771*T*LN(T)
+       -0.008575282*T**2+1.784447E-06*T**3-2544*T**(-1);
+       800.00  Y  -10909.351+147.396535*T-28.4512*T*LN(T);
+      3000.00  N !
+ FUNCTION GLIQSN    100.00  +7103.092-14.087767*T+GHSERSN+1.47031E-18*T**7;
+       505.08  Y  +6971.586-13.814383*T+GHSERSN+1.2307E+25*T**(-9);
+       800.00  Y  -1285.372+125.182498*T-28.4512*T*LN(T);
+      3000.00  N !
+ FUNCTION GBCCSN    298.15  +GHSERSN+4400-6*T;                         3000 N !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ H.Q. Dong, X.M. Tao, T. Laurila, V. Vuorinen, M. Paulasto-Krockel,
+$ Calphad, 42, 38-50(2013).
+$
+$ Modified from 03Liu and 09Don. Current lattice stabilities for fcc-Sn and
+$ hcp-Sn.
+$
+$ Checked against paper and author's tdb. Checked at 6000 K.
+$
+$ There are misprints in the parameter table.
+$
+$ The structure of the Au10Sn phase seems not to be completely
+$ determined. In LB it is quoted as Ni3Ti_D024 or alpha-La (dhcp). Since it
+$ is stable between the disordered fcc and hcp phases it does not seem
+$ probable that it should have the ordered Ni3Ti_D024 structure. Thus, it is
+$ assumed here to have the dhcp structure. This is also consistent with
+$ modelling it as a disordered phase.
+$
+ PAR  L(LIQUID,AU,SN;0),,               -48822.94+19.6767*T
+             -2.8429*T*LN(T);,,                                       N 03Liu !
+ PAR  L(LIQUID,AU,SN;1),,               -17990.36+0.7892*T;,,         N 03Liu !
+ PAR  L(LIQUID,AU,SN;2),,               -5222.53;,,                   N 03Liu !
+$
+ PAR  L(FCC_A1,AU,SN:VA;0),,            -28802.84-5.5753*T;,,         N 03Liu !
+ PAR  L(FCC_A1,AU,SN:VA;1),,            +8815.07-9.7873*T;,,          N 13Don !
+$
+ PAR  L(HCP_A3,AU,SN:VA;0),,            -13163.98256-4.48597*T;,,     N 13Don !
+ PAR  L(HCP_A3,AU,SN:VA;1),,            -18954.81-23.2973*T;,,        N 13Don !
+$
+ PAR  L(DHCP,AU,SN;0),,                 -13546.6569-4.7107*T;,,       N 13Don !
+ PAR  L(DHCP,AU,SN;1),,                 -14193.13-22.3922*T;,,        N 13Don !
+$
+ PAR  G(AU5SN,AU:SN),,                  +0.84*GHSERAU+0.16*GHSERSN
+             -4036.7822-3.3646*T;,,                                   N 13Don !
+$
+$ Parameter below is from 13Don, but incorrect.
+ PAR  G(AUSN_B81,AU:SN:SN),,            +2*GHSERAU+GHSERSN
+             -1000+0.5*T;,,                                           N 13Don !
+ PAR  G(AUSN_B81,AU:SN:VA),,            +GHSERAU+GHSERSN
+             -31490+4.3439*T;,,                                       N 13Don !
+ PAR  L(AUSN_B81,AU:SN:SN,VA;0),,       -20000+T;,,                   N 13Don !
+$
+ PAR  G(AUSN2,AU:SN),,                  +GHSERAU+2*GHSERSN
+             -42889.6572+16.3614*T;,,                                 N 13Don !
+ PAR  G(AUSN4_D1C,AU:SN),,              +GHSERAU+4*GHSERSN
+             -38951.285+4.1775*T;,,                                   N 13Don !
+$
+$ Metastable
+$
+ PAR  L(BCC_A2,AU,SN:VA;0),,            -28802-7.5*T;,,               N Same !
+ PAR  L(BCC_A2,AU,SN:VA;1),,            +8815.1-9.7873*T;,,           N Same !
+$ ------------------------------------------------------------------------------
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  Same   'Same or similar interaction as in the corresponding stable phase'
+  COST   'COST 507 database'
+  Ansar  'Himo Ansara, unpublished, SGTE unary database V.4.1, 1999; Sn'
+  88Che1 'P.-Y. Chevalier, Thermochim. Acta, 130, 1-13(1988); Au, Sn'
+  89Fec  'H.J. Fecht, M.X. Zhang, Y.A. Chang, J.H. Perepezko,
+          Metall. Trans. A, 20A, 795-803(1989),
+          SGTE unary database V.3.0, 1996; Sn'
+  91Din  'A.T. Dinsdale, Calphad, 15, 317-425(1991).'
+  92Ans  'I. Ansara, J.-Ph. Nabot, Calphad, 16, 13-18(1992); Au'
+  99Ans  'I. Ansara, S.G. Fries, H.L. Lukas, unpublished, 1999,
+          SGTE unary database V.5.0, 2009; In, Sn'
+  01Mie  'J. Miettinen, Calphad, 25, 43-58(2001),
+          SGTE unary database V.4.4, 2001; Sn, Zn'
+  03Liu  'H.S. Liu, C.L. Liu, K. Ishida, Z.P. Jin, J. Electron. Mater.,
+          32, 1290-96(2003); Au-Sn,
+          SGTE unary database V.5.0, 2009; Sn'
+  04Du   'Z. Du, C. Guo, D. Lu, J. Alloys Compd., 364, 117-20(2004),
+          SGTE unary database V.5.0, 2009; Au'
+  13Don  'H.Q. Dong, X.M. Tao, T. Laurila, V. Vuorinen, M. Paulasto-Krockel,
+          Calphad, 42, 38-50(2013); Au-Sn'
+!

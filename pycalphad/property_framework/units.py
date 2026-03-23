@@ -5,7 +5,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pycalphad.property_framework import ComputableProperty
 
-ureg = pint.UnitRegistry(preprocessors=[lambda s: s.replace('%', ' percent ')])
+ureg = pint.UnitRegistry(
+    preprocessors=[lambda s: s.replace('%', ' percent ')],
+    # Suppress warnings when redefining 'percent', '%', and 'ppm' units.
+    # We intentionally redefine these relative to our custom 'fraction' unit.
+    on_redefinition='ignore',
+)
 ureg.define('atom = 1/avogadro_number * mol')
 ureg.define('fraction = []')
 ureg.define('percent = 1e-2 fraction = %')

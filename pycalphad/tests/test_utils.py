@@ -41,6 +41,17 @@ def test_filter_phases_removes_phases_with_inactive_sublattices(load_database):
     assert all_phases.difference(filtered_phases) == {'FCC_A1', 'PT8AL21', 'PT5AL21', 'PT2AL', 'PT2AL3', 'PT5AL3', 'ALPT2'}
 
 
+@select_database("CoV-20Wan.tdb")
+def test_filter_phases_removes_disordered_part_of_never_disorder_models(load_database):
+    """Phases that are the disordered part of a never disorder model should be removed"""
+    dbf = load_database()
+    all_phases = set(dbf.phases.keys())
+    filtered_phases = set(filter_phases(dbf, unpack_species(dbf, ['CO', 'V', 'VA'])))
+
+    # A1_FCC and DIS_SIGMA are disordered parts and should be removed
+    assert all_phases.difference(filtered_phases) == {"A1_FCC", "DIS_SIGMA"}
+
+
 @select_database("alnipt.tdb")
 def test_instantiate_models_only_returns_desired_phases(load_database):
     """instantiate_models should only return phases passed"""
