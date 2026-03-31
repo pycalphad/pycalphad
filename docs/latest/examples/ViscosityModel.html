@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.11.2.dev18+gebb20bc83 documentation</title>
+        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.11.2.dev19+gd9af50068 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev18+gebb20bc83 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev19+gd9af50068 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev18+gebb20bc83 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev19+gd9af50068 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -453,9 +453,9 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
 <span class="n">temp</span> <span class="o">=</span> <span class="mi">2100</span>
 <span class="c1"># NOTICE: we need to tell pycalphad about our model for this phase</span>
 <span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">:</span> <span class="n">mod</span><span class="p">}</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;ZR&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;ZR&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
 
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;ZR&#39;</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(ZR)&#39;</span><span class="p">)</span>
@@ -484,9 +484,9 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
 
 <span class="n">temp</span> <span class="o">=</span> <span class="mi">1300</span>
 <span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">:</span> <span class="n">ViscosityModel</span><span class="p">}</span>  <span class="c1"># we can also use Model class</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
 
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;CU&#39;</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(CU)&#39;</span><span class="p">)</span>
@@ -580,7 +580,7 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cff7d97e"></script>
+</div><script src="../_static/documentation_options.js?v=389850bc"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni) - pycalphad 0.11.2.dev18+gebb20bc83 documentation</title>
+        <title>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni) - pycalphad 0.11.2.dev19+gd9af50068 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev18+gebb20bc83 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev19+gd9af50068 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev18+gebb20bc83 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev19+gd9af50068 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -339,7 +339,7 @@
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">degree_of_ordering</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="s1">&#39;degree_of_ordering(B2_BCC)&#39;</span><span class="p">)</span>
 <span class="n">degree_of_ordering</span><span class="o">.</span><span class="n">display_name</span> <span class="o">=</span> <span class="s1">&#39;Degree of ordering&#39;</span>
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Al-Fe: Degree of bcc ordering vs T [X(AL)=0.25]&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">wks1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">degree_of_ordering</span><span class="p">))</span>
@@ -373,7 +373,7 @@ Text(0, 0.5, &#39;Degree of ordering&#39;)
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">heat_capacity</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="s1">&#39;HM.T&#39;</span><span class="p">)</span>
 <span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_name</span> <span class="o">=</span> <span class="s1">&#39;Heat Capacity&#39;</span>
 <span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_units</span> <span class="o">=</span> <span class="s1">&#39;J/mol/K&#39;</span>
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Al-Fe: Heat capacity vs T [X(AL)=0.25]&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">wks1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">heat_capacity</span><span class="p">))</span>
@@ -403,7 +403,7 @@ Text(0, 0.5, &#39;Heat Capacity [J/mol/K]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Al-Fe: Degree of bcc ordering vs X(AL) [T=700 K]&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;B2_BCC&#39;</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">)),</span> <span class="n">wks2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">degree_of_ordering</span><span class="p">))</span>
@@ -435,7 +435,7 @@ Text(0, 0.5, &#39;Degree of ordering&#39;)
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wks2</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;B2_BCC&#39;</span><span class="p">]</span>
 
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;B2_BCC&#39;</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">)),</span> <span class="n">wks2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">degree_of_ordering</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;B2_BCC&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;AL&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;B2_BCC&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;AL&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">display_units</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
@@ -481,7 +481,7 @@ Text(0, 0.5, &#39;Degree of ordering&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">wks3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;NP(LIQUID)&#39;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Liquid&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">wks3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;NP(FCC_L12#1)&#39;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;FCC#1&#39;</span><span class="p">)</span>
@@ -518,7 +518,7 @@ Text(0, 0.5, &#39;Degree of ordering&#39;)
 <span class="n">L12_degree_of_ordering</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="s1">&#39;degree_of_ordering(FCC_L12#1)&#39;</span><span class="p">)</span>
 <span class="n">L12_degree_of_ordering</span><span class="o">.</span><span class="n">display_name</span> <span class="o">=</span> <span class="s1">&#39;$\gamma^\prime$ (ordered fcc)&#39;</span>
 
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">wks3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dis_degree_of_ordering</span><span class="p">),</span>
         <span class="n">label</span><span class="o">=</span><span class="n">dis_degree_of_ordering</span><span class="o">.</span><span class="n">display_name</span><span class="p">)</span>
@@ -543,14 +543,6 @@ Text(0, 0.5, &#39;Degree of ordering&#39;)
 </div>
 <div class="output_area docutils container">
 <img alt="../_images/examples_EquilibriumWithOrdering_20_1.png" src="../_images/examples_EquilibriumWithOrdering_20_1.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
 </div>
 </div>
 </section>
@@ -632,7 +624,7 @@ Text(0, 0.5, &#39;Degree of ordering&#39;)
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cff7d97e"></script>
+</div><script src="../_static/documentation_options.js?v=389850bc"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

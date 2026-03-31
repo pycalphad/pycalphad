@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Plot energy curves for several phases - pycalphad 0.11.2.dev18+gebb20bc83 documentation</title>
+        <title>Plot energy curves for several phases - pycalphad 0.11.2.dev19+gd9af50068 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev18+gebb20bc83 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev19+gd9af50068 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev18+gebb20bc83 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev19+gd9af50068 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -460,7 +460,7 @@
                 <span class="p">[</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">],</span>
                 <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.02</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">600</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
 
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">wks2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">))</span>
@@ -511,7 +511,7 @@
 <span class="n">liq_driving_force</span> <span class="o">=</span> <span class="n">DormantPhase</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="n">metastable_liq_wks</span><span class="p">)</span><span class="o">.</span><span class="n">driving_force</span>
 <span class="n">liq_driving_force</span><span class="o">.</span><span class="n">display_name</span> <span class="o">=</span> <span class="s1">&#39;Liquid Driving Force&#39;</span>
 
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">)),</span> <span class="n">wks3</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">liq_driving_force</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">display_units</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
@@ -552,7 +552,7 @@ Text(0, 0.5, &#39;Liquid Driving Force [J / mol]&#39;)
 <span class="n">tzero</span> <span class="o">=</span> <span class="n">T0</span><span class="p">(</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">,</span> <span class="n">wks4</span><span class="p">)</span>
 <span class="n">tzero</span><span class="o">.</span><span class="n">maximum_value</span> <span class="o">=</span> <span class="mi">1700</span> <span class="c1"># set temperature limit</span>
 
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks4</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">)),</span> <span class="n">wks4</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tzero</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">display_units</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
@@ -574,14 +574,6 @@ Text(0, 0.5, &#39;T0(FCC_A1,HCP_A3) [kelvin]&#39;)
 </div>
 <div class="output_area docutils container">
 <img alt="../_images/examples_Metastability_8_1.png" src="../_images/examples_Metastability_8_1.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
 </div>
 </div>
 </section>
@@ -635,7 +627,7 @@ Text(0, 0.5, &#39;T0(FCC_A1,HCP_A3) [kelvin]&#39;)
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cff7d97e"></script>
+</div><script src="../_static/documentation_options.js?v=389850bc"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
