@@ -333,7 +333,8 @@ class ModelMQMQA(Model):
             else:
                 return False
         return _f
-
+     
+    
     def _Chi_mix(self, dbe, i, j, k, l):
         """
         (:math:`\\chi_{ij/k}`) following Poschmann Eq. 21 (SUBG-type model) or Eq. 22 (SUBQ-type models), respectively.
@@ -690,9 +691,15 @@ class ModelMQMQA(Model):
                     else:  # not in nu or gamma
                         mixing_term *= Y_im * (1 - Xi_ikl - Xi_ilk)**(r_alpha - 1)
             else:
-                mixing_term = S.One  # No mixing, this is a modification to the formation energy of this quadruplet
+                if m==None:
+                    mixing_term = S.One  # No mixing, this is a modification to the formation energy of this quadruplet
+                else:
+                    pos_m=[spec for spec in m if spec.charge>0][0]
+                    neg_m=[spec for spec in m if spec.charge<0][0]
+                    quadruplet_mole=X_ijkl(pos_m,pos_m,neg_m,neg_m)
+                    mix_term_exponent=[num for num in exponents if num!=0][0]
+                    mixing_term=quadruplet_mole ** mix_term_exponent
             g = param["parameter"] * mixing_term
-
             # Poschmann Eq. 17
             cation_factor = S.Zero
             if A == B:
