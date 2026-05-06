@@ -65,6 +65,7 @@ dev = [
     "setuptools_scm[toml]>=6.0",
     "wheel",
     "furo>=2021.11.16",  # docs theme
+    "ipykernel",
     "ipython",  # for pygments syntax highlighting
     "pytest-cov",
     "sphinx<9",
