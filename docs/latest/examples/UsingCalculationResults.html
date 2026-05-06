@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.11.2.dev21+g53bd8d918 documentation</title>
+        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.11.2.dev22+gcd5dd055f documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev21+g53bd8d918 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev22+gcd5dd055f documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev21+g53bd8d918 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev22+gcd5dd055f documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -325,8 +325,12 @@
 
 <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
 <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
-<span class="n">calc_result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="p">)</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="s1">&#39;FCC_A1&#39;</span>
+<span class="n">pressure</span> <span class="o">=</span> <span class="mi">101325</span>
+<span class="n">temperatures</span> <span class="o">=</span> <span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]</span>
+
+<span class="n">calc_result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">pressure</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temperatures</span><span class="p">)</span>
+<span class="n">calc_result</span>
 </pre></div>
 </div>
 </div>
@@ -358,7 +362,7 @@ Attributes:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">internal_dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">calc_result</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">internal_dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -375,12 +379,30 @@ Coordinates:
     T        float64 8B 1e+03
 </pre></div></div>
 </div>
-<p>accessing the <code class="docutils literal notranslate"><span class="pre">values</span></code> attribute on any on any DataArray returns the multidimensional NumPy array</p>
-<div class="nbinput docutils container">
+<p>accessing the <code class="docutils literal notranslate"><span class="pre">values</span></code> attribute on any DataArray returns the multidimensional NumPy array</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Checking type of values attribute</span>
+<span class="nb">type</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Checking shape of values attribute</span>
+<span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span>
 </pre></div>
 </div>
 </div>
@@ -409,7 +431,7 @@ Coordinates:
 </section>
 <section id="equilibrium()-results">
 <h2><code class="docutils literal notranslate"><span class="pre">equilibrium()</span></code> results<a class="headerlink" href="#equilibrium()-results" title="Link to this heading">¶</a></h2>
-<p>The Datasets returned by equilibrium are very similar to calculate, however there are several key differences worth discussing. In equilibrium Datasets, there are six dimensions/coordinates:</p>
+<p>The Datasets returned by equilibrium method are very similar to calculate method, however there are several key differences worth discussing. In equilibrium Datasets, there are six dimensions/coordinates:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</p></li>
@@ -420,7 +442,7 @@ Coordinates:
 </ul>
 <p>There are also at least six Data variables:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase in equilibrium at the conditions. There are as many as <code class="docutils literal notranslate"><span class="pre">len(vertex)</span></code> phases. Any time there are fewer phases in equilibrium than the indices described by <code class="docutils literal notranslate"><span class="pre">vertex</span></code>, the values of phase are paded by <code class="docutils literal notranslate"><span class="pre">''</span></code>, e.g. for a single phase region for FCC_A1, the values of Phase will be <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>. When more than one phase is present, it is important to note that they are not necessarily sorted.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase in equilibrium at the specified conditions. There are as many as <code class="docutils literal notranslate"><span class="pre">len(vertex)</span></code> phases. Any time there are fewer phases in equilibrium than the indices described by <code class="docutils literal notranslate"><span class="pre">vertex</span></code>, the values of phase are paded by <code class="docutils literal notranslate"><span class="pre">''</span></code>, e.g. for a single phase region for FCC_A1, the values of Phase will be <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>. When more than one phase is present, it is important to note that they are not necessarily sorted.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">NP</span></code>: Phase fraction of each phase in equilibrium. When there is no other equilibrium phase (e.g. single phase <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>) then the value of <code class="docutils literal notranslate"><span class="pre">NP</span></code> will be <code class="docutils literal notranslate"><span class="pre">nan</span></code> for the absence of a phase, rather than 0.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">MU</span></code>: The chemical potentials of each component for the conditions calculated.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">X</span></code>: The equilibrium composition of each element in each phase for the calculated conditions.</p></li>
@@ -433,8 +455,9 @@ Coordinates:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
-<span class="n">eq_result</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span> <span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.05</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="p">)</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.05</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">}</span>
+<span class="n">eq_result</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span> <span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM&#39;</span><span class="p">)</span>
+<span class="n">eq_result</span>
 </pre></div>
 </div>
 </div>
@@ -474,7 +497,7 @@ Attributes:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">Phase</span><span class="o">==</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">800</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq_result</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">Phase</span><span class="o">==</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -586,7 +609,7 @@ Coordinates:
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cfeacd9d"></script>
+</div><script src="../_static/documentation_options.js?v=c845a199"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
