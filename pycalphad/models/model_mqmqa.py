@@ -693,7 +693,7 @@ class ModelMQMQA(Model):
                 if m == None:
                     mixing_term = S.One  # No mixing, this is a modification to the formation energy of this quadruplet
                 else:
-                # An option for quadruplet interaction parameters in the FactSage software
+                    # An option for quadruplet interaction parameters in the FactSage software
                     pos_m = [spec for spec in m if spec.charge>0][0]
                     neg_m = [spec for spec in m if spec.charge<0][0]
                     quadruplet_mole = X_ijkl(pos_m,pos_m,neg_m,neg_m)
