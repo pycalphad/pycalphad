@@ -336,8 +336,7 @@ class Workspace:
                 raise ValueError(f'{kwarg_name} is not a Workspace attribute')
             setattr(self, kwarg_name, kwarg_val)
         self._suspend_dependency_updates = False
-
-        
+    
     def recompute(self):
         # Assumes implementation units from this point
         unitless_conds = OrderedDict((key, as_quantity(key, value).to(key.implementation_units).magnitude) for key, value in self.conditions.items())
@@ -509,7 +508,6 @@ class Workspace:
             chemical_potentials = prop_MU_values[index]
 
             for arg in args:
-#                print('THis is arg in args',arg)
                 prop_implementation_units, prop_display_units = arg_units[arg]
                 context = unit_conversion_context(composition_sets, arg)
                 if results.get(arg, None) is None:

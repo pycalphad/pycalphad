@@ -620,9 +620,6 @@ class SUBQExcessQuadruplet:
             addtl_mixing_const.append(addtl_cation_mixing_const)
             addtl_mixing_const.append(addtl_anion_mixing_const)
             addtl_mixing_expon = exponents
-#############THIS IS THE RAISE ERROR BECAUSE IT DOES NOT ALLOW FOR THESE COMPLICATED RECIPROCAL INTERACTION PARAMETERS######
-#            raise ValueError(f"Having a cation _and_ anion as additional mixing constituents is not allowed. Got {addtl_cation_mixing_const} and {addtl_anion_mixing_const} for {phase_name} and quadruplet {A, B, X, Y}.")
-
         elif addtl_cation_mixing_const is not None:
             addtl_mixing_const = addtl_cation_mixing_const
             addtl_mixing_expon = exponents[2]
