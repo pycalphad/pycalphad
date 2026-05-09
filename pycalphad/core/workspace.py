@@ -298,6 +298,7 @@ ModelType = TypeVar('ModelType', bound=Model)
 # LinearCombination conditions for components with more than one constituent
 
 class Workspace:
+    """Workspace class that wraps database, calculation definitions, solvers and other configurations."""
     _callbacks = defaultdict(lambda: [])
     database: Database = TypedField(lambda _: Database())
     components: ComponentList = ComponentsField(depends_on=['database'])
