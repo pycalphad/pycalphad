@@ -13,7 +13,7 @@ import pycalphad.io.cs_dat
 from pycalphad.model import Model, ReferenceState
 
 from pycalphad.core.calculate import calculate
-from pycalphad.core.equilibrium import equilibrium
+from pycalphad.core.equilibrium import equilibrium, zip_equilibrium
 from pycalphad.core.workspace import Workspace
 from pycalphad.plot.eqplot import eqplot
 from pycalphad.property_framework import as_property

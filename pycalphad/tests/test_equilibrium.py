@@ -9,7 +9,7 @@ import pytest
 from symengine import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
-from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
+from pycalphad import Database, Model, calculate, equilibrium, zip_equilibrium, EquilibriumError, ConditionError
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.solver import SolverBase, Solver
 from pycalphad.core.utils import get_state_variables, instantiate_models
@@ -74,6 +74,39 @@ def test_eq_single_phase(load_database):
                      {v.T: [1400, 2500], v.P: 101325,
                       v.X('AL'): [0.1, 0.2, 0.3, 0.7, 0.8]}, verbose=True)
     assert_allclose(np.squeeze(eq.GM), np.squeeze(res.GM), atol=0.1)
+
+
+@select_database("alfe.tdb")
+def test_zip_equilibrium_scalar_temperature(load_database):
+    "Zipped composition rows match separate scalar equilibrium calls."
+    dbf = load_database()
+    comps = ['AL', 'FE', 'VA']
+    phases = 'LIQUID'
+    xs = np.array([[0.9, 0.1], [0.8, 0.2], [0.7, 0.3]])
+    results = zip_equilibrium(dbf, comps, phases, xs, ['AL'], 1400, 101325)
+
+    assert len(results) == len(xs)
+    for row, zipped_result in zip(xs, results):
+        expected = equilibrium(dbf, comps, phases, {v.T: 1400, v.P: 101325, v.X('AL'): row[1]})
+        assert_allclose(np.squeeze(zipped_result.GM), np.squeeze(expected.GM), atol=0.1)
+
+
+@select_database("alfe.tdb")
+def test_zip_equilibrium_broadcast_temperature(load_database):
+    "Zipped composition rows can be broadcast over temperature without Cartesian composition expansion."
+    dbf = load_database()
+    comps = ['AL', 'FE', 'VA']
+    phases = 'LIQUID'
+    temperatures = [1400, 1500]
+    xs = np.array([[0.9, 0.1], [0.8, 0.2], [0.7, 0.3]])
+    results = zip_equilibrium(dbf, comps, phases, xs, ['AL'], temperatures, 101325)
+
+    assert len(results) == len(temperatures) * len(xs)
+    for index, zipped_result in enumerate(results):
+        temperature = temperatures[index // len(xs)]
+        row = xs[index % len(xs)]
+        expected = equilibrium(dbf, comps, phases, {v.T: temperature, v.P: 101325, v.X('AL'): row[1]})
+        assert_allclose(np.squeeze(zipped_result.GM), np.squeeze(expected.GM), atol=0.1)
 
 
 @select_database("alnipt.tdb")
