@@ -5,6 +5,7 @@ correct solution for thermodynamic equilibrium.
 
 import warnings
 import os
+from cycler import V
 import pytest
 from symengine import Symbol
 from numpy.testing import assert_allclose
@@ -1122,7 +1123,7 @@ def test_equilibrium_never_disorder(load_database):
     assert_allclose(res.Y.values.squeeze()[0,:6], np.array([0.99942828, 5.7172171E-4, 1.2760143E-2, 0.98723986, 0.12216729, 0.87783271,]), rtol=2e-5)
 
 @select_database("2026-Dixon-Na-K-Cl-I.dat")
-def test_MQMQA_reciprocal_interaction_parameter(load_database):
+def test_MQMQA_reciprocal_interaction_parameter_Dixon(load_database):
     """The reciprocal interaction parameter presented in Eq. 15 by Dixon et al. (2026) can now be read by PyCalphad"""
     dbf = load_database()
     comps = ['NA','K','CL','I']
@@ -1130,4 +1131,4 @@ def test_MQMQA_reciprocal_interaction_parameter(load_database):
     print('GM', eq.GM.values.squeeze())
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
-    assert np.isclose(eq.GM.values.squeeze(), -229356.0, atol=10.0)  # Thermochimica result
+    assert_allclose(eq.GM.values.squeeze(), -229356.0, atol=5)  # FactSage result

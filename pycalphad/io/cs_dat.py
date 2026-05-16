@@ -628,10 +628,11 @@ class SUBQExcessQuadruplet:
             addtl_mixing_const = None
             addtl_mixing_expon = 0
         species_dict = {s.name: s for s in dbf.species}
-        if addtl_mixing_const is not None and not isinstance(addtl_mixing_const, list):
-            additional_mixing_constituent = species_dict.get(addtl_mixing_const.upper(), v.Species(addtl_mixing_const))
-        elif addtl_mixing_const is not None and isinstance(addtl_mixing_const, list):
-            additional_mixing_constituent = [species_dict.get(spec.upper(), v.Species(spec)) for spec in addtl_mixing_const]
+        if addtl_mixing_const is not None:
+            if not isinstance(addtl_mixing_const, list):
+                additional_mixing_constituent = species_dict.get(addtl_mixing_const.upper(), v.Species(addtl_mixing_const))
+            else:
+                additional_mixing_constituent = [species_dict.get(spec.upper(), v.Species(spec)) for spec in addtl_mixing_const]
         else:
             additional_mixing_constituent = v.Species(None)
 
