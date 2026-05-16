@@ -18,7 +18,7 @@ Advanced Examples
    :maxdepth: 1
 
    UsingCalculationResults
-   EfficientEquilibriumGrid
+   HighThroughputCalculations
    LegacyEnergySurface
    LegacyReferenceState
    ChargedPhases
