@@ -298,7 +298,15 @@ ModelType = TypeVar('ModelType', bound=Model)
 # LinearCombination conditions for components with more than one constituent
 
 class Workspace:
-    """Workspace class that wraps database, calculation definitions, solvers and other configurations."""
+    """
+    Reactive equilibrium calculator.
+
+    Workspace ties together a database, components, phases, and conditions
+    into a single object that computes phase equilibria. It is reactive in the
+    sense that modifying any input (e.g., changing components, phases, or
+    conditions) automatically updates internal state enabling performant,
+    interactive use.
+    """
     _callbacks = defaultdict(lambda: [])
     database: Database = TypedField(lambda _: Database())
     components: ComponentList = ComponentsField(depends_on=['database'])
