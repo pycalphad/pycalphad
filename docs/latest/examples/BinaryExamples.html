@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.11.2.dev23+g19adcdaf6 documentation</title>
+        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.11.2.dev24+ge0c9ed47b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,10 +291,10 @@
 <h2>binplot<a class="headerlink" href="#binplot" title="Link to this heading">¶</a></h2>
 <p>The phase diagrams are computed with <code class="docutils literal notranslate"><span class="pre">binplot</span></code>, which has four required arguments:</p>
 <ol class="arabic simple">
-<li><p>The Database object</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Database</span></code> object</p></li>
 <li><p>A list of active components (vacancies (<code class="docutils literal notranslate"><span class="pre">VA</span></code>), which are present in many databases, must be included explictly).</p></li>
 <li><p>A list of phases to consider in the calculation</p></li>
-<li><p>A dictionary conditions to consider, with keys of pycalphad StateVariables and values of scalars, 1D arrays, or <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code> ranges</p></li>
+<li><p>A dictionary of conditions to consider, with keys of pycalphad <code class="docutils literal notranslate"><span class="pre">StateVariables</span></code> and values of scalars, 1D arrays, or <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code> ranges</p></li>
 </ol>
 <p>Note that, at the time of writing, invariant reactions (three-phase ‘regions’ on binary diagrams) are not yet automatically detected so they are not drawn on the diagram.</p>
 <p>Also note that the <a class="reference external" href="https://ipython.readthedocs.io/en/stable/interactive/magics.html">magic variable</a> <code class="docutils literal notranslate"><span class="pre">%matplotlib</span> <span class="pre">inline</span></code> should only be used in Jupyter notebooks.</p>
@@ -312,11 +312,9 @@
 <h3>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#Al-Zn-(S.-Mey,-1993)" title="Link to this heading">¶</a></h3>
 <p>The miscibility gap in the fcc phase is included in the Al-Zn diagram, shown below.</p>
 <p>The format for specifying a range of a state variable is (<em>start</em>, <em>stop</em>, <em>step</em>).</p>
-<ol class="upperalpha simple" start="19">
-<li><p>an Mey, Zeitschrift für Metallkunde 84(7) (1993) 451-455.</p></li>
-</ol>
+<p><a class="reference external" href="https://doi.org/10.1515/ijmr-1993-840704">S. Mey, Zeitschrift für Metallkunde 84(7) (1993) 451–455</a>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
@@ -326,14 +324,16 @@
 
 <span class="c1"># Load database and choose the phases that will be considered</span>
 <span class="n">db_alzn</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
 <span class="n">my_phases_alzn</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.02</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
 
 <span class="c1"># Create a matplotlib Figure object and get the active Axes</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
 <span class="c1"># Compute the phase diagram and plot it on the existing axes using the `plot_kwargs={&#39;ax&#39;: axes}` keyword argument</span>
-<span class="n">binplot</span><span class="p">(</span><span class="n">db_alzn</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">my_phases_alzn</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.02</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="n">axes</span><span class="p">})</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">db_alzn</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">my_phases_alzn</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">))</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -349,9 +349,7 @@
 </section>
 <section id="Al-Mg-(Y.-Zhong,-2005)">
 <h3>Al-Mg (Y. Zhong, 2005)<a class="headerlink" href="#Al-Mg-(Y.-Zhong,-2005)" title="Link to this heading">¶</a></h3>
-<ol class="upperalpha simple" start="25">
-<li><p>Zhong, M. Yang, Z.-K. Liu, CALPHAD 29 (2005) 303-311 doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.08.004">10.1016/j.calphad.2005.08.004</a></p></li>
-</ol>
+<p><a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.08.004">Y. Zhong, M. Yang, Z.-K. Liu, CALPHAD 29 (2005) 303-311</a></p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -367,9 +365,10 @@
 <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;MG&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
 <span class="c1"># Get all possible phases programmatically</span>
 <span class="n">phases</span> <span class="o">=</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;MG&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)}</span>
 
 <span class="c1"># Plot the phase diagram, if no axes are supplied, a new figure with axes will be created automatically</span>
-<span class="n">binplot</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;MG&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)})</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -386,11 +385,9 @@
 <section id="Al-Ni-(Dupin,-2001)">
 <h3>Al-Ni (Dupin, 2001)<a class="headerlink" href="#Al-Ni-(Dupin,-2001)" title="Link to this heading">¶</a></h3>
 <p>Components and conditions can also be stored as variables and passed to binplot.</p>
-<ol class="upperalpha simple" start="14">
-<li><p>Dupin, I. Ansara, B. Sundman, CALPHAD 25(2) (2001) 279-298 doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00049-9">10.1016/S0364-5916(01)00049-9</a></p></li>
-</ol>
+<p><a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00049-9">N. Dupin, I. Ansara, B. Sundman, CALPHAD 25(2) (2001) 279-298</a></p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
@@ -405,7 +402,7 @@
 <span class="c1"># Get all the phases in the database programatically</span>
 <span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="c1"># Create the dictionary of conditions</span>
-<span class="n">conds</span> <span class="o">=</span> <span class="p">{</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span>
     <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>  <span class="c1"># (start, stop, step)</span>
     <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">),</span>   <span class="c1"># (start, stop, step)</span>
@@ -416,7 +413,7 @@
 <span class="n">axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
 <span class="c1"># Plot by passing in all the variables</span>
-<span class="n">binplot</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="n">axes</span><span class="p">})</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">))</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -434,7 +431,7 @@
 <h3>Al-Fe (M. Seiersten, 1991)<a class="headerlink" href="#Al-Fe-(M.-Seiersten,-1991)" title="Link to this heading">¶</a></h3>
 <p>Removing tielines</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
@@ -444,7 +441,9 @@
 
 <span class="c1"># Load database and choose the phases that will be considered</span>
 <span class="n">db_alfe</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alfe_sei.TDB&#39;</span><span class="p">)</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
 <span class="n">my_phases_alfe</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;B2_BCC&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">,</span> <span class="s1">&#39;AL5FE2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL2FE&#39;</span><span class="p">,</span> <span class="s1">&#39;AL13FE4&#39;</span><span class="p">,</span> <span class="s1">&#39;AL5FE4&#39;</span><span class="p">]</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">}</span>
 
 <span class="c1"># Create a matplotlib Figure object and get the active Axes</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
@@ -452,7 +451,7 @@
 
 <span class="c1"># Plot the phase diagram on the existing axes using the `plot_kwargs={&#39;ax&#39;: axes}` keyword argument</span>
 <span class="c1"># Tielines are turned off by including `&#39;tielines&#39;: False` in the plotting keword argument</span>
-<span class="n">binplot</span><span class="p">(</span><span class="n">db_alfe</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">my_phases_alfe</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="n">axes</span><span class="p">,</span> <span class="s1">&#39;tielines&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">db_alfe</span><span class="p">,</span> <span class="n">components</span> <span class="p">,</span> <span class="n">my_phases_alfe</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span> <span class="n">tielines</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -468,9 +467,9 @@
 </section>
 <section id="Nb-Re-(Liu,-2013)">
 <h3>Nb-Re (Liu, 2013)<a class="headerlink" href="#Nb-Re-(Liu,-2013)" title="Link to this heading">¶</a></h3>
-<p>X.L. Liu, C.Z. Hargather, Z.-K. Liu, CALPHAD 41 (2013) 119-127 doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.02.006">10.1016/j.calphad.2013.02.006</a></p>
+<p><a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.02.006">X.L. Liu, C.Z. Hargather, Z.-K. Liu, CALPHAD 41 (2013) 119-127</a></p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
@@ -479,14 +478,16 @@
 
 <span class="c1"># Load database and choose the phases that will be plotted</span>
 <span class="n">db_nbre</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;nbre_liu.tdb&#39;</span><span class="p">)</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;NB&#39;</span><span class="p">,</span> <span class="s1">&#39;RE&#39;</span><span class="p">]</span>
 <span class="n">my_phases_nbre</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CHI_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;SIGMARENB&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_RENB&#39;</span><span class="p">]</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;RE&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">3500</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">}</span>
 
 <span class="c1"># Create a matplotlib Figure object and get the active Axes</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
 <span class="c1"># Plot the phase diagram on the existing axes using the `plot_kwargs={&#39;ax&#39;: axes}` keyword argument</span>
-<span class="n">binplot</span><span class="p">(</span><span class="n">db_nbre</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NB&#39;</span><span class="p">,</span> <span class="s1">&#39;RE&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">my_phases_nbre</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;RE&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">3500</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="n">axes</span><span class="p">})</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">db_nbre</span><span class="p">,</span> <span class="n">components</span> <span class="p">,</span> <span class="n">my_phases_nbre</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">))</span>
 
 <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -580,7 +581,7 @@
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=ffbe65b0"></script>
+</div><script src="../_static/documentation_options.js?v=401a02fb"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

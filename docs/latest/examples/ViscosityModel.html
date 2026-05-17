@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.11.2.dev23+g19adcdaf6 documentation</title>
+        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.11.2.dev24+ge0c9ed47b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -297,22 +297,14 @@
 <p>where <span class="math notranslate nohighlight">\(\eta_i\)</span> is the viscosity of the element <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(x_i\)</span> is the mole fraction, <span class="math notranslate nohighlight">\(S_{ex}\)</span> is the excess entropy, and <span class="math notranslate nohighlight">\(R\)</span> is the gas constant.</p>
 <p>For more details on this model, see</p>
 <ol class="arabic simple">
-<li><p>M.E. Trybula, T. Gancarz, W. Gąsior, <em>Density, surface tension and viscosity of liquid binary Al-Zn and ternary Al-Li-Zn alloys</em>, Fluid Phase Equilibria 421 (2016) 39-48, <a class="reference external" href="http://dx.doi.org/10.1016/j.fluid.2016.03.013">doi:10.1016/j.fluid.2016.03.013</a>.</p></li>
-<li><p>Władysław Gąsior, <em>Viscosity modeling of binary alloys: Comparative studies</em>, Calphad 44 (2014) 119-128, <a class="reference external" href="http://dx.doi.org/10.1016/j.calphad.2013.10.007">doi:10.1016/j.calphad.2013.10.007</a>.</p></li>
-<li><p>Chenyang Zhou, Cuiping Guo, Changrong Li, Zhenmin Du, <em>Thermodynamic assessment of the phase equilibria and prediction of glass-forming ability of the Al–Cu–Zr system</em>, Journal of Non-Crystalline Solids 461 (2017) 47-60, <a class="reference external" href="https://doi.org/10.1016/j.jnoncrysol.2016.09.031">doi:10.1016/j.jnoncrysol.2016.09.031</a>.</p></li>
+<li><p><a class="reference external" href="http://dx.doi.org/10.1016/j.fluid.2016.03.013">M.E. Trybula, T. Gancarz, W. Gąsior, Density, surface tension and viscosity of liquid binary Al-Zn and ternary Al-Li-Zn alloys, Fluid Phase Equilibria 421 (2016) 39-48</a>.</p></li>
+<li><p><a class="reference external" href="http://dx.doi.org/10.1016/j.calphad.2013.10.007">Władysław Gąsior, Viscosity modeling of binary alloys: Comparative studies, Calphad 44 (2014) 119-128</a>.</p></li>
+<li><p><a class="reference external" href="https://doi.org/10.1016/j.jnoncrysol.2016.09.031">Chenyang Zhou, Cuiping Guo, Changrong Li, Zhenmin Du, Thermodynamic assessment of the phase equilibria and prediction of glass-forming ability of the Al–Cu–Zr system, Journal of Non-Crystalline Solids 461 (2017) 47-60</a>.</p></li>
 </ol>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
-</pre></div>
-</div>
-</div>
 </section>
 <section id="TDB-Parameters">
 <h2>TDB Parameters<a class="headerlink" href="#TDB-Parameters" title="Link to this heading">¶</a></h2>
-<p>We can calculate the excess entropy of the liquid using the Al-Cu-Zr thermodynamic database from Zhou et al.</p>
+<p>We can calculate the excess entropy of the liquid using the Al-Cu-Zr thermodynamic database from <a class="reference external" href="https://doi.org/10.1016/j.jnoncrysol.2016.09.031">Zhou et al</a>.</p>
 <p>We add three new parameters to describe the viscosity (in Pa-s) of the pure elements Al, Cu, and Zr:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span> $ Viscosity test parameters
  PARAMETER ETA(LIQUID,AL;0) 2.98150E+02  +0.000281*EXP(12300/(8.3145*T));   6.00000E+03
@@ -323,13 +315,16 @@ PARAMETER ETA(LIQUID,ZR;0) 2.98150E+02  +4.74E-3 - 4.97E-6*(T-2128) ;   6.00000E
   N REF:0 !
 </pre></div>
 </div>
-<p>Great! However, if we try to load the database now, we will get an error. This is because <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters are not supported by default in pycalphad, so we need to tell pycalphad’s TDB parser that “ETA” should be on the list of supported parameter types.</p>
+<p>Great! However, if we try to load the database now, we will get an error. This is because <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameters are not supported by default in <code class="docutils literal notranslate"><span class="pre">pycalphad</span></code>, so we need to tell the <code class="docutils literal notranslate"><span class="pre">pycalphad</span></code> TDB parser that <code class="docutils literal notranslate"><span class="pre">ETA</span></code> should be on the list of supported parameter types.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alcuzr-viscosity.tdb&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+
+<span class="n">db_name</span> <span class="o">=</span> <span class="s1">&#39;alcuzr-viscosity.tdb&#39;</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </pre></div>
@@ -340,28 +335,28 @@ PARAMETER ETA(LIQUID,ZR;0) 2.98150E+02  +4.74E-3 - 4.97E-6*(T-2128) ;   6.00000E
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Failed while parsing:     PARAMETER ETA(LIQUID,AL;0) 2.98150E+02 +0.000281*EXP(12300/(8.3145*T)); 6.00000E+03 N REF:0
-Tokens: None
-Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) LineEnd} | {&#39;SPECIES&#39; W:(*+--9A-Z_a-z) [Suppress:(&#39;%&#39;)] Group:({{W:(A-Za-z){1,2} [Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)]}}...) [Suppress:(&#39;/&#39;) W:(+-0-9)] LineEnd} | {&#39;TYPE_DEFINITION&#39; Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) SkipTo:(LineEnd)} | {&#39;FUNCTION&#39; W:(()-/-:A-Z_a-z) {{Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) | [&#39;,&#39;]...} {{SkipTo:(&#39;;&#39;) Suppress:(&#39;;&#39;) [Suppress:(&#39;,&#39;)]... [Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)] Suppress:([(Yy)])}}... Suppress:([(Nn)])} [Suppress:(W:(-0-:A-Z_a-z))] LineEnd} | {&#39;ASSESSED_SYSTEMS&#39; SkipTo:(LineEnd)} | {&#39;DEFINE_SYSTEM_DEFAULT&#39; SkipTo:(LineEnd)} | {&#39;DEFAULT_COMMAND&#39; SkipTo:(LineEnd)} | {&#39;DATABASE_INFO&#39; SkipTo:(LineEnd)} | {&#39;VERSION_DATE&#39; SkipTo:(LineEnd)} | {&#39;REFERENCE_FILE&#39; SkipTo:(LineEnd)} | {&#39;ADD_REFERENCES&#39; SkipTo:(LineEnd)} | {&#39;LIST_OF_REFERENCES&#39; SkipTo:(LineEnd)} | {&#39;TEMPERATURE_LIMITS&#39; SkipTo:(LineEnd)} | {&#39;PHASE&#39; W:(()-/-:A-Z_a-z) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) !W:( !) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(W:(0-9)) Group:({Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)}...) Suppress:(SkipTo:(LineEnd))} | {&#39;CONSTITUENT&#39; W:(()-/-:A-Z_a-z) Suppress:(&lt;SP&gt;&lt;TAB&gt;&lt;CR&gt;&lt;LF&gt;) Suppress:(&#39;:&#39;) Group:(Group:({{[Suppress:(&#39;,&#39;)] W:(*+--9A-Z_a-z) [Suppress:(&#39;%&#39;)]}}...) [: Group:({{[Suppress:(&#39;,&#39;)] W:(*+--9A-Z_a-z) [Suppress:(&#39;%&#39;)]}}...)]...) Suppress:(&#39;:&#39;) LineEnd} | {&#39;PARAMETER&#39; {&#39;BMAGN&#39; | &#39;DF&#39; | &#39;DQ&#39; | &#39;ELRS&#39; | &#39;G&#39; | &#39;GD&#39; | &#39;L&#39; | &#39;MF&#39; | &#39;MQ&#39; | &#39;NT&#39; | &#39;SIGM&#39; | &#39;TC&#39; | &#39;THCD&#39; | &#39;THETA&#39; | &#39;V0&#39; | &#39;VA&#39; | &#39;VC&#39; | &#39;VISC&#39; | &#39;VK&#39; | &#39;VS&#39; | &#39;XI&#39;} Suppress:(&#39;(&#39;) W:(()-/-:A-Z_a-z) [Suppress:(&#39;&amp;&#39;) W:(-/A-Za-z){1,2}] Suppress:(&#39;,&#39;) Group:(Group:({{[Suppress:(&#39;,&#39;)] W:(*+--9A-Z_a-z) [Suppress:(&#39;%&#39;)]}}...) [: Group:({{[Suppress:(&#39;,&#39;)] W:(*+--9A-Z_a-z) [Suppress:(&#39;%&#39;)]}}...)]...) [Suppress:(&#39;;&#39;) W:(0-9)] Suppress:(&#39;)&#39;) {{Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;) | [&#39;,&#39;]...} {{SkipTo:(&#39;;&#39;) Suppress:(&#39;;&#39;) [Suppress:(&#39;,&#39;)]... [Re:(&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;)] Suppress:([(Yy)])}}... Suppress:([(Nn)])} [Suppress:(W:(-0-:A-Z_a-z))] LineEnd} | {&#39;ZEROVOLUME_SPECIES&#39; SkipTo:(LineEnd)} | {&#39;DIFFUSION&#39; SkipTo:(LineEnd)}}, found &#39;(&#39;  (at char 17), (line:1, col:18)
+Invalid TDB syntax.
+             PARAMETER ETA(LIQUID,AL;0) 2.98150E+02  +0.000281*EXP(12300/(8.3145*T));   6.00000E+03      N REF:0
+                          ^, found &#39;(&#39;  (at char 3531), (line:77, col:17)
 </pre></div></div>
 </div>
 <section id="Adding-the-ETA-parameter-to-the-TDB-parser">
 <h3>Adding the <code class="docutils literal notranslate"><span class="pre">ETA</span></code> parameter to the TDB parser<a class="headerlink" href="#Adding-the-ETA-parameter-to-the-TDB-parser" title="Link to this heading">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.io.tdb_keywords</span>
-<span class="n">pycalphad</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">tdb_keywords</span><span class="o">.</span><span class="n">TDB_PARAM_TYPES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;ETA&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.io.tdb_keywords</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">keywords</span>
+<span class="n">keywords</span><span class="o">.</span><span class="n">TDB_PARAM_TYPES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;ETA&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <p>Now the database will load:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alcuzr-viscosity.tdb&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -379,7 +374,7 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
 </ol>
 <p>Since the <code class="docutils literal notranslate"><span class="pre">build_phase</span></code> method sets the attribute <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> to the <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code>, we can access the property using <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> as the output in pycalphad caluclations.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tinydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">where</span>
@@ -395,14 +390,17 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Viscosity is only defined for LIQUID phase&#39;</span><span class="p">)</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
+
         <span class="c1"># STEP 1</span>
         <span class="n">eta_param_query</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;ETA&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
         <span class="p">)</span>
+
         <span class="c1"># STEP 2</span>
         <span class="n">eta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">eta_param_query</span><span class="p">)</span>
+
         <span class="c1"># STEP 3</span>
         <span class="n">excess_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GM</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;ref&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;idmix&#39;</span><span class="p">]</span>
         <span class="c1">#liquid_mod = Model(dbe, self.components, self.phase_name)</span>
@@ -411,9 +409,11 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
         <span class="c1">#del liquid_mod.models[&#39;idmix&#39;]</span>
         <span class="n">excess_entropy</span> <span class="o">=</span> <span class="o">-</span><span class="n">excess_energy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">ks</span> <span class="o">=</span> <span class="mi">2</span>
+
         <span class="c1"># STEP 4</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">eta</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">ks</span> <span class="o">*</span> <span class="n">excess_entropy</span> <span class="o">/</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eta</span> <span class="o">=</span> <span class="n">eta</span>
+
         <span class="k">return</span> <span class="n">result</span>
 </pre></div>
 </div>
@@ -423,10 +423,12 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
 <h2>Performing Calculations<a class="headerlink" href="#Performing-Calculations" title="Link to this heading">¶</a></h2>
 <p>Now we can create an instance of <code class="docutils literal notranslate"><span class="pre">ViscosityModel</span></code> for the liquid phase using the <code class="docutils literal notranslate"><span class="pre">Database</span></code> object we created earlier. We can verify this model has a <code class="docutils literal notranslate"><span class="pre">viscosity</span></code> attribute containing a symbolic expression for the viscosity.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mod</span> <span class="o">=</span> <span class="n">ViscosityModel</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;ZR&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;LIQUID&#39;</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;ZR&#39;</span><span class="p">]</span>
+<span class="n">mod</span> <span class="o">=</span> <span class="n">ViscosityModel</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">viscosity</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -441,59 +443,64 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
 </div>
 <p>Finally we calculate and plot the viscosity.</p>
 <div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate</span>
+
+<span class="n">mod</span> <span class="o">=</span> <span class="n">ViscosityModel</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+
+<span class="n">temp</span> <span class="o">=</span> <span class="mi">2100</span>
+<span class="c1"># NOTICE: we need to tell pycalphad about our model for this phase</span>
+<span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="n">phase</span><span class="p">:</span> <span class="n">mod</span><span class="p">}</span>
+
+<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;ZR&#39;</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(Zr)&#39;</span><span class="p">)</span>
+<span class="n">y_label_viscosity</span> <span class="o">=</span> <span class="s1">&#39;Viscosity (mPa-s)&#39;</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label_viscosity</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cu-Zr liquid viscosity at </span><span class="si">{}</span><span class="s1"> K&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_ViscosityModel_13_0.png" src="../_images/examples_ViscosityModel_13_0.png" />
+</div>
+</div>
+<p>We repeat the calculation for Al-Cu.</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate</span>
-
-<span class="n">mod</span> <span class="o">=</span> <span class="n">ViscosityModel</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;ZR&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">)</span>
-
-<span class="n">temp</span> <span class="o">=</span> <span class="mi">2100</span>
-<span class="c1"># NOTICE: we need to tell pycalphad about our model for this phase</span>
-<span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">:</span> <span class="n">mod</span><span class="p">}</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;ZR&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
-
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;ZR&#39;</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(ZR)&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Viscosity (mPa-s)&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Viscosity at </span><span class="si">{}</span><span class="s1">K&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/examples_ViscosityModel_14_0.png" src="../_images/examples_ViscosityModel_14_0.png" />
-</div>
-</div>
-<p>We repeat the calculation for Al-Cu.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate</span>
 
 <span class="n">temp</span> <span class="o">=</span> <span class="mi">1300</span>
-<span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">:</span> <span class="n">ViscosityModel</span><span class="p">}</span>  <span class="c1"># we can also use Model class</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
+<span class="n">components2</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">]</span>
+<span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="n">phase</span><span class="p">:</span> <span class="n">ViscosityModel</span><span class="p">}</span>  <span class="c1"># we can also use Model class</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components2</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
 
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;CU&#39;</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(CU)&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Viscosity (mPa-s)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(Cu)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label_viscosity</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Viscosity at </span><span class="si">{}</span><span class="s1">K&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cu-Al liquid viscosity at </span><span class="si">{}</span><span class="s1"> K&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
 </pre></div>
 </div>
 </div>
@@ -501,7 +508,7 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_ViscosityModel_16_0.png" src="../_images/examples_ViscosityModel_16_0.png" />
+<img alt="../_images/examples_ViscosityModel_15_0.png" src="../_images/examples_ViscosityModel_15_0.png" />
 </div>
 </div>
 </section>
@@ -581,7 +588,7 @@ Expected {{&#39;ELEMENT&#39; W:(-/A-Za-z){1,2} W:(()-/-:A-Z_a-z) Re:(&#39;[-+]?(
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=ffbe65b0"></script>
+</div><script src="../_static/documentation_options.js?v=401a02fb"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

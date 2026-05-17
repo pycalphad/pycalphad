@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.11.2.dev23+g19adcdaf6 documentation</title>
+        <title>Exploring calculate and equilibrium xarray Datasets - pycalphad 0.11.2.dev24+ge0c9ed47b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -307,7 +307,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">component</span></code>: the string names of the components in the system</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: The internal_dof (internal degrees of freedom) is the index of the site in any phase’s site fraction array. Below the FCC_A1 phase has the sublattice model (AL, ZN) and thus the internal_dof are integers 0 and 1 referring to the AL site (index 0) and the ZN site (index 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: The internal_dof (internal degrees of freedom) is the index of the site in any phase’s site fraction array. Below the FCC_A1 phase has the sublattice model (Al, Zn) and thus the internal_dof are integers 0 and 1 referring to the AL site (index 0) and the ZN site (index 1).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">points</span></code>: By default, the calculate function samples points over all of the internal degrees of freedom. Each coordinate point simply represents the index is a list of all configurations of the internal_dof sampled. There is no underlying physical meaning or order.</p></li>
 </ul>
 <p>There are also at least four Data variables:</p>
@@ -315,7 +315,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase. For <code class="docutils literal notranslate"><span class="pre">calculate</span></code>, this will always be the phase name passed.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">X</span></code>: The composition of each component in mole fraction as a function of the temperature, pressure, and the index of the points (there is one composition for each point).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Y</span></code>: The site fraction of each index in the internal_dof array for the given temperature, pressure and point.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: “output” is always whatever property is calculated by the output keyword passed to <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. The default is the molar Gibbs energy, GM.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: “output” is always whatever property is calculated by the output keyword passed to <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. The default is the molar Gibbs energy, <code class="docutils literal notranslate"><span class="pre">GM</span></code>.</p></li>
 </ul>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -336,28 +336,540 @@
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;xarray.Dataset&gt; Size: 512kB
+<div class="output_area rendered_html docutils container">
+<div><svg style="position: absolute; width: 0; height: 0; overflow: hidden">
+<defs>
+<symbol id="icon-database" viewBox="0 0 32 32">
+<path d="M16 0c-8.837 0-16 2.239-16 5v4c0 2.761 7.163 5 16 5s16-2.239 16-5v-4c0-2.761-7.163-5-16-5z"></path>
+<path d="M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+<path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+</symbol>
+<symbol id="icon-file-text2" viewBox="0 0 32 32">
+<path d="M28.681 7.159c-0.694-0.947-1.662-2.053-2.724-3.116s-2.169-2.030-3.116-2.724c-1.612-1.182-2.393-1.319-2.841-1.319h-15.5c-1.378 0-2.5 1.121-2.5 2.5v27c0 1.378 1.122 2.5 2.5 2.5h23c1.378 0 2.5-1.122 2.5-2.5v-19.5c0-0.448-0.137-1.23-1.319-2.841zM24.543 5.457c0.959 0.959 1.712 1.825 2.268 2.543h-4.811v-4.811c0.718 0.556 1.584 1.309 2.543 2.268zM28 29.5c0 0.271-0.229 0.5-0.5 0.5h-23c-0.271 0-0.5-0.229-0.5-0.5v-27c0-0.271 0.229-0.5 0.5-0.5 0 0 15.499-0 15.5 0v7c0 0.552 0.448 1 1 1h7v19.5z"></path>
+<path d="M23 26h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 22h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 18h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+</symbol>
+</defs>
+</svg>
+<style>/* CSS stylesheet for displaying xarray objects in notebooks */
+
+:root {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base rgba(0, 0, 0, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, white)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 15))
+  );
+}
+
+html[theme="dark"],
+html[data-theme="dark"],
+body[data-theme="dark"],
+body.vscode-dark {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base, rgba(255, 255, 255, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, #111111)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 15))
+  );
+}
+
+.xr-wrap {
+  display: block !important;
+  min-width: 300px;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.xr-text-repr-fallback {
+  /* fallback to plain text repr when CSS is not injected (untrusted notebook) */
+  display: none;
+}
+
+.xr-header {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: solid 1px var(--xr-border-color);
+}
+
+.xr-header > div,
+.xr-header > ul {
+  display: inline;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.xr-obj-type,
+.xr-obj-name,
+.xr-group-name {
+  margin-left: 2px;
+  margin-right: 10px;
+}
+
+.xr-group-name::before {
+  content: "📁";
+  padding-right: 0.3em;
+}
+
+.xr-group-name,
+.xr-obj-type {
+  color: var(--xr-font-color2);
+}
+
+.xr-sections {
+  padding-left: 0 !important;
+  display: grid;
+  grid-template-columns: 150px auto auto 1fr 0 20px 0 20px;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.xr-section-item {
+  display: contents;
+}
+
+.xr-section-item input {
+  display: inline-block;
+  opacity: 0;
+  height: 0;
+  margin: 0;
+}
+
+.xr-section-item input + label {
+  color: var(--xr-disabled-color);
+  border: 2px solid transparent !important;
+}
+
+.xr-section-item input:enabled + label {
+  cursor: pointer;
+  color: var(--xr-font-color2);
+}
+
+.xr-section-item input:focus + label {
+  border: 2px solid var(--xr-font-color0) !important;
+}
+
+.xr-section-item input:enabled + label:hover {
+  color: var(--xr-font-color0);
+}
+
+.xr-section-summary {
+  grid-column: 1;
+  color: var(--xr-font-color2);
+  font-weight: 500;
+}
+
+.xr-section-summary > span {
+  display: inline-block;
+  padding-left: 0.5em;
+}
+
+.xr-section-summary-in:disabled + label {
+  color: var(--xr-font-color2);
+}
+
+.xr-section-summary-in + label:before {
+  display: inline-block;
+  content: "►";
+  font-size: 11px;
+  width: 15px;
+  text-align: center;
+}
+
+.xr-section-summary-in:disabled + label:before {
+  color: var(--xr-disabled-color);
+}
+
+.xr-section-summary-in:checked + label:before {
+  content: "▼";
+}
+
+.xr-section-summary-in:checked + label > span {
+  display: none;
+}
+
+.xr-section-summary,
+.xr-section-inline-details {
+  padding-top: 4px;
+}
+
+.xr-section-inline-details {
+  grid-column: 2 / -1;
+}
+
+.xr-section-details {
+  display: none;
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  margin-bottom: 5px;
+}
+
+.xr-section-summary-in:checked ~ .xr-section-details {
+  display: contents;
+}
+
+.xr-group-box {
+  display: inline-grid;
+  grid-template-columns: 0px 20px auto;
+  width: 100%;
+}
+
+.xr-group-box-vline {
+  grid-column-start: 1;
+  border-right: 0.2em solid;
+  border-color: var(--xr-border-color);
+  width: 0px;
+}
+
+.xr-group-box-hline {
+  grid-column-start: 2;
+  grid-row-start: 1;
+  height: 1em;
+  width: 20px;
+  border-bottom: 0.2em solid;
+  border-color: var(--xr-border-color);
+}
+
+.xr-group-box-contents {
+  grid-column-start: 3;
+}
+
+.xr-array-wrap {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 20px auto;
+}
+
+.xr-array-wrap > label {
+  grid-column: 1;
+  vertical-align: top;
+}
+
+.xr-preview {
+  color: var(--xr-font-color3);
+}
+
+.xr-array-preview,
+.xr-array-data {
+  padding: 0 5px !important;
+  grid-column: 2;
+}
+
+.xr-array-data,
+.xr-array-in:checked ~ .xr-array-preview {
+  display: none;
+}
+
+.xr-array-in:checked ~ .xr-array-data,
+.xr-array-preview {
+  display: inline-block;
+}
+
+.xr-dim-list {
+  display: inline-block !important;
+  list-style: none;
+  padding: 0 !important;
+  margin: 0;
+}
+
+.xr-dim-list li {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+}
+
+.xr-dim-list:before {
+  content: "(";
+}
+
+.xr-dim-list:after {
+  content: ")";
+}
+
+.xr-dim-list li:not(:last-child):after {
+  content: ",";
+  padding-right: 5px;
+}
+
+.xr-has-index {
+  font-weight: bold;
+}
+
+.xr-var-list,
+.xr-var-item {
+  display: contents;
+}
+
+.xr-var-item > div,
+.xr-var-item label,
+.xr-var-item > .xr-var-name span {
+  background-color: var(--xr-background-color-row-even);
+  border-color: var(--xr-background-color-row-odd);
+  margin-bottom: 0;
+  padding-top: 2px;
+}
+
+.xr-var-item > .xr-var-name:hover span {
+  padding-right: 5px;
+}
+
+.xr-var-list > li:nth-child(odd) > div,
+.xr-var-list > li:nth-child(odd) > label,
+.xr-var-list > li:nth-child(odd) > .xr-var-name span {
+  background-color: var(--xr-background-color-row-odd);
+  border-color: var(--xr-background-color-row-even);
+}
+
+.xr-var-name {
+  grid-column: 1;
+}
+
+.xr-var-dims {
+  grid-column: 2;
+}
+
+.xr-var-dtype {
+  grid-column: 3;
+  text-align: right;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-preview {
+  grid-column: 4;
+}
+
+.xr-index-preview {
+  grid-column: 2 / 5;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-name,
+.xr-var-dims,
+.xr-var-dtype,
+.xr-preview,
+.xr-attrs dt {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+.xr-var-name:hover,
+.xr-var-dims:hover,
+.xr-var-dtype:hover,
+.xr-attrs dt:hover {
+  overflow: visible;
+  width: auto;
+  z-index: 1;
+}
+
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  display: none;
+  border-top: 2px dotted var(--xr-background-color);
+  padding-bottom: 20px !important;
+  padding-top: 10px !important;
+}
+
+.xr-var-attrs-in + label,
+.xr-var-data-in + label,
+.xr-index-data-in + label {
+  padding: 0 1px;
+}
+
+.xr-var-attrs-in:checked ~ .xr-var-attrs,
+.xr-var-data-in:checked ~ .xr-var-data,
+.xr-index-data-in:checked ~ .xr-index-data {
+  display: block;
+}
+
+.xr-var-data > table {
+  float: right;
+}
+
+.xr-var-data > pre,
+.xr-index-data > pre,
+.xr-var-data > table > tbody > tr {
+  background-color: transparent !important;
+}
+
+.xr-var-name span,
+.xr-var-data,
+.xr-index-name div,
+.xr-index-data,
+.xr-attrs {
+  padding-left: 25px !important;
+}
+
+.xr-attrs,
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  grid-column: 1 / -1;
+}
+
+dl.xr-attrs {
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 125px auto;
+}
+
+.xr-attrs dt,
+.xr-attrs dd {
+  padding: 0;
+  margin: 0;
+  float: left;
+  padding-right: 10px;
+  width: auto;
+}
+
+.xr-attrs dt {
+  font-weight: normal;
+  grid-column: 1;
+}
+
+.xr-attrs dt:hover span {
+  display: inline-block;
+  background: var(--xr-background-color);
+  padding-right: 10px;
+}
+
+.xr-attrs dd {
+  grid-column: 2;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.xr-icon-database,
+.xr-icon-file-text2,
+.xr-no-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1em;
+  height: 1.5em !important;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+.xr-var-attrs-in:checked + label > .xr-icon-file-text2,
+.xr-var-data-in:checked + label > .xr-icon-database,
+.xr-index-data-in:checked + label > .xr-icon-database {
+  color: var(--xr-font-color0);
+  filter: drop-shadow(1px 1px 5px var(--xr-font-color2));
+  stroke-width: 0.8px;
+}
+</style><pre class='xr-text-repr-fallback'>&lt;xarray.Dataset&gt; Size: 512kB
 Dimensions:    (N: 1, P: 1, T: 2, points: 4002, component: 2, internal_dof: 2)
 Coordinates:
-  * component  (component) &lt;U2 16B &#39;AL&#39; &#39;ZN&#39;
   * N          (N) float64 8B 1.0
   * P          (P) float64 8B 1.013e+05
   * T          (T) float64 16B 500.0 1e+03
+  * component  (component) &lt;U2 16B &#x27;AL&#x27; &#x27;ZN&#x27;
 Dimensions without coordinates: points, internal_dof
 Data variables:
     X          (N, P, T, points, component) float64 128kB 1.0 1e-14 ... 0.2561
-    Phase      (N, P, T, points) &lt;U6 192kB &#39;FCC_A1&#39; &#39;FCC_A1&#39; ... &#39;FCC_A1&#39;
+    Phase      (N, P, T, points) &lt;U6 192kB &#x27;FCC_A1&#x27; &#x27;FCC_A1&#x27; ... &#x27;FCC_A1&#x27;
     Y          (N, P, T, points, internal_dof) float64 128kB 1.0 ... 0.2561
     GM         (N, P, T, points) float64 64kB -1.559e+04 -2.01e+04 ... -4.81e+04
 Attributes:
-    phase_indices:  {&#39;FCC_A1&#39;: slice(0, np.int64(4002), None)}
-</pre></div></div>
+    phase_indices:  {&#x27;FCC_A1&#x27;: slice(0, np.int64(4002), None)}</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-80398e38-61b6-4508-b2e0-9fa3fcf8f857' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-80398e38-61b6-4508-b2e0-9fa3fcf8f857' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>N</span>: 1</li><li><span class='xr-has-index'>P</span>: 1</li><li><span class='xr-has-index'>T</span>: 2</li><li><span>points</span>: 4002</li><li><span class='xr-has-index'>component</span>: 2</li><li><span>internal_dof</span>: 2</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-3867818c-bf66-4cce-ad42-775ee85a7040' class='xr-section-summary-in' type='checkbox'  checked><label for='section-3867818c-bf66-4cce-ad42-775ee85a7040' class='xr-section-summary' >Coordinates: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>N</span></div><div class='xr-var-dims'>(N)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0</div><input id='attrs-3d38626f-4706-4b54-93f2-0656282ec6f8' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-3d38626f-4706-4b54-93f2-0656282ec6f8' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-90c2cf4f-a631-4bff-ad59-10a1750bef3a' class='xr-var-data-in' type='checkbox'><label for='data-90c2cf4f-a631-4bff-ad59-10a1750bef3a' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>P</span></div><div class='xr-var-dims'>(P)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.013e+05</div><input id='attrs-48db677b-668d-43d9-9b78-1608d25f26ea' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-48db677b-668d-43d9-9b78-1608d25f26ea' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-95d54068-7d12-4f73-b62d-c5c3b5bfb127' class='xr-var-data-in' type='checkbox'><label for='data-95d54068-7d12-4f73-b62d-c5c3b5bfb127' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([101325.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>T</span></div><div class='xr-var-dims'>(T)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>500.0 1e+03</div><input id='attrs-78c66d45-b359-4986-b76d-03c3d442d0c5' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-78c66d45-b359-4986-b76d-03c3d442d0c5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-dfd55c0b-e763-4b6e-a18b-ed7a0b1c761d' class='xr-var-data-in' type='checkbox'><label for='data-dfd55c0b-e763-4b6e-a18b-ed7a0b1c761d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([ 500., 1000.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>component</span></div><div class='xr-var-dims'>(component)</div><div class='xr-var-dtype'>&lt;U2</div><div class='xr-var-preview xr-preview'>&#x27;AL&#x27; &#x27;ZN&#x27;</div><input id='attrs-b5636727-d456-44ec-b18b-e08201dc48fb' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-b5636727-d456-44ec-b18b-e08201dc48fb' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-f3604821-13a8-4ad4-9864-c563695862be' class='xr-var-data-in' type='checkbox'><label for='data-f3604821-13a8-4ad4-9864-c563695862be' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([&#x27;AL&#x27;, &#x27;ZN&#x27;], dtype=&#x27;&lt;U2&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-a7f70f71-f433-464d-b569-c4fdaa51b420' class='xr-section-summary-in' type='checkbox'  checked><label for='section-a7f70f71-f433-464d-b569-c4fdaa51b420' class='xr-section-summary' >Data variables: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>X</span></div><div class='xr-var-dims'>(N, P, T, points, component)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0 1e-14 1e-14 ... 0.7439 0.2561</div><input id='attrs-58931cae-7117-473e-b998-203b3ef4e3a1' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-58931cae-7117-473e-b998-203b3ef4e3a1' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-d5549c7f-e822-4822-8bc2-4f194b0c2e95' class='xr-var-data-in' type='checkbox'><label for='data-d5549c7f-e822-4822-8bc2-4f194b0c2e95' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[[1.00000000e+00, 1.00000000e-14],
+          [1.00000000e-14, 1.00000000e+00],
+          [1.00000000e-14, 1.00000000e+00],
+          ...,
+          [1.56995650e-01, 8.43004350e-01],
+          [1.12072782e-01, 8.87927218e-01],
+          [7.43933641e-01, 2.56066359e-01]],
+
+         [[1.00000000e+00, 1.00000000e-14],
+          [1.00000000e-14, 1.00000000e+00],
+          [1.00000000e-14, 1.00000000e+00],
+          ...,
+          [1.56995650e-01, 8.43004350e-01],
+          [1.12072782e-01, 8.87927218e-01],
+          [7.43933641e-01, 2.56066359e-01]]]]], shape=(1, 1, 2, 4002, 2))</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>Phase</span></div><div class='xr-var-dims'>(N, P, T, points)</div><div class='xr-var-dtype'>&lt;U6</div><div class='xr-var-preview xr-preview'>&#x27;FCC_A1&#x27; &#x27;FCC_A1&#x27; ... &#x27;FCC_A1&#x27;</div><input id='attrs-73ef2b2a-330f-446b-b92c-66218572d9c0' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-73ef2b2a-330f-446b-b92c-66218572d9c0' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-3880519c-f5dd-4d7b-a7b9-4007be29e0eb' class='xr-var-data-in' type='checkbox'><label for='data-3880519c-f5dd-4d7b-a7b9-4007be29e0eb' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[&#x27;FCC_A1&#x27;, &#x27;FCC_A1&#x27;, &#x27;FCC_A1&#x27;, ..., &#x27;FCC_A1&#x27;, &#x27;FCC_A1&#x27;,
+          &#x27;FCC_A1&#x27;],
+         [&#x27;FCC_A1&#x27;, &#x27;FCC_A1&#x27;, &#x27;FCC_A1&#x27;, ..., &#x27;FCC_A1&#x27;, &#x27;FCC_A1&#x27;,
+          &#x27;FCC_A1&#x27;]]]], shape=(1, 1, 2, 4002), dtype=&#x27;&lt;U6&#x27;)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>Y</span></div><div class='xr-var-dims'>(N, P, T, points, internal_dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0 1e-14 1e-14 ... 0.7439 0.2561</div><input id='attrs-f12e6e7d-3011-4cbd-b0c1-b16d100efef4' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-f12e6e7d-3011-4cbd-b0c1-b16d100efef4' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a9ef5283-c12a-4f2f-bd8d-a3181b05ef9f' class='xr-var-data-in' type='checkbox'><label for='data-a9ef5283-c12a-4f2f-bd8d-a3181b05ef9f' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[[1.00000000e+00, 1.00000000e-14],
+          [1.00000000e-14, 1.00000000e+00],
+          [1.00000000e-14, 1.00000000e+00],
+          ...,
+          [1.56995650e-01, 8.43004350e-01],
+          [1.12072782e-01, 8.87927218e-01],
+          [7.43933641e-01, 2.56066359e-01]],
+
+         [[1.00000000e+00, 1.00000000e-14],
+          [1.00000000e-14, 1.00000000e+00],
+          [1.00000000e-14, 1.00000000e+00],
+          ...,
+          [1.56995650e-01, 8.43004350e-01],
+          [1.12072782e-01, 8.87927218e-01],
+          [7.43933641e-01, 2.56066359e-01]]]]], shape=(1, 1, 2, 4002, 2))</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>GM</span></div><div class='xr-var-dims'>(N, P, T, points)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-1.559e+04 -2.01e+04 ... -4.81e+04</div><input id='attrs-fc351469-7f3b-4bce-a1a6-24c3322228e7' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-fc351469-7f3b-4bce-a1a6-24c3322228e7' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-577a052e-d8f3-4eea-8703-d46a5181de7f' class='xr-var-data-in' type='checkbox'><label for='data-577a052e-d8f3-4eea-8703-d46a5181de7f' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[-15589.38872794, -20099.46240961, -20099.46240961, ...,
+          -20683.03658045, -20722.47948049, -17338.16556129],
+         [-41936.74967063, -54090.44999746, -54090.44999746, ...,
+          -54938.15002167, -55015.39990158, -48101.00108935]]]],
+      shape=(1, 1, 2, 4002))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-487ba714-fc32-4bac-8cac-03fd88cee594' class='xr-section-summary-in' type='checkbox'  checked><label for='section-487ba714-fc32-4bac-8cac-03fd88cee594' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>phase_indices :</span></dt><dd>{&#x27;FCC_A1&#x27;: slice(0, np.int64(4002), None)}</dd></dl></div></li></ul></div></div></div>
 </div>
-<p>We can manipulate this by selecting data by value (of a coordinate) using <code class="docutils literal notranslate"><span class="pre">sel</span></code> or index (of a coordinate) using <code class="docutils literal notranslate"><span class="pre">isel</span></code> similar to a Pandas array. Below we get the site fraction of ZN (internal_dof index of 1 selected by index) at 1000K (selected by value) for the 50th point (selected by index).</p>
+<p>We can manipulate this by selecting data by value (of a coordinate) using <code class="docutils literal notranslate"><span class="pre">sel</span></code> or index (of a coordinate) using <code class="docutils literal notranslate"><span class="pre">isel</span></code> similar to a Pandas array. Below we get the site fraction of Zn (internal_dof index of 1 selected by index) at 1000 K (selected by value) for the 50th point (selected by index).</p>
 <p>The results of selecting over Data variables gives an xarray DataArray which is useful for plotting or performing computations on (see <a class="reference external" href="http://xarray.pydata.org/en/stable/data-structures.html">DataArrays vs Datasets</a>).</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -368,20 +880,497 @@ Attributes:
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;xarray.DataArray &#39;Y&#39; (N: 1, P: 1)&gt; Size: 8B
+<div class="output_area rendered_html docutils container">
+<div><svg style="position: absolute; width: 0; height: 0; overflow: hidden">
+<defs>
+<symbol id="icon-database" viewBox="0 0 32 32">
+<path d="M16 0c-8.837 0-16 2.239-16 5v4c0 2.761 7.163 5 16 5s16-2.239 16-5v-4c0-2.761-7.163-5-16-5z"></path>
+<path d="M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+<path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+</symbol>
+<symbol id="icon-file-text2" viewBox="0 0 32 32">
+<path d="M28.681 7.159c-0.694-0.947-1.662-2.053-2.724-3.116s-2.169-2.030-3.116-2.724c-1.612-1.182-2.393-1.319-2.841-1.319h-15.5c-1.378 0-2.5 1.121-2.5 2.5v27c0 1.378 1.122 2.5 2.5 2.5h23c1.378 0 2.5-1.122 2.5-2.5v-19.5c0-0.448-0.137-1.23-1.319-2.841zM24.543 5.457c0.959 0.959 1.712 1.825 2.268 2.543h-4.811v-4.811c0.718 0.556 1.584 1.309 2.543 2.268zM28 29.5c0 0.271-0.229 0.5-0.5 0.5h-23c-0.271 0-0.5-0.229-0.5-0.5v-27c0-0.271 0.229-0.5 0.5-0.5 0 0 15.499-0 15.5 0v7c0 0.552 0.448 1 1 1h7v19.5z"></path>
+<path d="M23 26h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 22h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 18h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+</symbol>
+</defs>
+</svg>
+<style>/* CSS stylesheet for displaying xarray objects in notebooks */
+
+:root {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base rgba(0, 0, 0, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, white)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 15))
+  );
+}
+
+html[theme="dark"],
+html[data-theme="dark"],
+body[data-theme="dark"],
+body.vscode-dark {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base, rgba(255, 255, 255, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, #111111)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 15))
+  );
+}
+
+.xr-wrap {
+  display: block !important;
+  min-width: 300px;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.xr-text-repr-fallback {
+  /* fallback to plain text repr when CSS is not injected (untrusted notebook) */
+  display: none;
+}
+
+.xr-header {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: solid 1px var(--xr-border-color);
+}
+
+.xr-header > div,
+.xr-header > ul {
+  display: inline;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.xr-obj-type,
+.xr-obj-name,
+.xr-group-name {
+  margin-left: 2px;
+  margin-right: 10px;
+}
+
+.xr-group-name::before {
+  content: "📁";
+  padding-right: 0.3em;
+}
+
+.xr-group-name,
+.xr-obj-type {
+  color: var(--xr-font-color2);
+}
+
+.xr-sections {
+  padding-left: 0 !important;
+  display: grid;
+  grid-template-columns: 150px auto auto 1fr 0 20px 0 20px;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.xr-section-item {
+  display: contents;
+}
+
+.xr-section-item input {
+  display: inline-block;
+  opacity: 0;
+  height: 0;
+  margin: 0;
+}
+
+.xr-section-item input + label {
+  color: var(--xr-disabled-color);
+  border: 2px solid transparent !important;
+}
+
+.xr-section-item input:enabled + label {
+  cursor: pointer;
+  color: var(--xr-font-color2);
+}
+
+.xr-section-item input:focus + label {
+  border: 2px solid var(--xr-font-color0) !important;
+}
+
+.xr-section-item input:enabled + label:hover {
+  color: var(--xr-font-color0);
+}
+
+.xr-section-summary {
+  grid-column: 1;
+  color: var(--xr-font-color2);
+  font-weight: 500;
+}
+
+.xr-section-summary > span {
+  display: inline-block;
+  padding-left: 0.5em;
+}
+
+.xr-section-summary-in:disabled + label {
+  color: var(--xr-font-color2);
+}
+
+.xr-section-summary-in + label:before {
+  display: inline-block;
+  content: "►";
+  font-size: 11px;
+  width: 15px;
+  text-align: center;
+}
+
+.xr-section-summary-in:disabled + label:before {
+  color: var(--xr-disabled-color);
+}
+
+.xr-section-summary-in:checked + label:before {
+  content: "▼";
+}
+
+.xr-section-summary-in:checked + label > span {
+  display: none;
+}
+
+.xr-section-summary,
+.xr-section-inline-details {
+  padding-top: 4px;
+}
+
+.xr-section-inline-details {
+  grid-column: 2 / -1;
+}
+
+.xr-section-details {
+  display: none;
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  margin-bottom: 5px;
+}
+
+.xr-section-summary-in:checked ~ .xr-section-details {
+  display: contents;
+}
+
+.xr-group-box {
+  display: inline-grid;
+  grid-template-columns: 0px 20px auto;
+  width: 100%;
+}
+
+.xr-group-box-vline {
+  grid-column-start: 1;
+  border-right: 0.2em solid;
+  border-color: var(--xr-border-color);
+  width: 0px;
+}
+
+.xr-group-box-hline {
+  grid-column-start: 2;
+  grid-row-start: 1;
+  height: 1em;
+  width: 20px;
+  border-bottom: 0.2em solid;
+  border-color: var(--xr-border-color);
+}
+
+.xr-group-box-contents {
+  grid-column-start: 3;
+}
+
+.xr-array-wrap {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 20px auto;
+}
+
+.xr-array-wrap > label {
+  grid-column: 1;
+  vertical-align: top;
+}
+
+.xr-preview {
+  color: var(--xr-font-color3);
+}
+
+.xr-array-preview,
+.xr-array-data {
+  padding: 0 5px !important;
+  grid-column: 2;
+}
+
+.xr-array-data,
+.xr-array-in:checked ~ .xr-array-preview {
+  display: none;
+}
+
+.xr-array-in:checked ~ .xr-array-data,
+.xr-array-preview {
+  display: inline-block;
+}
+
+.xr-dim-list {
+  display: inline-block !important;
+  list-style: none;
+  padding: 0 !important;
+  margin: 0;
+}
+
+.xr-dim-list li {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+}
+
+.xr-dim-list:before {
+  content: "(";
+}
+
+.xr-dim-list:after {
+  content: ")";
+}
+
+.xr-dim-list li:not(:last-child):after {
+  content: ",";
+  padding-right: 5px;
+}
+
+.xr-has-index {
+  font-weight: bold;
+}
+
+.xr-var-list,
+.xr-var-item {
+  display: contents;
+}
+
+.xr-var-item > div,
+.xr-var-item label,
+.xr-var-item > .xr-var-name span {
+  background-color: var(--xr-background-color-row-even);
+  border-color: var(--xr-background-color-row-odd);
+  margin-bottom: 0;
+  padding-top: 2px;
+}
+
+.xr-var-item > .xr-var-name:hover span {
+  padding-right: 5px;
+}
+
+.xr-var-list > li:nth-child(odd) > div,
+.xr-var-list > li:nth-child(odd) > label,
+.xr-var-list > li:nth-child(odd) > .xr-var-name span {
+  background-color: var(--xr-background-color-row-odd);
+  border-color: var(--xr-background-color-row-even);
+}
+
+.xr-var-name {
+  grid-column: 1;
+}
+
+.xr-var-dims {
+  grid-column: 2;
+}
+
+.xr-var-dtype {
+  grid-column: 3;
+  text-align: right;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-preview {
+  grid-column: 4;
+}
+
+.xr-index-preview {
+  grid-column: 2 / 5;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-name,
+.xr-var-dims,
+.xr-var-dtype,
+.xr-preview,
+.xr-attrs dt {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+.xr-var-name:hover,
+.xr-var-dims:hover,
+.xr-var-dtype:hover,
+.xr-attrs dt:hover {
+  overflow: visible;
+  width: auto;
+  z-index: 1;
+}
+
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  display: none;
+  border-top: 2px dotted var(--xr-background-color);
+  padding-bottom: 20px !important;
+  padding-top: 10px !important;
+}
+
+.xr-var-attrs-in + label,
+.xr-var-data-in + label,
+.xr-index-data-in + label {
+  padding: 0 1px;
+}
+
+.xr-var-attrs-in:checked ~ .xr-var-attrs,
+.xr-var-data-in:checked ~ .xr-var-data,
+.xr-index-data-in:checked ~ .xr-index-data {
+  display: block;
+}
+
+.xr-var-data > table {
+  float: right;
+}
+
+.xr-var-data > pre,
+.xr-index-data > pre,
+.xr-var-data > table > tbody > tr {
+  background-color: transparent !important;
+}
+
+.xr-var-name span,
+.xr-var-data,
+.xr-index-name div,
+.xr-index-data,
+.xr-attrs {
+  padding-left: 25px !important;
+}
+
+.xr-attrs,
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  grid-column: 1 / -1;
+}
+
+dl.xr-attrs {
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 125px auto;
+}
+
+.xr-attrs dt,
+.xr-attrs dd {
+  padding: 0;
+  margin: 0;
+  float: left;
+  padding-right: 10px;
+  width: auto;
+}
+
+.xr-attrs dt {
+  font-weight: normal;
+  grid-column: 1;
+}
+
+.xr-attrs dt:hover span {
+  display: inline-block;
+  background: var(--xr-background-color);
+  padding-right: 10px;
+}
+
+.xr-attrs dd {
+  grid-column: 2;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.xr-icon-database,
+.xr-icon-file-text2,
+.xr-no-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1em;
+  height: 1.5em !important;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+.xr-var-attrs-in:checked + label > .xr-icon-file-text2,
+.xr-var-data-in:checked + label > .xr-icon-database,
+.xr-index-data-in:checked + label > .xr-icon-database {
+  color: var(--xr-font-color0);
+  filter: drop-shadow(1px 1px 5px var(--xr-font-color2));
+  stroke-width: 0.8px;
+}
+</style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;Y&#x27; (N: 1, P: 1)&gt; Size: 8B
 array([[0.97648824]])
 Coordinates:
   * N        (N) float64 8B 1.0
   * P        (P) float64 8B 1.013e+05
-    T        float64 8B 1e+03
-</pre></div></div>
+    T        float64 8B 1e+03</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-obj-name'>&#x27;Y&#x27;</div><ul class='xr-dim-list'><li><span class='xr-has-index'>N</span>: 1</li><li><span class='xr-has-index'>P</span>: 1</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-55adfcd4-3fe2-4681-90d6-d77dbea50ddd' class='xr-array-in' type='checkbox' checked><label for='section-55adfcd4-3fe2-4681-90d6-d77dbea50ddd' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>0.9765</span></div><div class='xr-array-data'><pre>array([[0.97648824]])</pre></div></div></li><li class='xr-section-item'><input id='section-05cc5eb9-719c-4b96-b19a-5716c200dfb1' class='xr-section-summary-in' type='checkbox'  checked><label for='section-05cc5eb9-719c-4b96-b19a-5716c200dfb1' class='xr-section-summary' >Coordinates: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>N</span></div><div class='xr-var-dims'>(N)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0</div><input id='attrs-b1d3f124-9a9d-4656-9908-59c9c921dcba' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-b1d3f124-9a9d-4656-9908-59c9c921dcba' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-386e421a-5808-433a-9e98-a04fd71f9efa' class='xr-var-data-in' type='checkbox'><label for='data-386e421a-5808-433a-9e98-a04fd71f9efa' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>P</span></div><div class='xr-var-dims'>(P)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.013e+05</div><input id='attrs-7e15eb91-46ed-4550-b467-b8a52aef9933' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-7e15eb91-46ed-4550-b467-b8a52aef9933' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-13f03dae-4173-49a8-b3dc-45a148a66f78' class='xr-var-data-in' type='checkbox'><label for='data-13f03dae-4173-49a8-b3dc-45a148a66f78' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([101325.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>T</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1e+03</div><input id='attrs-e60e859f-891c-4372-8e29-64daf254c490' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-e60e859f-891c-4372-8e29-64daf254c490' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-e02f6d2b-f420-4bc7-b34b-4779d8c3596b' class='xr-var-data-in' type='checkbox'><label for='data-e02f6d2b-f420-4bc7-b34b-4779d8c3596b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array(1000.)</pre></div></li></ul></div></li></ul></div></div></div>
 </div>
 <p>accessing the <code class="docutils literal notranslate"><span class="pre">values</span></code> attribute on any DataArray returns the multidimensional NumPy array</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
@@ -390,8 +1379,17 @@ Coordinates:
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+numpy.ndarray
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Checking shape of values attribute</span>
@@ -399,8 +1397,17 @@ Coordinates:
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(1, 1, 2, 4002, 2)
+</pre></div></div>
+</div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span>
@@ -408,25 +1415,26 @@ Coordinates:
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[[[[[1.00000000e+00 1.00000000e-14]
-    [1.00000000e-14 1.00000000e+00]
-    [1.00000000e-14 1.00000000e+00]
-    ...
-    [1.56995650e-01 8.43004350e-01]
-    [1.12072782e-01 8.87927218e-01]
-    [7.43933641e-01 2.56066359e-01]]
+array([[[[[1.00000000e+00, 1.00000000e-14],
+          [1.00000000e-14, 1.00000000e+00],
+          [1.00000000e-14, 1.00000000e+00],
+          ...,
+          [1.56995650e-01, 8.43004350e-01],
+          [1.12072782e-01, 8.87927218e-01],
+          [7.43933641e-01, 2.56066359e-01]],
 
-   [[1.00000000e+00 1.00000000e-14]
-    [1.00000000e-14 1.00000000e+00]
-    [1.00000000e-14 1.00000000e+00]
-    ...
-    [1.56995650e-01 8.43004350e-01]
-    [1.12072782e-01 8.87927218e-01]
-    [7.43933641e-01 2.56066359e-01]]]]]
+         [[1.00000000e+00, 1.00000000e-14],
+          [1.00000000e-14, 1.00000000e+00],
+          [1.00000000e-14, 1.00000000e+00],
+          ...,
+          [1.56995650e-01, 8.43004350e-01],
+          [1.12072782e-01, 8.87927218e-01],
+          [7.43933641e-01, 2.56066359e-01]]]]], shape=(1, 1, 2, 4002, 2))
 </pre></div></div>
 </div>
 </section>
@@ -437,7 +1445,7 @@ Coordinates:
 <li><p><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">component</span></code>: (Same as calculate) The string names of the components in the system.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: (Same as calculate, except it will be the longest possible internal_dof for all phases) The internal_dof (internal degrees of freedom) is the index of the site in any phase’s site fraction array. Below the FCC_A1 phase has the sublattice model (AL, ZN) and thus the internal_dof are integers 0 and 1 referring to the AL site (index 0) and the ZN site (index 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: (Same as calculate, except it will be the longest possible internal_dof for all phases) The internal_dof (internal degrees of freedom) is the index of the site in any phase’s site fraction array. Below the FCC_A1 phase has the sublattice model (Al, Zn) and thus the internal_dof are integers 0 and 1 referring to the AL site (index 0) and the ZN site (index 1).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">X_ZN</span></code>: This is the composition of the species that was passed into the conditions array. Since we passed <code class="docutils literal notranslate"><span class="pre">v.X('ZN')</span></code> to the conditions dictionary, this is <code class="docutils literal notranslate"><span class="pre">X_ZN</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">vertex</span></code>: The vertex is the index of the phase in equilibrium. The vertex has no inherent physical meaning. There will automatically be enough to describe the number of phases present in any equilibria calculated, implying that vertex can never be large enough to invalidate Gibbs phase rule.</p></li>
 </ul>
@@ -452,7 +1460,7 @@ Coordinates:
 <li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: (optional) “output” is always whatever equilibrium property is calculated by the output keyword passed to <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>. Unlike <code class="docutils literal notranslate"><span class="pre">calculate</span></code>, this will be in addition to the <code class="docutils literal notranslate"><span class="pre">GM</span></code> because <code class="docutils literal notranslate"><span class="pre">GM</span></code> is always reported.</p></li>
 </ul>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
@@ -463,11 +1471,489 @@ Coordinates:
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;xarray.Dataset&gt; Size: 23kB
+<div class="output_area rendered_html docutils container">
+<div><svg style="position: absolute; width: 0; height: 0; overflow: hidden">
+<defs>
+<symbol id="icon-database" viewBox="0 0 32 32">
+<path d="M16 0c-8.837 0-16 2.239-16 5v4c0 2.761 7.163 5 16 5s16-2.239 16-5v-4c0-2.761-7.163-5-16-5z"></path>
+<path d="M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+<path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+</symbol>
+<symbol id="icon-file-text2" viewBox="0 0 32 32">
+<path d="M28.681 7.159c-0.694-0.947-1.662-2.053-2.724-3.116s-2.169-2.030-3.116-2.724c-1.612-1.182-2.393-1.319-2.841-1.319h-15.5c-1.378 0-2.5 1.121-2.5 2.5v27c0 1.378 1.122 2.5 2.5 2.5h23c1.378 0 2.5-1.122 2.5-2.5v-19.5c0-0.448-0.137-1.23-1.319-2.841zM24.543 5.457c0.959 0.959 1.712 1.825 2.268 2.543h-4.811v-4.811c0.718 0.556 1.584 1.309 2.543 2.268zM28 29.5c0 0.271-0.229 0.5-0.5 0.5h-23c-0.271 0-0.5-0.229-0.5-0.5v-27c0-0.271 0.229-0.5 0.5-0.5 0 0 15.499-0 15.5 0v7c0 0.552 0.448 1 1 1h7v19.5z"></path>
+<path d="M23 26h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 22h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 18h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+</symbol>
+</defs>
+</svg>
+<style>/* CSS stylesheet for displaying xarray objects in notebooks */
+
+:root {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base rgba(0, 0, 0, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, white)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 15))
+  );
+}
+
+html[theme="dark"],
+html[data-theme="dark"],
+body[data-theme="dark"],
+body.vscode-dark {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base, rgba(255, 255, 255, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, #111111)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 15))
+  );
+}
+
+.xr-wrap {
+  display: block !important;
+  min-width: 300px;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.xr-text-repr-fallback {
+  /* fallback to plain text repr when CSS is not injected (untrusted notebook) */
+  display: none;
+}
+
+.xr-header {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: solid 1px var(--xr-border-color);
+}
+
+.xr-header > div,
+.xr-header > ul {
+  display: inline;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.xr-obj-type,
+.xr-obj-name,
+.xr-group-name {
+  margin-left: 2px;
+  margin-right: 10px;
+}
+
+.xr-group-name::before {
+  content: "📁";
+  padding-right: 0.3em;
+}
+
+.xr-group-name,
+.xr-obj-type {
+  color: var(--xr-font-color2);
+}
+
+.xr-sections {
+  padding-left: 0 !important;
+  display: grid;
+  grid-template-columns: 150px auto auto 1fr 0 20px 0 20px;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.xr-section-item {
+  display: contents;
+}
+
+.xr-section-item input {
+  display: inline-block;
+  opacity: 0;
+  height: 0;
+  margin: 0;
+}
+
+.xr-section-item input + label {
+  color: var(--xr-disabled-color);
+  border: 2px solid transparent !important;
+}
+
+.xr-section-item input:enabled + label {
+  cursor: pointer;
+  color: var(--xr-font-color2);
+}
+
+.xr-section-item input:focus + label {
+  border: 2px solid var(--xr-font-color0) !important;
+}
+
+.xr-section-item input:enabled + label:hover {
+  color: var(--xr-font-color0);
+}
+
+.xr-section-summary {
+  grid-column: 1;
+  color: var(--xr-font-color2);
+  font-weight: 500;
+}
+
+.xr-section-summary > span {
+  display: inline-block;
+  padding-left: 0.5em;
+}
+
+.xr-section-summary-in:disabled + label {
+  color: var(--xr-font-color2);
+}
+
+.xr-section-summary-in + label:before {
+  display: inline-block;
+  content: "►";
+  font-size: 11px;
+  width: 15px;
+  text-align: center;
+}
+
+.xr-section-summary-in:disabled + label:before {
+  color: var(--xr-disabled-color);
+}
+
+.xr-section-summary-in:checked + label:before {
+  content: "▼";
+}
+
+.xr-section-summary-in:checked + label > span {
+  display: none;
+}
+
+.xr-section-summary,
+.xr-section-inline-details {
+  padding-top: 4px;
+}
+
+.xr-section-inline-details {
+  grid-column: 2 / -1;
+}
+
+.xr-section-details {
+  display: none;
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  margin-bottom: 5px;
+}
+
+.xr-section-summary-in:checked ~ .xr-section-details {
+  display: contents;
+}
+
+.xr-group-box {
+  display: inline-grid;
+  grid-template-columns: 0px 20px auto;
+  width: 100%;
+}
+
+.xr-group-box-vline {
+  grid-column-start: 1;
+  border-right: 0.2em solid;
+  border-color: var(--xr-border-color);
+  width: 0px;
+}
+
+.xr-group-box-hline {
+  grid-column-start: 2;
+  grid-row-start: 1;
+  height: 1em;
+  width: 20px;
+  border-bottom: 0.2em solid;
+  border-color: var(--xr-border-color);
+}
+
+.xr-group-box-contents {
+  grid-column-start: 3;
+}
+
+.xr-array-wrap {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 20px auto;
+}
+
+.xr-array-wrap > label {
+  grid-column: 1;
+  vertical-align: top;
+}
+
+.xr-preview {
+  color: var(--xr-font-color3);
+}
+
+.xr-array-preview,
+.xr-array-data {
+  padding: 0 5px !important;
+  grid-column: 2;
+}
+
+.xr-array-data,
+.xr-array-in:checked ~ .xr-array-preview {
+  display: none;
+}
+
+.xr-array-in:checked ~ .xr-array-data,
+.xr-array-preview {
+  display: inline-block;
+}
+
+.xr-dim-list {
+  display: inline-block !important;
+  list-style: none;
+  padding: 0 !important;
+  margin: 0;
+}
+
+.xr-dim-list li {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+}
+
+.xr-dim-list:before {
+  content: "(";
+}
+
+.xr-dim-list:after {
+  content: ")";
+}
+
+.xr-dim-list li:not(:last-child):after {
+  content: ",";
+  padding-right: 5px;
+}
+
+.xr-has-index {
+  font-weight: bold;
+}
+
+.xr-var-list,
+.xr-var-item {
+  display: contents;
+}
+
+.xr-var-item > div,
+.xr-var-item label,
+.xr-var-item > .xr-var-name span {
+  background-color: var(--xr-background-color-row-even);
+  border-color: var(--xr-background-color-row-odd);
+  margin-bottom: 0;
+  padding-top: 2px;
+}
+
+.xr-var-item > .xr-var-name:hover span {
+  padding-right: 5px;
+}
+
+.xr-var-list > li:nth-child(odd) > div,
+.xr-var-list > li:nth-child(odd) > label,
+.xr-var-list > li:nth-child(odd) > .xr-var-name span {
+  background-color: var(--xr-background-color-row-odd);
+  border-color: var(--xr-background-color-row-even);
+}
+
+.xr-var-name {
+  grid-column: 1;
+}
+
+.xr-var-dims {
+  grid-column: 2;
+}
+
+.xr-var-dtype {
+  grid-column: 3;
+  text-align: right;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-preview {
+  grid-column: 4;
+}
+
+.xr-index-preview {
+  grid-column: 2 / 5;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-name,
+.xr-var-dims,
+.xr-var-dtype,
+.xr-preview,
+.xr-attrs dt {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+.xr-var-name:hover,
+.xr-var-dims:hover,
+.xr-var-dtype:hover,
+.xr-attrs dt:hover {
+  overflow: visible;
+  width: auto;
+  z-index: 1;
+}
+
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  display: none;
+  border-top: 2px dotted var(--xr-background-color);
+  padding-bottom: 20px !important;
+  padding-top: 10px !important;
+}
+
+.xr-var-attrs-in + label,
+.xr-var-data-in + label,
+.xr-index-data-in + label {
+  padding: 0 1px;
+}
+
+.xr-var-attrs-in:checked ~ .xr-var-attrs,
+.xr-var-data-in:checked ~ .xr-var-data,
+.xr-index-data-in:checked ~ .xr-index-data {
+  display: block;
+}
+
+.xr-var-data > table {
+  float: right;
+}
+
+.xr-var-data > pre,
+.xr-index-data > pre,
+.xr-var-data > table > tbody > tr {
+  background-color: transparent !important;
+}
+
+.xr-var-name span,
+.xr-var-data,
+.xr-index-name div,
+.xr-index-data,
+.xr-attrs {
+  padding-left: 25px !important;
+}
+
+.xr-attrs,
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  grid-column: 1 / -1;
+}
+
+dl.xr-attrs {
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 125px auto;
+}
+
+.xr-attrs dt,
+.xr-attrs dd {
+  padding: 0;
+  margin: 0;
+  float: left;
+  padding-right: 10px;
+  width: auto;
+}
+
+.xr-attrs dt {
+  font-weight: normal;
+  grid-column: 1;
+}
+
+.xr-attrs dt:hover span {
+  display: inline-block;
+  background: var(--xr-background-color);
+  padding-right: 10px;
+}
+
+.xr-attrs dd {
+  grid-column: 2;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.xr-icon-database,
+.xr-icon-file-text2,
+.xr-no-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1em;
+  height: 1.5em !important;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+.xr-var-attrs-in:checked + label > .xr-icon-file-text2,
+.xr-var-data-in:checked + label > .xr-icon-database,
+.xr-index-data-in:checked + label > .xr-icon-database {
+  color: var(--xr-font-color0);
+  filter: drop-shadow(1px 1px 5px var(--xr-font-color2));
+  stroke-width: 0.8px;
+}
+</style><pre class='xr-text-repr-fallback'>&lt;xarray.Dataset&gt; Size: 23kB
 Dimensions:    (N: 1, P: 1, T: 5, X_ZN: 20, vertex: 3, component: 2,
                 internal_dof: 2)
 Coordinates:
@@ -476,7 +1962,7 @@ Coordinates:
   * T          (T) float64 40B 500.0 600.0 700.0 800.0 900.0
   * X_ZN       (X_ZN) float64 160B 1e-10 0.05 0.1 0.15 0.2 ... 0.8 0.85 0.9 0.95
   * vertex     (vertex) int64 24B 0 1 2
-  * component  (component) &lt;U2 16B &#39;AL&#39; &#39;ZN&#39;
+  * component  (component) &lt;U2 16B &#x27;AL&#x27; &#x27;ZN&#x27;
 Dimensions without coordinates: internal_dof
 Data variables:
     NP         (N, P, T, X_ZN, vertex) float64 2kB 1.0 nan nan ... 1.0 nan nan
@@ -484,18 +1970,287 @@ Data variables:
     MU         (N, P, T, X_ZN, component) float64 2kB -1.559e+04 ... -5.065e+04
     X          (N, P, T, X_ZN, vertex, component) float64 5kB 1.0 1e-10 ... nan
     Y          (N, P, T, X_ZN, vertex, internal_dof) float64 5kB 1.0 ... nan
-    Phase      (N, P, T, X_ZN, vertex) &lt;U6 7kB &#39;FCC_A1&#39; &#39;&#39; &#39;&#39; ... &#39;LIQUID&#39; &#39;&#39; &#39;&#39;
+    Phase      (N, P, T, X_ZN, vertex) &lt;U6 7kB &#x27;FCC_A1&#x27; &#x27;&#x27; &#x27;&#x27; ... &#x27;LIQUID&#x27; &#x27;&#x27; &#x27;&#x27;
     HM         (N, P, T, X_ZN) float64 800B 5.194e+03 5.859e+03 ... 2.528e+04
 Attributes:
-    engine:   pycalphad 0.10.4.post2.dev240+g48541ab8.d20240707
-    created:  2024-07-07T15:32:45.599856
-</pre></div></div>
+    engine:   pycalphad 0.11.2.dev80+gaeb47dbe4.d20260517
+    created:  2026-05-16T18:19:02.056863</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-0b3f54eb-0bd8-41e5-9873-12fa84ee82d4' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-0b3f54eb-0bd8-41e5-9873-12fa84ee82d4' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>N</span>: 1</li><li><span class='xr-has-index'>P</span>: 1</li><li><span class='xr-has-index'>T</span>: 5</li><li><span class='xr-has-index'>X_ZN</span>: 20</li><li><span class='xr-has-index'>vertex</span>: 3</li><li><span class='xr-has-index'>component</span>: 2</li><li><span>internal_dof</span>: 2</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-6a87cc55-12d9-4283-9c7f-bff33f9e9af4' class='xr-section-summary-in' type='checkbox'  checked><label for='section-6a87cc55-12d9-4283-9c7f-bff33f9e9af4' class='xr-section-summary' >Coordinates: <span>(6)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>N</span></div><div class='xr-var-dims'>(N)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0</div><input id='attrs-154da1e0-eeb8-47fe-bb67-5dd57e6da8f4' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-154da1e0-eeb8-47fe-bb67-5dd57e6da8f4' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-2b651dec-36e8-40e2-8517-f8b5a01a301e' class='xr-var-data-in' type='checkbox'><label for='data-2b651dec-36e8-40e2-8517-f8b5a01a301e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>P</span></div><div class='xr-var-dims'>(P)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.013e+05</div><input id='attrs-dfe298d9-aacd-43e7-8665-e9d37116b802' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-dfe298d9-aacd-43e7-8665-e9d37116b802' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-424041a4-d44a-463c-b91a-cc189f0c28ec' class='xr-var-data-in' type='checkbox'><label for='data-424041a4-d44a-463c-b91a-cc189f0c28ec' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([101325.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>T</span></div><div class='xr-var-dims'>(T)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>500.0 600.0 700.0 800.0 900.0</div><input id='attrs-826fa68d-0423-40e8-a453-0a1435b1f63e' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-826fa68d-0423-40e8-a453-0a1435b1f63e' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-46a5af46-8d23-4e21-b9c2-6d1ff1f2db2b' class='xr-var-data-in' type='checkbox'><label for='data-46a5af46-8d23-4e21-b9c2-6d1ff1f2db2b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([500., 600., 700., 800., 900.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>X_ZN</span></div><div class='xr-var-dims'>(X_ZN)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1e-10 0.05 0.1 ... 0.85 0.9 0.95</div><input id='attrs-2dcb7692-1759-4d11-8d78-ba59e8ced578' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-2dcb7692-1759-4d11-8d78-ba59e8ced578' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-4e700c5b-f2c3-4500-9dfe-228e2405dbc5' class='xr-var-data-in' type='checkbox'><label for='data-4e700c5b-f2c3-4500-9dfe-228e2405dbc5' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1.0e-10, 5.0e-02, 1.0e-01, 1.5e-01, 2.0e-01, 2.5e-01, 3.0e-01, 3.5e-01,
+       4.0e-01, 4.5e-01, 5.0e-01, 5.5e-01, 6.0e-01, 6.5e-01, 7.0e-01, 7.5e-01,
+       8.0e-01, 8.5e-01, 9.0e-01, 9.5e-01])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>vertex</span></div><div class='xr-var-dims'>(vertex)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2</div><input id='attrs-761399ef-f8f5-4873-87ea-f05a97e1d7ed' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-761399ef-f8f5-4873-87ea-f05a97e1d7ed' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-b5d1c1ea-7e26-4aaf-9a9f-c65254f5d0c0' class='xr-var-data-in' type='checkbox'><label for='data-b5d1c1ea-7e26-4aaf-9a9f-c65254f5d0c0' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>component</span></div><div class='xr-var-dims'>(component)</div><div class='xr-var-dtype'>&lt;U2</div><div class='xr-var-preview xr-preview'>&#x27;AL&#x27; &#x27;ZN&#x27;</div><input id='attrs-eb51c913-0805-4ae7-9455-fd213596ed3d' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-eb51c913-0805-4ae7-9455-fd213596ed3d' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-06147e9d-935b-4311-83b8-05d8376ab1d5' class='xr-var-data-in' type='checkbox'><label for='data-06147e9d-935b-4311-83b8-05d8376ab1d5' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([&#x27;AL&#x27;, &#x27;ZN&#x27;], dtype=&#x27;&lt;U2&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-ecbf56bf-c615-4adb-bcec-bb7cd7b4ee08' class='xr-section-summary-in' type='checkbox'  checked><label for='section-ecbf56bf-c615-4adb-bcec-bb7cd7b4ee08' class='xr-section-summary' >Data variables: <span>(7)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>NP</span></div><div class='xr-var-dims'>(N, P, T, X_ZN, vertex)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0 nan nan 1.0 ... nan 1.0 nan nan</div><input id='attrs-a21003c4-983e-4ae2-b8de-8a234682bbe5' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-a21003c4-983e-4ae2-b8de-8a234682bbe5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-84c0392e-2757-44f5-8326-ec55813968df' class='xr-var-data-in' type='checkbox'><label for='data-84c0392e-2757-44f5-8326-ec55813968df' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[[1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [0.97607896, 0.02392104,        nan],
+          [0.92129859, 0.07870141,        nan],
+          [0.86651821, 0.13348179,        nan],
+          [0.81173783, 0.18826217,        nan],
+          [0.75695745, 0.24304255,        nan],
+          [0.70217707, 0.29782293,        nan],
+          [0.64739669, 0.35260331,        nan],
+          [0.59261631, 0.40738369,        nan],
+          [0.53783594, 0.46216406,        nan],
+          [0.48305556, 0.51694444,        nan],
+          [0.42827518, 0.57172482,        nan],
+          [0.3734948 , 0.6265052 ,        nan],
+          [0.31871442, 0.68128558,        nan],
+          [0.26393404, 0.73606596,        nan],
+          [0.20915367, 0.79084633,        nan],
+          [0.15437329, 0.84562671,        nan],
+          [0.09959291, 0.90040709,        nan],
+          [0.04481253, 0.95518747,        nan]],
+...
+         [[1.        ,        nan,        nan],
+          [0.75935221, 0.24064779,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan],
+          [1.        ,        nan,        nan]]]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>GM</span></div><div class='xr-var-dims'>(N, P, T, X_ZN)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-1.559e+04 ... -5.068e+04</div><input id='attrs-5b004dec-02ab-4b43-81b7-8b88c8303ea5' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-5b004dec-02ab-4b43-81b7-8b88c8303ea5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-820cd3e5-59c1-4a34-a54a-aba46355dc15' class='xr-var-data-in' type='checkbox'><label for='data-820cd3e5-59c1-4a34-a54a-aba46355dc15' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[-15589.38873734, -16153.24670614, -16492.18004281,
+          -16815.99572959, -17139.81141627, -17463.62710305,
+          -17787.44278995, -18111.25847664, -18435.07416318,
+          -18758.88984991, -19082.70553664, -19406.52122337,
+          -19730.3369101 , -20054.15259682, -20377.96828355,
+          -20701.78397018, -21025.59965706, -21349.41534395,
+          -21673.23103051, -21997.04671729],
+         [-20002.97566564, -20812.64196171, -21331.83871444,
+          -21775.00036205, -22186.29218322, -22586.05976549,
+          -22985.12667226, -23384.19357898, -23783.26048572,
+          -24182.32739245, -24581.31163264, -24975.1374671 ,
+          -25355.78651038, -25715.33670493, -26065.72147962,
+          -26416.10625431, -26766.49102902, -27116.87580372,
+          -27467.26057842, -27817.64535313],
+         [-24886.81340873, -25942.61058464, -26648.55482208,
+          -27253.84023733, -27809.32331344, -28337.24072084,
+          -28848.79524822, -29349.48010166, -29841.25026396,
+          -30323.55353917, -30793.85292062, -31256.33447399,
+          -31718.80703453, -32181.27959508, -32643.75215562,
+          -33106.22471616, -33567.34367579, -33989.73882777,
+          -34336.57565124, -34555.42136605],
+         [-30190.46738658, -31492.79115232, -32385.87858579,
+          -33153.68347707, -33861.80288017, -34564.71010938,
+          -35267.61733855, -35970.52456771, -36673.43179695,
+          -37376.33902599, -38065.46057134, -38726.71316152,
+          -39359.41681561, -39961.44899886, -40528.95558908,
+          -41055.75384816, -41532.15410414, -41942.47819529,
+          -42258.97455575, -42421.72000568],
+         [-35880.79375666, -37443.07044013, -38738.76402049,
+          -39930.9802708 , -41011.09938591, -42010.34187788,
+          -42946.34567643, -43830.01166899, -44668.29542924,
+          -45465.53284788, -46224.11177591, -46944.79582987,
+          -47626.82139322, -48267.80061437, -48863.39760589,
+          -49406.65678741, -49886.67727785, -50285.82114539,
+          -50572.86787842, -50680.4038996 ]]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>MU</span></div><div class='xr-var-dims'>(N, P, T, X_ZN, component)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-1.559e+04 ... -5.065e+04</div><input id='attrs-dcfadb47-66da-4e0f-a96e-eddd0d6b96e2' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-dcfadb47-66da-4e0f-a96e-eddd0d6b96e2' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-ae3d799a-2460-4c8f-95cc-46151505f704' class='xr-var-data-in' type='checkbox'><label for='data-ae3d799a-2460-4c8f-95cc-46151505f704' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[[ -15589.38872835, -105415.29398969],
+          [ -15768.8392404 ,  -23456.98856821],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392],
+          [ -15844.54866936,  -22320.86240392]],
+...
+         [[ -35880.79373937, -208734.16627417],
+          [ -36144.17592411,  -62122.06624432],
+          [ -36208.28042316,  -61513.1164165 ],
+          [ -36543.34757935,  -59127.56552677],
+          [ -36867.29169813,  -57586.33013701],
+          [ -37183.46287623,  -56490.97888285],
+          [ -37495.90533571,  -55664.03980978],
+          [ -37809.56350423,  -55010.8439726 ],
+          [ -38130.57075039,  -54474.88244752],
+          [ -38466.66405247,  -54019.70582005],
+          [ -38827.79686596,  -53620.42668586],
+          [ -39227.07600015,  -53259.29387238],
+          [ -39682.25262762,  -52923.20057029],
+          [ -40218.2141527 ,  -52602.19332414],
+          [ -40871.40998988,  -52288.53515561],
+          [ -41698.34906295,  -51976.09269613],
+          [ -42793.70031711,  -51659.92151803],
+          [ -44334.93570687,  -51335.97739925],
+          [ -46720.4865966 ,  -51000.91024307],
+          [ -51221.71597359,  -50651.91379044]]]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>X</span></div><div class='xr-var-dims'>(N, P, T, X_ZN, vertex, component)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0 1e-10 nan nan ... nan nan nan</div><input id='attrs-d3411171-ada2-4682-af5b-f96c7ba4b53e' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-d3411171-ada2-4682-af5b-f96c7ba4b53e' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-7d1eba9e-83d2-4593-843f-d2e5700dc3ce' class='xr-var-data-in' type='checkbox'><label for='data-7d1eba9e-83d2-4593-843f-d2e5700dc3ce' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[[[1.00000000e+00, 1.00001084e-10],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[9.50000000e-01, 4.99999999e-02],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[9.21833580e-01, 7.81664200e-02],
+           [9.09801026e-03, 9.90901990e-01],
+           [           nan,            nan]],
+
+          [[9.21833580e-01, 7.81664200e-02],
+           [9.09801026e-03, 9.90901990e-01],
+           [           nan,            nan]],
+
+          [[9.21833580e-01, 7.81664200e-02],
+           [9.09801037e-03, 9.90901990e-01],
+           [           nan,            nan]],
+
+...
+
+          [[2.50000000e-01, 7.50000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[2.00000000e-01, 8.00000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[1.50000000e-01, 8.50000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[1.00000000e-01, 9.00000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[5.00000000e-02, 9.50000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]]]]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>Y</span></div><div class='xr-var-dims'>(N, P, T, X_ZN, vertex, internal_dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0 1e-10 nan nan ... nan nan nan</div><input id='attrs-c2803e20-9ab4-4c0c-ab7a-48473a29692f' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-c2803e20-9ab4-4c0c-ab7a-48473a29692f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-38e8507c-a225-481e-a5ef-057bcccc7353' class='xr-var-data-in' type='checkbox'><label for='data-38e8507c-a225-481e-a5ef-057bcccc7353' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[[[1.00000000e+00, 1.00001084e-10],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[9.50000000e-01, 4.99999999e-02],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[9.21833580e-01, 7.81664200e-02],
+           [9.09801026e-03, 9.90901990e-01],
+           [           nan,            nan]],
+
+          [[9.21833580e-01, 7.81664200e-02],
+           [9.09801026e-03, 9.90901990e-01],
+           [           nan,            nan]],
+
+          [[9.21833580e-01, 7.81664200e-02],
+           [9.09801037e-03, 9.90901990e-01],
+           [           nan,            nan]],
+
+...
+
+          [[2.50000000e-01, 7.50000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[2.00000000e-01, 8.00000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[1.50000000e-01, 8.50000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[1.00000000e-01, 9.00000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]],
+
+          [[5.00000000e-02, 9.50000000e-01],
+           [           nan,            nan],
+           [           nan,            nan]]]]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>Phase</span></div><div class='xr-var-dims'>(N, P, T, X_ZN, vertex)</div><div class='xr-var-dtype'>&lt;U6</div><div class='xr-var-preview xr-preview'>&#x27;FCC_A1&#x27; &#x27;&#x27; &#x27;&#x27; ... &#x27;LIQUID&#x27; &#x27;&#x27; &#x27;&#x27;</div><input id='attrs-10560b91-a6e7-45ea-96bb-6334a46ae82d' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-10560b91-a6e7-45ea-96bb-6334a46ae82d' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-8843ef5b-5aee-40eb-a057-c8f51ea82d85' class='xr-var-data-in' type='checkbox'><label for='data-8843ef5b-5aee-40eb-a057-c8f51ea82d85' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[[&#x27;FCC_A1&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;HCP_A3&#x27;, &#x27;&#x27;]],
+...
+         [[&#x27;FCC_A1&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;FCC_A1&#x27;, &#x27;LIQUID&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;],
+          [&#x27;LIQUID&#x27;, &#x27;&#x27;, &#x27;&#x27;]]]]], dtype=&#x27;&lt;U6&#x27;)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>HM</span></div><div class='xr-var-dims'>(N, P, T, X_ZN)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>5.194e+03 5.859e+03 ... 2.528e+04</div><input id='attrs-b2988212-7daa-46ba-b974-b898ed3f07e6' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-b2988212-7daa-46ba-b974-b898ed3f07e6' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-284d2526-0a86-4884-ab70-88fb479ae539' class='xr-var-data-in' type='checkbox'><label for='data-284d2526-0a86-4884-ab70-88fb479ae539' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[[ 5194.39950139,  5858.79434143,  6188.45040478,
+           6151.69896596,  6114.9475277 ,  6078.196089  ,
+           6041.44464951,  6004.69321066,  5967.94177177,
+           5931.19033293,  5894.43889409,  5857.68745525,
+           5820.93601642,  5784.18457758,  5747.43313875,
+           5710.68169988,  5673.93026109,  5637.1788223 ,
+           5600.42738341,  5563.67594459],
+         [ 7948.77250273,  8614.882593  ,  9215.16185586,
+           9743.73391919, 10196.58073152, 10464.4164143 ,
+          10644.30635065, 10824.19628697, 11004.0862233 ,
+          11183.97615963, 11332.56887867, 11298.9324214 ,
+          11224.32583354, 11076.27994126, 10705.34192144,
+          10334.40390163,  9963.46588182,  9592.52786201,
+           9221.58984219,  8850.65182238],
+         [10818.14097197, 11486.49453558, 12089.01727181,
+          12619.83280881, 13074.92309489, 13452.12840059,
+          13751.14731705, 13973.53675331, 14122.71193852,
+          14203.94642529, 14224.37208137, 15337.43500997,
+          16489.07676724, 17640.71852452, 18792.36028179,
+          19944.00203906, 20707.85591513, 20195.78429198,
+          19631.38517109, 19014.65854997],
+         [13818.6339694 , 14489.78455749, 15095.10431911,
+          15628.71687967, 16861.99993333, 18657.31786615,
+          20452.63579894, 22247.95373174, 24043.27166457,
+          25838.58959729, 25720.30431039, 25532.10552459,
+          25291.57923878, 24998.72545286, 24653.54416718,
+          24256.03538173, 23806.19909557, 23304.03530976,
+          22749.54402396, 22142.72523816],
+         [17007.73343628, 20120.75793465, 28410.93516677,
+          28645.19872968, 28827.13479242, 28956.74335504,
+          29034.02441758, 29058.97798028, 29031.6040429 ,
+          28951.90260552, 28819.87366814, 28635.51723076,
+          28398.83329338, 28109.82185587, 27768.48291861,
+          27374.81648158, 26928.82254385, 26430.50110647,
+          25879.85216909, 25276.87573171]]]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-7de24a53-e8e8-4bd5-9d56-4b5b136d5691' class='xr-section-summary-in' type='checkbox'  checked><label for='section-7de24a53-e8e8-4bd5-9d56-4b5b136d5691' class='xr-section-summary' >Attributes: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>engine :</span></dt><dd>pycalphad 0.11.2.dev80+gaeb47dbe4.d20260517</dd><dt><span>created :</span></dt><dd>2026-05-16T18:19:02.056863</dd></dl></div></li></ul></div></div></div>
 </div>
-<p>A common operation might be to find the phase fractions of the HCP_A3 phase as a function of composition for T=800.</p>
+<p>A common operation might be to find the phase fractions of the HCP_A3 phase as a function of composition at 800 K.</p>
 <p>However, the only way we can access the values of the phase fraction is by either the indices or values of the coordinates, we would have to know which index the HCP_A3 phase is in before hand to use the <code class="docutils literal notranslate"><span class="pre">sel</span></code> or <code class="docutils literal notranslate"><span class="pre">isel</span></code> commands.</p>
 <p>Since we do not know this, we can do what is called <a class="reference external" href="http://xarray.pydata.org/en/stable/indexing.html#masking-with-where">masking</a> to find the data values that match a condition (the Phase is FCC_A1):</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq_result</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">Phase</span><span class="o">==</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
@@ -503,11 +2258,489 @@ Attributes:
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;xarray.DataArray &#39;NP&#39; (N: 1, X_ZN: 20, vertex: 3)&gt; Size: 480B
+<div class="output_area rendered_html docutils container">
+<div><svg style="position: absolute; width: 0; height: 0; overflow: hidden">
+<defs>
+<symbol id="icon-database" viewBox="0 0 32 32">
+<path d="M16 0c-8.837 0-16 2.239-16 5v4c0 2.761 7.163 5 16 5s16-2.239 16-5v-4c0-2.761-7.163-5-16-5z"></path>
+<path d="M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+<path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+</symbol>
+<symbol id="icon-file-text2" viewBox="0 0 32 32">
+<path d="M28.681 7.159c-0.694-0.947-1.662-2.053-2.724-3.116s-2.169-2.030-3.116-2.724c-1.612-1.182-2.393-1.319-2.841-1.319h-15.5c-1.378 0-2.5 1.121-2.5 2.5v27c0 1.378 1.122 2.5 2.5 2.5h23c1.378 0 2.5-1.122 2.5-2.5v-19.5c0-0.448-0.137-1.23-1.319-2.841zM24.543 5.457c0.959 0.959 1.712 1.825 2.268 2.543h-4.811v-4.811c0.718 0.556 1.584 1.309 2.543 2.268zM28 29.5c0 0.271-0.229 0.5-0.5 0.5h-23c-0.271 0-0.5-0.229-0.5-0.5v-27c0-0.271 0.229-0.5 0.5-0.5 0 0 15.499-0 15.5 0v7c0 0.552 0.448 1 1 1h7v19.5z"></path>
+<path d="M23 26h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 22h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 18h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+</symbol>
+</defs>
+</svg>
+<style>/* CSS stylesheet for displaying xarray objects in notebooks */
+
+:root {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base rgba(0, 0, 0, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, white)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 15))
+  );
+}
+
+html[theme="dark"],
+html[data-theme="dark"],
+body[data-theme="dark"],
+body.vscode-dark {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base, rgba(255, 255, 255, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, #111111)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 15))
+  );
+}
+
+.xr-wrap {
+  display: block !important;
+  min-width: 300px;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.xr-text-repr-fallback {
+  /* fallback to plain text repr when CSS is not injected (untrusted notebook) */
+  display: none;
+}
+
+.xr-header {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: solid 1px var(--xr-border-color);
+}
+
+.xr-header > div,
+.xr-header > ul {
+  display: inline;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.xr-obj-type,
+.xr-obj-name,
+.xr-group-name {
+  margin-left: 2px;
+  margin-right: 10px;
+}
+
+.xr-group-name::before {
+  content: "📁";
+  padding-right: 0.3em;
+}
+
+.xr-group-name,
+.xr-obj-type {
+  color: var(--xr-font-color2);
+}
+
+.xr-sections {
+  padding-left: 0 !important;
+  display: grid;
+  grid-template-columns: 150px auto auto 1fr 0 20px 0 20px;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.xr-section-item {
+  display: contents;
+}
+
+.xr-section-item input {
+  display: inline-block;
+  opacity: 0;
+  height: 0;
+  margin: 0;
+}
+
+.xr-section-item input + label {
+  color: var(--xr-disabled-color);
+  border: 2px solid transparent !important;
+}
+
+.xr-section-item input:enabled + label {
+  cursor: pointer;
+  color: var(--xr-font-color2);
+}
+
+.xr-section-item input:focus + label {
+  border: 2px solid var(--xr-font-color0) !important;
+}
+
+.xr-section-item input:enabled + label:hover {
+  color: var(--xr-font-color0);
+}
+
+.xr-section-summary {
+  grid-column: 1;
+  color: var(--xr-font-color2);
+  font-weight: 500;
+}
+
+.xr-section-summary > span {
+  display: inline-block;
+  padding-left: 0.5em;
+}
+
+.xr-section-summary-in:disabled + label {
+  color: var(--xr-font-color2);
+}
+
+.xr-section-summary-in + label:before {
+  display: inline-block;
+  content: "►";
+  font-size: 11px;
+  width: 15px;
+  text-align: center;
+}
+
+.xr-section-summary-in:disabled + label:before {
+  color: var(--xr-disabled-color);
+}
+
+.xr-section-summary-in:checked + label:before {
+  content: "▼";
+}
+
+.xr-section-summary-in:checked + label > span {
+  display: none;
+}
+
+.xr-section-summary,
+.xr-section-inline-details {
+  padding-top: 4px;
+}
+
+.xr-section-inline-details {
+  grid-column: 2 / -1;
+}
+
+.xr-section-details {
+  display: none;
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  margin-bottom: 5px;
+}
+
+.xr-section-summary-in:checked ~ .xr-section-details {
+  display: contents;
+}
+
+.xr-group-box {
+  display: inline-grid;
+  grid-template-columns: 0px 20px auto;
+  width: 100%;
+}
+
+.xr-group-box-vline {
+  grid-column-start: 1;
+  border-right: 0.2em solid;
+  border-color: var(--xr-border-color);
+  width: 0px;
+}
+
+.xr-group-box-hline {
+  grid-column-start: 2;
+  grid-row-start: 1;
+  height: 1em;
+  width: 20px;
+  border-bottom: 0.2em solid;
+  border-color: var(--xr-border-color);
+}
+
+.xr-group-box-contents {
+  grid-column-start: 3;
+}
+
+.xr-array-wrap {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 20px auto;
+}
+
+.xr-array-wrap > label {
+  grid-column: 1;
+  vertical-align: top;
+}
+
+.xr-preview {
+  color: var(--xr-font-color3);
+}
+
+.xr-array-preview,
+.xr-array-data {
+  padding: 0 5px !important;
+  grid-column: 2;
+}
+
+.xr-array-data,
+.xr-array-in:checked ~ .xr-array-preview {
+  display: none;
+}
+
+.xr-array-in:checked ~ .xr-array-data,
+.xr-array-preview {
+  display: inline-block;
+}
+
+.xr-dim-list {
+  display: inline-block !important;
+  list-style: none;
+  padding: 0 !important;
+  margin: 0;
+}
+
+.xr-dim-list li {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+}
+
+.xr-dim-list:before {
+  content: "(";
+}
+
+.xr-dim-list:after {
+  content: ")";
+}
+
+.xr-dim-list li:not(:last-child):after {
+  content: ",";
+  padding-right: 5px;
+}
+
+.xr-has-index {
+  font-weight: bold;
+}
+
+.xr-var-list,
+.xr-var-item {
+  display: contents;
+}
+
+.xr-var-item > div,
+.xr-var-item label,
+.xr-var-item > .xr-var-name span {
+  background-color: var(--xr-background-color-row-even);
+  border-color: var(--xr-background-color-row-odd);
+  margin-bottom: 0;
+  padding-top: 2px;
+}
+
+.xr-var-item > .xr-var-name:hover span {
+  padding-right: 5px;
+}
+
+.xr-var-list > li:nth-child(odd) > div,
+.xr-var-list > li:nth-child(odd) > label,
+.xr-var-list > li:nth-child(odd) > .xr-var-name span {
+  background-color: var(--xr-background-color-row-odd);
+  border-color: var(--xr-background-color-row-even);
+}
+
+.xr-var-name {
+  grid-column: 1;
+}
+
+.xr-var-dims {
+  grid-column: 2;
+}
+
+.xr-var-dtype {
+  grid-column: 3;
+  text-align: right;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-preview {
+  grid-column: 4;
+}
+
+.xr-index-preview {
+  grid-column: 2 / 5;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-name,
+.xr-var-dims,
+.xr-var-dtype,
+.xr-preview,
+.xr-attrs dt {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+.xr-var-name:hover,
+.xr-var-dims:hover,
+.xr-var-dtype:hover,
+.xr-attrs dt:hover {
+  overflow: visible;
+  width: auto;
+  z-index: 1;
+}
+
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  display: none;
+  border-top: 2px dotted var(--xr-background-color);
+  padding-bottom: 20px !important;
+  padding-top: 10px !important;
+}
+
+.xr-var-attrs-in + label,
+.xr-var-data-in + label,
+.xr-index-data-in + label {
+  padding: 0 1px;
+}
+
+.xr-var-attrs-in:checked ~ .xr-var-attrs,
+.xr-var-data-in:checked ~ .xr-var-data,
+.xr-index-data-in:checked ~ .xr-index-data {
+  display: block;
+}
+
+.xr-var-data > table {
+  float: right;
+}
+
+.xr-var-data > pre,
+.xr-index-data > pre,
+.xr-var-data > table > tbody > tr {
+  background-color: transparent !important;
+}
+
+.xr-var-name span,
+.xr-var-data,
+.xr-index-name div,
+.xr-index-data,
+.xr-attrs {
+  padding-left: 25px !important;
+}
+
+.xr-attrs,
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  grid-column: 1 / -1;
+}
+
+dl.xr-attrs {
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 125px auto;
+}
+
+.xr-attrs dt,
+.xr-attrs dd {
+  padding: 0;
+  margin: 0;
+  float: left;
+  padding-right: 10px;
+  width: auto;
+}
+
+.xr-attrs dt {
+  font-weight: normal;
+  grid-column: 1;
+}
+
+.xr-attrs dt:hover span {
+  display: inline-block;
+  background: var(--xr-background-color);
+  padding-right: 10px;
+}
+
+.xr-attrs dd {
+  grid-column: 2;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.xr-icon-database,
+.xr-icon-file-text2,
+.xr-no-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1em;
+  height: 1.5em !important;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+.xr-var-attrs-in:checked + label > .xr-icon-file-text2,
+.xr-var-data-in:checked + label > .xr-icon-database,
+.xr-index-data-in:checked + label > .xr-icon-database {
+  color: var(--xr-font-color0);
+  filter: drop-shadow(1px 1px 5px var(--xr-font-color2));
+  stroke-width: 0.8px;
+}
+</style><pre class='xr-text-repr-fallback'>&lt;xarray.DataArray &#x27;NP&#x27; (N: 1, X_ZN: 20, vertex: 3)&gt; Size: 480B
 array([[[1.        ,        nan,        nan],
         [1.        ,        nan,        nan],
         [1.        ,        nan,        nan],
@@ -530,11 +2763,31 @@ array([[[1.        ,        nan,        nan],
         [       nan,        nan,        nan]]])
 Coordinates:
   * N        (N) float64 8B 1.0
-    P        float64 8B 1.013e+05
-    T        float64 8B 800.0
   * X_ZN     (X_ZN) float64 160B 1e-10 0.05 0.1 0.15 0.2 ... 0.8 0.85 0.9 0.95
   * vertex   (vertex) int64 24B 0 1 2
-</pre></div></div>
+    P        float64 8B 1.013e+05
+    T        float64 8B 800.0</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.DataArray</div><div class='xr-obj-name'>&#x27;NP&#x27;</div><ul class='xr-dim-list'><li><span class='xr-has-index'>N</span>: 1</li><li><span class='xr-has-index'>X_ZN</span>: 20</li><li><span class='xr-has-index'>vertex</span>: 3</li></ul></div><ul class='xr-sections'><li class='xr-section-item'><div class='xr-array-wrap'><input id='section-0bc15aa6-8f0c-486a-9c07-3e67c3ce9c78' class='xr-array-in' type='checkbox' checked><label for='section-0bc15aa6-8f0c-486a-9c07-3e67c3ce9c78' title='Show/hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-array-preview xr-preview'><span>1.0 nan nan 1.0 nan nan 1.0 nan ... nan nan nan nan nan nan nan nan</span></div><div class='xr-array-data'><pre>array([[[1.        ,        nan,        nan],
+        [1.        ,        nan,        nan],
+        [1.        ,        nan,        nan],
+        [1.        ,        nan,        nan],
+        [0.89739922,        nan,        nan],
+        [0.71825009,        nan,        nan],
+        [0.53910096,        nan,        nan],
+        [0.35995184,        nan,        nan],
+        [0.18080271,        nan,        nan],
+        [       nan, 0.00165358,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan],
+        [       nan,        nan,        nan]]])</pre></div></div></li><li class='xr-section-item'><input id='section-ed6ddd85-4bc6-418d-8bb5-4ea76d58aca2' class='xr-section-summary-in' type='checkbox'  checked><label for='section-ed6ddd85-4bc6-418d-8bb5-4ea76d58aca2' class='xr-section-summary' >Coordinates: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>N</span></div><div class='xr-var-dims'>(N)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.0</div><input id='attrs-0ece9f82-f1e7-43f9-bc9b-355155f34f6f' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-0ece9f82-f1e7-43f9-bc9b-355155f34f6f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-16ee81d0-a3a4-4656-b26d-9bd19d45df27' class='xr-var-data-in' type='checkbox'><label for='data-16ee81d0-a3a4-4656-b26d-9bd19d45df27' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1.])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>X_ZN</span></div><div class='xr-var-dims'>(X_ZN)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1e-10 0.05 0.1 ... 0.85 0.9 0.95</div><input id='attrs-c5c2ceb7-1d5e-444e-ad62-1e6bfaa7e965' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-c5c2ceb7-1d5e-444e-ad62-1e6bfaa7e965' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-7cc3e00a-bc44-4036-b85d-0fa326cb13aa' class='xr-var-data-in' type='checkbox'><label for='data-7cc3e00a-bc44-4036-b85d-0fa326cb13aa' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([1.0e-10, 5.0e-02, 1.0e-01, 1.5e-01, 2.0e-01, 2.5e-01, 3.0e-01, 3.5e-01,
+       4.0e-01, 4.5e-01, 5.0e-01, 5.5e-01, 6.0e-01, 6.5e-01, 7.0e-01, 7.5e-01,
+       8.0e-01, 8.5e-01, 9.0e-01, 9.5e-01])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>vertex</span></div><div class='xr-var-dims'>(vertex)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2</div><input id='attrs-a851ff14-16b7-44aa-bc7f-d7303362a816' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-a851ff14-16b7-44aa-bc7f-d7303362a816' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-c35bd193-9aff-40bc-a4ad-b852311f3364' class='xr-var-data-in' type='checkbox'><label for='data-c35bd193-9aff-40bc-a4ad-b852311f3364' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>P</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.013e+05</div><input id='attrs-6a94c2fa-79cb-4d57-b3fd-bfbac27dff81' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-6a94c2fa-79cb-4d57-b3fd-bfbac27dff81' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-cbd7ab02-4c7b-49fb-ae3d-a9c178d34613' class='xr-var-data-in' type='checkbox'><label for='data-cbd7ab02-4c7b-49fb-ae3d-a9c178d34613' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array(101325.)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>T</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>800.0</div><input id='attrs-31a9684e-3bf6-4ad3-8f97-14ab6ccbc9b9' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-31a9684e-3bf6-4ad3-8f97-14ab6ccbc9b9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0718d0c8-d5c3-4058-8f70-94883d08e5a4' class='xr-var-data-in' type='checkbox'><label for='data-0718d0c8-d5c3-4058-8f70-94883d08e5a4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array(800.)</pre></div></li></ul></div></li></ul></div></div></div>
 </div>
 </section>
 </section>
@@ -610,7 +2863,7 @@ Coordinates:
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=ffbe65b0"></script>
+</div><script src="../_static/documentation_options.js?v=401a02fb"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

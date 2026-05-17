@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Plotting using the Mapping API - pycalphad 0.11.2.dev23+g19adcdaf6 documentation</title>
+        <title>Plotting using the Mapping API - pycalphad 0.11.2.dev24+ge0c9ed47b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -286,8 +286,8 @@
         <article role="main" id="furo-main-content">
           <section id="Plotting-using-the-Mapping-API">
 <h1>Plotting using the Mapping API<a class="headerlink" href="#Plotting-using-the-Mapping-API" title="Link to this heading">¶</a></h1>
-<p>Mapping uses the algorithms outlined in B. Sundman, N. Dupin, B. Hallstedt, <em>Calphad</em> 75 (2021) 102330 to construct phase diagrams by stepping along phase boundaries.</p>
-<p>binplot and ternplot are thin wrappers around the binary and ternary mapping strategies; however, additional plotting capabilities are available through the mapping module.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Mapping</span></code> uses the algorithms outlined in <a class="reference external" href="https://doi.org/10.1016/j.calphad.2021.102330">Algorithms useful for calculating multi-component equilibria, phase diagrams and other kinds of diagrams (B. Sundman, N. Dupin, B. Hallstedt, Calphad 75 (2021) 102330)</a> to construct phase diagrams by stepping along phase boundaries.</p>
+<p><code class="docutils literal notranslate"><span class="pre">binplot</span></code> and <code class="docutils literal notranslate"><span class="pre">ternplot</span></code> are thin wrappers around the binary and ternary mapping strategies; however, additional plotting capabilities are available through the <code class="docutils literal notranslate"><span class="pre">mapping</span></code> module.</p>
 <section id="Binary-phase-diagrams-with-mapping">
 <h2>Binary phase diagrams with mapping<a class="headerlink" href="#Binary-phase-diagrams-with-mapping" title="Link to this heading">¶</a></h2>
 <p>This shows how to plot a binary phase diagram through mapping as an alternative to binplot.</p>
@@ -306,16 +306,29 @@
 <span class="c1"># Phases will be automatically filtered with components if no phases are passed</span>
 <span class="n">binary</span> <span class="o">=</span> <span class="n">BinaryStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
 <span class="n">binary</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
-<span class="n">plot_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<br/></pre></div>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">plot_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Al-Zn Phase Diagram using (default) mole fractions&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/var/folders/5x/xv4fc04x683fjm06jpyqjwlm001ts6/T/ipykernel_19662/4137447221.py:17: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  fig.show()
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Mapping_2_0.png" src="../_images/examples_Mapping_2_0.png" />
+<img alt="../_images/examples_Mapping_2_1.png" src="../_images/examples_Mapping_2_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -324,16 +337,29 @@
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plotting in weight fraction</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plot_binary</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">W</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Al-Zn Phase Diagram using weight fractions&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/var/folders/5x/xv4fc04x683fjm06jpyqjwlm001ts6/T/ipykernel_19662/3029474166.py:8: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  fig.show()
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Mapping_3_0.png" src="../_images/examples_Mapping_3_0.png" />
+<img alt="../_images/examples_Mapping_3_1.png" src="../_images/examples_Mapping_3_1.png" />
 </div>
 </div>
 <p>Similarly, the same can be done for ternaries using TernaryStrategy and plot_ternary.</p>
@@ -354,16 +380,30 @@
 <span class="n">step</span> <span class="o">=</span> <span class="n">StepStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
 <span class="n">step</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
 
-<span class="n">plot_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">plot_step</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Al-Cu-Y Phase Evolution with Temperature&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/var/folders/5x/xv4fc04x683fjm06jpyqjwlm001ts6/T/ipykernel_19662/2676399610.py:16: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  fig.show()
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Mapping_6_0.png" src="../_images/examples_Mapping_6_0.png" />
+<img alt="../_images/examples_Mapping_6_1.png" src="../_images/examples_Mapping_6_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -374,19 +414,35 @@
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
 <span class="n">plot_step</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="n">plot_step</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;CU&#39;</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;X(Al) vs T in Al-Cu-Y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">500</span><span class="p">,</span> <span class="mi">2000</span><span class="p">])</span>
 <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_legend</span><span class="p">()</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;X(Cu) vs T in Al-Cu-Y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">500</span><span class="p">,</span> <span class="mi">2000</span><span class="p">])</span>
 <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/var/folders/5x/xv4fc04x683fjm06jpyqjwlm001ts6/T/ipykernel_19662/153552101.py:16: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  fig.show()
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Mapping_7_0.png" src="../_images/examples_Mapping_7_0.png" />
+<img alt="../_images/examples_Mapping_7_1.png" src="../_images/examples_Mapping_7_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -394,20 +450,32 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plotting heat capacity vs T</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
 <span class="n">plot_step</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;CPM&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Heat capacity of Al-Cu-Y system&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">500</span><span class="p">,</span> <span class="mi">2000</span><span class="p">])</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">26</span><span class="p">,</span> <span class="mi">34</span><span class="p">])</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/var/folders/5x/xv4fc04x683fjm06jpyqjwlm001ts6/T/ipykernel_19662/1619890118.py:10: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  fig.show()
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Mapping_8_0.png" src="../_images/examples_Mapping_8_0.png" />
+<img alt="../_images/examples_Mapping_8_1.png" src="../_images/examples_Mapping_8_1.png" />
 </div>
 </div>
 </section>
@@ -426,8 +494,12 @@
 
 <span class="n">iso</span> <span class="o">=</span> <span class="n">IsoplethStrategy</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">conds</span><span class="p">)</span>
 <span class="n">iso</span><span class="o">.</span><span class="n">do_map</span><span class="p">()</span>
-<span class="n">plot_isopleth</span><span class="p">(</span><span class="n">iso</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">plot_isopleth</span><span class="p">(</span><span class="n">iso</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Al-Cu-Y Isopleth at X(Y) = 0.1&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -436,8 +508,10 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-C:\Users\ury3\OneDrive - LLNL\Documents\Projects\pycalphad\pycalphad\pycalphad\core\conditions.py:116: UserWarning: Some specified compositions are below the minimum allowed composition of 1e-10.
+/Users/bocklund1/src/calphad-workspace/packages/pycalphad/pycalphad/core/conditions.py:116: UserWarning: Some specified compositions are below the minimum allowed composition of 1e-10.
   warnings.warn(
+/var/folders/5x/xv4fc04x683fjm06jpyqjwlm001ts6/T/ipykernel_19662/3216063920.py:14: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  fig.show()
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -520,7 +594,7 @@ C:\Users\ury3\OneDrive - LLNL\Documents\Projects\pycalphad\pycalphad\pycalphad\c
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=ffbe65b0"></script>
+</div><script src="../_static/documentation_options.js?v=401a02fb"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

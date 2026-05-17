@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Calculating Energy Surfaces [Legacy Method] - pycalphad 0.11.2.dev23+g19adcdaf6 documentation</title>
+        <title>Calculating Energy Surfaces [Legacy Method] - pycalphad 0.11.2.dev24+ge0c9ed47b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev23+g19adcdaf6 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev24+ge0c9ed47b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -286,7 +286,7 @@
         <article role="main" id="furo-main-content">
           <section id="Calculating-Energy-Surfaces-[Legacy-Method]">
 <h1>Calculating Energy Surfaces [Legacy Method]<a class="headerlink" href="#Calculating-Energy-Surfaces-[Legacy-Method]" title="Link to this heading">¶</a></h1>
-<p><strong>Note</strong>: Since pycalphad 0.11, we recommend using the Computable Property API for calculating energy surfaces. This method remains supported, but is not recommended for new users.</p>
+<p><strong>Note</strong>: Since <code class="docutils literal notranslate"><span class="pre">pycalphad</span></code> 0.11, we recommend using the <code class="docutils literal notranslate"><span class="pre">ComputableProperty</span></code> API for calculating energy surfaces. This method remains supported, but is not recommended for new users.</p>
 <p>It is very common in CALPHAD modeling to directly examine the Gibbs energy surface of all the constituent phases in a system.</p>
 <p>Below we show how the Gibbs energy of all phases may be calculated as a function of composition at a given temperature (2800 K).</p>
 <p>Note that the chi phase has additional, internal degrees of freedom which allow it to take on multiple states for a given overall composition. Only the low-energy states are relevant to calculating the equilibrium phase diagram.</p>
@@ -296,12 +296,12 @@
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">phase_legend</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># Load database and choose the phases that will be plotted</span>
 <span class="n">db_nbre</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;nbre_liu.tdb&#39;</span><span class="p">)</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;NB&#39;</span><span class="p">,</span> <span class="s1">&#39;RE&#39;</span><span class="p">]</span>
 <span class="n">my_phases_nbre</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CHI_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;SIGMARENB&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_RENB&#39;</span><span class="p">]</span>
 
 <span class="c1"># Get the colors that map phase names to colors in the legend</span>
@@ -312,13 +312,14 @@
 
 <span class="c1"># Loop over phases, calculate the Gibbs energy, and scatter plot GM vs. X(RE)</span>
 <span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">my_phases_nbre</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db_nbre</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NB&#39;</span><span class="p">,</span> <span class="s1">&#39;RE&#39;</span><span class="p">],</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">2800</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db_nbre</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">2800</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;RE&#39;</span><span class="p">),</span> <span class="n">result</span><span class="o">.</span><span class="n">GM</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">])</span>
 
 <span class="c1"># Format the plot</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(RE)&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;GM&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Gibbs energy surfaces&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legend_handles</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -340,14 +341,13 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">triangular</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate</span>
 
 <span class="n">db_al_cu_y</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;Al-Cu-Y.tdb&#39;</span><span class="p">)</span>
 <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
 
 <span class="c1"># some sample data, these could be from an equilibrium calculation or a property model.</span>
-<span class="c1"># here we are calculating the mixing enthlapy of the FCC_A1 phase at 830K.</span>
+<span class="c1"># here we are calculating the mixing enthalpy of the FCC_A1 phase at 830K.</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM_MIX&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">830</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
 
 <span class="c1"># Here we are getting the values from our plot.</span>
@@ -363,11 +363,11 @@
            <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
 <span class="c1"># label the figure</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X (AL)&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;X (CU)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(Al)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;X(Cu)&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># rotate ylabel</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_coords</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.12</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># move the label to a pleasing position</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;AL-CU-Y HM_MIX at 830K&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Mixing enthalpy of FCC_A1</span><span class="se">\n</span><span class="s1">in Al-Cu-Y system at 830K&#39;</span><span class="p">)</span>
 
 <span class="c1"># set up the colorbar</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
@@ -454,7 +454,7 @@
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=ffbe65b0"></script>
+</div><script src="../_static/documentation_options.js?v=401a02fb"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
