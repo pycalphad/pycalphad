@@ -5,7 +5,6 @@ correct solution for thermodynamic equilibrium.
 
 import warnings
 import os
-from cycler import V
 import pytest
 from symengine import Symbol
 from numpy.testing import assert_allclose
