@@ -477,11 +477,6 @@ def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[Compo
     x_prev = np.array([zpf_line.points[-1].get_property(var) for var in axis_data['axis_vars']])
     vfirst = x_first - x_curr
     vprev = x_curr - x_prev
-    # avgx_curr = np.sum([cs.NP*np.array(cs.X) for cs in step_results[1]], axis=0)
-    # avgx_first = np.sum([cs.NP*np.array(cs.X) for cs in zpf_line.points[0].stable_composition_sets], axis=0)
-    # avgx_prev = np.sum([cs.NP*np.array(cs.X) for cs in zpf_line.points[-1].stable_composition_sets], axis=0)
-    #vfirst = avgx_first - avgx_curr
-    #vprev = avgx_curr - avgx_prev
     dist_first = np.sqrt(np.sum(vfirst**2))
     dist_prev = np.sqrt(np.sum(vprev**2))
     # if distance to first point is smaller than to previous point, then stop zpf line
