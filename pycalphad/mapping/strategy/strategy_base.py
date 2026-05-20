@@ -250,7 +250,7 @@ class MapStrategy:
             return True
         return False
 
-    def do_map(self, max_iter = -1):
+    def do_map(self, max_iter: int = -1):
         """
         Wrapper over iterate to run until finished
         """
