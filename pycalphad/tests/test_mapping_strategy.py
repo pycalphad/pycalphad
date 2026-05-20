@@ -10,7 +10,7 @@ from pycalphad.core.utils import instantiate_models, get_state_variables
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.composition_set import CompositionSet
 
-from pycalphad.mapping import StepStrategy, IsoplethStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth
+from pycalphad.mapping import StepStrategy, IsoplethStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth, plot_ternary
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
 from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState
@@ -606,3 +606,7 @@ def test_issue_662_phase_boundary_loop(load_database):
     assert len(strat.zpf_lines) == 2
     for z in strat.zpf_lines:
         assert len(set(z.stable_phases) - {'LIQUID', 'ALCUY'}) == 0
+
+    # this will trigger plotting the zpf line as a point, so just make sure this plots
+    # without fail
+    plot_ternary(strat, label_nodes=True)

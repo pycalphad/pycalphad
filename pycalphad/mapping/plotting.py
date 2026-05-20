@@ -155,7 +155,7 @@ def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
             x, y, p = single_phase_data.x, single_phase_data.y, single_phase_data.phase
             if not all((single_phase_data.y == 0) | (single_phase_data.y == np.nan)):
                 ax.plot(single_phase_data.x, single_phase_data.y, color=phase_colors[p], lw=1, solid_capstyle="butt")
-            if (np.amax(x) - np.amin(x)) < 1e-3 and (np.amax(y) - np.amin(y)) < 1e-3:
+            if label_end_points and (np.amax(x) - np.amin(x)) < 1e-3 and (np.amax(y) - np.amin(y)) < 1e-3:
                 ax.scatter([np.average(x)], [np.average(y)], color=phase_colors[p], s=8, zorder=3)
 
         if tielines:
