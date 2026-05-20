@@ -20,7 +20,7 @@ import pycalphad.mapping.utils as map_utils
 
 def get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
-    # Phase fraction, mole fraction and weight fraction all has 
+    # Phase fraction, mole fraction and weight fraction all has
     # units of "fraction", so I think we can leave it out
     if isinstance(var, v.NP):
         if var.phase_name is None or var.phase_name == '*':
@@ -37,7 +37,7 @@ def get_label(var: v.StateVariable):
             return f'W({var.species.name.capitalize()})'
         else:
             return f'W({var.phase_name}, {var.species.name.capitalize()})'
-        
+
     # For other units, use ~ to display the abbreviated version of the units
     # i.e. kelvin -> K, Pascal -> Pa
     elif isinstance(var, v.MU):
@@ -88,7 +88,7 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
         y = v.NP('*')
 
     step_data = strategy.get_data(x, y, global_x = global_x, set_nan_to_zero=set_nan_to_zero)
-    
+
     handles, colors = legend_generator(sorted(step_data.phases))
     for single_phase_data in step_data.data:
         ax.plot(single_phase_data.x, single_phase_data.y, color=colors[single_phase_data.phase], lw=1, solid_capstyle="butt")
@@ -132,7 +132,7 @@ def plot_invariants(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.S
             for xp, yp, p in zip(single_invariant.x, single_invariant.y, single_invariant.phases):
                 ax.scatter([xp], [yp], color=phase_colors[p], s=8, zorder=3)
 
-def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, tielines = 1, tieline_color=(0, 1, 0, 1)):
+def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, label_end_points: bool = False, tielines = 1, tieline_color=(0, 1, 0, 1)):
     """
     Plots tieline data from BinaryStrategy or TernaryStrategy onto matplotlib axis
 
@@ -155,6 +155,8 @@ def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
             x, y, p = single_phase_data.x, single_phase_data.y, single_phase_data.phase
             if not all((single_phase_data.y == 0) | (single_phase_data.y == np.nan)):
                 ax.plot(single_phase_data.x, single_phase_data.y, color=phase_colors[p], lw=1, solid_capstyle="butt")
+            if (np.amax(x) - np.amin(x)) < 1e-3 and (np.amax(y) - np.amin(y)) < 1e-3:
+                ax.scatter([np.average(x)], [np.average(y)], color=phase_colors[p], s=8, zorder=3)
 
         if tielines:
             x = single_tieline.x
@@ -205,7 +207,7 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     phases = sorted(strategy.get_all_phases())
     handles, colors = legend_generator(phases)
 
-    plot_tielines(ax, strategy, x, y, phase_colors=colors, tielines=tielines, tieline_color=tieline_color)
+    plot_tielines(ax, strategy, x, y, phase_colors=colors, label_end_points=label_nodes, tielines=tielines, tieline_color=tieline_color)
     plot_invariants(ax, strategy, x, y, phase_colors=colors, label_end_points=label_nodes, tie_triangle_color=tie_triangle_color)
 
     # Adjusts axis limits
@@ -239,7 +241,7 @@ def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.Stat
     Plots ternary map using matplotlib
 
     Pretty much the same as binary mapping but some extra stuff
-    to create defualt triangular axis, limit axis limits to (0,1) and 
+    to create defualt triangular axis, limit axis limits to (0,1) and
     set y label position if axis is triangular
 
     Parameters

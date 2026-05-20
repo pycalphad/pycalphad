@@ -178,12 +178,12 @@ class MapStrategy:
             _log.info(f"Point could not be found from {conditions}")
             return False
         _log.info(f"Adding point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}")
-            
+
         exit_hint, direction, err_reason = self._validate_custom_starting_point(point, direction)
         if err_reason is not None:
             _log.info(f"Point could not be added at {conditions}. {err_reason}")
             return False
-        
+
         if exit_hint == ExitHint.NORMAL:
             self.node_queue.add_node(self._create_node_from_point(point, None, None, None, exit_hint), force_add)
         else:
@@ -194,7 +194,7 @@ class MapStrategy:
             else:
                 self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
         return True
-    
+
     def _validate_custom_starting_point(self, point: Point, direction: Direction):
         """
         For some strategy, we may need to modify the exit hint or direction based off the point conditions
@@ -212,7 +212,7 @@ class MapStrategy:
         new_node.axis_direction = start_dir
         new_node.exit_hint = exit_hint
         return new_node
-    
+
     def generate_automatic_starting_points(self):
         """
         Automatically finds starting points based off input conditions
@@ -250,16 +250,16 @@ class MapStrategy:
             return True
         return False
 
-    def do_map(self):
+    def do_map(self, max_iter = -1):
         """
         Wrapper over iterate to run until finished
         """
         # If no there are nodes to start the mapping from, then run
-        # generate_automatic_starting points to get a set of starting points 
+        # generate_automatic_starting points to get a set of starting points
         # (the methods to find the starting points are strategy specific)
         # If the user adds a node manually (which may be done through
         # add_nodes_from_conditions or add_starting_points_from_step (binary,
-        # ternary or isopleth specific)), then we use those as the starting 
+        # ternary or isopleth specific)), then we use those as the starting
         # points instead
         # And if we already have zpf lines, then assume we do not need to
         # generate starting points (this assumes that the user has ran
@@ -267,8 +267,10 @@ class MapStrategy:
         if len(self.node_queue.nodes) == 0 and len(self.zpf_lines) == 0:
             self.generate_automatic_starting_points()
         finished = False
-        while not finished:
+        n = 0
+        while (not finished) and (max_iter == -1 or n < max_iter):
             finished = self.iterate()
+            n += 1
 
     def _continue_zpf_line(self):
         """
@@ -369,7 +371,11 @@ class MapStrategy:
 
         Not a fan of how this is implemented, but I want the API for each check function to be the same, with extra args having default values if not supplied
         """
-        check_functions = [zchk.check_valid_point, zchk.check_change_in_phases, zchk.check_global_min, zchk.check_axis_values, zchk.check_similar_phase_composition]
+        check_functions = [
+            zchk.check_valid_point, zchk.check_change_in_phases,
+            zchk.check_global_min, zchk.check_axis_values,
+            zchk.check_similar_phase_composition, zchk.check_circular_loop
+            ]
         axis_data = {
             "axis_vars": self.axis_vars,
             "axis_delta": self.axis_delta,
