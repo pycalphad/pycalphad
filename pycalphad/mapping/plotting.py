@@ -18,6 +18,13 @@ from pycalphad.mapping.strategy.ternary_strategy import TernaryStrategy
 from pycalphad.mapping.strategy.isopleth_strategy import IsoplethStrategy
 import pycalphad.mapping.utils as map_utils
 
+# treshold value to plot a phase boundary as a single point
+# this is for cases if the range of the phase boundary along the
+# x and y axis is very small relative to the range of all phase boundaries
+# otherwise, plotting the tieline with matplotlib.pyplot.axis.plot will not
+# be very visible
+PLOT_TIELINE_AS_NODE_THRESHOLD = 1e-3
+
 def get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
     # Phase fraction, mole fraction and weight fraction all has
@@ -132,7 +139,7 @@ def plot_invariants(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.S
             for xp, yp, p in zip(single_invariant.x, single_invariant.y, single_invariant.phases):
                 ax.scatter([xp], [yp], color=phase_colors[p], s=8, zorder=3)
 
-def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, label_end_points: bool = False, tielines = 1, tieline_color=(0, 1, 0, 1)):
+def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.StateVariable, y: v.StateVariable, phase_colors, tielines = 1, tieline_color=(0, 1, 0, 1)):
     """
     Plots tieline data from BinaryStrategy or TernaryStrategy onto matplotlib axis
 
@@ -150,12 +157,16 @@ def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
     tieline_color : color
     """
     tieline_data = strategy.get_tieline_data(x, y)
+    x_all = np.concatenate([st.x for st in tieline_data], axis=1)
+    y_all = np.concatenate([st.y for st in tieline_data], axis=1)
+    min_x_range = PLOT_TIELINE_AS_NODE_THRESHOLD*(np.amax(x_all) - np.amin(x_all))
+    min_y_range = PLOT_TIELINE_AS_NODE_THRESHOLD*(np.amax(y_all) - np.amin(y_all))
     for single_tieline in tieline_data:
         for single_phase_data in single_tieline.data:
             x, y, p = single_phase_data.x, single_phase_data.y, single_phase_data.phase
             if not all((single_phase_data.y == 0) | (single_phase_data.y == np.nan)):
                 ax.plot(single_phase_data.x, single_phase_data.y, color=phase_colors[p], lw=1, solid_capstyle="butt")
-            if label_end_points and (np.amax(x) - np.amin(x)) < 1e-3 and (np.amax(y) - np.amin(y)) < 1e-3:
+            if (np.amax(x) - np.amin(x)) < min_x_range and (np.amax(y) - np.amin(y)) < min_y_range:
                 ax.scatter([np.average(x)], [np.average(y)], color=phase_colors[p], s=8, zorder=3)
 
         if tielines:
@@ -207,7 +218,7 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     phases = sorted(strategy.get_all_phases())
     handles, colors = legend_generator(phases)
 
-    plot_tielines(ax, strategy, x, y, phase_colors=colors, label_end_points=label_nodes, tielines=tielines, tieline_color=tieline_color)
+    plot_tielines(ax, strategy, x, y, phase_colors=colors, tielines=tielines, tieline_color=tieline_color)
     plot_invariants(ax, strategy, x, y, phase_colors=colors, label_end_points=label_nodes, tie_triangle_color=tie_triangle_color)
 
     # Adjusts axis limits

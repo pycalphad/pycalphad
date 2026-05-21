@@ -591,7 +591,7 @@ def test_issue_662_phase_boundary_loop(load_database):
 
     # this is pretty much the loop in strat.do_map()
     # the conditions we set here should be 90 iterations
-    # so mapping does not finish by 1000 iterations, then something would be wrong
+    # so mapping does not finish by 200 iterations, then something would be wrong
     strat.do_map(200)
     zpf_finished = strat.zpf_lines[-1].status != ZPFState.NOT_FINISHED
     no_more_exits = strat._exit_index >= len(strat._exits)
