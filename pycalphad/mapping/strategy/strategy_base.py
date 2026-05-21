@@ -250,7 +250,7 @@ class MapStrategy:
             return True
         return False
 
-    def do_map(self, max_iter = -1):
+    def do_map(self, max_iter: int = -1):
         """
         Wrapper over iterate to run until finished
         """
@@ -372,9 +372,12 @@ class MapStrategy:
         Not a fan of how this is implemented, but I want the API for each check function to be the same, with extra args having default values if not supplied
         """
         check_functions = [
-            zchk.check_valid_point, zchk.check_change_in_phases,
-            zchk.check_global_min, zchk.check_axis_values,
-            zchk.check_similar_phase_composition, zchk.check_circular_loop
+            zchk.check_valid_point,
+            zchk.check_change_in_phases,
+            zchk.check_global_min,
+            zchk.check_axis_values,
+            zchk.check_similar_phase_composition,
+            zchk.check_circular_loop,
             ]
         axis_data = {
             "axis_vars": self.axis_vars,
