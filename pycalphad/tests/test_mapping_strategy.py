@@ -13,7 +13,7 @@ from pycalphad.core.composition_set import CompositionSet
 from pycalphad.mapping import StepStrategy, IsoplethStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth, plot_ternary
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
-from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState
+from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState, _get_phase_specific_variable
 from pycalphad.mapping.plotting import get_label
 
 import pycalphad.tests.databases
@@ -123,6 +123,7 @@ def test_step_strategy_through_single_phase(load_database):
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
     node_sets = [set(node.stable_phases_with_multiplicity) for node in strategy.node_queue.nodes]
 
+
     # Make sure that the phase regions from mapping contains all the desired regions
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
@@ -172,6 +173,7 @@ def test_step_strategy_through_node(load_database):
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
     node_sets = [set(node.stable_phases_with_multiplicity) for node in strategy.node_queue.nodes]
 
+
     # Make sure that the phase regions from mapping contains all the desired regions
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
@@ -184,6 +186,7 @@ def test_step_strategy_through_node(load_database):
 def test_unary_strategy(load_database):
     """
     Tests that strategy works on unary system
+    The strategy needs to maintain certain array shapes for site fractions, composition,
     The strategy needs to maintain certain array shapes for site fractions, composition,
     chemical potentials, etc. when working with unaries, since squeezing arrays can remove
     a needed dimension from an array. More details are given in the _find_global_min_cs function
@@ -243,6 +246,7 @@ def test_isopleth_strategy_node_exit():
     phases = list(dbf.phases.keys())
 
     strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases,
+    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases,
                                 conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.2, v.X('B'): (0, 0.8, 0.01)},
                                 initialize=False)
 
@@ -261,6 +265,7 @@ def test_isopleth_strategy_node_exit():
     comp_sets[1].fixed = True
     comp_sets[2].fixed = False
     comp_sets[3].fixed = False
+
 
     # Invariant node with 8 total exits
     conds = {v.T: 700, v.P: 101325, v.N: 1, v.X('A'): 0.2, v.X('B'): 0.4}
@@ -610,3 +615,19 @@ def test_issue_662_phase_boundary_loop(load_database):
     # this will trigger plotting the zpf line as a point, so just make sure this plots
     # without fail
     plot_ternary(strat, label_nodes=True)
+
+@select_database("alzn_mey.tdb")
+def test_strategy_plotting_respects_units(load_database):
+    """Test that giving state variables with units to plotting strategies converts units appropriately"""
+
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["AL", "VA"], ["FCC_A1", "LIQUID"], conditions={v.T: (920, 940, 1), v.P: 101325})
+    strategy.do_map()
+
+    # we should have found a line ending at a node, extract that here
+    node_zpf_lines = [zl for zl in strategy.zpf_lines if zl.status == ZPFState.NEW_NODE_FOUND]
+    assert len(node_zpf_lines) == 1
+    node_zpf_line = node_zpf_lines[0]
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T))[-1], 933.600, atol=1e-3)  # value in Kelvin
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["C"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["Celsius"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
