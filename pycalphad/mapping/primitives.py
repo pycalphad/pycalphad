@@ -210,7 +210,7 @@ class Point():
         output += "\nConditions: " + str(self.global_conditions)
         output += "\nChem_pot: " + str(self.chemical_potentials)
         return output
-    
+
     def __repr__(self):
         conds_str = 'global_conditions=' + str(self.global_conditions)
         chem_pot = 'chemical_potentials=' + str(self.chemical_potentials)
@@ -312,7 +312,7 @@ class Node(Point):
         output = super().__str__()
         output += f"\nAxis: [{self.axis_var}, {self.axis_direction}]"
         return output
-    
+
     def __repr__(self):
         point_repr = super().__repr__()
         parent_str = 'parent=' + repr(self.parent)
@@ -342,7 +342,7 @@ class ZPFLine():
     ZPF line represents a line where a phase change occur (crossing the bounding will add or remove a phase, and that phase is 0 at the boundary)
     Number of phases is constant along this line
     Defines a list of fixed phases (the zero phases) and list of free phases and list of Point that represents the line
-    
+
     Parameters
     ----------
     fixed_phases : list[str]
@@ -367,15 +367,28 @@ class ZPFLine():
     current_delta : float
         Step size of axis variable to step ZPF line in
     """
-    def __init__(self, fixed_phases : List[str], free_phases : List[str]):
+
+    def __init__(
+        self,
+        fixed_phases: List[str],
+        free_phases: List[str],
+        points: List[Point] | None = None,
+        status: ZPFState = ZPFState.NOT_FINISHED,
+        axis_var: v.StateVariable | None = None,
+        axis_direction: Direction | None = None,
+        current_delta: float = 1,
+    ):
         # Miscibility gaps should have duplicate entries
         self.fixed_phases: List[str] = fixed_phases
         self.free_phases: List[str] = free_phases
-        self.points: List[Point] = []
-        self.status: ZPFState = ZPFState.NOT_FINISHED
-        self.axis_var: v.StateVariable = None
-        self.axis_direction: Direction = None
-        self.current_delta: float = 1
+        if points is None:
+            self.points = []
+        else:
+            self.points = points
+        self.status = status
+        self.axis_var = axis_var
+        self.axis_direction = axis_direction
+        self.current_delta = current_delta
 
     @property
     def stable_phases(self):
@@ -401,6 +414,9 @@ class ZPFLine():
 
     def append(self, point: Point):
         self.points.append(point)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(fixed_phases={self.fixed_phases}, free_phases={self.free_phases}, points={self.points}, status={self.status}, axis_var={self.axis_var}, axis_direction={self.axis_direction}, current_delta={self.current_delta})"
 
     def __str__(self):
         output = str(self.free_phases) + " " + str(self.fixed_phases) + " " + str(len(self.points)) + " " + str(self.points[0].global_conditions) + " " + str(self.points[-1].global_conditions)
