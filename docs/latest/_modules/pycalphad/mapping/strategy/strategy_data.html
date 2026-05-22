@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.strategy.strategy_data - pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</title>
+        <title>pycalphad.mapping.strategy.strategy_data - pycalphad 0.11.2.dev26+g92490cfef documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.2.dev26+g92490cfef documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev26+g92490cfef documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -365,16 +365,8 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    list of dict</span>
-<span class="sd">        A list where each dictionary contains the following structure::</span>
-
-<span class="sd">        {</span>
-<span class="sd">            &quot;phases&quot;: list of str,</span>
-<span class="sd">            &quot;x&quot;: list of float,</span>
-<span class="sd">            &quot;y&quot;: list of float</span>
-<span class="sd">        }</span>
-
-<span class="sd">        The indices in `x` and `y` match the indices in `phases`.</span>
+<span class="sd">    list of PhaseRegionData, which stores of list of SinglePhaseData with</span>
+<span class="sd">    x, y coordinates for each phase in the invariant reaction</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
@@ -418,17 +410,8 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    list of dict</span>
-<span class="sd">        A list where each dictionary has the following structure::</span>
-
-<span class="sd">        {</span>
-<span class="sd">            &quot;&lt;phase_name&gt;&quot;: {</span>
-<span class="sd">                &quot;x&quot;: list of float,</span>
-<span class="sd">                &quot;y&quot;: list of float</span>
-<span class="sd">            }</span>
-<span class="sd">        }</span>
-
-<span class="sd">        The lengths of the &quot;x&quot; and &quot;y&quot; lists should be equal for each phase in a ZPFLine.</span>
+<span class="sd">    list of PhaseRegionData, which stores of list of SinglePhaseData with</span>
+<span class="sd">    x, y coordinates of the phase boundary for each phase</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
@@ -484,7 +467,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=03ac0e28"></script>
+</div><script src="../../../../_static/documentation_options.js?v=c85d4ffa"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

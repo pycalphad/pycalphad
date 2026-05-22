@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.zpf_checks - pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</title>
+        <title>pycalphad.mapping.zpf_checks - pycalphad 0.11.2.dev26+g92490cfef documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev26+g92490cfef documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev26+g92490cfef documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -299,10 +299,10 @@
 <span class="sd">    simple_check_change_in_phases</span>
 <span class="sd">    simple_check_global_min</span>
 
-<span class="sd">    These quickly check a step result and returns </span>
+<span class="sd">    These quickly check a step result and returns</span>
 <span class="sd">    a bool whether the step result is valid or not</span>
 
-<span class="sd">    These are intended for exit/direction finding, where we just need to know if </span>
+<span class="sd">    These are intended for exit/direction finding, where we just need to know if</span>
 <span class="sd">    an exit/direction is valid</span>
 
 <span class="sd">Normal checks</span>
@@ -327,7 +327,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    step_results : [Point, [CompositionSet]]</span>
 <span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    bool whether step result is valid or not (None)</span>
@@ -348,7 +348,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    step_results : [Point, [CompositionSet]]</span>
 <span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    bool whether step result resulted in a phase change</span>
@@ -374,7 +374,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    step_results : [Point, [CompositionSet]]</span>
 <span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    bool whether step result is global min or not</span>
@@ -443,11 +443,11 @@
 <span class="sd">          rather than from the global conditions</span>
 
 <span class="sd">    NOTE: There were some issues before with X-C systems where a zpf line containing</span>
-<span class="sd">          graphite and another stoichiometric phase would stop midway due to the </span>
+<span class="sd">          graphite and another stoichiometric phase would stop midway due to the</span>
 <span class="sd">          composition of graphite being at X(C)=1</span>
 
-<span class="sd">          Adding an offset to slightly extend the axis limits seems to help this issue. </span>
-<span class="sd">          Local tests with the Bengt mpea-05 database on all X-C systems (X = Al, Co, Cr, Fe, Ni, Mn) </span>
+<span class="sd">          Adding an offset to slightly extend the axis limits seems to help this issue.</span>
+<span class="sd">          Local tests with the Bengt mpea-05 database on all X-C systems (X = Al, Co, Cr, Fe, Ni, Mn)</span>
 <span class="sd">          appears to have to have all zpf lines correctly present</span>
 
 <span class="sd">          I will also justify this offset with the following:</span>
@@ -585,7 +585,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    new_node : Node</span>
 <span class="sd">        Node from step_results if there is a change in phases</span>
-<span class="sd">    </span>
+
 <span class="sd">    or</span>
 
 <span class="sd">    None : if step_results does not result in a change in phase</span>
@@ -660,7 +660,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    new_node : Node</span>
 <span class="sd">        Node from step_results if global min is found</span>
-<span class="sd">    </span>
+
 <span class="sd">    or</span>
 
 <span class="sd">    None : if step_results is still global min</span>
@@ -747,6 +747,49 @@
                 <span class="k">return</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
+
+<div class="viewcode-block" id="check_circular_loop">
+<a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.zpf_checks.check_circular_loop">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_circular_loop</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]],</span> <span class="n">axis_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If the composition of the new result loops back to beginning of ZPF line, then</span>
+<span class="sd">    we are likely in a loop. One case where this may occur is in ternary systems</span>
+<span class="sd">    with a two-phase equilibria between a high melting point phase and liquid</span>
+
+<span class="sd">    This stops the zpf line if the distance from the step result to the first point</span>
+<span class="sd">    is smaller than the distance to the previous point. The only times this should</span>
+<span class="sd">    occur is if the zpf line rapidly switched directions or if it loops in on itself</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zpf_line : ZPFLine</span>
+<span class="sd">        ZPFLine that the point is stepping in</span>
+<span class="sd">    step_results : [Point, [CompositionSet]]</span>
+<span class="sd">        Results from zpf_equilibrium.update_equilibrium_with_new_conditions</span>
+<span class="sd">    axis_data : dict</span>
+<span class="sd">        Axis variable data from a map strategy class</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None : this check does not attempt to make a new node</span>
+<span class="sd">    However, the zpf line will end if this check fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">x_curr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">step_results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_data</span><span class="p">[</span><span class="s1">&#39;axis_vars&#39;</span><span class="p">]])</span>
+    <span class="n">x_first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_data</span><span class="p">[</span><span class="s1">&#39;axis_vars&#39;</span><span class="p">]])</span>
+    <span class="n">x_prev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">axis_data</span><span class="p">[</span><span class="s1">&#39;axis_vars&#39;</span><span class="p">]])</span>
+    <span class="n">vfirst</span> <span class="o">=</span> <span class="n">x_first</span> <span class="o">-</span> <span class="n">x_curr</span>
+    <span class="n">vprev</span> <span class="o">=</span> <span class="n">x_curr</span> <span class="o">-</span> <span class="n">x_prev</span>
+    <span class="n">dist_first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vfirst</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">dist_prev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vprev</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="c1"># if distance to first point is smaller than to previous point, then stop zpf line</span>
+    <span class="k">if</span> <span class="n">dist_first</span> <span class="o">&lt;</span> <span class="n">dist_prev</span><span class="p">:</span>
+        <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">REACHED_LIMIT</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
 </pre></div>
         </article>
       </div>
@@ -779,7 +822,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=03ac0e28"></script>
+</div><script src="../../../_static/documentation_options.js?v=c85d4ffa"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

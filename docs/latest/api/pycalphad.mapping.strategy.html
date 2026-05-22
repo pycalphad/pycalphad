@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.strategy package - pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</title>
+        <title>pycalphad.mapping.strategy package - pycalphad 0.11.2.dev26+g92490cfef documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev26+g92490cfef documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev25+gc5fb7aea6 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev26+g92490cfef documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -527,7 +527,7 @@ If not, then we add two points, for each direction</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pycalphad.mapping.strategy.strategy_base.MapStrategy.do_map">
-<span class="sig-name descname"><span class="pre">do_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_base.html#MapStrategy.do_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.do_map" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">do_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/mapping/strategy/strategy_base.html#MapStrategy.do_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.mapping.strategy.strategy_base.MapStrategy.do_map" title="Link to this definition">¶</a></dt>
 <dd><p>Wrapper over iterate to run until finished</p>
 </dd></dl>
 
@@ -672,20 +672,11 @@ and <code class="docutils literal notranslate"><span class="pre">IsoplethStrateg
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>A list where each dictionary contains the following structure:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{
-    &quot;phases&quot;: list of str,
-    &quot;x&quot;: list of float,
-    &quot;y&quot;: list of float
-}
-
-The indices in `x` and `y` match the indices in `phases`.
-</pre></div>
-</div>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list of PhaseRegionData, which stores of list of SinglePhaseData with</em></p></li>
+<li><p><em>x, y coordinates for each phase in the invariant reaction</em></p></li>
+</ul>
 </p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -703,21 +694,11 @@ The indices in `x` and `y` match the indices in `phases`.
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>A list where each dictionary has the following structure:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;&lt;phase_name&gt;&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="nb">float</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-
-<span class="n">The</span> <span class="n">lengths</span> <span class="n">of</span> <span class="n">the</span> <span class="s2">&quot;x&quot;</span> <span class="ow">and</span> <span class="s2">&quot;y&quot;</span> <span class="n">lists</span> <span class="n">should</span> <span class="n">be</span> <span class="n">equal</span> <span class="k">for</span> <span class="n">each</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">ZPFLine</span><span class="o">.</span>
-</pre></div>
-</div>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list of PhaseRegionData, which stores of list of SinglePhaseData with</em></p></li>
+<li><p><em>x, y coordinates of the phase boundary for each phase</em></p></li>
+</ul>
 </p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -930,7 +911,7 @@ The nodes of a step map is distinguished from starting points in that they have 
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=03ac0e28"></script>
+</div><script src="../_static/documentation_options.js?v=c85d4ffa"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
