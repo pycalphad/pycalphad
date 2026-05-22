@@ -78,16 +78,8 @@ def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.
 
     Returns
     -------
-    list of dict
-        A list where each dictionary contains the following structure::
-
-        {
-            "phases": list of str,
-            "x": list of float,
-            "y": list of float
-        }
-
-        The indices in `x` and `y` match the indices in `phases`.
+    list of PhaseRegionData, which stores of list of SinglePhaseData with
+    x, y coordinates for each phase in the invariant reaction
     """
     if hasattr(x, 'phase_name') and x.phase_name is None:
         if not global_x:
@@ -128,17 +120,8 @@ def get_tieline_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.St
 
     Returns
     -------
-    list of dict
-        A list where each dictionary has the following structure::
-
-        {
-            "<phase_name>": {
-                "x": list of float,
-                "y": list of float
-            }
-        }
-
-        The lengths of the "x" and "y" lists should be equal for each phase in a ZPFLine.
+    list of PhaseRegionData, which stores of list of SinglePhaseData with
+    x, y coordinates of the phase boundary for each phase
     """
     if hasattr(x, 'phase_name') and x.phase_name is None:
         if not global_x:
