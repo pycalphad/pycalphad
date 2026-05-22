@@ -18,17 +18,16 @@ from pycalphad.mapping.strategy.ternary_strategy import TernaryStrategy
 from pycalphad.mapping.strategy.isopleth_strategy import IsoplethStrategy
 import pycalphad.mapping.utils as map_utils
 
-# treshold value to plot a phase boundary as a single point
-# this is for cases if the range of the phase boundary along the
-# x and y axis is very small relative to the range of all phase boundaries
-# otherwise, plotting the tieline with matplotlib.pyplot.axis.plot will not
-# be very visible
+# threshold value to plot a phase boundary as a single point
+# this is for cases if the range of the phase boundary along the x and y axis
+# is very small relative to the range of all phase boundaries otherwise,
+# plotting phase with only a connecting tieline will not be very visible.
 PLOT_TIELINE_AS_NODE_THRESHOLD = 1e-3
 
 def get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
-    # Phase fraction, mole fraction and weight fraction all has
-    # units of "fraction", so I think we can leave it out
+    # Phase fraction, mole fraction and weight fraction all have
+    # units of "fraction", so we leave it out
     if isinstance(var, v.NP):
         if var.phase_name is None or var.phase_name == '*':
             return f'Phase Fraction'
@@ -159,14 +158,14 @@ def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
     tieline_data = strategy.get_tieline_data(x, y)
     x_all = np.concatenate([st.x for st in tieline_data], axis=1)
     y_all = np.concatenate([st.y for st in tieline_data], axis=1)
-    min_x_range = PLOT_TIELINE_AS_NODE_THRESHOLD*(np.amax(x_all) - np.amin(x_all))
-    min_y_range = PLOT_TIELINE_AS_NODE_THRESHOLD*(np.amax(y_all) - np.amin(y_all))
+    min_x_range = PLOT_TIELINE_AS_NODE_THRESHOLD * np.ptp(x_all)
+    min_y_range = PLOT_TIELINE_AS_NODE_THRESHOLD * np.ptp(y_all)
     for single_tieline in tieline_data:
         for single_phase_data in single_tieline.data:
             x, y, p = single_phase_data.x, single_phase_data.y, single_phase_data.phase
             if not all((single_phase_data.y == 0) | (single_phase_data.y == np.nan)):
                 ax.plot(single_phase_data.x, single_phase_data.y, color=phase_colors[p], lw=1, solid_capstyle="butt")
-            if (np.amax(x) - np.amin(x)) < min_x_range and (np.amax(y) - np.amin(y)) < min_y_range:
+            if np.ptp(x) < min_x_range and np.ptp(y) < min_y_range:
                 ax.scatter([np.average(x)], [np.average(y)], color=phase_colors[p], s=8, zorder=3)
 
         if tielines:
