@@ -3,11 +3,11 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Plot energy curves for several phases" href="Metastability.html"><link rel="prev" title="Plotting Isobaric Binary Phase Diagrams with binplot" href="BinaryExamples.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Phase Fractions and Phase Compositions vs Temperature" href="PhaseCompositions.html"><link rel="prev" title="Plotting Isobaric Binary Phase Diagrams with binplot" href="BinaryExamples.html">
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Plotting Ternary Phase Diagrams and Using Triangular Axes - pycalphad 0.11.2.dev26+g92490cfef documentation</title>
+        <title>Plotting Ternary Phase Diagrams and Using Triangular Axes - pycalphad 0.11.2.dev27+g61c5cddde documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev26+g92490cfef documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev27+g61c5cddde documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev26+g92490cfef documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev27+g61c5cddde documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -200,6 +200,8 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input aria-label="Toggle navigation of Examples" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PhaseCompositions.html">Phase Fractions and Phase Compositions vs Temperature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GibbsAtConcentration.html">Gibbs Energy of Each Phase at Fixed Composition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html">Plot energy curves for several phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html#Driving-force-calculation">Driving force calculation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html#Calculate-T0-(t-zero)-as-a-function-of-composition">Calculate T0 (t-zero) as a function of composition</a></li>
@@ -211,6 +213,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="index.html#advanced-examples">Advanced Examples</a><input aria-label="Toggle navigation of Advanced Examples" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HighThroughputCalculations.html">High-throughput Calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ScreeningPhaseStability.html">Screening for Phase Stability</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html#Calculations-at-specific-site-fractions">Calculations at specific site fractions</a></li>
@@ -323,7 +326,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Wall Time (Total elapsed): 51 s
+Wall Time (Total elapsed): 24 s
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -422,6 +425,65 @@ Wall Time (Total elapsed): 51 s
 </pre></div></div>
 </div>
 </section>
+<section id="ChemSage-.dat-databases-and-the-modified-quasichemical-model">
+<h2>ChemSage <code class="docutils literal notranslate"><span class="pre">.dat</span></code> databases and the modified quasichemical model<a class="headerlink" href="#ChemSage-.dat-databases-and-the-modified-quasichemical-model" title="Link to this heading">¶</a></h2>
+<p>All examples above load TDB files, but PyCalphad’s <code class="docutils literal notranslate"><span class="pre">Database</span></code> also reads ChemSage <code class="docutils literal notranslate"><span class="pre">.dat</span></code> files. ChemSage <code class="docutils literal notranslate"><span class="pre">.dat</span></code> files can contain phases that use the <strong>modified quasichemical model in the quadruplet approximation (MQMQA)</strong>, which represents short-range ordering in ionic liquids (slags, molten salts) with pairs or quadruplet species.</p>
+<p>Below we load the Fe-Sb-O-S slag database (<a class="reference external" href="https://doi.org/10.1016/j.calphad.2019.01.016">D. Shishin, T. Hidayat, J. Chen, P. Hayes, E. Jak, CALPHAD 65 (2019) 16-24</a>) containing a MQMQA model for slag. All other PyCalphad code works identically.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.tests.databases</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">files</span><span class="p">(</span><span class="n">pycalphad</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">databases</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;Shishin_Fe-Sb-O-S_slag.dat&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Phases:&#39;</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+<span class="c1"># Identify phases that use the modified quasichemical model</span>
+<span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+    <span class="n">hints</span> <span class="o">=</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span>
+    <span class="k">if</span> <span class="s1">&#39;mqmqa&#39;</span> <span class="ow">in</span> <span class="n">hints</span><span class="p">:</span>
+        <span class="n">cations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hints</span><span class="p">[</span><span class="s1">&#39;mqmqa&#39;</span><span class="p">][</span><span class="s1">&#39;chemical_groups&#39;</span><span class="p">][</span><span class="s1">&#39;cations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">anions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hints</span><span class="p">[</span><span class="s1">&#39;mqmqa&#39;</span><span class="p">][</span><span class="s1">&#39;chemical_groups&#39;</span><span class="p">][</span><span class="s1">&#39;anions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2"> uses the modified quasichemical model (</span><span class="si">{</span><span class="n">hints</span><span class="p">[</span><span class="s1">&#39;mqmqa&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  cations: </span><span class="si">{</span><span class="n">cations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  anions:  </span><span class="si">{</span><span class="n">anions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;SB&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;SB&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)}</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">ternplot</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">-</span><span class="mf">0.12</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.10</span><span class="p">,</span> <span class="s1">&#39;Fe&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.47</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">,</span>  <span class="s1">&#39;O&#39;</span><span class="p">,</span>  <span class="n">size</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">1.05</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.10</span><span class="p">,</span> <span class="s1">&#39;Sb&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Fe-Sb-O isothermal section at 1500 K (Shishin slag database)&#39;</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Phases: [&#39;FE&#39;, &#39;FE2O3&#39;, &#39;FEO&#39;, &#39;O&#39;, &#39;S&#39;, &#39;SB&#39;, &#39;SB2O3&#39;, &#39;SB2S3&#39;, &#39;SLAG-LIQ&#39;]
+SLAG-LIQ uses the modified quasichemical model (SUBQ)
+  cations: [Species(&#39;FE2++2.0&#39;, &#39;FE2.0&#39;, charge=2.0), Species(&#39;FE3++3.0&#39;, &#39;FE3.0&#39;, charge=3.0), Species(&#39;SB3++3.0&#39;, &#39;SB3.0&#39;, charge=3.0)]
+  anions:  [Species(&#39;O-2.0&#39;, &#39;O1.0&#39;, charge=-2.0), Species(&#39;S-2.0&#39;, &#39;S1.0&#39;, charge=-2.0)]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_TernaryExamples_10_1.png" src="../_images/examples_TernaryExamples_10_1.png" />
+</div>
+</div>
+</section>
 </section>
 
         </article>
@@ -429,12 +491,12 @@ Wall Time (Total elapsed): 51 s
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="Metastability.html">
+          <a class="next-page" href="PhaseCompositions.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Plot energy curves for several phases</div>
+                <div class="title">Phase Fractions and Phase Compositions vs Temperature</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -482,6 +544,7 @@ Wall Time (Total elapsed): 51 s
 <li><a class="reference internal" href="#">Plotting Ternary Phase Diagrams and Using Triangular Axes</a><ul>
 <li><a class="reference internal" href="#ternplot">ternplot</a></li>
 <li><a class="reference internal" href="#Molar-Ratios-and-Linear-Combination-Conditions">Molar Ratios and Linear Combination Conditions</a></li>
+<li><a class="reference internal" href="#ChemSage-.dat-databases-and-the-modified-quasichemical-model">ChemSage <code class="docutils literal notranslate"><span class="pre">.dat</span></code> databases and the modified quasichemical model</a></li>
 </ul>
 </li>
 </ul>
@@ -493,7 +556,7 @@ Wall Time (Total elapsed): 51 s
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=c85d4ffa"></script>
+</div><script src="../_static/documentation_options.js?v=9def51d1"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

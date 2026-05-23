@@ -3,11 +3,11 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Calculating Energy Surfaces [Legacy Method]" href="LegacyEnergySurface.html"><link rel="prev" title="Exploring calculate and equilibrium xarray Datasets" href="UsingCalculationResults.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Screening for Phase Stability" href="ScreeningPhaseStability.html"><link rel="prev" title="Exploring calculate and equilibrium xarray Datasets" href="UsingCalculationResults.html">
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>High-throughput Calculations - pycalphad 0.11.2.dev26+g92490cfef documentation</title>
+        <title>High-throughput Calculations - pycalphad 0.11.2.dev27+g61c5cddde documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev26+g92490cfef documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev27+g61c5cddde documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev26+g92490cfef documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev27+g61c5cddde documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -200,6 +200,8 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PhaseCompositions.html">Phase Fractions and Phase Compositions vs Temperature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GibbsAtConcentration.html">Gibbs Energy of Each Phase at Fixed Composition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html">Plot energy curves for several phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html#Driving-force-calculation">Driving force calculation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html#Calculate-T0-(t-zero)-as-a-function-of-composition">Calculate T0 (t-zero) as a function of composition</a></li>
@@ -211,6 +213,7 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html#advanced-examples">Advanced Examples</a><input aria-label="Toggle navigation of Advanced Examples" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">High-throughput Calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ScreeningPhaseStability.html">Screening for Phase Stability</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html#Calculations-at-specific-site-fractions">Calculations at specific site fractions</a></li>
@@ -380,9 +383,9 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/Users/bocklund1/src/calphad-workspace/packages/pycalphad/pycalphad/io/tdb.py:293: UserWarning: The type definition character `C` in `TYPE_DEFINITION C GES AMEND_PHASE_DESCRIPTION CBCC_A12 MAGNETIC -3 0.280, ` is not used by any phase.
+/Users/brandonbocklund/src/pycalphad-ecosystem/packages/pycalphad/pycalphad/io/tdb.py:293: UserWarning: The type definition character `C` in `TYPE_DEFINITION C GES AMEND_PHASE_DESCRIPTION CBCC_A12 MAGNETIC -3 0.280, ` is not used by any phase.
   warnings.warn(f&#34;The type definition character `{typechar}` in `TYPE_DEFINITION {typechar} {line}` is not used by any phase.&#34;)
-/Users/bocklund1/src/calphad-workspace/packages/pycalphad/pycalphad/io/tdb.py:1017: UserWarning: The type definition character `R` was defined in the following phases: [&#39;LIQUID&#39;], but no corresponding TYPE_DEFINITION line was found in the TDB.
+/Users/brandonbocklund/src/pycalphad-ecosystem/packages/pycalphad/pycalphad/io/tdb.py:1017: UserWarning: The type definition character `R` was defined in the following phases: [&#39;LIQUID&#39;], but no corresponding TYPE_DEFINITION line was found in the TDB.
   warnings.warn(f&#34;The type definition character `{typechar}` was defined in the following phases: &#34;
 </pre></div></div>
 </div>
@@ -478,9 +481,9 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
     <tr>
       <th>1</th>
       <td>1000.0</td>
-      <td>9.999985e-07</td>
+      <td>9.999982e-07</td>
       <td>7.499985e-01</td>
-      <td>9.999985e-07</td>
+      <td>9.999982e-07</td>
       <td>2.499995e-01</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -502,7 +505,7 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
     <tr>
       <th>2</th>
       <td>1000.0</td>
-      <td>9.999977e-07</td>
+      <td>9.999976e-07</td>
       <td>4.999990e-01</td>
       <td>9.999976e-07</td>
       <td>4.999990e-01</td>
@@ -526,7 +529,7 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
     <tr>
       <th>3</th>
       <td>1000.0</td>
-      <td>9.999962e-07</td>
+      <td>9.999970e-07</td>
       <td>2.499995e-01</td>
       <td>9.999979e-07</td>
       <td>7.499985e-01</td>
@@ -540,7 +543,7 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
       <td>NaN</td>
       <td>0.026528</td>
       <td>6.892290e-01</td>
-      <td>2.655093e-02</td>
+      <td>2.655092e-02</td>
       <td>2.576923e-01</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -551,8 +554,8 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
       <th>4</th>
       <td>1000.0</td>
       <td>1.000000e-06</td>
-      <td>1.000000e-06</td>
       <td>9.999999e-07</td>
+      <td>1.000000e-06</td>
       <td>9.999970e-01</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -780,9 +783,9 @@ internally in PyCalphad’s starting point generation.</p>
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/Users/bocklund1/src/calphad-workspace/packages/pycalphad/pycalphad/io/tdb.py:293: UserWarning: The type definition character `C` in `TYPE_DEFINITION C GES AMEND_PHASE_DESCRIPTION CBCC_A12 MAGNETIC -3 0.280, ` is not used by any phase.
+/Users/brandonbocklund/src/pycalphad-ecosystem/packages/pycalphad/pycalphad/io/tdb.py:293: UserWarning: The type definition character `C` in `TYPE_DEFINITION C GES AMEND_PHASE_DESCRIPTION CBCC_A12 MAGNETIC -3 0.280, ` is not used by any phase.
   warnings.warn(f&#34;The type definition character `{typechar}` in `TYPE_DEFINITION {typechar} {line}` is not used by any phase.&#34;)
-/Users/bocklund1/src/calphad-workspace/packages/pycalphad/pycalphad/io/tdb.py:1017: UserWarning: The type definition character `R` was defined in the following phases: [&#39;LIQUID&#39;], but no corresponding TYPE_DEFINITION line was found in the TDB.
+/Users/brandonbocklund/src/pycalphad-ecosystem/packages/pycalphad/pycalphad/io/tdb.py:1017: UserWarning: The type definition character `R` was defined in the following phases: [&#39;LIQUID&#39;], but no corresponding TYPE_DEFINITION line was found in the TDB.
   warnings.warn(f&#34;The type definition character `{typechar}` was defined in the following phases: &#34;
 </pre></div></div>
 </div>
@@ -1128,12 +1131,12 @@ Evaluating 30 simplex points × 3 temperatures = 90 total
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="LegacyEnergySurface.html">
+          <a class="next-page" href="ScreeningPhaseStability.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Calculating Energy Surfaces [Legacy Method]</div>
+                <div class="title">Screening for Phase Stability</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -1192,7 +1195,7 @@ Evaluating 30 simplex points × 3 temperatures = 90 total
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=c85d4ffa"></script>
+</div><script src="../_static/documentation_options.js?v=9def51d1"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

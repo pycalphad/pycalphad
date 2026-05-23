@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.11.2.dev26+g92490cfef documentation</title>
+        <title>Plotting Isobaric Binary Phase Diagrams with binplot - pycalphad 0.11.2.dev27+g61c5cddde documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev26+g92490cfef documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev27+g61c5cddde documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev26+g92490cfef documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev27+g61c5cddde documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -200,6 +200,8 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input aria-label="Toggle navigation of Examples" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PhaseCompositions.html">Phase Fractions and Phase Compositions vs Temperature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GibbsAtConcentration.html">Gibbs Energy of Each Phase at Fixed Composition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html">Plot energy curves for several phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html#Driving-force-calculation">Driving force calculation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html#Calculate-T0-(t-zero)-as-a-function-of-composition">Calculate T0 (t-zero) as a function of composition</a></li>
@@ -211,6 +213,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="index.html#advanced-examples">Advanced Examples</a><input aria-label="Toggle navigation of Advanced Examples" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HighThroughputCalculations.html">High-throughput Calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ScreeningPhaseStability.html">Screening for Phase Stability</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html#Calculations-at-specific-site-fractions">Calculations at specific site fractions</a></li>
@@ -297,7 +300,6 @@
 <li><p>A dictionary of conditions to consider, with keys of pycalphad <code class="docutils literal notranslate"><span class="pre">StateVariables</span></code> and values of scalars, 1D arrays, or <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code> ranges</p></li>
 </ol>
 <p>Note that, at the time of writing, invariant reactions (three-phase ‘regions’ on binary diagrams) are not yet automatically detected so they are not drawn on the diagram.</p>
-<p>Also note that the <a class="reference external" href="https://ipython.readthedocs.io/en/stable/interactive/magics.html">magic variable</a> <code class="docutils literal notranslate"><span class="pre">%matplotlib</span> <span class="pre">inline</span></code> should only be used in Jupyter notebooks.</p>
 </section>
 <section id="TDB-files">
 <h2>TDB files<a class="headerlink" href="#TDB-files" title="Link to this heading">¶</a></h2>
@@ -317,8 +319,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
 
@@ -354,8 +355,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
 
@@ -390,8 +390,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
 
@@ -434,8 +433,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
 
@@ -472,8 +470,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="c1"># Load database and choose the phases that will be plotted</span>
@@ -581,7 +578,7 @@
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=c85d4ffa"></script>
+</div><script src="../_static/documentation_options.js?v=9def51d1"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

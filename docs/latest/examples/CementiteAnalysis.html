@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Heat Capacity of Cementite (\(Fe_3C\)) - pycalphad 0.11.2.dev26+g92490cfef documentation</title>
+        <title>Heat Capacity of Cementite (\(Fe_3C\)) - pycalphad 0.11.2.dev27+g61c5cddde documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev26+g92490cfef documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.2.dev27+g61c5cddde documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev26+g92490cfef documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev27+g61c5cddde documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -200,6 +200,8 @@
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input aria-label="Toggle navigation of Examples" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PhaseCompositions.html">Phase Fractions and Phase Compositions vs Temperature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GibbsAtConcentration.html">Gibbs Energy of Each Phase at Fixed Composition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html">Plot energy curves for several phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html#Driving-force-calculation">Driving force calculation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Metastability.html#Calculate-T0-(t-zero)-as-a-function-of-composition">Calculate T0 (t-zero) as a function of composition</a></li>
@@ -211,6 +213,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="index.html#advanced-examples">Advanced Examples</a><input aria-label="Toggle navigation of Advanced Examples" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HighThroughputCalculations.html">High-throughput Calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ScreeningPhaseStability.html">Screening for Phase Stability</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LegacyReferenceState.html#Calculations-at-specific-site-fractions">Calculations at specific site fractions</a></li>
@@ -289,7 +292,7 @@
 <p>Reference: <a class="reference external" href="http://doi.org/10.1016/j.calphad.2010.01.004">B. Hallstedt, D. Djurovic, J. von Appen, R. Dronskowski, A. Dick, F. Körmann, T. Hickel, J. Neugebauer, Calphad, 34(1) (2010) 129-133</a></p>
 <p>The TDB file used here differs slightly from the published TDB to ensure compatibility with pycalphad’s TDB parser. All phases except cementite are omitted. The numerical results should be the same.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">TDB</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
@@ -312,22 +315,9 @@
 </pre></div>
 </div>
 </div>
-<p>Do some initial setup, including setting up the workspace.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only needed in a Jupyter Notebook</span>
-<span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="c1"># Optional plot styling</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
-<span class="n">matplotlib</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;fivethirtyeight&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
 <p>We compute the molar heat capacity at all temperatures from 1K to 2000K with a step size of 0.1K.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
@@ -346,7 +336,7 @@
 </div>
 <p>The isobaric molar heat capacity is defined as the derivative of the total molar enthalpy (<code class="docutils literal notranslate"><span class="pre">HM</span></code>) with respect to temperature (<code class="docutils literal notranslate"><span class="pre">T</span></code>). We use “Jansson derivative” syntax to specify this as a property. In addition, we give this property a legible name and specify our desired physical units.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">heat_capacity</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="s1">&#39;HM.T&#39;</span><span class="p">)</span>
@@ -359,19 +349,19 @@
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Text(0, 0.5, &#39;Isobaric Heat Capacity [J/mol/K]&#39;)
+[&lt;matplotlib.lines.Line2D at 0x12b558050&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_CementiteAnalysis_8_1.png" src="../_images/examples_CementiteAnalysis_8_1.png" />
+<img alt="../_images/examples_CementiteAnalysis_6_1.png" src="../_images/examples_CementiteAnalysis_6_1.png" />
 </div>
 </div>
 </section>
@@ -425,7 +415,7 @@ Text(0, 0.5, &#39;Isobaric Heat Capacity [J/mol/K]&#39;)
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=c85d4ffa"></script>
+</div><script src="../_static/documentation_options.js?v=9def51d1"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
