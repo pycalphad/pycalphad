@@ -7,6 +7,7 @@ import numpy as np
 from pycalphad import variables as v
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property
+from pycalphad.property_framework.units import Q_, unit_conversion_context
 
 CS_EQ_TOL = 1e-8
 MIN_COMPOSITION = 1e-6
@@ -82,6 +83,47 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable):
         return var.expand_wildcard(phase_names=[phase])[0]
     else:
         return as_property(var)
+
+def _normalize_display_units(implementation_units: str, display_units: str) -> str:
+    """
+    Normalize pycalphad temperature aliases to pint unit names.
+    """
+    if implementation_units == 'kelvin' and display_units in ('C', 'Celsius'):
+        return 'degC'
+    return display_units
+
+def _composition_sets_for_unit_conversion(comp_sets: List[CompositionSet], var: v.StateVariable) -> List[CompositionSet]:
+    """
+    Select composition sets that match phase-specific properties.
+    """
+    phase_name = getattr(var, 'phase_name', None)
+    if phase_name is None or phase_name == '*':
+        return comp_sets
+
+    tokens = phase_name.split('#')
+    phase_name = tokens[0]
+    multiplicity = int(tokens[1]) if len(tokens) > 1 else 1
+    multiplicity_seen = 0
+    for comp_set in comp_sets:
+        if comp_set.phase_record.phase_name == phase_name:
+            multiplicity_seen += 1
+            if multiplicity_seen == multiplicity:
+                return [comp_set]
+    return comp_sets
+
+def _to_display_units(value, comp_sets: List[CompositionSet], var: v.StateVariable):
+    """
+    Convert raw property values from implementation units to display units.
+    """
+    implementation_units = getattr(var, 'implementation_units', '') or ''
+    display_units = getattr(var, 'display_units', '') or implementation_units
+    display_units = _normalize_display_units(implementation_units, display_units)
+
+    if implementation_units == '' or display_units == '' or implementation_units == display_units:
+        return value
+
+    context = unit_conversion_context(_composition_sets_for_unit_conversion(comp_sets, var), var)
+    return Q_(value, implementation_units).to(display_units, context).magnitude
 
 @dataclass
 class Point():
@@ -427,7 +469,7 @@ class ZPFLine():
         Gets variable along ZPF line and returns list
         The variables will decipher between local and global variables
         """
-        return np.array([p.get_property(var) for p in self.points])
+        return np.array([_to_display_units(p.get_property(var), p.stable_composition_sets, var) for p in self.points])
 
 class NodesExhaustedError(Exception):
     pass

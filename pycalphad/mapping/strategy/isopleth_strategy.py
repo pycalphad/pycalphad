@@ -8,7 +8,7 @@ import numpy as np
 from pycalphad import Database, variables as v
 from pycalphad.core.composition_set import CompositionSet
 
-from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, MIN_COMPOSITION
+from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, MIN_COMPOSITION, _to_display_units
 import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
@@ -48,6 +48,18 @@ def _point_slope(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.St
         return options_tests[0][1]
     else:
         return options_tests[best_index][1]
+
+def _composition_sets_with_phase_fractions(composition_sets: list[CompositionSet], phase_fractions: list[float]) -> list[CompositionSet]:
+    """
+    Copy composition sets with updated phase fractions for display-unit conversions.
+    """
+    new_composition_sets = []
+    for comp_set, phase_fraction in zip(composition_sets, phase_fractions):
+        new_comp_set = copy.deepcopy(comp_set)
+        num_statevars = new_comp_set.phase_record.num_statevars
+        new_comp_set.update(new_comp_set.dof[num_statevars:], phase_fraction, new_comp_set.dof[:num_statevars])
+        new_composition_sets.append(new_comp_set)
+    return new_composition_sets
 
 class IsoplethStrategy(MapStrategy):
     def generate_automatic_starting_points(self):
@@ -326,13 +338,15 @@ class IsoplethStrategy(MapStrategy):
                     # If phase combination is valid, then extract x and y values
                     if all(phase_NP > 0):
                         if map_utils.is_state_variable(x):
-                            x_vals.append(node.get_property(x))
+                            x_vals.append(_to_display_units(node.get_property(x), node.stable_composition_sets, x))
                         else:
-                            x_vals.append(sum(node.get_local_property(cs, x)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP)))
+                            x_val = sum(node.get_local_property(cs, x)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP))
+                            x_vals.append(_to_display_units(x_val, _composition_sets_with_phase_fractions(trial_stable_compsets, phase_NP), x))
                         if map_utils.is_state_variable(y):
-                            y_vals.append(node.get_property(y))
+                            y_vals.append(_to_display_units(node.get_property(y), node.stable_composition_sets, y))
                         else:
-                            y_vals.append(sum(node.get_local_property(cs, y)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP)))
+                            y_val = sum(node.get_local_property(cs, y)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP))
+                            y_vals.append(_to_display_units(y_val, _composition_sets_with_phase_fractions(trial_stable_compsets, phase_NP), y))
                         phase_set.append(sorted([cs.phase_record.phase_name for cs in trial_stable_compsets]))
 
                 data = []
