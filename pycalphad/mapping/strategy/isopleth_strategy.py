@@ -8,7 +8,8 @@ import numpy as np
 from pycalphad import Database, variables as v
 from pycalphad.core.composition_set import CompositionSet
 
-from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, MIN_COMPOSITION, _to_display_units
+from pycalphad.mapping.primitives import ZPFLine, Node, Point, ExitHint, Direction, MIN_COMPOSITION
+from pycalphad.property_framework.units import to_display_units
 import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.utils as map_utils
 from pycalphad.mapping.strategy.strategy_base import MapStrategy
@@ -338,15 +339,15 @@ class IsoplethStrategy(MapStrategy):
                     # If phase combination is valid, then extract x and y values
                     if all(phase_NP > 0):
                         if map_utils.is_state_variable(x):
-                            x_vals.append(_to_display_units(node.get_property(x), node.stable_composition_sets, x))
+                            x_vals.append(to_display_units(node.get_property(x), node.stable_composition_sets, x))
                         else:
                             x_val = sum(node.get_local_property(cs, x)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP))
-                            x_vals.append(_to_display_units(x_val, _composition_sets_with_phase_fractions(trial_stable_compsets, phase_NP), x))
+                            x_vals.append(to_display_units(x_val, _composition_sets_with_phase_fractions(trial_stable_compsets, phase_NP), x))
                         if map_utils.is_state_variable(y):
-                            y_vals.append(_to_display_units(node.get_property(y), node.stable_composition_sets, y))
+                            y_vals.append(to_display_units(node.get_property(y), node.stable_composition_sets, y))
                         else:
                             y_val = sum(node.get_local_property(cs, y)*cs_NP for cs, cs_NP in zip(trial_stable_compsets, phase_NP))
-                            y_vals.append(_to_display_units(y_val, _composition_sets_with_phase_fractions(trial_stable_compsets, phase_NP), y))
+                            y_vals.append(to_display_units(y_val, _composition_sets_with_phase_fractions(trial_stable_compsets, phase_NP), y))
                         phase_set.append(sorted([cs.phase_record.phase_name for cs in trial_stable_compsets]))
 
                 data = []
