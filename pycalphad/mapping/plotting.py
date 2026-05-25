@@ -9,7 +9,7 @@ from pycalphad import variables as v
 from pycalphad.property_framework import as_property
 from pycalphad.plot.utils import phase_legend
 from pycalphad.plot import triangular  # register triangular projection
-from pycalphad.property_framework.units import Q_, ureg
+from pycalphad.property_framework.units import Q_, ureg, to_display_units
 
 from pycalphad.mapping.primitives import _get_phase_specific_variable
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
@@ -229,13 +229,15 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     ax.autoscale()
     if x in strategy.axis_vars:
         xlim = list(ax.get_xlim())
-        xlim[0] = np.amax((np.amin(strategy.axis_lims[x]), xlim[0]))
-        xlim[1] = np.amin((np.amax(strategy.axis_lims[x]), xlim[1]))
+        x_axis_lims = [to_display_units(v, [], x) for v in strategy.axis_lims[x]]
+        xlim[0] = np.amax((np.amin(x_axis_lims), xlim[0]))
+        xlim[1] = np.amin((np.amax(x_axis_lims), xlim[1]))
         ax.set_xlim(xlim)
     if y in strategy.axis_vars:
         ylim = list(ax.get_ylim())
-        ylim[0] = np.amax((np.amin(strategy.axis_lims[y]), ylim[0]))
-        ylim[1] = np.amin((np.amax(strategy.axis_lims[y]), ylim[1]))
+        y_axis_lims = [to_display_units(v, [], y) for v in strategy.axis_lims[y]]
+        ylim[0] = np.amax((np.amin(y_axis_lims), ylim[0]))
+        ylim[1] = np.amin((np.amax(y_axis_lims), ylim[1]))
         ax.set_ylim(ylim)
 
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
@@ -347,12 +349,14 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
     # If variable is not a strategy axis variable, then set the lower (left, bottom) limits
     #    to the min of the zpf data
     if x in strategy.axis_vars:
-        ax.set_xlim([np.amin(strategy.axis_lims[x]), np.amax(strategy.axis_lims[x])])
+        x_axis_lims = [to_display_units(v, [], x) for v in strategy.axis_lims[x]]
+        ax.set_xlim([np.amin(x_axis_lims), np.amax(x_axis_lims)])
     else:
         ax.set_xlim(left=xlim[0])
 
     if y in strategy.axis_vars:
-        ax.set_ylim([np.amin(strategy.axis_lims[y]), np.amax(strategy.axis_lims[y])])
+        y_axis_lims = [to_display_units(v, [], y) for v in strategy.axis_lims[y]]
+        ax.set_ylim([np.amin(y_axis_lims), np.amax(y_axis_lims)])
     else:
         ax.set_ylim(bottom=ylim[0])
 
