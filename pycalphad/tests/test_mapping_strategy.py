@@ -248,7 +248,6 @@ def test_isopleth_strategy_node_exit():
     phases = list(dbf.phases.keys())
 
     strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases,
-    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases,
                                 conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.2, v.X('B'): (0, 0.8, 0.01)},
                                 initialize=False)
 
