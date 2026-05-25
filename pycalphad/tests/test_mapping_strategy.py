@@ -764,5 +764,5 @@ def test_strategy_plotting_respects_units(load_database):
     assert len(node_zpf_lines) == 1
     node_zpf_line = node_zpf_lines[0]
     np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T))[-1], 933.600, atol=1e-3)  # value in Kelvin
-    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["Celsius"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["celsius"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
     np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["degC"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius

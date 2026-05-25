@@ -84,14 +84,6 @@ def _get_phase_specific_variable(phase: str, var: v.StateVariable):
     else:
         return as_property(var)
 
-def _normalize_display_units(implementation_units: str, display_units: str) -> str:
-    """
-    Normalize pycalphad temperature aliases to pint unit names.
-    """
-    if implementation_units == 'kelvin' and display_units in ('C', 'Celsius'):
-        return 'degC'
-    return display_units
-
 def _composition_sets_for_unit_conversion(comp_sets: List[CompositionSet], var: v.StateVariable) -> List[CompositionSet]:
     """
     Select composition sets that match phase-specific properties.
@@ -117,7 +109,6 @@ def _to_display_units(value, comp_sets: List[CompositionSet], var: v.StateVariab
     """
     implementation_units = getattr(var, 'implementation_units', '') or ''
     display_units = getattr(var, 'display_units', '') or implementation_units
-    display_units = _normalize_display_units(implementation_units, display_units)
 
     if implementation_units == '' or display_units == '' or implementation_units == display_units:
         return value
