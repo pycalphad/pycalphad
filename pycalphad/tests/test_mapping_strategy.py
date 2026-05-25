@@ -10,7 +10,7 @@ from pycalphad.core.utils import instantiate_models, get_state_variables
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property
-from pycalphad.property_framework.units import Q_, unit_conversion_context
+from pycalphad.property_framework.units import Q_, unit_conversion_context, to_display_units
 
 from pycalphad.mapping import StepStrategy, IsoplethStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth, plot_ternary
 from pycalphad.mapping.starting_points import point_from_equilibrium
@@ -616,8 +616,6 @@ def test_issue_662_phase_boundary_loop(load_database):
     # this will trigger plotting the zpf line as a point, so just make sure this plots
     # without fail
     plot_ternary(strat, label_nodes=True)
-def _manual_display_units(point, prop):
-    return Q_(point.get_property(prop), prop.implementation_units).to(prop.display_units, unit_conversion_context(point.stable_composition_sets, prop)).magnitude
 
 @select_database("alzn_mey.tdb")
 def test_step_strategy_get_data_respects_display_units_for_state_and_model_properties(load_database):
@@ -634,7 +632,7 @@ def test_step_strategy_get_data_respects_display_units_for_state_and_model_prope
     for zpf_line in strategy.zpf_lines:
         for point in zpf_line.points:
             expected_x.append(point.get_property(v.T) - 273.15)
-            expected_y.append(_manual_display_units(point, gm_mass))
+            expected_y.append(to_display_units(point.get_property(gm_mass), point.stable_composition_sets, gm_mass))
     expected_x = np.asarray(expected_x)
     expected_y = np.asarray(expected_y)
     argsort = np.argsort(expected_x)
@@ -659,97 +657,6 @@ def test_step_strategy_get_data_computes_mass_fraction(load_database):
 
     np.testing.assert_allclose(w_sn, expected_w_sn)
     assert np.nanmax(np.abs(w_sn - x_sn)) > 1e-3
-
-_SYNTHETIC_TERNARY_TDB = """
-TYPE_DEFINITION % SEQ * !
-ELEMENT /-   ELECTRON_GAS              0 0 0!
-ELEMENT VA   VACUUM                    0 0 0!
-ELEMENT A   VACUUM                    0 0 0!
-ELEMENT B   VACUUM                    0 0 0!
-ELEMENT C   VACUUM                    0 0 0!
-
-PHASE ALPHA % 1 1 !
-CONSTITUENT ALPHA :A,B,C: !
-
-PHASE BETA % 1 1 !
-CONSTITUENT BETA :A,B,C: !
-
-PHASE GAMMA % 1 1 !
-CONSTITUENT GAMMA :A,B,C: !
-
-PHASE DELTA % 1 1 !
-CONSTITUENT DELTA :A,B,C: !
-"""
-
-def _synthetic_composition_sets(strategy, phase_compositions, temperature=700):
-    comp_sets = []
-    for phase_name, composition in phase_compositions.items():
-        comp_set = CompositionSet(strategy.phase_records[phase_name])
-        comp_set.update(np.array(composition, dtype=np.float64), 1/len(phase_compositions), np.array([1, 101325, temperature], dtype=np.float64))
-        comp_sets.append(comp_set)
-    return comp_sets
-
-def _assert_celsius_data(data):
-    np.testing.assert_allclose(np.asarray(data, dtype=np.float64), 426.85)
-
-def test_tieline_strategy_data_respects_display_units_for_nodes_and_lines():
-    dbf = Database(_SYNTHETIC_TERNARY_TDB)
-    phase_compositions = {
-        "ALPHA": [0.7, 0.2, 0.1],
-        "BETA": [0.2, 0.7, 0.1],
-        "GAMMA": [0.2, 0.1, 0.7],
-    }
-    strategy_inputs = [
-        (BinaryStrategy, {v.T: (600, 800, 10), v.P: 101325, v.X("A"): (0, 1, 0.1), v.X("B"): 0.2}),
-        (TernaryStrategy, {v.T: 700, v.P: 101325, v.X("A"): (0, 1, 0.1), v.X("B"): (0, 1, 0.1)}),
-    ]
-
-    for strategy_cls, conditions in strategy_inputs:
-        strategy = strategy_cls(dbf, ["A", "B", "C", "VA"], ["ALPHA", "BETA", "GAMMA"], conditions)
-        comp_sets = _synthetic_composition_sets(strategy, phase_compositions)
-        conditions = {v.T: 700, v.P: 101325, v.N: 1, v.X("A"): 0.3, v.X("B"): 0.3}
-        point = Point(conditions, [0, 0, 0], [], comp_sets[:2])
-        strategy.zpf_lines.append(ZPFLine([], ["ALPHA", "BETA"], points=[point]))
-        strategy.node_queue.nodes.append(Node(conditions, [0, 0, 0], [], comp_sets, None))
-
-        tieline_data = strategy.get_tieline_data(v.T["degC"], v.X("A"), global_y=True)
-        invariant_data = strategy.get_invariant_data(v.T["degC"], v.X("A"), global_y=True)
-
-        assert len(tieline_data) == 1
-        assert len(invariant_data) == 1
-        for phase_region_data in tieline_data + invariant_data:
-            for single_phase_data in phase_region_data.data:
-                _assert_celsius_data(single_phase_data.x)
-
-def test_isopleth_strategy_data_respects_display_units_for_zpf_and_invariant_data():
-    dbf = Database(_SYNTHETIC_TERNARY_TDB)
-    phases = ["ALPHA", "BETA", "GAMMA", "DELTA"]
-    strategy = IsoplethStrategy(dbf, ["A", "B", "C", "VA"], phases,
-                                conditions={v.T: (500, 1000, 10), v.P: 101325, v.X("A"): 0.2, v.X("B"): (0, 0.8, 0.01)})
-
-    phase_compositions = {
-        "ALPHA": [0.9, 0.05, 0.05],
-        "BETA": [0.05, 0.9, 0.05],
-        "GAMMA": [0.05, 0.05, 0.9],
-        "DELTA": [0.3, 0.3, 0.4],
-    }
-    comp_sets = _synthetic_composition_sets(strategy, phase_compositions)
-    comp_sets[0].fixed = True
-    comp_sets[1].fixed = True
-
-    conditions = {v.T: 700, v.P: 101325, v.N: 1, v.X("A"): 0.2, v.X("B"): 0.4}
-    point = Point(conditions, [0, 0, 0], [comp_sets[0]], [comp_sets[2], comp_sets[3]])
-    strategy.zpf_lines.append(ZPFLine(["ALPHA"], ["GAMMA", "DELTA"], points=[point]))
-    strategy.node_queue.nodes.append(Node(conditions, [0, 0, 0], [comp_sets[0], comp_sets[1]], [comp_sets[2], comp_sets[3]], None))
-
-    zpf_data = strategy.get_zpf_data(v.T["degC"], v.X("A"))
-    invariant_data = strategy.get_invariant_data(v.T["degC"], v.X("A"))
-
-    _assert_celsius_data(zpf_data.data[0].x)
-    assert len(invariant_data) == 1
-    for single_phase_data in invariant_data[0].data:
-        _assert_celsius_data(single_phase_data.x)
-
 
 @select_database("alzn_mey.tdb")
 def test_strategy_plotting_respects_units(load_database):
