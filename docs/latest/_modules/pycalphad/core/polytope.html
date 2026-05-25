@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.polytope - pycalphad 0.11.2.dev27+g61c5cddde documentation</title>
+        <title>pycalphad.core.polytope - pycalphad 0.11.2.dev28+gf10fd8a39 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev27+g61c5cddde documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev28+gf10fd8a39 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev27+g61c5cddde documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev28+gf10fd8a39 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -383,31 +383,25 @@
 
 
 
-<div class="viewcode-block" id="affine_subspace">
-<a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.polytope.affine_subspace">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">affine_subspace</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute a basis of the nullspace of A, and a particular solution to Ax = b.</span>
-<span class="sd">    This allows to to construct arbitrary solutions as the sum of any vector in the</span>
-<span class="sd">    nullspace, plus the particular solution.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_feasible_particular_solution</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find a particular solution to Ax = b that also satisfies lower &lt;= x &lt;= upper.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    A : 2d-array of shape (n_constraints, dimension)</span>
-<span class="sd">        Left-hand-side of Ax &lt;= b.</span>
-<span class="sd">    b : 1d-array of shape (n_constraints)</span>
-<span class="sd">        Right-hand-side of Ax &lt;= b.</span>
+<span class="sd">    Uses a bounded least-squares solve (BVLS active set). Returns None if no</span>
+<span class="sd">    feasible point exists (the polytope is empty).</span>
 
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    N: 2d-array of shape (dimension, dimension)</span>
-<span class="sd">        Orthonormal basis of the nullspace of A.</span>
-<span class="sd">    xp: 1d-array of shape (dimension)</span>
-<span class="sd">        Particular solution to Ax = b.</span>
+<span class="sd">    The returned solution is nudged 1e-14 into the strict interior of the box.</span>
+<span class="sd">    BVLS is an active-set method and will return solutions with components</span>
+<span class="sd">    sitting exactly on the box bounds. The downstream Hit-and-Run sampler in</span>
+<span class="sd">    sample() needs xp strictly inside the box: it parameterises the polytope</span>
+<span class="sd">    as bt = b1 - A1 @ xp where A1 includes the box constraints, and any</span>
+<span class="sd">    bt component sitting at zero collapses the sampler&#39;s wiggle room in that</span>
+<span class="sd">    direction. Since BVLS already returns a point inside the box, the 1e-14</span>
+<span class="sd">    nudge perturbs A xp = b by at most ~||A|| * 1e-14.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">N</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">null_space</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
-    <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">@</span> <span class="n">b</span>
-    <span class="k">return</span> <span class="n">N</span><span class="p">,</span> <span class="n">xp</span></div>
-
+    <span class="n">res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">lsq_linear</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;bvls&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">lower</span> <span class="o">+</span> <span class="mf">1e-14</span><span class="p">,</span> <span class="n">upper</span> <span class="o">-</span> <span class="mf">1e-14</span><span class="p">)</span>
 
 <div class="viewcode-block" id="sample">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.polytope.sample">[docs]</a>
@@ -449,14 +443,13 @@
 
     <span class="k">if</span> <span class="p">(</span><span class="n">A2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">b2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">check_Ab</span><span class="p">(</span><span class="n">A2</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span>
-        <span class="n">N</span><span class="p">,</span> <span class="n">xp</span> <span class="o">=</span> <span class="n">affine_subspace</span><span class="p">(</span><span class="n">A2</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">null_space</span><span class="p">(</span><span class="n">A2</span><span class="p">)</span>
+        <span class="n">xp</span> <span class="o">=</span> <span class="n">_feasible_particular_solution</span><span class="p">(</span><span class="n">A2</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">xp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to find a feasible solution&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">A1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">A1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
-    <span class="c1"># Do not allow particular solutions to fall outside of bounds</span>
-    <span class="c1"># This operation helps with numerical robustness</span>
-    <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">lower</span><span class="o">+</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">upper</span><span class="o">-</span><span class="mf">1e-14</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">N</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># zero-dimensional polytope, return unique solution</span>
@@ -546,7 +539,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=9def51d1"></script>
+</div><script src="../../../_static/documentation_options.js?v=131269da"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
