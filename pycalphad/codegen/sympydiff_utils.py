@@ -29,7 +29,7 @@ functions or PhaseRecords. The following issues track this behavior:
 """
 from pycalphad.core.cache import cacheit
 from pycalphad.core.utils import wrap_symbol
-from symengine import sympify, lambdify, zoo, oo, have_llvm
+from symengine import ComplexDouble, sympify, lambdify, I, zoo, oo, have_llvm
 from collections import namedtuple
 
 BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
@@ -56,7 +56,7 @@ def _get_lambidfy_options(user_options):
 def build_functions(symengine_graph, variables, parameters=None, wrt=None,
                     include_obj=True, include_grad=False, include_hess=False,
                     func_options=None, grad_options=None, hess_options=None):
-    """Build function, gradient, and Hessian callables of the symengine_graph.
+    r"""Build function, gradient, and Hessian callables of the symengine_graph.
 
     Parameters
     ----------
@@ -108,12 +108,25 @@ def build_functions(symengine_graph, variables, parameters=None, wrt=None,
     parameters = tuple(parameters)
     func, grad, hess = None, None, None
     # Replace complex infinity (zoo) with real infinity because SymEngine
-    # cannot lambdify complex infinity. We also replace in the derivatives in
+    # cannot lambdify complex numbers. We also replace in the derivatives in
     # case some differentiation would produce a complex infinity. The
     # replacement is assumed to be cheap enough that it's safer to replace the
     # complex values and pay the minor time penalty.
     inp = sympify(variables + parameters)
     graph = sympify(symengine_graph).xreplace({zoo: oo})
+    # We also replace all complex parts of complex numbers with (real) zero,
+    # to address a bug where integer exponents expressed as doubles can evaluate
+    # to have negligible (1e-16*j) complex parts, which raises runtime errors
+    # for the default lambdify(..., real=True).
+    # In practice, this is probably a reasonable workaround, but would drop
+    # cases where we have legitimate, non-negligble complex numbers (e.g. negative
+    # bases for non-integer exponents). Although we have been doing this all
+    # along internally inside `lambdify`.
+    # We have to do this graph.atoms() method to get complex numbers because
+    # just calling xreplace(I, 0.0) doesn't work in SymEngine for some deeply
+    # nested `I`.
+    # We assume that differentiating does create new complex numbers.
+    graph = graph.xreplace({x: x.xreplace({I: 0.0}) for x in graph.atoms(ComplexDouble)})
     func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
     if include_grad or include_hess:
         grad_graphs = list(graph.diff(w).xreplace({zoo: oo}) for w in wrt)
@@ -164,7 +177,7 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     parameters = tuple(parameters)
     constraint_func, jacobian_func, hessian_func = None, None, None
     # Replace complex infinity (zoo) with real infinity because SymEngine
-    # cannot lambdify complex infinity. We also replace in the derivatives in
+    # cannot lambdify complex numbers. We also replace in the derivatives in
     # case some differentiation would produce a complex infinity. The
     # replacement is assumed to be cheap enough that it's safer to replace the
     # complex values and pay the minor time penalty.

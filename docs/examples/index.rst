@@ -6,6 +6,8 @@ Examples
 
    BinaryExamples
    TernaryExamples
+   PhaseCompositions
+   GibbsAtConcentration
    Metastability
    ReferenceStateExamples
    EquilibriumWithOrdering
@@ -18,6 +20,8 @@ Advanced Examples
    :maxdepth: 1
 
    UsingCalculationResults
+   HighThroughputCalculations
+   ScreeningPhaseStability
    LegacyEnergySurface
    LegacyReferenceState
    ChargedPhases

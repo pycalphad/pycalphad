@@ -6,7 +6,7 @@ import numpy as np
 
 from pycalphad import Database, variables as v
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
-from pycalphad.core.utils import instantiate_models, unpack_components, filter_phases, get_pure_elements, get_state_variables
+from pycalphad.core.utils import instantiate_models, filter_phases, unpack_species, get_pure_elements, get_state_variables
 from pycalphad.core.composition_set import CompositionSet
 
 
@@ -20,23 +20,34 @@ _log = logging.getLogger(__name__)
 
 class MapStrategy:
     """
-    Base strategy class for phase diagram construction
+    Base strategy class for phase diagram construction.
 
-    Derived classes:
-        SteppingStrategy - for single axis diagrams
-        BinaryStrategy - for binary phase diagrams (1 composition, 1 potential axis)
-        TernaryStrategy - for ternary phase diagrams (2 composition axis)
-        IsoplethStrategy - for isopleths (this has only been tested for 1 composition, 1 potential axis so far)
+    Derived Classes
+    ---------------
+    - SteppingStrategy: For single-axis diagrams.
+    - BinaryStrategy: For binary phase diagrams (1 composition, 1 potential axis).
+    - TernaryStrategy: For ternary phase diagrams (2 composition axes).
+    - IsoplethStrategy: For isopleths (tested only for 1 composition, 1 potential axis so far).
 
     Constants
-        DELTA_SCALE = 0.5 - factor to scale down step size if a single step iteration was unsuccessfuly
-        MIN_DELTA_RATIO = 0.1 - minimum step size (as ratio of default) before stopping zpf line iteration
-        GLOBAL_CHECK_INTERVAL = 1 - number of iterations before global min check. Proceed with caution for any interval >1.
-        GLOBAL_MIN_PDENS = 500 - sampling density for global min check
-        GLOBAL_MIN_TOL = 1e-4 - minimum driving force for a composition set to pass global min check
-        GLOBAL_MIN_NUM_CANDIDATES = 1 - number of candidates to search through for finding global min
-                                        sometimes, global min can be missed if the sampling is poor, so checking the n-best candidates can help
+    ---------
+    DELTA_SCALE : float
+        Factor to scale down step size if a single step iteration was unsuccessful (default: 0.5).
+    MIN_DELTA_RATIO : float
+        Minimum step size (as ratio of default) before stopping ZPF line iteration (default: 0.1).
+    GLOBAL_CHECK_INTERVAL : int
+        Number of iterations before global minimum check. Proceed with caution for any interval >1 (default: 1).
+    GLOBAL_MIN_PDENS : int
+        Sampling density for global minimum check (default: 500).
+    GLOBAL_MIN_TOL : float
+        Minimum driving force for a composition set to pass the global minimum check (default: 1e-4).
+    GLOBAL_MIN_NUM_CANDIDATES : int
+        Number of candidates to search through for finding the global minimum. Sometimes, the global minimum can be missed if the sampling is poor, so checking the n-best candidates can help (default: 1000).
+        (NOTE: this is not actually how many candidates the global eq check will solve the driving force. This value represents the N number of samples with the lowest sampled driving forces, then the driving
+        force is computed for all unique phases from the candidates (which in large databases, this might be as high as 10-20),
+        So increasing it to a high value does not significantly degrade performance and mapping using models with high DOF may be better)
     """
+
     def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
         if isinstance(dbf, str):
             dbf = Database(dbf)
@@ -45,14 +56,13 @@ class MapStrategy:
         # Don't add vacancies to components in case user needs to restrict non-stoichiometric phases
         self.components = sorted(components)
         self.elements = get_pure_elements(self.dbf, self.components)
-        self.phases = filter_phases(self.dbf, unpack_components(self.dbf, self.components), phases)
+        self.phases = filter_phases(self.dbf, unpack_species(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)
 
         # Add v.N to conditions. Mapping assumes that v.N is in conditions
         if v.N not in self.conditions:
             self.conditions[v.N] = 1
 
-        
         self.axis_vars = [key for key, val in self.conditions.items() if len(np.atleast_1d(val)) > 1]
 
         composition_sum = sum([conditions[var] for var in conditions if (isinstance(var, v.MoleFraction) and var not in self.axis_vars)])
@@ -74,11 +84,11 @@ class MapStrategy:
             else:
                 self.axis_lims[var] = (self.conditions[var][0], self.conditions[var][1])
 
-        self.models = instantiate_models(self.dbf, self.components, self.phases)
+        self.models = kwargs.get('models', instantiate_models(self.dbf, self.components, self.phases))
 
         state_vars = get_state_variables(self.models, self.conditions)
         self.num_potential_condition = len([av for av in self.axis_lims if av in state_vars])
-        self.phase_records = PhaseRecordFactory(self.dbf, self.components, state_vars, self.models)
+        self.phase_records = kwargs.get('phase_record_factory', PhaseRecordFactory(self.dbf, self.components, state_vars, self.models))
 
         # In case we need to call pycalphad functions outside this class
         self.system_info = {
@@ -103,7 +113,7 @@ class MapStrategy:
         self.GLOBAL_CHECK_INTERVAL = kwargs.get("GLOBAL_CHECK_INTERVAL", 1)
         self.GLOBAL_MIN_PDENS = kwargs.get("GLOBAL_MIN_PDENS", 500)
         self.GLOBAL_MIN_TOL = kwargs.get("GLOBAL_MIN_TOL", 1e-4)
-        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1)
+        self.GLOBAL_MIN_NUM_CANDIDATES = kwargs.get("GLOBAL_MIN_NUM_CANDIDATES", 1000)
 
     def _constant_kwargs(self):
         """
@@ -123,7 +133,7 @@ class MapStrategy:
         """
         Goes through ZPF lines to get all unique phases. For miscibility gaps, phases will have #n added to it
 
-        In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set
+        In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set.
         There should always be nodes in the node_queue since it includes starting points (even if they're not nodes in the mapping sense)
         """
         if len(self.zpf_lines) > 0:
@@ -165,15 +175,31 @@ class MapStrategy:
         """
         point = point_from_equilibrium(self.dbf, self.components, self.phases, conditions, models=self.models, phase_record_factory=self.phase_records)
         if point is None:
-            _log.warning(f"Point could not be found from {conditions}")
+            _log.info(f"Point could not be found from {conditions}")
             return False
-        if direction is None:
-            _log.info(f"No direction is given, adding point from {conditions} with both directions")
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT), force_add)
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
+        _log.info(f"Adding point {point.fixed_phases}, {point.free_phases}, {point.global_conditions}")
+
+        exit_hint, direction, err_reason = self._validate_custom_starting_point(point, direction)
+        if err_reason is not None:
+            _log.info(f"Point could not be added at {conditions}. {err_reason}")
+            return False
+
+        if exit_hint == ExitHint.NORMAL:
+            self.node_queue.add_node(self._create_node_from_point(point, None, None, None, exit_hint), force_add)
         else:
-            self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
+            if direction is None:
+                _log.info(f"No direction is given, adding point from {conditions} with both directions")
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT), force_add)
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
+            else:
+                self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
         return True
+
+    def _validate_custom_starting_point(self, point: Point, direction: Direction):
+        """
+        For some strategy, we may need to modify the exit hint or direction based off the point conditions
+        """
+        return ExitHint.POINT_IS_EXIT, direction, None
 
     def _create_node_from_point(self, point: Point, parent: Point, start_ax: v.StateVariable, start_dir: Direction, exit_hint: ExitHint = ExitHint.NORMAL):
         """
@@ -186,6 +212,15 @@ class MapStrategy:
         new_node.axis_direction = start_dir
         new_node.exit_hint = exit_hint
         return new_node
+
+    def generate_automatic_starting_points(self):
+        """
+        Automatically finds starting points based off input conditions
+        Map strategies should be able to still run even without automatic starting
+        point finding as long as there is another method to add starting points (which could
+        be add_nodes_from_conditions)
+        """
+        pass
 
     def iterate(self):
         """
@@ -215,13 +250,27 @@ class MapStrategy:
             return True
         return False
 
-    def do_map(self):
+    def do_map(self, max_iter: int = -1):
         """
         Wrapper over iterate to run until finished
         """
+        # If no there are nodes to start the mapping from, then run
+        # generate_automatic_starting points to get a set of starting points
+        # (the methods to find the starting points are strategy specific)
+        # If the user adds a node manually (which may be done through
+        # add_nodes_from_conditions or add_starting_points_from_step (binary,
+        # ternary or isopleth specific)), then we use those as the starting
+        # points instead
+        # And if we already have zpf lines, then assume we do not need to
+        # generate starting points (this assumes that the user has ran
+        # do_map once and intends to add a starting point to run do_map again)
+        if len(self.node_queue.nodes) == 0 and len(self.zpf_lines) == 0:
+            self.generate_automatic_starting_points()
         finished = False
-        while not finished:
+        n = 0
+        while (not finished) and (max_iter == -1 or n < max_iter):
             finished = self.iterate()
+            n += 1
 
     def _continue_zpf_line(self):
         """
@@ -255,7 +304,7 @@ class MapStrategy:
                 curr_point = zpf_line.points[-1]
                 prev_point = zpf_line.points[-2]
                 dv = [(curr_point.get_property(av) - prev_point.get_property(av))/self.normalize_factor(av) for av in self.axis_vars]
-                
+
                 # We want to step in the axis variable that changes the most (that way the change in the other variable will be minimal)
                 # We also can get the direction from the change in variable
                 index = np.argmax(np.abs(dv))
@@ -322,7 +371,14 @@ class MapStrategy:
 
         Not a fan of how this is implemented, but I want the API for each check function to be the same, with extra args having default values if not supplied
         """
-        check_functions = [zchk.check_valid_point, zchk.check_change_in_phases, zchk.check_global_min, zchk.check_axis_values, zchk.check_similar_phase_composition]
+        check_functions = [
+            zchk.check_valid_point,
+            zchk.check_change_in_phases,
+            zchk.check_global_min,
+            zchk.check_axis_values,
+            zchk.check_similar_phase_composition,
+            zchk.check_circular_loop,
+            ]
         axis_data = {
             "axis_vars": self.axis_vars,
             "axis_delta": self.axis_delta,
@@ -382,6 +438,7 @@ class MapStrategy:
             p2_pos = np.array([p2.get_property(av) for av in self.axis_vars])
             v21 = p1_pos - p2_pos
             vnode1 = node_pos - p1_pos
+            _log.info(f'Backtrack: {i}, {p1_pos}, {p2_pos}, {node_pos}, {np.dot(v21, vnode1)}')
             if np.dot(v21, vnode1) < 0:
                 del zpf_line.points[i]
             else:
@@ -398,10 +455,16 @@ class MapStrategy:
         new_node.axis_direction = zpf_line.axis_direction
 
         # Add to node queue
-        # For stepping, we will force add. Most nodes will be unique, however, if we're stepping along composition
+        # For stepping, we will check whether the node parent is also the same before adding
+        #    This is for cases where stepping in compostion along a binary, then the two ends of
+        #    a two phase region will be the same node. In this case, we check that the parent
+        #    is also the same and that it came from the same direction (this second part is for
+        #    an edge case a starting point is in a thin two-phase region and a step in both directions
+        #    will lead to a node)
         # in a binary, then the nodes won't be unique
         if len(self.axis_vars) == 1:
-            self.node_queue.add_node(new_node, True)
+            if not self.node_queue.add_node(new_node, check_parent=True):
+                _log.info(f"Node {new_node.fixed_phases}, {new_node.free_phases} has already been added")
         else:
             if not self.node_queue.add_node(new_node):
                 _log.info(f"Node {new_node.fixed_phases}, {new_node.free_phases} has already been added")
@@ -503,7 +566,8 @@ class MapStrategy:
             extra_args = {
                 "system_info": self.system_info,
                 "pdens": self.GLOBAL_MIN_PDENS,
-                "tol": self.GLOBAL_MIN_TOL
+                "tol": self.GLOBAL_MIN_TOL,
+                "global_num_candidates": self.GLOBAL_MIN_NUM_CANDIDATES,
             }
 
             # Check valid equilibrium, global min and change in phases

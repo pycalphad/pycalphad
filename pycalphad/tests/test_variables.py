@@ -1,7 +1,7 @@
 """
 Test variables module.
 """
-
+import copy
 import numpy as np
 from pycalphad import variables as v
 from pycalphad.tests.fixtures import select_database, load_database
@@ -35,3 +35,49 @@ def test_mole_and_mass_fraction_conversions(load_database):
     # Conversion back works
     round_trip_mass_fracs = v.get_mass_fractions(mole_fracs, v.Species('O'), md)
     assert all(np.isclose(round_trip_mass_fracs[mf], mass_fracs[mf]) for mf in round_trip_mass_fracs.keys())
+
+
+def test_component_and_species_repr_str_methods():
+    comp = v.Component("O2", {"O": 2})
+    assert repr(comp) == "Component('O2', 'O2')"
+    assert str(comp) == "O2"
+
+    comp = v.Component("*", {})
+    assert repr(comp) == "Component('*')"
+    assert str(comp) == "*"
+
+    comp = v.Component(None)
+    assert repr(comp) == "Component(None)"
+    assert str(comp) == ""
+
+    sp = v.Species("O2-4", {"O": 2}, charge=-4)
+    assert repr(sp) == "Species('O2-4', 'O2', charge=-4)"
+    assert str(sp) == "O2-4"
+
+    sp = v.Species("*", {})
+    assert repr(sp) == "Species('*')"
+    assert str(sp) == "*"
+
+    sp = v.Species(None)
+    assert repr(sp) == "Species(None)"
+    assert str(sp) == ""
+
+def test_deepcopy():
+    '''
+    Tests that deepcopy of variables produce the same variables
+    This addresses an unreported issue where copying the chemical potential
+    would use the name attribute rather than the species (this resulted in deepcopy(v.MU('A')) -> v.MU(v.MU('A')))
+    '''
+    assert copy.deepcopy(v.NP('*')) == v.NP('*')
+    assert copy.deepcopy(v.NP('A')) == v.NP('A')
+
+    assert copy.deepcopy(v.X('B')) == v.X('B')
+    assert copy.deepcopy(v.X('A','B')) == v.X('A','B')
+
+    assert copy.deepcopy(v.W('B')) == v.W('B')
+    assert copy.deepcopy(v.W('A','B')) == v.W('A','B')
+
+    assert copy.deepcopy(v.Y('A',0,'B')) == v.Y('A',0,'B')
+    assert copy.deepcopy(v.T) == v.T
+    assert copy.deepcopy(v.P) == v.P
+    assert copy.deepcopy(v.MU('A')) == v.MU('A')

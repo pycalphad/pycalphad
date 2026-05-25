@@ -6,7 +6,7 @@ from symengine import log, S, Symbol
 from tinydb import where
 from pycalphad.model import _MAX_PARAM_NESTING
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, wrap_symbol
+from pycalphad.core.utils import unpack_species, wrap_symbol
 from pycalphad import Model
 from pycalphad.core.errors import DofError
 
@@ -79,7 +79,7 @@ class ModelMQMQA(Model):
         phase = dbe.phases[self.phase_name]
         self.site_ratios = tuple(list(phase.sublattices))
 
-        active_species = unpack_components(dbe, comps)
+        active_species = unpack_species(dbe, comps)
         constituents = []
         for sublattice in dbe.phases[phase_name].constituents:
             sublattice_comps = set(sublattice).intersection(active_species)
@@ -689,6 +689,15 @@ class ModelMQMQA(Model):
                         mixing_term *= Y_im / Xi_ikl * (1 - self._Y_ik(A, X) / Xi_ikl)**(r_alpha - 1)
                     else:  # not in nu or gamma
                         mixing_term *= Y_im * (1 - Xi_ikl - Xi_ilk)**(r_alpha - 1)
+            elif A != B and X != Y:
+                # Reciprocal mixing
+                if mixing_code != "R":
+                    raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}. Expected 'R'.")
+                pos_m = [spec for spec in m if spec.charge > 0][0]
+                neg_m = [spec for spec in m if spec.charge < 0][0]
+                quadruplet_mole = X_ijkl(pos_m, pos_m, neg_m, neg_m)
+                mix_term_exponent = [num for num in exponents if num != 0][0]
+                mixing_term += quadruplet_mole ** mix_term_exponent
             else:
                 mixing_term = S.One  # No mixing, this is a modification to the formation energy of this quadruplet
             g = param["parameter"] * mixing_term

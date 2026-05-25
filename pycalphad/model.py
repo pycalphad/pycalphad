@@ -9,7 +9,7 @@ from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
+from pycalphad.core.utils import unpack_species, get_pure_elements, wrap_symbol
 from pycalphad.io.tdb import get_supported_variables
 import numpy as np
 from collections import OrderedDict
@@ -198,7 +198,7 @@ class Model(object):
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
         self.site_ratios = list(phase.sublattices)
-        active_species = unpack_components(dbe, comps)
+        active_species = unpack_species(dbe, comps)
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(active_species)
             self.components |= subl_comps
@@ -211,15 +211,6 @@ class Model(object):
                 else:
                     raise ValueError('Two-sublattice ionic liquid specified with more than two sublattices')
                 self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_comps])
-        # If the phase is order/disordered model, then filter the components to the set of species in the disordered model
-        # This will account for the case where the ordered contribution has more components than the disordered model
-        if phase.model_hints.get('disordered_phase', False):
-            disordered_phase = phase.model_hints.get('disordered_phase')
-            disordered_phase_comps = set()
-            for idx, sublattice in enumerate(dbe.phases[disordered_phase].constituents):
-                subl_comps = set(sublattice).intersection(active_species)
-                disordered_phase_comps |= subl_comps
-            self.components = self.components.intersection(disordered_phase_comps)
 
         if phase.model_hints.get('ionic_liquid_2SL', False):
             # Special treatment of "neutral" vacancies in 2SL ionic liquid
@@ -727,6 +718,10 @@ class Model(object):
         for param in params:
             # iterate over every sublattice
             mixing_term = S.One
+            param_subl_dof = [len(subl) for subl in param["constituent_array"]]
+            mixing_sublattice_indices = [subl_index for subl_index, dof in enumerate(param_subl_dof) if dof > 1]
+            if len(mixing_sublattice_indices) > 1 and max(param_subl_dof) > 2:
+                raise ValueError(f"Parameters with mixing on multiple sublattices cannot include interactions beyond binary. Got mixing on {len(mixing_sublattice_indices)} sublattices with one sublattice having mixing between {max(param_subl_dof)} constituents for parameter {param}.")
             for subl_index, comps in enumerate(param['constituent_array']):
                 comp_symbols = None
                 # convert strings to symbols
@@ -778,9 +773,23 @@ class Model(object):
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
-                    # interacting sublattice, add the interaction polynomial
-                    mixing_term *= Pow(comp_symbols[0] - \
-                        comp_symbols[1], param['parameter_order'])
+                    # multiply in (y_A - y_B) terms
+                    if len(mixing_sublattice_indices) == 1:
+                        # Normal R-K interaction parameter for mixing on one sublattice
+                        mixing_term *= Pow(comp_symbols[0] - comp_symbols[1], param['parameter_order'])
+                    elif len(mixing_sublattice_indices) == 2:
+                        # We have a reciprocal parameter
+                        # Similar to the ternary case, the parameter order has a special meaning for reciprocal parameters.
+                        # We only multiply by (y_A - y_B) if the sublattice corresponds to a specific parameter order
+                        # See Eq 5.99 in Section 5.8.1 of Lukas, Fries and Sundman [2].
+                        # Testing with Thermo-Calc indicates that that L1 corresponds to the second sublattice
+                        # with mixing and L2 corresponds to the first sublattice with mixing.
+                        if param['parameter_order'] > 2:  # L0 case doesn't have a (yA - yB) term
+                            raise ValueError(f"Reciprocal parameters can only use parameter order 0, 1, or 2. Got {param['parameter_order']} for {param}.")
+                        if subl_index == mixing_sublattice_indices[-param['parameter_order']]:
+                            mixing_term *= (comp_symbols[0] - comp_symbols[1])
+                    else:
+                        raise ValueError(f"Reciprocal interaction parameters beyond order L0 for more than 2 sublattices are not supported. Got mixing on {len(mixing_sublattice_indices)} sublattices for parameter {param}.")
                 if len(comps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
@@ -1212,6 +1221,13 @@ class Model(object):
            3. Physical properties are partitioned in the same way as the
            energy. See Section 5.8.6 of Lukas, Fries and Sundman [2]_.
 
+           4. There is a variant of the partitioning model for phases that never
+           undergo disordering. See Section 5.8.5 of Lukas, Fries and
+           Sundman [2]_. In this variant, the entropy from the disordered phase
+           does not contribute to the energy and the ordering energies does not
+           have to go to zero, i.e.
+           :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i)`.
+
         Notes
         -----
         .. caution::
@@ -1236,23 +1252,24 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         ordered_phase_name = phase.model_hints.get('ordered_phase', None)
         disordered_phase_name = phase.model_hints.get('disordered_phase', None)
+        never_disorder = phase.model_hints.get('never_disorder', False)
         if phase.name != ordered_phase_name:
             return S.Zero
         ordered_phase = dbe.phases[ordered_phase_name]
         constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
         disordered_phase = dbe.phases[disordered_phase_name]
         disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
+        if never_disorder:
+            # Take configurational entropy from the ordered phase only
+            disordered_model.models["idmix"] = S.Zero
 
         # Get substitutional sublattice indices (for the ordered phase) and
         # validate that the number of interstitial sublattices is consistent
         # with the disordered phase.
         # Assumes first sublattice of the disordered phase is the sublattice
         # that can be come ordered:
-        # Rather than using the constituents defined in the model, we want to compare the
-        # subset of the consituents defined by the components (which accounts for the active
-        # components set by the user)
-        disordered_subl_constituents = disordered_phase.constituents[0].intersection(self.components)
-        ordered_constituents = constituents
+        disordered_subl_constituents = disordered_phase.constituents[0]
+        ordered_constituents = ordered_phase.constituents
         substitutional_sublattice_idxs = []
         for idx, subl_constituents in enumerate(ordered_constituents):
             # Assumes that the ordered phase sublattice describes the ordering
@@ -1347,7 +1364,13 @@ class Model(object):
         # contributions. There's no technical reason for doing it this way
         # compared to setting the AST to the _partitioned_expr for the total
         # energy - this is more for bookkeeping of the model contributions.
-        ordering_energy = self._partitioned_expr(S.Zero, ordered_energy, {}, molefraction_dict)
+        if never_disorder:
+            # Models that never disorder don't need to subtract out the
+            # ordering energy at disordered site fractions.
+            # See Lukas, Fries, Sundman Eq. 5.162
+            ordering_energy = ordered_energy
+        else:
+            ordering_energy = self._partitioned_expr(S.Zero, ordered_energy, {}, molefraction_dict)
 
         # 2: Replace the ordered energy contributions with the disordered contributions
         self.models.clear()

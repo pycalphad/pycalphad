@@ -238,9 +238,12 @@ def test_check_global_min(load_database):
 
     #Create new point with adjusted condition
     new_conditions[v.T] += delta_T*zpf_line.axis_direction.value
-    step_result = zeq.update_equilibrium_with_new_conditions(zpf_line.points[-1], new_conditions)
 
-    # check_change_in_phases for same phase becoming unstable -> new node found with same set of phases as previous point
+    # check_change_in_phases for new phase becoming stable -> new node found with same set of phases as previous point
+    # NOTE: we call update_equilibrium_with_new_conditions for this check and the next since the check_global_min can
+    #       uses the same composition set instances in step results, which modifies them.
+    #       By calling it for each check, the step_result going into check_global_min should be the same for each check
+    step_result = zeq.update_equilibrium_with_new_conditions(zpf_line.points[-1], new_conditions)
     new_node = zchk.check_global_min(zpf_line, step_result, axis_data, **extra_args)
     if zpf_line.status == ZPFState.FAILED:
         assert new_node is None
@@ -249,7 +252,9 @@ def test_check_global_min(load_database):
         assert len(new_node.stable_composition_sets) == 2
         assert np.isclose(new_node.get_property(v.T), 622.456, rtol=1e-3)
 
-    # check_change_in_phases for same phase becoming unstable and new node could not be found -> zpf line failed
+    # check_change_in_phases for new phase becoming stable and new node could not be found -> zpf line failed
+    step_result = zeq.update_equilibrium_with_new_conditions(zpf_line.points[-1], new_conditions)
+    # do_not_create_node will skip node creation, effectively simulating a failed equilibrium
     extra_args["do_not_create_node"] = True
     new_node = zchk.check_global_min(zpf_line, step_result, axis_data, **extra_args)
     assert zpf_line.status == ZPFState.FAILED

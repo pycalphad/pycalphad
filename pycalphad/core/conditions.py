@@ -127,7 +127,7 @@ class Conditions:
         if isinstance(prop, (v.MoleFraction, v.MassFraction, v.ChemicalPotential)) and prop.species not in self._wks.components:
             raise ConditionError('{} refers to non-existent component'.format(prop))
 
-        if isinstance(prop, v.SiteFraction) and prop not in self._wks.phase_record_factory[prop.phase_name].variables:
+        if isinstance(prop, v.SiteFraction) and prop not in self._wks.models[prop.phase_name].variables:
             raise ConditionError('{} refers to non-existent constituent'.format(prop))
 
         if (prop == v.N) and np.any(value != Q_(1.0, 'mol')):

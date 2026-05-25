@@ -9,7 +9,7 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.workspace import _adjust_conditions
 from pycalphad.core.starting_point import starting_point
 from pycalphad.core.utils import instantiate_models, get_state_variables, \
-    unpack_components, unpack_condition, filter_phases, get_pure_elements
+    unpack_species, unpack_condition, filter_phases, get_pure_elements
 from pycalphad.property_framework.units import Q_
 from pycalphad.property_framework import as_quantity
 from .compsets import get_compsets, find_two_phase_region_compsets
@@ -62,7 +62,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     if 'pdens' not in calc_kwargs:
         calc_kwargs['pdens'] = 50
 
-    species = unpack_components(dbf, comps)
+    species = unpack_species(dbf, comps)
     phases = filter_phases(dbf, species, phases)
     parameters = eq_kwargs.get('parameters', {})
     models = eq_kwargs.get('model')

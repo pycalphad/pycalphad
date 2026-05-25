@@ -3,6 +3,7 @@ The calculate test module verifies that calculate() calculates
 Model quantities correctly.
 """
 
+import select
 import pytest
 from pycalphad import Database, calculate, Model, variables as v
 from itertools import chain
@@ -166,11 +167,12 @@ def test_no_neutral_endmembers_single():
     np.testing.assert_allclose(np.squeeze(calc_res.Y.values), np.array([1/3, 2/3, 1]))
 
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase PYROCHLORE*:UserWarning")  # Filter out an expected warning so we don't fail the test
 @select_database("zrlayalo.tdb")
 def test_pyrochlore_infeasible(load_database):
     "calculate raises an error when it is impossible to satisfy a phase's constraints"
     dbf = load_database()
-    with pytest.raises(ValueError):
+    with pytest.raises(ConditionError):
         calculate(dbf, ['LA', 'Y', 'O'], 'PYROCHLORE', T=600, P=1e5, pdens=10)
 
 
@@ -289,14 +291,14 @@ def test_calculation_symengine_evalf_energy_difference(load_database):
 
 def test_molar_volume_isothermal():
     TDB = """
-        ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+        ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 !
         TYPE_DEFINITION % SEQ * !
         PHASE BCC_A2 % 1 1 !
         CONSTITUENT BCC_A2 :FE: !
         PARAMETER V0(BCC_A2,FE;0) 0.01 7.00790E-6; 6000 N !
         PARAMETER VA(BCC_A2,FE;0) 0.01 3.42756E-5*T +8.14005E-9*T**2 +0.291672*T**-1; 6000 N !
         """
-        
+
     db = Database(TDB)
     mv_300K = calculate(db, ["FE"], "BCC_A2", T=300, N=1, P=101325, output="molar_volume", pdens=10)
     mv_1200K = calculate(db, ["FE"], "BCC_A2", T=1200, N=1, P=101325, output="molar_volume", pdens=10)
@@ -306,7 +308,7 @@ def test_molar_volume_isothermal():
 
 def test_volume_energy():
     TDB = """
-    ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+    ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 !
     TYPE_DEFINITION % SEQ * !
     PHASE BCC_A2 % 1 1 !
     CONSTITUENT BCC_A2 :FE: !
@@ -318,7 +320,7 @@ def test_volume_energy():
 
     db = Database(TDB)
     energy_hp = 1e-6*np.exp(1e-6*300)*(10e9-101325)
-    
+
     result_atm = calculate(db, ['FE'], 'BCC_A2', T=300, P=101325, N=1)
     result_hp = calculate(db, ['FE'], 'BCC_A2', T=300, P=10E9, N=1)
     vol_energy_contrib = np.squeeze(result_hp['GM']).values - np.squeeze(result_atm['GM']).values
@@ -333,7 +335,7 @@ def test_magnetic_volume_contribution():
     """
 
     TDB = """
-    ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 ! 
+    ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 !
     TYPE_DEFINITION % SEQ * !
     TYPE_DEFINITION A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
     PHASE BCC_A2 %A 1 1 !
@@ -341,7 +343,7 @@ def test_magnetic_volume_contribution():
     PARAMETER G(BCC_A2,FE;0) 0.01 T;  6000.00 N !
     PARAMETER TC(BCC_A2,FE;0)  298.15 +1043 -1e-7*P;  6000 N !
     PARAMETER BMAGN(BCC_A2,FE;0)  298.15 +2.22;  6000 N !
-    
+
     PARAMETER V0(BCC_A2,FE;0) 0.01 1E-6; 6000 N !
     PARAMETER VA(BCC_A2,FE;0) 0.01 1E-6*T; 6000 N !
     """
@@ -352,3 +354,69 @@ def test_magnetic_volume_contribution():
 
     assert np.allclose(np.squeeze(res1['molar_volume']).values, 1.857e-6)
     assert np.allclose(np.squeeze(res2['molar_volume']).values, 1.0e-6)
+
+
+@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
+def test_calculate_raises_if_no_feasible_points_exist():
+    "calculate should raise if there are no feasible points produced"
+
+    TDB = """
+    ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+    ELEMENT ZR   BLANK                     0.0000E+00  0.0000E+00  0.0000E+00!
+    SPECIES O-2                         O1/-2!
+    SPECIES ZR+4                        ZR1/+4!
+    PHASE SPINEL %  4 1 2 2 4 !
+    CONSTITUENT SPINEL : ZR+4 : VA : VA : O-2 :  !
+    PHASE GAS:G %  1  1.0  !
+    CONSTITUENT GAS:G :O,ZR :  !
+    """
+
+    dbf = Database(TDB)
+    # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
+    # as it is the only active phase, there will be no points and should raise
+    with pytest.raises(ConditionError):
+        grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # SPINEL still suspended, but doesn't raise because GAS phase provides points
+    with pytest.warns(match="No valid points found for phase SPINEL"):
+        grid = calculate(dbf, ["O", "ZR", "VA"], ["GAS", "SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # fake_points provides points and therefore calculate should not raise for having no points
+    # fake_points also prevents the warning here
+    grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
+
+
+@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
+def test_calculate_raises_correctly_when_charged_phases_cannot_charge_balance():
+    """calculate should _not_ raise if there are phases that are infeasible, but overall there are still points
+
+    This test tests against a special case where a phase is charged and has internal DOF, but cannot charge balance.
+    We should see the same failure modes as above.
+    """
+
+    TDB = """
+    ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT AL   BLANK                     0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT ZR   BLANK                     0.0000E+00  0.0000E+00  0.0000E+00!
+    SPECIES AL+3                        AL1/+3!
+    SPECIES ZR+4                        ZR1/+4!
+    PHASE SPINEL %  4 1 2 2 4 !
+    CONSTITUENT SPINEL : AL+3,ZR+4,VA : VA : VA :  !
+    PHASE GAS:G %  1  1.0  !
+    CONSTITUENT GAS:G :AL,VA,ZR :  !
+    """
+    dbf = Database(TDB)
+
+    # Gas can always charge balance, all is well
+    grid = calculate(dbf, ["AL", "ZR", "VA"], ["GAS"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # SPINEL cannot charge balance without a negative ion.
+    # As it is the only active phase, there will be no points and should raise.
+    with pytest.raises(ConditionError):
+        grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # SPINEL still suspended, but doesn't raise because GAS phase provides points
+    with pytest.warns(match="No valid points found for phase SPINEL"):
+        grid = calculate(dbf, ["AL", "ZR", "VA"], ["GAS", "SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
+    # fake_points provides points and therefore calculate should not raise for having no points
+    # fake_points also prevents the warning here
+    grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)

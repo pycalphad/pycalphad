@@ -222,8 +222,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         cdef int i
         cdef int num_inps = dof.shape[0]
         cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
+        cdef void* callptr = self.function_factory.get_func(property_name)
         for i in range(num_inps):
-           (<FastFunction>self.function_factory.get_func(property_name)).call(&outp[i], &dof_concat[i * num_dof])
+           (<FastFunction>callptr).call(&outp[i], &dof_concat[i * num_dof])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 

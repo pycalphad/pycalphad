@@ -95,6 +95,33 @@ def test_export_import(load_database):
     test_dbf = load_database()
     assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
 
+def test_bad_kwarg_raises():
+    "An invalid keyword argument passed to database export function will raise an exception."
+    with pytest.raises(ValueError):
+        Database().to_string(fmt='tdb', if_incompatible='invalid_keyword_argument')
+
+def test_roundtrip_nested_powers():
+    "Round-trip with nested powers expression."
+    TDB = """
+    ELEMENT A FCC_A1 0 0 0 !
+
+    PHASE FCC_A1 % 1 1 !
+    CONSTITUENT FCC_A1 : A : !
+
+    PARAMETER G(FCC_A1,A;0) 1 ((3.49 * (1373 * T**(-1)))**(1.778 * (1473 * T**(-1))))**(0.926); 10000 N !
+    """
+    test_dbf = Database(TDB)
+    roundtrip_dbf = Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb')
+    assert roundtrip_dbf == test_dbf
+    with pytest.warns(UserWarning, match='Ignoring that non-integer exponents cannot be represented in TDB compatibility mode'):
+        roundtrip2_dbf = Database.from_string(test_dbf.to_string(fmt='tdb', if_incompatible='warn'), fmt='tdb')
+    assert roundtrip2_dbf == test_dbf
+    with pytest.raises(DatabaseExportError):
+        test_dbf.to_string(fmt='tdb', if_incompatible='raise')
+    with pytest.raises(DatabaseExportError):
+        # this type of incompatibility cannot be automatically fixed
+        test_dbf.to_string(fmt='tdb', if_incompatible='fix')
+
 def test_incompatible_db_warns_by_default():
     "Symbol names too long for Thermo-Calc warn and write the database as given by default."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
@@ -718,6 +745,33 @@ def test_tdb_parser_raises_unterminated_parameters():
     with pytest.raises(ParseException):
         Database(UNTERMINATED_PARAM_STR)
 
+def test_tdb_parser_correct_lineno():
+    """Line number is correctly reported during a parser exception."""
+    # The PARAMETER G(BCC,FE:H;0) parameter is not terminated by an `!`.
+    # The parser merges all newlines until the `!`, meaning both parameters
+    # will be joined on one "line". The parser should raise an error.
+    UNTERMINATED_PARAM_STR = """     PARAMETER G(BCC,FE:H;0) 298.15  +GHSERFE+1.5*GHSERHH
+        +258000-3170*T+498*T*LN(T)-0.275*T**2; 1811.00  Y
+        +232264+82*T+1*GHSERFE+1.5*GHSERHH; 6000.00  N
+
+     PARAMETER G(BCC,FE:VA;0)      298.15 +GHSERFE; 6000 N ZIM !
+    """
+    with pytest.raises(ParseException) as excinfo:
+        Database(UNTERMINATED_PARAM_STR)
+    assert excinfo.value.lineno == 5
+    assert excinfo.value.column == 16
+
+    # The third line has a ; instead of , character (see "[...]LI,LU;MG,MN[...]")
+    INCORRECT_DELIMITER_STR = """PHASE LIQUID % 1 1 !
+    CONSTITUENT LIQUID : AG,AL,AM,AS,AU,B,BA,BE,BI,C,CA,CD,CE,CO,CR,CS,CU,DY,ER,
+    EU,FE,GA,GD,GE,HF,HG,HO,IN,IR,K,LA,LI,LU;MG,MN,MO,N,NA,NB,ND,NI,NP,O,OS,P,PA,
+    PB,PD,PR,PT,PU,RB,RE,RH,RU,S,SB,SC,SE,SI,SM,SN,SR,TA,TB,TC,TE,TH,TI,TL,TM,U,V,
+    W,Y,YB,ZN,ZR : !
+    """
+    with pytest.raises(ParseException) as excinfo:
+        Database(INCORRECT_DELIMITER_STR)
+    assert excinfo.value.lineno == 3
+    assert excinfo.value.column == 45
 
 @select_database("alfe.tdb")
 def test_load_database_when_given_in_lowercase(load_database):
@@ -866,6 +920,17 @@ def test_tc_printer_exp():
     result = TCPrinter()._stringify_expr(test_expr)
     assert result == 'exp(-300*T**(-1))'
 
+def test_tc_printer_bad_kwarg():
+    "TCPrinter will raise if passed bad keyword arguments."
+    with pytest.raises(ValueError):
+        TCPrinter(if_incompatible='invalid_keyword')
+
+def test_tc_printer_raise_noninteger_exponent():
+    "TCPrinter will raise for non-integer exponents in compatibility mode."
+    with pytest.raises(DatabaseExportError):
+        TCPrinter(if_incompatible='raise')._stringify_expr(S('T**0.42'))
+
+@pytest.mark.filterwarnings("ignore:Ignoring that non-integer exponents*:UserWarning")
 def test_tc_printer_nested_mul_add():
     """
     TCPrinter retains parenthesis around a nested Mul(...,Add(...)) expression

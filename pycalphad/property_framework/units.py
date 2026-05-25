@@ -5,7 +5,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pycalphad.property_framework import ComputableProperty
 
-ureg = pint.UnitRegistry(preprocessors=[lambda s: s.replace('%', ' percent ')])
+ureg = pint.UnitRegistry(
+    preprocessors=[lambda s: s.replace('%', ' percent ')],
+    # Suppress warnings when redefining 'percent', '%', and 'ppm' units.
+    # We intentionally redefine these relative to our custom 'fraction' unit.
+    on_redefinition='ignore',
+)
 ureg.define('atom = 1/avogadro_number * mol')
 ureg.define('fraction = []')
 ureg.define('percent = 1e-2 fraction = %')
@@ -35,6 +40,9 @@ H_display_name = 'Enthalpy'
 entropy_implementation_units = SM_implementation_units = 'J / mol / K'
 entropy_display_units = SM_display_units = 'J / mol / K'
 entropy_display_name = SM_display_name = 'Entropy'
+cpm_implementation_units = CPM_implementation_units = 'J / mol / K'
+cpm_display_units = CPM_display_units = 'J / mol / K'
+cpm_display_name = CPM_display_name = 'Heat Capacity'
 
 def _conversions_per_formula_unit(compset):
     components = compset.phase_record.nonvacant_elements
@@ -68,7 +76,7 @@ def unit_conversion_context(compsets, prop):
     context.add_transformation(
         per_moles,
         per_mass,
-        lambda ureg, x: (x / molar_weight).to_reduced_units()
+        lambda ureg, x: np.true_divide(x, molar_weight).to_reduced_units(),
     )
     context.add_transformation(
         per_mass,

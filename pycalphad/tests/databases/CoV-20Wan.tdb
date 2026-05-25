@@ -1,0 +1,237 @@
+$
+$ Database for Co-V from P. Wang et al. 2020.
+$
+$ P. Wang, T. Hammerschmidt, U.R. Kattner, G.B. Olson,
+$ Calphad, 68, 101729(2020).
+$
+$ Dataset created 2020.07.25 by Bengt Hallstedt.
+$
+$ Sigma is modelled with an add-on model. In the paper the model is fractional
+$ which is converted to integer in this dataset.
+$
+$ There is no hcp interaction included in the paper. Using the same interaction
+$ as for fcc makes hcp stable above Co3V. The hcp interaction was set to
+$ 10 kJ/mol less than the fcc interaction.
+$
+$ The parameters for CoV3 are misprinted in the paper.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 298.15 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    !
+ ELEMENT CO   HCP_A3                     58.9332    4765.567   30.0400 !
+ ELEMENT V    BCC_A2                     50.9415    4507.0     30.89   !
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : CO V : !
+$
+$ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : CO% V : VA : !
+$
+$ Disordered part of FCC_4SL, identical to FCC_A1
+$
+ PHASE A1_FCC %A 2 1 1 !
+ CONST A1_FCC : CO% V : VA : !
+$
+$ Prototype AuCu3 (cP4, Pm-3m, L1_2) and AuCu (tP4, P4/mmm, L1_0)
+$
+ PHASE FCC_4SL:F %AY 5 0.25 0.25 0.25 0.25 1 !
+ CONST FCC_4SL:F : CO V : CO V : CO V : CO V : VA : !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : CO V% : VA : !
+$
+$ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+$
+ PHASE HCP_A3 %A 2 1 0.5 !
+ CONST HCP_A3 : CO% V : VA : !
+$
+$ Prototype Al3Pu (hP24, P6_3/mmc)
+$
+ PHASE CO3V % 2 3 1 !
+ CONST CO3V : CO% V : CO V% : !
+$
+$ Disordered contribution to SIGMA_D8B
+$
+ PHASE DIS_SIGMA % 1 1 !
+ CONST DIS_SIGMA : CO V : !
+$
+$ Prototype CrFe (tP30)
+$
+ PHASE SIGMA_D8B %P 3 10 4 16 !
+ CONST SIGMA_D8B : CO V : CO V : CO V : !
+$
+$ Prototype Cr3Si (cP8, Pm-3n)
+$
+ PHASE COV3_A15 % 2 1 3 !
+ CONST COV3_A15 : CO : V : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+ TYPE-DEF P GES AMEND_PHASE_DESCRIPTION SIGMA_D8B NEVER_DIS DIS_SIGMA !
+ TYPE-DEF Y GES AMEND_PHASE_DESCRIPTION FCC_4SL DIS_PART A1_FCC !
+ FUNCTION ZERO      298.15  0;                                         6000 N !
+ FUNCTION UN_ASS    298.15  0;                                         6000 N !
+ FUNCTION R         298.15  +8.31451;                                  6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ Co
+$
+ PAR  G(HCP_A3,CO:VA),,                 +GHSERCO;,,                   N 91Din !
+ PAR  TC(HCP_A3,CO:VA),,                 1396.00;,,                   N 91Din !
+ PAR  BM(HCP_A3,CO:VA),,                    1.35;,,                   N 91Din !
+ PAR  G(FCC_A1,CO:VA),,                 +GHSERCO
+             +427.591-0.615248*T;,,                                   N 91Din !
+ PAR  TC(FCC_A1,CO:VA),,                 1396.00;,,                   N 91Din !
+ PAR  BM(FCC_A1,CO:VA),,                    1.35;,,                   N 91Din !
+ PAR  G(A1_FCC,CO:VA),,                 +GHSERCO
+             +427.591-0.615248*T;,,                                   N 91Din !
+ PAR  TC(A1_FCC,CO:VA),,                 1396.00;,,                   N 91Din !
+ PAR  BM(A1_FCC,CO:VA),,                    1.35;,,                   N 91Din !
+ PAR  G(BCC_A2,CO:VA),,                 +GHSERCO+2938-0.7138*T;,,     N 91Din !
+ PAR  TC(BCC_A2,CO:VA),,                 1450.00;,,                   N 91Din !
+ PAR  BM(BCC_A2,CO:VA),,                    1.35;,,                   N 91Din !
+$PAR  G(CBCC_A12,CO:VA),,               +GHSERCO+4155;,,              N 91Din !
+$PAR  G(CUB_A13,CO:VA),,                +GHSERCO+3155;,,              N 91Din !
+ PAR  G(LIQUID,CO),,                    +GLIQCO;,,                    N 91Din !
+$
+ PAR  G(CO3V,CO:CO),,                   +4*GHSERCO+4408;,,            N 20Wan !
+ PAR  G(DIS_SIGMA,CO),,                 +GHSERCO+6958;,,              N 20Wan !
+ PAR  TC(SIGMA_D8B,CO:CO:CO),,           1400.00;,,                   N 20Wan !
+$PAR  BM(SIGMA_D8B,CO:CO:CO),,              1.66;,,                   N 20Wan !
+ PAR  BM(SIGMA_D8B,CO:CO:CO),,          5.5776E12;,,                  N 20Wan !
+$
+ FUNCTION GHSERCO   298.15  +310.241+133.36601*T-25.0861*T*LN(T)
+       -0.002654739*T**2-1.7348E-07*T**3+72527*T**(-1);
+      1768.00  Y  -17197.666+253.28374*T-40.5*T*LN(T)+9.3488E+30*T**(-9);
+      6000.00  N !
+ FUNCTION GLIQCO    298.15  +15085.037-8.931932*T+GHSERCO-2.19801E-21*T**7;
+      1768.00  Y  -846.61+243.599944*T-40.5*T*LN(T);
+      6000.00  N !
+ FUNCTION GFCCCO    298.15  +GHSERCO+427.59-0.615248*T;                6000 N !
+ FUNCTION GBCCCO    298.15  +GHSERCO+2938-0.7138*T;                    6000 N !
+$ ------------------------------------------------------------------------------
+$ V
+$
+ PAR  G(BCC_A2,V:VA),,                  +GHSERVV;                4000 N 91Din !
+ PAR  G(FCC_A1,V:VA),,                  +GHSERVV+7500+1.7*T;     4000 N 91Din !
+ PAR  G(A1_FCC,V:VA),,                  +GHSERVV+7500+1.7*T;     4000 N 91Din !
+ PAR  G(HCP_A3,V:VA),,                  +GHSERVV+4000+2.4*T;     4000 N 91Din !
+$PAR  G(CBCC_A12,V:VA),,                +GHSERVV+9000;           4000 N 91Din !
+$PAR  G(CUB_A13,V:VA),,                 +GHSERVV+10000;          4000 N 91Din !
+ PAR  G(LIQUID,V),,                     +GLIQVV;                 4000 N 91Din !
+$
+ PAR  G(CO3V,V:V),,                     +4*GHSERVV+93136;,,           N 20Wan !
+ PAR  G(DIS_SIGMA,V),,                  +GHSERVV+3768.4;,,            N 20Wan !
+$
+ FUNCTION GHSERVV   298.15  -7930.43+133.346053*T-24.134*T*LN(T)
+       -0.003098*T**2+1.2175E-07*T**3+69460*T**(-1);
+       790.00  Y  -7967.842+143.291093*T-25.9*T*LN(T)
+       +6.25E-05*T**2-6.8E-07*T**3;
+      2183.00  Y  -41689.864+321.140783*T-47.43*T*LN(T)+6.44389E+31*T**(-9);
+      4000.00  N !
+ FUNCTION GLIQVV    298.15  +20764.117-9.455552*T+GHSERVV-5.19136E-22*T**7;
+      2183.00  Y  -19617.51+311.055983*T-47.43*T*LN(T);
+      4000.00  N !
+ FUNCTION GFCCVV    298.15  +GHSERVV+7500+1.7*T;                       4000 N !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ P. Wang, T. Hammerschmidt, U.R. Kattner, G.B. Olson,
+$ Calphad, 68, 101729(2020).
+$
+$ Checked against paper and author's tdb. Checked at 6000 K.
+$
+$ Sigma is modelled with an add-on model. In the paper the model is fractional
+$ which is converted to integer in this dataset.
+$
+$ There is no hcp interaction included in the paper. Using the same interaction
+$ as for fcc makes hcp stable above Co3V. The hcp interaction was set to
+$ 10 kJ/mol less than the fcc interaction.
+$
+$ The parameters for CoV3 are misprinted in the paper.
+$
+ PAR  L(LIQUID,CO,V;0),,                -60297.6+2.6502*T;,,          N 20Wan !
+ PAR  L(LIQUID,CO,V;1),,                -10417.3;,,                   N 20Wan !
+ PAR  L(LIQUID,CO,V;2),,                +18698.7;,,                   N 20Wan !
+$
+ PAR  L(FCC_A1,CO,V:VA;0),,             -69595.2+11.2314*T;,,         N 20Wan !
+ PAR  L(FCC_A1,CO,V:VA;1),,             -41802.8+4.2329*T;,,          N 20Wan !
+ PAR  L(FCC_A1,CO,V:VA;2),,             +29000;,,                     N 20Wan !
+ PAR  TC(FCC_A1,CO,V:VA;0),,            -2500.00;,,                   N 20Wan !
+ PAR  TC(FCC_A1,CO,V:VA;1),,            -1000.00;,,                   N 20Wan !
+$
+ PAR  L(A1_FCC,CO,V:VA;0),,             -69595.2+11.2314*T;,,         N 20Wan !
+ PAR  L(A1_FCC,CO,V:VA;1),,             -41802.8+4.2329*T;,,          N 20Wan !
+ PAR  L(A1_FCC,CO,V:VA;2),,             +29000;,,                     N 20Wan !
+ PAR  TC(A1_FCC,CO,V:VA;0),,            -2500.00;,,                   N 20Wan !
+ PAR  TC(A1_FCC,CO,V:VA;1),,            -1000.00;,,                   N 20Wan !
+$
+ PAR  G(FCC_4SL,CO:CO:CO:V:VA),,        +GFCO3V;,,                    N 20Wan !
+ PAR  G(FCC_4SL,CO:CO:V:V:VA),,         +GFCO2V2;,,                   N 20Wan !
+ PAR  G(FCC_4SL,CO:V:V:V:VA),,          +GFCOV3;,,                    N 20Wan !
+$
+ PAR  L(BCC_A2,CO,V:VA;0),,             -62617.3+12.1461*T;,,         N 20Wan !
+ PAR  L(BCC_A2,CO,V:VA;1),,             -18518.3;,,                   N 20Wan !
+$
+ PAR  L(HCP_A3,CO,V:VA;0),,             -59595.2+11.2314*T;,,         N Same !
+ PAR  L(HCP_A3,CO,V:VA;1),,             -41802.8+4.2329*T;,,          N Same !
+ PAR  L(HCP_A3,CO,V:VA;2),,             +29000;,,                     N Same !
+ PAR  TC(HCP_A3,CO,V:VA;0),,            -2500.00;,,                   N Same !
+ PAR  TC(HCP_A3,CO,V:VA;1),,            -1000.00;,,                   N Same !
+$
+ PAR  G(CO3V,CO:V),,                    +3*GHSERCO+GHSERVV
+             -91066+20.216*T;,,                                       N 20Wan !
+ PAR  G(CO3V,V:CO),,                    +GHSERCO+3*GHSERVV+19008;,,   N 20Wan !
+ PAR  L(CO3V,CO,V:V;0),,                -134045.2;,,                  N 20Wan !
+ PAR  L(CO3V,CO:CO,V;0),,               +80000;,,                     N 20Wan !
+$
+ PAR  L(DIS_SIGMA,CO,V;0),,             -27066.3;,,                   N 20Wan !
+ PAR  L(DIS_SIGMA,CO,V;1),,             -65628.6;,,                   N 20Wan !
+$
+ PAR  G(SIGMA_D8B,CO:CO:V),,            -509787+144.264*T;,,          N 20Wan !
+ PAR  G(SIGMA_D8B,CO:V:CO),,            -134364+154.911*T;,,          N 20Wan !
+ PAR  G(SIGMA_D8B,CO:V:V),,             -756849+84.471*T;,,           N 20Wan !
+ PAR  G(SIGMA_D8B,V:CO:CO),,            +83940;,,                     N 20Wan !
+ PAR  G(SIGMA_D8B,V:CO:V),,             -33474;,,                     N 20Wan !
+ PAR  G(SIGMA_D8B,V:V:CO),,             -169911;,,                    N 20Wan !
+$
+ PAR  G(COV3_A15,CO:V),,                +GHSERCO+3*GHSERVV
+             -84354.8+22.5684*T;,,                                    N 20Wan !
+$
+ FUNCTION U1FCOV    298.15  -4498.5+0.7535*T;                          6000 N !
+ FUNCTION GFCO3V    298.15  +3*U1FCOV;                                 6000 N !
+ FUNCTION GFCO2V2   298.15  +4*U1FCOV+9034.8;                          6000 N !
+ FUNCTION GFCOV3    298.15  +7000;                                     6000 N !
+$ ------------------------------------------------------------------------------
+$
+ ASSESSED_SYSTEM
+  CO-V(TDB -* +LIQUID +COV3_A15 +BCC_A2 +HCP_A3 +CO3V +A1_FCC
+  +FCC_4SL +SIGMA_D8B ;G5 C_S:HCP_4SL/CO:CO:CO:V:VA
+  MAJ:HCP_4SL/CO:CO:CO:CO:VA C_S:FCC_4SL/CO:CO:CO:CO:VA
+  ;P3 TMM:300/2300 STP:0.08/1000) !
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  Same   'Same or similar interaction as in the corresponding stable phase'
+  REFLAV 'Laves phase convention: G(LAVES,X:X)=+3*GHSERXX+15000'
+  91Din  'A.T. Dinsdale, Calphad, 15, 317-425(1991).'
+  20Wan  'P. Wang, T. Hammerschmidt, U.R. Kattner, G.B. Olson,
+          Calphad, 68, 101729(2020); Co-V'
+!

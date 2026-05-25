@@ -6,11 +6,11 @@ Thermo-Calc TDB format.
 from pyparsing import CaselessKeyword, CharsNotIn, Group
 from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
-from pyparsing import delimitedList, ParseException
+from pyparsing import DelimitedList, ParseException
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
-from symengine import Float, Symbol, RealDouble, LessThan, StrictLessThan, S, E
+from symengine import Float, Symbol, LessThan, StrictLessThan, S, E
 from tinydb import where
 from pycalphad import Database
 from pycalphad.io.database import DatabaseExportError
@@ -177,7 +177,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     """
     Convenience function for getting the pyparsing grammar of a TDB file.
     """
-    int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
+    int_number = Word(nums).set_parse_action(lambda t: [int(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
     ref_phase_name = symbol_name = Word(alphanums+'_-:()/', min=1)
@@ -186,13 +186,13 @@ def _tdb_grammar(): #pylint: disable=R0914
     reference_key = Word(alphanums+':_-')('reference_key')
     # constituent arrays are colon-delimited
     # each subarray can be comma- or space-delimited
-    constituent_array = Group(delimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
+    constituent_array = Group(DelimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
     param_types = MatchFirst([TCCommand(param_type) for param_type in TDB_PARAM_TYPES])
     # Let symengine do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details
-    func_expr = (float_number | ZeroOrMore(',').setParseAction(lambda t: 0.01)) + OneOrMore(SkipTo(';') \
+    func_expr = (float_number | ZeroOrMore(',').set_parse_action(lambda t: 0.01)) + OneOrMore(SkipTo(';') \
         + Suppress(';') + ZeroOrMore(Suppress(',')) + Optional(float_number) + \
-        Suppress(Optional(Word('Yy', exact=1))), stopOn=Word('Nn', exact=1)) + Suppress(Optional(Word('Nn', exact=1)))
+        Suppress(Optional(Word('Yy', exact=1))), stop_on=Word('Nn', exact=1)) + Suppress(Optional(Word('Nn', exact=1)))
     # ELEMENT
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + ref_phase_name + \
         float_number + float_number + float_number + LineEnd()
@@ -203,7 +203,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
     # FUNCTION
     cmd_function = TCCommand('FUNCTION') + symbol_name + \
-        func_expr.setParseAction(_make_piecewise_ast) + \
+        func_expr.set_parse_action(_make_piecewise_ast) + \
         Optional(Suppress(reference_key)) + LineEnd()
     # ASSESSED_SYSTEMS
     cmd_ass_sys = TCCommand('ASSESSED_SYSTEMS') + SkipTo(LineEnd())
@@ -238,7 +238,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Optional(Suppress('&') + Word(alphas+'/-', min=1, max=2), default=None) + \
         Suppress(',') + constituent_array + \
         Optional(Suppress(';') + int_number, default=0) + \
-        Suppress(')') + func_expr.setParseAction(_make_piecewise_ast) + \
+        Suppress(')') + func_expr.set_parse_action(_make_piecewise_ast) + \
         Optional(Suppress(reference_key)) + LineEnd()
     # ZEROVOLUME_SPECIES
     cmd_zerovolume = TCCommand('ZEROVOLUME_SPECIES') + SkipTo(LineEnd())
@@ -286,7 +286,7 @@ def _process_typedef(targetdb, typechar, line):
     if 'IF' in tokens or 'THEN' in tokens:
         warnings.warn("Type definitions using IF/THEN logic is not supported")
         return
-    keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC'], tokens[3].upper())[0]
+    keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC', 'NEVER_DISORDER'], tokens[3].upper())[0]
     if len(keyword) == 0:
         raise ValueError('Unknown type definition keyword: {}'.format(tokens[3]))
     if len(matching_phases) == 0:
@@ -312,6 +312,28 @@ def _process_typedef(targetdb, typechar, line):
         hint = {
             'ordered_phase': ordered_phase,
             'disordered_phase': disordered_phase,
+        }
+        if ordered_phase in targetdb.phases:
+            targetdb.phases[ordered_phase].model_hints.update(hint)
+        else:
+            raise ValueError(f"The {ordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
+        if disordered_phase in targetdb.phases:
+            targetdb.phases[disordered_phase].model_hints.update(hint)
+        else:
+            raise ValueError(f"The {disordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
+
+    # GES A_P_D SIGMA_D8B NEVER_DIS SIGMA_DIS
+    if keyword == 'NEVER_DISORDER':
+        # never disorder model: since we need to add model_hints to both the
+        # ordered and disorderd phase, we special case to update the phase
+        # names defined by the TYPE_DEF, rather than the updating the phases
+        # with matching typechars.
+        ordered_phase = tokens[2].upper()
+        disordered_phase = tokens[4].upper()
+        hint = {
+            'ordered_phase': ordered_phase,
+            'disordered_phase': disordered_phase,
+            'never_disorder': True,
         }
         if ordered_phase in targetdb.phases:
             targetdb.phases[ordered_phase].model_hints.update(hint)
@@ -362,7 +384,7 @@ def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
     # sorting lx is _required_ here: see issue #17 on GitHub
     targetdb.add_parameter(param_type, phase_name.upper(),
                            [[c.upper() for c in sorted(lx)]
-                            for lx in constituent_array.asList()],
+                            for lx in constituent_array.as_list()],
                            param_order, param, ref, diffusing_species, force_insert=False)
 
 def _unimplemented(*args, **kwargs): #pylint: disable=W0613
@@ -470,6 +492,12 @@ class TCPrinter(object):
     """
     Prints Thermo-Calc style function expressions.
     """
+
+    def __init__(self, if_incompatible='warn'):
+        if if_incompatible not in ('warn', 'raise', 'ignore', 'fix'):
+            raise ValueError('Incorrect options passed to \'if_incompatible\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
+        self.if_incompatible = if_incompatible
+
     def doprint(self, expr):
         return self._print_Piecewise(expr)
 
@@ -492,7 +520,7 @@ class TCPrinter(object):
             #    Pow will explicitly add parenthesis (in the next elif block)
             #    Other functions such as Log, Sin, etc should
             #        include the parenthesis when converting to string
-            
+
             #All the arguments in Mul should be tested and they're all combined to a single expression by '*'
             #    So we could stringify each argument as a list and join them together is '*'
             term_list = ['(' + self._stringify_expr(arg) + ')' if isinstance(arg,Add) else self._stringify_expr(arg) for arg in expr.args]
@@ -504,10 +532,24 @@ class TCPrinter(object):
                 terms = 'exp(' + self._stringify_expr(expr.args[1]) + ')'
             else:
                 argument = self._stringify_expr(expr.args[0])
-                if isinstance(expr.args[0], (Add, Mul)):
+                if isinstance(expr.args[0], (Add, Mul, Pow)):
                     argument = '( ' + argument + ' )'
-                # Deals with both numbers (RealDouble) and nested function exponents
-                exponent = int(expr.args[1]) if isinstance(expr.args[1], RealDouble) else expr.args[1]
+                # Try coercing the exponent to an int (TC-compatible) or float
+                try:
+                    exponent = float(expr.args[1])
+                    if exponent == int(exponent):
+                        exponent = int(exponent)
+                    else:
+                        if self.if_incompatible in ('fix', 'raise'):
+                            raise DatabaseExportError(f'Non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                        elif self.if_incompatible == 'warn':
+                            warnings.warn(f'Ignoring that non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                except (TypeError, RuntimeError):
+                    if self.if_incompatible in ('fix', 'raise'):
+                        raise DatabaseExportError(f'Non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                    elif self.if_incompatible == 'warn':
+                        warnings.warn(f'Ignoring that non-integer exponents cannot be represented in TDB compatibility mode. Got: {expr}')
+                    exponent = expr.args[1]
                 terms = argument + '**' + '(' + self._stringify_expr(exponent) + ')'
             return terms
         else:
@@ -687,8 +729,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         The 'fix' option will rectify the incompatibilities e.g. through name mangling.
     """
     # Before writing anything, check that the TDB is valid and take the appropriate action if not
-    if if_incompatible not in ['warn', 'raise', 'ignore', 'fix']:
-        raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
+    if if_incompatible not in ('warn', 'raise', 'ignore', 'fix'):
+        raise ValueError('Incorrect options passed to \'if_incompatible\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
     # Handle function names > 8 characters
     long_function_names = {k for k in dbf.symbols.keys() if len(k) > 8}
     if len(long_function_names) > 0:
@@ -858,7 +900,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             # Non-piecewise parameters need to be wrapped to print correctly
             # Otherwise TC's TDB parser will fail
             paramx = Piecewise((paramx, And(v.T >= 1, v.T < 10000)))
-        exprx = TCPrinter().doprint(paramx).upper()
+        exprx = TCPrinter(if_incompatible=if_incompatible).doprint(paramx).upper()
         if ';' not in exprx:
             exprx += '; N'
         if param_to_write.diffusing_species != Species(None):
@@ -921,13 +963,10 @@ def read_tdb(dbf, fd):
     """
     lines = fd.read().upper()
     lines = lines.replace('\t', ' ')
-    lines = lines.strip()
     # Split the string by newlines
     splitlines = lines.split('\n')
-    # Remove extra whitespace inside line
-    splitlines = [' '.join(k.split()) for k in splitlines]
     # Remove comments
-    splitlines = [k.strip().split('$', 1)[0] for k in splitlines]
+    splitlines = [k.split('$', 1)[0] for k in splitlines]
     # Remove everything after command delimiter, but keep the delimiter so we can split later
     splitlines = [k.split('!')[0] + ('!' if len(k.split('!')) > 1 else '') for k in splitlines]
     # Combine everything back together
@@ -943,17 +982,31 @@ def read_tdb(dbf, fd):
 
     grammar = _tdb_grammar()
 
+    char_idx = 0
     for command in commands:
         if len(command) == 0:
             continue
-        tokens = None
         try:
-            tokens = grammar.parseString(command)
+            tokens = grammar.parse_string(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
-        except:
-            print("Failed while parsing: " + command)
-            print("Tokens: " + str(tokens))
-            raise
+        except ParseException as e:
+            context = e.line + '\n' + (" " * (e.column - 1) + "^")
+            # pyparsing is only given one line at a time, so we modify
+            # the exception metadata to correspond with the original input
+            err_char_idx = char_idx + (e.column - 1) # e.column is an index that starts at 1
+            joinedlines = "\n".join(splitlines)
+            e.pstr = joinedlines
+            e.loc = err_char_idx
+            # context variable includes a helpful cursor aligned with the 'error character'
+            # this requires being on a newline so it renders correctly in consoles
+            e.msg = f'Invalid TDB syntax.\n{context}'
+            # In pyparsing >=3.2.0, e.column and e.line are cached_property objects and need to be reset, since pstr and loc were mutated above
+            # Details of how this works can be found in https://stackoverflow.com/questions/62662564/how-do-i-clear-the-cache-from-cached-property-decorator
+            e.__dict__.pop('column', None)
+            e.__dict__.pop('line', None)
+            raise e
+        # Add 1 for removed '!' delimiter
+        char_idx += len(command) + 1
 
     # Process type definitions last, updating model_hints for defined phases.
     for typechar, line in dbf._typedefs_queue:

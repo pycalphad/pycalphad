@@ -340,14 +340,25 @@ def test_eq_large_vacancy_hessian(load_database):
 
 @pytest.mark.solver
 @select_database("alni_tough_chempot.tdb")
-def test_eq_stepsize_reduction(load_database):
+def test_eq_stoichiometric_phase_in_binary(load_database):
     """
-    Step size reduction required for convergence.
+    A stoichiometric phase in a binary system should converge.
+
+    As of PyCalphad 0.11, this test relied on the behavior that we converge within
+    the solver to a single phase (AL3NI5 - which is the correct answer), but we didn't
+    converge with respect to global min (because it kept adding another phase with
+    driving force that were below the (meaningless) chemical potentials and
+    eventually the global min loop would fail and return the single phase solution.
     """
     dbf = load_database()
     eq = equilibrium(dbf, ['AL', 'NI', 'VA'], list(dbf.phases.keys()),
                      {v.P: 101325, v.T: 780, v.X('NI'): 0.625}, verbose=True)
-    assert not np.isnan(np.squeeze(eq.GM.values))
+    # GM = -84676.46413558903
+    # Chempots are meaningless, i.e. as of 0.11 we get something like [-59771.62174277 -99619.36957128]
+    # Proper chemical potentials on the Al-rich side of the stoichiometric phase are:
+    # [-130391.1791948, -57247.63510006] and the Ni-rich side: [-138436.02031521, -52420.73042782]
+    assert eq.Phase.values.squeeze().tolist() == ["AL3NI5", "", ""]
+    assert_allclose(eq.GM, -84676.46413558903)
 
 def test_eq_issue62_last_component_not_va():
     """
@@ -1014,9 +1025,10 @@ def test_eq_charge_ndzro(load_database):
     assert np.allclose(Y_PYRO, [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01,
                                 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
 
+@pytest.mark.filterwarnings("ignore:No valid points found for phase HALITE*:UserWarning")  # Filter out an expected warning so we don't fail the test
 @pytest.mark.solver
-def test_issue_503_charged_infeasible_subsystem():
-    "equilibrium suspends a phase with zero feasible points due to internal constraints"
+def test_issue_503_suspend_pure_vacancy_configuration():
+    "equilibrium suspends a phase with a pure-vacancy endmember as the only feasible configuration (gh-503)"
     tdb = """
  ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
  ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
@@ -1065,4 +1077,57 @@ def test_issue_468_gibbs_phase_rule(load_database):
     phases = ['LIQUID', 'FCC_A1', 'BCC_A2', 'GRAPHITE', 'CEMENTITE', 'DIAMOND_A4']
     eq = equilibrium(dbf, components, phases, {v.N:1, v.P:1e5, v.T:1080, v.X('C'):0.0053}, verbose=True)
     assert sorted(eq.Phase.values.squeeze()) == ["", "BCC_A2", "GRAPHITE"]
-    assert np.allclose(sorted(eq.NP.values.squeeze()), [0.00015170798706395827, 0.999848292010574, np.nan], atol=1e-7, equal_nan=True)
+    assert np.allclose(np.sort(eq.NP.values.squeeze()), [0.00015170798706395827, 0.999848292010574, np.nan], atol=1e-7, equal_nan=True)
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_issue589_global_min(load_database):
+    dbf = load_database()
+    phases = dbf.phases
+    res = equilibrium(
+        dbf=dbf,
+        comps=["AL", "C", "CR", "FE", "CU", "VA"],
+        phases=["FCC_A1"],
+        conditions={v.N: 1, v.P: 1e5, v.T: 1173.5,
+                      v.X('AL'): 0.2,
+                      v.X('C'): 0.24648903489788575,
+                      v.X('CR'): 0.28915224916163424,
+                      v.X('CU'): 0.1370080709560772,
+            },
+        verbose=True)
+    print("Equilibrium Phase", res.Phase.values.squeeze())
+    print("Equilibrium NP", res.NP.values.squeeze())
+    print("Equilibrium GM", res.GM.values.squeeze())
+    assert res.Phase.values.squeeze().tolist() == ["FCC_A1", "FCC_A1", "FCC_A1", '', '', '']
+    # Confirmed by turning point density up to 1e7
+    assert_allclose(res.GM.values.squeeze(), np.array([-39263.10130208]))
+    assert_allclose(res.MU.values.squeeze(), np.array([-73190.455829,  55931.596253, -59900.399453, -79250.493316, -80354.857076]))
+
+
+@select_database("CoV-20Wan.tdb")
+def test_equilibrium_never_disorder(load_database):
+    dbf = load_database()
+    comps = ["CO", "V", "VA"]
+    phases = list(dbf.phases.keys())
+    conditions = {v.N: 1, v.P: 1e5, v.T: 1250.0, v.X('V'): 0.60}
+    res = equilibrium(dbf, comps, phases, conditions, verbose=True)
+    print("Equilibrium Phase", res.Phase.values.squeeze())
+    print("Equilibrium NP", res.NP.values.squeeze())
+    print("Equilibrium GM", res.GM.values.squeeze())
+    print("Equilibrium Y", res.Y.values.squeeze())
+    assert res.Phase.values.squeeze().tolist() == ["SIGMA_D8B", "", ""]
+    # Values checked in Thermo-Calc
+    assert_allclose(res.GM.values.squeeze(), np.array([-80134.504]))
+    assert_allclose(res.MU.values.squeeze(), np.array([-84691.297, -77096.642]), rtol=1e-6)
+    assert_allclose(res.Y.values.squeeze()[0,:6], np.array([0.99942828, 5.7172171E-4, 1.2760143E-2, 0.98723986, 0.12216729, 0.87783271,]), rtol=2e-5)
+
+@select_database("2026-Dixon-Na-K-Cl-I.dat")
+def test_MQMQA_reciprocal_interaction_parameter_Dixon(load_database):
+    """The reciprocal interaction parameter presented in Eq. 15 by Dixon et al. (2026) can now be read by PyCalphad"""
+    dbf = load_database()
+    comps = ['NA','K','CL','I']
+    eq = equilibrium(dbf, comps, ['MSCL'], {v.P: 101325, v.T: 800, v.N: 1, v.X('CL'):0.25, v.X('NA'):0.25, v.X('K'):0.25})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert_allclose(eq.GM.values.squeeze(), -229356.0, atol=5)  # FactSage result
