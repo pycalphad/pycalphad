@@ -10,6 +10,7 @@ import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_species, get_pure_elements, wrap_symbol
+from pycalphad.io.database import Database, Phase
 from pycalphad.io.tdb import get_supported_variables
 import numpy as np
 from collections import OrderedDict
@@ -58,6 +59,48 @@ def _kohler_filter(chemical_group_dict, symmetric_species_1, symmetric_species_2
         else:
             return False
     return _f
+
+def _extend_ordered_if_subset_of_disorder(dbe: Database, active_species: list[str|v.Species], phase: Phase):
+    if phase.name == phase.model_hints.get('ordered_phase', None):
+        phase = copy.copy(phase)
+        disordered_phase_name = phase.model_hints.get('disordered_phase')
+        disordered_phase = dbe.phases[disordered_phase_name]
+        # assume first sublattice is one that can get ordered and second (if exists) is interstitial sublattice
+        disordered_phase_comps = set(disordered_phase.constituents[0]).intersection(active_species)
+        interstitial_comps = None
+        if len(disordered_phase.constituents) == 2:
+            interstitial_comps = set(disordered_phase.constituents[1]).intersection(active_species)
+
+        disordered_sub_sites = disordered_phase.sublattices[0]
+        disordered_int_sites = 0
+
+        # we'll require that the interstitial sublattice is the same for both order and disordered models
+        if interstitial_comps is not None:
+            disordered_int_sites = disordered_phase.sublattices[1]
+            num_equal = 0
+            for sub in phase.constituents:
+                if len(sub.intersection(active_species).symmetric_difference(interstitial_comps)) == 0:
+                    num_equal += 1
+            if num_equal != 1:
+                raise ValueError(f"Order ({phase.name}) and disorder ({disordered_phase_name}) model must have no interstitial sublattice or a single matching one")
+
+        # for all other sublattices, extend constituents to filtered components in disordered model
+        phase.constituents = [cons.union(disordered_phase_comps) if (interstitial_comps is None or len(cons.intersection(active_species).symmetric_difference(interstitial_comps)) != 0) else cons
+                              for cons in phase.constituents]
+        ordered_sub_sites = 0
+        ordered_int_sites = 0
+        for i in range(len(phase.constituents)):
+            if interstitial_comps is None or len(phase.constituents[i].intersection(active_species).symmetric_difference(interstitial_comps)) != 0:
+                ordered_sub_sites += phase.sublattices[i]
+            else:
+                ordered_int_sites += phase.sublattices[i]
+
+        # check that ratio between substitutional and interstitial sublattices are the same
+        ordered_ratio = ordered_int_sites/ordered_sub_sites
+        disordered_ratio = disordered_int_sites/disordered_sub_sites
+        if not np.isclose(ordered_ratio, disordered_ratio, atol=1e-12):
+            raise ValueError(f"Order ({phase.name}) and disordered ({disordered_phase_name}) model must have the same interstitial to sublattice ratios. {ordered_ratio} != {disordered_ratio}")
+    return phase
 
 class ReferenceState():
     """
@@ -196,9 +239,11 @@ class Model(object):
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
-        phase = dbe.phases[self.phase_name]
-        self.site_ratios = list(phase.sublattices)
         active_species = unpack_species(dbe, comps)
+        phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, active_species, phase)
+        self.site_ratios = list(phase.sublattices)
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(active_species)
             self.components |= subl_comps
@@ -665,6 +710,8 @@ class Model(object):
 
     def kohler_toop_excess_sum(self, dbe):
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_query = (
             (where("phase_name") == phase.name) &
             (where("parameter_type") == "QKT") &
@@ -876,6 +923,8 @@ class Model(object):
             (where('constituent_array').test(self._purity_test))
         )
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
         pure_energy_term = self.redlich_kister_sum(phase, param_search,
                                                    pure_param_query)
@@ -887,6 +936,8 @@ class Model(object):
         Returns the ideal mixing energy in symbolic form.
         """
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         site_ratios = self.site_ratios
         ideal_mixing_term = S.Zero
         sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
@@ -914,6 +965,8 @@ class Model(object):
         where m is the arity of the interaction parameter
         """
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
         param_query = (
             (where('phase_name') == self.phase_name) & \
@@ -933,6 +986,8 @@ class Model(object):
         The approach follows from the background of W. Xiong et al, Calphad, 2012.
         """
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
         self.TC = self.curie_temperature = S.Zero
         self.BMAG = self.beta = S.Zero
@@ -1014,6 +1069,8 @@ class Model(object):
         The approach follows W. Xiong et al, Calphad, 2012.
         """
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
         self.TC = self.curie_temperature = S.Zero
         if 'ihj_magnetic_structure_factor' not in phase.model_hints:
@@ -1093,6 +1150,8 @@ class Model(object):
         Return the energy from liquid-amorphous two-state model.
         """
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
         site_ratio_normalization = self._site_ratio_normalization
         gd_param_query = (
@@ -1113,6 +1172,8 @@ class Model(object):
         then exp() is called on the result.
         """
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
         theta_param_query = (
             (where('phase_name') == phase.name) & \
@@ -1250,12 +1311,15 @@ class Model(object):
 
         """
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         ordered_phase_name = phase.model_hints.get('ordered_phase', None)
         disordered_phase_name = phase.model_hints.get('disordered_phase', None)
         never_disorder = phase.model_hints.get('never_disorder', False)
         if phase.name != ordered_phase_name:
             return S.Zero
         ordered_phase = dbe.phases[ordered_phase_name]
+        ordered_phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, ordered_phase)
         constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
         disordered_phase = dbe.phases[disordered_phase_name]
         disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
@@ -1268,8 +1332,9 @@ class Model(object):
         # with the disordered phase.
         # Assumes first sublattice of the disordered phase is the sublattice
         # that can be come ordered:
-        disordered_subl_constituents = disordered_phase.constituents[0]
-        ordered_constituents = ordered_phase.constituents
+        # use intersection of constituents and active components
+        disordered_subl_constituents = disordered_phase.constituents[0].intersection(self.components)
+        ordered_constituents = [cons.intersection(self.components) for cons in ordered_phase.constituents]
         substitutional_sublattice_idxs = []
         for idx, subl_constituents in enumerate(ordered_constituents):
             # Assumes that the ordered phase sublattice describes the ordering
@@ -1485,6 +1550,8 @@ class Model(object):
         """
 
         phase = dbe.phases[self.phase_name]
+        if phase.model_hints.get('ordered_phase', False):
+            phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
 
         V0_param_query = (

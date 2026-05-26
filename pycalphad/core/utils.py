@@ -316,6 +316,16 @@ def filter_phases(dbf, comps, candidate_phases=None):
                 all_sublattices_active(species, dbf.phases[phase]) and
                 (phase not in disordered_phases or (phase in disordered_phases and
                 dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
+    # for all ordered phases, get components of ordered and disordered phase
+    ordered_disordered_phases = [(dbf.phases[phase].model_hints.get('ordered_phase'), dbf.phases[phase].model_hints.get('disordered_phase'))
+                                 for phase in candidate_phases if 'ordered_phase' in dbf.phases[phase].model_hints]
+    for pair in ordered_disordered_phases:
+        # if we selected the ordered phase, check that the order phase is not a superset of the disorder phase
+        if pair[0] in phases:
+            active_ord_comps = set.union(*[set(comps).intersection(subl) for subl in dbf.phases[pair[0]].constituents])
+            active_dis_comps = set.union(*[set(comps).intersection(subl) for subl in dbf.phases[pair[1]].constituents])
+            if len(active_ord_comps - active_dis_comps) > 0:
+                raise ValueError(f"{pair[0]} is a superset of {pair[1]} and cannot be constructed")
     return sorted(phases)
 
 
