@@ -202,13 +202,14 @@ def test_unary_strategy(load_database):
 @select_database("crtiv_ghosh.tdb")
 def test_isopleth_strategy(load_database):
     dbf = load_database()
+    X_V = 0.2
 
-    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): 0.2, v.P: 101325})
+    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): X_V, v.P: 101325})
     strategy.do_map()
 
     # Check that plot_isopleth runs without fail
-    plot_isopleth(strategy)
-    #plt.show()
+    ax = plot_isopleth(strategy)
+    #ax.figure.show()
 
     # Two-phase regions intended to show up in the Cr-Ti-V system
     desired_zpf_sets = [{"BCC_A2", "LIQUID"}]
@@ -220,6 +221,22 @@ def test_isopleth_strategy(load_database):
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
         assert dzs in mapping_sets
+
+    # Check plotting isopleth with different set of units
+    # We test that the conversions work by just looking at the axes limits
+    xlims_moles = ax.get_xlim()
+    ylims_kelvin = ax.get_ylim()
+    # Composition partially hard coded based on
+    expected_xlims_mass = [v.get_mass_fractions({v.X("TI"): xl, v.X("V"): X_V}, "CR", dbf)[v.W("TI")] for xl in xlims_moles]
+    expected_ylims_celsius = [yl - 273.15 for yl in ylims_kelvin]
+
+    ax2 = plot_isopleth(strategy, x=v.W("TI"), y=v.T["degC"])
+    #ax2.figure.show()
+    np.testing.assert_allclose(ax2.get_xlim(), expected_xlims_mass)
+    np.testing.assert_allclose(ax2.get_ylim(), expected_ylims_celsius)
+
+    plt.close(ax.figure)
+    plt.close(ax2.figure)
 
 def test_isopleth_strategy_node_exit():
     """

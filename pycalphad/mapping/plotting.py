@@ -343,23 +343,14 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
         inv_lines = np.transpose(np.asarray([x_comb, y_comb]), axes=(1,2,0))
         invariant_collection = LineCollection(inv_lines, zorder=2.5, linewidths=1, capstyle="butt", colors=[tie_triangle_color for _ in inv_lines])
         ax.add_collection(invariant_collection)
+        # update plotting limits if the extents are changed by the node data
+        xlim[0] = min(xlim[0], data.xlim[0])
+        xlim[1] = max(xlim[1], data.xlim[1])
+        ylim[0] = min(ylim[0], data.ylim[0])
+        ylim[1] = max(ylim[1], data.ylim[1])
 
-    # Set axis limits
-    # If variable is a strategy axis variables, then set limits to axis variable limits
-    # If variable is not a strategy axis variable, then set the lower (left, bottom) limits
-    #    to the min of the zpf data
-    if x in strategy.axis_vars:
-        x_axis_lims = [to_display_units(v, [], x) for v in strategy.axis_lims[x]]
-        ax.set_xlim([np.amin(x_axis_lims), np.amax(x_axis_lims)])
-    else:
-        ax.set_xlim(left=xlim[0])
-
-    if y in strategy.axis_vars:
-        y_axis_lims = [to_display_units(v, [], y) for v in strategy.axis_lims[y]]
-        ax.set_ylim([np.amin(y_axis_lims), np.amax(y_axis_lims)])
-    else:
-        ax.set_ylim(bottom=ylim[0])
-
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)
