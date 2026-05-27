@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.plot.binary.plot - pycalphad 0.11.2.dev28+gf10fd8a39 documentation</title>
+        <title>pycalphad.plot.binary.plot - pycalphad 0.11.2.dev29+gf349e821d documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.2.dev28+gf10fd8a39 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.2.dev29+gf349e821d documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev28+gf10fd8a39 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev29+gf349e821d documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -288,7 +288,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot.eqplot</span><span class="w"> </span><span class="kn">import</span> <span class="n">_axis_label</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_label</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">phase_legend</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.map</span><span class="w"> </span><span class="kn">import</span> <span class="n">map_binary</span>
 
@@ -346,8 +346,8 @@
     <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">plot_title</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">component</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">zpf_boundary_sets</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="k">if</span> <span class="n">component</span> <span class="o">!=</span> <span class="s1">&#39;VA&#39;</span><span class="p">])</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">plot_title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">_axis_label</span><span class="p">(</span><span class="n">zpf_boundary_sets</span><span class="o">.</span><span class="n">indep_comp_cond</span><span class="p">),</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">_axis_label</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">get_label</span><span class="p">(</span><span class="n">zpf_boundary_sets</span><span class="o">.</span><span class="n">indep_comp_cond</span><span class="p">),</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">get_label</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="c1"># autoscale needs to be used in case boundaries are plotted as lines because</span>
     <span class="c1"># only plotting line collections will not rescale the axes</span>
@@ -430,7 +430,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=131269da"></script>
+</div><script src="../../../../_static/documentation_options.js?v=1b4de40b"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>
