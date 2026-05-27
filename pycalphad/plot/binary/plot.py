@@ -6,7 +6,7 @@ as `equilibrium`.
 
 import pycalphad.variables as v
 import matplotlib.pyplot as plt
-from pycalphad.plot.eqplot import _axis_label
+from pycalphad.mapping.plotting import get_label
 from pycalphad.plot.utils import phase_legend
 from .map import map_binary
 
@@ -62,8 +62,8 @@ def plot_boundaries(zpf_boundary_sets, tielines=True, tieline_color=(0, 1, 0, 1)
     ax.grid(True)
     plot_title = '-'.join([component for component in sorted(zpf_boundary_sets.components) if component != 'VA'])
     ax.set_title(plot_title, fontsize=20)
-    ax.set_xlabel(_axis_label(zpf_boundary_sets.indep_comp_cond), labelpad=15, fontsize=20)
-    ax.set_ylabel(_axis_label(v.T), fontsize=20)
+    ax.set_xlabel(get_label(zpf_boundary_sets.indep_comp_cond), labelpad=15, fontsize=20)
+    ax.set_ylabel(get_label(v.T), fontsize=20)
     ax.set_xlim(0, 1)
     # autoscale needs to be used in case boundaries are plotted as lines because
     # only plotting line collections will not rescale the axes
