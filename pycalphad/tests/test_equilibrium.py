@@ -1120,3 +1120,14 @@ def test_equilibrium_never_disorder(load_database):
     assert_allclose(res.GM.values.squeeze(), np.array([-80134.504]))
     assert_allclose(res.MU.values.squeeze(), np.array([-84691.297, -77096.642]), rtol=1e-6)
     assert_allclose(res.Y.values.squeeze()[0,:6], np.array([0.99942828, 5.7172171E-4, 1.2760143E-2, 0.98723986, 0.12216729, 0.87783271,]), rtol=2e-5)
+
+@select_database("2026-Dixon-Na-K-Cl-I.dat")
+def test_MQMQA_reciprocal_interaction_parameter_Dixon(load_database):
+    """The reciprocal interaction parameter presented in Eq. 15 by Dixon et al. (2026) can now be read by PyCalphad"""
+    dbf = load_database()
+    comps = ['NA','K','CL','I']
+    eq = equilibrium(dbf, comps, ['MSCL'], {v.P: 101325, v.T: 800, v.N: 1, v.X('CL'):0.25, v.X('NA'):0.25, v.X('K'):0.25})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert_allclose(eq.GM.values.squeeze(), -229356.0, atol=5)  # FactSage result

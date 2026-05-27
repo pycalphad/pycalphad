@@ -20,10 +20,10 @@ Simple checks
     simple_check_change_in_phases
     simple_check_global_min
 
-    These quickly check a step result and returns 
+    These quickly check a step result and returns
     a bool whether the step result is valid or not
 
-    These are intended for exit/direction finding, where we just need to know if 
+    These are intended for exit/direction finding, where we just need to know if
     an exit/direction is valid
 
 Normal checks
@@ -46,7 +46,7 @@ def simple_check_valid_point(step_results: tuple[Point, list[CompositionSet]], *
     ----------
     step_results : [Point, [CompositionSet]]
         Results from zpf_equilibrium.update_equilibrium_with_new_conditions
-    
+
     Returns
     -------
     bool whether step result is valid or not (None)
@@ -64,7 +64,7 @@ def simple_check_change_in_phases(step_results: tuple[Point, list[CompositionSet
     ----------
     step_results : [Point, [CompositionSet]]
         Results from zpf_equilibrium.update_equilibrium_with_new_conditions
-    
+
     Returns
     -------
     bool whether step result resulted in a phase change
@@ -87,7 +87,7 @@ def simple_check_global_min(step_results: tuple[Point, list[CompositionSet]], **
     ----------
     step_results : [Point, [CompositionSet]]
         Results from zpf_equilibrium.update_equilibrium_with_new_conditions
-    
+
     Returns
     -------
     bool whether step result is global min or not
@@ -152,11 +152,11 @@ def _check_axis_values_within_limit(new_point_vars: dict[v.StateVariable, float]
           rather than from the global conditions
 
     NOTE: There were some issues before with X-C systems where a zpf line containing
-          graphite and another stoichiometric phase would stop midway due to the 
+          graphite and another stoichiometric phase would stop midway due to the
           composition of graphite being at X(C)=1
 
-          Adding an offset to slightly extend the axis limits seems to help this issue. 
-          Local tests with the Bengt mpea-05 database on all X-C systems (X = Al, Co, Cr, Fe, Ni, Mn) 
+          Adding an offset to slightly extend the axis limits seems to help this issue.
+          Local tests with the Bengt mpea-05 database on all X-C systems (X = Al, Co, Cr, Fe, Ni, Mn)
           appears to have to have all zpf lines correctly present
 
           I will also justify this offset with the following:
@@ -289,7 +289,7 @@ def check_change_in_phases(zpf_line: ZPFLine, step_results: tuple[Point, list[Co
     -------
     new_node : Node
         Node from step_results if there is a change in phases
-    
+
     or
 
     None : if step_results does not result in a change in phase
@@ -361,7 +361,7 @@ def check_global_min(zpf_line: ZPFLine, step_results: tuple[Point, list[Composit
     -------
     new_node : Node
         Node from step_results if global min is found
-    
+
     or
 
     None : if step_results is still global min
@@ -443,4 +443,44 @@ def check_similar_phase_composition(zpf_line: ZPFLine, step_results: tuple[Point
                 zpf_line.status = ZPFState.REACHED_LIMIT
                 _log.info(f"Two composition sets have the same composition. Ending ZPF line. {comp_sets[i]} = {comp_sets[j]}")
                 return None
+    return None
+
+def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
+    """
+    If the composition of the new result loops back to beginning of ZPF line, then
+    we are likely in a loop. One case where this may occur is in ternary systems
+    with a two-phase equilibria between a high melting point phase and liquid
+
+    This stops the zpf line if the distance from the step result to the first point
+    is smaller than the distance to the previous point. The only times this should
+    occur is if the zpf line rapidly switched directions or if it loops in on itself
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+        ZPFLine that the point is stepping in
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    axis_data : dict
+        Axis variable data from a map strategy class
+
+    Returns
+    -------
+    None : this check does not attempt to make a new node
+    However, the zpf line will end if this check fails
+    """
+    if len(zpf_line.points) < 2:
+        return None
+
+    x_curr = np.array([step_results[0].get_property(var) for var in axis_data['axis_vars']])
+    x_first = np.array([zpf_line.points[0].get_property(var) for var in axis_data['axis_vars']])
+    x_prev = np.array([zpf_line.points[-1].get_property(var) for var in axis_data['axis_vars']])
+    vfirst = x_first - x_curr
+    vprev = x_curr - x_prev
+    dist_first = np.sqrt(np.sum(vfirst**2))
+    dist_prev = np.sqrt(np.sum(vprev**2))
+    # if distance to first point is smaller than to previous point, then stop zpf line
+    if dist_first < dist_prev:
+        zpf_line.status = ZPFState.REACHED_LIMIT
+
     return None
