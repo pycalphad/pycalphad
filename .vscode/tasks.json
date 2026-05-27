@@ -15,6 +15,32 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "build and serve docs",
+            "type": "shell",
+            "command": "uv run sphinx-build -W -b html docs docs/_build/html && cd docs/_build/html && uv run python -m http.server",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "serve pre-built docs",
+            "type": "shell",
+            "command": "uv run python -m http.server",
+            "options": {
+                "cwd": "${workspaceFolder}/docs/_build/html"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
