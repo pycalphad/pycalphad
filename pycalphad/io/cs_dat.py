@@ -46,7 +46,7 @@ class TokenParser():
         self._lines_deque = deque(string.split("\n"))
         self._current_line = self._lines_deque.popleft()
         self._tokens_deque = deque(self._current_line.split())
-    
+
     def __getitem__(self, i: int):
         # Instantiate a new TokenParser for the current state so we can look ahead without messing up our line numbers
         lines = "\n".join(deque([" ".join(self._tokens_deque)]) + self._lines_deque)
@@ -73,7 +73,7 @@ class TokenParser():
         try:
             obj = cls(next_token)
         except ValueError as e:
-            # Return the token and re-raise with a ParseError 
+            # Return the token and re-raise with a ParseError
             self._tokens_deque.appendleft(next_token)
             raise TokenParserError(f"Error at line number {self._line_number + 1}: {e.args} for line:\n    {self._current_line}") from e
         else:
@@ -616,7 +616,8 @@ class SUBQExcessQuadruplet:
         addtl_cation_mixing_const = linear_species[self.additional_cation_mixing_const]
         addtl_anion_mixing_const = linear_species[self.additional_anion_mixing_const]
         if addtl_cation_mixing_const is not None and addtl_anion_mixing_const is not None:
-            raise ValueError(f"Having a cation _and_ anion as additional mixing constituents is not allowed. Got {addtl_cation_mixing_const} and {addtl_anion_mixing_const} for {phase_name} and quadruplet {A, B, X, Y}.")
+            addtl_mixing_const = [addtl_cation_mixing_const, addtl_anion_mixing_const]
+            addtl_mixing_expon = exponents
         elif addtl_cation_mixing_const is not None:
             addtl_mixing_const = addtl_cation_mixing_const
             addtl_mixing_expon = exponents[2]
@@ -628,7 +629,10 @@ class SUBQExcessQuadruplet:
             addtl_mixing_expon = 0
         species_dict = {s.name: s for s in dbf.species}
         if addtl_mixing_const is not None:
-            additional_mixing_constituent = species_dict.get(addtl_mixing_const.upper(), v.Species(addtl_mixing_const))
+            if not isinstance(addtl_mixing_const, list):
+                additional_mixing_constituent = species_dict.get(addtl_mixing_const.upper(), v.Species(addtl_mixing_const))
+            else:
+                additional_mixing_constituent = [species_dict.get(spec.upper(), v.Species(spec)) for spec in addtl_mixing_const]
         else:
             additional_mixing_constituent = v.Species(None)
 
@@ -1015,9 +1019,14 @@ def parse_excess_parameters_pitz(toks, num_excess_coeffs):
 
 def parse_excess_qkto(toks, num_excess_coeffs):
     excess_terms = []
+    chemical_group_overrides = []
     while True:
         num_interacting_species = toks.parse(int)
         if num_interacting_species == 0:
+            break
+        elif num_interacting_species < 0:
+            for _ in range(-num_interacting_species):
+                chemical_group_overrides.append(" ".join(toks.parseN(10, str)))
             break
         interacting_species_idxs = toks.parseN(num_interacting_species, int)
         exponents = toks.parseN(num_interacting_species, int)

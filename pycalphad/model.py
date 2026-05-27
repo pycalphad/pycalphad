@@ -1220,6 +1220,13 @@ class Model(object):
            3. Physical properties are partitioned in the same way as the
            energy. See Section 5.8.6 of Lukas, Fries and Sundman [2]_.
 
+           4. There is a variant of the partitioning model for phases that never
+           undergo disordering. See Section 5.8.5 of Lukas, Fries and
+           Sundman [2]_. In this variant, the entropy from the disordered phase
+           does not contribute to the energy and the ordering energies does not
+           have to go to zero, i.e.
+           :math:`\Delta G^\mathrm{ord}(y_i) = G^\mathrm{ord}(y_i)`.
+
         Notes
         -----
         .. caution::
@@ -1244,12 +1251,16 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         ordered_phase_name = phase.model_hints.get('ordered_phase', None)
         disordered_phase_name = phase.model_hints.get('disordered_phase', None)
+        never_disorder = phase.model_hints.get('never_disorder', False)
         if phase.name != ordered_phase_name:
             return S.Zero
         ordered_phase = dbe.phases[ordered_phase_name]
         constituents = [sorted(set(c).intersection(self.components)) for c in ordered_phase.constituents]
         disordered_phase = dbe.phases[disordered_phase_name]
         disordered_model = self.__class__(dbe, sorted(self.components), disordered_phase_name)
+        if never_disorder:
+            # Take configurational entropy from the ordered phase only
+            disordered_model.models["idmix"] = S.Zero
 
         # Get substitutional sublattice indices (for the ordered phase) and
         # validate that the number of interstitial sublattices is consistent
@@ -1352,7 +1363,13 @@ class Model(object):
         # contributions. There's no technical reason for doing it this way
         # compared to setting the AST to the _partitioned_expr for the total
         # energy - this is more for bookkeeping of the model contributions.
-        ordering_energy = self._partitioned_expr(S.Zero, ordered_energy, {}, molefraction_dict)
+        if never_disorder:
+            # Models that never disorder don't need to subtract out the
+            # ordering energy at disordered site fractions.
+            # See Lukas, Fries, Sundman Eq. 5.162
+            ordering_energy = ordered_energy
+        else:
+            ordering_energy = self._partitioned_expr(S.Zero, ordered_energy, {}, molefraction_dict)
 
         # 2: Replace the ordered energy contributions with the disordered contributions
         self.models.clear()

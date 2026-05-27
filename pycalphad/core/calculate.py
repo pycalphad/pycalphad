@@ -136,6 +136,11 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
             x = - Q[neg_em_idx] / (Q[pos_em_idx] - Q[neg_em_idx])
             em_pts.append(endmembers[pos_em_idx] * x + endmembers[neg_em_idx] * (1-x))
 
+        if len(em_pts) == 0:
+            # There are no endmembers of linear combination endmembers pairs that can charge balance.
+            # This phase cannot form. Return a size zero array of the correct shape
+            return np.full((0, sum(sublattice_dof)), np.nan)
+
         # Charge neutral endmembers and mixed pseudo-endmembers
         points = np.asarray(em_pts)
 

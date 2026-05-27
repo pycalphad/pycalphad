@@ -92,28 +92,25 @@ def constraints_from_bounds(lower, upper):
     return A, b
 
 
-def affine_subspace(A, b):
-    """Compute a basis of the nullspace of A, and a particular solution to Ax = b.
-    This allows to to construct arbitrary solutions as the sum of any vector in the
-    nullspace, plus the particular solution.
+def _feasible_particular_solution(A, b, lower, upper):
+    """Find a particular solution to Ax = b that also satisfies lower <= x <= upper.
 
-    Parameters
-    ----------
-    A : 2d-array of shape (n_constraints, dimension)
-        Left-hand-side of Ax <= b.
-    b : 1d-array of shape (n_constraints)
-        Right-hand-side of Ax <= b.
+    Uses a bounded least-squares solve (BVLS active set). Returns None if no
+    feasible point exists (the polytope is empty).
 
-    Returns
-    -------
-    N: 2d-array of shape (dimension, dimension)
-        Orthonormal basis of the nullspace of A.
-    xp: 1d-array of shape (dimension)
-        Particular solution to Ax = b.
+    The returned solution is nudged 1e-14 into the strict interior of the box.
+    BVLS is an active-set method and will return solutions with components
+    sitting exactly on the box bounds. The downstream Hit-and-Run sampler in
+    sample() needs xp strictly inside the box: it parameterises the polytope
+    as bt = b1 - A1 @ xp where A1 includes the box constraints, and any
+    bt component sitting at zero collapses the sampler's wiggle room in that
+    direction. Since BVLS already returns a point inside the box, the 1e-14
+    nudge perturbs A xp = b by at most ~||A|| * 1e-14.
     """
-    N = scipy.linalg.null_space(A)
-    xp = np.linalg.pinv(A) @ b
-    return N, xp
+    res = scipy.optimize.lsq_linear(A, b, bounds=(lower, upper), method="bvls")
+    if np.max(np.abs(A @ res.x - b)) > 1e-8:
+        return None
+    return np.clip(res.x, lower + 1e-14, upper - 1e-14)
 
 def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
     """Sample a number of points from a convex polytope A1 x <= b1 using the Hit & Run
@@ -153,14 +150,13 @@ def sample(n_points, lower, upper, A1=None, b1=None, A2=None, b2=None):
 
     if (A2 is not None) and (b2 is not None):
         check_Ab(A2, b2)
-        N, xp = affine_subspace(A2, b2)
+        N = scipy.linalg.null_space(A2)
+        xp = _feasible_particular_solution(A2, b2, lower, upper)
+        if xp is None:
+            raise ValueError("Unable to find a feasible solution")
     else:
         N = np.eye(A1.shape[1])
         xp = np.zeros(A1.shape[1])
-
-    # Do not allow particular solutions to fall outside of bounds
-    # This operation helps with numerical robustness
-    xp = np.clip(xp, lower+1e-14, upper-1e-14)
 
     if N.shape[1] == 0:
         # zero-dimensional polytope, return unique solution
