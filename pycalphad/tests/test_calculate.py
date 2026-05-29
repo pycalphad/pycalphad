@@ -69,6 +69,10 @@ def test_issue116(load_database):
     assert len(result_three_values.shape) == 4  # N, P, T, points
     assert result_three_values.shape[:3] == (1, 1, 1)
 
+    # NOT passing temperature when temperature is required by the Model raises
+    with pytest.raises(ConditionError):
+        calculate(dbf, ['AL', 'CR', 'NI'], 'LIQUID', P=101325, pdens=10)  # no T
+
 
 @select_database("alfe.tdb")
 def test_calculate_some_phases_filtered(load_database):
@@ -461,4 +465,21 @@ def test_calculate_produces_no_infeasible_points_for_charged_phase():
     np.testing.assert_allclose(constraints_for_points, np.broadcast_to(constraint_rhs, constraints_for_points.shape), atol=1e-6, err_msg="`extra_points` produced by polytope sampler should produce feasible points")
 
     # success if the phase does not raise
-    calc_res = calculate(dbf, comps, [phase_name], pdens=60)
+    calc_res = calculate(dbf, comps, [phase_name], T=1000, pdens=60)
+
+
+@select_database("alcrni.tdb")
+def test_calculate_dof_state_variable_width_matches_phase_record(load_database):
+    """The number of state-variable dimensions calculate() produces must equal the phase
+    record's num_statevars (the compiled function's expected state-variable input count).
+
+    This is the shape invariant whose violation causes the out-of-bounds read: the dof's
+    state-variable width must match what the compiled property function expects."""
+    dbf = load_database()
+    comps = ["AL", "CR", "NI"]
+    models = instantiate_models(dbf, comps, ["LIQUID"])
+    prf = PhaseRecordFactory(dbf, comps, {v.N: 1, v.T: 400}, models)
+    res = calculate(dbf, comps, ["LIQUID"], T=400, model=models["LIQUID"])
+    # Leading dims are the supplied state variables (N, T); trailing dim is 'points'.
+    n_statevar_dims = res.GM.values.ndim - 1
+    assert n_statevar_dims == prf["LIQUID"].num_statevars == len(prf.state_variables)
