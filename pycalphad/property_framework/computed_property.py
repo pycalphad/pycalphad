@@ -235,9 +235,12 @@ def as_property(inp: Union[str, Basic, ComputableProperty]) -> ComputablePropert
             else:
                 prop_instance = prop(*((specified_prop,)+specified_args))
     else:
-        if isinstance(prop, type):
-            prop = prop(specified_prop)
-        prop_instance = prop
+        if isinstance(prop, type) and issubclass(prop, v.StateVariable):
+            prop_instance = prop()
+        elif isinstance(prop, type):
+            prop_instance = prop(specified_prop)
+        else:
+            prop_instance = prop
     return prop_instance
 
 class JanssonDerivative:
