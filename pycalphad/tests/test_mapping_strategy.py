@@ -189,7 +189,6 @@ def test_unary_strategy(load_database):
     """
     Tests that strategy works on unary system
     The strategy needs to maintain certain array shapes for site fractions, composition,
-    The strategy needs to maintain certain array shapes for site fractions, composition,
     chemical potentials, etc. when working with unaries, since squeezing arrays can remove
     a needed dimension from an array. More details are given in the _find_global_min_cs function
     in pycalphad.mapping.zpf_equilibrium
