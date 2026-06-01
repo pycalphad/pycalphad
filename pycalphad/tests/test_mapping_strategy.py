@@ -521,9 +521,30 @@ def test_primitive_representation(load_database):
     point_repr_keywords = ['Point', 'global_conditions', 'chemical_potentials',
                            '_fixed_composition_sets', '_free_composition_sets'
                            ]
+    zpf_line_str_keywords = ['points', 'Fixed phases', 'Free phases', 'Start', 'End']
+    zpf_line_repr_keywords = [
+        'points',
+        'Point',
+        'Node',
+        'status',
+        'axis_var',
+        'axis_direction',
+        'current_delta'
+    ]
 
     # First point in the first zpf line should be a node
     zpf_line = strategy.zpf_lines[0]
+    zpf_line_str = str(zpf_line)
+    zpf_line_repr = repr(zpf_line)
+    print(zpf_line_str)
+    print(zpf_line_repr)
+
+    for keyword in zpf_line_str_keywords:
+        assert keyword in zpf_line_str
+    for keyword in zpf_line_repr_keywords:
+        assert keyword in zpf_line_repr
+
+
     assert isinstance(zpf_line.points[0], Node)
     node_str = str(zpf_line.points[0])
     node_repr = repr(zpf_line.points[0])

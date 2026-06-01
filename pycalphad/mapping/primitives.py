@@ -421,7 +421,7 @@ class ZPFLine():
         return f"{self.__class__.__name__}(fixed_phases={self.fixed_phases}, free_phases={self.free_phases}, points={self.points}, status={self.status}, axis_var={self.axis_var}, axis_direction={self.axis_direction}, current_delta={self.current_delta})"
 
     def __str__(self):
-        output = str(self.free_phases) + " " + str(self.fixed_phases) + " " + str(len(self.points)) + " " + str(self.points[0].global_conditions) + " " + str(self.points[-1].global_conditions)
+        output = f"{self.__class__.__name__} ({len(self.points)} points) - Fixed phases: {self.fixed_phases} Free phases: {self.free_phases} Start: {self.points[0].global_conditions} End: {self.points[-1].global_conditions}"
         return output
 
     def get_var_list(self, var : v.StateVariable):
