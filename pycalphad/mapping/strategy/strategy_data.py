@@ -18,6 +18,7 @@ import numpy as np
 
 from pycalphad import variables as v
 from pycalphad.mapping.primitives import _get_phase_specific_variable
+from pycalphad.property_framework.units import to_display_units
 
 @dataclass
 class SinglePhaseData:
@@ -98,8 +99,10 @@ def get_invariant_data_from_tieline_strategy(strategy, x: v.StateVariable, y: v.
             node_phases = node.stable_phases_with_multiplicity
             data = []
             for p in node_phases:
-                x_data = node.get_property(_get_phase_specific_variable(p, x))
-                y_data = node.get_property(_get_phase_specific_variable(p, y))
+                x_var = _get_phase_specific_variable(p, x)
+                y_var = _get_phase_specific_variable(p, y)
+                x_data = to_display_units(node.get_property(x_var), node.stable_composition_sets, x_var)
+                y_data = to_display_units(node.get_property(y_var), node.stable_composition_sets, y_var)
                 data.append(SinglePhaseData(p, x_data, y_data))
             invariant_data.append(StrategyData(data))
 

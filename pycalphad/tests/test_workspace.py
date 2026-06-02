@@ -4,7 +4,7 @@ from pycalphad import Database, Workspace, variables as v
 from pycalphad.core.conditions import ConditionError
 from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property, ComputableProperty, T0, IsolatedPhase, DormantPhase
-from pycalphad.property_framework.units import Q_
+from pycalphad.property_framework.units import Q_, unit_conversion_context
 from pycalphad.tests.fixtures import load_database, select_database, ConvergenceFailureSolver
 import pytest
 from collections import Counter
@@ -491,3 +491,34 @@ def test_unit_conversion(load_database):
 
     # Test that it did not raise any exception (gh-609)
     wks.get(v.T, as_property("enthalpy")["J/g"])
+
+
+@select_database("alzn_mey.tdb")
+def test_get_dict_phase_specific_unit_conversion_uses_phase_molar_mass(load_database):
+    """get_dict should use the phase-specific molar mass for unit conversion,
+    not the mixture-averaged molar mass, when converting phase-specific
+    properties like GM(FCC_A1) from J/mol to J/g."""
+    dbf = load_database()
+    # Pick conditions in the FCC_A1 + HCP_A3 two-phase region
+    components = ['AL', 'ZN', 'VA']
+    phases = ['FCC_A1', 'HCP_A3', 'LIQUID']
+    conditions = {v.N: 1, v.P: 101325, v.T: 500, v.X('ZN'): 0.4}
+    wks = Workspace(dbf, components, phases, conditions)
+
+    gm_fcc_mass = as_property('GM(FCC_A1)')['J/g']
+
+    print(wks.get_dict('GM(FCC_A1)', "X(FCC_A1,*)"))
+    # Get the result from get_dict
+    result = wks.get_dict(gm_fcc_mass)
+    get_dict_value = float(np.squeeze(list(result.values())[0]))
+
+    # Manually compute the expected answer using only FCC_A1's composition set for the molar mass context
+    composition_sets = wks.get_composition_sets()
+    assert len(composition_sets) == 2, f"Expected FCC_A1 and HCP_A3 to be stable, got {wks.get_dict('NP(*)')}"
+    fcc_compsets = [cs for cs in composition_sets if cs.phase_record.phase_name == 'FCC_A1']
+    assert len(fcc_compsets) == 1, "Expected FCC_A1 to be stable at these conditions"
+    raw_value = np.squeeze(as_property('GM(FCC_A1)').compute_property(composition_sets, wks.conditions, np.squeeze(wks.eq.MU)))
+    phase_context = unit_conversion_context(fcc_compsets, gm_fcc_mass)
+    expected = Q_(raw_value, 'J/mol').to('J/g', phase_context).magnitude.item()
+
+    assert_allclose(get_dict_value, expected)
