@@ -485,6 +485,23 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
+    # Every state variable the phase records were compiled against must have a
+    # value. The compiled property functions take `phase_records.state_variables + site_fractions`
+    # as input, but `calculate()` builds the dof's state-variable columns from
+    # `statevar_dict`. If a Model requires a potential (e.g. T or P) that the
+    # caller of `calcuate()` did not provide, the dof would be have a different
+    # shape than the compiled function expects and the function would read past
+    # the end of the dof buffer. We fail loudly in that case.
+    required_statevars = {str(sv) for sv in phase_records.state_variables}
+    supplied_statevars = {str(sv) for sv in statevar_dict.keys()}
+    missing_statevars = sorted(required_statevars - supplied_statevars)
+    if missing_statevars:
+        raise ConditionError(
+            f"The following state variable(s) are required by the Model(s) for the active "
+            f"phases but were not specified: {missing_statevars}. Specify them as keyword "
+            f"arguments to calculate(), e.g. calculate(..., T=300)."
+        )
+
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
 
     phase_local_conditions = {key: unpack_condition(value)
