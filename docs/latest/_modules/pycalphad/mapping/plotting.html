@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.plotting - pycalphad 0.11.2.dev31+g3450d16f2 documentation</title>
+        <title>pycalphad.mapping.plotting - pycalphad 0.11.2.dev32+g28d6f39e8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev31+g3450d16f2 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev32+g28d6f39e8 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev31+g3450d16f2 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev32+g28d6f39e8 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,7 +291,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">as_property</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">phase_legend</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">triangular</span>  <span class="c1"># register triangular projection</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Q_</span><span class="p">,</span> <span class="n">ureg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Q_</span><span class="p">,</span> <span class="n">ureg</span><span class="p">,</span> <span class="n">to_display_units</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">_get_phase_specific_variable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.mapping.strategy.step_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">StepStrategy</span>
@@ -525,13 +525,15 @@
     <span class="n">ax</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">:</span>
         <span class="n">xlim</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">())</span>
-        <span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">x</span><span class="p">]),</span> <span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-        <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">x</span><span class="p">]),</span> <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">x_axis_lims</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_display_units</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">[],</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">x</span><span class="p">]]</span>
+        <span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">x_axis_lims</span><span class="p">),</span> <span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">x_axis_lims</span><span class="p">),</span> <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">:</span>
         <span class="n">ylim</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">())</span>
-        <span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">y</span><span class="p">]),</span> <span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-        <span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">y</span><span class="p">]),</span> <span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">y_axis_lims</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_display_units</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">[],</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">y</span><span class="p">]]</span>
+        <span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">y_axis_lims</span><span class="p">),</span> <span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">y_axis_lims</span><span class="p">),</span> <span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
 
     <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">handles</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
@@ -643,21 +645,14 @@
         <span class="n">inv_lines</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">x_comb</span><span class="p">,</span> <span class="n">y_comb</span><span class="p">]),</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
         <span class="n">invariant_collection</span> <span class="o">=</span> <span class="n">LineCollection</span><span class="p">(</span><span class="n">inv_lines</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">capstyle</span><span class="o">=</span><span class="s2">&quot;butt&quot;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">tie_triangle_color</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">inv_lines</span><span class="p">])</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">invariant_collection</span><span class="p">)</span>
+        <span class="c1"># update plotting limits if the extents are changed by the node data</span>
+        <span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-    <span class="c1"># Set axis limits</span>
-    <span class="c1"># If variable is a strategy axis variables, then set limits to axis variable limits</span>
-    <span class="c1"># If variable is not a strategy axis variable, then set the lower (left, bottom) limits</span>
-    <span class="c1">#    to the min of the zpf data</span>
-    <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">:</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">x</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">x</span><span class="p">])])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-    <span class="k">if</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">:</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">y</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">y</span><span class="p">])])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">*</span><span class="n">xlim</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">*</span><span class="n">ylim</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">handles</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
     <span class="n">plot_title</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">component</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">strategy</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="k">if</span> <span class="n">component</span> <span class="o">!=</span> <span class="s1">&#39;VA&#39;</span><span class="p">])</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">plot_title</span><span class="p">)</span>
@@ -698,7 +693,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=21255b6f"></script>
+</div><script src="../../../_static/documentation_options.js?v=9acf901b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

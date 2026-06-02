@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.primitives - pycalphad 0.11.2.dev31+g3450d16f2 documentation</title>
+        <title>pycalphad.mapping.primitives - pycalphad 0.11.2.dev32+g28d6f39e8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev31+g3450d16f2 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.2.dev32+g28d6f39e8 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev31+g3450d16f2 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev32+g28d6f39e8 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -289,6 +289,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.composition_set</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositionSet</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">as_property</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_display_units</span>
 
 <span class="n">CS_EQ_TOL</span> <span class="o">=</span> <span class="mf">1e-8</span>
 <span class="n">MIN_COMPOSITION</span> <span class="o">=</span> <span class="mf">1e-6</span>
@@ -370,6 +371,7 @@
         <span class="k">return</span> <span class="n">var</span><span class="o">.</span><span class="n">expand_wildcard</span><span class="p">(</span><span class="n">phase_names</span><span class="o">=</span><span class="p">[</span><span class="n">phase</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">as_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="Point">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point">[docs]</a>
@@ -509,7 +511,7 @@
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Conditions: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Chem_pot: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">conds_str</span> <span class="o">=</span> <span class="s1">&#39;global_conditions=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
         <span class="n">chem_pot</span> <span class="o">=</span> <span class="s1">&#39;chemical_potentials=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
@@ -623,7 +625,7 @@
         <span class="n">output</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
         <span class="n">output</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Axis: [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="si">}</span><span class="s2">]&quot;</span>
         <span class="k">return</span> <span class="n">output</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">point_repr</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
         <span class="n">parent_str</span> <span class="o">=</span> <span class="s1">&#39;parent=&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
@@ -659,7 +661,7 @@
 <span class="sd">    ZPF line represents a line where a phase change occur (crossing the bounding will add or remove a phase, and that phase is 0 at the boundary)</span>
 <span class="sd">    Number of phases is constant along this line</span>
 <span class="sd">    Defines a list of fixed phases (the zero phases) and list of free phases and list of Point that represents the line</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fixed_phases : list[str]</span>
@@ -684,15 +686,28 @@
 <span class="sd">    current_delta : float</span>
 <span class="sd">        Step size of axis variable to step ZPF line in</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fixed_phases</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">free_phases</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fixed_phases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">free_phases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Point</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">status</span><span class="p">:</span> <span class="n">ZPFState</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">NOT_FINISHED</span><span class="p">,</span>
+        <span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">axis_direction</span><span class="p">:</span> <span class="n">Direction</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">current_delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="c1"># Miscibility gaps should have duplicate entries</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fixed_phases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_phases</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">free_phases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">free_phases</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Point</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">:</span> <span class="n">ZPFState</span> <span class="o">=</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">NOT_FINISHED</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">:</span> <span class="n">Direction</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">current_delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span> <span class="o">=</span> <span class="n">axis_var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span> <span class="o">=</span> <span class="n">axis_direction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_delta</span> <span class="o">=</span> <span class="n">current_delta</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">stable_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -728,8 +743,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span></div>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(fixed_phases=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, free_phases=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, points=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="si">}</span><span class="s2">, status=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">, axis_var=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, axis_direction=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="si">}</span><span class="s2">, current_delta=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_delta</span><span class="si">}</span><span class="s2">)&quot;</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">free_phases</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_phases</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">)</span><span class="si">}</span><span class="s2"> points) - Fixed phases: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2"> Free phases: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> Start: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2"> End: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">output</span>
 
 <div class="viewcode-block" id="ZPFLine.get_var_list">
@@ -739,7 +757,7 @@
 <span class="sd">        Gets variable along ZPF line and returns list</span>
 <span class="sd">        The variables will decipher between local and global variables</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">to_display_units</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">),</span> <span class="n">p</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">])</span></div>
 </div>
 
 
@@ -860,7 +878,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=21255b6f"></script>
+</div><script src="../../../_static/documentation_options.js?v=9acf901b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
