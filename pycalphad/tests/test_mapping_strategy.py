@@ -9,11 +9,13 @@ from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.utils import instantiate_models, get_state_variables
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.composition_set import CompositionSet
+from pycalphad.property_framework import as_property
+from pycalphad.property_framework.units import Q_, unit_conversion_context, to_display_units
 
 from pycalphad.mapping import StepStrategy, IsoplethStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth, plot_ternary
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
-from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState
+from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState, _get_phase_specific_variable
 from pycalphad.mapping.plotting import get_label
 
 import pycalphad.tests.databases
@@ -123,6 +125,7 @@ def test_step_strategy_through_single_phase(load_database):
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
     node_sets = [set(node.stable_phases_with_multiplicity) for node in strategy.node_queue.nodes]
 
+
     # Make sure that the phase regions from mapping contains all the desired regions
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
@@ -172,6 +175,7 @@ def test_step_strategy_through_node(load_database):
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
     node_sets = [set(node.stable_phases_with_multiplicity) for node in strategy.node_queue.nodes]
 
+
     # Make sure that the phase regions from mapping contains all the desired regions
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
@@ -197,13 +201,14 @@ def test_unary_strategy(load_database):
 @select_database("crtiv_ghosh.tdb")
 def test_isopleth_strategy(load_database):
     dbf = load_database()
+    X_V = 0.2
 
-    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): 0.2, v.P: 101325})
+    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): X_V, v.P: 101325})
     strategy.do_map()
 
     # Check that plot_isopleth runs without fail
-    plot_isopleth(strategy)
-    #plt.show()
+    ax = plot_isopleth(strategy)
+    #ax.figure.show()
 
     # Two-phase regions intended to show up in the Cr-Ti-V system
     desired_zpf_sets = [{"BCC_A2", "LIQUID"}]
@@ -215,6 +220,22 @@ def test_isopleth_strategy(load_database):
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
         assert dzs in mapping_sets
+
+    # Check plotting isopleth with different set of units
+    # We test that the conversions work by just looking at the axes limits
+    xlims_moles = ax.get_xlim()
+    ylims_kelvin = ax.get_ylim()
+    # Composition partially hard coded based on
+    expected_xlims_mass = [v.get_mass_fractions({v.X("TI"): xl, v.X("V"): X_V}, "CR", dbf)[v.W("TI")] for xl in xlims_moles]
+    expected_ylims_celsius = [yl - 273.15 for yl in ylims_kelvin]
+
+    ax2 = plot_isopleth(strategy, x=v.W("TI"), y=v.T["degC"])
+    #ax2.figure.show()
+    np.testing.assert_allclose(ax2.get_xlim(), expected_xlims_mass)
+    np.testing.assert_allclose(ax2.get_ylim(), expected_ylims_celsius)
+
+    plt.close(ax.figure)
+    plt.close(ax2.figure)
 
 def test_isopleth_strategy_node_exit():
     """
@@ -261,6 +282,7 @@ def test_isopleth_strategy_node_exit():
     comp_sets[1].fixed = True
     comp_sets[2].fixed = False
     comp_sets[3].fixed = False
+
 
     # Invariant node with 8 total exits
     conds = {v.T: 700, v.P: 101325, v.N: 1, v.X('A'): 0.2, v.X('B'): 0.4}
@@ -499,9 +521,30 @@ def test_primitive_representation(load_database):
     point_repr_keywords = ['Point', 'global_conditions', 'chemical_potentials',
                            '_fixed_composition_sets', '_free_composition_sets'
                            ]
+    zpf_line_str_keywords = ['points', 'Fixed phases', 'Free phases', 'Start', 'End']
+    zpf_line_repr_keywords = [
+        'points',
+        'Point',
+        'Node',
+        'status',
+        'axis_var',
+        'axis_direction',
+        'current_delta'
+    ]
 
     # First point in the first zpf line should be a node
     zpf_line = strategy.zpf_lines[0]
+    zpf_line_str = str(zpf_line)
+    zpf_line_repr = repr(zpf_line)
+    print(zpf_line_str)
+    print(zpf_line_repr)
+
+    for keyword in zpf_line_str_keywords:
+        assert keyword in zpf_line_str
+    for keyword in zpf_line_repr_keywords:
+        assert keyword in zpf_line_repr
+
+
     assert isinstance(zpf_line.points[0], Node)
     node_str = str(zpf_line.points[0])
     node_repr = repr(zpf_line.points[0])
@@ -610,3 +653,60 @@ def test_issue_662_phase_boundary_loop(load_database):
     # this will trigger plotting the zpf line as a point, so just make sure this plots
     # without fail
     plot_ternary(strat, label_nodes=True)
+
+@select_database("alzn_mey.tdb")
+def test_step_strategy_get_data_respects_display_units_for_state_and_model_properties(load_database):
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["AL", "VA"], ["FCC_A1", "LIQUID"], conditions={v.T: (920, 940, 5), v.P: 101325})
+    strategy.do_map()
+
+    gm_mass = as_property("GM")["J/g"]
+    data = strategy.get_data(v.T["degC"], gm_mass, global_y=True, set_nan_to_zero=False)
+    assert len(data.data) == 1 and data.data[0].phase == "SYSTEM"
+
+    expected_x = []
+    expected_y = []
+    for zpf_line in strategy.zpf_lines:
+        for point in zpf_line.points:
+            expected_x.append(point.get_property(v.T) - 273.15)
+            expected_y.append(to_display_units(point.get_property(gm_mass), point.stable_composition_sets, gm_mass))
+    expected_x = np.asarray(expected_x)
+    expected_y = np.asarray(expected_y)
+    argsort = np.argsort(expected_x)
+
+    np.testing.assert_allclose(data.data[0].x, expected_x[argsort])
+    np.testing.assert_allclose(data.data[0].y, expected_y[argsort])
+
+@select_database("pbsn.tdb")
+def test_step_strategy_get_data_computes_mass_fraction(load_database):
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["PB", "SN", "VA"], ["FCC_A1", "LIQUID"], conditions={v.T: (500, 520, 10), v.X("SN"): 0.5, v.P: 101325})
+    strategy.do_map()
+
+    data = strategy.get_data(v.X("SN"), v.W("SN"), global_x=True, global_y=True, set_nan_to_zero=False)
+    assert len(data.data) == 1 and data.data[0].phase == "SYSTEM"
+
+    x_sn = data.data[0].x
+    w_sn = data.data[0].y
+    pb_mass = dbf.refstates["PB"]["mass"]
+    sn_mass = dbf.refstates["SN"]["mass"]
+    expected_w_sn = x_sn*sn_mass / (x_sn*sn_mass + (1 - x_sn)*pb_mass)
+
+    np.testing.assert_allclose(w_sn, expected_w_sn)
+    assert np.nanmax(np.abs(w_sn - x_sn)) > 1e-3
+
+@select_database("alzn_mey.tdb")
+def test_strategy_plotting_respects_units(load_database):
+    """Test that giving state variables with units to ZPFLine.get_var_list converts units appropriately"""
+
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["AL", "VA"], ["FCC_A1", "LIQUID"], conditions={v.T: (920, 940, 1), v.P: 101325})
+    strategy.do_map()
+
+    # we should have found a line ending at a node, extract that here
+    node_zpf_lines = [zl for zl in strategy.zpf_lines if zl.status == ZPFState.NEW_NODE_FOUND]
+    assert len(node_zpf_lines) == 1
+    node_zpf_line = node_zpf_lines[0]
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T))[-1], 933.600, atol=1e-3)  # value in Kelvin
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["celsius"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["degC"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
