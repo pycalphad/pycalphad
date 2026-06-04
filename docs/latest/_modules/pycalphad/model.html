@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.model - pycalphad 0.11.2.dev34+g1407c3b6f documentation</title>
+        <title>pycalphad.model - pycalphad 0.11.2.dev35+g303c50b0d documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.2.dev34+g1407c3b6f documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.2.dev35+g303c50b0d documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.2.dev34+g1407c3b6f documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.2.dev35+g303c50b0d documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -292,6 +292,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">DofError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">unpack_species</span><span class="p">,</span> <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">wrap_symbol</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">Phase</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.tdb</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_supported_variables</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
@@ -340,6 +341,48 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="n">_f</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">active_species</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="o">|</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">],</span> <span class="n">phase</span><span class="p">:</span> <span class="n">Phase</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
+        <span class="n">disordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">)</span>
+        <span class="n">disordered_phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase_name</span><span class="p">]</span>
+        <span class="c1"># assume first sublattice is one that can get ordered and second (if exists) is interstitial sublattice</span>
+        <span class="n">disordered_phase_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">disordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_species</span><span class="p">)</span>
+        <span class="n">interstitial_comps</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">disordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">interstitial_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">disordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_species</span><span class="p">)</span>
+
+        <span class="n">disordered_sub_sites</span> <span class="o">=</span> <span class="n">disordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">disordered_int_sites</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># we&#39;ll require that the interstitial sublattice is the same for both order and disordered models</span>
+        <span class="k">if</span> <span class="n">interstitial_comps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">disordered_int_sites</span> <span class="o">=</span> <span class="n">disordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">num_equal</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_species</span><span class="p">)</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="n">interstitial_comps</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">num_equal</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">num_equal</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Order (</span><span class="si">{</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">) and disorder (</span><span class="si">{</span><span class="n">disordered_phase_name</span><span class="si">}</span><span class="s2">) model must have no interstitial sublattice or a single matching one&quot;</span><span class="p">)</span>
+
+        <span class="c1"># for all other sublattices, extend constituents to filtered components in disordered model</span>
+        <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span> <span class="o">=</span> <span class="p">[</span><span class="n">cons</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">disordered_phase_comps</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">interstitial_comps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">cons</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_species</span><span class="p">)</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="n">interstitial_comps</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="n">cons</span>
+                              <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
+        <span class="n">ordered_sub_sites</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ordered_int_sites</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">interstitial_comps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_species</span><span class="p">)</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="n">interstitial_comps</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ordered_sub_sites</span> <span class="o">+=</span> <span class="n">phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ordered_int_sites</span> <span class="o">+=</span> <span class="n">phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># check that ratio between substitutional and interstitial sublattices are the same</span>
+        <span class="n">ordered_ratio</span> <span class="o">=</span> <span class="n">ordered_int_sites</span><span class="o">/</span><span class="n">ordered_sub_sites</span>
+        <span class="n">disordered_ratio</span> <span class="o">=</span> <span class="n">disordered_int_sites</span><span class="o">/</span><span class="n">disordered_sub_sites</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">ordered_ratio</span><span class="p">,</span> <span class="n">disordered_ratio</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Order (</span><span class="si">{</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">) and disordered (</span><span class="si">{</span><span class="n">disordered_phase_name</span><span class="si">}</span><span class="s2">) model must have the same interstitial to sublattice ratios. </span><span class="si">{</span><span class="n">ordered_ratio</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">disordered_ratio</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">phase</span>
 
 <div class="viewcode-block" id="ReferenceState">
 <a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.ReferenceState">[docs]</a>
@@ -486,9 +529,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span>
         <span class="n">active_species</span> <span class="o">=</span> <span class="n">unpack_species</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">)</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="n">active_species</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
             <span class="n">subl_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_species</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">|=</span> <span class="n">subl_comps</span>
@@ -501,6 +546,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Two-sublattice ionic liquid specified with more than two sublattices&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span><span class="p">[</span><span class="n">subl_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">charge</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">subl_comps</span><span class="p">])</span>
+
         <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="c1"># Special treatment of &quot;neutral&quot; vacancies in 2SL ionic liquid</span>
             <span class="c1"># These are treated as having variable valence</span>
@@ -971,6 +1017,8 @@
 <a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.kohler_toop_excess_sum">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">kohler_toop_excess_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_query</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;phase_name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s2">&quot;parameter_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;QKT&quot;</span><span class="p">)</span> <span class="o">&amp;</span>
@@ -1188,6 +1236,8 @@
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_purity_test</span><span class="p">))</span>
         <span class="p">)</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="n">pure_energy_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span>
                                                    <span class="n">pure_param_query</span><span class="p">)</span>
@@ -1202,6 +1252,8 @@
 <span class="sd">        Returns the ideal mixing energy in symbolic form.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">site_ratios</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span>
         <span class="n">ideal_mixing_term</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="n">sitefrac_limit</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">MIN_SITE_FRACTION</span><span class="o">/</span><span class="mf">10.</span><span class="p">)</span>
@@ -1232,6 +1284,8 @@
 <span class="sd">        where m is the arity of the interaction parameter</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="n">param_query</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">)</span> <span class="o">&amp;</span> \
@@ -1254,6 +1308,8 @@
 <span class="sd">        The approach follows from the background of W. Xiong et al, Calphad, 2012.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">BMAG</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
@@ -1338,6 +1394,8 @@
 <span class="sd">        The approach follows W. Xiong et al, Calphad, 2012.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="k">if</span> <span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">:</span>
@@ -1420,6 +1478,8 @@
 <span class="sd">        Return the energy from liquid-amorphous two-state model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
         <span class="n">gd_param_query</span> <span class="o">=</span> <span class="p">(</span>
@@ -1443,6 +1503,8 @@
 <span class="sd">        then exp() is called on the result.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="n">theta_param_query</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
@@ -1583,12 +1645,15 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">ordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">disordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">never_disorder</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;never_disorder&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">ordered_phase_name</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="n">ordered_phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span>
+        <span class="n">ordered_phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">ordered_phase</span><span class="p">)</span>
         <span class="n">constituents</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
         <span class="n">disordered_phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase_name</span><span class="p">]</span>
         <span class="n">disordered_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">),</span> <span class="n">disordered_phase_name</span><span class="p">)</span>
@@ -1601,8 +1666,9 @@
         <span class="c1"># with the disordered phase.</span>
         <span class="c1"># Assumes first sublattice of the disordered phase is the sublattice</span>
         <span class="c1"># that can be come ordered:</span>
-        <span class="n">disordered_subl_constituents</span> <span class="o">=</span> <span class="n">disordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">ordered_constituents</span> <span class="o">=</span> <span class="n">ordered_phase</span><span class="o">.</span><span class="n">constituents</span>
+        <span class="c1"># use intersection of constituents and active components</span>
+        <span class="n">disordered_subl_constituents</span> <span class="o">=</span> <span class="n">disordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+        <span class="n">ordered_constituents</span> <span class="o">=</span> <span class="p">[</span><span class="n">cons</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="k">for</span> <span class="n">cons</span> <span class="ow">in</span> <span class="n">ordered_phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
         <span class="n">substitutional_sublattice_idxs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">subl_constituents</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ordered_constituents</span><span class="p">):</span>
             <span class="c1"># Assumes that the ordered phase sublattice describes the ordering</span>
@@ -1824,6 +1890,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
 
         <span class="n">V0_param_query</span> <span class="o">=</span> <span class="p">(</span>
@@ -1962,7 +2030,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=0eaf448a"></script>
+</div><script src="../../_static/documentation_options.js?v=4abf8037"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
