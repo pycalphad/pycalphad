@@ -73,6 +73,7 @@ dev = [
     "setuptools_scm[toml]>=6.0",
     "setuptools",
     "sphinx<9",
+    "sphinx-autobuild>=2025.8.25",
     "wheel",
 ]
 
