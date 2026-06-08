@@ -15,6 +15,71 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "build and serve docs",
+            "type": "shell",
+            "command": "bash build-docs-locally.sh",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "build and serve docs and watch for changes",
+            "type": "shell",
+            "command": "uv run python -m sphinx_autobuild -W -b html docs docs/_build/html --watch . --watch docs --watch examples",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "serve pre-built docs",
+            "type": "shell",
+            "command": "bash serve-pre-built-docs.sh",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "none",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Update all examples",
+            "type": "shell",
+            "command": "bash update_all_examples.sh",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "none",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Update current example",
+            "type": "shell",
+            "command": "bash update_current_example.sh \"${file}\"",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "none",
+                "isDefault": false
+            }
         }
     ]
 }
