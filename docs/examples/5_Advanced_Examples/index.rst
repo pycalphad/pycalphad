@@ -4,6 +4,6 @@ Advanced Examples
 .. toctree::
    :maxdepth: 2
 
-   ChargedPhases
-   ViscosityModel
-   LegacyEnergySurface
+   1_ChargedPhases
+   2_ViscosityModel
+   3_LegacyEnergySurface

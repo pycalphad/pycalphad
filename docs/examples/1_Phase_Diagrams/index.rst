@@ -4,6 +4,6 @@ Phase Diagrams
 .. toctree::
    :maxdepth: 2
 
-   BinaryExamples
-   TernaryExamples
-   Mapping
+   1_BinaryExamples
+   2_TernaryExamples
+   3_Mapping
