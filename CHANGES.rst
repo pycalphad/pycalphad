@@ -1,10 +1,53 @@
 What's New
 ==========
 
+0.11.2 (2026-06-05)
+-------------------
+
+This release contains several features, bug fixes, and centralization of examples from other documentation sources.
+We also switch the reccomended build tools and package manager for development to `uv <https://docs.astral.sh/uv/>`_.
+
+We'd like to welcome and thank the new contributors that made it in to this release!
+
+* `@disouzam <https://github.com/disouzam>`_
+* `@jat255 <https://github.com/jat255>`_
+* `@n-takumasa <https://github.com/n-takumasa>`_
+* `@daniel-sintef <https://github.com/daniel-sintef>`_
+* `@adityamoolya <https://github.com/adityamoolya>`_
+
+Features
+^^^^^^^^
+* ENH: Support the never disorder paritioned model often used for topologically close-packed phases (:issue:`651`)
+* ENH/FIX: Add unit support to mapping (:issue:`678`)
+* ENH: Add support for Modified Quasichemical Model reciprocal interaction parameters (:issue:`667`)
+* ENH: Refactor ``eqplot``to use ``_axis_label`` with ``mapping.plotting.get_label`` (:issue:`677`)
+
+Fixes
+^^^^^
+* FIX: Cache ``StateVariable`` objects to mitigate memory leak (:issue:`656`)
+* FIX: phase filtering for order/disorder models with unmatched consituents (:issue:`548`)
+* FIX: raise ``ConditionError`` in ``calculate()`` when there are missing state variables (:issue:`681`)
+* MAINT: Upgrade to pyparsing v3 pep-8 API (:issue:`646`)
+* MAINT: Suppress pint unit redefinition warnings (:issue:`650`)
+* MAINT: Database object typing (:issue:`634`)
+* FIX: global min check on invariant calculations in binary and ternary mapping (:issue:`639`)
+* FIX: Fix constraint violation in Hit & Run sampler (:issue:`679`)
+* FIX: fix an infinite loop in mapping caused by cycles (:issue:`676`)
+
+Documentation
+^^^^^^^^^^^^^
+* DOC: Add examples from cookbook and workshop content, including more ``Workspace`` examples, high-throughput calculations examples, and updates to mapping examples (:issue:`673`, :issue:`672`, :issue:`680`)
+* DOC: Example documentation cleanups (:issue:`657`, :issue:`669`, :issue:`668`)
+
+Build tools
+^^^^^^^^^^^
+* MAINT: Transition setup.py to pyproject.toml and use uv in CI (:issue:`633`)
+* FIX/CI: Support installing from Git URLs (:issue:`683`)
+
 0.11.1 (2025-10-22)
 -------------------
 
-This is maintenance and bugfix release that addresses several dependency-related regressions and fixes related to new features introduced in 0.11.
+This is a maintenance and bugfix release that addresses several dependency-related regressions and fixes related to new features introduced in 0.11.
 
 * MAINT: Support Python version 3.13, drop support for Python 3.9 and 3.10; test and dependency fixes mitigating CI instabilities (:issue:`602`, :issue:`622`)
 * ENH: Improve minimizer convergence behavior and correctness (:issue:`605`)
