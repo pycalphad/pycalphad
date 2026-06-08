@@ -4,6 +4,6 @@ High Throughput Analysis
 .. toctree::
    :maxdepth: 2
 
-   HighThroughputCalculations
-   UsingCalculationResults
-   ScreeningPhaseStability
+   1_HighThroughputCalculations
+   2_UsingCalculationResults
+   3_ScreeningPhaseStability

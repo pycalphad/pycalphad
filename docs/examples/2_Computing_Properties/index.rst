@@ -4,7 +4,7 @@ Computing Properties
 .. toctree::
    :maxdepth: 2
 
-   PhaseCompositions
-   GibbsAtConcentration
-   CementiteAnalysis
-   EquilibriumWithOrdering
+   1_PhaseCompositions
+   2_GibbsAtConcentration
+   3_CementiteAnalysis
+   4_EquilibriumWithOrdering
