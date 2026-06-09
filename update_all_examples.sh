@@ -12,6 +12,10 @@ fi
 pushd examples
 rm -rf .ipynb_checkpoints
 
+currentPythonWarnings=$PYTHONWARNINGS
+echo -e "\nTemporarily setting PYTHONWARNINGS to 'ignore' to suppress warnings during notebook execution.\n"
+export PYTHONWARNINGS="ignore"
+
 find . -type d | sort | while read dir; do
     cd "$dir"
     echo -e "\nCurrent directory: $(pwd)"
@@ -25,3 +29,7 @@ find . -type d | sort | while read dir; do
     cd - > /dev/null
 done
 popd
+
+echo -e "\nFinished updating all notebooks in the examples directory.\n"
+echo -e "Restoring original PYTHONWARNINGS value: '$currentPythonWarnings'\n"
+export PYTHONWARNINGS="$currentPythonWarnings"
