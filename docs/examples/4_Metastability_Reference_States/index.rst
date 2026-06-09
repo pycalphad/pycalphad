@@ -6,5 +6,5 @@ Metastability and Reference States
 
    1_ReferenceStateExamples
    2_Metastability
-   5_PlotActivity
-   6_LegacyReferenceState
+   3_PlotActivity
+   4_LegacyReferenceState
