@@ -32,7 +32,7 @@
         {
             "label": "serve pre-built docs",
             "type": "shell",
-            "command": "uv run python -m http.server",
+            "command": "uv run python -m http.server 8000",
             "options": {
                 "cwd": "${workspaceFolder}/docs/_build/html"
             },
