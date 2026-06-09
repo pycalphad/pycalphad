@@ -32,9 +32,9 @@
         {
             "label": "serve pre-built docs",
             "type": "shell",
-            "command": "uv run python -m http.server 8000",
+            "command": "bash serve-pre-built-docs.sh",
             "options": {
-                "cwd": "${workspaceFolder}/docs/_build/html"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [],
             "group": {
