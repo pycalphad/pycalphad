@@ -19,7 +19,7 @@
         {
             "label": "build and serve docs",
             "type": "shell",
-            "command": "uv run sphinx-build -W -b html docs docs/_build/html && cd docs/_build/html && uv run python -m http.server",
+            "command": "bash build-docs-locally.sh",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
