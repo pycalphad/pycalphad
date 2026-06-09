@@ -41,6 +41,19 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Update all examples",
+            "type": "shell",
+            "command": "bash update_all_examples.sh",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
