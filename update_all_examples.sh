@@ -24,7 +24,7 @@ find . -type d | sort | while read dir; do
         echo "$notebooks" | while read notebook; do
             echo -e "\nUpdating $notebook\n"
             jupyter nbconvert --to notebook --execute "$notebook" --output "$notebook"
-            nb-clean clean "$notebook" --remove-all-notebook-metadata --preserve-cell-outputs --preserve-execution-counts --remove-empty-cells
+            nb-clean clean "$notebook" --preserve-notebook-metadata --preserve-cell-outputs --preserve-execution-counts --remove-empty-cells
         done
     fi
     cd - > /dev/null

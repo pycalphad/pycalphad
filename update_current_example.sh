@@ -18,7 +18,7 @@ cd "$(dirname "$1")"
 pwd
 
 jupyter nbconvert --to notebook --execute "$1" --output "$1"
-nb-clean clean "$1" --remove-all-notebook-metadata --preserve-cell-outputs --preserve-execution-counts --remove-empty-cells
+nb-clean clean "$1" --preserve-notebook-metadata --preserve-cell-outputs --preserve-execution-counts --remove-empty-cells
 
 echo -e "\nFinished updating all notebooks in the examples directory.\n"
 echo -e "Restoring original PYTHONWARNINGS value: '$currentPythonWarnings'\n"
