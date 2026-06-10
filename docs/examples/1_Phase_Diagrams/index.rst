@@ -7,3 +7,4 @@ Phase Diagrams
    1_BinaryExamples
    2_TernaryExamples
    3_Mapping
+   4_ChargedPhases
