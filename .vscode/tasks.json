@@ -67,6 +67,15 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Add filter to clean up notebook metadata",
+            "type": "shell",
+            "command": "uv run nb-clean add-filter --remove-all-notebook-metadata --preserve-cell-outputs --preserve-execution-counts --remove-empty-cells",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ]
 }
