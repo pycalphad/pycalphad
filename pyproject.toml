@@ -64,6 +64,7 @@ dev = [
     "ipykernel",
     "ipython",  # for pygments syntax highlighting
     "jupyter>=1.1.1",
+    "nb-clean>=4.0.1",
     "nbconvert>=7.17.1",
     "nbsphinx-link",
     "numpy>=2",
