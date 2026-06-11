@@ -1,6 +1,13 @@
 import warnings
 from collections import OrderedDict, Counter, defaultdict
 from copy import copy
+from typing import Optional, Tuple, Type, TypeVar, Union
+
+import numpy as np
+from symengine import Basic
+from runtype import isa
+from runtype.pytypes import Dict, List, Sequence, SumType, Mapping, NoneType
+
 from pycalphad.property_framework.computed_property import JanssonDerivative
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_species, unpack_condition, unpack_phases, filter_phases, instantiate_models
@@ -12,17 +19,11 @@ from pycalphad.core.composition_set import CompositionSet
 from pycalphad.core.solver import Solver, SolverBase
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.model import Model
-import numpy as np
-import numpy.typing as npt
-from typing import Optional, Tuple, Type
 from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
 from pycalphad.core.conditions import Conditions, ConditionError
 from pycalphad.property_framework import ComputableProperty, as_property
 from pycalphad.property_framework.units import as_quantity, Q_, to_display_units
-from runtype import isa
-from runtype.pytypes import Dict, List, Sequence, SumType, Mapping, NoneType
-from typing import TypeVar
 
 
 
@@ -495,7 +496,7 @@ class Workspace:
                 conds_keys[cond_idx] = k
         return [c for c in conds_keys if c is not None]
 
-    def get_dict(self, *args: Tuple[ComputableProperty]):
+    def get_dict(self, *args: Union[str, Basic, ComputableProperty]):
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
 
@@ -530,7 +531,7 @@ class Workspace:
 
         return results
 
-    def get(self, *args: Tuple[ComputableProperty]):
+    def get(self, *args: Union[str, Basic, ComputableProperty]):
         result = list(self.get_dict(*args).values())
         if len(result) != 1:
             return result
