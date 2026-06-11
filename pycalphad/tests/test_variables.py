@@ -2,6 +2,7 @@
 Test variables module.
 """
 import copy
+import pickle
 import numpy as np
 from pycalphad import variables as v
 from pycalphad.tests.fixtures import select_database, load_database
@@ -136,3 +137,14 @@ def test_getitem_units_does_not_mutate_original():
 
     # But they should be equal (same underlying symbol)
     assert t_celsius == v.T
+
+
+def test_issue557_state_variable_unit_changes_survive_roundtrip_pickle():
+    T2 = copy.deepcopy(v.T)
+    T2.display_units = 'degC'
+    T2_roundtrip = pickle.loads(pickle.dumps(T2))
+    print(f'T2: {T2.display_units}')
+    print(f'T2_roundtrip: {T2_roundtrip.display_units}')
+    assert T2.display_units == T2_roundtrip.display_units
+    T3 = pickle.loads(pickle.dumps(v.T["degC"]))
+    assert T2.display_units == T3.display_units
