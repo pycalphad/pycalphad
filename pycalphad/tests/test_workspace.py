@@ -116,6 +116,51 @@ def test_jansson_derivative_binary_temperature(load_database):
     # Checked by finite difference
     assert_allclose(y_dot, -28.775364)
 
+@pytest.mark.solver
+@pytest.mark.parametrize("N", [1.0, 2.0, 5.0])
+@select_database("alzn_mey.tdb")
+def test_non_unity_N_conditions_workspace(load_database, N):
+    """Workspace point calculations with N != 1 return intensive molar properties and extensive amounts."""
+    dbf = load_database()
+    wks = Workspace(dbf, ["AL", "VA"], ["FCC_A1"], {v.N: N, v.P: 1.0e5, v.T: 300.0})
+    expected_GM = -8496.605669599447  # J/mol-atom, computed by hand
+    GM = np.squeeze(wks.get('GM'))
+    G = np.squeeze(wks.get('G'))
+    NP = np.squeeze(wks.get('NP(FCC_A1)'))
+    MU_AL = np.squeeze(wks.get('MU(AL)'))
+    assert_allclose(GM, expected_GM, atol=1e-5)  # intensive, independent of N
+    assert_allclose(MU_AL, expected_GM, atol=1e-5)
+    assert_allclose(NP, N)  # extensive; 1 mole of f.u. per mole of atoms in FCC_A1
+    assert_allclose(G, expected_GM * N, rtol=1e-10)  # extensive
+    # The stored equilibrium dataset GM is intensive and consistent with the property framework
+    assert_allclose(np.squeeze(wks.eq.GM), GM, rtol=1e-10)
+    # Jansson derivatives of intensive properties are intensive: dGM/dT == -SM
+    dGM_dT = np.squeeze(wks.get('GM.T'))
+    SM = np.squeeze(wks.get('SM'))
+    assert_allclose(dGM_dT, -SM, rtol=1e-6)
+
+
+@pytest.mark.solver
+@select_database("alzn_mey.tdb")
+def test_non_unity_N_conditions_workspace_two_phase(load_database):
+    """Two-phase equilibrium at N=2: intensive properties match N=1; extensive amounts scale with N."""
+    dbf = load_database()
+    components = ['AL', 'ZN', 'VA']
+    phases = ['FCC_A1', 'HCP_A3', 'LIQUID']
+    conds = {v.P: 101325, v.T: 500, v.X('ZN'): 0.7}
+    wks_1 = Workspace(dbf, components, phases, {v.N: 1.0, **conds})
+    wks_2 = Workspace(dbf, components, phases, {v.N: 2.0, **conds})
+    # Intensive properties are independent of N
+    for prop in ['GM', 'X(ZN)', 'MU(ZN)', 'GM.T']:
+        assert_allclose(np.squeeze(wks_2.get(prop)), np.squeeze(wks_1.get(prop)), rtol=1e-6,
+                        err_msg=f'{prop} should be independent of N')
+    # Extensive properties scale linearly with N
+    assert_allclose(np.squeeze(wks_2.get('G')), 2.0 * np.squeeze(wks_1.get('G')), rtol=1e-6)
+    # Stored phase amounts sum to N
+    assert_allclose(np.nansum(wks_1.eq.NP), 1.0, atol=1e-8)
+    assert_allclose(np.nansum(wks_2.eq.NP), 2.0, atol=1e-8)
+
+
 @select_database("alnipt.tdb")
 def test_jansson_derivative_with_invalid_mass_conditions(load_database):
     """

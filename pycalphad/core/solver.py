@@ -50,7 +50,7 @@ class Solver(SolverBase):
         """
         # Prevent circular import
         from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, \
-            SiteFraction
+            SiteFraction, SystemMolesType
         compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
         nonvacant_elements = compsets[0].phase_record.nonvacant_elements
@@ -113,7 +113,13 @@ class Solver(SolverBase):
                 prescribed_mole_fraction_coefficients.append(coefs)
         prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
         prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)
-        prescribed_system_amount = conditions.get('N', 1.0)
+        # Conditions may be keyed by str or StateVariable
+        prescribed_system_amount = np.asarray(conditions.get(SystemMolesType(), conditions.get('N', 1.0)))
+        if prescribed_system_amount.ndim > 0:
+            # TODO: resolve type instability for scalar vs. 1D arrays
+            assert prescribed_system_amount.size == 1
+            prescribed_system_amount = prescribed_system_amount[0]
+
         fixed_chemical_potential_indices = np.array([nonvacant_elements.index(str(key)[3:]) for key in conditions.keys() if str(key).startswith('MU_')], dtype=np.int32)
         free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(fixed_chemical_potential_indices)), dtype=np.int32)
         for fixed_chempot_index in fixed_chemical_potential_indices:

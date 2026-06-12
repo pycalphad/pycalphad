@@ -130,8 +130,8 @@ class Conditions:
         if isinstance(prop, v.SiteFraction) and prop not in self._wks.models[prop.phase_name].variables:
             raise ConditionError('{} refers to non-existent constituent'.format(prop))
 
-        if (prop == v.N) and np.any(value != Q_(1.0, 'mol')):
-            raise ConditionError('N!=1 is not yet supported, got N={}'.format(value))
+        if (prop == v.N) and np.any(np.asarray(value.magnitude) <= 0):
+            raise ConditionError('N must be positive, got N={}'.format(value))
         
         entry = ConditionsEntry(prop=prop, value=value)
 

@@ -461,8 +461,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # Implicitly add 'N' state variable as a string to keyword arguements if it's not passed
     if kwargs.get('N') is None:
         kwargs['N'] = 1
-    if np.any(np.array(kwargs['N']) != 1):
-        raise ConditionError('N!=1 is not yet supported, got N={}'.format(kwargs['N']))
+    if np.any(np.array(kwargs['N']) <= 0):
+        raise ConditionError('N must be positive, got N={}'.format(kwargs['N']))
 
     # TODO: conditions dict of StateVariable instances should become part of the calculate API
     statevar_strings = [sv for sv in kwargs.keys() if getattr(v, sv) is not None]

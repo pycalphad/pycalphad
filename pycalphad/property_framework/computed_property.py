@@ -62,11 +62,27 @@ class ModelComputedProperty(object):
         else:
             return None
 
+    def _is_molar(self) -> bool:
+        # TODO: this is kind of a hack until we have proper suffix-normalization support on conditions and is used to detect when a property should be normalized by the number of atoms.
+        # Molar (per-mole-atom) quantities carry per-mole implementation units (e.g. 'J / mol').
+        # Extensive quantities (G, H) do not. Mirrors the test in property_framework/units.py.
+        # Sort of a hack until we have proper suffix support
+        return '/ mol' in str(self.implementation_units)
+
     def compute_property(self, compsets: List[CompositionSet], cur_conds: Dict[str, float], chemical_potentials: npt.ArrayLike) -> npt.ArrayLike:
         if len(compsets) == 0:
             return np.nan
         if self.phase_name is None:
-            return np.sum([compset.NP*self._compute_per_phase_property(compset, cur_conds) for compset in compsets])
+            result = np.sum([compset.NP*self._compute_per_phase_property(compset, cur_conds) for compset in compsets])
+            if self._is_molar():
+                # The total system amount, N, is counted from the elemental amounts
+                # in the composition sets; a global N condition is not required to exist.
+                system_amount = np.sum([compset.NP * np.sum(compset.X) for compset in compsets])
+                if system_amount != 0:
+                    result = result / system_amount
+                else:
+                    raise ValueError(f"The system has zero moles. Got composition sets: {compsets}")
+            return result
         else:
             tokens = self.phase_name.split('#')
             phase_name = tokens[0]
@@ -109,6 +125,15 @@ class ModelComputedProperty(object):
             else:
                 jansson_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
                 jansson_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
+        if (self.phase_name is None) and self._is_molar() and not np.isnan(jansson_derivative):
+            # The accumulated value is the derivative of the extensive quantity B = sum(NP*q).
+            # N is held fixed by the equilibrium system (dN == 0 along the perturbation),
+            # so the molar derivative is exactly dB / N. No quotient rule is needed.
+            system_amount = np.sum([compset.NP * np.sum(compset.X) for compset in compsets])
+            if system_amount != 0:
+                jansson_derivative /= system_amount
+            else:
+                raise ValueError(f"The system has zero moles. Got composition sets: {compsets}")
         return jansson_derivative
 
     def _compute_per_phase_property(self, compset: CompositionSet, cur_conds: Dict[str, float]) -> float:

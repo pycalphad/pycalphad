@@ -576,6 +576,16 @@ class MoleFraction(StateVariable):
                 result[0] += compset.NP * compset.X[el_idx]
             else:
                 result[0] += compset.X[el_idx]
+        if (self.phase_name is None) and not np.isnan(result[0]):
+            # sum(NP * X) is the number of moles of this component, N(species).
+            # The overall mole fraction is X(species) = N(species) / N, where N is
+            # counted from the elemental amounts in the composition sets; a global
+            # N condition is not required to exist.
+            system_amount = np.sum([compset.NP * np.sum(compset.X) for compset in compsets])
+            if system_amount != 0:
+                result[0] /= system_amount
+            else:
+                raise ValueError(f"The system has zero moles. Got composition sets: {compsets}")
         return result
 
     def compute_per_phase_property(self, compset, cur_conds):
@@ -627,6 +637,16 @@ class MoleFraction(StateVariable):
             else:
                 jansson_derivative += np.dot(deltas.delta_statevars, grad_value[:len(state_variables)])
                 jansson_derivative += np.dot(delta_sitefracs, grad_value[len(state_variables):])
+        if (self.phase_name is None) and not np.isnan(jansson_derivative):
+            # The accumulated value is the derivative of N(species) = sum(NP * X).
+            # N is held fixed by the equilibrium system (dN == 0 along the perturbation),
+            # so the derivative of X(species) = N(species)/N is exactly dN(species) / N.
+            # No quotient rule is needed.
+            system_amount = np.sum([compset.NP * np.sum(compset.X) for compset in compsets])
+            if system_amount != 0:
+                jansson_derivative /= system_amount
+            else:
+                raise ValueError(f"The system has zero moles. Got composition sets: {compsets}")
         return jansson_derivative
 
     def jansson_deltas(self, spec, state) -> JanssonDerivativeDeltas:

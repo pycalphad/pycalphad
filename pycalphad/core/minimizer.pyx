@@ -218,7 +218,7 @@ cdef void write_row_fixed_mole_amount(double[:] out_row, double* out_rhs, int co
     # 4. Subtract fixed chemical potentials from each phase RHS
     for i in range(fixed_chemical_potential_indices.shape[0]):
         chempot_idx = fixed_chemical_potential_indices[i]
-        # 6. Subtract fixed chemical potentials from the N=1 row
+        # Subtract fixed chemical potentials from the system amount (N) row
         for j in range(c_component.shape[1]):
             out_rhs[0] -= phase_amt[idx] * chemical_potentials[
                 chempot_idx] * mass_jac[component_idx, num_statevars+j] * c_component[chempot_idx, j]
@@ -277,7 +277,7 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
                                             csst.moles_normalization_grad, state.phase_amt, idx, prefactor)
 
         system_amount_index = component_row_offset + num_fixed_mole_fraction_conditions
-        # 2X. Also handle the N=1 row
+        # 2X. Also handle the system amount (N) row
         for component_idx in range(num_components):
             write_row_fixed_mole_amount(equilibrium_matrix[system_amount_index, :],
                                         &equilibrium_rhs[system_amount_index], component_idx,
@@ -308,7 +308,7 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
                                             csst.moles_normalization_grad, state.phase_amt, idx, prefactor)
 
         system_amount_index = component_row_offset + num_fixed_mole_fraction_conditions
-        # 2X. Also handle the N=1 row
+        # 2X. Also handle the system amount (N) row
         for component_idx in range(num_components):
             write_row_fixed_mole_amount(equilibrium_matrix[system_amount_index, :],
                                         &equilibrium_rhs[system_amount_index], component_idx,
@@ -319,7 +319,7 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
                                         state.phase_amt, idx)
 
 
-    # Add mass residual to fixed component row RHS, plus N=1 row
+    # Add mass residual to fixed component row RHS, plus system amount (N) row
     component_row_offset = num_stable_phases + num_fixed_phases
     system_amount_index = component_row_offset + num_fixed_mole_fraction_conditions
     for fixed_molefrac_cond_idx in range(num_fixed_mole_fraction_conditions):

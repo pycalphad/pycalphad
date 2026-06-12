@@ -228,6 +228,9 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
         add_nearly_stable(composition_sets, phase_records, grid, curr_idx, chemical_potentials,
                           state_variable_values, -1000, verbose)
         #print('Composition Sets', composition_sets)
+        # Normalize starting phase amounts to sum to unity. This is only an initial
+        # guess scaling: the solver rescales the phase amounts to satisfy the
+        # prescribed system amount (N) condition during minimization.
         phase_amt_sum = 0.0
         for compset in composition_sets:
             phase_amt_sum += compset.NP
@@ -286,6 +289,14 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = compset.X
                 prop_GM_values[it.multi_index] += compset.NP * compset.energy
                 var_offset += compset.phase_record.phase_dof
+            # Stored GM is the molar Gibbs energy (J/mol-atom): normalize the
+            # NP-weighted (extensive) sum by the total moles of atoms, N, counted
+            # from the elemental amounts in the composition sets
+            system_amount = 0.0
+            for compset in composition_sets:
+                system_amount += compset.NP * np.sum(compset.X)
+            if system_amount != 0:
+                prop_GM_values[it.multi_index] /= system_amount
         else:
             prop_MU_values[it.multi_index] = np.nan
             prop_NP_values[it.multi_index] = np.nan
