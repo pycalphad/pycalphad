@@ -276,7 +276,7 @@ def test_isopleth_strategy_node_exit():
     comp_sets = []
     for p in phases:
         cs = CompositionSet(strategy.phase_records[p])
-        cs.update(np.array(phase_comps[p], dtype=np.float64), 0.25, np.array([1, 101325, 700], dtype=np.float64))
+        cs.update(np.array(phase_comps[p], dtype=np.float64), 0.25, np.array([101325, 700], dtype=np.float64))
         comp_sets.append(cs)
     comp_sets[0].fixed = True
     comp_sets[1].fixed = True
@@ -340,7 +340,7 @@ def test_global_min_check_writable_array(load_database):
     phases = list(dbf.phases.keys())
     conds = {v.T: 1000, v.P: 101325, v.X('FE'): 0.3, v.X('S'): 0.2, v.N: 1}
     models = instantiate_models(dbf, comps, phases)
-    phase_records = PhaseRecordFactory(dbf, comps, {v.N, v.P, v.T}, models)
+    phase_records = PhaseRecordFactory(dbf, comps, {v.P, v.T}, models)
 
     point = point_from_equilibrium(dbf, comps, phases, conds)
 

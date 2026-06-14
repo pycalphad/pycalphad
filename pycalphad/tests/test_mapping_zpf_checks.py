@@ -227,7 +227,7 @@ def test_check_global_min(load_database):
         "phases": phases,
     }
     system_info["models"] = instantiate_models(system_info["dbf"], comps, phases)
-    system_info["phase_records"] = PhaseRecordFactory(system_info["dbf"], comps, {v.N, v.P, v.T}, system_info["models"])
+    system_info["phase_records"] = PhaseRecordFactory(system_info["dbf"], comps, {v.P, v.T}, system_info["models"])
     extra_args["system_info"] = system_info
 
     # check_change_in_phases for same set of phases -> no change

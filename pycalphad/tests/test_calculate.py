@@ -61,13 +61,17 @@ def test_issue116(load_database):
     result_three_values = result_three.GM.values
     np.testing.assert_array_equal(np.squeeze(result_one_values), np.squeeze(result_two_values))
     np.testing.assert_array_equal(np.squeeze(result_one_values), np.squeeze(result_three_values))
-    # N is added automatically
-    assert len(result_one_values.shape) == 3  # N, T, points
+    # N is not a coordinate of calculate(); only P and T are.
+    # An explicit N kwarg is ignored (filtered out) and does not add a dimension.
+    assert len(result_one_values.shape) == 2  # T, points
     assert result_one_values.shape[0] == 1
-    assert len(result_two_values.shape) == 4  # N, P, T, points
-    assert result_two_values.shape[:3] == (1, 1, 1)
-    assert len(result_three_values.shape) == 4  # N, P, T, points
-    assert result_three_values.shape[:3] == (1, 1, 1)
+    assert len(result_two_values.shape) == 3  # P, T, points
+    assert result_two_values.shape[:2] == (1, 1)
+    assert len(result_three_values.shape) == 3  # P, T, points (N ignored)
+    assert result_three_values.shape[:2] == (1, 1)
+    # N is not a coordinate of the calculate() output
+    assert 'N' not in result_one.coords
+    assert 'N' not in result_three.coords
 
     # NOT passing temperature when temperature is required by the Model raises
     with pytest.raises(ConditionError):

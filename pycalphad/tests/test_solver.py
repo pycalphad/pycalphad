@@ -30,8 +30,8 @@ def test_non_unity_N_conditions(load_database):
     prf = PhaseRecordFactory(dbf, components, conditions, models)
 
     compset = CompositionSet(prf[phase_name])
-    # FCC_A1 in this database reduces to a single site fraction for pure AL
-    compset.update(np.array([1.0]), 1.0, np.array([conditions[v.N], conditions[v.P], conditions[v.T]]))
+    # FCC_A1 in this database reduces to a single site fraction for pure AL.
+    compset.update(np.array([1.0]), 1.0, np.array([conditions[v.P], conditions[v.T]]))
 
     solver = Solver()
     result = solver.solve([compset], str_conditions)

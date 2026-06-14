@@ -169,11 +169,11 @@ def test_jansson_derivative_zero_and_undefined(load_database):
     wks = Workspace(dbf, comps, conditions=conds)
 
     cs_liq = CompositionSet(wks.phase_record_factory['LIQUID'])
-    cs_liq.update(np.array([8.97729829e-01, 1.02270171e-01]), 0.0, np.array([1, 1e5, temp]))
+    cs_liq.update(np.array([8.97729829e-01, 1.02270171e-01]), 0.0, np.array([1e5, temp]))
     cs_liq.fixed = True
 
     cs_stoich = CompositionSet(wks.phase_record_factory['PT8AL21'])
-    cs_stoich.update(np.array([1., 1.]), 1.0, np.array([1, 1e5, temp]))
+    cs_stoich.update(np.array([1., 1.]), 1.0, np.array([1e5, temp]))
     cs_stoich.fixed = False
 
     comp_sets = [cs_liq, cs_stoich]
@@ -183,7 +183,8 @@ def test_jansson_derivative_zero_and_undefined(load_database):
     #   Since PT8AL21 is stoichiometric, everything should be undefined here since
     #   it would be impossible move the global composition while still having the NP(PT8AL21) = 1
     x_deltas = compute_deltas(comp_sets, conds, chem_pots, v.X('AL'), v.T)
-    assert np.isnan(x_deltas.delta_statevars[2])
+    # delta_statevars is ordered [P, T] (T is index 1)
+    assert np.isnan(x_deltas.delta_statevars[1])
     dtdx = v.T.jansson_derivative(comp_sets, conds, chem_pots, x_deltas)
     assert np.isnan(dtdx)
 
@@ -192,7 +193,7 @@ def test_jansson_derivative_zero_and_undefined(load_database):
     #     The delta composition for PT8AL21 should be 0, but it can change for the liquid phase
     #     But because the liquid phase is fixed at 0, the overall change in v.X('AL') should also be 0
     T_deltas = compute_deltas(comp_sets, conds, chem_pots, v.T, v.X('AL'))
-    np.testing.assert_allclose(T_deltas.delta_statevars[2], 1., atol=1e-8)
+    np.testing.assert_allclose(T_deltas.delta_statevars[1], 1., atol=1e-8)
     # Since we trace along PT8AL21, then X('PT8AL21', 'AL').T = X('AL').T = 0
     dxdt_phase = v.X('PT8AL21', 'AL').jansson_derivative(comp_sets, conds, chem_pots, T_deltas)
     dxdt = v.X('AL').jansson_derivative(comp_sets, conds, chem_pots, T_deltas)

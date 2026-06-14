@@ -83,7 +83,7 @@ def test_complex_infinity_can_build_callables_successfully(load_database):
     """Test that functions that containing complex infinity can be built with codegen."""
     dbf = load_database()
     mod = Model(dbf, ['C'], 'DIAMOND_A4')
-    mod_vars = [v.N, v.P, v.T] + mod.site_fractions
+    mod_vars = [v.P, v.T] + mod.site_fractions
 
     # Test builds functions only, since functions takes about 1 second to run.
     # Both lambda and llvm backends take a few seconds to build the derivatives
@@ -107,7 +107,7 @@ def test_exponents_of_negative_bases_can_be_built():
     PARAMETER G(LIQUID,C;0) 298.15 X**(2); 6000 N !
     """)
     mod = Model(dbf, ["C"], "LIQUID")
-    mod_vars = [v.N, v.P, v.T] + mod.site_fractions
+    mod_vars = [v.P, v.T] + mod.site_fractions
     int_cons = mod.get_internal_constraints()
 
     # lambdify uses real=True by default, which raises if the expression contains complex numbers
@@ -125,7 +125,7 @@ def test_complex_numbers_generated_in_complicated_models_can_be_built(load_datab
     # In this case, the base of an exponent expression in GPCL2C evaluates to a constant, negative number.
     dbf = load_database()
     mod = Model(dbf, ["C"], "LIQUID")
-    mod_vars = [v.N, v.P, v.T] + mod.site_fractions
+    mod_vars = [v.P, v.T] + mod.site_fractions
     int_cons = mod.get_internal_constraints()
 
     build_functions(mod.GM, mod_vars, include_obj=True, include_grad=True, include_hess=True)

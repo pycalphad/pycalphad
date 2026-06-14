@@ -458,12 +458,6 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
     output = output if output is not None else 'GM'
 
-    # Implicitly add 'N' state variable as a string to keyword arguements if it's not passed
-    if kwargs.get('N') is None:
-        kwargs['N'] = 1
-    if np.any(np.array(kwargs['N']) <= 0):
-        raise ConditionError('N must be positive, got N={}'.format(kwargs['N']))
-
     # TODO: conditions dict of StateVariable instances should become part of the calculate API
     statevar_strings = [sv for sv in kwargs.keys() if getattr(v, sv) is not None]
     # If we don't do this, sympy will get confused during substitution
@@ -485,6 +479,12 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
 
+    # Restrict the state-variable columns to exactly the potentials the callables were compiled against (P, T)
+    required_statevars = {str(sv) for sv in phase_records.state_variables}
+    statevar_dict = OrderedDict((k, val) for k, val in statevar_dict.items()
+                                if str(k) in required_statevars)
+    str_statevar_dict = OrderedDict((str(k), val) for k, val in statevar_dict.items())
+
     # Every state variable the phase records were compiled against must have a
     # value. The compiled property functions take `phase_records.state_variables + site_fractions`
     # as input, but `calculate()` builds the dof's state-variable columns from
@@ -492,7 +492,6 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # caller of `calcuate()` did not provide, the dof would be have a different
     # shape than the compiled function expects and the function would read past
     # the end of the dof buffer. We fail loudly in that case.
-    required_statevars = {str(sv) for sv in phase_records.state_variables}
     supplied_statevars = {str(sv) for sv in statevar_dict.keys()}
     missing_statevars = sorted(required_statevars - supplied_statevars)
     if missing_statevars:

@@ -427,7 +427,7 @@ def get_state_variables(models=None, conds=None):
     --------
     >>> from pycalphad import variables as v
     >>> from pycalphad.core.utils import get_state_variables
-    >>> get_state_variables(conds={v.P: 101325, v.N: 1, v.X('AL'): 0.2}) == {v.P, v.N, v.T}
+    >>> get_state_variables(conds={v.P: 101325, v.N: 1, v.X('AL'): 0.2}) == {v.P, v.T}
     True
     """
     state_vars = set()
@@ -436,9 +436,9 @@ def get_state_variables(models=None, conds=None):
             state_vars.update(mod.state_variables)
     if conds is not None:
         for c in conds:
-            # StateVariable instances are ok (e.g. P, T, N, V, S),
-            # however, subclasses (X, Y, MU, NP) are not ok.
-            if isinstance(c, (v.IndependentPotential, v.SystemMolesType)):
+            # Only independent potentials (P, T) are state variables of the energy
+            # callables. Extensive conditions (N, N(i), B, B(i)) are handled by the minimizer.
+            if isinstance(c, v.IndependentPotential):
                 state_vars.add(c)
     return state_vars
 
