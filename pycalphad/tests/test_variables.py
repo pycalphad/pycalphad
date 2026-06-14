@@ -120,6 +120,58 @@ def test_copy_with_cached_new():
     assert y_copy == y, "copy of SiteFraction should be equal to original"
 
 
+def test_moles_construction_and_dispatch():
+    """Moles() dispatches to the total SystemMolesType; Moles(species) and
+    Moles(phase, species) build component and phase-local amounts."""
+    # Total moles: Moles() returns the SystemMolesType singleton (== v.N)
+    assert v.Moles() is v.N
+    assert isinstance(v.N, v.SystemMolesType)
+    assert isinstance(v.N, v.Moles)
+    assert str(v.N) == 'N'
+    # Total moles deliberately exposes no species/phase_name attributes (duck-typing)
+    assert getattr(v.N, 'species', None) is None
+    assert getattr(v.N, 'phase_name', None) is None
+    assert not hasattr(v.N, 'species')
+
+    # Component moles
+    n_al = v.Moles('AL')
+    assert str(n_al) == 'N_AL'
+    assert n_al.species == v.Component('AL')
+    assert n_al.phase_name is None
+    assert isinstance(n_al, v.Moles)
+    assert not isinstance(n_al, v.SystemMolesType)
+
+    # Phase-local moles: valid to construct (not yet a solver condition)
+    n_fcc_al = v.Moles('FCC_A1', 'AL')
+    assert str(n_fcc_al) == 'N_FCC_A1_AL'
+    assert n_fcc_al.phase_name == 'FCC_A1'
+    assert n_fcc_al.species == v.Component('AL')
+    assert isinstance(n_fcc_al, v.Moles)
+
+    # Singleton/caching behavior
+    assert v.Moles('AL') is v.Moles('AL')
+
+
+def test_moles_copy_and_reduce():
+    """Moles instances survive copy.copy (cache-bypassing __new__) and pickling-style reduce."""
+    n_al = v.Moles('AL')
+    n_al_copy = copy.copy(n_al)
+    assert n_al_copy is not n_al
+    assert n_al_copy == n_al
+    assert copy.deepcopy(n_al) == n_al
+    assert copy.deepcopy(v.Moles('FCC_A1', 'AL')) == v.Moles('FCC_A1', 'AL')
+
+    # Total moles copy
+    n_copy = copy.copy(v.N)
+    assert n_copy is not v.N
+    assert n_copy == v.N
+
+    # Unit variant via __getitem__ -> __copy__ must not raise or mutate original
+    n_al_mol = v.Moles('AL')['mol']
+    assert n_al_mol.display_units == 'mol'
+    assert n_al_mol == n_al
+
+
 def test_getitem_units_does_not_mutate_original():
     """Test that using __getitem__ for unit conversion doesn't mutate the original.
 

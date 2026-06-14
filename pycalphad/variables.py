@@ -939,12 +939,106 @@ class PressureType(IndependentPotential):
     def __reduce__(self):
         return self.__class__, ()
 
-class SystemMolesType(StateVariable):
+class Moles(StateVariable):
+    """
+    Number of moles of atoms in the system.
+
+    Construct via:
+      ``Moles()``                -> total system moles (returns a ``SystemMolesType``)
+      ``Moles('AL')``            -> moles of a component (symbol ``N_AL``)
+      ``Moles('FCC_A1', 'AL')``  -> phase-local moles of a component; valid to construct
+                                    (like ``X('FCC_A1', 'AL')``) but not yet a solver condition
+    """
     implementation_units = 'mol'
     display_units = 'mol'
+
+    def __new__(cls, *args):
+        # Dispatch the no-argument (total) form to the dedicated SystemMolesType so that
+        # ``Moles() is v.N`` and existing ``isinstance(c, SystemMolesType)`` checks keep
+        # identifying total moles. Concrete (component/phase-local) forms construct normally.
+        if cls is Moles and len(args) == 0:
+            return SystemMolesType()
+        return StateVariable.__new__(cls, *args)
+    # StateVariable.__copy__ bypasses the __new__ lru_cache via ``cls.__new__.__wrapped__``;
+    # our override would otherwise hide it, so re-expose the unwrapped constructor.
+    __new__.__wrapped__ = StateVariable.__new__.__wrapped__
+
+    def __init__(self, *args):
+        phase_name = None
+        species = None
+        if len(args) == 1:
+            species = Component(args[0])
+            varname = 'N_' + species.escaped_name.upper()
+        elif len(args) == 2:
+            phase_name = args[0].upper()
+            species = Component(args[1])
+            varname = 'N_' + phase_name + '_' + species.escaped_name.upper()
+        else:
+            raise ValueError(f'Moles is not defined for arguments: {args!r}')
+        super().__init__(varname)
+        self.phase_name = phase_name
+        self.species = species
+
+    @property
+    def display_name(self):
+        if self.phase_name is None:
+            return f'Moles {self.species}'
+        return f'Moles {self.phase_name} {self.species}'
+
+    def expand_wildcard(self, phase_names=None, components=None):
+        if phase_names is not None and self.phase_name is not None:
+            return [self.__class__(phase_name, self.species) for phase_name in phase_names]
+        elif components is not None:
+            if self.phase_name is None:
+                return [self.__class__(comp) for comp in components]
+            return [self.__class__(self.phase_name, comp) for comp in components]
+        raise ValueError('Both phase_names and components are None')
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        # N(species) = sum_alpha NP_alpha * X_alpha[species]
+        result = np.atleast_1d(np.zeros(self.shape))
+        result[:] = np.nan
+        for _, compset in self.filtered(compsets):
+            if np.isnan(result[0]):
+                result[0] = 0
+            el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
+            result[0] += compset.NP * compset.X[el_idx]
+        return result
+
+    def __reduce__(self):
+        if self.phase_name is None:
+            return self.__class__, (self.species,)
+        return self.__class__, (self.phase_name, self.species)
+
+
+class SystemMolesType(Moles):
+    """Total number of moles of atoms in the system (the ``N`` condition).
+
+    Note: deliberately does NOT set ``species``/``phase_name`` instance attributes,
+    so ``hasattr(v.N, 'species')`` stays False (preserving the historical duck-typing
+    used across the codebase to discriminate composition vs. non-composition conditions).
+    New code distinguishing total vs. component moles should use
+    ``getattr(cond, 'species', None)``.
+    """
     display_name = 'No. Moles'
+
     def __init__(self):
-        super().__init__('N')
+        # Bypass Moles.__init__ (which expects a species); total moles is unparametrized.
+        StateVariable.__init__(self, 'N')
+
+    def compute_property(self, compsets, cur_conds, chemical_potentials):
+        # total N = sum_alpha NP_alpha * sum_A X_alpha[A]
+        # Returns a scalar (like other state variables T, P), not an array, so callers
+        # that treat N as a state-variable value (e.g. mapping) get a consistent shape.
+        if len(compsets) == 0:
+            return np.nan
+        result = 0.0
+        for compset in compsets:
+            if (compset.NP == 0) and (not compset.fixed):
+                continue
+            result += compset.NP * np.sum(compset.X)
+        return result
+
     def __reduce__(self):
         return self.__class__, ()
 
