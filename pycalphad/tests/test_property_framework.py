@@ -93,7 +93,7 @@ def test_cpf_reference_state(load_database):
     # small deviations in the endpoint will push the reference state around, for large step sizes
     x_re = np.linspace(0, 1, num=10, endpoint=True)
     wks = Workspace(load_database(), ["NB", "RE", "VA"], ["LIQUID_RENB"],
-                    {v.P: 101325, v.T: 2800, v.X("RE"): x_re})
+                    {v.P: 101325, v.N: 1, v.T: 2800, v.X("RE"): x_re})
 
     ref = ReferenceState([("LIQUID_RENB", {v.X("RE"): 0}),
                         ("LIQUID_RENB", {v.X("RE"): 1})
@@ -217,7 +217,7 @@ def test_chemical_potentials_for_isolated_phases(load_database):
     """IsolatedPhase chemical potentials should correspond to the constrained, metastable composition set"""
     dbf = load_database()
     temperature = 100 # K
-    wks = Workspace(dbf, phases=["BCT_A5"], components=["PB", "SN", "VA"], conditions={v.T: temperature, v.P:101325, v.X("SN"): 0.6})
+    wks = Workspace(dbf, phases=["BCT_A5"], components=["PB", "SN", "VA"], conditions={v.T: temperature, v.P:101325, v.N: 1, v.X("SN"): 0.6})
 
     isolated_GM = wks.get(IsolatedPhase("BCT_A5",wks=wks)("GM"))
     # TODO: use X(*) and MU(*) when supported

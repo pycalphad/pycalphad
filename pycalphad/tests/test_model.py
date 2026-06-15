@@ -79,7 +79,7 @@ def test_degree_of_ordering(load_database):
     dbf = load_database()
     my_phases = ['B2_BCC']
     comps = ['AL', 'FE', 'VA']
-    conds = {v.T: 300, v.P: 101325, v.X('AL'): 0.25}
+    conds = {v.T: 300, v.P: 101325, v.N: 1, v.X('AL'): 0.25}
     eqx = equilibrium(dbf, comps, my_phases, conds, output='degree_of_ordering', verbose=True)
     print('Degree of ordering: {}'.format(eqx.degree_of_ordering.values.flatten()))
     assert np.isclose(eqx.degree_of_ordering.values.flatten(), np.array([0.6666]), atol=1e-4)

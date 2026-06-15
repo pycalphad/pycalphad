@@ -30,7 +30,7 @@ def test_eqplot_binary(load_database):
     my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2',
                  'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
-    conds = {v.T: (1400, 1500, 50), v.P: 101325, v.X('AL'): (0, 1, 0.5)}
+    conds = {v.T: (1400, 1500, 50), v.P: 101325, v.N: 1, v.X('AL'): (0, 1, 0.5)}
     eq = equilibrium(dbf, comps, my_phases, conds)
     ax = eqplot(eq)
     assert isinstance(ax, Axes)
@@ -44,7 +44,7 @@ def test_eqplot_ternary(load_database):
     """
     dbf = load_database()
     eq = equilibrium(dbf, ['AL', 'CO', 'CR', 'VA'], ['LIQUID'],
-                     {v.T: 2500, v.X('AL'): (0,0.5,0.33), v.X('CO'): (0,0.5,0.3), v.P: 101325})
+                     {v.T: 2500, v.X('AL'): (0,0.5,0.33), v.X('CO'): (0,0.5,0.3), v.P: 101325, v.N: 1})
     ax = eqplot(eq)
     assert isinstance(ax, Axes)
     assert ax.name == 'triangular'

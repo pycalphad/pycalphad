@@ -241,7 +241,7 @@ def test_mass_fraction_binary_dilute(load_database):
 def test_lincomb_binary_condition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
-                    conditions={v.T: 300, v.P: 1e5, 0.5*v.X('ZN') - 7*v.X('AL'): 0.1})
+                    conditions={v.T: 300, v.P: 1e5, v.N: 1, 0.5*v.X('ZN') - 7*v.X('AL'): 0.1})
     result = 0.5 * wks.get('X(ZN)') - 7 * wks.get('X(AL)')
     np.testing.assert_almost_equal(result, 0.1, decimal=8)
     result2 = wks.get(0.5*v.X('ZN') - 7*v.X('AL'))
@@ -251,7 +251,7 @@ def test_lincomb_binary_condition(load_database):
 def test_lincomb_binary_condition_rhs_negative(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
-                    conditions={v.T: 300, v.P: 1e5, v.X('ZN') - v.X('AL'): -0.5})
+                    conditions={v.T: 300, v.P: 1e5, v.N: 1, v.X('ZN') - v.X('AL'): -0.5})
     result = wks.get('X(ZN)') - wks.get('X(AL)')
     np.testing.assert_almost_equal(result, -0.5, decimal=8)
     result2 = wks.get(v.X('ZN') - v.X('AL'))
@@ -266,7 +266,7 @@ def test_lincomb_binary_condition_rhs_negative(load_database):
 def test_lincomb_ratio_binary_condition(load_database):
     dbf = load_database()
     wks = Workspace(database=dbf, components=['AL', 'ZN', 'VA'], phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
-                    conditions={v.T: 300, v.P: 1e5, v.X('AL')/v.X('ZN'): [0.25, 1, 1.5]})
+                    conditions={v.T: 300, v.P: 1e5, v.N: 1, v.X('AL')/v.X('ZN'): [0.25, 1, 1.5]})
     result = wks.get('X(AL)') / wks.get('X(ZN)')
     np.testing.assert_almost_equal(result, [0.25, 1, 1.5], decimal=8)
 
@@ -387,7 +387,7 @@ def test_issue_503_suspend_phase_infeasible_internal_constraints():
     CONSTITUENT GAS:G :O,ZR :  !
     """
     # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
-    wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 0.5, v.T: 1000})
+    wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.N: 1, v.X('O'): 0.5, v.T: 1000})
     wks.verbose = True
     print(wks.get_dict('X(*,*)'))
     print(wks.get_dict('NP(*)'))
@@ -509,7 +509,7 @@ def test_shallow_ternary_with_isolated_phase(load_database):
     dbf = load_database()
     comps = ['CR', 'FE', 'NI', 'VA']
     phases = ['BCC_A2']
-    conditions = {v.T: 1170, v.P:101325, v.X('CR'): 0.638, v.X('NI'): 0.062}
+    conditions = {v.T: 1170, v.P:101325, v.N: 1, v.X('CR'): 0.638, v.X('NI'): 0.062}
     wks = Workspace(dbf, phases=phases, components=comps, conditions=conditions, verbose=True)
 
     # Values confirmed by turning point density up to 1e7
