@@ -14,6 +14,7 @@ cdef class SystemState:
     cdef int[::1] free_stable_compset_indices
     cdef double system_amount
     cdef double[::1] mole_fractions
+    cdef double[::1] mole_amounts
     cdef double[::1] _driving_forces
     cdef double[:, ::1] _phase_energies_per_mole_atoms
     cdef double[:, :, ::1] _phase_amounts_per_mole_atoms
@@ -23,10 +24,13 @@ cdef class SystemState:
 
 cdef class SystemSpecification:
     cdef int num_statevars, num_components, max_num_free_stable_phases
-    cdef double prescribed_system_amount
     cdef double ALLOWED_MASS_RESIDUAL
     cdef double[::1] initial_chemical_potentials, prescribed_mole_fraction_rhs
     cdef double[:,::1] prescribed_mole_fraction_coefficients
+    # Extensive amount conditions (N, N(i), B, B(i))
+    # each row is a coefficient vector over components with a rhs
+    cdef double[::1] prescribed_mole_amount_rhs
+    cdef double[:,::1] prescribed_mole_amount_coefficients
     cdef int[::1] free_chemical_potential_indices, free_statevar_indices
     cdef int[::1] fixed_chemical_potential_indices, fixed_statevar_indices, fixed_stable_compset_indices
     cpdef bint check_convergence(self, SystemState state)

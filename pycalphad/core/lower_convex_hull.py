@@ -4,7 +4,7 @@ equilibrium calculation.
 """
 from pycalphad.property_framework.computed_property import LinearCombination
 from .hyperplane import hyperplane
-from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, IndependentPotential, SiteFraction, SystemMolesType
+from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, IndependentPotential, SiteFraction, Moles
 import numpy as np
 
 
@@ -119,8 +119,16 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
                 coef_vector[component_idx] = 1
                 idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
                 idx_fixed_lincomb_molefrac_rhs.append(rhs)
-            elif isinstance(cond_key, SystemMolesType):
-                coef_vector = np.ones(num_comps)
+            elif isinstance(cond_key, Moles):
+                # Total N (species is None) constrains the sum of all component amounts;
+                # component N(i) constrains a single component. Total moles exposes no
+                # `species` attribute, so probe defensively with getattr.
+                cond_species = getattr(cond_key, 'species', None)
+                coef_vector = np.zeros(num_comps)
+                if cond_species is None:
+                    coef_vector[:] = 1.0
+                else:
+                    coef_vector[result_array.coords['component'].index(str(cond_species))] = 1.0
                 idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
                 idx_fixed_lincomb_molefrac_rhs.append(rhs)
             elif isinstance(cond_key, LinearCombination):

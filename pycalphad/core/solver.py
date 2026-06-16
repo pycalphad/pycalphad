@@ -1,3 +1,4 @@
+from typing import cast
 import numpy as np
 from collections import namedtuple
 from pycalphad.core.minimizer import SystemSpecification
@@ -50,15 +51,20 @@ class Solver(SolverBase):
         """
         # Prevent circular import
         from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, \
-            SiteFraction, SystemMolesType
+            SiteFraction, Moles
+        from pycalphad.core.errors import ConditionError
         compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
         nonvacant_elements = compsets[0].phase_record.nonvacant_elements
         num_statevars = len(state_variables)
         num_components = len(nonvacant_elements)
         chemical_potentials = np.zeros(num_components)
+        # X(i), W(i)
         prescribed_mole_fraction_coefficients = []
         prescribed_mole_fraction_rhs = []
+        # N, N(i), B, B(i)
+        prescribed_mole_amount_coefficients = []
+        prescribed_mole_amount_rhs = []
         local_conditions = {key: value for key, value in conditions.items()
                             if getattr(key, 'phase_name', None) is not None}
         for compset in compsets:
@@ -111,14 +117,31 @@ class Solver(SolverBase):
                     denominator_idx = cond.symbols.index(cond.denominator)
                     coefs[denominator_idx] -= value
                 prescribed_mole_fraction_coefficients.append(coefs)
+            elif isinstance(cond, Moles) or (isinstance(cond, str) and (cond == 'N' or cond.startswith('N_'))):
+                # Extensive: total N (species is None) or component N(i). Conditions may be
+                # keyed by a Moles object or by string ('N', 'N_<EL>'). Total moles exposes no
+                # `species` attribute, so probe defensively with getattr.
+                if isinstance(cond, Moles):
+                    if getattr(cond, 'phase_name', None) is not None:
+                        raise ConditionError(f'Phase-local moles condition {cond} is not supported')
+                    cond_species = getattr(cond, 'species', None)
+                else:
+                    # cond must be a string per outer elif
+                    cond_species = None if cond == 'N' else cast(str, cond)[2:]
+                coefs = np.zeros(num_components)
+                if cond_species is None:
+                    coefs[:] = 1.0  # total N: sum of all component amounts
+                else:
+                    coefs[list(nonvacant_elements).index(str(cond_species))] = 1.0  # N(species)
+                prescribed_mole_amount_coefficients.append(coefs)
+                prescribed_mole_amount_rhs.append(value)
         prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
         prescribed_mole_fraction_rhs = np.array(prescribed_mole_fraction_rhs)
-        # Conditions may be keyed by str or StateVariable
-        prescribed_system_amount = np.asarray(conditions.get(SystemMolesType(), conditions.get('N', 1.0)))
-        if prescribed_system_amount.ndim > 0:
-            # TODO: resolve type instability for scalar vs. 1D arrays
-            assert prescribed_system_amount.size == 1
-            prescribed_system_amount = prescribed_system_amount[0]
+        if len(prescribed_mole_amount_coefficients) > 0:
+            prescribed_mole_amount_coefficients = np.atleast_2d(prescribed_mole_amount_coefficients)
+        else:
+            prescribed_mole_amount_coefficients = np.zeros((0, num_components))
+        prescribed_mole_amount_rhs = np.array(prescribed_mole_amount_rhs, dtype=np.float64)
 
         fixed_chemical_potential_indices = np.array([nonvacant_elements.index(str(key)[3:]) for key in conditions.keys() if str(key).startswith('MU_')], dtype=np.int32)
         free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(fixed_chemical_potential_indices)), dtype=np.int32)
@@ -132,7 +155,8 @@ class Solver(SolverBase):
         free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)), dtype=np.int32)
         fixed_statevar_indices = np.array(fixed_statevar_indices, dtype=np.int32)
         fixed_stable_compset_indices = np.array([i for i, compset in enumerate(compsets) if compset.fixed], dtype=np.int32)
-        spec = SystemSpecification(num_statevars, num_components, prescribed_system_amount,
+        spec = SystemSpecification(num_statevars, num_components,
+                                   prescribed_mole_amount_coefficients, prescribed_mole_amount_rhs,
                                    chemical_potentials, prescribed_mole_fraction_coefficients,
                                    prescribed_mole_fraction_rhs,
                                    free_chemical_potential_indices, free_statevar_indices,

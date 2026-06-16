@@ -567,3 +567,39 @@ def test_get_dict_phase_specific_unit_conversion_uses_phase_molar_mass(load_data
     expected = Q_(raw_value, 'J/mol').to('J/g', phase_context).magnitude.item()
 
     assert_allclose(get_dict_value, expected)
+
+
+@select_database("alzn_mey.tdb")
+def test_per_component_moles_conditions_workspace(load_database):
+    """Component-amount conditions N(i) via the Workspace API match X + total N,
+    and the total system size N scales with the sum of component amounts."""
+    dbf = load_database()
+    comps = ['AL', 'ZN', 'VA']
+    phases = ['FCC_A1']
+
+    wks_ref = Workspace(dbf, comps, phases, {v.X('AL'): 0.3, v.N: 1.0, v.P: 1e5, v.T: 600.0})
+    wks_amt = Workspace(dbf, comps, phases, {v.Moles('AL'): 0.3, v.Moles('ZN'): 0.7, v.P: 1e5, v.T: 600.0})
+
+    # Intensive quantities (composition, molar Gibbs energy) match the X + N specification
+    assert_allclose(np.squeeze(wks_amt.get('X(AL)')), np.squeeze(wks_ref.get('X(AL)')), atol=1e-6)
+    assert_allclose(np.squeeze(wks_amt.get('X(AL)')), 0.3, atol=1e-5)
+    assert_allclose(np.squeeze(wks_amt.get('GM')), np.squeeze(wks_ref.get('GM')), atol=1e-4)
+    # Total system amount and per-component amounts are recovered from the solution state
+    assert_allclose(np.squeeze(wks_amt.get(v.N)), 1.0, atol=1e-6)
+    assert_allclose(np.squeeze(wks_amt.get(v.Moles('AL'))), 0.3, atol=1e-6)
+    assert_allclose(np.squeeze(wks_amt.get(v.Moles('ZN'))), 0.7, atol=1e-6)
+
+    # Non-unity scale: doubling the component amounts doubles N but keeps X and GM intensive
+    wks_2x = Workspace(dbf, comps, phases, {v.Moles('AL'): 0.6, v.Moles('ZN'): 1.4, v.P: 1e5, v.T: 600.0})
+    assert_allclose(np.squeeze(wks_2x.get(v.N)), 2.0, atol=1e-6)
+    assert_allclose(np.squeeze(wks_2x.get('X(AL)')), 0.3, atol=1e-5)
+    assert_allclose(np.squeeze(wks_2x.get('GM')), np.squeeze(wks_ref.get('GM')), atol=1e-4)
+
+
+@select_database("alzn_mey.tdb")
+def test_intensive_only_conditions_raises(load_database):
+    """Specifying only intensive conditions (no extensive system-size condition) raises."""
+    dbf = load_database()
+    wks = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1'], {v.X('AL'): 0.3, v.P: 1e5, v.T: 600.0})
+    with pytest.raises(ConditionError):
+        wks.get('GM')

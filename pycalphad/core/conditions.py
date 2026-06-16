@@ -4,7 +4,7 @@ from pycalphad.property_framework import as_property, as_quantity
 from pycalphad.property_framework.units import Q_
 import pycalphad.variables as v
 from collections.abc import Iterable
-from typing import List, NamedTuple, Optional, TYPE_CHECKING
+from typing import cast, List, NamedTuple, Optional, TYPE_CHECKING
 import warnings
 import os
 
@@ -125,12 +125,16 @@ class Conditions:
         if isinstance(prop, (v.MoleFraction, v.MassFraction, v.ChemicalPotential)) and prop.species not in self._wks.components:
             raise ConditionError('{} refers to non-existent component'.format(prop))
 
+        if isinstance(prop, v.Moles) and getattr(prop, 'species', None) is not None \
+                and prop.species not in self._wks.components:
+            raise ConditionError('{} refers to non-existent component'.format(prop))
+
         if isinstance(prop, v.SiteFraction) and prop not in self._wks.models[prop.phase_name].variables:
             raise ConditionError('{} refers to non-existent constituent'.format(prop))
 
-        if (prop == v.N) and np.any(np.asarray(value.magnitude) <= 0):
-            raise ConditionError('N must be positive, got N={}'.format(value))
-        
+        if isinstance(prop, v.Moles) and np.any(np.asarray(value.magnitude) <= 0):
+            raise ConditionError('{} must be positive, got {}'.format(prop, value))
+
         entry = ConditionsEntry(prop=prop, value=value)
 
         idx = self._find_matching_index(prop)

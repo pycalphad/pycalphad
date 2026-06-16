@@ -1,6 +1,7 @@
 from pycalphad import variables as v
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.light_dataset import LightDataset
+from pycalphad.core.errors import ConditionError
 from pycalphad.property_framework.computed_property import LinearCombination
 from xarray import Dataset
 import numpy as np
@@ -33,7 +34,7 @@ def global_min_is_possible(conditions, state_variables):
            isinstance(cond, v.SiteFraction) or \
            isinstance(cond, LinearCombination) or \
            isinstance(cond, v.ChemicalPotential) or \
-           cond == v.N:
+           isinstance(cond, v.Moles):
             continue
         global_min = False
     return global_min
@@ -72,14 +73,22 @@ def starting_point(conditions, state_variables, phase_records, grid):
         len(nonvacant_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = nonvacant_elements
     conds_as_strings = [str(k) for k in conditions.keys()]
-    number_dof = len(nonvacant_elements) - 1
-    for i in conditions.keys():
-        if not (hasattr(i, 'species') or isinstance(i, LinearCombination)):
+    # At least one condition must be extensive, otherwise the intensive set is rank-deficient
+    number_dof = len(nonvacant_elements)
+    num_extensive = 0
+    for cond in conditions.keys():
+        if getattr(cond, 'phase_name', None) is not None:
+            # Phase-local conditions do not reduce the total (global) degrees of freedom
             continue
-        if hasattr(i, 'species') and hasattr(i, 'phase_name') and i.phase_name is not None:
-            # Phase-local conditions do not reduce the total degrees of freedom
-            continue
-        number_dof -= 1
+        if isinstance(cond, (v.MoleFraction, v.MassFraction, v.ChemicalPotential, LinearCombination)):
+            number_dof -= 1
+        elif isinstance(cond, v.Moles):  # extensive: total N or component N(i) (future B/B(i))
+            number_dof -= 1
+            num_extensive += 1
+    if num_extensive < 1:
+        raise ConditionError(
+            'At least one extensive condition fixing the system size must be specified '
+            '(e.g. v.N or v.Moles(component)); only intensive conditions were given.')
     if number_dof != 0:
         raise ValueError('Number of degrees of freedom is not zero')
 
