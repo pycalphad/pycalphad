@@ -603,3 +603,67 @@ def test_intensive_only_conditions_raises(load_database):
     wks = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1'], {v.X('AL'): 0.3, v.P: 1e5, v.T: 600.0})
     with pytest.raises(ConditionError):
         wks.get('GM')
+
+
+@select_database("alzn_mey.tdb")
+def test_vacancy_mole_amount_condition_raises(load_database):
+    """N(VA) is meaningless (vacancies have no mole amount) and must be rejected clearly."""
+    dbf = load_database()
+    with pytest.raises(ConditionError):
+        Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1'],
+                  {v.P: 1e5, v.T: 600.0, v.Moles('VA'): 0.5, v.X('AL'): 0.3})
+
+
+@select_database("alzn_mey.tdb")
+def test_phase_local_moles_condition_raises(load_database):
+    """Phase-local moles (e.g. v.Moles('FCC_A1','AL')) are not supported as conditions."""
+    dbf = load_database()
+    with pytest.raises(ConditionError):
+        Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1'],
+                  {v.P: 1e5, v.T: 600.0, v.N: 1.0, v.X('ZN'): 0.3,
+                   v.Moles('FCC_A1', 'AL'): 0.1})
+
+
+@select_database("alzn_mey.tdb")
+def test_empty_starting_point_does_not_crash(load_database):
+    """An infeasible/degenerate starting point must not raise IndexError (returns a value)."""
+    dbf = load_database()
+    wks = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1'],
+                    {v.P: 1e5, v.T: 600.0, v.X('AL'): 0.5, v.Moles('AL'): 0.3})
+    # Must not raise IndexError. (Before Phase 4 this is NaN; after Phase 4 it is a finite value.)
+    gm = np.squeeze(wks.get('GM'))
+    assert gm is not None  # the call completed without crashing
+
+
+@select_database("alzn_mey.tdb")
+def test_fraction_and_amount_same_component(load_database):
+    """X(i) and N(i) on the same component (no total N) is feasible: total N = N(i)/X(i)."""
+    # if this is failing, check that we didn't break the starting point
+    dbf = load_database()
+    wks = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1'],
+                    {v.P: 1e5, v.T: 600.0, v.X('AL'): 0.5, v.Moles('AL'): 0.3})
+    assert_allclose(np.squeeze(wks.get('X(AL)')), 0.5, atol=1e-5)
+    assert_allclose(np.squeeze(wks.get(v.N)), 0.6, atol=1e-6)   # 0.3 / 0.5
+
+
+@select_database("alzn_mey.tdb")
+def test_chempot_plus_component_amount_feasible(load_database):
+    """MU + N(i) is well-posed and converges when the potential is feasible for the component."""
+    dbf = load_database()
+    C = ['AL', 'ZN', 'VA']
+    # Feasible interior potential: the equilibrium MU(ZN) at X(AL)=0.3
+    wref = Workspace(dbf, C, ['FCC_A1'], {v.P: 1e5, v.T: 600.0, v.X('AL'): 0.3, v.N: 1.0})
+    mu_zn = float(np.squeeze(wref.get('MU(ZN)')))
+    wks = Workspace(dbf, C, ['FCC_A1'], {v.P: 1e5, v.T: 600.0, v.MU('ZN'): mu_zn, v.Moles('AL'): 0.3})
+    assert_allclose(np.squeeze(wks.get('X(AL)')), 0.3, atol=1e-4)
+    assert_allclose(np.squeeze(wks.get(v.N)), 1.0, atol=1e-4)
+
+
+@select_database("alzn_mey.tdb")
+def test_chempot_plus_component_amount_infeasible_is_nan(load_database):
+    """An infeasible potential (drives X(component)->0) yields NaN, not a crash."""
+    dbf = load_database()
+    # MU(ZN)=-15000 drives FCC to ~pure ZN, so N(AL)=0.3 needs NP->inf: infeasible.
+    wks = Workspace(dbf, ['AL', 'ZN', 'VA'], ['FCC_A1'],
+                    {v.P: 1e5, v.T: 600.0, v.MU('ZN'): -15000.0, v.Moles('AL'): 0.3})
+    assert np.all(np.isnan(np.atleast_1d(np.squeeze(wks.get('GM')))))

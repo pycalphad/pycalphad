@@ -83,6 +83,10 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
         idx_fixed_lincomb_molefrac_coefs = []
         idx_fixed_lincomb_molefrac_rhs = []
         idx_fixed_chempot_indices = []
+        # Extensive (amount) conditions are collected here and converted, after the loop,
+        # into a simplex-closure row plus (k-1) scale-invariant ratio rows.
+        idx_amount_coefs = []
+        idx_amount_rhs = []
 
         for coord_idx, str_cond_key in enumerate(sorted(result_array.coords.keys())):
             try:
@@ -120,17 +124,16 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
                 idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
                 idx_fixed_lincomb_molefrac_rhs.append(rhs)
             elif isinstance(cond_key, Moles):
-                # Total N (species is None) constrains the sum of all component amounts;
-                # component N(i) constrains a single component. Total moles exposes no
-                # `species` attribute, so probe defensively with getattr.
+                # Extensive (amount) condition. Total N (species is None) selects all
+                # components; component N(i) selects one.
                 cond_species = getattr(cond_key, 'species', None)
                 coef_vector = np.zeros(num_comps)
                 if cond_species is None:
                     coef_vector[:] = 1.0
                 else:
                     coef_vector[result_array.coords['component'].index(str(cond_species))] = 1.0
-                idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
-                idx_fixed_lincomb_molefrac_rhs.append(rhs)
+                idx_amount_coefs.append(coef_vector)
+                idx_amount_rhs.append(rhs)
             elif isinstance(cond_key, LinearCombination):
                 coef_vector = np.zeros(num_comps)
                 if cond_key.denominator == 1:
@@ -158,6 +161,18 @@ def lower_convex_hull(global_grid, state_variables, conds_keys, phase_record_fac
                 idx_fixed_lincomb_molefrac_coefs.append(coef_vector)
             else:
                 raise ValueError(f'Unsupported condition {cond_key}')
+
+        # Simplex closure: composition fractions sum to 1.
+        idx_fixed_lincomb_molefrac_coefs.append(np.ones(num_comps))
+        idx_fixed_lincomb_molefrac_rhs.append(1.0)
+        # Extensive conditions contribute scale-invariant (ratio) constraints, not absolute
+        # ones: for amount conditions m, r_0 * (c_m . x) - r_m * (c_0 . x) = 0. With k amount
+        # conditions this is k-1 rows, so a fraction (X) and an amount (N) on the same component
+        # never conflict, and the system stays square.
+        for m in range(1, len(idx_amount_coefs)):
+            ratio_row = idx_amount_rhs[0] * idx_amount_coefs[m] - idx_amount_rhs[m] * idx_amount_coefs[0]
+            idx_fixed_lincomb_molefrac_coefs.append(ratio_row)
+            idx_fixed_lincomb_molefrac_rhs.append(0.0)
 
         idx_fixed_lincomb_molefrac_coefs = np.atleast_2d(idx_fixed_lincomb_molefrac_coefs)
         idx_fixed_lincomb_molefrac_rhs = np.atleast_1d(idx_fixed_lincomb_molefrac_rhs)

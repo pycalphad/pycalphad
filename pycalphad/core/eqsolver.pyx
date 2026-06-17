@@ -223,6 +223,17 @@ def _solve_eq_at_conditions(properties, phase_records, grid, conds_keys, state_v
             compset = CompositionSet(phase_record)
             compset.update(sfx, phase_amt, state_variable_values)
             composition_sets.append(compset)
+        if len(composition_sets) == 0:
+            # No stable phases at this condition point (infeasible/degenerate starting point).
+            # Record NaN like other infeasible results instead of indexing an empty list.
+            prop_MU_values[it.multi_index] = np.nan
+            prop_NP_values[it.multi_index + np.index_exp[:]] = np.nan
+            prop_Phase_values[it.multi_index + np.index_exp[:]] = ''
+            prop_X_values[it.multi_index + np.index_exp[:]] = np.nan
+            prop_Y_values[it.multi_index] = np.nan
+            prop_GM_values[it.multi_index] = np.nan
+            it.iternext()
+            continue
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
         add_nearly_stable(composition_sets, phase_records, grid, curr_idx, chemical_potentials,
