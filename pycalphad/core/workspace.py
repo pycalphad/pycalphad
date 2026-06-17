@@ -295,9 +295,6 @@ class EquilibriumCalculationField(TypedField):
 # Defined to allow type checking for Model or its subclasses
 ModelType = TypeVar('ModelType', bound=Model)
 
-# TODO: enable converting v.X conditions for v.Component objects into
-# LinearCombination conditions for components with more than one constituent
-
 class Workspace:
     """
     Reactive equilibrium calculator.
