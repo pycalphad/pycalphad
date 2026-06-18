@@ -10,8 +10,39 @@ from pycalphad.io.grammar import parse_chemical_formula
 from pycalphad.property_framework.types import JanssonDerivativeDeltas
 from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, \
     fixed_component_differential, chemical_potential_differential
+from pycalphad.core.errors import ConditionError
 import numpy as np
 from copy import copy
+
+
+def _element_amounts(compsets):
+    "Total moles of each non-vacant element, N(e) = sum_alpha NP_alpha * X_alpha[e]."
+    nonvacant_elements = compsets[0].phase_record.nonvacant_elements
+    n_elem = np.zeros(len(nonvacant_elements))
+    for compset in compsets:
+        for el_idx in range(len(nonvacant_elements)):
+            n_elem[el_idx] += compset.NP * compset.X[el_idx]
+    return n_elem
+
+
+def _redefined_component_row(species, phase_record):
+    """Row index of ``species`` in the change-of-basis matrix if it is a *redefined*
+    component (non-trivial basis), else None. A name that is a declared basis component
+    takes precedence over a same-named pure element (e.g. ZN in an [ALZN, ZN] basis means
+    the ZN component, not the ZN element). For a trivial (pure-element) basis there are no
+    redefined components, so this returns None and the element paths run.
+    """
+    if phase_record.basis_is_trivial:
+        return None
+    return phase_record.basis_component_index.get(str(species))
+
+
+def _raise_not_in_basis(species, phase_record):
+    "N/X/W of a multi-element component outside the basis is ill-defined."
+    raise ConditionError(
+        f"Component {str(species)!r} is not part of the calculation's component basis "
+        f"{[str(c) for c in phase_record.basis_components]}; only basis components and pure "
+        f"elements can be requested as N/X/W outputs.")
 
 
 class Component(object):
@@ -568,6 +599,24 @@ class MoleFraction(StateVariable):
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
+        if len(compsets) == 0:
+            return result
+        prf = compsets[0].phase_record
+        row = _redefined_component_row(self.species, prf)
+        if row is not None:
+            # Redefined-component mole fraction: X(c) = n_comp[c] / sum_c' n_comp[c'],
+            # with n_comp = (S^T)^-1 . N(elements).
+            if self.phase_name is not None:
+                raise ConditionError(f"{self}: phase-local component mole fractions are not supported")
+            n_elem = _element_amounts(compsets)
+            inv_T = np.asarray(prf.component_basis_inv_T)
+            total_comp = float(np.dot(inv_T.sum(axis=0), n_elem))
+            if total_comp == 0:
+                raise ValueError(f"The system has zero moles. Got composition sets: {compsets}")
+            result[0] = float(np.dot(inv_T[row], n_elem)) / total_comp
+            return result
+        if str(self.species) not in prf.nonvacant_elements:
+            _raise_not_in_basis(self.species, prf)
         for _, compset in self.filtered(compsets):
             el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
             if np.isnan(result[0]):
@@ -722,6 +771,24 @@ class MassFraction(StateVariable):
     def compute_property(self, compsets, cur_conds, chemical_potentials):
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
+        if len(compsets) == 0:
+            return result
+        prf = compsets[0].phase_record
+        row = _redefined_component_row(self.species, prf)
+        if row is not None:
+            # Redefined-component mass fraction: W(c) = MW(c)*N(c) / total_mass, where
+            # MW(c) = sum_e S[c,e]*mass_e and total_mass = sum_e mass_e*N(e).
+            if self.phase_name is not None:
+                raise ConditionError(f"{self}: phase-local component mass fractions are not supported")
+            n_elem = _element_amounts(compsets)
+            total_mass = float(np.dot(np.asarray(prf.molar_masses), n_elem))
+            if total_mass == 0:
+                raise ValueError(f"The system has zero mass. Got composition sets: {compsets}")
+            n_comp = float(np.dot(np.asarray(prf.component_basis_inv_T)[row], n_elem))
+            result[0] = np.asarray(prf.component_molar_masses)[row] * n_comp / total_mass
+            return result
+        if str(self.species) not in prf.nonvacant_elements:
+            _raise_not_in_basis(self.species, prf)
         normalizer = 0.
         for _, compset in self.filtered(compsets):
             el_idx = compset.phase_record.nonvacant_elements.index(str(self.species))
@@ -998,6 +1065,16 @@ class Moles(StateVariable):
         # N(species) = sum_alpha NP_alpha * X_alpha[species]
         result = np.atleast_1d(np.zeros(self.shape))
         result[:] = np.nan
+        if len(compsets) == 0:
+            return result
+        prf = compsets[0].phase_record
+        row = _redefined_component_row(self.species, prf)
+        if row is not None:
+            # Redefined-component amount: N(component) = (S^T)^-1[c, :] . N(elements).
+            result[0] = float(np.dot(np.asarray(prf.component_basis_inv_T)[row], _element_amounts(compsets)))
+            return result
+        if str(self.species) not in prf.nonvacant_elements:
+            _raise_not_in_basis(self.species, prf)
         for _, compset in self.filtered(compsets):
             if np.isnan(result[0]):
                 result[0] = 0

@@ -2,6 +2,7 @@ from typing import cast
 import numpy as np
 from collections import namedtuple
 from pycalphad.core.minimizer import SystemSpecification
+from pycalphad.core.errors import ConditionError
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
 
@@ -52,13 +53,29 @@ class Solver(SolverBase):
         # Prevent circular import
         from pycalphad.variables import ChemicalPotential, MassFraction, MoleFraction, \
             SiteFraction, Moles
-        from pycalphad.core.errors import ConditionError
         compsets = composition_sets
         state_variables = compsets[0].phase_record.state_variables
         nonvacant_elements = compsets[0].phase_record.nonvacant_elements
         num_statevars = len(state_variables)
         num_components = len(nonvacant_elements)
         chemical_potentials = np.zeros(num_components)
+        # Redefined-component basis. For a trivial (pure-element) basis these are unused and
+        # the original element-basis construction below runs unchanged.
+        phase_record = compsets[0].phase_record
+        basis_is_trivial = phase_record.basis_is_trivial
+        basis_component_index = phase_record.basis_component_index
+        component_basis_inv_T = np.asarray(phase_record.component_basis_inv_T)
+        component_molar_masses = np.asarray(phase_record.component_molar_masses)
+        molar_masses = np.asarray(phase_record.molar_masses)
+        inv_T_colsum = component_basis_inv_T.sum(axis=0)
+
+        def basis_row(species):
+            name = str(species)
+            if name not in basis_component_index:
+                raise ConditionError(
+                    f"{name!r} is not part of the component basis {list(basis_component_index)}; "
+                    f"conditions must be expressed in terms of basis components.")
+            return basis_component_index[name]
         # X(i), W(i)
         prescribed_mole_fraction_coefficients = []
         prescribed_mole_fraction_rhs = []
@@ -76,11 +93,18 @@ class Solver(SolverBase):
             # values should all be scalar floats
             value = float(np.asarray(value).flat[0])
             if isinstance(cond, MoleFraction) and cond.phase_name is None:
-                el = str(cond)[2:]
-                el_idx = list(nonvacant_elements).index(el)
-                prescribed_mole_fraction_rhs.append(value)
-                coefs = np.zeros(num_components)
-                coefs[el_idx] = 1.0
+                # X(c) = k. A component whose (S^T)^-1 row is a unit vector (every pure element,
+                # and the whole trivial basis) keeps the direct form dot(e_c, x) = k: it is exact
+                # (the component total equals the atom total) and stays one-hot, which the
+                # Jansson-derivative matching in fixed_component_differential relies on. A genuine
+                # multi-element component uses the homogeneous form ((S^T)^-1[c,:] - k*colsum).x = 0
+                # because its component total differs from the atom total.
+                coefs = np.array(component_basis_inv_T[basis_row(cond.species)])
+                if np.count_nonzero(coefs) == 1 and np.isclose(coefs.sum(), 1.0):
+                    prescribed_mole_fraction_rhs.append(value)
+                else:
+                    coefs = coefs - value * inv_T_colsum
+                    prescribed_mole_fraction_rhs.append(0.0)
                 prescribed_mole_fraction_coefficients.append(coefs)
             elif isinstance(cond, MoleFraction) and cond.phase_name is not None:
                 # phase-local condition; already handled
@@ -89,50 +113,48 @@ class Solver(SolverBase):
                 # phase-local condition; already handled
                 continue
             elif isinstance(cond, MassFraction):
-                # wA = k -> (1-k)*MWA*xA - k*MWB*xB - k*MWC*xC = 0
-                el = str(cond)[2:]
-                el_idx = list(nonvacant_elements).index(el)
-                coef_vector = np.zeros(num_components)
-                coef_vector -= value
-                coef_vector[el_idx] += 1
-                # multiply coef_vector times a vector of molecular weights
-                coef_vector = np.multiply(coef_vector, compsets[0].phase_record.molar_masses)
+                # W(c) = k  <=>  (MW(c) * (S^T)^-1[c,:] - k * mass_elem) . x_elem = 0.
+                # For a pure-element basis this reduces to (1-k)*MW_A*x_A - k*MW_B*x_B - ... = 0.
+                row = basis_row(cond.species)
+                coef_vector = component_molar_masses[row] * component_basis_inv_T[row] - value * molar_masses
                 prescribed_mole_fraction_rhs.append(0.)
                 prescribed_mole_fraction_coefficients.append(coef_vector)
             elif str(cond).startswith('LinComb_'):
+                # Linear combination of (component) mole fractions. With
+                # X(c) = (S^T)^-1[c,:].x / (colsum.x), sum_k a_k X(c_k) + const = value
+                # multiplies through by the (positive) component total to the homogeneous
+                # row (sum_k a_k (S^T)^-1[c_k] - (value-const)*colsum).x = 0. For a molar
+                # ratio the component total cancels, leaving (S^T)^-1[num] - value*(S^T)^-1[den].
+                # For a pure-element basis (S = I) this is the element linear combination.
                 coefs = np.zeros(num_components)
                 constant = 0.0
                 for symbol, coef in zip(cond.symbols, cond.coefs):
                     if symbol == 1:
                         constant = coef
                         continue
-                    el = str(symbol)[2:]
-                    el_idx = list(nonvacant_elements).index(el)
-                    coefs[el_idx] = coef
+                    coefs = coefs + coef * component_basis_inv_T[basis_row(symbol.species)]
                 if cond.denominator == 1:
-                    prescribed_mole_fraction_rhs.append(value - float(constant))
+                    coefs = coefs - (value - float(constant)) * inv_T_colsum
                 else:
-                    # Adjust coefficients to account for molar ratio
-                    prescribed_mole_fraction_rhs.append(-float(constant))
-                    denominator_idx = cond.symbols.index(cond.denominator)
-                    coefs[denominator_idx] -= value
+                    coefs = coefs - value * component_basis_inv_T[basis_row(cond.denominator.species)]
+                prescribed_mole_fraction_rhs.append(0.0)
                 prescribed_mole_fraction_coefficients.append(coefs)
             elif isinstance(cond, Moles) or (isinstance(cond, str) and (cond == 'N' or cond.startswith('N_'))):
                 # Extensive: total N (species is None) or component N(i). Conditions may be
                 # keyed by a Moles object or by string ('N', 'N_<EL>'). Total moles exposes no
                 # `species` attribute, so probe defensively with getattr.
                 if isinstance(cond, Moles):
-                    if getattr(cond, 'phase_name', None) is not None:
-                        raise ConditionError(f'Phase-local moles condition {cond} is not supported')
+                    # Phase-local moles are rejected upstream (Conditions); a direct Solver
+                    # caller is backstopped by set_local_conditions / build_phase_local_constraints.
                     cond_species = getattr(cond, 'species', None)
                 else:
                     # cond must be a string per outer elif
                     cond_species = None if cond == 'N' else cast(str, cond)[2:]
-                coefs = np.zeros(num_components)
                 if cond_species is None:
-                    coefs[:] = 1.0  # total N: sum of all component amounts
+                    coefs = np.ones(num_components)  # total N: total moles of atoms (basis-independent)
                 else:
-                    coefs[list(nonvacant_elements).index(str(cond_species))] = 1.0  # N(species)
+                    # N(c) = (S^T)^-1[c,:] . n_elem  (a unit vector for a pure-element basis)
+                    coefs = component_basis_inv_T[basis_row(cond_species)].copy()
                 prescribed_mole_amount_coefficients.append(coefs)
                 prescribed_mole_amount_rhs.append(value)
         prescribed_mole_fraction_coefficients = np.atleast_2d(prescribed_mole_fraction_coefficients)
@@ -143,11 +165,37 @@ class Solver(SolverBase):
             prescribed_mole_amount_coefficients = np.zeros((0, num_components))
         prescribed_mole_amount_rhs = np.array(prescribed_mole_amount_rhs, dtype=np.float64)
 
-        fixed_chemical_potential_indices = np.array([nonvacant_elements.index(str(key)[3:]) for key in conditions.keys() if str(key).startswith('MU_')], dtype=np.int32)
+        # MU conditions. For a trivial (pure-element) basis, fix individual element chemical
+        # potentials by index (unchanged). For a redefined basis, MU(component) fixes a linear
+        # combination of element chemical potentials, sum_e constituents[e]*mu_e = value, added
+        # as a constraint row; all element chemical potentials stay free and solved.
+        fixed_chempot_coefs = []
+        fixed_chempot_rhs = []
+        if basis_is_trivial:
+            fixed_chemical_potential_indices = np.array(
+                [nonvacant_elements.index(str(key)[3:]) for key in conditions.keys() if str(key).startswith('MU_')],
+                dtype=np.int32)
+            for fixed_chempot_index in fixed_chemical_potential_indices:
+                el = nonvacant_elements[fixed_chempot_index]
+                chemical_potentials[fixed_chempot_index] = conditions.get(ChemicalPotential(el))
+        else:
+            fixed_chemical_potential_indices = np.array([], dtype=np.int32)
+            for key in conditions.keys():
+                if not isinstance(key, ChemicalPotential):
+                    continue
+                row = np.zeros(num_components)
+                for el, mult in key.species.constituents.items():
+                    if el == 'VA':
+                        continue
+                    row[nonvacant_elements.index(el)] = mult
+                fixed_chempot_coefs.append(row)
+                fixed_chempot_rhs.append(float(np.asarray(conditions[key]).flat[0]))
+        if len(fixed_chempot_coefs) > 0:
+            fixed_chempot_coefs = np.atleast_2d(fixed_chempot_coefs)
+        else:
+            fixed_chempot_coefs = np.zeros((0, num_components))
+        fixed_chempot_rhs = np.array(fixed_chempot_rhs, dtype=np.float64)
         free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(fixed_chemical_potential_indices)), dtype=np.int32)
-        for fixed_chempot_index in fixed_chemical_potential_indices:
-            el = nonvacant_elements[fixed_chempot_index]
-            chemical_potentials[fixed_chempot_index] = conditions.get(ChemicalPotential(el))
         fixed_statevar_indices = []
         for statevar_idx, statevar in enumerate(state_variables):
             if str(statevar) in [str(k) for k in conditions.keys()]:
@@ -161,7 +209,8 @@ class Solver(SolverBase):
                                    prescribed_mole_fraction_rhs,
                                    free_chemical_potential_indices, free_statevar_indices,
                                    fixed_chemical_potential_indices, fixed_statevar_indices,
-                                   fixed_stable_compset_indices)
+                                   fixed_stable_compset_indices,
+                                   fixed_chempot_coefs, fixed_chempot_rhs)
         return spec
 
     @staticmethod

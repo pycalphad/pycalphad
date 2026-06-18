@@ -340,6 +340,19 @@ cdef void fill_equilibrium_system(double[::1,:] equilibrium_matrix, double[::1] 
         amount_residual = np.dot(spec.prescribed_mole_amount_coefficients[amount_cond_idx, :], state.mole_amounts) - spec.prescribed_mole_amount_rhs[amount_cond_idx]
         equilibrium_rhs[amount_row_offset + amount_cond_idx] -= amount_residual
 
+    # MU(component) constraint rows: sum_e coef[e]*mu_e = rhs. Element chemical potentials
+    # are solved absolutely (see solve_state), so the row places the constituent coefficients
+    # in the free-chemical-potential columns with the prescribed value as RHS.
+    cdef int num_chempot_conditions = spec.fixed_chempot_rhs.shape[0]
+    cdef int chempot_row_offset = amount_row_offset + num_mole_amount_conditions
+    cdef int chempot_cond_idx, free_chempot_i, free_chempot_el
+    for chempot_cond_idx in range(num_chempot_conditions):
+        for free_chempot_i in range(spec.free_chemical_potential_indices.shape[0]):
+            free_chempot_el = spec.free_chemical_potential_indices[free_chempot_i]
+            equilibrium_matrix[chempot_row_offset + chempot_cond_idx, free_chempot_i] = \
+                spec.fixed_chempot_coefs[chempot_cond_idx, free_chempot_el]
+        equilibrium_rhs[chempot_row_offset + chempot_cond_idx] = spec.fixed_chempot_rhs[chempot_cond_idx]
+
 
 cdef class SystemSpecification:
     def __init__(self, int num_statevars, int num_components,
@@ -347,7 +360,8 @@ cdef class SystemSpecification:
                    double[::1] initial_chemical_potentials, double[:, ::1] prescribed_mole_fraction_coefficients,
                    double[::1] prescribed_mole_fraction_rhs, int[::1] free_chemical_potential_indices,
                    int[::1] free_statevar_indices, int[::1] fixed_chemical_potential_indices,
-                   int[::1] fixed_statevar_indices, int[::1] fixed_stable_compset_indices):
+                   int[::1] fixed_statevar_indices, int[::1] fixed_stable_compset_indices,
+                   double[:, ::1] fixed_chempot_coefs=None, double[::1] fixed_chempot_rhs=None):
         self.num_statevars = num_statevars
         self.num_components = num_components
         self.prescribed_mole_amount_coefficients = prescribed_mole_amount_coefficients
@@ -360,6 +374,13 @@ cdef class SystemSpecification:
         self.fixed_chemical_potential_indices = fixed_chemical_potential_indices
         self.fixed_statevar_indices = fixed_statevar_indices
         self.fixed_stable_compset_indices = fixed_stable_compset_indices
+        # MU(component) constraints: each row is sum_e coef[e]*mu_e = rhs over element chempots.
+        if fixed_chempot_coefs is None:
+            fixed_chempot_coefs = np.zeros((0, num_components))
+        if fixed_chempot_rhs is None:
+            fixed_chempot_rhs = np.zeros(0)
+        self.fixed_chempot_coefs = fixed_chempot_coefs
+        self.fixed_chempot_rhs = fixed_chempot_rhs
         self.max_num_free_stable_phases = num_components + len(free_statevar_indices) - len(fixed_stable_compset_indices)
 
         # Assuming the prescribed_mole_fraction_rhs doesn't change, this is
@@ -380,7 +401,8 @@ cdef class SystemSpecification:
                 np.array(self.initial_chemical_potentials), np.array(self.prescribed_mole_fraction_coefficients),
                 np.array(self.prescribed_mole_fraction_rhs), np.array(self.free_chemical_potential_indices),
                 np.array(self.free_statevar_indices), np.array(self.fixed_chemical_potential_indices),
-                np.array(self.fixed_statevar_indices), np.array(self.fixed_stable_compset_indices))
+                np.array(self.fixed_statevar_indices), np.array(self.fixed_stable_compset_indices),
+                np.array(self.fixed_chempot_coefs), np.array(self.fixed_chempot_rhs))
     def __setstate__(self, state):
         self.__init__(*state)
 
@@ -694,16 +716,17 @@ cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, 
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln
     cdef int num_stable_phases, num_fixed_phases, num_fixed_mole_fraction_conditions, num_free_variables
-    cdef int num_mole_amount_conditions
+    cdef int num_mole_amount_conditions, num_chempot_conditions
 
     num_stable_phases = state.free_stable_compset_indices.shape[0]
     num_fixed_phases = spec.fixed_stable_compset_indices.shape[0]
     num_fixed_mole_fraction_conditions = spec.prescribed_mole_fraction_rhs.shape[0]
     num_mole_amount_conditions = spec.prescribed_mole_amount_rhs.shape[0]
+    num_chempot_conditions = spec.fixed_chempot_rhs.shape[0]
     num_free_variables = spec.free_chemical_potential_indices.shape[0] + num_stable_phases + \
                          spec.free_statevar_indices.shape[0]
 
-    equilibrium_matrix = np.zeros((num_stable_phases + num_fixed_phases + num_fixed_mole_fraction_conditions + num_mole_amount_conditions + num_reserved_rows,
+    equilibrium_matrix = np.zeros((num_stable_phases + num_fixed_phases + num_fixed_mole_fraction_conditions + num_mole_amount_conditions + num_chempot_conditions + num_reserved_rows,
                                    num_free_variables), order='F')
     equilibrium_rhs = np.zeros(equilibrium_matrix.shape[0])
     if (equilibrium_matrix.shape[0] != equilibrium_matrix.shape[1]):

@@ -33,6 +33,9 @@ cdef class SystemSpecification:
     cdef double[:,::1] prescribed_mole_amount_coefficients
     cdef int[::1] free_chemical_potential_indices, free_statevar_indices
     cdef int[::1] fixed_chemical_potential_indices, fixed_statevar_indices, fixed_stable_compset_indices
+    # MU(component) constraints: each row is sum_e coef[e]*mu_e = rhs over element chemical potentials
+    cdef double[:,::1] fixed_chempot_coefs
+    cdef double[::1] fixed_chempot_rhs
     cpdef bint check_convergence(self, SystemState state)
     cpdef bint pre_solve_hook(self, SystemState state)
     cpdef bint post_solve_hook(self, SystemState state)

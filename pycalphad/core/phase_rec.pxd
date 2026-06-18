@@ -61,6 +61,12 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object components
     cdef public object pure_elements
     cdef public object nonvacant_elements
+    cdef public object basis_components
+    cdef public object basis_component_index
+    cdef public object component_basis
+    cdef public object component_basis_inv_T
+    cdef public object component_molar_masses
+    cdef public bint basis_is_trivial
     cdef public double[::1] molar_masses
     cdef public double[::1] parameters
     cdef public int phase_dof
