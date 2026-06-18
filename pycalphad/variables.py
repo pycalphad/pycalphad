@@ -1011,10 +1011,10 @@ class Moles(StateVariable):
     Number of moles of atoms in the system.
 
     Construct via:
-      ``Moles()``                -> total system moles (returns a ``SystemMolesType``)
-      ``Moles('AL')``            -> moles of a component (symbol ``N_AL``)
-      ``Moles('FCC_A1', 'AL')``  -> phase-local moles of a component; valid to construct
-                                    (like ``X('FCC_A1', 'AL')``) but not yet a solver condition
+
+    * ``Moles()``                -> total system moles (returns a ``SystemMolesType``)
+    * ``Moles('AL')``            -> moles of a component (symbol ``N_AL``)
+    * ``Moles('FCC_A1', 'AL')``  -> phase-local moles of a component; valid to construct (like ``X('FCC_A1', 'AL')``) but not yet a solver condition
     """
     implementation_units = 'mol'
     display_units = 'mol'
