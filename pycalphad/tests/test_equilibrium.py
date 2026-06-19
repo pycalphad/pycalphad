@@ -830,6 +830,24 @@ def test_MQMQA_equilibrium_binary_G_mixing(load_database):
     assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25, 0.5, 0.25])  # Thermochimica result
 
 
+@select_database("MQMQA-tern-tests-Bvariant.dat")
+def test_MQMQA_bragg_williams_oracle_vs_thermochimica(load_database):
+    """Bragg-Williams (code `B`) excess validated against compiled Thermochimica (pycalphad#403).
+
+    MQMQA-tern-tests-Bvariant.dat is MQMQA-tern-tests.dat with phase L_SUBG_1's single
+    excess parameter changed from code `G` to `B` (only that one line differs). Running
+    Thermochimica (ORNL-CEES, master) on the same phase at Cu0.5Ni0.5/1000 K gives an
+    integral Gibbs energy of -2.45131E+04 J. The unmodified G case is the existing
+    test_MQMQA_equilibrium_binary_G_mixing (-2.26381E+04), which this Thermochimica build
+    also reproduces exactly, so the oracle setup is trustworthy.
+    """
+    dbf = load_database()
+    comps = ['CU', 'NI', 'VA']
+    eq = equilibrium(dbf, comps, ['L_SUBG_1'], {v.P: 101325, v.T: 1000, v.N: 1, v.X('NI'): 0.5})
+    assert np.all(eq.Phase.squeeze() == ['L_SUBG_1', '', ''])
+    assert np.isclose(eq.GM.values.squeeze(), -2.45131E+04, rtol=1e-4)  # Thermochimica result
+
+
 @select_database("MQMQA-tern-tests.dat")
 def test_MQMQA_equilibrium_binary_Q_mixing(load_database):
     """Binary mixing with mixing code `Q`"""
