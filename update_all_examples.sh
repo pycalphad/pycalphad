@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # make sure to run this script from the root directory of the project
 
 pushd examples
