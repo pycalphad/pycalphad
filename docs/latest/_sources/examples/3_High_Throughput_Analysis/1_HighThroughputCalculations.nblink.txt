@@ -1,0 +1,3 @@
+{
+    "path": "../../../examples/3_High_Throughput_Analysis/1_HighThroughputCalculations.ipynb"
+}

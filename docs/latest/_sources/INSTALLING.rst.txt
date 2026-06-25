@@ -1,5 +1,5 @@
 =================
-Install pycalphad
+Install PyCalphad
 =================
 
 .. raw:: html

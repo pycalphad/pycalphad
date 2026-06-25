@@ -1,0 +1,3 @@
+{
+    "path": "../../../examples/1_Phase_Diagrams/2_TernaryExamples.ipynb"
+}
