@@ -285,13 +285,11 @@ def _compute_phase_values(components, statevar_dict, str_phase_local_conditions,
             phase_output = broadcast_to(phase_output, points.shape[:-1])
         if isinstance(phase_compositions, (float, int)):
             phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
-        phase_output = np.asarray(phase_output, dtype=np.float64)
         if parameter_array_length <= 1:
-            phase_output.shape = points.shape[:-1]
+            phase_output = np.asarray(phase_output, dtype=np.float64).reshape(points.shape[:-1])
         else:
-            phase_output.shape = points.shape[:-1] + (parameter_array_length,)
-        phase_compositions = np.asarray(phase_compositions, dtype=np.float64)
-        phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
+            phase_output = np.asarray(phase_output, dtype=np.float64).reshape(points.shape[:-1] + (parameter_array_length,))
+        phase_compositions = np.asarray(phase_compositions, dtype=np.float64).reshape(points.shape[:-1] + (len(pure_elements),))
     else:
         # We still need phase_output and phase_compositions to have the correct dimensions
         # even if there were no points in case fake_points are added (as they will be
