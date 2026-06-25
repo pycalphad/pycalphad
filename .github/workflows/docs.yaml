@@ -22,7 +22,7 @@ jobs:
       - run: sudo dpkg -i pandoc-2.18-1-amd64.deb
       - run: uv sync --dev
       - name: Update all examples
-        run: bash update_all_examples.sh
+        run: bash tools/execute-all-example-notebooks.sh
       - run: uv run sphinx-build -W -b html docs docs/_build/html
       # Upload documentation html directory
       - uses: actions/upload-artifact@v7

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# make sure to run this script from the root directory of the project
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-pushd examples
+pushd "$ROOT_DIR/examples"
 rm -rf .ipynb_checkpoints
 
 currentPythonWarnings=$PYTHONWARNINGS
@@ -18,9 +18,7 @@ find . -type d | sort | while read dir; do
     notebooks=$(find . -maxdepth 1 -type f -name "*.ipynb" | sort)
     if [ -n "$notebooks" ]; then
         echo "$notebooks" | while read notebook; do
-            echo -e "\nUpdating $notebook\n"
-            uv run jupyter nbconvert --to notebook --execute "$notebook" --output "$notebook"
-            uv run nb-clean clean "$notebook" --preserve-notebook-metadata --preserve-cell-outputs --preserve-execution-counts --remove-empty-cells
+            $ROOT_DIR/tools/execute-example-notebook.sh "$notebook"
         done
     fi
     cd - > /dev/null

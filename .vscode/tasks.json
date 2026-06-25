@@ -19,7 +19,7 @@
         {
             "label": "build and serve docs",
             "type": "shell",
-            "command": "bash build-docs-locally.sh",
+            "command": "bash tools/build-docs.sh",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -45,7 +45,7 @@
         {
             "label": "serve pre-built docs",
             "type": "shell",
-            "command": "bash serve-pre-built-docs.sh",
+            "command": "bash tools/serve-docs.sh",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -58,7 +58,7 @@
         {
             "label": "Update all examples",
             "type": "shell",
-            "command": "bash update_all_examples.sh",
+            "command": "bash tools/execute-all-example-notebooks.sh",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -71,7 +71,7 @@
         {
             "label": "Update current example",
             "type": "shell",
-            "command": "bash update_current_example.sh \"${file}\"",
+            "command": "bash tools/execute-example-notebook.sh \"${file}\"",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

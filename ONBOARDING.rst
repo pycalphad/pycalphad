@@ -106,7 +106,7 @@ To build a local copy of the pycalphad website using the code repository, follow
 
 .. code-block:: bash
 
-    bash build-docs-locally.sh
+    bash tools/build-docs.sh
 
 3. Or use command `Run tasks in VS Code`_ and select the task named ``build and serve docs`` to run the same command as above.
 
