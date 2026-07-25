@@ -77,6 +77,15 @@ dev = [
     "wheel",
 ]
 
+[tool.uv]
+cache-keys = [
+    { file = "pyproject.toml" },
+    # ensure we rebuild if our Cython files or build script changes
+    { file = "setup.py" },
+    { file = "**/*.pyx" },
+    { file = "**/*.pxd" },
+]
+
 [tool.setuptools]
 # Do not include pycalphad._dev here as it should not be distributed
 packages = [
