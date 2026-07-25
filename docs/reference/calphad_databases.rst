@@ -10,7 +10,7 @@ They are commonly stored and distributed in the following formats:
 - Emerging XML-based formats (`PyCalphad-XML <https://github.com/pycalphad/pycalphad-xml>`_, `XTDB <https://doi.org/10.1016/j.calphad.2025.102849>`_, `ThermML <https://github.com/flotang-gtt/ThermML>`_)
 
 PyCalphad natively has ability parse databases saved with the file extension ``.tdb`` or ``.dat``.
-It can be extended via a plugin system to understand other formats (see `PyCalphad-XML <https://github.com/pycalphad/pycalphad-xml>`_, which is deployed as a plugin that allows PyCalphad to understand the `.xml` extension).
+It can be extended via a plugin system to understand other formats (see `PyCalphad-XML <https://github.com/pycalphad/pycalphad-xml>`_, which is deployed as a plugin that allows PyCalphad to understand the ``.xml`` extension).
 These files are read by PyCalphad by importing and creating an instance of the ``Database`` class:
 
 .. code-block:: python
