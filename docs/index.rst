@@ -31,14 +31,24 @@ The newest stable version can be found on `PyPI`_.
    :maxdepth: 1
 
    INSTALLING
-   faq
    CHANGES
 
 .. toctree::
    :maxdepth: 2
    :caption: How-to
 
-   examples/index
+   examples/1_Phase_Diagrams/index
+   examples/2_Computing_Properties/index
+   examples/3_High_Throughput_Analysis/index
+   examples/4_Metastability_Reference_States/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Reference
+
+   reference/calphad_databases
+   reference/faq
 
 .. toctree::
    :maxdepth: 1
