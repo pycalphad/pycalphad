@@ -3,11 +3,11 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="1. Phase Diagrams" href="1_Phase_Diagrams/index.html"><link rel="prev" title="Release Notes" href="../CHANGES.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="FAQ" href="faq.html"><link rel="prev" title="Special _MIX Reference State" href="../examples/4_Metastability_Reference_States/4_LegacyReferenceState.html">
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Examples - pycalphad 0.11.3.dev10+gf4fdd2ff3 documentation</title>
+        <title>Calphad Databases - pycalphad 0.11.3.dev11+g512114b2b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.3.dev10+gf4fdd2ff3 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.3.dev11+g512114b2b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev10+gf4fdd2ff3 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev11+g512114b2b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -196,60 +196,61 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul>
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Install PyCalphad</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">Release Notes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How-to</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/1_Phase_Diagrams/index.html">Phase Diagrams</a><input aria-label="Toggle navigation of Phase Diagrams" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/1_Phase_Diagrams/1_BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/1_Phase_Diagrams/2_TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/1_Phase_Diagrams/3_Mapping.html">Plotting using the Mapping API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/1_Phase_Diagrams/4_ChargedPhases.html">Phases with Electrically Charged Species</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/2_Computing_Properties/index.html">Computing Properties</a><input aria-label="Toggle navigation of Computing Properties" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2_Computing_Properties/1_PhaseCompositions.html">Phase Fractions and Phase Compositions vs Temperature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2_Computing_Properties/2_GibbsAtConcentration.html">Gibbs Energy of Each Phase at Fixed Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2_Computing_Properties/3_CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2_Computing_Properties/4_EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2_Computing_Properties/5_ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2_Computing_Properties/6_LegacyEnergySurface.html">Calculating Energy Surfaces [Legacy Method]</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/3_High_Throughput_Analysis/index.html">High Throughput Analysis</a><input aria-label="Toggle navigation of High Throughput Analysis" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/3_High_Throughput_Analysis/1_HighThroughputCalculations.html">High-throughput Calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/3_High_Throughput_Analysis/2_UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/3_High_Throughput_Analysis/3_ScreeningPhaseStability.html">Screening for Phase Stability</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/4_Metastability_Reference_States/index.html">Metastability and Reference States</a><input aria-label="Toggle navigation of Metastability and Reference States" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/4_Metastability_Reference_States/1_ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/4_Metastability_Reference_States/2_Metastability.html">Metastability calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/4_Metastability_Reference_States/3_PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/4_Metastability_Reference_States/4_LegacyReferenceState.html">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="current">
-<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Examples</a><input aria-label="Toggle navigation of Examples" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="1_Phase_Diagrams/index.html">1. Phase Diagrams</a><input aria-label="Toggle navigation of 1. Phase Diagrams" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="1_Phase_Diagrams/1_BinaryExamples.html">1.1. Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="1_Phase_Diagrams/2_TernaryExamples.html">1.2. Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="1_Phase_Diagrams/3_Mapping.html">1.3. Plotting using the Mapping API</a></li>
-<li class="toctree-l3"><a class="reference internal" href="1_Phase_Diagrams/4_ChargedPhases.html">1.4. Phases with Electrically Charged Species</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="2_Computing_Properties/index.html">2. Computing Properties</a><input aria-label="Toggle navigation of 2. Computing Properties" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="2_Computing_Properties/1_PhaseCompositions.html">2.1. Phase Fractions and Phase Compositions vs Temperature</a></li>
-<li class="toctree-l3"><a class="reference internal" href="2_Computing_Properties/2_GibbsAtConcentration.html">2.2. Gibbs Energy of Each Phase at Fixed Composition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="2_Computing_Properties/3_CementiteAnalysis.html">2.3. Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="2_Computing_Properties/4_EquilibriumWithOrdering.html">2.4. Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="2_Computing_Properties/5_ViscosityModel.html">2.5. Custom Models in pycalphad: Viscosity</a></li>
-<li class="toctree-l3"><a class="reference internal" href="2_Computing_Properties/6_LegacyEnergySurface.html">2.6. Calculating Energy Surfaces [Legacy Method]</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="3_High_Throughput_Analysis/index.html">3. High Throughput Analysis</a><input aria-label="Toggle navigation of 3. High Throughput Analysis" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="3_High_Throughput_Analysis/1_HighThroughputCalculations.html">3.1. High-throughput Calculations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="3_High_Throughput_Analysis/2_UsingCalculationResults.html">3.2. Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="3_High_Throughput_Analysis/3_ScreeningPhaseStability.html">3.3. Screening for Phase Stability</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="4_Metastability_Reference_States/index.html">4. Metastability and Reference States</a><input aria-label="Toggle navigation of 4. Metastability and Reference States" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="4_Metastability_Reference_States/1_ReferenceStateExamples.html">4.1. Calculations with Reference States</a></li>
-<li class="toctree-l3"><a class="reference internal" href="4_Metastability_Reference_States/2_Metastability.html">4.2. Metastability calculations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="4_Metastability_Reference_States/3_PlotActivity.html">4.3. Calculate and Plot Activity</a></li>
-<li class="toctree-l3"><a class="reference internal" href="4_Metastability_Reference_States/4_LegacyReferenceState.html">4.4. Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Calphad Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing PyCalphad</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer/onboarding.html">Onboarding as a Developer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to PyCalphad</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api/modules.html">API Documentation</a><input aria-label="Toggle navigation of API Documentation" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../api/pycalphad.html">pycalphad package</a><input aria-label="Toggle navigation of pycalphad package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/modules.html">API Documentation</a><input aria-label="Toggle navigation of API Documentation" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/pycalphad.html">pycalphad package</a><input aria-label="Toggle navigation of pycalphad package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.codegen.html">pycalphad.codegen package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.core.html">pycalphad.core package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.io.html">pycalphad.io package</a></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../api/pycalphad.mapping.html">pycalphad.mapping package</a><input aria-label="Toggle navigation of pycalphad.mapping package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/pycalphad.mapping.html">pycalphad.mapping package</a><input aria-label="Toggle navigation of pycalphad.mapping package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/pycalphad.mapping.strategy.html">pycalphad.mapping.strategy package</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../api/pycalphad.models.html">pycalphad.models package</a></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../api/pycalphad.plot.html">pycalphad.plot package</a><input aria-label="Toggle navigation of pycalphad.plot package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/pycalphad.plot.html">pycalphad.plot package</a><input aria-label="Toggle navigation of pycalphad.plot package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../api/pycalphad.plot.binary.html">pycalphad.plot.binary package</a></li>
 </ul>
 </li>
@@ -278,7 +279,7 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="../_sources/examples/index.rst.txt" title="View this page">
+  <a class="muted-link" href="../_sources/reference/calphad_databases.rst.txt" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
@@ -291,46 +292,45 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="examples">
-<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="1_Phase_Diagrams/index.html">1. Phase Diagrams</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="1_Phase_Diagrams/1_BinaryExamples.html">1.1. Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_Phase_Diagrams/2_TernaryExamples.html">1.2. Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_Phase_Diagrams/3_Mapping.html">1.3. Plotting using the Mapping API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_Phase_Diagrams/4_ChargedPhases.html">1.4. Phases with Electrically Charged Species</a></li>
+          <section id="calphad-databases">
+<h1>Calphad Databases<a class="headerlink" href="#calphad-databases" title="Link to this heading">¶</a></h1>
+<p>Calphad database files contain model parameters for Gibbs energy and thermophysical properties of indvididual phases.
+They are commonly stored and distributed in the following formats:</p>
+<ul class="simple">
+<li><p>Thermodynamic DataBase (<code class="docutils literal notranslate"><span class="pre">.tdb</span></code>) format (most common for open databases)</p></li>
+<li><p>ChemSage (<code class="docutils literal notranslate"><span class="pre">.dat</span></code>) format</p></li>
+<li><p>Commercial encrypted databases (not able to be read by PyCalphad)</p></li>
+<li><p>Emerging XML-based formats (<a class="reference external" href="https://github.com/pycalphad/pycalphad-xml">PyCalphad-XML</a>, <a class="reference external" href="https://doi.org/10.1016/j.calphad.2025.102849">XTDB</a>, <a class="reference external" href="https://github.com/flotang-gtt/ThermML">ThermML</a>)</p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="2_Computing_Properties/index.html">2. Computing Properties</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="2_Computing_Properties/1_PhaseCompositions.html">2.1. Phase Fractions and Phase Compositions vs Temperature</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_Computing_Properties/2_GibbsAtConcentration.html">2.2. Gibbs Energy of Each Phase at Fixed Composition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_Computing_Properties/3_CementiteAnalysis.html">2.3. Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_Computing_Properties/4_EquilibriumWithOrdering.html">2.4. Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_Computing_Properties/5_ViscosityModel.html">2.5. Custom Models in pycalphad: Viscosity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2_Computing_Properties/6_LegacyEnergySurface.html">2.6. Calculating Energy Surfaces [Legacy Method]</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="3_High_Throughput_Analysis/index.html">3. High Throughput Analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="3_High_Throughput_Analysis/1_HighThroughputCalculations.html">3.1. High-throughput Calculations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_High_Throughput_Analysis/2_UsingCalculationResults.html">3.2. Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_High_Throughput_Analysis/3_ScreeningPhaseStability.html">3.3. Screening for Phase Stability</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="4_Metastability_Reference_States/index.html">4. Metastability and Reference States</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="4_Metastability_Reference_States/1_ReferenceStateExamples.html">4.1. Calculations with Reference States</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4_Metastability_Reference_States/2_Metastability.html">4.2. Metastability calculations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4_Metastability_Reference_States/3_PlotActivity.html">4.3. Calculate and Plot Activity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="4_Metastability_Reference_States/4_LegacyReferenceState.html">4.4. Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
-</ul>
-</li>
-</ul>
+<p>PyCalphad natively has ability parse databases saved with the file extension <code class="docutils literal notranslate"><span class="pre">.tdb</span></code> or <code class="docutils literal notranslate"><span class="pre">.dat</span></code>.
+It can be extended via a plugin system to understand other formats (see <a class="reference external" href="https://github.com/pycalphad/pycalphad-xml">PyCalphad-XML</a>, which is deployed as a plugin that allows PyCalphad to understand the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> extension).
+These files are read by PyCalphad by importing and creating an instance of the <code class="docutils literal notranslate"><span class="pre">Database</span></code> class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s2">&quot;path/to/database.tdb&quot;</span><span class="p">)</span>
+</pre></div>
 </div>
+<section id="obtaining-calphad-databases">
+<h2>Obtaining Calphad Databases<a class="headerlink" href="#obtaining-calphad-databases" title="Link to this heading">¶</a></h2>
+<p>It is increasingly common (and required by some journals) for authors to publish their database files in Calphad assessment papers.
+In the case they are not published, they can usually be constructed by hand from tables of model parameters in the assessment papers.</p>
+<p>Many database files have been indexed and made availale through various community efforts (in no particular order):</p>
+<ul class="simple">
+<li><p>The <a class="reference external" href="https://avdwgroup.engin.brown.edu/">TDBDB</a> can be used to search for TDB included with publications</p></li>
+<li><p><a class="reference external" href="https://cpddb.nims.go.jp">NIMS</a> (registration required) provides a collection of binary and ternary databases</p></li>
+<li><p><a class="reference external" href="https://materialsdata.nist.gov/handle/11256/8">NIST Materials Data</a> repository contains databases deposited by authors</p></li>
+<li><p><a class="reference external" href="https://www.metallurgy.nist.gov/phase/solder/solder.html">NIST solder database</a></p></li>
+<li><p><a class="reference external" href="https://www.innomat.se/thermodynamic-databases/">Innomat AB</a> provide several multi-component databases</p></li>
+<li><p><a class="reference external" href="https://www.matcalc.at/index.php/databases/open-databases">MatCalc</a> provide several multi-component databases</p></li>
+<li><p><a class="reference external" href="https://github.com/mfrichtl/librecalphad">LibreCalphad</a> maintained by Matt Frichtl contains a multi-component steel database</p></li>
+<li><p><a class="reference external" href="https://phasediagrams.org">PhaseDiagrams.org</a> provides a browsable set of binary assessments, mostly populated by the <a class="reference external" href="https://doi.org/10.1016/j.calphad.2025.102833">SGTE binary collection by Bengt Hallstedt</a>.</p></li>
+</ul>
+<p>If you would like to perform your own Calphad assessments using PyCalphad, check out <a class="reference external" href="https://espei.org/">ESPEI</a>!</p>
+</section>
 </section>
 
         </article>
@@ -338,23 +338,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="1_Phase_Diagrams/index.html">
+          <a class="next-page" href="faq.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title"><span class="section-number">1. </span>Phase Diagrams</div>
+                <div class="title">FAQ</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../CHANGES.html">
+          <a class="prev-page" href="../examples/4_Metastability_Reference_States/4_LegacyReferenceState.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Release Notes</div>
+                <div class="title">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</div>
                 
               </div>
             </a>
@@ -376,18 +376,35 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Calphad Databases</a><ul>
+<li><a class="reference internal" href="#obtaining-calphad-databases">Obtaining Calphad Databases</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=383b2ae0"></script>
+</div><script src="../_static/documentation_options.js?v=fa5159b3"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>
