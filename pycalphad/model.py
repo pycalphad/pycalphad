@@ -563,7 +563,27 @@ class Model(object):
             for idx, (sublattice, site_ratio) in enumerate(zip(self.constituents, self.site_ratios)):
                 total_charge += sum(v.SiteFraction(self.phase_name, idx, spec) * spec.charge * site_ratio
                                     for spec in sublattice)
-            constraints.append(total_charge)
+            # If every constituent of a sublattice carries the same charge, then the charge
+            # contributed by that sublattice is a constant multiple of its site fraction sum and
+            # the charge balance constraint is a linear combination of the site fraction balance
+            # constraints added above. Such a phase is electroneutral for any set of site
+            # fractions, provided the (constant) net charge of the endmember is zero.
+            # Stoichiometric ionic compounds, e.g. (TI+2)(O-2), are the common case.
+            # A linearly dependent constraint makes the phase matrix in the energy minimizer
+            # singular, which gives a garbage Newton step, so it must not be added.
+            # Note that the net charge is _not_ zero for a phase that can never be
+            # electroneutral, e.g. (LA+3,Y+3)2(O-2)6. In that case the constraint is still
+            # dependent, but inconsistent, so it is kept to preserve the infeasibility (which is
+            # detected downstream, when no feasible site fractions can be sampled).
+            sublattice_charges = [{spec.charge for spec in sublattice} for sublattice in self.constituents]
+            if all(len(charges) == 1 for charges in sublattice_charges):
+                net_charge = sum(next(iter(charges)) * site_ratio
+                                 for charges, site_ratio in zip(sublattice_charges, self.site_ratios))
+                charge_balance_is_redundant = np.isclose(float(net_charge), 0.0)
+            else:
+                charge_balance_is_redundant = False
+            if not charge_balance_is_redundant:
+                constraints.append(total_charge)
         return constraints
 
 
