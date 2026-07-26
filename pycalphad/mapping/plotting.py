@@ -34,12 +34,12 @@ def get_label(var: v.StateVariable):
         else:
             return f'Phase Fraction ({var.phase_name})'
     elif isinstance(var, v.X):
-        if var.phase_name is None:
+        if var.phase_name is None or var.phase_name == "*":
             return f'X({var.species.name.capitalize()})'
         else:
             return f'X({var.phase_name}, {var.species.name.capitalize()})'
     elif isinstance(var, v.W):
-        if var.phase_name is None:
+        if var.phase_name is None or var.phase_name == "*":
             return f'W({var.species.name.capitalize()})'
         else:
             return f'W({var.phase_name}, {var.species.name.capitalize()})'
