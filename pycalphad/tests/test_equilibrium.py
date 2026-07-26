@@ -1131,3 +1131,24 @@ def test_MQMQA_reciprocal_interaction_parameter_Dixon(load_database):
     print('Y', eq.Y.values.squeeze())
     print('Phase', eq.Phase.values.squeeze())
     assert_allclose(eq.GM.values.squeeze(), -229356.0, atol=5)  # FactSage result
+
+@pytest.mark.solver
+@select_database("TiO-17Yan.tdb")
+def test_charged_stoichiometric_phases_converge(load_database):
+    """Two-phase equilibrium between stoichiometric charged compounds converges (gh-712)"""
+    # The charge balance constraint of a stoichiometric ionic compound is a linear
+    # combination of its site fraction balance constraints. Adding it made the phase
+    # matrix singular, so the minimizer inverted it into garbage and never converged.
+    # The charged phases here are identical to the uncharged TI3O2NC/TIO_ALPHANC pair
+    # except for the charges of their constituents, so both must give the same answer.
+    dbf = load_database()
+    comps = ["TI", "O", "VA"]
+    conds = {v.P: 1e5, v.N: 1, v.T: 620.0, v.X("O"): 0.41}
+
+    eq = equilibrium(dbf, comps, ["TI3O2", "TIO_ALPHA"], conds)
+
+    assert np.all(np.isfinite(eq.GM.values))
+    assert_allclose(eq.GM.values, -241451.22198839)
+    stable_amounts = eq.NP.values.squeeze()
+    assert_allclose(np.sort(stable_amounts[~np.isnan(stable_amounts)]), [0.1, 0.9], atol=1e-8)
+    assert_allclose(eq.MU.values.squeeze(), [-486633.66127366, -71070.20485795])

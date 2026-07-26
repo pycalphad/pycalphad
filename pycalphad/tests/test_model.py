@@ -261,3 +261,84 @@ def test_error_raised_for_higher_order_reciprocal_parameter():
     # Check that a model with a higher order reciprocal parameter > 2 throws an error
     with pytest.raises(ValueError):
         mod = Model(dbf, ["MO", "NB", "C", "VA"], "PHASE_HIGH_ORDER")
+
+
+def test_redundant_charge_balance_constraint_is_not_added():
+    """Charge balance is skipped when it is implied by the site fraction balances (gh-712)"""
+    # A charge balance constraint that is a linear combination of the site fraction
+    # balance constraints makes the phase matrix in the energy minimizer singular, so it
+    # must not be added. That happens whenever every constituent of a sublattice carries
+    # the same charge, since then the charge of each sublattice is a fixed multiple of
+    # that sublattice's site fraction sum.
+    CHARGED_TDB = """
+     ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+     ELEMENT TI   HCP_A3                    4.7880E+01  4.8240E+03  3.0720E+01!
+
+     SPECIES O-2                         O1/-2!
+     SPECIES VA-2                        VA1/-2!
+     SPECIES TI+2                        TI1/+2!
+     SPECIES TI+3                        TI1/+3!
+     SPECIES TI+4                        TI1/+4!
+
+     $ Stoichiometric ionic compound: charge balance is redundant
+     PHASE TIO_ALPHA % 2 1 1 !
+     CONSTITUENT TIO_ALPHA : TI+2 : O-2 : !
+
+     $ Mixing on the anion sublattice, but both constituents have the same charge,
+     $ so charge balance is still redundant
+     PHASE RUTILE % 2 1 2 !
+     CONSTITUENT RUTILE : TI+4 : O-2,VA-2 : !
+
+     $ Mixed valence on the cation sublattice: charge balance is independent
+     PHASE B1_OXIDE % 2 1 1 !
+     CONSTITUENT B1_OXIDE : TI+2,TI+3 : O-2 : !
+
+     $ Neutral vacancies break the constant-charge-per-sublattice pattern
+     PHASE HALITE % 2 1 1 !
+     CONSTITUENT HALITE : TI+2,VA : O-2 : !
+    """
+    dbf = Database(CHARGED_TDB)
+    comps = ["TI", "O", "VA"]
+
+    def constraint_jacobian(mod):
+        constraints = mod.get_internal_constraints()
+        return np.array([[float(cons.diff(dof)) for dof in mod.site_fractions] for cons in constraints])
+
+    for phase_name, expect_charge_balance in [("TIO_ALPHA", False), ("RUTILE", False),
+                                              ("B1_OXIDE", True), ("HALITE", True)]:
+        mod = Model(dbf, comps, phase_name)
+        constraints = mod.get_internal_constraints()
+        num_sublattices = len(mod.constituents)
+        assert len(constraints) == num_sublattices + int(expect_charge_balance), \
+            f"{phase_name} should{'' if expect_charge_balance else ' not'} have a charge balance constraint"
+        # The internal constraints must always be linearly independent, otherwise the
+        # phase matrix in the energy minimizer is singular
+        jac = constraint_jacobian(mod)
+        assert np.linalg.matrix_rank(jac) == jac.shape[0], f"{phase_name} constraints are linearly dependent"
+
+
+def test_inconsistent_charge_balance_constraint_is_kept():
+    """A phase that can never be electroneutral keeps its (infeasible) charge balance constraint"""
+    # The charge balance of (LA+3)2(O-2)6 is linearly dependent on the site fraction
+    # balances, but unlike the redundant case it is also inconsistent with them: the net
+    # charge is -6 for any site fractions. Dropping it would silently turn an impossible
+    # phase into a feasible one, so it is kept and the infeasibility is detected when no
+    # feasible site fractions can be sampled.
+    INFEASIBLE_TDB = """
+     ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+     ELEMENT LA   DHCP                      1.3891E+02  6.6665E+03  5.6902E+01!
+
+     SPECIES O-2                         O1/-2!
+     SPECIES LA+3                        LA1/+3!
+
+     PHASE IMPOSSIBLE % 2 2 6 !
+     CONSTITUENT IMPOSSIBLE : LA+3 : O-2 : !
+    """
+    dbf = Database(INFEASIBLE_TDB)
+    mod = Model(dbf, ["LA", "O", "VA"], "IMPOSSIBLE")
+    constraints = mod.get_internal_constraints()
+    assert len(constraints) == len(mod.constituents) + 1

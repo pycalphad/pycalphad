@@ -1,0 +1,443 @@
+$
+$ Database for Ti-O from Y. Yang et al. 2017.
+$
+$ Y. Yang, H. Mao, H.-L. Chen, M. Selleby, J. Alloys Compd., 722, 365-74(2017).
+$
+$ Dataset created 2017.01.09 by Bengt Hallstedt.
+$ 2021.02.05: Modified for use with GES6.
+$ 2024.08.06: Corrected sign for L(ION,TIO1.5,TIO2;1).
+$ 2024.08.06: G(RUTILE_C4,TI+4:O-2) corrected.
+$ 2024.08.06: Added missing G(ION,O).
+$ 2024.08.07: Changed phase name HALITE_B1 to B1_OXIDE.
+$ 2024.08.07: G(TI20O39,TI+3:TI+4:O-2) corrected.
+$
+$ Modified from 07Can/15Ham. Associate liquid converted to ionic liquid and
+$ B1_OXIDE modified.
+$
+$ Calculations with the ionic liquid and the associate liquid are identical.
+$
+$ Note that the sign of L(LIQUID,TIO1.5,TIO2;1) changes when the TI1O1.5
+$ species changes name from TIO3/2 to TIO1.5.
+$
+$ The calculated phase diagram is very similar to that of 15Ham.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 298.15 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT /-   ELECTRON_GAS                0.0          0.0      0.0    ! 
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    ! 
+ ELEMENT O    1/2_MOLE_O2(G)             15.999     4341.0    102.52   ! 
+ ELEMENT TI   HCP_A3                     47.88      4824.      30.72   ! 
+$ ------------------------------------------------------------------------------
+$ Species
+$
+ SPECIE  O-2                                O/-2 !
+ SPECIE  O2                                 O2 !
+ SPECIE  O3                                 O3 !
+ SPECIE  TI+2                               TI/+2 !
+ SPECIE  TI+3                               TI/+3 !
+ SPECIE  TI+4                               TI/+4 !
+ SPECIE  TI2                                TI2 !
+ SPECIE  TIO                                TI1O1 !
+ SPECIE  TIO2                               TI1O2 !
+ SPECIE  TIO1.5                             TI1O1.5 !
+ SPECIE  VA-2                               VA/-2 !
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE ION:Y % 2 1 1 !
+ CONST ION:Y : TI+2 : O-2 VA O TIO1.5 TIO2 : !
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : O TI TIO TIO1.5 TIO2 : !
+$
+$ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : TI : O VA% : !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : TI : O VA% : !
+$
+$ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+$
+ PHASE HCP_A3 %A 2 1 0.5 !
+ CONST HCP_A3 : TI : O VA : !
+$
+$ Pearson hP5, P6/mmm (not in Pauling file)
+$
+ PHASE TI3O2:I % 3 2 1 2 !
+ CONST TI3O2:I : TI+2 : TI : O-2 : !
+$
+$ Prototype NaCl (cF8, Fm-3m)
+$
+ PHASE B1_OXIDE:I % 2 1 1 !
+ CONST B1_OXIDE:I : TI TI+2% TI+3 VA : O-2% VA : !
+$
+$ Prototype alpha-TiO (mC20, C2/m)
+$
+ PHASE TIO_ALPHA:I % 2 1 1 !
+ CONST TIO_ALPHA:I : TI+2 : O-2 : !
+$
+$ Prototype alpha-Al2O3 (hR10, R-3c)
+$
+ PHASE CORUNDUM_D51:I %A 2 2 3 !
+ CONST CORUNDUM_D51:I : TI+3 : O-2 : !
+$
+$ Prototype Ti3O5 (mC32, C2/m)
+$
+ PHASE TI3O5:I % 3 2 1 5 !
+ CONST TI3O5:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype Ti4O7 (aP22, P-1)
+$
+ PHASE TI4O7:I % 3 2 2 7 !
+ CONST TI4O7:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype Ti5O9 (aP28, P-1)
+$
+ PHASE TI5O9:I % 3 2 3 9 !
+ CONST TI5O9:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype Ti6O11 (aP34, P-1)
+$
+ PHASE TI6O11:I % 3 2 4 11 !
+ CONST TI6O11:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype Ti7O13 (aP40, P-1)
+$
+ PHASE TI7O13:I % 3 2 5 13 !
+ CONST TI7O13:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype Ti8O15 (aP46, P-1)
+$
+ PHASE TI8O15:I % 3 2 6 15 !
+ CONST TI8O15:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype Ti9O17 (aP52, P-1)
+$
+ PHASE TI9O17:I % 3 2 7 17 !
+ CONST TI9O17:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype Ti10O19 (aP58, P-1)
+$
+ PHASE TI10O19:I % 3 2 8 19 !
+ CONST TI10O19:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype Ti20O39 (aP118, P-1)
+$
+ PHASE TI20O39:I % 3 2 18 39 !
+ CONST TI20O39:I : TI+3 : TI+4 : O-2 : !
+$
+$ Prototype TiO2 (tP6, P4_2/mnm)
+$
+ PHASE RUTILE_C4:I % 2 1 2 !
+ CONST RUTILE_C4:I : TI+4 : O-2 VA-2 : !
+$
+ PHASE GAS:G % 1 1 !
+ CONST GAS:G : O O2% O3 TI TI2 TIO TIO2 : !
+$
+ PHASE O2GAS % 1 1 !
+ CONST O2GAS : O2 : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA /- !
+ DEFAULT-COM REJECT_PHASE LIQUID GAS !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+ FUNCTION ZERO      298.15  0;                                         6000 N !
+ FUNCTION UN_ASS    298.15  0;                                         6000 N !
+ FUNCTION R         298.15  +8.31451;                                  6000 N !
+ FUNCTION RTLNP     298.15  +8.31451*T*LN(1E-05*P);                    6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ O
+$
+ PAR  G(O2GAS,O2),,                     +2*GHSEROO+RTLNP;,,           N 91Din !
+ PAR  G(LIQUID,O),,                     +GHSEROO-2648.9+31.44*T;,,    N 91Din !
+ PAR  G(ION,O),,                        +GHSEROO-2648.9+31.44*T;,,    N 91Din !
+$
+ PAR  G(GAS,O),,                        +O1G+RTLNP;,,                 N 00SUB !
+ PAR  G(GAS,O2),,                       +2*GHSEROO+RTLNP;,,           N 91Din !
+ PAR  G(GAS,O3),,                       +O3G+RTLNP;,,                 N 00SUB !
+$
+ PAR  G(B1_OXIDE,VA:O-2),,              +ZERO;,,                      N 91Sun !
+$
+ FUNCTION GSOLOO    298.15  +GHSEROO+65*T;                             6000 N !
+$ 1/2 O2(g)
+ FUNCTION GHSEROO   298.15  -3480.87-25.503038*T-11.1355*T*LN(T)
+       -0.005098875*T**2+6.61845833E-07*T**3-38365*T**(-1);
+      1000.00  Y  -6568.763+12.659879*T-16.8138*T*LN(T)
+       -5.957975E-04*T**2+6.781E-09*T**3+262905*T**(-1);
+      3300.00  Y  -13986.728+31.259624*T-18.9536*T*LN(T)
+       -4.25243E-04*T**2+1.0721E-08*T**3+4383200*T**(-1);
+      6000.00  N !
+$ O(g)
+ FUNCTION O1G       298.15  +243206.494-20.8612587*T-21.01555*T*LN(T)
+       +1.2687055E-04*T**2-1.23131283E-08*T**3-42897.09*T**(-1);
+      2950.00  Y  +252301.423-52.0847285*T-17.21188*T*LN(T)
+       -5.413565E-04*T**2+7.64520667E-09*T**3-3973170.5*T**(-1);
+      6000.00  N !
+$ O3(g)
+ FUNCTION O3G       298.15  +130696.944-37.9096651*T-27.58118*T*LN(T)
+     -0.02763076*T**2+4.60539333E-06*T**3+99530.45*T**(-1);
+     700.00  Y  +114760.623+176.626736*T-60.10286*T*LN(T)
+     +0.00206456*T**2-5.17486667E-07*T**3+1572175*T**(-1);
+    1300.00  Y  +49468.3958+710.094819*T-134.3696*T*LN(T)
+     +0.039707355*T**2-4.10457667E-06*T**3+12362250*T**(-1);
+    2100.00  Y  +866367.075-3566.80563*T+421.2001*T*LN(T)
+     -0.1284109*T**2+5.44768833E-06*T**3-2.1304835E+08*T**(-1);
+    2800.00  Y  +409416.384-1950.70834*T+223.4437*T*LN(T)
+     -0.0922361*T**2+4.306855E-06*T**3-21589870*T**(-1);
+    3500.00  Y  -1866338.6+6101.13383*T-764.8435*T*LN(T)
+     +0.09852775*T**2-2.59784667E-06*T**3+9.610855E+08*T**(-1);
+    4900.00  Y  +97590.0432+890.79836*T-149.9608*T*LN(T)
+     +0.01283575*T**2-3.555105E-07*T**3-2.1699975E+08*T**(-1);
+    6000.00  N !
+$ ------------------------------------------------------------------------------
+$ Ti
+$
+ PAR  G(HCP_A3,TI:VA),,                 +GHSERTI;                4000 N 91Din !
+ PAR  G(BCC_A2,TI:VA),,                 +GBCCTI;                 4000 N 91Din !
+ PAR  G(FCC_A1,TI:VA),,                 +GHSERTI+6000-0.1*T;     4000 N 91Din !
+$PAR  G(CBCC_A12,TI:VA),,               +GHSERTI+4602.2;         4000 N 91Din !
+$PAR  G(CUB_A13,TI:VA),,                +GHSERTI+7531.2;         4000 N 91Din !
+ PAR  G(LIQUID,TI),,                    +GLIQTI;                 4000 N 91Din !
+$
+ PAR  G(ION,TI+2:VA),,                  +GLIQTI;                 4000 N 91Din !
+$
+ PAR  G(B1_OXIDE,TI:VA),,               +GFCCTI;,,                    N 91Din !
+ PAR  G(B1_OXIDE,TI+2:VA),,             +0.5*GFCCTI+0.5*GTIOX;,,      N 15Ham !
+ PAR  G(B1_OXIDE,TI+3:VA),,             +GFCCTI;,,                    N 15Ham !
+ PAR  L(B1_OXIDE,TI,VA:VA;0),,          +20*T;,,                      N 17Yan !
+$
+ PAR  G(RUTILE_C4,TI+4:VA-2),,          +GHSERTI+40000;,,             N 15Ham !
+$
+ PAR  G(GAS,TI),,                       +F15484T+RTLNP;,,             N 97SUB !
+ PAR  G(GAS,TI2),,                      +F15498T+RTLNP;,,             N 97SUB !
+$
+ FUNCTION GHSERTI   298.15  -8059.921+133.615208*T-23.9933*T*LN(T)
+       -0.004777975*T**2+1.06716E-07*T**3+72636*T**(-1);
+       900.00  Y  -7811.815+132.988068*T-23.9887*T*LN(T)
+       -0.0042033*T**2-9.0876E-08*T**3+42680*T**(-1);
+      1155.00  Y  +908.837+66.976538*T-14.9466*T*LN(T)
+       -0.0081465*T**2+2.02715E-07*T**3-1477660*T**(-1);
+      1941.00  Y  -124526.786+638.806871*T-87.2182461*T*LN(T)
+       +0.008204849*T**2-3.04747E-07*T**3+36699805*T**(-1);
+      4000.00  N !
+ FUNCTION GBCCTI    298.15  -1272.064+134.71418*T-25.5768*T*LN(T)
+       -6.63845E-04*T**2-2.78803E-07*T**3+7208*T**(-1);
+      1155.00  Y  +6667.385+105.366379*T-22.3771*T*LN(T)
+       +0.00121707*T**2-8.4534E-07*T**3-2002750*T**(-1);
+      1941.00  Y  +26483.26-182.426471*T+19.0900905*T*LN(T)
+       -0.02200832*T**2+1.228863E-06*T**3+1400501*T**(-1);
+      4000.00  N !
+ FUNCTION GLIQTI    298.15  +12194.415-6.980938*T+GHSERTI;
+      1300.00  Y  +369519.198-2554.0225*T+342.059267*T*LN(T)
+       -0.163409355*T**2+1.2457117E-05*T**3-67034516*T**(-1);
+      1941.00  Y  -19887.066+298.7367*T-46.29*T*LN(T);
+      4000.00  N !
+ FUNCTION GFCCTI    298.15  +GHSERTI+6000-0.1*T;                       4000 N !
+$ Ti(g)
+ FUNCTION F15484T   298.15  +467609.96-25.791683*T-23.45359*T*LN(T)
+       +0.0026178525*T**2-4.83678833E-07*T**3-101456.95*T**(-1);
+      1800.00  Y  +492971.637-184.379174*T-2.247876*T*LN(T)
+       -0.005476885*T**2+1.10024367E-07*T**3-5945505*T**(-1);
+      4500.00  Y  +364869.208+112.534909*T-36.55164*T*LN(T)
+       -0.0016270125*T**2+3.69943667E-08*T**3+80422300*T**(-1);
+     10000.00  N !
+$ Ti2(g)
+ FUNCTION F15498T   298.15  +804579.989-13.3244352*T-33.852*T*LN(T)
+       -0.01680915*T**2+4.05913E-06*T**3+159805*T**(-1);
+       600.00  Y  +797116.458+109.508535*T-53.131*T*LN(T)
+       +0.00501905*T**2-5.1425E-07*T**3+693380*T**(-1);
+      1500.00  Y  +796667.915+69.736765*T-46.792*T*LN(T)
+       -6.3645E-04*T**2+1.78673333E-07*T**3+2125430*T**(-1);
+      3200.00  Y  +779355.318+192.570831*T-63.044*T*LN(T)
+       +0.00452695*T**2-9.56883333E-08*T**3+2443585*T**(-1);
+      6000.00  N !
+$ ------------------------------------------------------------------------------
+$ Va
+$
+ PAR  G(B1_OXIDE,VA:VA),,               +30*T;,,                      N 15Yan !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ Y. Yang, H. Mao, H.-L. Chen, M. Selleby, J. Alloys Compd., 722, 365-74(2017).
+$
+$ Checked against paper and athor's tdb. Checked at 6000 K.
+$
+$ Modified from 07Can/15Ham. Associate liquid converted to ionic liquid and
+$ B1_OXIDE modified.
+$
+$ Calculations with the ionic liquid and the associate liquid are identical.
+$
+$ Note that the sign of L(LIQUID,TIO1.5,TIO2;1) changes when the TI1O1.5
+$ species changes name from TIO3/2 to TIO1.5.
+$
+$ The calculated phase diagram is very similar to that of 15Ham.
+$
+ PAR  G(ION,TI+2:O-2),,                 +2*GTIOLIQ;,,                 N 07Can !
+ PAR  G(ION,TIO1.5),,                   +0.5*GTI2O3+57073.7-22.8*T;,, N 07Can !
+ PAR  G(ION,TIO2),,                     +GTIO2+61022.4-28.2*T;,,      N 07Can !
+ PAR  L(ION,TI+2:O-2,VA;0),,            +242854.2-146.8*T;,,          N 07Can !
+ PAR  L(ION,TI+2:O-2,VA;1),,            +155467.8-83.8*T;,,           N 07Can !
+ PAR  L(ION,TIO1.5,TIO2;0),,            -19200.8;,,                   N 07Can !
+ PAR  L(ION,TIO1.5,TIO2;1),,            -100402.4+48.6*T;,,           N 07Can !
+$
+ PAR  G(LIQUID,TIO),,                   +GTIOLIQ;,,                   N 07Can !
+ PAR  G(LIQUID,TIO1.5),,                +0.5*GTI2O3+57073.7-22.8*T;,, N 07Can !
+ PAR  G(LIQUID,TIO2),,                  +GTIO2+61022.4-28.2*T;,,      N 07Can !
+ PAR  L(LIQUID,TI,TIO;0),,              +121427.1-73.4*T;,,           N 07Can !
+ PAR  L(LIQUID,TI,TIO;1),,              -77733.9+41.9*T;,,            N 07Can !
+ PAR  L(LIQUID,TIO1.5,TIO2;0),,         -19200.8;,,                   N 07Can !
+ PAR  L(LIQUID,TIO1.5,TIO2;1),,         -100402.4+48.6*T;,,           N 07Can !
+$
+ PAR  G(HCP_A3,TI:O),,                  +GHSERTI+0.5*GHSEROO
+             -277514+40.6543*T;,,                                     N 07Can !
+ PAR  L(HCP_A3,TI:O,VA;0),,             +817.9;,,                     N 07Can !
+$
+ PAR  G(BCC_A2,TI:O),,                  -984174.3+559.8598*T
+             -91.23*T*LN(T)-0.007585*T**2+840000*T**(-1);,,           N 15Ham !
+ PAR  L(BCC_A2,TI:O,VA;0),,             -697161+38.155*T;,,           N 15Ham !
+$
+ PAR  G(TI3O2,TI+2:TI:O-2),,            +3*GHSERTI+2*GHSEROO
+             -1109130.7+195.8524*T;,,                                 N 15Ham !
+$
+ PAR  G(B1_OXIDE,TI:O-2),,              +0.5*GFCCTI+0.5*GTIOX;,,      N 15Ham !
+ PAR  G(B1_OXIDE,TI+2:O-2),,            +GTIOX;,,                     N 15Ham !
+ PAR  G(B1_OXIDE,TI+3:O-2),,            +0.5*GTI2O3
+             +158885.45+15.7134*T;,,                                  N 15Ham !
+ PAR  L(B1_OXIDE,TI,TI+2:O-2;0),,       -76227+18.1321*T;,,           N 17Yan !
+ PAR  L(B1_OXIDE,TI+2,VA:O-2;0),,       -339888+7.3928*T;,,           N 17Yan !
+ PAR  L(B1_OXIDE,TI+3,VA:O-2;0),,       -471462-9.8944*T;,,           N 17Yan !
+ PAR  L(B1_OXIDE,TI+3:O-2,VA;0),,       -436076+42.0674*T;,,          N 17Yan !
+$
+ PAR  G(TIO_ALPHA,TI+2:O-2),,           +GTIO+6687.759+0.9994*T;,,    N 15Ham !
+ PAR  G(CORUNDUM_D51,TI+3:O-2),,        +GTI2O3;,,                    N 15Ham !
+ PAR  G(TI3O5,TI+3:TI+4:O-2),,          +GTI3O5;,,                    N 15Ham !
+ PAR  G(TI4O7,TI+3:TI+4:O-2),,          +GTI4O7;,,                    N 15Ham !
+ PAR  G(TI5O9,TI+3:TI+4:O-2),,          +GTI5O9;,,                    N 15Ham !
+ PAR  G(TI6O11,TI+3:TI+4:O-2),,         +GTI6O11;,,                   N 15Ham !
+ PAR  G(TI7O13,TI+3:TI+4:O-2),,         +GTI7O13;,,                   N 15Ham !
+ PAR  G(TI8O15,TI+3:TI+4:O-2),,         +GTI8O15;,,                   N 15Ham !
+ PAR  G(TI9O17,TI+3:TI+4:O-2),,         +GTI9O17;,,                   N 15Ham !
+ PAR  G(TI10O19,TI+3:TI+4:O-2),,        +GTI10O19;,,                  N 15Ham !
+ PAR  G(TI20O39,TI+3:TI+4:O-2),,        +GTI20O39+93217-44.928*T;,,   N 17Yan !
+$
+ PAR  G(RUTILE_C4,TI+4:O-2),,           +GTIO2+9250-4.355*T;,,        N 17Yan !
+ PAR  L(RUTILE_C4,TI+4:O-2,VA-2;0),,    -90233.9-22.7954*T;,,         N 15Ham !
+ PAR  L(RUTILE_C4,TI+4:O-2,VA-2;1),,    -89395.3-15.9034*T;,,         N 15Ham !
+$
+ PAR  G(GAS,TIO),,                      +F13572T+RTLNP;,,             N 97SUB !
+ PAR  G(GAS,TIO2),,                     +F13946T+RTLNP;,,             N 97SUB !
+$
+$ metastable
+$
+ PAR  G(FCC_A1,TI:O),,                  +GTIOX+63925-3.30751*T;,,     N 97Lee !
+ PAR  L(FCC_A1,TI:O,VA;0),,             -11628+4.99057*T;,,           N 97Lee !
+$
+$PAR  G(V3O5_HT,TI:O),,                 +GTI3O5+8255.3738;,,          N 17Yan !
+$PAR  G(V5O9,TI:O),,                    +GTI5O9
+$            +4357.81+0.46554106*T;,,                                 N 17Yan !
+$
+ FUNCTION GTIOX     298.15  +GHSERTI+GHSEROO-526988+179.303*T
+       -11*T*LN(T);
+      6000.00  N !
+ FUNCTION GTIO      298.15  -551056.766+252.169378*T-41.994808*T*LN(T)
+       -0.00889792452*T**2+1.0970448E-08*T**3+327015.164*T**(-1);
+      6000.00  N !
+ FUNCTION GTI2O3    298.15  -1545045.776+185.96227*T-30.3934128*T*LN(T)
+       -0.099958898*T**2-5.93279345E-06*T**3-117799.056*T**(-1);
+       470.00  Y  -1586585.8+937.087*T-147.673862*T*LN(T)
+       -0.00173711312*T**2-1.53383348E-10*T**3+2395423.68*T**(-1);
+      2115.00  N !
+ FUNCTION GTIO2     298.15  -976986.6+484.74037*T-77.76175*T*LN(T)
+       +1683920*T**(-1)-67156800*T**(-2);
+      6000.00  N !
+ FUNCTION GTIOLIQ   298.15  +GTIO+77671.8-30.7*T;                      6000 N !
+ FUNCTION GTI3O5    298.15  -2493574.81-73.26557*T+23.9073342*T*LN(T)
+       -0.420155188*T**2+1.34740141E-04*T**3;
+       450.00  Y  -2508055.23+925.801*T-158.99208*T*LN(T)-0.0251*T**2;
+      6000.00  N !
+ FUNCTION GTI4O7    298.15  -3322872.12+2125.25*T-328.12018*T*LN(T)
+       -0.0018905269*T**2-1652281.1*T**(-1)+112393020*T**(-2)
+       -39565.448*LN(T);
+      6000.00  N !
+ FUNCTION GTI5O9    298.15  -4300008.12+2608.25*T-406.01398*T*LN(T)
+       -0.0018837486*T**2+8971.0933*T**(-1)+46713032*T**(-2)
+       -39644.622*LN(T);
+      6000.00  N !
+ FUNCTION GTI6O11   298.15  -5276828.48+3091.68*T-483.85327*T*LN(T)
+       -0.001883476*T**2+1692471*T**(-1)-20421628*T**(-2)
+       -39646.437*LN(T);
+      6000.00  N !
+ FUNCTION GTI7O13   298.15  -6253637.01+3575.49*T-561.69079*T*LN(T)
+       -0.0018834938*T**2+3376516.5*T**(-1)-87588297*T**(-2)
+       -39646.136*LN(T);
+      6000.00  N !
+ FUNCTION GTI8O15   298.15  -7230525.75+4059.52*T-639.52544*T*LN(T)
+       -0.0018839308*T**2+5061210.6*T**(-1)-154784060*T**(-2)
+       -39642.745*LN(T);
+      6000.00  N !
+ FUNCTION GTI9O17   298.15  -8207343.14+4543.61*T-717.36806*T*LN(T)
+       -0.0018831257*T**2+6744064.3*T**(-1)-221891200*T**(-2)
+       -39647.955*LN(T);
+      6000.00  N !
+ FUNCTION GTI10O19  298.15  -9184010.72+5027.55*T-795.20328*T*LN(T)
+       -0.0018836103*T**2+8428269.7*T**(-1)-289058860*T**(-2)
+       -39646.1*LN(T);
+      6000.00  N !
+ FUNCTION GTI20O39  298.15  -18950760.45+9867.90281*T-1573.582*T*LN(T)
+       -0.0018830976*T**2+25267204*T**(-1)-960617360*T**(-2)
+       -39647.965*LN(T);
+      6000.00  N !
+$ TiO(g)
+ FUNCTION F13572T   298.15  +45279.4546-44.8816797*T-27.20855*T*LN(T)
+       -0.01130768*T**2+2.093465E-06*T**3+15817.82*T**(-1);
+       800.00  Y  +38441.7462+44.9717334*T-40.8145*T*LN(T)
+       +0.001204741*T**2-1.26287067E-07*T**3+690966.5*T**(-1);
+      2600.00  Y  +78758.7741-116.513546*T-20.67482*T*LN(T)
+       -0.0031585015*T**2+4.49507333E-08*T**3-14168070*T**(-1);
+      4000.00  Y  +107274.032-220.71175*T-7.872196*T*LN(T)
+       -0.00560405*T**2+1.29955033E-07*T**3-25273450*T**(-1);
+      6000.00  N !
+$ TiO2(g)
+ FUNCTION F13946T   298.15  -317236.334-34.3402542*T-31.38*T*LN(T)
+       -0.02810811*T**2+5.84100333E-06*T**3+38666.435*T**(-1);
+       600.00  Y  -326946.95+118.875263*T-55.31666*T*LN(T)
+       -0.0013442355*T**2+1.16887017E-07*T**3+791905.5*T**(-1);
+      1800.00  Y  -335731.446+173.772851*T-62.65958*T*LN(T)
+       +0.001471994*T**2-9.15459167E-08*T**3+2826501*T**(-1);
+      3900.00  Y  -257501.28-63.897708*T-34.08998*T*LN(T)
+       -0.0031802585*T**2+5.10434E-08*T**3-37446800*T**(-1);
+      6000.00  N !
+$ ------------------------------------------------------------------------------
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  Same   'Same or similar interaction as in the corresponding stable phase'
+  REFLAV 'Laves phase convention: G(LAVES,X:X)=+3*GHSERXX+15000'
+  91Din  'A.T. Dinsdale, Calphad, 15, 317-425(1991).'
+  91Sun  'B. Sundman, J. Phase Equilib., 12, 127-40(1991); Fe-O'
+  97Lee  'B.-J. Lee, N. Saunders, Z. Metallkd., 88 152-61(1997); Al-Ti-O'
+  97SUB  'SGTE substance database, version 1997'
+  00SUB  'SGTE substance database, version 2000'
+  07Can  'M. Cancarevic, M. Zinkevich, F. Aldinger,
+          Calphad, 31, 330-42(2007); Ti-O'
+  15Ham  'M. Hampl, R. Schmid-Fetzer,
+          Int. J. Mater. Res., 106, 439-53(2015); Ti-O'
+  15Yan  'Y. Yang, H. Mao, M. Selleby, Calphad, 51, 144-60(2015); V-O'
+  17Yan  'Y. Yang, H. Mao, H.-L. Chen, M. Selleby,
+          J. Alloys Compd., 722, 365-74(2017); Ti-O'
+!
