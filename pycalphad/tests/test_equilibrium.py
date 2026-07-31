@@ -1139,8 +1139,6 @@ def test_charged_stoichiometric_phases_converge(load_database):
     # The charge balance constraint of a stoichiometric ionic compound is a linear
     # combination of its site fraction balance constraints. Adding it made the phase
     # matrix singular, so the minimizer inverted it into garbage and never converged.
-    # The charged phases here are identical to the uncharged TI3O2NC/TIO_ALPHANC pair
-    # except for the charges of their constituents, so both must give the same answer.
     dbf = load_database()
     comps = ["TI", "O", "VA"]
     conds = {v.P: 1e5, v.N: 1, v.T: 620.0, v.X("O"): 0.41}
