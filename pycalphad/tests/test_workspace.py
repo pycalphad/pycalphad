@@ -3,6 +3,7 @@ import numpy as np
 from pycalphad import Database, Workspace, variables as v
 from pycalphad.core.conditions import ConditionError
 from pycalphad.core.composition_set import CompositionSet
+from pycalphad.core.solver import Solver
 from pycalphad.property_framework import as_property, ComputableProperty, T0, IsolatedPhase, DormantPhase
 from pycalphad.property_framework.units import Q_, unit_conversion_context
 from pycalphad.tests.fixtures import load_database, select_database, ConvergenceFailureSolver
@@ -522,3 +523,18 @@ def test_get_dict_phase_specific_unit_conversion_uses_phase_molar_mass(load_data
     expected = Q_(raw_value, 'J/mol').to('J/g', phase_context).magnitude.item()
 
     assert_allclose(get_dict_value, expected)
+
+
+@select_database("alzn_mey.tdb")
+def test_solver_with_debugging_output_is_successful(load_database):
+    """Solver(debugging_output=True) runs successfully"""
+    dbf = load_database()
+    Workspace() # test empty workspace creation
+    wks = Workspace(
+        database=dbf,
+        components=['AL', 'ZN', 'VA'],
+        phases=['FCC_A1', 'HCP_A3', 'LIQUID'],
+        conditions={v.N: 1, v.P: 1e5, v.T: 300.0, v.X('ZN'): 0.3},
+        solver=Solver(debugging_output=True)
+        )
+    result = wks.get("GM")
