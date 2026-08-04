@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.model - pycalphad 0.11.3.dev13+g3ba5651c5 documentation</title>
+        <title>pycalphad.model - pycalphad 0.11.3.dev14+g08a4d238c documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev13+g3ba5651c5 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev14+g08a4d238c documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev13+g3ba5651c5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev14+g08a4d238c documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -875,7 +875,27 @@
             <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">sublattice</span><span class="p">,</span> <span class="n">site_ratio</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span><span class="p">)):</span>
                 <span class="n">total_charge</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span> <span class="o">*</span> <span class="n">spec</span><span class="o">.</span><span class="n">charge</span> <span class="o">*</span> <span class="n">site_ratio</span>
                                     <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">sublattice</span><span class="p">)</span>
-            <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_charge</span><span class="p">)</span>
+            <span class="c1"># If every constituent of a sublattice carries the same charge, then the charge</span>
+            <span class="c1"># contributed by that sublattice is a constant multiple of its site fraction sum and</span>
+            <span class="c1"># the charge balance constraint is a linear combination of the site fraction balance</span>
+            <span class="c1"># constraints added above. Such a phase is electroneutral for any set of site</span>
+            <span class="c1"># fractions, provided the (constant) net charge of the endmember is zero.</span>
+            <span class="c1"># Stoichiometric ionic compounds, e.g. (TI+2)(O-2), are the common case.</span>
+            <span class="c1"># A linearly dependent constraint makes the phase matrix in the energy minimizer</span>
+            <span class="c1"># singular, which gives a garbage Newton step, so it must not be added.</span>
+            <span class="c1"># Note that the net charge is _not_ zero for a phase that can never be</span>
+            <span class="c1"># electroneutral, e.g. (LA+3,Y+3)2(O-2)6. In that case the constraint is still</span>
+            <span class="c1"># dependent, but inconsistent, so it is kept to preserve the infeasibility (which is</span>
+            <span class="c1"># detected downstream, when no feasible site fractions can be sampled).</span>
+            <span class="n">sublattice_charges</span> <span class="o">=</span> <span class="p">[{</span><span class="n">spec</span><span class="o">.</span><span class="n">charge</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">sublattice</span><span class="p">}</span> <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">charges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">charges</span> <span class="ow">in</span> <span class="n">sublattice_charges</span><span class="p">):</span>
+                <span class="n">net_charge</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">charges</span><span class="p">))</span> <span class="o">*</span> <span class="n">site_ratio</span>
+                                 <span class="k">for</span> <span class="n">charges</span><span class="p">,</span> <span class="n">site_ratio</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sublattice_charges</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span><span class="p">))</span>
+                <span class="n">charge_balance_is_redundant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">net_charge</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">charge_balance_is_redundant</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">charge_balance_is_redundant</span><span class="p">:</span>
+                <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_charge</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">constraints</span></div>
 
 
@@ -2041,7 +2061,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=945de5c4"></script>
+</div><script src="../../_static/documentation_options.js?v=dc640fa3"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
