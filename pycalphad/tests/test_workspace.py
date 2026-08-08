@@ -539,3 +539,21 @@ def test_solver_with_debugging_output_is_successful(load_database):
         solver=Solver(debugging_output=True)
         )
     result = wks.get("GM")
+
+
+@pytest.mark.solver
+@select_database("TiO-17Yan.tdb")
+def test_solver_with_debugging_output_charged_phases(load_database):
+    """Solver(debugging_output=True) runs successfully for phases with charge balance"""
+    # Charged phases carry internal constraints beyond the sublattice site fraction
+    # sums, so this drives the constraint Jacobian rank check of the debugging output,
+    # which the neutral alzn_mey.tdb smoke test above does not reach.
+    dbf = load_database()
+    wks = Workspace(
+        database=dbf,
+        components=["TI", "O", "VA"],
+        phases=["TI3O2", "TIO_ALPHA"],
+        conditions={v.N: 1, v.P: 1e5, v.T: 620.0, v.X("O"): 0.41},
+        solver=Solver(debugging_output=True)
+        )
+    result = wks.get("GM")

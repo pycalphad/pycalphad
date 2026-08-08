@@ -885,11 +885,46 @@ cdef equilibrium_system_labels(SystemSpecification spec, SystemState state):
     return row_labels, col_labels
 
 
+cdef site_fraction_label(var):
+    """Render one entry of PhaseRecord.variables as a short site fraction label.
+
+    The phase name is already carried by the report title, so it is dropped here:
+    ``Y(RUTILE,0,TI+2)`` becomes ``y[0:TI+2]``. Falls back to the variable's own
+    string form for anything that is not a SiteFraction.
+    """
+    try:
+        return f"y[{var.sublattice_index}:{var.species.name}]"
+    except AttributeError:
+        return f"y[{var}]"
+
+
+cdef phase_constraint_labels(CompositionSet compset):
+    """Return (constraint_row_labels, site_fraction_col_labels) for one compset.
+
+    Rows follow the order in which compute_phase_matrix borders the phase matrix:
+    the internal constraints first, then the phase-local conditions. Columns are the
+    phase_dof site fractions, which are the columns of both constraint Jacobians
+    after the num_statevars offset. Only used under debugging_output.
+    """
+    cdef int k
+    phase_record = compset.phase_record
+    row_labels = []
+    for k in range(phase_record.num_internal_cons):
+        row_labels.append(f"internal_cons[{k}]")
+    for k in range(compset.num_phase_local_conditions):
+        row_labels.append(f"phase_local_cons[{k}]")
+    col_labels = []
+    for var in phase_record.variables:
+        col_labels.append(site_fraction_label(var))
+    return row_labels, col_labels
+
+
 cpdef solve_state(SystemSpecification spec, SystemState state):
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln
     cdef int chempot_idx, comp_idx, i, cs_idx
     cdef CompsetState csst
+    cdef CompositionSet compset
 
     state.previous_chemical_potentials[:] = state.chemical_potentials[:]
     state.recompute(spec)
@@ -898,9 +933,29 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
         for i in range(state.free_stable_compset_indices.shape[0]):
             cs_idx = state.free_stable_compset_indices[i]
             csst = state.cs_states[cs_idx]
+            compset = state.compsets[cs_idx]
             print(state.compsets[cs_idx])
             print(f"phase matrix:\n{np.asarray(csst.phase_matrix)}")
             print(f"inv phase matrix:\n{np.asarray(csst.full_e_matrix)}")
+            # If the constraint Jacobians that border the phase matrix are not full
+            # row rank, the bordered matrix is structurally singular no matter what the
+            # Hessian block looks like -- and invert_matrix will not notice, because
+            # dgetrf only reports an exactly zero pivot. This is the PR #710 failure
+            # mode, and the numeric twin of the symbolic matrix_rank assertion in
+            # test_model.py. The Jacobians were filled by compute_phase_matrix during
+            # recompute; only their site fraction columns border the phase matrix.
+            cons_jac = np.asarray(csst.cons_jac_tmp)[:, spec.num_statevars:]
+            if compset.num_phase_local_conditions > 0:
+                cons_jac = np.vstack([cons_jac,
+                                      np.asarray(csst.phase_local_jac_tmp)[:, spec.num_statevars:]])
+            if cons_jac.shape[0] > 0:
+                row_labels, col_labels = phase_constraint_labels(compset)
+                # Only the row null space is interesting here: for a wide
+                # (n_cons x phase_dof) block, the question is which constraints are
+                # redundant, not which site fractions are unconstrained (many always are)
+                report = analyze_rank(cons_jac, row_labels, col_labels, want_col_nullspace=False)
+                if report is not None:
+                    print(report.format(f"phase matrix constraints: {compset.phase_record.phase_name}"))
 
 
     equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 0)
