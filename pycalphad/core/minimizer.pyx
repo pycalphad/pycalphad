@@ -3,6 +3,7 @@ import numpy as np
 cimport numpy as np
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.core.rank_diagnostics import analyze_rank
 cimport scipy.linalg.cython_lapack as cython_lapack
 from libc.stdlib cimport malloc, free
 from libc.math cimport isnan
@@ -839,6 +840,51 @@ cpdef site_fraction_differential(CompsetState csst, double[::1] delta_chempots, 
             delta_y[i] += csst.c_component[chempot_idx, i] * delta_chempots[chempot_idx]
     return np.asarray(delta_y)
 
+cdef equilibrium_system_labels(SystemSpecification spec, SystemState state):
+    """Return (row_labels, col_labels) for the global equilibrium matrix.
+
+    This lives in minimizer.pyx (rather than alongside the analysis in
+    rank_diagnostics.py) because SystemSpecification's index arrays are cdef with no
+    .pxd visibility; it reads them here and hands plain Python strings to the analyzer.
+    The row and column order must follow fill_equilibrium_system and
+    construct_equilibrium_system exactly. Only used under debugging_output.
+    """
+    cdef CompositionSet compset
+    cdef int i, idx
+    # Every name is sourced from the first composition set; all of them share a
+    # component list and state variable list
+    phase_record = state.compsets[0].phase_record
+    nonvacant_elements = list(phase_record.nonvacant_elements)
+    state_variables = list(phase_record.state_variables)
+
+    row_labels = []
+    # The composition set index disambiguates miscibility-gap duplicates of a phase
+    for i in range(state.free_stable_compset_indices.shape[0]):
+        idx = state.free_stable_compset_indices[i]
+        compset = state.compsets[idx]
+        row_labels.append(f"stable_phase[{compset.phase_record.phase_name}:cs{idx}]")
+    for i in range(spec.fixed_stable_compset_indices.shape[0]):
+        idx = spec.fixed_stable_compset_indices[i]
+        compset = state.compsets[idx]
+        row_labels.append(f"fixed_phase[{compset.phase_record.phase_name}:cs{idx}]")
+    for i in range(spec.prescribed_mole_fraction_rhs.shape[0]):
+        row_labels.append(f"X_condition[{i}]")
+    row_labels.append("N_condition")
+
+    col_labels = []
+    for i in range(spec.free_chemical_potential_indices.shape[0]):
+        idx = spec.free_chemical_potential_indices[i]
+        col_labels.append(f"MU({nonvacant_elements[idx]})")
+    for i in range(state.free_stable_compset_indices.shape[0]):
+        idx = state.free_stable_compset_indices[i]
+        compset = state.compsets[idx]
+        col_labels.append(f"NP({compset.phase_record.phase_name}:cs{idx})")
+    for i in range(spec.free_statevar_indices.shape[0]):
+        idx = spec.free_statevar_indices[i]
+        col_labels.append(f"d({state_variables[idx]})")
+    return row_labels, col_labels
+
+
 cpdef solve_state(SystemSpecification spec, SystemState state):
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln
@@ -862,6 +908,12 @@ cpdef solve_state(SystemSpecification spec, SystemState state):
     if spec.debugging_output:
         print(f"equilibrium matrix:\n{np.asarray(equilibrium_matrix)}")
         print(f"equilibrium rhs: {np.asarray(equilibrium_soln)}")
+        # The matrix is still intact here; lstsq destroys it below
+        if len(state.compsets) > 0:
+            row_labels, col_labels = equilibrium_system_labels(spec, state)
+            report = analyze_rank(np.asarray(equilibrium_matrix), row_labels, col_labels)
+            if report is not None:
+                print(report.format("equilibrium matrix"))
 
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
           &equilibrium_soln[0], 1e-16)

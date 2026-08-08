@@ -525,6 +525,7 @@ def test_get_dict_phase_specific_unit_conversion_uses_phase_molar_mass(load_data
     assert_allclose(get_dict_value, expected)
 
 
+@pytest.mark.solver
 @select_database("alzn_mey.tdb")
 def test_solver_with_debugging_output_is_successful(load_database):
     """Solver(debugging_output=True) runs successfully"""
