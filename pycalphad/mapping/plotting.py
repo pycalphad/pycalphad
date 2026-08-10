@@ -9,7 +9,7 @@ from pycalphad import variables as v
 from pycalphad.property_framework import as_property
 from pycalphad.plot.utils import phase_legend
 from pycalphad.plot import triangular  # register triangular projection
-from pycalphad.property_framework.units import Q_, ureg
+from pycalphad.property_framework.units import Q_, ureg, to_display_units
 
 from pycalphad.mapping.primitives import _get_phase_specific_variable
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
@@ -18,26 +18,32 @@ from pycalphad.mapping.strategy.ternary_strategy import TernaryStrategy
 from pycalphad.mapping.strategy.isopleth_strategy import IsoplethStrategy
 import pycalphad.mapping.utils as map_utils
 
+# threshold value to plot a phase boundary as a single point
+# this is for cases if the range of the phase boundary along the x and y axis
+# is very small relative to the range of all phase boundaries otherwise,
+# plotting phase with only a connecting tieline will not be very visible.
+PLOT_TIELINE_AS_NODE_THRESHOLD = 1e-3
+
 def get_label(var: v.StateVariable):
     # If user just passes v.NP rather than an instance of v.NP, then label is just NP
-    # Phase fraction, mole fraction and weight fraction all has 
-    # units of "fraction", so I think we can leave it out
+    # Phase fraction, mole fraction and weight fraction all have
+    # units of "fraction", so we leave it out
     if isinstance(var, v.NP):
         if var.phase_name is None or var.phase_name == '*':
             return f'Phase Fraction'
         else:
             return f'Phase Fraction ({var.phase_name})'
     elif isinstance(var, v.X):
-        if var.phase_name is None:
+        if var.phase_name is None or var.phase_name == "*":
             return f'X({var.species.name.capitalize()})'
         else:
             return f'X({var.phase_name}, {var.species.name.capitalize()})'
     elif isinstance(var, v.W):
-        if var.phase_name is None:
+        if var.phase_name is None or var.phase_name == "*":
             return f'W({var.species.name.capitalize()})'
         else:
             return f'W({var.phase_name}, {var.species.name.capitalize()})'
-        
+
     # For other units, use ~ to display the abbreviated version of the units
     # i.e. kelvin -> K, Pascal -> Pa
     elif isinstance(var, v.MU):
@@ -88,7 +94,7 @@ def plot_step(strategy: StepStrategy, x: v.StateVariable = None, y: v.StateVaria
         y = v.NP('*')
 
     step_data = strategy.get_data(x, y, global_x = global_x, set_nan_to_zero=set_nan_to_zero)
-    
+
     handles, colors = legend_generator(sorted(step_data.phases))
     for single_phase_data in step_data.data:
         ax.plot(single_phase_data.x, single_phase_data.y, color=colors[single_phase_data.phase], lw=1, solid_capstyle="butt")
@@ -150,11 +156,17 @@ def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
     tieline_color : color
     """
     tieline_data = strategy.get_tieline_data(x, y)
+    x_all = np.concatenate([st.x for st in tieline_data], axis=1)
+    y_all = np.concatenate([st.y for st in tieline_data], axis=1)
+    min_x_range = PLOT_TIELINE_AS_NODE_THRESHOLD * np.ptp(x_all)
+    min_y_range = PLOT_TIELINE_AS_NODE_THRESHOLD * np.ptp(y_all)
     for single_tieline in tieline_data:
         for single_phase_data in single_tieline.data:
             x, y, p = single_phase_data.x, single_phase_data.y, single_phase_data.phase
             if not all((single_phase_data.y == 0) | (single_phase_data.y == np.nan)):
                 ax.plot(single_phase_data.x, single_phase_data.y, color=phase_colors[p], lw=1, solid_capstyle="butt")
+            if np.ptp(x) < min_x_range and np.ptp(y) < min_y_range:
+                ax.scatter([np.average(x)], [np.average(y)], color=phase_colors[p], s=8, zorder=3)
 
         if tielines:
             x = single_tieline.x
@@ -217,13 +229,15 @@ def plot_binary(strategy: BinaryStrategy, x: v.StateVariable = None, y: v.StateV
     ax.autoscale()
     if x in strategy.axis_vars:
         xlim = list(ax.get_xlim())
-        xlim[0] = np.amax((np.amin(strategy.axis_lims[x]), xlim[0]))
-        xlim[1] = np.amin((np.amax(strategy.axis_lims[x]), xlim[1]))
+        x_axis_lims = [to_display_units(v, [], x) for v in strategy.axis_lims[x]]
+        xlim[0] = np.amax((np.amin(x_axis_lims), xlim[0]))
+        xlim[1] = np.amin((np.amax(x_axis_lims), xlim[1]))
         ax.set_xlim(xlim)
     if y in strategy.axis_vars:
         ylim = list(ax.get_ylim())
-        ylim[0] = np.amax((np.amin(strategy.axis_lims[y]), ylim[0]))
-        ylim[1] = np.amin((np.amax(strategy.axis_lims[y]), ylim[1]))
+        y_axis_lims = [to_display_units(v, [], y) for v in strategy.axis_lims[y]]
+        ylim[0] = np.amax((np.amin(y_axis_lims), ylim[0]))
+        ylim[1] = np.amin((np.amax(y_axis_lims), ylim[1]))
         ax.set_ylim(ylim)
 
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
@@ -239,7 +253,7 @@ def plot_ternary(strategy: TernaryStrategy, x: v.StateVariable = None, y: v.Stat
     Plots ternary map using matplotlib
 
     Pretty much the same as binary mapping but some extra stuff
-    to create defualt triangular axis, limit axis limits to (0,1) and 
+    to create defualt triangular axis, limit axis limits to (0,1) and
     set y label position if axis is triangular
 
     Parameters
@@ -329,21 +343,14 @@ def plot_isopleth(strategy: IsoplethStrategy, x: v.StateVariable = None, y: v.St
         inv_lines = np.transpose(np.asarray([x_comb, y_comb]), axes=(1,2,0))
         invariant_collection = LineCollection(inv_lines, zorder=2.5, linewidths=1, capstyle="butt", colors=[tie_triangle_color for _ in inv_lines])
         ax.add_collection(invariant_collection)
+        # update plotting limits if the extents are changed by the node data
+        xlim[0] = min(xlim[0], data.xlim[0])
+        xlim[1] = max(xlim[1], data.xlim[1])
+        ylim[0] = min(ylim[0], data.ylim[0])
+        ylim[1] = max(ylim[1], data.ylim[1])
 
-    # Set axis limits
-    # If variable is a strategy axis variables, then set limits to axis variable limits
-    # If variable is not a strategy axis variable, then set the lower (left, bottom) limits
-    #    to the min of the zpf data
-    if x in strategy.axis_vars:
-        ax.set_xlim([np.amin(strategy.axis_lims[x]), np.amax(strategy.axis_lims[x])])
-    else:
-        ax.set_xlim(left=xlim[0])
-
-    if y in strategy.axis_vars:
-        ax.set_ylim([np.amin(strategy.axis_lims[y]), np.amax(strategy.axis_lims[y])])
-    else:
-        ax.set_ylim(bottom=ylim[0])
-
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
     ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
     plot_title = '-'.join([component.title() for component in sorted(strategy.components) if component != 'VA'])
     ax.set_title(plot_title)

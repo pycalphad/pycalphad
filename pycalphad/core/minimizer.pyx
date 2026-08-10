@@ -334,7 +334,7 @@ cdef class SystemSpecification:
                    double[::1] initial_chemical_potentials, double[:, ::1] prescribed_mole_fraction_coefficients,
                    double[::1] prescribed_mole_fraction_rhs, int[::1] free_chemical_potential_indices,
                    int[::1] free_statevar_indices, int[::1] fixed_chemical_potential_indices,
-                   int[::1] fixed_statevar_indices, int[::1] fixed_stable_compset_indices):
+                   int[::1] fixed_statevar_indices, int[::1] fixed_stable_compset_indices, bint debugging_output=False):
         self.num_statevars = num_statevars
         self.num_components = num_components
         self.prescribed_system_amount = prescribed_system_amount
@@ -347,6 +347,7 @@ cdef class SystemSpecification:
         self.fixed_statevar_indices = fixed_statevar_indices
         self.fixed_stable_compset_indices = fixed_stable_compset_indices
         self.max_num_free_stable_phases = num_components + len(free_statevar_indices) - len(fixed_stable_compset_indices)
+        self.debugging_output = debugging_output
 
         # Assuming the prescribed_mole_fraction_rhs doesn't change, this is
         # constant and we can keep extra computation (especially calls into
@@ -374,6 +375,14 @@ cdef class SystemSpecification:
         cdef double ALLOWED_DELTA_Y = 5e-09
         cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
         cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
+        if self.debugging_output:
+            print(
+                f"state.largest_phase_amt_change[0] ={np.asarray(state.largest_phase_amt_change[0])}\n" \
+                f"state.largest_y_change[0]         ={np.asarray(state.largest_y_change[0])}\n" \
+                f"state.largest_statevar_change[0]  ={np.asarray(state.largest_statevar_change[0])}\n" \
+                f"state.mass_residual               ={np.asarray(state.mass_residual)}"
+                )
+
         cdef bint solution_is_feasible = (
             (state.largest_phase_amt_change[0] < ALLOWED_DELTA_PHASE_AMT) and
             (state.largest_y_change[0] < ALLOWED_DELTA_Y) and
@@ -398,6 +407,9 @@ cdef class SystemSpecification:
         cdef bint phases_changed = False
         cdef size_t iteration
         for iteration in range(max_iterations):
+            if self.debugging_output:
+                print(f"---------------")
+                print(f"iteration {iteration}")
             state.iteration = iteration
             if not self.pre_solve_hook(state):
                 break
@@ -828,14 +840,32 @@ cpdef site_fraction_differential(CompsetState csst, double[::1] delta_chempots, 
 cpdef solve_state(SystemSpecification spec, SystemState state):
     cdef double[::1,:] equilibrium_matrix  # Fortran ordering required by call into lapack
     cdef double[::1] equilibrium_soln
-    cdef int chempot_idx, comp_idx
+    cdef int chempot_idx, comp_idx, i, cs_idx
+    cdef CompsetState csst
 
     state.previous_chemical_potentials[:] = state.chemical_potentials[:]
     state.recompute(spec)
 
+    if spec.debugging_output:
+        for i in range(state.free_stable_compset_indices.shape[0]):
+            cs_idx = state.free_stable_compset_indices[i]
+            csst = state.cs_states[cs_idx]
+            print(state.compsets[cs_idx])
+            print(f"phase matrix:\n{np.asarray(csst.phase_matrix)}")
+            print(f"inv phase matrix:\n{np.asarray(csst.full_e_matrix)}")
+
+
     equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 0)
+
+    if spec.debugging_output:
+        print(f"equilibrium matrix:\n{np.asarray(equilibrium_matrix)}")
+        print(f"equilibrium rhs: {np.asarray(equilibrium_soln)}")
+
     lstsq(&equilibrium_matrix[0,0], equilibrium_matrix.shape[0], equilibrium_matrix.shape[1],
           &equilibrium_soln[0], 1e-16)
+
+    if spec.debugging_output:
+        print(f"equilibrium solution: {np.asarray(equilibrium_soln)}")
 
     # set the chemical potentials from the solution
     for i in range(spec.free_chemical_potential_indices.shape[0]):

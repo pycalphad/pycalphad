@@ -3,13 +3,15 @@ The calculate test module verifies that calculate() calculates
 Model quantities correctly.
 """
 
-import select
 import pytest
 from pycalphad import Database, calculate, Model, variables as v
 from itertools import chain
 import numpy as np
 from numpy.testing import assert_allclose
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
+from pycalphad.core.calculate import _jacobian_from_constraints
+from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.core.polytope import sample
 from pycalphad.core.utils import instantiate_models
 from pycalphad import ConditionError
 from pycalphad.tests.fixtures import select_database, load_database
@@ -66,6 +68,10 @@ def test_issue116(load_database):
     assert result_two_values.shape[:3] == (1, 1, 1)
     assert len(result_three_values.shape) == 4  # N, P, T, points
     assert result_three_values.shape[:3] == (1, 1, 1)
+
+    # NOT passing temperature when temperature is required by the Model raises
+    with pytest.raises(ConditionError):
+        calculate(dbf, ['AL', 'CR', 'NI'], 'LIQUID', P=101325, pdens=10)  # no T
 
 
 @select_database("alfe.tdb")
@@ -420,3 +426,60 @@ def test_calculate_raises_correctly_when_charged_phases_cannot_charge_balance():
     # fake_points provides points and therefore calculate should not raise for having no points
     # fake_points also prevents the warning here
     grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
+
+
+def test_calculate_produces_no_infeasible_points_for_charged_phase():
+    """Test that MgO-Al2O3 SPINEL phase can have points sampled via calculate and not raise due to points volating the constraints"""
+
+    _tdb_str = """
+    ELEMENT /- ELECTRON_GAS 0.0 0.0 0.0 !
+    ELEMENT AL BLANK 26.982 0.0 0.0 !
+    ELEMENT MG BLANK 24.305 0.0 0.0 !
+    ELEMENT O BLANK 15.999 0.0 0.0 !
+    ELEMENT VA VACUUM 0.0 0.0 0.0 !
+
+    SPECIES AL+3 AL1.0/+3 !
+    SPECIES MG+2 MG1.0/+2 !
+    SPECIES O-2 O1.0/-2 !
+
+    TYPE_DEFINITION % SEQ * !
+    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+    DEFAULT_COMMAND DEFINE_SYSTEM_ELEMENT /- VA !
+
+    PHASE SPINEL:I %  3 1.0 2.0 4.0 !
+    CONSTITUENT SPINEL:I :AL+3,MG+2 : AL+3,MG+2,VA : O-2: !
+    """
+
+    dbf = Database(_tdb_str)
+    comps = ["MG", "AL", "O", "VA"]
+    phase_name = "SPINEL"
+    model = Model(dbf, comps, phase_name)
+
+    # When failing, this tends to produce constraint violations where the second sublattice (Al+3, Mg+2, Va) does not mass balance
+    num_points = 2
+    model_constraints = model.get_internal_constraints()
+    constraint_jac, constraint_rhs = _jacobian_from_constraints(model_constraints, model.site_fractions)
+    extra_points = sample(num_points, np.full(constraint_jac.shape[1], MIN_SITE_FRACTION), np.ones(constraint_jac.shape[1]), A2=constraint_jac, b2=constraint_rhs)
+    print(f"extra_points: {extra_points}")
+    constraints_for_points = np.abs(constraint_jac.dot(extra_points.T).T)
+    np.testing.assert_allclose(constraints_for_points, np.broadcast_to(constraint_rhs, constraints_for_points.shape), atol=1e-6, err_msg="`extra_points` produced by polytope sampler should produce feasible points")
+
+    # success if the phase does not raise
+    calc_res = calculate(dbf, comps, [phase_name], T=1000, pdens=60)
+
+
+@select_database("alcrni.tdb")
+def test_calculate_dof_state_variable_width_matches_phase_record(load_database):
+    """The number of state-variable dimensions calculate() produces must equal the phase
+    record's num_statevars (the compiled function's expected state-variable input count).
+
+    This is the shape invariant whose violation causes the out-of-bounds read: the dof's
+    state-variable width must match what the compiled property function expects."""
+    dbf = load_database()
+    comps = ["AL", "CR", "NI"]
+    models = instantiate_models(dbf, comps, ["LIQUID"])
+    prf = PhaseRecordFactory(dbf, comps, {v.N: 1, v.T: 400}, models)
+    res = calculate(dbf, comps, ["LIQUID"], T=400, model=models["LIQUID"])
+    # Leading dims are the supplied state variables (N, T); trailing dim is 'points'.
+    n_statevar_dims = res.GM.values.ndim - 1
+    assert n_statevar_dims == prf["LIQUID"].num_statevars == len(prf.state_variables)

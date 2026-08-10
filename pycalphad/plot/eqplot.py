@@ -3,6 +3,7 @@ The eqplot module contains functions for general plotting of
 the results of equilibrium calculations.
 """
 from pycalphad.core.utils import unpack_condition
+from pycalphad.mapping.plotting import get_label
 from pycalphad.plot.utils import phase_legend
 import pycalphad.variables as v
 from matplotlib import collections as mc
@@ -10,17 +11,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
 
-# TODO: support other state variables here or make isinstance elif == v.T or v.P
-_plot_labels = {v.T: 'Temperature (K)', v.P: 'Pressure (Pa)'}
-
-
-def _axis_label(ax_var):
-    if isinstance(ax_var, v.MoleFraction):
-        return 'X({})'.format(ax_var.species.name)
-    elif isinstance(ax_var, v.StateVariable):
-        return _plot_labels[ax_var]
-    else:
-        return ax_var
 
 def _map_coord_to_variable(coord):
     """
@@ -35,7 +25,7 @@ def _map_coord_to_variable(coord):
     -------
     pycalphad StateVariable
     """
-    vals = {'T': v.T, 'P': v.P}
+    vals = {'T': v.T, 'P': v.P, 'N': v.N}
     if coord.startswith('X_'):
         return v.X(coord[2:])
     elif coord in vals:
@@ -187,7 +177,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, tieline_color=(0,
     ax.grid(True)
     plot_title = '-'.join([component.title() for component in sorted(comps) if component != 'VA'])
     ax.set_title(plot_title, fontsize=20)
-    ax.set_xlabel(_axis_label(x), labelpad=15, fontsize=20)
-    ax.set_ylabel(_axis_label(y), fontsize=20)
+    ax.set_xlabel(get_label(x), labelpad=15, fontsize=20)
+    ax.set_ylabel(get_label(y), fontsize=20)
 
     return ax

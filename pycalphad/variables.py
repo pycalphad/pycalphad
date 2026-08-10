@@ -5,6 +5,7 @@ Classes and constants for representing thermodynamic variables.
 
 from typing import Optional
 from symengine import Float, Symbol
+from pycalphad.core.cache import lru_cache
 from pycalphad.io.grammar import parse_chemical_formula
 from pycalphad.property_framework.types import JanssonDerivativeDeltas
 from pycalphad.core.minimizer import site_fraction_differential, state_variable_differential, \
@@ -275,6 +276,10 @@ class StateVariable(Symbol):
     implementation_units = ''
     display_units = ''
 
+    @lru_cache(maxsize=10000)
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls, *args, **kwargs)
+
     @property
     def display_name(self):
         return self.name
@@ -373,6 +378,35 @@ class StateVariable(Symbol):
         "Get StateVariable with different display units"
         newobj = copy(self)
         newobj.display_units = new_units
+        return newobj
+
+    def __copy__(self):
+        """Create a shallow copy that bypasses the __new__ cache.
+
+        This is necessary because @lru_cache on __new__ would otherwise
+        return the same cached object, causing mutations on the 'copy'
+        to affect the original.
+        """
+        # Access the uncached __new__ via the __wrapped__ attribute
+        # that lru_cache provides
+        cls = self.__class__
+        wrapped_new = cls.__new__.__wrapped__
+
+        # Get the args needed to reconstruct this object from __reduce__
+        reduce_result = self.__reduce__()
+        _, args = reduce_result[0], reduce_result[1]
+
+        # Create new object bypassing the cache
+        newobj = wrapped_new(cls, *args)
+
+        # Run __init__ to set up instance attributes
+        newobj.__init__(*args)
+
+        # Copy any instance-level attribute overrides (like display_units)
+        # StateVariable subclasses may have __dict__ even though Symbol uses __slots__
+        if hasattr(self, '__dict__'):
+            newobj.__dict__.update(self.__dict__)
+
         return newobj
 
 class SiteFraction(StateVariable):
@@ -482,7 +516,7 @@ class PhaseFraction(StateVariable):
 
     def expand_wildcard(self, phase_names):
         return [self.__class__(phase_name) for phase_name in phase_names]
-    
+
     def __reduce__(self):
         return self.__class__, (self.phase_name,)
 
@@ -846,7 +880,7 @@ class ChemicalPotential(StateVariable):
         return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
-    
+
     def __reduce__(self):
         return self.__class__, (self.species,)
 
