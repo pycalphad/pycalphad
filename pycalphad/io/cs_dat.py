@@ -850,13 +850,7 @@ class Phase_SUBQ(PhaseBase):
 ##################################################################################################################################################################
 
         for count, endmember in enumerate(self.endmembers):
-####################### Looks like I successfully was able to get rid of the two lines below AND made cation_sublattice_elements more robust############################################
-##########They way I wrote it makes me feel like either I can get rid of the below two values or get rid of pre_catiopns and pre_anions############################################
-#            ele_name_cat = list([pure for el, chg in new_cation_el_chg_pair for pure in pure_elementsSUBQ if element_check(el, pure)])
-#            ele_name_an = list([pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el, pure)])
-##################################################################################################################################################################
-
-            
+           
             # HERE the ENDMEMBER_PURE_ELEMENT list is made where a list of the stoichiometry of the pure elements in the
             # endmember specified in the current loop. (Probably need a better name)
             # Here I am also adding endmember stoichiometry which has the stoichiometry based on the species that is included
