@@ -40,9 +40,9 @@ dependencies = [
     "matplotlib>=3.3",
     "numpy>=1.13",
     "pint",
-    "pyparsing>=2.4",
-    "pytest",
+    "pyparsing>=3.0",
     "pytest-cov",
+    "pytest",
     "runtype",
     "scipy",
     "setuptools_scm[toml]>=6.0",
@@ -59,34 +59,48 @@ Homepage = "https://pycalphad.org/"
 [dependency-groups]
 dev = [
     "Cython",
-    "numpy>=2",
-    "scipy",
-    "setuptools",
-    "setuptools_scm[toml]>=6.0",
-    "wheel",
-    "furo>=2021.11.16",  # docs theme
-    "ipython",  # for pygments syntax highlighting
-    "pytest-cov",
-    "sphinx",
-    "nbsphinx-link",
     "docutils<0.21", # workaround for https://github.com/vidartf/nbsphinx-link/issues/22
+    "furo>=2021.11.16",  # docs theme
+    "ipykernel",
+    "ipython",  # for pygments syntax highlighting
+    "jupyter>=1.1.1",
+    "nb-clean>=4.0.1",
+    "nbconvert>=7.17.1",
+    "nbsphinx-link",
+    "numpy>=2",
+    "pytest-cov",
+    "scipy",
+    "setuptools_scm[toml]>=6.0",
+    "setuptools",
+    "sphinx<9",
+    "sphinx-autobuild>=2025.8.25",
+    "wheel",
+]
+
+[tool.uv]
+cache-keys = [
+    { file = "pyproject.toml" },
+    # ensure we rebuild if our Cython files or build script changes
+    { file = "setup.py" },
+    { file = "**/*.pyx" },
+    { file = "**/*.pxd" },
 ]
 
 [tool.setuptools]
 # Do not include pycalphad._dev here as it should not be distributed
 packages = [
-    "pycalphad",
     "pycalphad.codegen",
     "pycalphad.core",
     "pycalphad.io",
-    "pycalphad.plot",
-    "pycalphad.plot.binary",
-    "pycalphad.property_framework",
-    "pycalphad.tests",
-    "pycalphad.tests.databases",
-    "pycalphad.models",
-    "pycalphad.mapping",
     "pycalphad.mapping.strategy",
+    "pycalphad.mapping",
+    "pycalphad.models",
+    "pycalphad.plot.binary",
+    "pycalphad.plot",
+    "pycalphad.property_framework",
+    "pycalphad.tests.databases",
+    "pycalphad.tests",
+    "pycalphad",
 ]
 
 [tool.setuptools.package-data]

@@ -1,0 +1,19 @@
+name: Smoke Tests
+
+on: [push, pull_request]
+
+jobs:
+  git-url:
+    # see the following for valid dependency specifiers
+    # https://packaging.python.org/en/latest/specifications/dependency-specifiers/#dependency-specifiers
+    # we construct from the GitHub Actions context
+    name: Install and import from git url
+    runs-on: ubuntu-latest
+    steps:
+      - uses: astral-sh/setup-uv@v7
+        with:
+          ignore-empty-workdir: "true"  # resolve warning about "Empty workdir detected. This may cause unexpected behavior. You can enable ignore-empty-workdir to mute this warning."
+          cache-dependency-glob: ""  # resolve warning about "No file matched to ... The cache will never get invalidated. Make sure you have checked out the target repository and configured the cache-dependency-glob input correctly."
+      - run: uv init --bare --name smoke-test
+      - run: uv add "pycalphad @ git+https://github.com/${{ github.repository }}.git@${{ github.sha }}"
+      - run: uv run python -c "import pycalphad; print(pycalphad.__version__)"

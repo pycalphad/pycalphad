@@ -9,11 +9,13 @@ from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.utils import instantiate_models, get_state_variables
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.composition_set import CompositionSet
+from pycalphad.property_framework import as_property
+from pycalphad.property_framework.units import Q_, unit_conversion_context, to_display_units
 
-from pycalphad.mapping import StepStrategy, IsoplethStrategy, TernaryStrategy, plot_step, plot_isopleth
+from pycalphad.mapping import StepStrategy, IsoplethStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth, plot_ternary
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
-from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState
+from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState, _get_phase_specific_variable
 from pycalphad.mapping.plotting import get_label
 
 import pycalphad.tests.databases
@@ -36,7 +38,7 @@ def test_binary_strategy(load_database):
 
     ax, strategy = binplot(dbf, ["CR", "NI", "VA"], ['BCC_A2', 'FCC_A1', 'LIQUID'], conditions={v.T: (1500, 2200, 50), v.X("CR"): (0, 1, 0.05), v.P: 101325}, return_strategy=True)
     #plt.show()
-    
+
     # Two-phase regions intended to show up in the Cr-Ni system
     desired_zpf_sets = [{"BCC_A2", "FCC_A1"}, {"BCC_A2", "LIQUID"}, {"FCC_A1", "LIQUID"}]
     desired_node_sets = [{"BCC_A2", "FCC_A1", "LIQUID"}]
@@ -45,7 +47,7 @@ def test_binary_strategy(load_database):
     # NOTE: phase regions that start at terminal phases may have duplicates
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
     node_sets = [set(node.stable_phases_with_multiplicity) for node in strategy.node_queue.nodes]
-    
+
     # Make sure that the phase regions from mapping contains all the desired regions
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
@@ -122,7 +124,8 @@ def test_step_strategy_through_single_phase(load_database):
     # All unique phase regions
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
     node_sets = [set(node.stable_phases_with_multiplicity) for node in strategy.node_queue.nodes]
-    
+
+
     # Make sure that the phase regions from mapping contains all the desired regions
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
@@ -171,7 +174,8 @@ def test_step_strategy_through_node(load_database):
     # All unique phase regions
     mapping_sets = [set(zpf_line.stable_phases_with_multiplicity) for zpf_line in strategy.zpf_lines]
     node_sets = [set(node.stable_phases_with_multiplicity) for node in strategy.node_queue.nodes]
-    
+
+
     # Make sure that the phase regions from mapping contains all the desired regions
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
@@ -184,7 +188,7 @@ def test_step_strategy_through_node(load_database):
 def test_unary_strategy(load_database):
     """
     Tests that strategy works on unary system
-    The strategy needs to maintain certain array shapes for site fractions, composition, 
+    The strategy needs to maintain certain array shapes for site fractions, composition,
     chemical potentials, etc. when working with unaries, since squeezing arrays can remove
     a needed dimension from an array. More details are given in the _find_global_min_cs function
     in pycalphad.mapping.zpf_equilibrium
@@ -197,13 +201,14 @@ def test_unary_strategy(load_database):
 @select_database("crtiv_ghosh.tdb")
 def test_isopleth_strategy(load_database):
     dbf = load_database()
+    X_V = 0.2
 
-    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): 0.2, v.P: 101325})
+    strategy = IsoplethStrategy(dbf, ["CR", "TI", "V", "VA"], ["BCC_A2", "LIQUID"], conditions={v.T: (1500, 2100, 40), v.X("TI"): (0, 0.2, 0.05), v.X("V"): X_V, v.P: 101325})
     strategy.do_map()
 
     # Check that plot_isopleth runs without fail
-    plot_isopleth(strategy)
-    #plt.show()
+    ax = plot_isopleth(strategy)
+    #ax.figure.show()
 
     # Two-phase regions intended to show up in the Cr-Ti-V system
     desired_zpf_sets = [{"BCC_A2", "LIQUID"}]
@@ -215,6 +220,22 @@ def test_isopleth_strategy(load_database):
     # NOTE: this will not test for extra phase regions that mapping may produce
     for dzs in desired_zpf_sets:
         assert dzs in mapping_sets
+
+    # Check plotting isopleth with different set of units
+    # We test that the conversions work by just looking at the axes limits
+    xlims_moles = ax.get_xlim()
+    ylims_kelvin = ax.get_ylim()
+    # Composition partially hard coded based on
+    expected_xlims_mass = [v.get_mass_fractions({v.X("TI"): xl, v.X("V"): X_V}, "CR", dbf)[v.W("TI")] for xl in xlims_moles]
+    expected_ylims_celsius = [yl - 273.15 for yl in ylims_kelvin]
+
+    ax2 = plot_isopleth(strategy, x=v.W("TI"), y=v.T["degC"])
+    #ax2.figure.show()
+    np.testing.assert_allclose(ax2.get_xlim(), expected_xlims_mass)
+    np.testing.assert_allclose(ax2.get_ylim(), expected_ylims_celsius)
+
+    plt.close(ax.figure)
+    plt.close(ax2.figure)
 
 def test_isopleth_strategy_node_exit():
     """
@@ -242,7 +263,7 @@ def test_isopleth_strategy_node_exit():
     dbf = Database(TDB)
     phases = list(dbf.phases.keys())
 
-    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, 
+    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases,
                                 conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.2, v.X('B'): (0, 0.8, 0.01)},
                                 initialize=False)
 
@@ -261,7 +282,8 @@ def test_isopleth_strategy_node_exit():
     comp_sets[1].fixed = True
     comp_sets[2].fixed = False
     comp_sets[3].fixed = False
-    
+
+
     # Invariant node with 8 total exits
     conds = {v.T: 700, v.P: 101325, v.N: 1, v.X('A'): 0.2, v.X('B'): 0.4}
     node = Node(conds, [0, 0, 0], [comp_sets[0], comp_sets[1]], [comp_sets[2], comp_sets[3]], None)
@@ -274,7 +296,7 @@ def test_isopleth_strategy_node_exit():
         assert set(point.free_phases) in desired_free_phases
 
     # Invariant node with 6 total exits
-    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases, 
+    strategy = IsoplethStrategy(dbf, ['A', 'B', 'C', 'VA'], phases,
                                 conditions={v.T: (500, 1000, 10), v.P: 101325, v.X('A'): 0.5, v.X('B'): (0, 0.5, 0.01)},
                                 initialize=False)
     conds = {v.T: 700, v.P: 101325, v.N: 1, v.X('A'): 0.5, v.X('B'): 0.2}
@@ -389,7 +411,7 @@ def test_strategy_adjust_composition_limits():
     comps = ['A', 'B', 'C', 'D']
     conds = {v.T: 1000, v.P: 101325, v.X('A'): 0.1, v.X('D'): 0.2, v.X('B'): (0.15, 1, 0.01), v.X('C'): (0.25, 1, 0.01)}
     strategy = IsoplethStrategy(dbf, comps, None, conds, initialize=False)
-    
+
     assert np.isclose(strategy.axis_lims[v.X('B')][0], 0.15)
     assert np.isclose(strategy.axis_lims[v.X('B')][1], 0.45)
     assert np.isclose(strategy.axis_lims[v.X('C')][0], 0.25)
@@ -491,17 +513,38 @@ def test_primitive_representation(load_database):
     strategy.do_map()
 
     node_str_keywords = ['Fixed CS', 'Free CS', 'Conditions', 'Chem_pot', 'Axis']
-    node_repr_keywords = ['Node', 'global_conditions', 'chemical_potentials', 
-                          '_fixed_composition_sets', '_free_composition_sets', 'parent', 
+    node_repr_keywords = ['Node', 'global_conditions', 'chemical_potentials',
+                          '_fixed_composition_sets', '_free_composition_sets', 'parent',
                           'axis_var', 'axis_direction', 'exit_hint'
                           ]
     point_str_keywords = ['Fixed CS', 'Free CS', 'Conditions', 'Chem_pot']
     point_repr_keywords = ['Point', 'global_conditions', 'chemical_potentials',
                            '_fixed_composition_sets', '_free_composition_sets'
                            ]
+    zpf_line_str_keywords = ['points', 'Fixed phases', 'Free phases', 'Start', 'End']
+    zpf_line_repr_keywords = [
+        'points',
+        'Point',
+        'Node',
+        'status',
+        'axis_var',
+        'axis_direction',
+        'current_delta'
+    ]
 
     # First point in the first zpf line should be a node
     zpf_line = strategy.zpf_lines[0]
+    zpf_line_str = str(zpf_line)
+    zpf_line_repr = repr(zpf_line)
+    print(zpf_line_str)
+    print(zpf_line_repr)
+
+    for keyword in zpf_line_str_keywords:
+        assert keyword in zpf_line_str
+    for keyword in zpf_line_repr_keywords:
+        assert keyword in zpf_line_repr
+
+
     assert isinstance(zpf_line.points[0], Node)
     node_str = str(zpf_line.points[0])
     node_repr = repr(zpf_line.points[0])
@@ -520,5 +563,150 @@ def test_primitive_representation(load_database):
     for keyword in point_repr_keywords:
         assert keyword in point_repr
 
+@select_database("Al-Cu-Y.tdb")
+def test_issue_638_degenerate_cs_ternary(load_database):
+    """
+    Checks that a node is not falsely flagged as not being global min
+    This can happen if the initial global min check detects a new composition
+    set that is the same phase but slightly different DOF to where it is
+    below the tolerance required to be detected as a new global min. The fix
+    performs an equilibrium between the new CS and the CS in the node that
+    has the same phase name to check whether they are the same or if there
+    is a miscibility gap
 
+    This is found in issue 638 on the Al-Cu-Y system at 1700K
+    """
+    temperature = 1700
 
+    dbf = load_database()
+    comps = ['AL', 'CU', 'Y', 'VA']
+    phases = list(dbf.phases.keys())
+    conds = {v.T: temperature, v.P:101325, v.X('AL'): (0,1,0.02), v.X('Y'): (0,1,0.02)}
+    strat = TernaryStrategy(dbf, comps, phases, conds)
+
+    # this starting point should be in ['LIQUID', 'ALCU5Y']
+    # first two nodes should be ['LIQUID', 'ALCU5Y', 'AL7CU2Y3'] and ['LIQUID', 'ALCU5Y', 'ALCUY']
+    strat.add_nodes_from_conditions({v.T: temperature, v.P: 101325, v.X('AL'): 0.4, v.X('Y'): 0.1})
+
+    initial_nodes = len(strat.node_queue.nodes)
+    # stop until there's 4 nodes or if mapping finished
+    while strat.node_queue._current_node_index < (initial_nodes+1):
+        if strat.iterate():
+            break
+
+    nodes = [set(n.stable_phases) for n in strat.node_queue.nodes]
+    assert {'LIQUID', 'ALCU5Y'} in nodes
+    assert {'LIQUID', 'ALCU5Y', 'AL7CU2Y3'} in nodes
+    assert {'LIQUID', 'ALCU5Y', 'ALCUY'} in nodes
+
+@select_database("AuSn-13Don.tdb")
+def test_issue_638_degenerate_cs_binary(load_database):
+    """
+    Same as test_issue638_degenerate_cs_ternary but for a binary system
+    This tests on the AuSn-13Don database which has issues with removing
+    the HCP_A3-LIQUID tielines due to being falsly flagged as not global min
+    """
+    dbf = load_database()
+    comps = ['AU', 'SN', 'VA']
+    phases = list(dbf.phases.keys())
+    conds = {v.T: (400, 1300, 20), v.P:101325, v.X('SN'): (0,1,0.02)}
+    strat = BinaryStrategy(dbf, comps, phases, conds)
+
+    strat.add_nodes_from_conditions({v.T: 650, v.P: 101325, v.X('SN'): 0.2})
+    initial_nodes = len(strat.node_queue.nodes)
+    # stop until there's 4 nodes or if mapping finished
+    while strat.node_queue._current_node_index < (initial_nodes+1):
+        if strat.iterate():
+            break
+
+    nodes = [set(n.stable_phases) for n in strat.node_queue.nodes]
+    assert {'LIQUID', 'HCP_A3', 'AUSN_B81'} in nodes
+
+@select_database("Al-Cu-Y.tdb")
+def test_issue_662_phase_boundary_loop(load_database):
+    T = 2260
+    dbf = load_database()
+    comps = ['AL', 'CU', 'Y', 'VA']
+    phases = list(dbf.phases.keys())
+    conds = {v.T: T, v.P:101325, v.X('AL'): (0,1,0.015), v.X('Y'): (0,1,0.015)}
+    strat = TernaryStrategy(dbf, comps, phases, conds)
+    strat.add_nodes_from_conditions({v.T: T, v.P: 101325, v.X('AL'): 0.33, v.X('Y'): 0.33})
+
+    # this is pretty much the loop in strat.do_map()
+    # the conditions we set here should be 90 iterations
+    # so mapping does not finish by 200 iterations, then something would be wrong
+    strat.do_map(200)
+    zpf_finished = strat.zpf_lines[-1].status != ZPFState.NOT_FINISHED
+    no_more_exits = strat._exit_index >= len(strat._exits)
+    no_more_nodes = strat.node_queue.size() == 0
+    assert zpf_finished
+    assert no_more_exits
+    assert no_more_nodes
+
+    # should only have zpf lines for liquid-AlCuY
+    # there should be two zpf lines since the node we manually add
+    # will map in the positive and negative axis directions
+    assert len(strat.zpf_lines) == 2
+    for z in strat.zpf_lines:
+        assert len(set(z.stable_phases) - {'LIQUID', 'ALCUY'}) == 0
+
+    # this will trigger plotting the zpf line as a point, so just make sure this plots
+    # without fail
+    plot_ternary(strat, label_nodes=True)
+
+@select_database("alzn_mey.tdb")
+def test_step_strategy_get_data_respects_display_units_for_state_and_model_properties(load_database):
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["AL", "VA"], ["FCC_A1", "LIQUID"], conditions={v.T: (920, 940, 5), v.P: 101325})
+    strategy.do_map()
+
+    gm_mass = as_property("GM")["J/g"]
+    data = strategy.get_data(v.T["degC"], gm_mass, global_y=True, set_nan_to_zero=False)
+    assert len(data.data) == 1 and data.data[0].phase == "SYSTEM"
+
+    expected_x = []
+    expected_y = []
+    for zpf_line in strategy.zpf_lines:
+        for point in zpf_line.points:
+            expected_x.append(point.get_property(v.T) - 273.15)
+            expected_y.append(to_display_units(point.get_property(gm_mass), point.stable_composition_sets, gm_mass))
+    expected_x = np.asarray(expected_x)
+    expected_y = np.asarray(expected_y)
+    argsort = np.argsort(expected_x)
+
+    np.testing.assert_allclose(data.data[0].x, expected_x[argsort])
+    np.testing.assert_allclose(data.data[0].y, expected_y[argsort])
+
+@select_database("pbsn.tdb")
+def test_step_strategy_get_data_computes_mass_fraction(load_database):
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["PB", "SN", "VA"], ["FCC_A1", "LIQUID"], conditions={v.T: (500, 520, 10), v.X("SN"): 0.5, v.P: 101325})
+    strategy.do_map()
+
+    data = strategy.get_data(v.X("SN"), v.W("SN"), global_x=True, global_y=True, set_nan_to_zero=False)
+    assert len(data.data) == 1 and data.data[0].phase == "SYSTEM"
+
+    x_sn = data.data[0].x
+    w_sn = data.data[0].y
+    pb_mass = dbf.refstates["PB"]["mass"]
+    sn_mass = dbf.refstates["SN"]["mass"]
+    expected_w_sn = x_sn*sn_mass / (x_sn*sn_mass + (1 - x_sn)*pb_mass)
+
+    np.testing.assert_allclose(w_sn, expected_w_sn)
+    assert np.nanmax(np.abs(w_sn - x_sn)) > 1e-3
+
+@select_database("alzn_mey.tdb")
+def test_strategy_plotting_respects_units(load_database):
+    """Test that giving state variables with units to ZPFLine.get_var_list converts units appropriately"""
+
+    dbf = load_database()
+    strategy = StepStrategy(dbf, ["AL", "VA"], ["FCC_A1", "LIQUID"], conditions={v.T: (920, 940, 1), v.P: 101325})
+    strategy.do_map()
+
+    # we should have found a line ending at a node, extract that here
+    node_zpf_lines = [zl for zl in strategy.zpf_lines if zl.status == ZPFState.NEW_NODE_FOUND]
+    assert len(node_zpf_lines) == 1
+    node_zpf_line = node_zpf_lines[0]
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T))[-1], 933.600, atol=1e-3)  # value in Kelvin
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["celsius"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
+    np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["degC"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius

@@ -698,6 +698,15 @@ class ModelMQMQA(Model):
                         mixing_term *= Y_im / Xi_ikl * (1 - self._Y_ik(A, X) / Xi_ikl)**(r_alpha - 1)
                     else:  # not in nu or gamma
                         mixing_term *= Y_im * (1 - Xi_ikl - Xi_ilk)**(r_alpha - 1)
+            elif A != B and X != Y:
+                # Reciprocal mixing
+                if mixing_code != "R":
+                    raise ValueError(f"Unknown mixing code {mixing_code} for parameter {param}. Expected 'R'.")
+                pos_m = [spec for spec in m if spec.charge > 0][0]
+                neg_m = [spec for spec in m if spec.charge < 0][0]
+                quadruplet_mole = X_ijkl(pos_m, pos_m, neg_m, neg_m)
+                mix_term_exponent = [num for num in exponents if num != 0][0]
+                mixing_term += quadruplet_mole ** mix_term_exponent
             else:
                 mixing_term = S.One  # No mixing, this is a modification to the formation energy of this quadruplet
             g = param["parameter"] * mixing_term

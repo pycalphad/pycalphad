@@ -17,37 +17,37 @@ pycalphad.plot.eqplot module
 
 .. automodule:: pycalphad.plot.eqplot
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 pycalphad.plot.ternary module
 -----------------------------
 
 .. automodule:: pycalphad.plot.ternary
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 pycalphad.plot.triangular module
 --------------------------------
 
 .. automodule:: pycalphad.plot.triangular
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 pycalphad.plot.utils module
 ---------------------------
 
 .. automodule:: pycalphad.plot.utils
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: pycalphad.plot
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

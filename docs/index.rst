@@ -28,20 +28,35 @@ The newest stable version can be found on `PyPI`_.
 .. _PyPI: https://pypi.python.org/pypi/pycalphad
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    INSTALLING
-   examples/index
-   faq
    CHANGES
 
+.. toctree::
+   :maxdepth: 2
+   :caption: How-to
+
+   examples/1_Phase_Diagrams/index
+   examples/2_Computing_Properties/index
+   examples/3_High_Throughput_Analysis/index
+   examples/4_Metastability_Reference_States/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Reference
+
+   reference/calphad_databases
+   reference/faq
 
 .. toctree::
    :maxdepth: 1
    :caption: Developer
 
    releasing
-   onboarding
+   developer/onboarding
+   developer/contributing
    api/modules
 
 Getting Help

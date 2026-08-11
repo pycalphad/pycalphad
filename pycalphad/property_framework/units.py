@@ -1,11 +1,17 @@
 import pint
 import numpy as np
 import numpy.typing as npt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
+from pycalphad.core.composition_set import CompositionSet
 if TYPE_CHECKING:
     from pycalphad.property_framework import ComputableProperty
 
-ureg = pint.UnitRegistry(preprocessors=[lambda s: s.replace('%', ' percent ')])
+ureg = pint.UnitRegistry(
+    preprocessors=[lambda s: s.replace('%', ' percent ')],
+    # Suppress warnings when redefining 'percent', '%', and 'ppm' units.
+    # We intentionally redefine these relative to our custom 'fraction' unit.
+    on_redefinition='ignore',
+)
 ureg.define('atom = 1/avogadro_number * mol')
 ureg.define('fraction = []')
 ureg.define('percent = 1e-2 fraction = %')
@@ -80,3 +86,33 @@ def unit_conversion_context(compsets, prop):
     )
 
     return context
+
+
+def _composition_sets_for_unit_conversion(comp_sets: Sequence[CompositionSet], prop: "ComputableProperty") -> Sequence[CompositionSet]:
+    """Select composition sets matching a phase-specific property for unit conversion context."""
+    phase_name = getattr(prop, 'phase_name', None)
+    if phase_name is None or phase_name == '*':
+        return comp_sets
+
+    tokens = phase_name.split('#')
+    phase_name = tokens[0]
+    multiplicity = int(tokens[1]) if len(tokens) > 1 else 1
+    multiplicity_seen = 0
+    for comp_set in comp_sets:
+        if comp_set.phase_record.phase_name == phase_name:
+            multiplicity_seen += 1
+            if multiplicity_seen == multiplicity:
+                return [comp_set]
+    return comp_sets
+
+
+def to_display_units(value: npt.ArrayLike, comp_sets: Sequence[CompositionSet], prop: "ComputableProperty") -> npt.ArrayLike:
+    """Convert a property value from implementation units to display units.
+
+    Filters composition sets to match phase-specific properties before
+    building the molar mass context for per-mole to per-mass conversions.
+    """
+    implementation_units = ureg.Unit(getattr(prop, 'implementation_units', ''))
+    display_units = ureg.Unit(getattr(prop, 'display_units', ''))
+    context = unit_conversion_context(_composition_sets_for_unit_conversion(comp_sets, prop), prop)
+    return Q_(value, implementation_units).to(display_units, context).magnitude

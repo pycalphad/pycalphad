@@ -136,6 +136,11 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
             x = - Q[neg_em_idx] / (Q[pos_em_idx] - Q[neg_em_idx])
             em_pts.append(endmembers[pos_em_idx] * x + endmembers[neg_em_idx] * (1-x))
 
+        if len(em_pts) == 0:
+            # There are no endmembers of linear combination endmembers pairs that can charge balance.
+            # This phase cannot form. Return a size zero array of the correct shape
+            return np.full((0, sum(sublattice_dof)), np.nan)
+
         # Charge neutral endmembers and mixed pseudo-endmembers
         points = np.asarray(em_pts)
 
@@ -280,13 +285,11 @@ def _compute_phase_values(components, statevar_dict, str_phase_local_conditions,
             phase_output = broadcast_to(phase_output, points.shape[:-1])
         if isinstance(phase_compositions, (float, int)):
             phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
-        phase_output = np.asarray(phase_output, dtype=np.float64)
         if parameter_array_length <= 1:
-            phase_output.shape = points.shape[:-1]
+            phase_output = np.asarray(phase_output, dtype=np.float64).reshape(points.shape[:-1])
         else:
-            phase_output.shape = points.shape[:-1] + (parameter_array_length,)
-        phase_compositions = np.asarray(phase_compositions, dtype=np.float64)
-        phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
+            phase_output = np.asarray(phase_output, dtype=np.float64).reshape(points.shape[:-1] + (parameter_array_length,))
+        phase_compositions = np.asarray(phase_compositions, dtype=np.float64).reshape(points.shape[:-1] + (len(pure_elements),))
     else:
         # We still need phase_output and phase_compositions to have the correct dimensions
         # even if there were no points in case fake_points are added (as they will be
@@ -479,6 +482,23 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         active_phases_without_models = [name for name in active_phases if not isinstance(models.get(name), Model)]
         if len(active_phases_without_models) > 0:
             raise ValueError(f"model must contain a Model instance for every active phase. Missing Model objects for {sorted(active_phases_without_models)}")
+
+    # Every state variable the phase records were compiled against must have a
+    # value. The compiled property functions take `phase_records.state_variables + site_fractions`
+    # as input, but `calculate()` builds the dof's state-variable columns from
+    # `statevar_dict`. If a Model requires a potential (e.g. T or P) that the
+    # caller of `calcuate()` did not provide, the dof would be have a different
+    # shape than the compiled function expects and the function would read past
+    # the end of the dof buffer. We fail loudly in that case.
+    required_statevars = {str(sv) for sv in phase_records.state_variables}
+    supplied_statevars = {str(sv) for sv in statevar_dict.keys()}
+    missing_statevars = sorted(required_statevars - supplied_statevars)
+    if missing_statevars:
+        raise ConditionError(
+            f"The following state variable(s) are required by the Model(s) for the active "
+            f"phases but were not specified: {missing_statevars}. Specify them as keyword "
+            f"arguments to calculate(), e.g. calculate(..., T=300)."
+        )
 
     maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
 

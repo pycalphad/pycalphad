@@ -19,7 +19,7 @@ from pycalphad.io.database import Database
 from pycalphad.variables import Species, StateVariable
 from pycalphad.core.conditions import Conditions, ConditionError
 from pycalphad.property_framework import ComputableProperty, as_property
-from pycalphad.property_framework.units import unit_conversion_context, ureg, as_quantity, Q_
+from pycalphad.property_framework.units import as_quantity, Q_, to_display_units
 from runtype import isa
 from runtype.pytypes import Dict, List, Sequence, SumType, Mapping, NoneType
 from typing import TypeVar
@@ -298,6 +298,15 @@ ModelType = TypeVar('ModelType', bound=Model)
 # LinearCombination conditions for components with more than one constituent
 
 class Workspace:
+    """
+    Reactive equilibrium calculator.
+
+    Workspace ties together a database, components, phases, and conditions
+    into a single object that computes phase equilibria. It is reactive in the
+    sense that modifying any input (e.g., changing components, phases, or
+    conditions) automatically updates internal state enabling performant,
+    interactive use.
+    """
     _callbacks = defaultdict(lambda: [])
     database: Database = TypedField(lambda _: Database())
     components: ComponentList = ComponentsField(depends_on=['database'])
@@ -489,9 +498,6 @@ class Workspace:
     def get_dict(self, *args: Tuple[ComputableProperty]):
         args = list(map(as_property, args))
         self._expand_property_arguments(args)
-        arg_units = {arg: (ureg.Unit(getattr(arg, 'implementation_units', '')),
-                           ureg.Unit(getattr(arg, 'display_units', '')))
-                     for arg in args}
 
         arr_size = self.eq.GM.size
         results = dict()
@@ -515,8 +521,8 @@ class Workspace:
                 context = unit_conversion_context(composition_sets, arg)
                 if results.get(arg, None) is None:
                     results[arg] = np.zeros((arr_size,) + arg.shape)
-                results[arg][local_index, ...] = Q_(arg.compute_property(composition_sets, cur_conds, chemical_potentials),
-                                                    prop_implementation_units).to(prop_display_units, context).magnitude
+                values = arg.compute_property(composition_sets, cur_conds, chemical_potentials)
+                results[arg][local_index, ...] = to_display_units(values, composition_sets, arg)
             local_index += 1
 
         # roll the dimensions of the property arrays back up

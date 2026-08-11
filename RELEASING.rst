@@ -1,7 +1,7 @@
-Releasing pycalphad
+Releasing PyCalphad
 ===================
 
-Create a release of pycalphad
+Create a release of PyCalphad
 -----------------------------
 
 These steps assume that ``0.1`` is the most recently tagged version number and ``0.2`` is the next version number to be released.

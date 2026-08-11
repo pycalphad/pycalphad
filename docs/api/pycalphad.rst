@@ -23,21 +23,21 @@ pycalphad.model module
 
 .. automodule:: pycalphad.model
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 pycalphad.variables module
 --------------------------
 
 .. automodule:: pycalphad.variables
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: pycalphad
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

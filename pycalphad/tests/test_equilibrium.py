@@ -1145,3 +1145,51 @@ def test_issue589_global_min(load_database):
     # Confirmed by turning point density up to 1e7
     assert_allclose(res.GM.values.squeeze(), np.array([-39263.10130208]))
     assert_allclose(res.MU.values.squeeze(), np.array([-73190.455829,  55931.596253, -59900.399453, -79250.493316, -80354.857076]))
+
+
+@select_database("CoV-20Wan.tdb")
+def test_equilibrium_never_disorder(load_database):
+    dbf = load_database()
+    comps = ["CO", "V", "VA"]
+    phases = list(dbf.phases.keys())
+    conditions = {v.N: 1, v.P: 1e5, v.T: 1250.0, v.X('V'): 0.60}
+    res = equilibrium(dbf, comps, phases, conditions, verbose=True)
+    print("Equilibrium Phase", res.Phase.values.squeeze())
+    print("Equilibrium NP", res.NP.values.squeeze())
+    print("Equilibrium GM", res.GM.values.squeeze())
+    print("Equilibrium Y", res.Y.values.squeeze())
+    assert res.Phase.values.squeeze().tolist() == ["SIGMA_D8B", "", ""]
+    # Values checked in Thermo-Calc
+    assert_allclose(res.GM.values.squeeze(), np.array([-80134.504]))
+    assert_allclose(res.MU.values.squeeze(), np.array([-84691.297, -77096.642]), rtol=1e-6)
+    assert_allclose(res.Y.values.squeeze()[0,:6], np.array([0.99942828, 5.7172171E-4, 1.2760143E-2, 0.98723986, 0.12216729, 0.87783271,]), rtol=2e-5)
+
+@select_database("2026-Dixon-Na-K-Cl-I.dat")
+def test_MQMQA_reciprocal_interaction_parameter_Dixon(load_database):
+    """The reciprocal interaction parameter presented in Eq. 15 by Dixon et al. (2026) can now be read by PyCalphad"""
+    dbf = load_database()
+    comps = ['NA','K','CL','I']
+    eq = equilibrium(dbf, comps, ['MSCL'], {v.P: 101325, v.T: 800, v.N: 1, v.X('CL'):0.25, v.X('NA'):0.25, v.X('K'):0.25})
+    print('GM', eq.GM.values.squeeze())
+    print('Y', eq.Y.values.squeeze())
+    print('Phase', eq.Phase.values.squeeze())
+    assert_allclose(eq.GM.values.squeeze(), -229356.0, atol=5)  # FactSage result
+
+@pytest.mark.solver
+@select_database("TiO-17Yan.tdb")
+def test_charged_stoichiometric_phases_converge(load_database):
+    """Two-phase equilibrium between stoichiometric charged compounds converges (gh-712)"""
+    # The charge balance constraint of a stoichiometric ionic compound is a linear
+    # combination of its site fraction balance constraints. Adding it made the phase
+    # matrix singular, so the minimizer inverted it into garbage and never converged.
+    dbf = load_database()
+    comps = ["TI", "O", "VA"]
+    conds = {v.P: 1e5, v.N: 1, v.T: 620.0, v.X("O"): 0.41}
+
+    eq = equilibrium(dbf, comps, ["TI3O2", "TIO_ALPHA"], conds)
+
+    assert np.all(np.isfinite(eq.GM.values))
+    assert_allclose(eq.GM.values, -241451.22198839)
+    stable_amounts = eq.NP.values.squeeze()
+    assert_allclose(np.sort(stable_amounts[~np.isnan(stable_amounts)]), [0.1, 0.9], atol=1e-8)
+    assert_allclose(eq.MU.values.squeeze(), [-486633.66127366, -71070.20485795])
