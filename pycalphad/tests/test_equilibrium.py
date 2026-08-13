@@ -1181,3 +1181,29 @@ def test_eq_ionic_liquid_mixed_valence_metal_converges(load_database):
     eq_ionic = equilibrium(dbf, comps, ["LIQUID"], conds)
     assert_allclose(eq_ionic.GM.values.squeeze(), -196219.7955, atol=1e-3)
 
+
+@pytest.mark.solver
+@select_database("KLiNdCl.tdb")
+def test_eq_ionic_liquid_salt_with_anions_converges(load_database):
+    """KCl-NdCl3 2SL ionic liquid converges.
+
+    As P and Q vary with composition, formula moles are non-linear in the
+    site fractions and can fail to converge (NaN) or crash with ZeroDivisionError
+    """
+    dbf = load_database()
+    # on the KCl-NdCl3 join: X(K) = x/(4-2x), X(CL) = (3-2x)/(4-2x)
+    comps = ["K", "ND", "CL", "VA"]
+    # x(KCl)=0.5: crashed with ZeroDivisionError
+    x = 0.5
+    conds = {v.P: 101325, v.T: 1100.0, v.N: 1,
+             v.X("K"): x / (4 - 2 * x), v.X("CL"): (3 - 2 * x) / (4 - 2 * x)}
+    eq = equilibrium(dbf, comps, ["IONIC_LIQUID"], conds)
+    assert np.all(np.isfinite(eq.GM.values)), "x(KCl)=0.5 salt liquid did not converge"
+    assert_allclose(eq.GM.values.squeeze(), -315530.117, atol=0.1)
+    # x(KCl)=0.7: crashed with ZeroDivisionError
+    x = 0.7
+    conds = {v.P: 101325, v.T: 900.0, v.N: 1,
+             v.X("K"): x / (4 - 2 * x), v.X("CL"): (3 - 2 * x) / (4 - 2 * x)}
+    eq = equilibrium(dbf, comps, ["IONIC_LIQUID"], conds)
+    assert np.all(np.isfinite(eq.GM.values)), "x(KCl)=0.7 salt liquid did not converge"
+    assert_allclose(eq.GM.values.squeeze(), -290558.751, atol=0.1)
