@@ -937,6 +937,7 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
         # We need real state variable bounds support
 
     # 3. Step in phase internal degrees of freedom
+    state.largest_y_change[0] = 0.0
     for idx in range(len(state.compsets)):
         # TODO: Use better dof storage
         x = state.dof[idx]
@@ -975,7 +976,6 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
                 step_size *= 0.5
                 continue
             break
-        state.largest_y_change[0] = 0.0
         for i in range(spec.num_statevars, new_y.shape[0]):
             state.largest_y_change[0] = max(state.largest_y_change[0], abs(x[i] - new_y[i]))
         x[:] = new_y
