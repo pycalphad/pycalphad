@@ -1150,3 +1150,34 @@ def test_charged_stoichiometric_phases_converge(load_database):
     stable_amounts = eq.NP.values.squeeze()
     assert_allclose(np.sort(stable_amounts[~np.isnan(stable_amounts)]), [0.1, 0.9], atol=1e-8)
     assert_allclose(eq.MU.values.squeeze(), [-486633.66127366, -71070.20485795])
+
+
+@pytest.mark.solver
+@select_database("ionic_liquid_metal_minimal.tdb")
+def test_eq_ionic_liquid_mixed_valence_metal_converges(load_database):
+    """Metal-only 2SL ionic liquid with mixed-valence cations converges.
+
+    The (HF+4, NB+2)(VA) ionic liquid in this database is mathematically
+    identical to the substitutional LIQUID_SUBS phase in the same database.
+    The Lagrangian for the phase matrix becomes non-linear because formula moles
+    of the ionic liquid have site ratios P and Q that depend on the site
+    fractions. Prior to the fix, site fractions in metastable composition sets
+    could oscillate leading to a convergence failure.
+    """
+    dbf = load_database()
+    comps = ["HF", "NB", "VA"]
+    for x_nb in [0.3, 0.5, 0.7]:
+        conds = {v.P: 101325, v.T: 2500.0, v.N: 1, v.X("NB"): x_nb}
+        eq_ionic = equilibrium(dbf, comps, ["LIQUID"], conds)
+        eq_subst = equilibrium(dbf, comps, ["LIQUID_SUBS"], conds)
+        gm_subst = eq_subst.GM.values.squeeze()
+        assert np.all(np.isfinite(gm_subst))
+        # the ionic liquid must converge to the identical substitutional result
+        assert np.all(np.isfinite(eq_ionic.GM.values)), f"NaN at X(NB)={x_nb}"
+        assert_allclose(eq_ionic.GM.values.squeeze(), gm_subst, atol=1e-3)
+        assert_allclose(eq_ionic.MU.values.squeeze(), eq_subst.MU.values.squeeze(), atol=1e-2)
+    # regression value for the equimolar point
+    conds = {v.P: 101325, v.T: 2500.0, v.N: 1, v.X("NB"): 0.5}
+    eq_ionic = equilibrium(dbf, comps, ["LIQUID"], conds)
+    assert_allclose(eq_ionic.GM.values.squeeze(), -196219.7955, atol=1e-3)
+

@@ -76,6 +76,7 @@ cdef void invert_matrix(double *A, int N, int* ipiv) nogil:
 @cython.boundscheck(False)
 cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
                                double[:, ::1] cons_jac_tmp, double[:, ::1] phase_local_jac_tmp,
+                               double[:, ::1] mass_hess_tmp,
                                CompositionSet compset, int num_statevars, double[::1] chemical_potentials,
                                double[::1] phase_dof) nogil:
     "Compute the LHS of Eq. 41, Sundman 2015."
@@ -88,6 +89,23 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
     for i in range(compset.phase_record.phase_dof):
         for j in range(compset.phase_record.phase_dof):
             phase_matrix[i, j] = hess[num_statevars+i, num_statevars+j]
+
+    # The phase-internal Newton step minimizes the Lagrangian
+    # G - sum_A mu_A * M_A, so the phase matrix needs the curvature of the
+    # moles as well: -sum_A mu_A * d2M_A/dy2. Formula moles are linear in the
+    # site fractions for every model except the two-sublattice ionic liquid,
+    # whose site ratios P and Q depend on the site fractions; omitting this
+    # term there makes the Newton iteration oscillate instead of converge.
+    for comp_idx in range(num_components):
+        if chemical_potentials[comp_idx] == 0.0:
+            continue
+        for i in range(mass_hess_tmp.shape[0]):
+            for j in range(mass_hess_tmp.shape[1]):
+                mass_hess_tmp[i, j] = 0
+        compset.phase_record.formulamole_hess(mass_hess_tmp, phase_dof, comp_idx)
+        for i in range(compset.phase_record.phase_dof):
+            for j in range(compset.phase_record.phase_dof):
+                phase_matrix[i, j] -= chemical_potentials[comp_idx] * mass_hess_tmp[num_statevars+i, num_statevars+j]
 
     for i in range(compset.phase_record.num_internal_cons):
         for j in range(compset.phase_record.phase_dof):
@@ -463,6 +481,7 @@ cdef class CompsetState:
     cdef int[::1] ipiv
     cdef double[:, ::1] cons_jac_tmp
     cdef double[:, ::1] phase_local_jac_tmp
+    cdef double[:, ::1] mass_hess_tmp
 
     def __init__(self, SystemSpecification spec, CompositionSet compset):
         self.x = np.zeros(spec.num_statevars + compset.phase_record.phase_dof)
@@ -488,6 +507,8 @@ cdef class CompsetState:
         self.delta_y = np.zeros(compset.phase_record.phase_dof)
         self.cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons, spec.num_statevars + compset.phase_record.phase_dof))
         self.phase_local_jac_tmp = np.zeros((compset.num_phase_local_conditions, spec.num_statevars + compset.phase_record.phase_dof))
+        self.mass_hess_tmp = np.zeros((spec.num_statevars + compset.phase_record.phase_dof,
+                                       spec.num_statevars + compset.phase_record.phase_dof))
 
     def __getstate__(self):
         return (np.array(self.x), self.energy, np.array(self.grad), np.array(self.hess),
@@ -622,7 +643,7 @@ cdef class SystemState:
             compset.phase_record.formulagrad(csst.grad, x)
             compset.phase_record.internal_cons_func(csst.internal_cons, x)
 
-            compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, csst.phase_local_jac_tmp, compset, spec.num_statevars, self.chemical_potentials, x)
+            compute_phase_matrix(csst.phase_matrix, csst.hess, csst.cons_jac_tmp, csst.phase_local_jac_tmp, csst.mass_hess_tmp, compset, spec.num_statevars, self.chemical_potentials, x)
             # Copy the phase matrix into the e matrix and invert the e matrix
             for i in range(csst.full_e_matrix.shape[0]):
                 for j in range(csst.full_e_matrix.shape[1]):
