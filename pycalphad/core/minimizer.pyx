@@ -90,18 +90,12 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
         for j in range(compset.phase_record.phase_dof):
             phase_matrix[i, j] = hess[num_statevars+i, num_statevars+j]
 
-    # The phase-internal Newton step minimizes the Lagrangian
-    # G - sum_A mu_A * M_A, so the phase matrix needs the curvature of the
-    # moles as well: -sum_A mu_A * d2M_A/dy2. Formula moles are linear in the
-    # site fractions for every model except the two-sublattice ionic liquid,
-    # whose site ratios P and Q depend on the site fractions; omitting this
-    # term there makes the Newton iteration oscillate instead of converge.
+    # Special case for ionic liquids where P/Q make the moles non-linear in the
+    # site fractions. Eq. 37 of Sundman only does a Taylor expansion of G, but for this
+    # model we should also linearize the $\partial M / \partial y$ term by an expansion.
+    # This introduces chemical potentials into the phase matrix and we use the ones
+    # from the previous iteration.
     for comp_idx in range(num_components):
-        if chemical_potentials[comp_idx] == 0.0:
-            continue
-        for i in range(mass_hess_tmp.shape[0]):
-            for j in range(mass_hess_tmp.shape[1]):
-                mass_hess_tmp[i, j] = 0
         compset.phase_record.formulamole_hess(mass_hess_tmp, phase_dof, comp_idx)
         for i in range(compset.phase_record.phase_dof):
             for j in range(compset.phase_record.phase_dof):
