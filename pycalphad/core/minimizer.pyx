@@ -421,7 +421,7 @@ cdef class SystemSpecification:
         for iteration in range(max_iterations):
             if self.debugging_output:
                 print(f"---------------")
-                print(f"iteration {iteration}")
+                print(f"iteration {iteration+1}")
             state.iteration = iteration
             if not self.pre_solve_hook(state):
                 break
