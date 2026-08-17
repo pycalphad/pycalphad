@@ -385,7 +385,7 @@ cdef class SystemSpecification:
     cpdef bint check_convergence(self, SystemState state):
         # convergence criteria
         cdef double ALLOWED_DELTA_Y = 5e-09
-        cdef double ALLOWED_DELTA_PHASE_AMT = 1e-10
+        cdef double ALLOWED_DELTA_PHASE_AMT = 1e-8
         cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
         if self.debugging_output:
             print(

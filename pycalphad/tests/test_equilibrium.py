@@ -1207,3 +1207,41 @@ def test_eq_ionic_liquid_salt_with_anions_converges(load_database):
     eq = equilibrium(dbf, comps, ["IONIC_LIQUID"], conds)
     assert np.all(np.isfinite(eq.GM.values)), "x(KCl)=0.7 salt liquid did not converge"
     assert_allclose(eq.GM.values.squeeze(), -290558.751, atol=0.1)
+
+
+@pytest.mark.solver
+@select_database("C_A_S_Fe_O_M.tdb")
+def test_eq_issue652_dilute_species_converges(load_database):
+    """Slag equilibria with dilute species (N) converge (gh-652).
+
+    Very small amounts of some species make the phase matrices poorly
+    conditioned, so noise from inverting them enters the solver steps and
+    convergence can hinge on that noise satisfying ALLOWED_DELTA_PHASE_AMT.
+    """
+    dbf = load_database()
+    comps = ["L", "Q", "A", "FE", "O", "N", "VA"]
+    phases = ["AC2S", "ACRIS", "APC2S", "AQUARTZ", "BC2S", "BCRIS", "BQUARTZ",
+              "C12A7", "C2AS", "C2F", "C3A", "CA", "CA2", "CA6", "CAO", "CAS2",
+              "GC2S", "MC3S", "MULLITE", "PCS", "RC3S", "RC3S2", "TC3S", "WCS",
+              "FERRITE", "CF", "CF2", "BCC_A2", "FCC_A1", "HALITE", "CORUNDUM",
+              "SPINEL", "LIQUID", "GAS"]
+    # expected energies determined from testing at pdens = 100_000
+    all_expGM_pdens_conds = [
+        (-893721.739167, None, {v.X("L"): 0.6762553264673202, v.X("Q"): 0.20638875675869772, v.X("A"): 0.0333274011650397, v.X("FE"): 0.028668770864977013, v.X("N"): 0.006178294223249905, v.T: 1900.0, v.P: 101325, v.N: 1}),
+        # TODO: remove need to input pdens
+        # liquid point density currently required for global min
+        # without it, we don't get liquid in the starting point and converge to a
+        # solid-only solution with liquid ~1080 J above the global min
+        (-876516.456539, 10_000, {v.X("L"): 0.6737139382404836, v.X("Q"): 0.20561314149024873, v.X("A"): 0.03320215577082691, v.X("FE"): 0.03006424499589477, v.X("N"): 0.006155076004351841, v.T: 1800.0, v.P: 101325, v.N: 1}),
+        (-891388.48767, None, {v.X("L"): 0.6737139382404836, v.X("Q"): 0.20561314149024873, v.X("A"): 0.03320215577082691, v.X("FE"): 0.03006424499589477, v.X("N"): 0.006155076004351841, v.T: 1900.0, v.P: 101325, v.N: 1}),
+    ]
+    expected_energies = []
+    actual_energies = []
+    for (expected_energy, LIQUID_pdens, conds) in all_expGM_pdens_conds:
+        if LIQUID_pdens is not None:
+            eq = equilibrium(dbf, comps, phases, conds, calc_opts={"pdens": {"LIQUID": LIQUID_pdens}})
+        else:
+            eq = equilibrium(dbf, comps, phases, conds)
+        expected_energies.append(expected_energy)
+        actual_energies.append(eq.GM.values.squeeze())
+    assert_allclose(actual_energies, expected_energies)
