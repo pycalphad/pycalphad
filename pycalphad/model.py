@@ -255,7 +255,7 @@ class Model(object):
                     subl_idx = 0
                 else:
                     raise ValueError('Two-sublattice ionic liquid specified with more than two sublattices')
-                self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_comps])
+                self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in sorted(subl_comps, key=str)])
 
         if phase.model_hints.get('ionic_liquid_2SL', False):
             # Special treatment of "neutral" vacancies in 2SL ionic liquid
@@ -417,7 +417,7 @@ class Model(object):
         if is_pure_element:
             element = list(species.constituents.keys())[0]
             for idx, sublattice in enumerate(self.constituents):
-                active = set(sublattice).intersection(self.components)
+                active = sorted(set(sublattice).intersection(self.components), key=str)
                 result += self.site_ratios[idx] * \
                     sum(int(spec.number_of_atoms > 0) * spec.constituents.get(element, 0) * v.SiteFraction(self.phase_name, idx, spec)
                         for spec in active)
@@ -426,7 +426,7 @@ class Model(object):
                         for spec in active)
         else:
             for idx, sublattice in enumerate(self.constituents):
-                active = set(sublattice).intersection({species})
+                active = sorted(set(sublattice).intersection({species}), key=str)
                 if len(active) == 0:
                     continue
                 result += self.site_ratios[idx] * sum(v.SiteFraction(self.phase_name, idx, spec) for spec in active)
@@ -454,12 +454,12 @@ class Model(object):
         site_ratio_normalization = S.Zero
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(self.components)
+            active = sorted(set(sublattice).intersection(self.components), key=str)
             subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
             site_ratio_normalization += self.site_ratios[idx] * subl_content
 
         site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
-        for comp in self.components:
+        for comp in sorted(self.components, key=str):
             if comp.number_of_atoms == 0:
                 continue
             comp_result = S.Zero
@@ -545,7 +545,7 @@ class Model(object):
         constraints = []
         # Site fraction balance
         for idx, sublattice in enumerate(self.constituents):
-            constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
+            constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sorted(sublattice, key=str)) - 1)
         # Charge balance for all phases that are charged
         has_charge = len({sp for sp in self.components if sp.charge != 0}) > 0
         constant_site_ratios = True
@@ -562,7 +562,7 @@ class Model(object):
             total_charge = 0
             for idx, (sublattice, site_ratio) in enumerate(zip(self.constituents, self.site_ratios)):
                 total_charge += sum(v.SiteFraction(self.phase_name, idx, spec) * spec.charge * site_ratio
-                                    for spec in sublattice)
+                                    for spec in sorted(sublattice, key=str))
             # If every constituent of a sublattice carries the same charge, then the charge
             # contributed by that sublattice is a constant multiple of its site fraction sum and
             # the charge balance constraint is a linear combination of the site fraction balance
@@ -652,7 +652,7 @@ class Model(object):
         site_ratio_normalization = S.Zero
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(self.components)
+            active = sorted(set(sublattice).intersection(self.components), key=str)
             subl_content = sum(spec.number_of_atoms * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
             site_ratio_normalization += self.site_ratios[idx] * subl_content
         return site_ratio_normalization
@@ -691,7 +691,7 @@ class Model(object):
         # Species of different chemical groups use a Toop-type approximation.
         toop_filter = _toop_filter(phase.model_hints['chemical_groups'], i, j)
         toop_correction = S.Zero
-        active_subl_comps = phase.constituents[sublattice_index].intersection(self.components)
+        active_subl_comps = sorted(phase.constituents[sublattice_index].intersection(self.components), key=str)
         for k in filter(toop_filter, active_subl_comps):
             toop_correction += v.Y(self.phase_name, sublattice_index, k)
         return v.Y(self.phase_name, sublattice_index, i) + toop_correction
@@ -962,7 +962,7 @@ class Model(object):
         ideal_mixing_term = S.Zero
         sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
         for subl_index, sublattice in enumerate(phase.constituents):
-            active_comps = set(sublattice).intersection(self.components)
+            active_comps = sorted(set(sublattice).intersection(self.components), key=str)
             ratio = site_ratios[subl_index]
             for comp in active_comps:
                 sitefrac = \
