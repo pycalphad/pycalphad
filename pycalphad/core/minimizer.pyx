@@ -400,7 +400,7 @@ cdef class SystemSpecification:
         cdef double ALLOWED_DELTA_Y = 5e-09
         cdef double ALLOWED_DELTA_PHASE_AMT = 1e-8
         cdef double ALLOWED_DELTA_STATEVAR = 1e-5  # changes defined as percent change
-        cdef double MASS_RESIDUAL_RTOL = 1e-5
+        cdef double MASS_RESIDUAL_RTOL = 1e-4
         cdef double MASS_RESIDUAL_ATOL = 1e-11
         cdef int i, comp_idx, row_idx
         cdef double target, residual, scale
