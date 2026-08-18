@@ -1245,3 +1245,78 @@ def test_eq_issue652_dilute_species_converges(load_database):
         expected_energies.append(expected_energy)
         actual_energies.append(eq.GM.values.squeeze())
     assert_allclose(actual_energies, expected_energies)
+
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_issue641_trace_composition_conditions_converge(load_database):
+    """Equilibrium with trace composition conditions converges (gh-641).
+
+    Point from the AA6005 alloy Scheil solidification path where Ti has
+    depleted to X(TI)~3.5e-10. Guards the composition residual convergence
+    criteria: tolerances must scale with the magnitude of each prescribed
+    composition, or convergence is unattainable at trace conditions (an
+    absolute tolerance derived from min|rhs| falls below the solver's
+    floating point noise floor). Expected values checked with Thermo-Calc.
+    Failures are sensitive to PYTHONHASHSEED, because set/dict ordering
+    changes the starting composition sets and the numerical noise path.
+    """
+    dbf = load_database()
+    comps = ["AL", "CR", "CU", "FE", "MG", "MN", "SI", "TI", "ZN", "VA"]
+    phases = list(dbf.phases.keys())
+    conds = {
+        v.N: 1, v.P: 101325, v.T: 864.3471074380166,
+        v.X("CR"): 7.723742795983076e-07,
+        v.X("CU"): 0.010545262150718276,
+        v.X("FE"): 0.0022208033531704585,
+        v.X("MG"): 0.04811934722735042,
+        v.X("MN"): 0.0012220211670977072,
+        v.X("SI"): 0.06683377134719204,
+        v.X("TI"): 3.4849373248879975e-10,
+        v.X("ZN"): 0.0003600924591985512,
+    }
+    eq = equilibrium(dbf, comps, phases, conds, calc_opts=dict(pdens=60))
+    stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
+    assert stable_phases == {"LIQUID", "FCC_A1", "ALFESI_BETA", "ALMNSI_ALPHA"}
+    # component (alphabetical) order: AL, CR, CU, FE, MG, MN, SI, TI, ZN
+    expected_chempots = [-33919.533, -150735.76, -101571.65, -138093.12, -64870.783, -127532.8, -32012.164, -258465.82, -96667.985]
+    assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
+
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_issue641_unstable_compset_jitter_does_not_block_convergence(load_database):
+    """Convergence is not blocked by site fraction noise in unstable phases (gh-641).
+
+    Point from the AA6005 alloy Scheil solidification path, deeper into
+    solidification than test_eq_issue641_trace_composition_conditions_converge.
+    Guards the scope of the largest_y_change convergence criterion: unstable
+    (zero phase amount) composition sets are advanced so that they track the
+    current hyperplane, but a metastable phase mixing on trace components
+    (here CRSI2, with X(CR)~7e-8 prescribed) has site fractions that jitter
+    ~1e-5 per iteration chasing noise in the trace chemical potentials, so
+    including it in the criterion prevents convergence long after the actual
+    solution is converged. Expected values checked with Thermo-Calc.
+    Failures are sensitive to PYTHONHASHSEED, because set/dict ordering
+    changes the starting composition sets and the numerical noise path.
+    """
+    dbf = load_database()
+    comps = ["AL", "CR", "CU", "FE", "MG", "MN", "SI", "TI", "ZN", "VA"]
+    phases = list(dbf.phases.keys())
+    conds = {
+        v.N: 1, v.P: 101325, v.T: 840.11174886,
+        v.X("CR"): 7.11127487e-08,
+        v.X("CU"): 0.0167186,
+        v.X("FE"): 0.00083973,
+        v.X("MG"): 0.06076564,
+        v.X("MN"): 0.00065837,
+        v.X("SI"): 0.09677693,
+        v.X("TI"): 1.88395242e-10,
+        v.X("ZN"): 0.00048991,
+    }
+    eq = equilibrium(dbf, comps, phases, conds, calc_opts=dict(pdens=60))
+    stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
+    assert stable_phases == {"LIQUID", "FCC_A1", "ALFESI_BETA", "ALMNSI_ALPHA", "MG2SI"}
+    # component (alphabetical) order: AL, CR, CU, FE, MG, MN, SI, TI, ZN
+    expected_chempots = [-32552.373, -161719.44, -95882.234, -141119.8, -62706.455, -129909.47, -26732.757, -261540.58, -90886.89]
+    assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
