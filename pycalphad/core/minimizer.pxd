@@ -6,7 +6,7 @@ cdef class SystemState:
     cdef int num_statevars, iterations_since_last_phase_change
     cdef int[::1] metastable_phase_iterations
     cdef int[::1] times_compset_removed
-    cdef double mass_residual, largest_chemical_potential_difference
+    cdef double largest_chemical_potential_difference
     cdef double[::1] phase_amt, previous_chemical_potentials, delta_statevars
     cdef public double[::1] chemical_potentials
     cdef double[:, ::1] phase_compositions, delta_ms
@@ -24,7 +24,8 @@ cdef class SystemState:
 cdef class SystemSpecification:
     cdef int num_statevars, num_components, max_num_free_stable_phases
     cdef double prescribed_system_amount
-    cdef double ALLOWED_MASS_RESIDUAL
+    cdef int[::1] determined_component_indices, undetermined_condition_row_indices
+    cdef double[::1] determined_component_mole_fractions
     cdef double[::1] initial_chemical_potentials, prescribed_mole_fraction_rhs
     cdef double[:,::1] prescribed_mole_fraction_coefficients
     cdef int[::1] free_chemical_potential_indices, free_statevar_indices
