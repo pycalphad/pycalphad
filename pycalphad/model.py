@@ -440,7 +440,7 @@ class Model(object):
 
     @property
     def ast(self):
-        "Return the full abstract syntax tree of the model."
+        "Return the full abstract syntax tree of the model, in units of J/mole-formula."
         return Add(*list(self.models.values()))
 
     @property
@@ -481,8 +481,8 @@ class Model(object):
 
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
-    energy = GM = property(lambda self: self.ast)
-    formulaenergy = G = property(lambda self: self.ast * self._site_ratio_normalization)
+    energy = GM = property(lambda self: self.ast / self._site_ratio_normalization)
+    formulaenergy = G = property(lambda self: self.ast)
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
     formulaenthalpy = H = property(lambda self: self.G - v.T*self.G.diff(v.T))
@@ -948,7 +948,7 @@ class Model(object):
         param_search = dbe.search
         pure_energy_term = self.redlich_kister_sum(phase, param_search,
                                                    pure_param_query)
-        return pure_energy_term / self._site_ratio_normalization
+        return pure_energy_term
 
     def ideal_mixing_energy(self, dbe):
         #pylint: disable=W0613
@@ -974,7 +974,7 @@ class Model(object):
                                         )
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
-        return ideal_mixing_term / self._site_ratio_normalization
+        return ideal_mixing_term
 
     def excess_mixing_energy(self, dbe):
         """
@@ -996,7 +996,7 @@ class Model(object):
             )
         excess_term = self.redlich_kister_sum(phase, param_search, param_query)
         excess_term += self.kohler_toop_excess_sum(dbe)
-        return excess_term / self._site_ratio_normalization
+        return excess_term
 
     def magnetic_energy(self, dbe):
         #pylint: disable=C0103, R0914
@@ -1016,7 +1016,6 @@ class Model(object):
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
 
-        site_ratio_normalization = self._site_ratio_normalization
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
@@ -1080,8 +1079,7 @@ class Model(object):
                            ]
         g_term = Piecewise(*expr_cond_pairs)
 
-        return v.R * v.T * log(beta+1) * \
-            g_term / site_ratio_normalization
+        return v.R * v.T * log(beta+1) * g_term
 
     def xiong_magnetic_energy(self, dbe):
         """
@@ -1098,7 +1096,6 @@ class Model(object):
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
 
-        site_ratio_normalization = self._site_ratio_normalization
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
@@ -1162,8 +1159,7 @@ class Model(object):
                                ]
         g_term = Piecewise(*expr_cond_pairs_curie) + Piecewise(*expr_cond_pairs_neel)
 
-        return v.R * v.T * log(beta+1) * \
-            g_term / site_ratio_normalization
+        return v.R * v.T * log(beta+1) * g_term
 
     def twostate_energy(self, dbe):
         """
@@ -1173,7 +1169,6 @@ class Model(object):
         if phase.model_hints.get('ordered_phase', False):
             phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
-        site_ratio_normalization = self._site_ratio_normalization
         gd_param_query = (
             (where('phase_name') == phase.name) & \
             (where('parameter_type') == 'GD') & \
@@ -1182,7 +1177,7 @@ class Model(object):
         gd = self.redlich_kister_sum(phase, param_search, gd_param_query)
         if gd == S.Zero:
             return S.Zero
-        return -v.R * v.T * log(1 + exp(-gd / (v.R * v.T))) / site_ratio_normalization
+        return -v.R * v.T * log(1 + exp(-gd / (v.R * v.T)))
 
     def einstein_energy(self, dbe):
         """
@@ -1206,7 +1201,7 @@ class Model(object):
             result = 1.5*v.R*theta + 3*v.R*v.T*log(1-exp(-theta/v.T))
         else:
             result = 0
-        return result / self._site_ratio_normalization
+        return result
 
     @staticmethod
     def _quasi_mole_fraction(species_name, phase_name, constituent_array,
@@ -1428,7 +1423,7 @@ class Model(object):
         # Compute the variable_rename_dict, which will map disordered phase site
         # fractions to the quasi mole fractions representing the disordered state
         variable_rename_dict = {}
-        disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
+        disordered_sitefracs = [x for x in disordered_model.ast.free_symbols if isinstance(x, v.SiteFraction)]
         for atom in disordered_sitefracs:
             if atom.sublattice_index == 0:  # only the first sublattice is substitutional
                 variable_rename_dict[atom] = \
@@ -1458,9 +1453,21 @@ class Model(object):
             ordering_energy = self._partitioned_expr(S.Zero, ordered_energy, {}, molefraction_dict)
 
         # 2: Replace the ordered energy contributions with the disordered contributions
+        # The disordered model contributions are energies per mole of formula units of
+        # the disordered phase. Scale them to be per mole of formula units of the
+        # ordered phase. The interstitial-to-substitutional site ratios of the two
+        # phases are validated to be equal, so the scaling factor from the
+        # substitutional sublattices applies to the whole formula unit.
+        ordered_sub_sites = sum(ordered_phase.sublattices[i] for i in substitutional_sublattice_idxs)
+        disordered_sub_sites = disordered_phase.sublattices[0]
+        if ordered_sub_sites == disordered_sub_sites:
+            # avoid a float coefficient on every term in the common 1:1 case
+            formula_units_ratio = S.One
+        else:
+            formula_units_ratio = S(ordered_sub_sites / disordered_sub_sites)
         self.models.clear()
         for name, value in disordered_model.models.items():
-            self.models[name] = value.xreplace(variable_rename_dict)
+            self.models[name] = formula_units_ratio * value.xreplace(variable_rename_dict)
 
         # 3: Handle physical properties, these also are contributed to by the
         # disordered phase *and* an "ordering" contribution. For now, we only
@@ -1540,7 +1547,11 @@ class Model(object):
             # get the output property of interest, substitute the fixed state variables (e.g. T=298.15) and add the pure element moles weighted term to the list of terms
             # substitution of fixed state variables has to happen after getting the attribute in case there are any derivatives involving that state variable
             for out in reference_dict.keys():
-                mod_out = self.symbol_replace(getattr(mod_pure, out), ref_state.fixed_statevars)
+                # site fractions also need to be substituted here because molar
+                # properties are normalized by the site ratio normalization factor,
+                # which contains site fractions that are not part of self.models
+                mod_out = self.symbol_replace(getattr(mod_pure, out), site_frac_subs)
+                mod_out = self.symbol_replace(mod_out, ref_state.fixed_statevars)
                 reference_dict[out].append(mod_out*moles)
 
         # set the attribute on the class
@@ -1598,22 +1609,24 @@ class Model(object):
             (where('constituent_array').test(self._array_validity))
         )
 
-        # V0 is given in databases per mole of formula, so we should normalize it
-        self.V0 = V0 = self.symbol_replace(self.redlich_kister_sum(phase, param_search, V0_param_query) / self._site_ratio_normalization, self._symbols)
-        # VA is given in databases per mole of atoms, so we should not normalize it
+        # V0 is given in databases per mole of formula, matching the per-formula-unit
+        # basis of the energy contributions, so it does not need to be normalized
+        self.V0 = V0 = self.symbol_replace(self.redlich_kister_sum(phase, param_search, V0_param_query), self._symbols)
+        # VA is a dimensionless integrated thermal expansion
         self.VA = VA = self.symbol_replace(self.redlich_kister_sum(phase, param_search, VA_param_query), self._symbols)
         # TODO: unsure about the normalization of VK and VC parameters
         self.VK = VK = self.symbol_replace(self.redlich_kister_sum(phase, param_search, VK_param_query), self._symbols)
         self.VC = VC = self.symbol_replace(self.redlich_kister_sum(phase, param_search, VC_param_query), self._symbols)
 
-        # nonmagnetic contribution to volume
+        # nonmagnetic contribution to volume, per mole of formula units
         V_p0 = V0*exp(VA)
 
-        # magnetic contribution to volume
+        # magnetic contribution to volume, per mole of formula units
         G_mag = self.models.get('mag')
         V_mag = G_mag.diff(v.P)
 
-        self.VM = self.molar_volume = V_p0 + V_mag
+        # molar volume is normalized to per mole of atoms
+        self.VM = self.molar_volume = (V_p0 + V_mag) / self._site_ratio_normalization
         volume_energy = S.Zero
 
         if VK == 0:
@@ -1655,6 +1668,9 @@ class TestModel(Model):
     --------
     None yet.
     """
+    # TestModel has no sublattice model; one mole of formula is one mole of atoms
+    _site_ratio_normalization = S.One
+
     def __init__(self, dbf, comps, phase, solution=None, kmax=None):
         self.components = set(comps)
         if 'VA' in self.components:
