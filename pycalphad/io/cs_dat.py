@@ -801,7 +801,7 @@ def parse_header(toks: TokenParser) -> Header:
     num_soln_phases = toks.parse(int)
     list_soln_species_count = toks.parseN(num_soln_phases, int)
     num_stoich_phases = toks.parse(int)
-    toks._discard_remaining_tokens()
+    toks._discard_remaining_tokens()  # drop remainder of this line
     pure_elements = toks.parseN(num_pure_elements, str)
     pure_elements_mass = toks.parseN(num_pure_elements, float)
     num_gibbs_coeffs = toks.parse(int)
