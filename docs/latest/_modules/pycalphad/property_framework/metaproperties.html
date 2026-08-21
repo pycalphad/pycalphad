@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.property_framework.metaproperties - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.property_framework.metaproperties - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -305,13 +305,13 @@
 
 <div class="viewcode-block" id="find_first_compset">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.metaproperties.find_first_compset">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">find_first_compset</span><span class="p">(</span><span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">wks</span><span class="p">:</span> <span class="s2">&quot;Workspace&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_first_compset</span><span class="p">(</span><span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">wks</span><span class="p">:</span> <span class="s2">"Workspace"</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">wks</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">compsets</span> <span class="ow">in</span> <span class="n">wks</span><span class="o">.</span><span class="n">enumerate_composition_sets</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">compset</span> <span class="ow">in</span> <span class="n">compsets</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="n">phase_name</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">compset</span>
-    <span class="c1"># couldn&#39;t find one in the existing workspace; create a single-phase calculation and try again</span>
+    <span class="c1"># couldn't find one in the existing workspace; create a single-phase calculation and try again</span>
     <span class="n">copy_wks</span> <span class="o">=</span> <span class="n">wks</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">copy_wks</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">compsets</span> <span class="ow">in</span> <span class="n">copy_wks</span><span class="o">.</span><span class="n">enumerate_composition_sets</span><span class="p">():</span>
@@ -327,13 +327,13 @@
     <span class="n">phase_name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">implementation_units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">energy_implementation_units</span>
     <span class="n">display_units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">energy_display_units</span>
-    <span class="n">display_name</span> <span class="o">=</span> <span class="s1">&#39;Driving Force&#39;</span>
+    <span class="n">display_name</span> <span class="o">=</span> <span class="s1">'Driving Force'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">)&#39;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">)'</span>
 
 <div class="viewcode-block" id="DrivingForce.expand_wildcard">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.metaproperties.DrivingForce.expand_wildcard">[docs]</a>
@@ -348,7 +348,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">multiplicity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'#'</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
@@ -359,7 +359,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">phase_name_without_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'#'</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -367,7 +367,7 @@
 <div class="viewcode-block" id="DrivingForce.filtered">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.metaproperties.DrivingForce.filtered">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">filtered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_compsets</span><span class="p">):</span>
-        <span class="s2">&quot;Return a generator of CompositionSets applicable to the current property&quot;</span>
+        <span class="s2">"Return a generator of CompositionSets applicable to the current property"</span>
         <span class="n">multiplicity_seen</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">for</span> <span class="n">cs_idx</span><span class="p">,</span> <span class="n">compset</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">input_compsets</span><span class="p">):</span>
@@ -386,20 +386,20 @@
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.metaproperties.DrivingForce.compute_property">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">cur_conds</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
                          <span class="n">chemical_potentials</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="n">driving_force</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+        <span class="n">driving_force</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">)</span>
         <span class="n">seen_phases</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">compset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filtered</span><span class="p">(</span><span class="n">compsets</span><span class="p">):</span>
             <span class="n">driving_force</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">compset</span><span class="o">.</span><span class="n">X</span><span class="p">)</span> <span class="o">-</span> <span class="n">compset</span><span class="o">.</span><span class="n">energy</span>
             <span class="n">seen_phases</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">seen_phases</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;DrivingForce was passed multiple stable valid CompositionSets&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'DrivingForce was passed multiple stable valid CompositionSets'</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">driving_force</span></div>
 
 
 <div class="viewcode-block" id="DrivingForce.jansson_derivative">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.metaproperties.DrivingForce.jansson_derivative">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">jansson_derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">:</span> <span class="s2">&quot;JanssonDerivativeDeltas&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">:</span>
-        <span class="s2">&quot;Compute Jansson derivative with self as numerator, with the given deltas&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">jansson_derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">:</span> <span class="s2">"JanssonDerivativeDeltas"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">:</span>
+        <span class="s2">"Compute Jansson derivative with self as numerator, with the given deltas"</span>
         <span class="n">seen_phases</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">jansson_derivative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
         <span class="k">for</span> <span class="n">cs_idx</span><span class="p">,</span> <span class="n">compset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filtered</span><span class="p">(</span><span class="n">compsets</span><span class="p">):</span>
@@ -410,10 +410,10 @@
             <span class="n">deltas_singlephase</span><span class="o">.</span><span class="n">delta_sitefracs</span> <span class="o">=</span> <span class="p">[</span><span class="n">deltas</span><span class="o">.</span><span class="n">delta_sitefracs</span><span class="p">[</span><span class="n">cs_idx</span><span class="p">]]</span>
             <span class="k">for</span> <span class="n">el_idx</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">pure_elements</span><span class="p">):</span>
                 <span class="n">jansson_derivative</span> <span class="o">+=</span> <span class="n">chemical_potentials</span><span class="p">[</span><span class="n">el_idx</span><span class="p">]</span> <span class="o">*</span> \
-                    <span class="n">as_property</span><span class="p">(</span><span class="s1">&#39;X(</span><span class="si">{0}</span><span class="s1">,</span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">el</span><span class="p">))</span><span class="o">.</span><span class="n">jansson_derivative</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)</span>
-            <span class="n">jansson_derivative</span> <span class="o">-=</span> <span class="n">as_property</span><span class="p">(</span><span class="s1">&#39;GM(</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">))</span><span class="o">.</span><span class="n">jansson_derivative</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)</span>
+                    <span class="n">as_property</span><span class="p">(</span><span class="s1">'X(</span><span class="si">{0}</span><span class="s1">,</span><span class="si">{1}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">el</span><span class="p">))</span><span class="o">.</span><span class="n">jansson_derivative</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)</span>
+            <span class="n">jansson_derivative</span> <span class="o">-=</span> <span class="n">as_property</span><span class="p">(</span><span class="s1">'GM(</span><span class="si">{0}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">))</span><span class="o">.</span><span class="n">jansson_derivative</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">seen_phases</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;DrivingForce was passed multiple stable valid CompositionSets&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'DrivingForce was passed multiple stable valid CompositionSets'</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">jansson_derivative</span></div>
 </div>
 
@@ -421,31 +421,31 @@
 <div class="viewcode-block" id="DormantPhase">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.metaproperties.DormantPhase">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DormantPhase</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Meta-property for accessing properties of dormant phases.</span>
 <span class="sd">    The internal degrees of freedom of a dormant phase are minimized subject to the potentials of the target calculation.</span>
 <span class="sd">    Dormant phases are not allowed to become stable.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">_compset</span><span class="p">:</span> <span class="n">CompositionSet</span>
     <span class="n">max_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-                 <span class="n">wks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Workspace&quot;</span><span class="p">]):</span>
+                 <span class="n">wks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Workspace"</span><span class="p">]):</span>
         <span class="k">if</span> <span class="n">wks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">CompositionSet</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Dormant phase calculation requires a starting point for the phase;&#39;</span>
-                                  <span class="s1">&#39; either a CompositionSet object should be specified, or pass in a Workspace&#39;</span>
-                                  <span class="s1">&#39; of a previous calculation including the phase.&#39;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Dormant phase calculation requires a starting point for the phase;'</span>
+                                  <span class="s1">' either a CompositionSet object should be specified, or pass in a Workspace'</span>
+                                  <span class="s1">' of a previous calculation including the phase.'</span>
                                 <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">CompositionSet</span><span class="p">):</span>
             <span class="n">compset</span> <span class="o">=</span> <span class="n">phase</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">compset</span> <span class="o">=</span> <span class="n">find_first_compset</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">wks</span><span class="p">)</span>  <span class="c1"># can be None if there&#39;s a convergence failure</span>
+            <span class="n">compset</span> <span class="o">=</span> <span class="n">find_first_compset</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">wks</span><span class="p">)</span>  <span class="c1"># can be None if there's a convergence failure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_compset</span> <span class="o">=</span> <span class="n">compset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">)&#39;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">)'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="n">ComputableProperty</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComputableProperty</span><span class="p">:</span>
         <span class="n">prop</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
@@ -466,7 +466,7 @@
                 <span class="k">for</span> <span class="n">sv_idx</span><span class="p">,</span> <span class="n">statevar</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">state_variables</span><span class="p">):</span>
                     <span class="n">conditions</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">statevar</span><span class="p">)]</span> <span class="o">=</span> <span class="n">equilibrium_compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dof</span><span class="p">[</span><span class="n">sv_idx</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">comp_idx</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
-                    <span class="n">conditions</span><span class="p">[</span><span class="s1">&#39;MU_&#39;</span><span class="o">+</span><span class="n">comp</span><span class="p">]</span> <span class="o">=</span> <span class="n">chemical_potentials</span><span class="p">[</span><span class="n">comp_idx</span><span class="p">]</span>
+                    <span class="n">conditions</span><span class="p">[</span><span class="s1">'MU_'</span><span class="o">+</span><span class="n">comp</span><span class="p">]</span> <span class="o">=</span> <span class="n">chemical_potentials</span><span class="p">[</span><span class="n">comp_idx</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">_fix_state_variables_in_compsets</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="p">],</span> <span class="n">conditions</span><span class="p">)</span>
                 <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">get_system_spec</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="p">],</span> <span class="n">conditions</span><span class="p">)</span>
                 <span class="n">state</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">get_new_state</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="p">])</span>
@@ -482,7 +482,7 @@
                     <span class="n">state</span><span class="o">.</span><span class="n">recompute</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_compset</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">return</span> <span class="n">prop</span><span class="o">.</span><span class="n">compute_property</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="p">],</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">)</span>
-            <span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span><span class="si">}</span><span class="s1"> [Dormant(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="kc">None</span><span class="si">}</span><span class="s1">)]&#39;</span>
+            <span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span><span class="si">}</span><span class="s1"> [Dormant(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="kc">None</span><span class="si">}</span><span class="s1">)]'</span>
         <span class="k">return</span> <span class="n">_autoproperty</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -493,30 +493,30 @@
 <div class="viewcode-block" id="IsolatedPhase">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.metaproperties.IsolatedPhase">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IsolatedPhase</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Meta-property for accessing properties of isolated phases.</span>
 <span class="sd">    The configuration of an isolated phase is minimized, by itself, subject to the same conditions as the target calculation.</span>
 <span class="sd">    Other phases (or additional composition sets for the same phase) are not allowed to become stable.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">_compset</span><span class="p">:</span> <span class="n">CompositionSet</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-                 <span class="n">wks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Workspace&quot;</span><span class="p">]):</span>
+                 <span class="n">wks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Workspace"</span><span class="p">]):</span>
         <span class="k">if</span> <span class="n">wks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">CompositionSet</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Isolated phase calculation requires a starting point for the phase;&#39;</span>
-                                  <span class="s1">&#39; either a CompositionSet object should be specified, or pass in a Workspace&#39;</span>
-                                  <span class="s1">&#39; of a previous calculation including the phase.&#39;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Isolated phase calculation requires a starting point for the phase;'</span>
+                                  <span class="s1">' either a CompositionSet object should be specified, or pass in a Workspace'</span>
+                                  <span class="s1">' of a previous calculation including the phase.'</span>
                                 <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">CompositionSet</span><span class="p">):</span>
             <span class="n">compset</span> <span class="o">=</span> <span class="n">phase</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">compset</span> <span class="o">=</span> <span class="n">find_first_compset</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">wks</span><span class="p">)</span>  <span class="c1"># can be None if there&#39;s a convergence failure</span>
+            <span class="n">compset</span> <span class="o">=</span> <span class="n">find_first_compset</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">wks</span><span class="p">)</span>  <span class="c1"># can be None if there's a convergence failure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_compset</span> <span class="o">=</span> <span class="n">compset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">)&#39;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">)'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="n">ComputableProperty</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComputableProperty</span><span class="p">:</span>
         <span class="n">prop</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
@@ -537,7 +537,7 @@
             <span class="nd">@staticmethod</span>
             <span class="k">def</span><span class="w"> </span><span class="nf">jansson_derivative</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">prop</span><span class="o">.</span><span class="n">jansson_derivative</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="p">],</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)</span>
-            <span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span><span class="si">}</span><span class="s1"> [Isolated(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="kc">None</span><span class="si">}</span><span class="s1">)]&#39;</span>
+            <span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span><span class="si">}</span><span class="s1"> [Isolated(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_compset</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="kc">None</span><span class="si">}</span><span class="s1">)]'</span>
         <span class="k">return</span> <span class="n">_autoproperty</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -549,16 +549,16 @@
 <div class="viewcode-block" id="ReferenceState">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.metaproperties.ReferenceState">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ReferenceState</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Meta-property for calculations involving reference states.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_reference_wks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Workspace&quot;</span><span class="p">]</span>
+<span class="sd">    """</span>
+    <span class="n">_reference_wks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s2">"Workspace"</span><span class="p">]</span>
     <span class="n">_fixed_conds</span><span class="p">:</span> <span class="n">List</span>
     <span class="n">_floating_conds</span><span class="p">:</span> <span class="n">List</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">reference_conditions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]],</span>
-                 <span class="n">wks</span><span class="p">:</span> <span class="s2">&quot;Workspace&quot;</span>
+                 <span class="n">wks</span><span class="p">:</span> <span class="s2">"Workspace"</span>
                 <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reference_wks</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">ref_conds</span> <span class="ow">in</span> <span class="n">reference_conditions</span><span class="p">:</span>
@@ -574,7 +574,7 @@
                 <span class="n">filtered_fixed_conds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fic</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_conds</span> <span class="o">=</span> <span class="n">filtered_fixed_conds</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fixed_conds</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reference_wks</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Specified conditions do not define a reference plane&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Specified conditions do not define a reference plane'</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="n">ComputableProperty</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComputableProperty</span><span class="p">:</span>
         <span class="n">prop</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
@@ -602,7 +602,7 @@
                     <span class="k">for</span> <span class="n">floc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_floating_conds</span><span class="p">:</span>
                         <span class="n">ref_wks</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="n">floc</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_conds</span><span class="p">[</span><span class="n">floc</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">ref_wks</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Reference state must be point calculation&#39;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Reference state must be point calculation'</span><span class="p">)</span>
                     <span class="n">eq_idx</span><span class="p">,</span> <span class="n">ref_compsets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ref_wks</span><span class="o">.</span><span class="n">enumerate_composition_sets</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="n">ref_chempots</span> <span class="o">=</span> <span class="n">ref_wks</span><span class="o">.</span><span class="n">eq</span><span class="o">.</span><span class="n">MU</span><span class="p">[</span><span class="n">eq_idx</span><span class="p">]</span>
                     <span class="n">plane_rhs</span><span class="p">[</span><span class="n">row_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">prop</span><span class="o">.</span><span class="n">compute_property</span><span class="p">(</span><span class="n">ref_compsets</span><span class="p">,</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ref_wks</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span> <span class="n">ref_chempots</span><span class="p">)</span>
@@ -630,7 +630,7 @@
                     <span class="k">for</span> <span class="n">floc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_floating_conds</span><span class="p">:</span>
                         <span class="n">ref_wks</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="n">floc</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_conds</span><span class="p">[</span><span class="n">floc</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">ref_wks</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Reference state must be point calculation&#39;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Reference state must be point calculation'</span><span class="p">)</span>
                     <span class="n">eq_idx</span><span class="p">,</span> <span class="n">ref_compsets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ref_wks</span><span class="o">.</span><span class="n">enumerate_composition_sets</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="n">ref_chempots</span> <span class="o">=</span> <span class="n">ref_wks</span><span class="o">.</span><span class="n">eq</span><span class="o">.</span><span class="n">MU</span><span class="p">[</span><span class="n">eq_idx</span><span class="p">]</span>
                     <span class="n">plane_rhs</span><span class="p">[</span><span class="n">row_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">prop</span><span class="o">.</span><span class="n">jansson_derivative</span><span class="p">(</span><span class="n">ref_compsets</span><span class="p">,</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ref_wks</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span> <span class="n">ref_chempots</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)</span>
@@ -640,7 +640,7 @@
                 <span class="n">current_vector</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_conds</span><span class="p">[</span><span class="n">floc</span><span class="p">]</span> <span class="k">for</span> <span class="n">floc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_conds</span><span class="p">]</span>
                 <span class="n">reference_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">plane_coefs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">current_vector</span><span class="p">)</span> <span class="o">+</span> <span class="n">plane_coefs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">return</span> <span class="n">result</span> <span class="o">-</span> <span class="n">reference_offset</span>
-            <span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span><span class="si">}</span><span class="s1"> [ReferenceState]&#39;</span>
+            <span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span><span class="si">}</span><span class="s1"> [ReferenceState]'</span>
         <span class="k">return</span> <span class="n">_autoproperty</span><span class="p">()</span></div>
 
 </pre></div>
@@ -675,7 +675,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

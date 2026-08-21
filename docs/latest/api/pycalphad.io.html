@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.io package - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.io package - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -486,10 +486,10 @@ sublattice model.</p>
 or interacting_species_idxs. All mapping on to proper v.Species objects
 occurs in Database.add_parameter.</p>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phase_constituents</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">]]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phase_constituents</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">'A'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'A'</span><span class="p">,</span> <span class="s1">'B'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'A'</span><span class="p">,</span> <span class="s1">'B'</span><span class="p">,</span> <span class="s1">'C'</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span> <span class="o">=</span> <span class="n">ExcessBase</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ix_const_arr</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">constituent_array</span><span class="p">(</span><span class="n">phase_constituents</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ix_const_arr</span> <span class="o">==</span> <span class="p">[[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ix_const_arr</span> <span class="o">==</span> <span class="p">[[</span><span class="s1">'A'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'A'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'A'</span><span class="p">,</span> <span class="s1">'C'</span><span class="p">]]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1232,9 +1232,9 @@ associated with structured thermodynamic/kinetic data.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Structured thermodynamic and/or kinetic data.</p>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;$a complete TDB file as a string</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">'crfeni_mie.tdb'</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'crfeni_mie.tdb'</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="sa">u</span><span class="s1">'$a complete TDB file as a string</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2087,7 +2087,7 @@ Note that not all of these keywords are fully supported yet.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

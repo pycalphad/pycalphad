@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.conditions - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.core.conditions - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -308,8 +308,8 @@
 <div class="viewcode-block" id="ConditionsEntry">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.conditions.ConditionsEntry">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConditionsEntry</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-    <span class="n">prop</span><span class="p">:</span> <span class="s2">&quot;ComputableProperty&quot;</span>
-    <span class="n">value</span><span class="p">:</span> <span class="s2">&quot;Q_&quot;</span></div>
+    <span class="n">prop</span><span class="p">:</span> <span class="s2">"ComputableProperty"</span>
+    <span class="n">value</span><span class="p">:</span> <span class="s2">"Q_"</span></div>
 
 
 <span class="n">_default</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
@@ -317,19 +317,19 @@
 <div class="viewcode-block" id="unpack_condition">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.conditions.unpack_condition">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">unpack_condition</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convert a condition to a list of values.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    Rules for keys of conditions dicts:</span>
-<span class="sd">    (1) If it&#39;s numeric, treat as a point value</span>
-<span class="sd">    (2) If it&#39;s a tuple with one element, treat as a point value</span>
-<span class="sd">    (3) If it&#39;s a tuple with two elements, treat as lower/upper limits and guess a step size.</span>
-<span class="sd">    (4) If it&#39;s a tuple with three elements, treat as lower/upper/step</span>
-<span class="sd">    (5) If it&#39;s a list, ndarray or other non-tuple ordered iterable, use those values directly.</span>
+<span class="sd">    (1) If it's numeric, treat as a point value</span>
+<span class="sd">    (2) If it's a tuple with one element, treat as a point value</span>
+<span class="sd">    (3) If it's a tuple with two elements, treat as lower/upper limits and guess a step size.</span>
+<span class="sd">    (4) If it's a tuple with three elements, treat as lower/upper/step</span>
+<span class="sd">    (5) If it's a list, ndarray or other non-tuple ordered iterable, use those values directly.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
@@ -338,7 +338,7 @@
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Condition tuple is length </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Condition tuple is length </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)))</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="n">Q_</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">tup</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -350,16 +350,16 @@
 <div class="viewcode-block" id="Conditions">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.conditions.Conditions">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Conditions</span><span class="p">:</span>
-    <span class="n">_wks</span><span class="p">:</span> <span class="s2">&quot;Workspace&quot;</span>
+    <span class="n">_wks</span><span class="p">:</span> <span class="s2">"Workspace"</span>
     <span class="n">_conds</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ConditionsEntry</span><span class="p">]</span>
 
     <span class="n">minimum_composition</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Workspace&quot;</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Workspace"</span><span class="p">]):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_wks</span> <span class="o">=</span> <span class="n">wks</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_conds</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Default to N=1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">Q_</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span> <span class="s1">&#39;mol&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">Q_</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span> <span class="s1">'mol'</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Conditions.from_dict">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.conditions.Conditions.from_dict">[docs]</a>
@@ -372,7 +372,7 @@
         <span class="k">return</span> <span class="n">obj</span></div>
 
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">_find_matching_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="s2">&quot;ComputableProperty&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_matching_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="s2">"ComputableProperty"</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_conds</span><span class="p">):</span>
             <span class="c1"># TODO: Use more sophisticated matching</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
@@ -382,7 +382,7 @@
 <div class="viewcode-block" id="Conditions.cast_from">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.conditions.Conditions.cast_from">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Conditions&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cast_from</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Conditions"</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
 
     
@@ -390,10 +390,10 @@
         <span class="n">key</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_matching_index</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2"> is not a condition&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2"> is not a condition"</span><span class="p">)</span>
         <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conds</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
         <span class="c1"># Important to use the _key_ display_units, and not the entry.prop</span>
-        <span class="c1"># This is because v.T[&#39;K&#39;] == v.T[&#39;degC&#39;], so conditions can be</span>
+        <span class="c1"># This is because v.T['K'] == v.T['degC'], so conditions can be</span>
         <span class="c1"># stored and queried with distinct units</span>
         <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">display_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
 
@@ -412,7 +412,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_matching_index</span><span class="p">(</span><span class="n">as_property</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2"> is not a condition&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2"> is not a condition"</span><span class="p">)</span>
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conds</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
     
     <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
@@ -421,27 +421,27 @@
             <span class="n">vals</span> <span class="o">=</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">Q_</span><span class="p">):</span>
                 <span class="n">vals</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">implementation_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-            <span class="c1"># &quot;Zero&quot; composition is a common pattern. Do not warn for that case.</span>
+            <span class="c1"># "Zero" composition is a common pattern. Do not warn for that case.</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_composition</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)):</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Some specified compositions are below the minimum allowed composition of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">minimum_composition</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                    <span class="sa">f</span><span class="s2">"Some specified compositions are below the minimum allowed composition of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">minimum_composition</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
             <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_composition</span><span class="p">),</span> <span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">minimum_composition</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;Condition cannot be zero-length array&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">'Condition cannot be zero-length array'</span><span class="p">)</span>
         
         <span class="n">value</span> <span class="o">=</span> <span class="n">as_quantity</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">implementation_units</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MassFraction</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">ChemicalPotential</span><span class="p">))</span> <span class="ow">and</span> <span class="n">prop</span><span class="o">.</span><span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wks</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> refers to non-existent component&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> refers to non-existent component'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)</span> <span class="ow">and</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wks</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">prop</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> refers to non-existent constituent&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> refers to non-existent constituent'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">prop</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">value</span> <span class="o">!=</span> <span class="n">Q_</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;mol&#39;</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;N!=1 is not yet supported, got N=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">prop</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">value</span> <span class="o">!=</span> <span class="n">Q_</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">'mol'</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">'N!=1 is not yet supported, got N=</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
         
         <span class="n">entry</span> <span class="o">=</span> <span class="n">ConditionsEntry</span><span class="p">(</span><span class="n">prop</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
 
@@ -471,9 +471,9 @@
 
 <div class="viewcode-block" id="Conditions.values">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.conditions.Conditions.values">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;display_units&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">'display_units'</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conds</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">value</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">magnitude</span></div>
+            <span class="k">yield</span> <span class="n">value</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span><span class="o">.</span><span class="n">magnitude</span></div>
 
 
 <div class="viewcode-block" id="Conditions.update">
@@ -485,9 +485,9 @@
 
 <div class="viewcode-block" id="Conditions.items">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.conditions.Conditions.items">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;display_units&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">'display_units'</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conds</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">magnitude</span></div>
+            <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span><span class="o">.</span><span class="n">magnitude</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -497,10 +497,10 @@
         <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">printoptions</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conds</span><span class="p">:</span>
-                <span class="n">result</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"="</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="fm">__repr__</span> <span class="o">=</span> <span class="fm">__str__</span></div>
@@ -537,7 +537,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

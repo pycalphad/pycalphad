@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.strategy.strategy_data - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.mapping.strategy.strategy_data - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,7 +291,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.mapping.strategy.strategy_data</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Data classes to hold outputs from map strategies</span>
 
 <span class="sd">- ``SinglePhaseData`` - holds x, y coordinates for a given phase</span>
@@ -302,7 +302,7 @@
 <span class="sd">  ``TernaryStrategy.get_zpf_data``, ``TernaryStrategy.get_invariant_data`` and</span>
 <span class="sd">  ``IsoplethStrategy.get_invariant_data`` does compared to ``StepStrategy.get_data``</span>
 <span class="sd">  and ``IsoplethStrategy.get_zpf_data``</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -341,7 +341,7 @@
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">phases</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> not in dataset.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> not in dataset."</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -366,7 +366,7 @@
 <div class="viewcode-block" id="get_invariant_data_from_tieline_strategy">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_data.get_invariant_data_from_tieline_strategy">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_invariant_data_from_tieline_strategy</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Create a dictionary of data for node plotting in binary and ternary plots.</span>
 
 <span class="sd">    Parameters</span>
@@ -382,16 +382,16 @@
 <span class="sd">    -------</span>
 <span class="sd">    list of PhaseRegionData, which stores of list of SinglePhaseData with</span>
 <span class="sd">    x, y coordinates for each phase in the invariant reaction</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-            <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">'*'</span>
 
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">global_y</span><span class="p">:</span>
             <span class="n">y</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-            <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">'*'</span>
 
     <span class="n">invariant_data</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
@@ -413,7 +413,7 @@
 <div class="viewcode-block" id="get_tieline_data_from_tieline_strategy">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.strategy_data.get_tieline_data_from_tieline_strategy">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_tieline_data_from_tieline_strategy</span><span class="p">(</span><span class="n">strategy</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Create a dictionary of data for plotting ZPF lines.</span>
 
 <span class="sd">    Parameters</span>
@@ -429,16 +429,16 @@
 <span class="sd">    -------</span>
 <span class="sd">    list of PhaseRegionData, which stores of list of SinglePhaseData with</span>
 <span class="sd">    x, y coordinates of the phase boundary for each phase</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-            <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">'*'</span>
 
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">global_y</span><span class="p">:</span>
             <span class="n">y</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-            <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">'*'</span>
 
     <span class="n">zpf_data</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">zpf_line</span> <span class="ow">in</span> <span class="n">strategy</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">:</span>
@@ -484,7 +484,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.property_framework.units - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.property_framework.units - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -300,46 +300,46 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComputableProperty</span>
 
 <span class="n">ureg</span> <span class="o">=</span> <span class="n">pint</span><span class="o">.</span><span class="n">UnitRegistry</span><span class="p">(</span>
-    <span class="n">preprocessors</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39; percent &#39;</span><span class="p">)],</span>
-    <span class="c1"># Suppress warnings when redefining &#39;percent&#39;, &#39;%&#39;, and &#39;ppm&#39; units.</span>
-    <span class="c1"># We intentionally redefine these relative to our custom &#39;fraction&#39; unit.</span>
-    <span class="n">on_redefinition</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span>
+    <span class="n">preprocessors</span><span class="o">=</span><span class="p">[</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'%'</span><span class="p">,</span> <span class="s1">' percent '</span><span class="p">)],</span>
+    <span class="c1"># Suppress warnings when redefining 'percent', '%', and 'ppm' units.</span>
+    <span class="c1"># We intentionally redefine these relative to our custom 'fraction' unit.</span>
+    <span class="n">on_redefinition</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">ureg</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;atom = 1/avogadro_number * mol&#39;</span><span class="p">)</span>
-<span class="n">ureg</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;fraction = []&#39;</span><span class="p">)</span>
-<span class="n">ureg</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;percent = 1e-2 fraction = %&#39;</span><span class="p">)</span>
-<span class="n">ureg</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;ppm = 1e-6 fraction&#39;</span><span class="p">)</span>
+<span class="n">ureg</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">'atom = 1/avogadro_number * mol'</span><span class="p">)</span>
+<span class="n">ureg</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">'fraction = []'</span><span class="p">)</span>
+<span class="n">ureg</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">'percent = 1e-2 fraction = %'</span><span class="p">)</span>
+<span class="n">ureg</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">'ppm = 1e-6 fraction'</span><span class="p">)</span>
 <span class="n">pint</span><span class="o">.</span><span class="n">set_application_registry</span><span class="p">(</span><span class="n">ureg</span><span class="p">)</span>
 <span class="n">Q_</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span>
 <span class="n">DimensionalityError</span> <span class="o">=</span> <span class="n">pint</span><span class="o">.</span><span class="n">DimensionalityError</span>
 
 <div class="viewcode-block" id="as_quantity">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.units.as_quantity">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">as_quantity</span><span class="p">(</span><span class="n">prop</span><span class="p">:</span> <span class="s2">&quot;ComputableProperty&quot;</span><span class="p">,</span> <span class="n">qt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">as_quantity</span><span class="p">(</span><span class="n">prop</span><span class="p">:</span> <span class="s2">"ComputableProperty"</span><span class="p">,</span> <span class="n">qt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qt</span><span class="p">,</span> <span class="n">Q_</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Q_</span><span class="p">(</span><span class="n">qt</span><span class="p">,</span> <span class="n">prop</span><span class="o">.</span><span class="n">display_units</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">qt</span></div>
 
 
-<span class="n">energy_implementation_units</span> <span class="o">=</span> <span class="n">GM_implementation_units</span> <span class="o">=</span> <span class="s1">&#39;J / mol&#39;</span>
-<span class="n">energy_display_units</span> <span class="o">=</span> <span class="n">GM_display_units</span> <span class="o">=</span> <span class="s1">&#39;J / mol&#39;</span>
-<span class="n">energy_display_name</span> <span class="o">=</span> <span class="n">GM_display_name</span> <span class="o">=</span> <span class="s1">&#39;Gibbs Energy&#39;</span>
-<span class="n">G_implementation_units</span> <span class="o">=</span> <span class="s1">&#39;J&#39;</span>
-<span class="n">G_display_units</span> <span class="o">=</span> <span class="s1">&#39;J&#39;</span>
-<span class="n">G_display_name</span> <span class="o">=</span> <span class="s1">&#39;Gibbs Energy&#39;</span>
+<span class="n">energy_implementation_units</span> <span class="o">=</span> <span class="n">GM_implementation_units</span> <span class="o">=</span> <span class="s1">'J / mol'</span>
+<span class="n">energy_display_units</span> <span class="o">=</span> <span class="n">GM_display_units</span> <span class="o">=</span> <span class="s1">'J / mol'</span>
+<span class="n">energy_display_name</span> <span class="o">=</span> <span class="n">GM_display_name</span> <span class="o">=</span> <span class="s1">'Gibbs Energy'</span>
+<span class="n">G_implementation_units</span> <span class="o">=</span> <span class="s1">'J'</span>
+<span class="n">G_display_units</span> <span class="o">=</span> <span class="s1">'J'</span>
+<span class="n">G_display_name</span> <span class="o">=</span> <span class="s1">'Gibbs Energy'</span>
 <span class="n">enthalpy_implementation_units</span> <span class="o">=</span> <span class="n">HM_implementation_units</span> <span class="o">=</span> <span class="n">GM_implementation_units</span>
 <span class="n">enthalpy_display_units</span> <span class="o">=</span> <span class="n">HM_display_units</span> <span class="o">=</span> <span class="n">GM_display_units</span>
-<span class="n">enthalpy_display_name</span> <span class="o">=</span> <span class="n">HM_display_name</span> <span class="o">=</span> <span class="s1">&#39;Enthalpy&#39;</span>
-<span class="n">H_implementation_units</span> <span class="o">=</span> <span class="s1">&#39;J&#39;</span>
-<span class="n">H_display_units</span> <span class="o">=</span> <span class="s1">&#39;J&#39;</span>
-<span class="n">H_display_name</span> <span class="o">=</span> <span class="s1">&#39;Enthalpy&#39;</span>
-<span class="n">entropy_implementation_units</span> <span class="o">=</span> <span class="n">SM_implementation_units</span> <span class="o">=</span> <span class="s1">&#39;J / mol / K&#39;</span>
-<span class="n">entropy_display_units</span> <span class="o">=</span> <span class="n">SM_display_units</span> <span class="o">=</span> <span class="s1">&#39;J / mol / K&#39;</span>
-<span class="n">entropy_display_name</span> <span class="o">=</span> <span class="n">SM_display_name</span> <span class="o">=</span> <span class="s1">&#39;Entropy&#39;</span>
-<span class="n">cpm_implementation_units</span> <span class="o">=</span> <span class="n">CPM_implementation_units</span> <span class="o">=</span> <span class="s1">&#39;J / mol / K&#39;</span>
-<span class="n">cpm_display_units</span> <span class="o">=</span> <span class="n">CPM_display_units</span> <span class="o">=</span> <span class="s1">&#39;J / mol / K&#39;</span>
-<span class="n">cpm_display_name</span> <span class="o">=</span> <span class="n">CPM_display_name</span> <span class="o">=</span> <span class="s1">&#39;Heat Capacity&#39;</span>
+<span class="n">enthalpy_display_name</span> <span class="o">=</span> <span class="n">HM_display_name</span> <span class="o">=</span> <span class="s1">'Enthalpy'</span>
+<span class="n">H_implementation_units</span> <span class="o">=</span> <span class="s1">'J'</span>
+<span class="n">H_display_units</span> <span class="o">=</span> <span class="s1">'J'</span>
+<span class="n">H_display_name</span> <span class="o">=</span> <span class="s1">'Enthalpy'</span>
+<span class="n">entropy_implementation_units</span> <span class="o">=</span> <span class="n">SM_implementation_units</span> <span class="o">=</span> <span class="s1">'J / mol / K'</span>
+<span class="n">entropy_display_units</span> <span class="o">=</span> <span class="n">SM_display_units</span> <span class="o">=</span> <span class="s1">'J / mol / K'</span>
+<span class="n">entropy_display_name</span> <span class="o">=</span> <span class="n">SM_display_name</span> <span class="o">=</span> <span class="s1">'Entropy'</span>
+<span class="n">cpm_implementation_units</span> <span class="o">=</span> <span class="n">CPM_implementation_units</span> <span class="o">=</span> <span class="s1">'J / mol / K'</span>
+<span class="n">cpm_display_units</span> <span class="o">=</span> <span class="n">CPM_display_units</span> <span class="o">=</span> <span class="s1">'J / mol / K'</span>
+<span class="n">cpm_display_name</span> <span class="o">=</span> <span class="n">CPM_display_name</span> <span class="o">=</span> <span class="s1">'Heat Capacity'</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_conversions_per_formula_unit</span><span class="p">(</span><span class="n">compset</span><span class="p">):</span>
     <span class="n">components</span> <span class="o">=</span> <span class="n">compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">nonvacant_elements</span>
@@ -347,9 +347,9 @@
     <span class="n">moles_per_fu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_components</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">comp_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_components</span><span class="p">):</span>
         <span class="n">compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">formulamole_obj</span><span class="p">(</span><span class="n">moles_per_fu</span><span class="p">[</span><span class="n">comp_idx</span><span class="p">,</span> <span class="p">:],</span> <span class="n">compset</span><span class="o">.</span><span class="n">dof</span><span class="p">,</span> <span class="n">comp_idx</span><span class="p">)</span>
-    <span class="c1"># now we have &#39;moles per formula unit&#39;</span>
+    <span class="c1"># now we have 'moles per formula unit'</span>
     <span class="c1"># need to convert by adding molecular weight of each element</span>
-    <span class="n">grams_per_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">molar_masses</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">grams_per_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">compset</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">molar_masses</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'float'</span><span class="p">)</span>
     <span class="n">grams_per_fu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">grams_per_mol</span><span class="p">,</span> <span class="n">moles_per_fu</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">moles_per_fu</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">grams_per_fu</span>
 
@@ -359,18 +359,18 @@
     <span class="n">context</span> <span class="o">=</span> <span class="n">pint</span><span class="o">.</span><span class="n">Context</span><span class="p">()</span>
     <span class="c1"># these will be something/mol by convention</span>
     <span class="c1"># XXX: This is a very rough check</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;/ mol&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">implementation_units</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">'/ mol'</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">implementation_units</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">context</span>
-    <span class="n">implementation_units</span> <span class="o">=</span> <span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">implementation_units</span><span class="p">)</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;mol&#39;</span><span class="p">))</span>
+    <span class="n">implementation_units</span> <span class="o">=</span> <span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">implementation_units</span><span class="p">)</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="s1">'mol'</span><span class="p">))</span>
     <span class="n">molar_weight</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c1"># g/mol-atom</span>
     <span class="k">for</span> <span class="n">compset</span> <span class="ow">in</span> <span class="n">compsets</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">compset</span><span class="o">.</span><span class="n">NP</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">moles_per_fu</span><span class="p">,</span> <span class="n">grams_per_fu</span> <span class="o">=</span> <span class="n">_conversions_per_formula_unit</span><span class="p">(</span><span class="n">compset</span><span class="p">)</span>
             <span class="n">grams_per_mol_atoms</span> <span class="o">=</span> <span class="p">(</span><span class="n">compset</span><span class="o">.</span><span class="n">NP</span> <span class="o">/</span> <span class="n">moles_per_fu</span><span class="p">)</span> <span class="o">*</span> <span class="n">grams_per_fu</span>
             <span class="n">molar_weight</span> <span class="o">+=</span> <span class="n">grams_per_mol_atoms</span>
-    <span class="n">molar_weight</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="n">molar_weight</span><span class="p">,</span> <span class="s1">&#39;g/mol&#39;</span><span class="p">)</span>
-    <span class="n">per_moles</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">get_dimensionality</span><span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> / mol&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">implementation_units</span><span class="p">)))</span>
-    <span class="n">per_mass</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">get_dimensionality</span><span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> / g&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">implementation_units</span><span class="p">)))</span>
+    <span class="n">molar_weight</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="n">molar_weight</span><span class="p">,</span> <span class="s1">'g/mol'</span><span class="p">)</span>
+    <span class="n">per_moles</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">get_dimensionality</span><span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> / mol'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">implementation_units</span><span class="p">)))</span>
+    <span class="n">per_mass</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">get_dimensionality</span><span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> / g'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">implementation_units</span><span class="p">)))</span>
 
     <span class="n">context</span><span class="o">.</span><span class="n">add_transformation</span><span class="p">(</span>
         <span class="n">per_moles</span><span class="p">,</span>
@@ -387,13 +387,13 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_composition_sets_for_unit_conversion</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">prop</span><span class="p">:</span> <span class="s2">&quot;ComputableProperty&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Select composition sets matching a phase-specific property for unit conversion context.&quot;&quot;&quot;</span>
-    <span class="n">phase_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">phase_name</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_composition_sets_for_unit_conversion</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">prop</span><span class="p">:</span> <span class="s2">"ComputableProperty"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Select composition sets matching a phase-specific property for unit conversion context."""</span>
+    <span class="n">phase_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">phase_name</span> <span class="o">==</span> <span class="s1">'*'</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">comp_sets</span>
 
-    <span class="n">tokens</span> <span class="o">=</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'#'</span><span class="p">)</span>
     <span class="n">phase_name</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">multiplicity</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span>
     <span class="n">multiplicity_seen</span> <span class="o">=</span> <span class="mi">0</span>
@@ -407,14 +407,14 @@
 
 <div class="viewcode-block" id="to_display_units">
 <a class="viewcode-back" href="../../../api/pycalphad.property_framework.html#pycalphad.property_framework.units.to_display_units">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">to_display_units</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">prop</span><span class="p">:</span> <span class="s2">&quot;ComputableProperty&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a property value from implementation units to display units.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_display_units</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">prop</span><span class="p">:</span> <span class="s2">"ComputableProperty"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Convert a property value from implementation units to display units.</span>
 
 <span class="sd">    Filters composition sets to match phase-specific properties before</span>
 <span class="sd">    building the molar mass context for per-mole to per-mass conversions.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">implementation_units</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">&#39;implementation_units&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-    <span class="n">display_units</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">&#39;display_units&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+<span class="sd">    """</span>
+    <span class="n">implementation_units</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">'implementation_units'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
+    <span class="n">display_units</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">'display_units'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
     <span class="n">context</span> <span class="o">=</span> <span class="n">unit_conversion_context</span><span class="p">(</span><span class="n">_composition_sets_for_unit_conversion</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">prop</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">Q_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">implementation_units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">display_units</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span></div>
 
@@ -450,7 +450,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

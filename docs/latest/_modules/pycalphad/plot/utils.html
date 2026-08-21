@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.plot.utils - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.plot.utils - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,9 +291,9 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.plot.utils</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">The plot utils module contains some useful routines related to plotting.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpatches</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -301,7 +301,7 @@
 <div class="viewcode-block" id="phase_legend">
 <a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.utils.phase_legend">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">phase_legend</span><span class="p">(</span><span class="n">phases</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Build matplotlib handles for the plot legend.</span>
 
 <span class="sd">    Parameters</span>
@@ -317,26 +317,26 @@
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; legend_handles, colors = phase_legend([&#39;FCC_A1&#39;, &#39;BCC_A2&#39;, &#39;LIQUID&#39;])</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; legend_handles, colors = phase_legend(['FCC_A1', 'BCC_A2', 'LIQUID'])</span>
+<span class="sd">    """</span>
     <span class="n">colorlist</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c1"># colors from HU1SUN, August 5 2018, ordered by igorjrd, issue #97</span>
     <span class="c1"># exclude green and red because of their special meaning on the diagram</span>
     <span class="n">colorvalues</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;00538A&#39;</span><span class="p">,</span> <span class="s1">&#39;F4C800&#39;</span><span class="p">,</span> <span class="s1">&#39;F13A13&#39;</span><span class="p">,</span> <span class="s1">&#39;C10020&#39;</span><span class="p">,</span> <span class="s1">&#39;D2F300&#39;</span><span class="p">,</span> <span class="s1">&#39;53377A&#39;</span><span class="p">,</span> <span class="s1">&#39;7BD1EC&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;232C16&#39;</span><span class="p">,</span> <span class="s1">&#39;FE4262&#39;</span><span class="p">,</span> <span class="s1">&#39;C0DE00&#39;</span><span class="p">,</span> <span class="s1">&#39;704AA4&#39;</span><span class="p">,</span> <span class="s1">&#39;FFB300&#39;</span><span class="p">,</span> <span class="s1">&#39;176136&#39;</span><span class="p">,</span> <span class="s1">&#39;7F180D&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;93AA00&#39;</span><span class="p">,</span> <span class="s1">&#39;2B85EB&#39;</span><span class="p">,</span> <span class="s1">&#39;F6768E&#39;</span><span class="p">,</span> <span class="s1">&#39;007D34&#39;</span><span class="p">,</span> <span class="s1">&#39;803E75&#39;</span><span class="p">,</span> <span class="s1">&#39;4A7C01&#39;</span><span class="p">,</span> <span class="s1">&#39;FF8E00&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;EC1840&#39;</span><span class="p">,</span> <span class="s1">&#39;178D39&#39;</span><span class="p">,</span> <span class="s1">&#39;B32851&#39;</span><span class="p">,</span> <span class="s1">&#39;577C23&#39;</span><span class="p">,</span> <span class="s1">&#39;A6BDD7&#39;</span><span class="p">,</span> <span class="s1">&#39;FD522B&#39;</span><span class="p">,</span> <span class="s1">&#39;526B2E&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;90324E&#39;</span><span class="p">,</span> <span class="s1">&#39;593315&#39;</span><span class="p">,</span> <span class="s1">&#39;B6A0D4&#39;</span><span class="p">,</span> <span class="s1">&#39;FF6800&#39;</span><span class="p">,</span> <span class="s1">&#39;CEA262&#39;</span><span class="p">,</span> <span class="s1">&#39;9A7CC4&#39;</span><span class="p">,</span> <span class="s1">&#39;91250B&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;7B3D0B&#39;</span><span class="p">,</span> <span class="s1">&#39;FF7A5C&#39;</span><span class="p">,</span> <span class="s1">&#39;C01F3D&#39;</span><span class="p">,</span> <span class="s1">&#39;D39336&#39;</span><span class="p">,</span> <span class="s1">&#39;817066&#39;</span><span class="p">,</span> <span class="s1">&#39;96541F&#39;</span><span class="p">,</span> <span class="s1">&#39;EB9867&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;B15106&#39;</span><span class="p">,</span> <span class="s1">&#39;EE8548&#39;</span><span class="p">,</span> <span class="s1">&#39;97691C&#39;</span><span class="p">,</span> <span class="s1">&#39;DF6B10&#39;</span><span class="p">,</span> <span class="s1">&#39;987155&#39;</span><span class="p">,</span> <span class="s1">&#39;C76F32&#39;</span><span class="p">,</span> <span class="s1">&#39;B37347&#39;</span><span class="p">,</span>
+        <span class="s1">'00538A'</span><span class="p">,</span> <span class="s1">'F4C800'</span><span class="p">,</span> <span class="s1">'F13A13'</span><span class="p">,</span> <span class="s1">'C10020'</span><span class="p">,</span> <span class="s1">'D2F300'</span><span class="p">,</span> <span class="s1">'53377A'</span><span class="p">,</span> <span class="s1">'7BD1EC'</span><span class="p">,</span>
+        <span class="s1">'232C16'</span><span class="p">,</span> <span class="s1">'FE4262'</span><span class="p">,</span> <span class="s1">'C0DE00'</span><span class="p">,</span> <span class="s1">'704AA4'</span><span class="p">,</span> <span class="s1">'FFB300'</span><span class="p">,</span> <span class="s1">'176136'</span><span class="p">,</span> <span class="s1">'7F180D'</span><span class="p">,</span>
+        <span class="s1">'93AA00'</span><span class="p">,</span> <span class="s1">'2B85EB'</span><span class="p">,</span> <span class="s1">'F6768E'</span><span class="p">,</span> <span class="s1">'007D34'</span><span class="p">,</span> <span class="s1">'803E75'</span><span class="p">,</span> <span class="s1">'4A7C01'</span><span class="p">,</span> <span class="s1">'FF8E00'</span><span class="p">,</span>
+        <span class="s1">'EC1840'</span><span class="p">,</span> <span class="s1">'178D39'</span><span class="p">,</span> <span class="s1">'B32851'</span><span class="p">,</span> <span class="s1">'577C23'</span><span class="p">,</span> <span class="s1">'A6BDD7'</span><span class="p">,</span> <span class="s1">'FD522B'</span><span class="p">,</span> <span class="s1">'526B2E'</span><span class="p">,</span>
+        <span class="s1">'90324E'</span><span class="p">,</span> <span class="s1">'593315'</span><span class="p">,</span> <span class="s1">'B6A0D4'</span><span class="p">,</span> <span class="s1">'FF6800'</span><span class="p">,</span> <span class="s1">'CEA262'</span><span class="p">,</span> <span class="s1">'9A7CC4'</span><span class="p">,</span> <span class="s1">'91250B'</span><span class="p">,</span>
+        <span class="s1">'7B3D0B'</span><span class="p">,</span> <span class="s1">'FF7A5C'</span><span class="p">,</span> <span class="s1">'C01F3D'</span><span class="p">,</span> <span class="s1">'D39336'</span><span class="p">,</span> <span class="s1">'817066'</span><span class="p">,</span> <span class="s1">'96541F'</span><span class="p">,</span> <span class="s1">'EB9867'</span><span class="p">,</span>
+        <span class="s1">'B15106'</span><span class="p">,</span> <span class="s1">'EE8548'</span><span class="p">,</span> <span class="s1">'97691C'</span><span class="p">,</span> <span class="s1">'DF6B10'</span><span class="p">,</span> <span class="s1">'987155'</span><span class="p">,</span> <span class="s1">'C76F32'</span><span class="p">,</span> <span class="s1">'B37347'</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">mxx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorvalues</span><span class="p">)</span>
     <span class="n">phasecount</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">legend_handles</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="n">colorlist</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span><span class="o">+</span><span class="n">colorvalues</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">phasecount</span><span class="p">,</span> <span class="n">mxx</span><span class="p">)]</span>
+        <span class="n">colorlist</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"#"</span><span class="o">+</span><span class="n">colorvalues</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">phasecount</span><span class="p">,</span> <span class="n">mxx</span><span class="p">)]</span>
         <span class="n">legend_handles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">colorlist</span><span class="p">[</span><span class="n">phase</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">phase</span><span class="p">))</span>
         <span class="n">phasecount</span> <span class="o">=</span> <span class="n">phasecount</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colorlist</span></div>
@@ -373,7 +373,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

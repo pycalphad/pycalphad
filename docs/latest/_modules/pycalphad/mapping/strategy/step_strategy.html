@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.strategy.step_strategy - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.mapping.strategy.step_strategy - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -314,9 +314,9 @@
 <div class="viewcode-block" id="StepStrategy.generate_automatic_starting_points">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.step_strategy.StepStrategy.generate_automatic_starting_points">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adds initial starting point in middle of free condition</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">av</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">mid_val</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">av</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_lims</span><span class="p">[</span><span class="n">av</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="n">mid_conds</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">)</span>
@@ -325,14 +325,14 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Apart from the default POINT_IS_EXIT condition from strategy base, there are three possibilities</span>
 
 <span class="sd">        1. Node has more phases than parent and node is an invariant and we step in potential condition</span>
 <span class="sd">            Test all n-1 combinations of the set of phases (excluding parent) to</span>
 <span class="sd">            find the set will all phase fractions are positive when solving</span>
 <span class="sd">            against the current composition</span>
-<span class="sd">            Note: we shouldn&quot;t have to account for the number of phases &lt; number of compositions</span>
+<span class="sd">            Note: we shouldn"t have to account for the number of phases &lt; number of compositions</span>
 <span class="sd">                    since the matrix will be (comps x phases) and should always be full rank even</span>
 <span class="sd">                    if comps &gt; phases</span>
 
@@ -343,7 +343,7 @@
 <span class="sd">            Remove phase with 0 phase fraction and create exit with remaining phases</span>
 
 <span class="sd">        For stepping, all phases in an exit are free</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_find_exits_from_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">exit_hint</span> <span class="o">==</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
@@ -410,11 +410,11 @@
         <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        For stepping, only one direction is possible from a node since we either step positive or negative</span>
 
 <span class="sd">        If a direction cannot be found, then we force add a starting point just past the exit_point</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">axis_deltas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test_direction</span><span class="p">(</span><span class="n">exit_point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">proposed_direction</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">axis_deltas</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Test direction failed, so add a new starting point</span>
@@ -429,23 +429,23 @@
             <span class="k">return</span> <span class="n">exit_point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">proposed_direction</span><span class="p">,</span> <span class="n">av_delta</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_attempt_to_add_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">step_results</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Point</span><span class="p">,</span> <span class="nb">list</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        If a point was not added because the zpf line failed, then we force a starting point just past the</span>
 <span class="sd">        end of the zpf line</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_attempt_to_add_point</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">,</span> <span class="n">step_results</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">ZPFState</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
             <span class="c1"># ZPF line failed, so add a new starting point</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_add_starting_point_at_last_condition</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">,</span> <span class="n">zpf_line</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_starting_point_at_last_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">axis_dir</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Checks if the point is at the axis limits</span>
 <span class="sd">        If not, then create a new starting point with the adjusted conditions</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">av</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c1"># Since we add the new starting point at MIN_DELTA_RATIO*axis_delta,</span>
-        <span class="c1"># make sure that the new conditions won&quot;t be past the axis limits</span>
+        <span class="c1"># make sure that the new conditions won"t be past the axis limits</span>
         <span class="n">new_delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MIN_DELTA_RATIO</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_delta</span><span class="p">[</span><span class="n">av</span><span class="p">]</span>
 
         <span class="n">not_at_axis_lims</span> <span class="o">=</span> <span class="kc">True</span>
@@ -459,7 +459,7 @@
             <span class="c1"># If new conditions are within limits, then add the new point</span>
             <span class="k">if</span> <span class="n">not_at_axis_lims</span><span class="p">:</span>
                 <span class="n">new_conds</span><span class="p">[</span><span class="n">av</span><span class="p">]</span> <span class="o">+=</span> <span class="n">new_delta</span> <span class="o">*</span> <span class="n">axis_dir</span><span class="o">.</span><span class="n">value</span>
-                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Force adding starting point with conditions </span><span class="si">{</span><span class="n">new_conds</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Force adding starting point with conditions </span><span class="si">{</span><span class="n">new_conds</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes_from_conditions</span><span class="p">(</span><span class="n">new_conds</span><span class="p">,</span> <span class="n">axis_dir</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
                     <span class="k">return</span>
@@ -467,7 +467,7 @@
 <div class="viewcode-block" id="StepStrategy.get_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.step_strategy.StepStrategy.get_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">set_nan_to_zero</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StrategyData</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Utility function to get data from StepStrategy for plotting.</span>
 
 <span class="sd">        Parameters</span>
@@ -486,7 +486,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        StrategyData</span>
-<span class="sd">            If x and y are unique for the system, then the data in StrategyData will be labeled as &quot;SYSTEM&quot;</span>
+<span class="sd">            If x and y are unique for the system, then the data in StrategyData will be labeled as "SYSTEM"</span>
 <span class="sd">            otherwise, the data in StrategyData will be labeled for all stable phases</span>
 <span class="sd">            Examples of unique variables:</span>
 
@@ -495,24 +495,24 @@
 <span class="sd">            - Phase specific variable (i.e. v.X(phase, component) or v.NP(phase))</span>
 <span class="sd">              This is in contrast to v.X(component) or v.NP where composition or phase fraction will be</span>
 <span class="sd">              taken for all stable phases</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">global_x</span><span class="p">:</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-                <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+                <span class="n">x</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">'*'</span>
 
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">global_y</span><span class="p">:</span>
                 <span class="n">y</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-                <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+                <span class="n">y</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="s1">'*'</span>
 
         <span class="c1"># if x and y are to be computed for the entire system, the we only have a single x vs y line</span>
         <span class="c1"># as opposed to something like v.T vs v.NP(*) where we have a T vs NP line for each phase</span>
         <span class="c1"># we determine whether x or y is computed globally based of whether or not the phase_name is a wildcard</span>
-        <span class="n">global_x</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;*&#39;</span>
-        <span class="n">global_y</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;*&#39;</span>
+        <span class="n">global_x</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">'*'</span>
+        <span class="n">global_y</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">'*'</span>
         <span class="k">if</span> <span class="n">global_x</span> <span class="ow">and</span> <span class="n">global_y</span><span class="p">:</span>
-            <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SYSTEM&#39;</span><span class="p">]</span>
+            <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'SYSTEM'</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Get all phases in strategy (including multiplicity)</span>
             <span class="n">phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_all_phases</span><span class="p">())</span>
@@ -579,7 +579,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

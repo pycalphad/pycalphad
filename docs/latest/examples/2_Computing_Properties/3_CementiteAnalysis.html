@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Heat Capacity of Cementite (\(Fe_3C\)) - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>Heat Capacity of Cementite (\(Fe_3C\)) - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -306,7 +306,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">TDB</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">TDB</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2"> ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 !</span>
 <span class="s2"> ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 !</span>
 <span class="s2"> TYPE_DEFINITION % SEQ * !</span>
@@ -322,7 +322,7 @@
 <span class="s2">       163.00  Y  -10195.860754+690.949887637*T-118.47637*T*LN(T)</span>
 <span class="s2">                  -0.0007*T**2+590527*T**(-1);</span>
 <span class="s2">      6000.00  N !</span>
-<span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">"""</span>
 </pre></div>
 </div>
 </div>
@@ -336,10 +336,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workspace</span><span class="p">,</span> <span class="n">as_property</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="n">database</span> <span class="o">=</span> <span class="n">TDB</span>
-<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">]</span>
-<span class="n">phases</span> <span class="o">=</span> <span class="s1">&#39;CEMENTITE_D011&#39;</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'FE'</span><span class="p">,</span> <span class="s1">'C'</span><span class="p">]</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="s1">'CEMENTITE_D011'</span>
 <span class="n">temperature_range</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
-<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mf">1e5</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="n">temperature_range</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">):</span> <span class="mf">0.25</span><span class="p">}</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mf">1e5</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="n">temperature_range</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'C'</span><span class="p">):</span> <span class="mf">0.25</span><span class="p">}</span>
 
 <span class="n">wks</span> <span class="o">=</span> <span class="n">Workspace</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">)</span>
 </pre></div>
@@ -350,11 +350,11 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">heat_capacity</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="s1">&#39;HM.T&#39;</span><span class="p">)</span>
-<span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_name</span> <span class="o">=</span> <span class="s1">&#39;Isobaric Heat Capacity&#39;</span>
-<span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_units</span> <span class="o">=</span> <span class="s1">&#39;J/mol/K&#39;</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s1"> [</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">display_units</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s1"> [</span><span class="si">{</span><span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_units</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">heat_capacity</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="s1">'HM.T'</span><span class="p">)</span>
+<span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_name</span> <span class="o">=</span> <span class="s1">'Isobaric Heat Capacity'</span>
+<span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_units</span> <span class="o">=</span> <span class="s1">'J/mol/K'</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s1"> [</span><span class="si">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">display_units</span><span class="si">}</span><span class="s1">]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s1"> [</span><span class="si">{</span><span class="n">heat_capacity</span><span class="o">.</span><span class="n">display_units</span><span class="si">}</span><span class="s1">]'</span><span class="p">)</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">wks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">heat_capacity</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -417,7 +417,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

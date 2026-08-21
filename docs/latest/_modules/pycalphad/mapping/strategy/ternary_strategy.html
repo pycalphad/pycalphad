@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.strategy.ternary_strategy - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.mapping.strategy.ternary_strategy - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -313,32 +313,32 @@
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_delta_cs_var</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CompositionSet</span><span class="p">],</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">],</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Given two composition sets, get the vector using axis_vars as coordinates</span>
 
-<span class="sd">    Seems a bit strange to have the comp sets as an input when we already have the point, but it&#39;s just to have some</span>
+<span class="sd">    Seems a bit strange to have the comp sets as an input when we already have the point, but it's just to have some</span>
 <span class="sd">    flexibility on which comp sets to treat at 0 or 1</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">dx</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">get_local_property</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">point</span><span class="o">.</span><span class="n">get_local_property</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">dy</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">get_local_property</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis_vars</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">point</span><span class="o">.</span><span class="n">get_local_property</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis_vars</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">norm_factor</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">normalize</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dx</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">dy</span><span class="o">*</span><span class="n">dy</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="o">/</span><span class="n">norm_factor</span><span class="p">,</span> <span class="n">dy</span><span class="o">/</span><span class="n">norm_factor</span><span class="p">]</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_norm</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Creates normal vector of a tieline</span>
 
 <span class="sd">    Assumes point has two phases</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">vec</span> <span class="o">=</span> <span class="n">_get_delta_cs_var</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="o">-</span><span class="n">vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">vec</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_create_linear_comb_conditions</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">],</span> <span class="n">normal</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Creates a linear combination along a normal vector</span>
 
 <span class="sd">    If normal is not given, then the normal will be the normal of the tieline defined by the point</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Get normal and axis variable to step in (this will be along the maximum of the normal vector)</span>
     <span class="k">if</span> <span class="n">normal</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">normal</span> <span class="o">=</span> <span class="n">_get_norm</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">)</span>
@@ -349,14 +349,14 @@
     <span class="k">return</span> <span class="n">lc</span><span class="p">,</span> <span class="n">c</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sort_point</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Given a point with 2 free phases, get derivative at both composition sets to</span>
 <span class="sd">    test with CS to fix and which direction to start</span>
 
 <span class="sd">    NOTE: unlike the binary version of this function, normal is defined from the tieline</span>
 <span class="sd">          rather than the axis variables</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sorting point </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Sorting point </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Free all phases in point, we will fix the phase at the end</span>
     <span class="n">free_point</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">_generate_point_with_free_cs</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
@@ -364,7 +364,7 @@
     <span class="c1"># Get normal and axis variable to step in (this will be along the maximum of the normal vector)</span>
     <span class="n">normal</span> <span class="o">=</span> <span class="n">_get_norm</span><span class="p">(</span><span class="n">free_point</span><span class="p">,</span> <span class="n">axis_vars</span><span class="p">)</span>
     <span class="n">av</span> <span class="o">=</span> <span class="n">axis_vars</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">normal</span><span class="p">))]</span>
-    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Point </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> with normal </span><span class="si">{</span><span class="n">normal</span><span class="si">}</span><span class="s2">. Testing derivative in </span><span class="si">{</span><span class="n">av</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Point </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> with normal </span><span class="si">{</span><span class="n">normal</span><span class="si">}</span><span class="s2">. Testing derivative in </span><span class="si">{</span><span class="n">av</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># This is here to have derivative with respect to the axis variable to follow the direction of the normal</span>
     <span class="c1">#  NOTE: the derivative we compute is not the directional derivative with respect to the normal</span>
@@ -395,7 +395,7 @@
     <span class="n">best_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="n">best_der</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">options_tests</span><span class="p">)):</span>
-        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Option: Axis var </span><span class="si">{</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">, derivative </span><span class="si">{</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, point </span><span class="si">{</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Option: Axis var </span><span class="si">{</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">, derivative </span><span class="si">{</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, point </span><span class="si">{</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">best_der</span><span class="p">:</span>
             <span class="n">best_index</span> <span class="o">=</span> <span class="n">i</span>
             <span class="n">best_der</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">options_tests</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
@@ -411,18 +411,18 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">:</span> <span class="n">Database</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># TODO: This assumes pure elements and will likely change with the generalize component support</span>
-        <span class="n">unlisted_element</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;VA&#39;</span><span class="p">}</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">av</span><span class="o">.</span><span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">unlisted_element</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="s1">'VA'</span><span class="p">}</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">av</span><span class="o">.</span><span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span> <span class="o">+</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="n">unlisted_element</span><span class="p">)]</span>
 
 <div class="viewcode-block" id="TernaryStrategy.generate_automatic_starting_points">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.generate_automatic_starting_points">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_automatic_starting_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Searches axis limits to find starting points</span>
 
 <span class="sd">        Here, we do a step mapping along the axis bounds and grab all the nodes</span>
 <span class="sd">        The nodes of a step map is distinguished from starting points in that they have a parent</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">map_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_kwargs</span><span class="p">()</span>
 
         <span class="c1"># Iterate through axis variables, and set conditions to fix axis variable at min only</span>
@@ -454,10 +454,10 @@
 <div class="viewcode-block" id="TernaryStrategy.add_starting_points_from_step">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.add_starting_points_from_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_starting_points_from_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">StepStrategy</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adds all 2-phase and 3-phase regions from step as starting points</span>
 <span class="sd">        We also do a global min check to make sure these phase regions are truly the phases they say they are</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">zpf_line</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">zpf_lines</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">num_phases</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">zpf_line</span><span class="o">.</span><span class="n">stable_phases</span><span class="p">)</span>
@@ -475,7 +475,7 @@
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_vars</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">new_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">:</span>
                         <span class="k">del</span> <span class="n">new_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">all_vars</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
                         <span class="n">new_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">new_point</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding node </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Adding node </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
                     <span class="c1"># New point will be make with all composition sets as free, since we set</span>
                     <span class="c1"># which CS to fix when finding an exit</span>
@@ -488,33 +488,33 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_validate_custom_starting_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Modifies exit hint and direction based off number of composition sets</span>
 <span class="sd">            Single phase -&gt; cannot be added</span>
 <span class="sd">            Two phase    -&gt; point is exit, direction stays the same as input</span>
 <span class="sd">            Three phase  -&gt; normal exit finding strategy, no direction needed</span>
 
 <span class="sd">        This is the same as BinaryStrategy</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Single phase detected&quot;</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"Single phase detected"</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;More than three phases detected&quot;</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"More than three phases detected"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_find_exits_from_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        A node in a ternary system has three exits, which are combinations of 2 CS in the node</span>
 <span class="sd">        Since the node is found from one pair of CS, one of the exits are already accounted for, so</span>
-<span class="sd">        practically, it&#39;s only 2 exits</span>
+<span class="sd">        practically, it's only 2 exits</span>
 <span class="sd">            However, if there are multiple starting points, a node may be found from multiple zpf lines</span>
 <span class="sd">            thus a node may only have 1 or even 0 exits - (does this mean some exits are repeated if a node is found twice?)</span>
 
 <span class="sd">        I believe this is the same as the binary strategy</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_find_exits_from_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">exit_hint</span> <span class="o">==</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
@@ -527,7 +527,7 @@
             <span class="n">candidate_point</span> <span class="o">=</span> <span class="n">Point</span><span class="o">.</span><span class="n">with_copy</span><span class="p">(</span><span class="n">new_conds</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[</span><span class="n">cs_1</span><span class="p">,</span> <span class="n">cs_2</span><span class="p">])</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="o">.</span><span class="n">has_point_been_encountered</span><span class="p">(</span><span class="n">candidate_point</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found candidate exit: </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found candidate exit: </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">candidate_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="n">exits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_point</span><span class="p">)</span>
                 <span class="c1"># This function is only responsible for finding exit points</span>
                 <span class="c1"># The _determine_start_direction will take the point and find the direction and axis variable</span>
@@ -536,17 +536,17 @@
         <span class="k">return</span> <span class="n">exits</span><span class="p">,</span> <span class="n">exit_dirs</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_determine_start_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">proposed_direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        For stepping, only one direction is possible from a node since we either step positive or negative</span>
 
 <span class="sd">        If a direction cannot be found, then we force add a starting point just past the exit_point</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Sort exit point to fix composition set that varies the least</span>
         <span class="n">der</span><span class="p">,</span> <span class="n">exit_point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">,</span> <span class="n">normal</span> <span class="o">=</span> <span class="n">_sort_point</span><span class="p">(</span><span class="n">exit_point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">)</span>
 
         <span class="n">free_cs</span> <span class="o">=</span> <span class="n">exit_point</span><span class="o">.</span><span class="n">free_composition_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c1"># If node is invariant, then we can get the other cs to know which direction to step away from</span>
-        <span class="c1"># It&#39;s possible that the node is not invariant (ex. as a starting point), in which case, we just set the norm_delta_dot to 1</span>
+        <span class="c1"># It's possible that the node is not invariant (ex. as a starting point), in which case, we just set the norm_delta_dot to 1</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">other_cs</span> <span class="o">=</span> <span class="p">[</span><span class="n">cs</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">stable_composition_sets</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_eq_compset</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">exit_point</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_eq_compset</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">exit_point</span><span class="o">.</span><span class="n">free_composition_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">])][</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">delta_var</span> <span class="o">=</span> <span class="n">_get_delta_cs_var</span><span class="p">(</span><span class="n">exit_point</span><span class="p">,</span> <span class="p">[</span><span class="n">free_cs</span><span class="p">,</span> <span class="n">other_cs</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">)</span>
@@ -571,7 +571,7 @@
             <span class="n">dir_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test_direction</span><span class="p">(</span><span class="n">exit_point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">dir_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">av_delta</span><span class="p">,</span> <span class="n">other_av_delta</span> <span class="o">=</span> <span class="n">dir_results</span>
-                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found direction: </span><span class="si">{</span><span class="n">axis_var</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="n">av_delta</span><span class="si">}</span><span class="s2"> for point </span><span class="si">{</span><span class="n">exit_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">exit_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">exit_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found direction: </span><span class="si">{</span><span class="n">axis_var</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="n">av_delta</span><span class="si">}</span><span class="s2"> for point </span><span class="si">{</span><span class="n">exit_point</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">exit_point</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">exit_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">exit_point</span><span class="p">,</span> <span class="n">axis_var</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">av_delta</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_add_starting_point_at_new_condition</span><span class="p">(</span><span class="n">exit_point</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">Direction</span><span class="o">.</span><span class="n">POSITIVE</span> <span class="k">if</span> <span class="n">norm_delta_dot</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">Direction</span><span class="o">.</span><span class="n">NEGATIVE</span><span class="p">)</span>
@@ -579,26 +579,26 @@
         <span class="k">return</span> <span class="kc">None</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_starting_point_at_new_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">,</span> <span class="n">normal</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Direction</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        If we made it here, then no direction has worked. This could be a case where</span>
 <span class="sd">        the two CS of the exit point are stoichiometric, so there is no ZPF line leading</span>
 <span class="sd">        to the next node</span>
 <span class="sd">        So we take a step from the normal of the exit away from the third CS of the invariant</span>
-<span class="sd">        and add a new starting point. We also add the current exit as a parent, so we don&#39;t</span>
+<span class="sd">        and add a new starting point. We also add the current exit as a parent, so we don't</span>
 <span class="sd">        search in that direction again</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">free_point</span> <span class="o">=</span> <span class="n">map_utils</span><span class="o">.</span><span class="n">_generate_point_with_free_cs</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
         <span class="n">copy_conds</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">free_point</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
         <span class="c1"># Move by small amount (1e-3 seem to be a good value, too small, and we may fail to detect a possible third phase and too large, and we may step over a potential node)</span>
         <span class="k">for</span> <span class="n">av</span><span class="p">,</span> <span class="n">norm_dir</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_vars</span><span class="p">,</span> <span class="n">normal</span><span class="p">):</span>
             <span class="n">copy_conds</span><span class="p">[</span><span class="n">av</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1e-3</span><span class="o">*</span><span class="n">norm_dir</span><span class="o">*</span><span class="n">direction</span><span class="o">.</span><span class="n">value</span>
 
-        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attemping to add point at </span><span class="si">{</span><span class="n">copy_conds</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Attemping to add point at </span><span class="si">{</span><span class="n">copy_conds</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">new_point</span> <span class="o">=</span> <span class="n">point_from_equilibrium</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">,</span> <span class="n">copy_conds</span><span class="p">,</span> <span class="n">models</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">phase_record_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_records</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">new_point</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># If new point is an invariant, then we add it as a starting point (point is added as a parent to prevent repeated exit calculations)</span>
             <span class="c1"># If new point is 2 phase, then we add it as a starting point the node being the exit</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding starting point: </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Adding starting point: </span><span class="si">{</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_phases</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_point</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">new_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">new_point</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -607,34 +607,34 @@
                 <span class="n">new_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node_from_point</span><span class="p">(</span><span class="n">new_point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ExitHint</span><span class="o">.</span><span class="n">POINT_IS_EXIT</span><span class="p">)</span>
                 <span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_queue</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_node</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Point could not be starting point. Needs 2 or 3 phases&quot;</span><span class="p">)</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Point could not be starting point. Needs 2 or 3 phases"</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
-                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Point has already been added&quot;</span><span class="p">)</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Point has already been added"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Could not find a new node from conditions&quot;</span><span class="p">)</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Could not find a new node from conditions"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_process_new_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zpf_line</span><span class="p">:</span> <span class="n">ZPFLine</span><span class="p">,</span> <span class="n">new_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Post global min check after finding node to ensure it&#39;s not a metastable node</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Post global min check after finding node to ensure it's not a metastable node</span>
 
 <span class="sd">        This is the same as _process_new_node in the BinaryStrategy</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Checking if new node is metastable&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Checking if new node is metastable"</span><span class="p">)</span>
         <span class="n">cs_result</span> <span class="o">=</span> <span class="n">zeq</span><span class="o">.</span><span class="n">_find_global_min_cs</span><span class="p">(</span><span class="n">new_node</span><span class="p">,</span> <span class="n">system_info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_info</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_PDENS</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_TOL</span><span class="p">,</span> <span class="n">num_candidates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GLOBAL_MIN_NUM_CANDIDATES</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cs_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">zeq</span><span class="o">.</span><span class="n">_detect_degenerate_phase</span><span class="p">(</span><span class="n">new_node</span><span class="p">,</span> <span class="n">cs_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
                 <span class="n">cs_result</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">cs_result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Global eq check on new node passed&quot;</span><span class="p">)</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Global eq check on new node passed"</span><span class="p">)</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_process_new_node</span><span class="p">(</span><span class="n">zpf_line</span><span class="p">,</span> <span class="n">new_node</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Global eq check failed. New node is metastable. Removing current zpf line.&quot;</span><span class="p">)</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Global eq check failed. New node is metastable. Removing current zpf line."</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">zpf_lines</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TernaryStrategy.get_invariant_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_invariant_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_invariant_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create a dictionary of data for invariant plotting.</span>
 
 <span class="sd">        Parameters</span>
@@ -651,7 +651,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list of StrategyData pertaining to each invariant</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">get_invariant_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">global_x</span><span class="p">,</span> <span class="n">global_y</span><span class="p">)</span></div>
 
 
@@ -659,7 +659,7 @@
 <div class="viewcode-block" id="TernaryStrategy.get_tieline_data">
 <a class="viewcode-back" href="../../../../api/pycalphad.mapping.strategy.html#pycalphad.mapping.strategy.ternary_strategy.TernaryStrategy.get_tieline_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_tieline_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="n">global_x</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">global_y</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PhaseRegionData</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create a dictionary of data for plotting ZPF lines.</span>
 
 <span class="sd">        Parameters</span>
@@ -676,7 +676,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list of Strategy pertaining to each tieline</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">get_tieline_data_from_tieline_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">global_x</span><span class="p">,</span> <span class="n">global_y</span><span class="p">)</span></div>
 </div>
 
@@ -712,7 +712,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

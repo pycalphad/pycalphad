@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>Custom Models in pycalphad: Viscosity - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -336,7 +336,7 @@ PARAMETER ETA(LIQUID,ZR;0) 2.98150E+02  +4.74E-3 - 4.97E-6*(T-2128) ;   6.00000E
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
 
-<span class="n">db_name</span> <span class="o">=</span> <span class="s1">&#39;../databases/alcuzr-viscosity.tdb&#39;</span>
+<span class="n">db_name</span> <span class="o">=</span> <span class="s1">'../databases/alcuzr-viscosity.tdb'</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -361,7 +361,7 @@ Invalid TDB syntax.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.io.tdb_keywords</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">keywords</span>
-<span class="n">keywords</span><span class="o">.</span><span class="n">TDB_PARAM_TYPES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;ETA&#39;</span><span class="p">)</span>
+<span class="n">keywords</span><span class="o">.</span><span class="n">TDB_PARAM_TYPES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'ETA'</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -400,27 +400,27 @@ Invalid TDB syntax.
         <span class="bp">self</span><span class="o">.</span><span class="n">viscosity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_viscosity</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">build_viscosity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">!=</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Viscosity is only defined for LIQUID phase&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">!=</span> <span class="s1">'LIQUID'</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Viscosity is only defined for LIQUID phase'</span><span class="p">)</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
 
         <span class="c1"># STEP 1</span>
         <span class="n">eta_param_query</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
-            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;ETA&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
-            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'phase_name'</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'parameter_type'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'ETA'</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'constituent_array'</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
         <span class="p">)</span>
 
         <span class="c1"># STEP 2</span>
         <span class="n">eta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">eta_param_query</span><span class="p">)</span>
 
         <span class="c1"># STEP 3</span>
-        <span class="n">excess_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GM</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;ref&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;idmix&#39;</span><span class="p">]</span>
+        <span class="n">excess_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GM</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">'ref'</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">'idmix'</span><span class="p">]</span>
         <span class="c1">#liquid_mod = Model(dbe, self.components, self.phase_name)</span>
         <span class="c1">## we only want the excess contributions to the entropy</span>
-        <span class="c1">#del liquid_mod.models[&#39;ref&#39;]</span>
-        <span class="c1">#del liquid_mod.models[&#39;idmix&#39;]</span>
+        <span class="c1">#del liquid_mod.models['ref']</span>
+        <span class="c1">#del liquid_mod.models['idmix']</span>
         <span class="n">excess_entropy</span> <span class="o">=</span> <span class="o">-</span><span class="n">excess_energy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">ks</span> <span class="o">=</span> <span class="mi">2</span>
 
@@ -440,8 +440,8 @@ Invalid TDB syntax.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;LIQUID&#39;</span>
-<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;ZR&#39;</span><span class="p">]</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phase</span> <span class="o">=</span> <span class="s1">'LIQUID'</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'CU'</span><span class="p">,</span> <span class="s1">'ZR'</span><span class="p">]</span>
 <span class="n">mod</span> <span class="o">=</span> <span class="n">ViscosityModel</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">viscosity</span><span class="p">)</span>
 </pre></div>
@@ -469,18 +469,18 @@ Invalid TDB syntax.
 <span class="c1"># NOTICE: we need to tell pycalphad about our model for this phase</span>
 <span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="n">phase</span><span class="p">:</span> <span class="n">mod</span><span class="p">}</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">'viscosity'</span><span class="p">)</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;ZR&#39;</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(Zr)&#39;</span><span class="p">)</span>
-<span class="n">y_label_viscosity</span> <span class="o">=</span> <span class="s1">&#39;Viscosity (mPa-s)&#39;</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">'ZR'</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'X(Zr)'</span><span class="p">)</span>
+<span class="n">y_label_viscosity</span> <span class="o">=</span> <span class="s1">'Viscosity (mPa-s)'</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label_viscosity</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cu-Zr liquid viscosity at </span><span class="si">{}</span><span class="s1"> K&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">':'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'0.8'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Cu-Zr liquid viscosity at </span><span class="si">{}</span><span class="s1"> K'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
 </pre></div>
 </div>
 </div>
@@ -500,19 +500,19 @@ Invalid TDB syntax.
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate</span>
 
 <span class="n">temp</span> <span class="o">=</span> <span class="mi">1300</span>
-<span class="n">components2</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">]</span>
+<span class="n">components2</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'CU'</span><span class="p">,</span> <span class="s1">'AL'</span><span class="p">]</span>
 <span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="n">phase</span><span class="p">:</span> <span class="n">ViscosityModel</span><span class="p">}</span>  <span class="c1"># we can also use Model class</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components2</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;viscosity&#39;</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components2</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">'viscosity'</span><span class="p">)</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;CU&#39;</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(Cu)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">'CU'</span><span class="p">),</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">res</span><span class="o">.</span><span class="n">viscosity</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'X(Cu)'</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y_label_viscosity</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cu-Al liquid viscosity at </span><span class="si">{}</span><span class="s1"> K&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">':'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'0.8'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Cu-Al liquid viscosity at </span><span class="si">{}</span><span class="s1"> K'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp</span><span class="p">));</span>
 </pre></div>
 </div>
 </div>
@@ -600,7 +600,7 @@ Invalid TDB syntax.
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

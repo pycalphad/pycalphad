@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.plot.binary.zpf_boundary_sets - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.plot.binary.zpf_boundary_sets - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -301,7 +301,7 @@
 <div class="viewcode-block" id="TwoPhaseRegion">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TwoPhaseRegion</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A group of points that belong to the same phase region.</span>
 
 <span class="sd">    Attributes</span>
@@ -309,20 +309,20 @@
 <span class="sd">    phases : frozenset</span>
 <span class="sd">        Unique phases in this two phase region</span>
 <span class="sd">    compsets : list of CompsetPair</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_compsets</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="n">initial_compsets</span><span class="o">.</span><span class="n">unique_phases</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">compsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_compsets</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">phases_pprint</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&lt;TwoPhaseRegion(Phases=(</span><span class="si">{}</span><span class="s2">), Points=</span><span class="si">{}</span><span class="s2">)&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phases_pprint</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compsets</span><span class="p">))</span>
+        <span class="n">phases_pprint</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">"&lt;TwoPhaseRegion(Phases=(</span><span class="si">{}</span><span class="s2">), Points=</span><span class="si">{}</span><span class="s2">)&gt;"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phases_pprint</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compsets</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">s</span>
 
 <div class="viewcode-block" id="TwoPhaseRegion.compsets_belong_in_region">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.compsets_belong_in_region">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compsets_belong_in_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">,</span> <span class="n">Xtol</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">Ttol</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return True if the composition sets belong to this TwoPhaseRegion</span>
 
 <span class="sd">        Parameters</span>
@@ -345,7 +345,7 @@
 <span class="sd">        2. The composition discrepancies between BinaryCompsets of the same phase are below Xtol</span>
 <span class="sd">        3. The temperature discrepancy between the CompsetPairs is below Ttol</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">compsets</span><span class="o">.</span><span class="n">unique_phases</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
             <span class="n">last_compsets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compsets</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">last_compsets</span><span class="o">.</span><span class="n">pairwise_xdiscrepancy</span><span class="p">(</span><span class="n">compsets</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">Xtol</span><span class="p">)</span> <span class="ow">and</span> \
@@ -357,7 +357,7 @@
 <div class="viewcode-block" id="TwoPhaseRegion.add_compsets">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.TwoPhaseRegion.add_compsets">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_compsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compset_pair</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add composition sets to this region.</span>
 
 <span class="sd">        Parameters</span>
@@ -371,7 +371,7 @@
 <span class="sd">        complexity of O(N)), users are responsible for determining if the</span>
 <span class="sd">        compsets belong in this TwoPhaseRegion.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">compsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compset_pair</span><span class="p">)</span></div>
 </div>
 
@@ -380,7 +380,7 @@
 <div class="viewcode-block" id="ZPFBoundarySets">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ZPFBoundarySets</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Holds CompsetPairs that can be organized into TwoPhaseRegions and plotted</span>
 <span class="sd">    together.</span>
 
@@ -393,7 +393,7 @@
 <span class="sd">    all_compsets : list of CompsetPair</span>
 <span class="sd">    two_phase_regions : list of TwoPhaseRegion</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">indep_composition_condition</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="n">comps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">indep_comp_cond</span> <span class="o">=</span> <span class="n">indep_composition_condition</span>
@@ -403,9 +403,9 @@
 <div class="viewcode-block" id="ZPFBoundarySets.get_phases">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_phases">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get all the phases represented in the two phase regions</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">phases_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">tpr</span><span class="o">.</span><span class="n">phases</span> <span class="k">for</span> <span class="n">tpr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">two_phase_regions</span><span class="p">])</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">phases_set</span><span class="p">)</span></div>
 
@@ -413,14 +413,14 @@
 <div class="viewcode-block" id="ZPFBoundarySets.add_compsets">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.add_compsets">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_compsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">,</span> <span class="n">Xtol</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">Ttol</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add composition sets to current boundary sets</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        compsets : CompsetPair</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_compsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compsets</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">two_phase_regions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">two_phase_regions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TwoPhaseRegion</span><span class="p">(</span><span class="n">compsets</span><span class="p">))</span>
@@ -434,14 +434,14 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
-        <span class="n">phase_string</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
-        <span class="k">return</span> <span class="s2">&quot;ZPFBoundarySets&lt;</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phase_string</span><span class="p">)</span>
+        <span class="n">phase_string</span> <span class="o">=</span> <span class="s2">"/"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">"</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+        <span class="k">return</span> <span class="s2">"ZPFBoundarySets&lt;</span><span class="si">{}</span><span class="s2">&gt;"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phase_string</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ZPFBoundarySets.rebuild_two_phase_regions">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.rebuild_two_phase_regions">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">rebuild_two_phase_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Xtol</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">Ttol</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Rebuild the two phase regions with new tolerances.</span>
 
 <span class="sd">        Parameters</span>
@@ -451,7 +451,7 @@
 <span class="sd">        Ttol : float</span>
 <span class="sd">            See TwoPhaseRegion.compsets_belong_in_region</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">two_phase_regions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">previous_all_compsets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_compsets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_compsets</span> <span class="o">=</span> <span class="p">[]</span>
@@ -462,7 +462,7 @@
 <div class="viewcode-block" id="ZPFBoundarySets.get_scatter_plot_boundaries">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_scatter_plot_boundaries">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_scatter_plot_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">legend_generator</span><span class="o">=</span><span class="n">phase_legend</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the ZPF boundaries to plot from each two phase region.</span>
 
 <span class="sd">        Parameters</span>
@@ -492,10 +492,10 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        (scatter_dict, tieline_collection, legend_handles)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">all_phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_phases</span><span class="p">()</span>
         <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">legend_generator</span><span class="p">(</span><span class="n">all_phases</span><span class="p">)</span>
-        <span class="n">scatter_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="n">scatter_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'x'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'y'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'c'</span><span class="p">:</span> <span class="p">[]}</span>
 
         <span class="n">tieline_segments</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">tieline_colors</span> <span class="o">=</span> <span class="p">[]</span>
@@ -507,9 +507,9 @@
                 <span class="n">phases</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">phases</span>
 
                 <span class="c1"># prepare scatter dict</span>
-                <span class="n">scatter_dict</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
-                <span class="n">scatter_dict</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
-                <span class="n">scatter_dict</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">colors</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">])</span>
+                <span class="n">scatter_dict</span><span class="p">[</span><span class="s1">'x'</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+                <span class="n">scatter_dict</span><span class="p">[</span><span class="s1">'y'</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
+                <span class="n">scatter_dict</span><span class="p">[</span><span class="s1">'c'</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">colors</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">])</span>
 
                 <span class="c1"># add tieline segment segment</span>
                 <span class="c1"># a segment is a list of [[x1, y1], [x2, y2]]</span>
@@ -524,7 +524,7 @@
 <div class="viewcode-block" id="ZPFBoundarySets.get_line_plot_boundaries">
 <a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.zpf_boundary_sets.ZPFBoundarySets.get_line_plot_boundaries">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_line_plot_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">close_miscibility_gaps</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">tieline_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">legend_generator</span><span class="o">=</span><span class="n">phase_legend</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the ZPF boundaries to plot from each two phase region.</span>
 
 <span class="sd">        Parameters</span>
@@ -558,7 +558,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        (line_collections, tieline_collection, legend_handles)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># TODO: add some tracking of the endpoints/startpoints and join them with</span>
         <span class="c1">#       a new line segment if they are close.</span>
         <span class="n">all_phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_phases</span><span class="p">()</span>
@@ -641,7 +641,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>

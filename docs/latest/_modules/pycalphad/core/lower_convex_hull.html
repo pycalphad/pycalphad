@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.lower_convex_hull - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.core.lower_convex_hull - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,10 +291,10 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.core.lower_convex_hull</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">The lower_convex_hull module handles geometric calculations associated with</span>
 <span class="sd">equilibrium calculation.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.computed_property</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearCombination</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.hyperplane</span><span class="w"> </span><span class="kn">import</span> <span class="n">hyperplane</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChemicalPotential</span><span class="p">,</span> <span class="n">MassFraction</span><span class="p">,</span> <span class="n">MoleFraction</span><span class="p">,</span> <span class="n">IndependentPotential</span><span class="p">,</span> <span class="n">SiteFraction</span><span class="p">,</span> <span class="n">SystemMolesType</span>
@@ -304,7 +304,7 @@
 <div class="viewcode-block" id="lower_convex_hull">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.lower_convex_hull.lower_convex_hull">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">lower_convex_hull</span><span class="p">(</span><span class="n">global_grid</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">conds_keys</span><span class="p">,</span> <span class="n">phase_record_factory</span><span class="p">,</span> <span class="n">result_array</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Find the simplices on the lower convex hull satisfying the specified</span>
 <span class="sd">    conditions in the result array.</span>
 
@@ -334,9 +334,9 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">state_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">state_variables</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
-    <span class="n">local_conds_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conds_keys</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">local_conds_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conds_keys</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
     <span class="n">str_conds_keys</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conds_keys</span><span class="p">]</span>
 
     <span class="c1"># factored out via profiling</span>
@@ -351,9 +351,9 @@
     <span class="n">global_grid_X_values</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span>
     <span class="n">global_grid_Y_values</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Y</span>
     <span class="n">global_grid_Phase_values</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Phase</span>
-    <span class="n">num_comps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">])</span>
+    <span class="n">num_comps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'component'</span><span class="p">])</span>
 
-    <span class="n">it</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">result_array_GM_values</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;multi_index&#39;</span><span class="p">])</span>
+    <span class="n">it</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">result_array_GM_values</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="p">[</span><span class="s1">'multi_index'</span><span class="p">])</span>
 
     <span class="k">while</span> <span class="ow">not</span> <span class="n">it</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
         <span class="n">primary_index</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">multi_index</span>
@@ -392,12 +392,12 @@
                 <span class="c1"># Already handled above in construction of grid_index</span>
                 <span class="k">continue</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cond_key</span><span class="p">,</span> <span class="n">ChemicalPotential</span><span class="p">):</span>
-                <span class="n">component_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+                <span class="n">component_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
                 <span class="n">idx_fixed_chempot_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">component_idx</span><span class="p">)</span>
                 <span class="n">idx_result_array_MU_values</span><span class="p">[</span><span class="n">component_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">rhs</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cond_key</span><span class="p">,</span> <span class="n">MassFraction</span><span class="p">):</span>
                 <span class="c1"># wA = k -&gt; (1-k)*MWA*xA - k*MWB*xB - k*MWC*xC = 0</span>
-                <span class="n">component_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+                <span class="n">component_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
                 <span class="n">coef_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_comps</span><span class="p">)</span>
                 <span class="n">coef_vector</span> <span class="o">-=</span> <span class="n">rhs</span>
                 <span class="n">coef_vector</span><span class="p">[</span><span class="n">component_idx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -409,7 +409,7 @@
                 <span class="k">if</span> <span class="n">cond_key</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># Phase-local condition already handled in construction of grid</span>
                     <span class="k">continue</span>
-                <span class="n">component_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+                <span class="n">component_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
                 <span class="n">coef_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_comps</span><span class="p">)</span>
                 <span class="n">coef_vector</span><span class="p">[</span><span class="n">component_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
                 <span class="n">idx_fixed_lincomb_molefrac_coefs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coef_vector</span><span class="p">)</span>
@@ -423,7 +423,7 @@
                 <span class="k">if</span> <span class="n">cond_key</span><span class="o">.</span><span class="n">denominator</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">symbol_idx</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">symbols</span><span class="p">):</span>
                         <span class="k">if</span> <span class="n">symbol</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                            <span class="n">coef_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">symbol</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+                            <span class="n">coef_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">symbol</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
                             <span class="n">coef_vector</span><span class="p">[</span><span class="n">coef_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cond_key</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">symbol_idx</span><span class="p">]</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">idx_fixed_lincomb_molefrac_rhs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rhs</span><span class="o">-</span><span class="n">cond_key</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">symbol_idx</span><span class="p">])</span>
@@ -432,19 +432,19 @@
                     <span class="n">denominator_idx</span> <span class="o">=</span> <span class="n">cond_key</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">denominator</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">symbol_idx</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cond_key</span><span class="o">.</span><span class="n">symbols</span><span class="p">):</span>
                         <span class="k">if</span> <span class="n">symbol_idx</span> <span class="o">==</span> <span class="n">denominator_idx</span><span class="p">:</span>
-                            <span class="n">coef_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">symbol</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+                            <span class="n">coef_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">symbol</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
                             <span class="n">coef_vector</span><span class="p">[</span><span class="n">coef_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cond_key</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">symbol_idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">rhs</span>
                         <span class="k">elif</span> <span class="n">symbol</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                            <span class="n">coef_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">symbol</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+                            <span class="n">coef_idx</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">symbol</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
                             <span class="n">coef_vector</span><span class="p">[</span><span class="n">coef_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cond_key</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">symbol_idx</span><span class="p">]</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="k">if</span> <span class="n">cond_key</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">symbol_idx</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                                 <span class="c1"># Constant term for molar ratio should be zero</span>
-                                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported condition </span><span class="si">{</span><span class="n">cond_key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Unsupported condition </span><span class="si">{</span><span class="n">cond_key</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
                             <span class="n">idx_fixed_lincomb_molefrac_rhs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="n">cond_key</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">symbol_idx</span><span class="p">])</span>
                 <span class="n">idx_fixed_lincomb_molefrac_coefs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coef_vector</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported condition </span><span class="si">{</span><span class="n">cond_key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Unsupported condition </span><span class="si">{</span><span class="n">cond_key</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
         <span class="n">idx_fixed_lincomb_molefrac_coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">idx_fixed_lincomb_molefrac_coefs</span><span class="p">)</span>
         <span class="n">idx_fixed_lincomb_molefrac_rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">idx_fixed_lincomb_molefrac_rhs</span><span class="p">)</span>
@@ -464,13 +464,13 @@
         <span class="n">result_array_Y_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">][:</span><span class="n">num_comps</span><span class="p">,:</span><span class="n">global_grid_Y_values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> \
             <span class="n">global_grid_Y_values</span><span class="p">[</span><span class="n">grid_index</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="n">num_comps</span><span class="p">]</span>
         <span class="c1"># Special case: Sometimes fictitious points slip into the result</span>
-        <span class="k">if</span> <span class="s1">&#39;_FAKE_&#39;</span> <span class="ow">in</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s1">'_FAKE_'</span> <span class="ow">in</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]:</span>
             <span class="n">new_energy</span> <span class="o">=</span> <span class="mf">0.</span>
             <span class="n">molesum</span> <span class="o">=</span> <span class="mf">0.</span>
             <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">])):</span>
                 <span class="n">midx</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">multi_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">idx</span><span class="p">,)</span>
-                <span class="k">if</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;_FAKE_&#39;</span><span class="p">:</span>
-                    <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="k">if</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'_FAKE_'</span><span class="p">:</span>
+                    <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="s1">''</span>
                     <span class="n">result_array_X_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
                     <span class="n">result_array_Y_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
                     <span class="n">idx_result_array_NP_values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
@@ -480,7 +480,7 @@
             <span class="k">if</span> <span class="n">molesum</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">result_array_GM_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_energy</span> <span class="o">/</span> <span class="n">molesum</span>
         <span class="n">it</span><span class="o">.</span><span class="n">iternext</span><span class="p">()</span>
-    <span class="n">result_array</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">)</span>
+    <span class="n">result_array</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">'points'</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result_array</span></div>
 
 </pre></div>
@@ -515,7 +515,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

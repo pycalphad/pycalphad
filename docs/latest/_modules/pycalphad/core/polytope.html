@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.polytope - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.core.polytope - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,7 +291,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.core.polytope</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">This module provides functions to uniformly sample points subject to a system of linear</span>
 <span class="sd">inequality constraints, :math:`Ax &lt;= b` (convex polytope), and linear equality</span>
 <span class="sd">constraints, :math:`Ax = b` (affine projection).</span>
@@ -313,7 +313,7 @@
 <span class="sd">    32(6), 1296-1308.</span>
 <span class="sd">    www.jstor.org/stable/170949</span>
 <span class="sd">.. _`hitandrun`: https://cran.r-project.org/web/packages/hitandrun/index.html</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.linalg</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.optimize</span>
@@ -322,7 +322,7 @@
 <div class="viewcode-block" id="check_Ab">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.polytope.check_Ab">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_Ab</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if matrix equation Ax=b is well defined.</span>
+<span class="w">    </span><span class="sd">"""Check if matrix equation Ax=b is well defined.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -331,7 +331,7 @@
 <span class="sd">    b : 1d-array of shape (n_constraints)</span>
 <span class="sd">        Right-hand-side of Ax &lt;= b.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">assert</span> <span class="n">A</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
     <span class="k">assert</span> <span class="n">b</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="k">assert</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
@@ -341,7 +341,7 @@
 <div class="viewcode-block" id="chebyshev_center">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.polytope.chebyshev_center">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">chebyshev_center</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the center of the polytope Ax &lt;= b.</span>
+<span class="w">    </span><span class="sd">"""Find the center of the polytope Ax &lt;= b.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -354,7 +354,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    1d-array of shape (dimension)</span>
 <span class="sd">        Chebyshev center of the polytope</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">linprog</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
         <span class="n">A_ub</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)]),</span>
@@ -362,7 +362,7 @@
         <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unable to find Chebyshev center&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">"Unable to find Chebyshev center"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
 
 
@@ -370,7 +370,7 @@
 <div class="viewcode-block" id="constraints_from_bounds">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.polytope.constraints_from_bounds">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">constraints_from_bounds</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct the inequality constraints Ax &lt;= b that correspond to the given</span>
+<span class="w">    </span><span class="sd">"""Construct the inequality constraints Ax &lt;= b that correspond to the given</span>
 <span class="sd">    lower and upper bounds.</span>
 
 <span class="sd">    Parameters</span>
@@ -386,7 +386,7 @@
 <span class="sd">        Left-hand-side of Ax &lt;= b.</span>
 <span class="sd">    b: 1d-array of shape (2 * dimension)</span>
 <span class="sd">        Right-hand-side of Ax &lt;= b.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lower</span><span class="p">)</span>
     <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lower</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">upper</span><span class="p">)]</span>
@@ -395,7 +395,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_feasible_particular_solution</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find a particular solution to Ax = b that also satisfies lower &lt;= x &lt;= upper.</span>
+<span class="w">    </span><span class="sd">"""Find a particular solution to Ax = b that also satisfies lower &lt;= x &lt;= upper.</span>
 
 <span class="sd">    Uses a bounded least-squares solve (BVLS active set). Returns None if no</span>
 <span class="sd">    feasible point exists (the polytope is empty).</span>
@@ -405,11 +405,11 @@
 <span class="sd">    sitting exactly on the box bounds. The downstream Hit-and-Run sampler in</span>
 <span class="sd">    sample() needs xp strictly inside the box: it parameterises the polytope</span>
 <span class="sd">    as bt = b1 - A1 @ xp where A1 includes the box constraints, and any</span>
-<span class="sd">    bt component sitting at zero collapses the sampler&#39;s wiggle room in that</span>
+<span class="sd">    bt component sitting at zero collapses the sampler's wiggle room in that</span>
 <span class="sd">    direction. Since BVLS already returns a point inside the box, the 1e-14</span>
 <span class="sd">    nudge perturbs A xp = b by at most ~||A|| * 1e-14.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">lsq_linear</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;bvls&quot;</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">lsq_linear</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">"bvls"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">lower</span> <span class="o">+</span> <span class="mf">1e-14</span><span class="p">,</span> <span class="n">upper</span> <span class="o">-</span> <span class="mf">1e-14</span><span class="p">)</span>
@@ -417,7 +417,7 @@
 <div class="viewcode-block" id="sample">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.polytope.sample">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">A1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">b1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">A2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">b2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sample a number of points from a convex polytope A1 x &lt;= b1 using the Hit &amp; Run</span>
+<span class="w">    </span><span class="sd">"""Sample a number of points from a convex polytope A1 x &lt;= b1 using the Hit &amp; Run</span>
 <span class="sd">    algorithm.</span>
 
 <span class="sd">    Lower and upper bounds need to be provided to ensure that the polytope is bounded.</span>
@@ -444,7 +444,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    2d-array of shape (n_points)</span>
 <span class="sd">        Points sampled from the polytope.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">A</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">constraints_from_bounds</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">A1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">b1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">A1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">A</span><span class="p">,</span> <span class="n">A1</span><span class="p">]</span>
@@ -457,7 +457,7 @@
         <span class="n">N</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">null_space</span><span class="p">(</span><span class="n">A2</span><span class="p">)</span>
         <span class="n">xp</span> <span class="o">=</span> <span class="n">_feasible_particular_solution</span><span class="p">(</span><span class="n">A2</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">xp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to find a feasible solution&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unable to find a feasible solution"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">A1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">A1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -493,7 +493,7 @@
     <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="n">At</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">x0</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">1769</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">):</span>
         <span class="n">directions</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="n">At</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">directions</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">directions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">):</span>
@@ -506,7 +506,7 @@
             <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">D</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">])</span>
             <span class="n">hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">D</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">1e-10</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">hi</span> <span class="o">&lt;</span> <span class="n">lo</span><span class="p">:</span>
-                <span class="c1"># Amount of &#39;wiggle room&#39; is down in the numerical noise</span>
+                <span class="c1"># Amount of 'wiggle room' is down in the numerical noise</span>
                 <span class="n">lo</span> <span class="o">=</span> <span class="mf">0.0</span>
                 <span class="n">hi</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="c1"># make random step</span>
@@ -550,7 +550,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

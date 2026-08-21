@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.equilibrium - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.core.equilibrium - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,10 +291,10 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.core.equilibrium</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">The equilibrium module defines routines for interacting with</span>
 <span class="sd">calculated phase equilibria.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
@@ -310,7 +310,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">calc_opts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_xarray</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase_records</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the equilibrium state of a system containing the specified</span>
 <span class="sd">    components and phases, under the specified conditions.</span>
 
@@ -341,7 +341,7 @@
 <span class="sd">        Instance of a solver that is used to calculate local equilibria.</span>
 <span class="sd">        Defaults to a pycalphad.core.solver.Solver.</span>
 <span class="sd">    phase_records : Optional[Mapping[str, PhaseRecord]]</span>
-<span class="sd">        Mapping of phase names to PhaseRecord objects with `&#39;GM&#39;` output. Must include</span>
+<span class="sd">        Mapping of phase names to PhaseRecord objects with `'GM'` output. Must include</span>
 <span class="sd">        all active phases. The `model` argument must be a mapping of phase names to</span>
 <span class="sd">        instances of Model objects.</span>
 
@@ -352,7 +352,7 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">output</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -361,10 +361,10 @@
                     <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">calc_opts</span><span class="o">=</span><span class="n">calc_opts</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">phase_record_factory</span><span class="o">=</span><span class="n">phase_records</span><span class="p">)</span>
 
     <span class="c1"># Compute equilibrium values of any additional user-specified properties</span>
-    <span class="c1"># We already computed these properties so don&#39;t recompute them</span>
+    <span class="c1"># We already computed these properties so don't recompute them</span>
     <span class="n">properties</span> <span class="o">=</span> <span class="n">wks</span><span class="o">.</span><span class="n">eq</span>
-    <span class="n">conds_keys</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;vertex&#39;</span><span class="p">,</span> <span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_dof&#39;</span><span class="p">)]</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="s1">&#39;MU&#39;</span><span class="p">})</span>
+    <span class="n">conds_keys</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'vertex'</span><span class="p">,</span> <span class="s1">'component'</span><span class="p">,</span> <span class="s1">'internal_dof'</span><span class="p">)]</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="s1">'GM'</span><span class="p">,</span> <span class="s1">'MU'</span><span class="p">})</span>
     <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">output</span><span class="p">:</span>
         <span class="n">cprop</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cprop</span><span class="p">)</span>
@@ -376,12 +376,12 @@
             <span class="n">chemical_potentials</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">MU</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">result_array</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">cprop</span><span class="o">.</span><span class="n">compute_property</span><span class="p">(</span><span class="n">composition_sets</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">LightDataset</span><span class="p">({</span><span class="n">out</span><span class="p">:</span> <span class="p">(</span><span class="n">conds_keys</span><span class="p">,</span> <span class="n">result_array</span><span class="p">)},</span> <span class="n">coords</span><span class="o">=</span><span class="n">properties</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
-        <span class="n">properties</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compat</span><span class="o">=</span><span class="s1">&#39;equals&#39;</span><span class="p">)</span>
+        <span class="n">properties</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compat</span><span class="o">=</span><span class="s1">'equals'</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">to_xarray</span><span class="p">:</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="n">wks</span><span class="o">.</span><span class="n">eq</span><span class="o">.</span><span class="n">get_dataset</span><span class="p">()</span>
-    <span class="n">properties</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;created&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+    <span class="n">properties</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'created'</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The following equilibrium keyword arguments were passed, but unused:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">'The following equilibrium keyword arguments were passed, but unused:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">properties</span></div>
 
 </pre></div>
@@ -416,7 +416,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

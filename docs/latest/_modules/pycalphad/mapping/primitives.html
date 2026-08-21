@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.primitives - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.mapping.primitives - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -315,24 +315,24 @@
 <div class="viewcode-block" id="ExitHint">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.ExitHint">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExitHint</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Exit rules</span>
 
 <span class="sd">    NORMAL - will search for all viable exits from node</span>
 <span class="sd">             ignores the exit that corresponds to the ZPF line that found the node</span>
 <span class="sd">    POINT_IS_EXIT - will use the point composition sets as the exit</span>
-<span class="sd">                    this is mainly used for starting points since the point may not necessary fit the conditions for a &quot;node&quot; (0 DOF)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">                    this is mainly used for starting points since the point may not necessary fit the conditions for a "node" (0 DOF)</span>
+<span class="sd">    """</span>
     <span class="n">NORMAL</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">POINT_IS_EXIT</span> <span class="o">=</span> <span class="mi">1</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_eq_compset</span><span class="p">(</span><span class="n">compset</span><span class="p">:</span> <span class="n">CompositionSet</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">CompositionSet</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    2 tests</span>
 <span class="sd">        If compset and other point are the same object (same memory)</span>
 <span class="sd">        If compset and other has the same phase name and DOF (within tolerance)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Composition set equality</span>
     <span class="k">if</span> <span class="n">compset</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -343,25 +343,25 @@
     <span class="k">return</span> <span class="kc">False</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_phase_list_with_multiplicity</span><span class="p">(</span><span class="n">phases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Helper function to get unique list of phases</span>
 <span class="sd">    If a miscibility gap is present in the phase list, this will add a #n to the phase name</span>
 
 <span class="sd">    NOTE: this is copied from the phase multiplicity function in pycalphad.core.workspace.Workspace</span>
 <span class="sd">          but is taken out to here since the Workspace object is only used for getting starting points</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">u_phases</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
         <span class="n">test_name</span> <span class="o">=</span> <span class="n">p</span>
         <span class="n">phase_id</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="k">while</span> <span class="n">test_name</span> <span class="ow">in</span> <span class="n">u_phases</span><span class="p">:</span>
-            <span class="n">test_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">#</span><span class="si">{</span><span class="n">phase_id</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">test_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">#</span><span class="si">{</span><span class="n">phase_id</span><span class="si">}</span><span class="s1">'</span>
             <span class="n">phase_id</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">u_phases</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">u_phases</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_phase_specific_variable</span><span class="p">(</span><span class="n">phase</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Helper function for ZPFLine.get_var_list</span>
 
 <span class="sd">    Converts variable to phase specific if possible</span>
@@ -376,9 +376,9 @@
 <span class="sd">    var : v.StateVariable</span>
 <span class="sd">    is_global : bool</span>
 <span class="sd">        Whether variable should be phase local or global</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># If variable has a phase_name attribute that is a wildcard, then set to phase</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">&quot;phase_name&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">var</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="s2">"phase_name"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">var</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="s2">"*"</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">var</span><span class="o">.</span><span class="n">expand_wildcard</span><span class="p">(</span><span class="n">phase_names</span><span class="o">=</span><span class="p">[</span><span class="n">phase</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">as_property</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
@@ -388,7 +388,7 @@
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Point</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Stores data for a single point on the map</span>
 <span class="sd">    This will include everything needed to compute any property within the Workspace API.</span>
 <span class="sd">    Fixed and free composition sets are split for easy accounting.</span>
@@ -402,9 +402,9 @@
 <span class="sd">    chemical_potentials : [float]</span>
 <span class="sd">    _fixed_composition_sets : [CompositionSet]</span>
 <span class="sd">    _free_composition_sets : [CompositionSet]</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">global_conditions</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
-    <span class="n">chemical_potentials</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>    <span class="c1"># We&#39;ll store chemical potentials in case someone wants to plot activity diagrams</span>
+    <span class="n">chemical_potentials</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>    <span class="c1"># We'll store chemical potentials in case someone wants to plot activity diagrams</span>
 
     <span class="c1"># Yes, this uses CompositionSet objects, which means that there are copies saved.</span>
     <span class="c1"># Maybe inefficient, but we _need_ to know phase compositions for plotting and site</span>
@@ -471,17 +471,17 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This equality treats all composition sets as the same (regardless of wether it&#39;s fixed or not)</span>
-<span class="sd">            So this also ignores phase fraction, but we&#39;re just checking if the phase boundaries</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        This equality treats all composition sets as the same (regardless of wether it's fixed or not)</span>
+<span class="sd">            So this also ignores phase fraction, but we're just checking if the phase boundaries</span>
 <span class="sd">            are the same</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="c1"># Nodes are special points that represent where a set of phases change</span>
         <span class="c1"># Thus it is useful to be able to say if two nodes are equal, in that they</span>
         <span class="c1"># correspond to the same point. Only the stable set of phases need to be the same</span>
-        <span class="c1"># fixed or free doesn&quot;t matter.</span>
+        <span class="c1"># fixed or free doesn"t matter.</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">self_cs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">:</span>
@@ -497,10 +497,10 @@
 <div class="viewcode-block" id="Point.compare_consider_fixed_cs">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point.compare_consider_fixed_cs">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compare_consider_fixed_cs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        This equality accounts for fixed composition sets so we can check if two points are exactly the same</span>
 <span class="sd">        This also ignores phase fraction</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">:</span>
             <span class="c1"># Compare fixed composition sets</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">):</span>
@@ -517,32 +517,32 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;Fixed CS: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">])</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Free CS: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">free_composition_sets</span><span class="p">])</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Conditions: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Chem_pot: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s2">"Fixed CS: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_composition_sets</span><span class="p">])</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Free CS: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">free_composition_sets</span><span class="p">])</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Conditions: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Chem_pot: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">conds_str</span> <span class="o">=</span> <span class="s1">&#39;global_conditions=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
-        <span class="n">chem_pot</span> <span class="o">=</span> <span class="s1">&#39;chemical_potentials=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
+        <span class="n">conds_str</span> <span class="o">=</span> <span class="s1">'global_conditions='</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
+        <span class="n">chem_pot</span> <span class="o">=</span> <span class="s1">'chemical_potentials='</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">)</span>
         <span class="n">fixed_cs_str</span> <span class="o">=</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">)):</span>
-            <span class="n">fixed_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;, dof=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dof</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+            <span class="n">fixed_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fixed_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">', dof='</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fixed_composition_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dof</span><span class="p">))</span> <span class="o">+</span> <span class="s1">')'</span>
         <span class="n">free_cs_str</span> <span class="o">=</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">)):</span>
-            <span class="n">free_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">free_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;, dof=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dof</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
-        <span class="n">fixed_cs_str</span> <span class="o">=</span> <span class="s1">&#39;_fixed_composition_sets=[&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fixed_cs_str</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
-        <span class="n">free_cs_str</span> <span class="o">=</span> <span class="s1">&#39;_free_composition_sets=[&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">free_cs_str</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">conds_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">chem_pot</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">fixed_cs_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">free_cs_str</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="n">free_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">free_cs_str</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">', dof='</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_free_composition_sets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dof</span><span class="p">))</span> <span class="o">+</span> <span class="s1">')'</span>
+        <span class="n">fixed_cs_str</span> <span class="o">=</span> <span class="s1">'_fixed_composition_sets=['</span> <span class="o">+</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fixed_cs_str</span><span class="p">)</span> <span class="o">+</span> <span class="s1">']'</span>
+        <span class="n">free_cs_str</span> <span class="o">=</span> <span class="s1">'_free_composition_sets=['</span> <span class="o">+</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">free_cs_str</span><span class="p">)</span> <span class="o">+</span> <span class="s1">']'</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">conds_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">chem_pot</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">fixed_cs_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">free_cs_str</span><span class="si">}</span><span class="s2">)"</span>
 
 <div class="viewcode-block" id="Point.get_property">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point.get_property">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Wrapper around compute property so I don&#39;t have long lines of code getting composition sets, conditions and chemical potentials everywhere</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Wrapper around compute property so I don't have long lines of code getting composition sets, conditions and chemical potentials everywhere</span>
 <span class="sd">        We will also squeeze the results since v.MoleFraction seems to return an array</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Remove the last n conditions for each fixed composition set (points will have all conditions set regardless of the number of fixed composition sets)</span>
         <span class="c1"># This allows for properties such as Jansson derivatives to compute since they require the Gibbs phase rule to be satisfied</span>
         <span class="n">adjusted_conds</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_conditions</span><span class="p">)</span>
@@ -555,14 +555,14 @@
 <div class="viewcode-block" id="Point.get_local_property">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Point.get_local_property">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_local_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp_set</span><span class="p">:</span> <span class="n">CompositionSet</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Another wrapper around compute property, this time, it is applied to a single composition set</span>
 
 <span class="sd">        We take the assumption here that NP = 1, so we have to correct for v.X and v.NP</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Store current phase fraction. Easiest way to make the NP=1 assumption is the literally make NP=1</span>
         <span class="n">curr_np</span> <span class="o">=</span> <span class="n">comp_set</span><span class="o">.</span><span class="n">NP</span>
-        <span class="c1"># Can&#39;t use map utils here due to circular dependencies</span>
+        <span class="c1"># Can't use map utils here due to circular dependencies</span>
         <span class="n">num_sv</span> <span class="o">=</span> <span class="n">comp_set</span><span class="o">.</span><span class="n">phase_record</span><span class="o">.</span><span class="n">num_statevars</span>
         <span class="n">comp_set</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">comp_set</span><span class="o">.</span><span class="n">dof</span><span class="p">[</span><span class="n">num_sv</span><span class="p">:],</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">comp_set</span><span class="o">.</span><span class="n">dof</span><span class="p">[:</span><span class="n">num_sv</span><span class="p">])</span>
 
@@ -579,7 +579,7 @@
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.Node">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">eq</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">(</span><span class="n">Point</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A Node is a special case of a Point that indicates a set of conditions</span>
 <span class="sd">    corresponding to a phase change.</span>
 
@@ -589,7 +589,7 @@
 <span class="sd">    Compared to its parent, the set of conditions should be the same (both keys</span>
 <span class="sd">    and values) and the set of stable phases should differ by exactly one phase.</span>
 
-<span class="sd">    We&#39;ll keep track of the axis variable and direction as well</span>
+<span class="sd">    We'll keep track of the axis variable and direction as well</span>
 <span class="sd">        By default, they will be None and the direction will be decided later</span>
 
 <span class="sd">    Parameters</span>
@@ -602,7 +602,7 @@
 <span class="sd">        Axis direction that parent was stepping in to find node</span>
 <span class="sd">    exit_hint : ExitHint</span>
 <span class="sd">        Hints for how exits should be found from this node</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">parent</span><span class="p">:</span> <span class="n">Point</span>
     <span class="n">axis_var</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">axis_direction</span><span class="p">:</span> <span class="n">Direction</span> <span class="o">=</span> <span class="kc">None</span>
@@ -634,30 +634,30 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">output</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Axis: [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="si">}</span><span class="s2">]&quot;</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Axis: [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="si">}</span><span class="s2">]"</span>
         <span class="k">return</span> <span class="n">output</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">point_repr</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
-        <span class="n">parent_str</span> <span class="o">=</span> <span class="s1">&#39;parent=&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
-        <span class="n">av_str</span> <span class="o">=</span> <span class="s1">&#39;axis_var=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="p">)</span>
-        <span class="n">dir_str</span> <span class="o">=</span> <span class="s1">&#39;axis_direction=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">)</span>
-        <span class="n">exit_str</span> <span class="o">=</span> <span class="s1">&#39;exit_hint=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exit_hint</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">point_repr</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;, </span><span class="si">{</span><span class="n">parent_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">av_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">dir_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">exit_str</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+        <span class="n">parent_str</span> <span class="o">=</span> <span class="s1">'parent='</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">av_str</span> <span class="o">=</span> <span class="s1">'axis_var='</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="p">)</span>
+        <span class="n">dir_str</span> <span class="o">=</span> <span class="s1">'axis_direction='</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="p">)</span>
+        <span class="n">exit_str</span> <span class="o">=</span> <span class="s1">'exit_hint='</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exit_hint</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">point_repr</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="n">parent_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">av_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">dir_str</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">exit_str</span><span class="si">}</span><span class="s2">)"</span></div>
 
 
 <div class="viewcode-block" id="ZPFState">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.ZPFState">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ZPFState</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    NOT_FINISHED - zpf line is not finished</span>
 <span class="sd">    NEW_NODE_FOUND - zpf line lead to a new node (either added or removed a composition set)</span>
 <span class="sd">    REACHED_LIMIT - zpf line reached an axis limit</span>
-<span class="sd">    FAILED - zpf line ended improperly (error in equilibrium calculation, couldn&#39;t find a new node)</span>
+<span class="sd">    FAILED - zpf line ended improperly (error in equilibrium calculation, couldn't find a new node)</span>
 <span class="sd">    ATTEMPT_NEW_STEP - zpf line failed, but should try stepping again (case here is when the current_delta needs to be reduced)</span>
 
 <span class="sd">    This is to track whether a zpf line ends prematurely, and if so, we may attempt to force another starting point</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">NOT_FINISHED</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">NEW_NODE_FOUND</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">REACHED_LIMIT</span> <span class="o">=</span> <span class="mi">2</span>
@@ -668,7 +668,7 @@
 <div class="viewcode-block" id="ZPFLine">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.ZPFLine">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ZPFLine</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    ZPF line represents a line where a phase change occur (crossing the bounding will add or remove a phase, and that phase is 0 at the boundary)</span>
 <span class="sd">    Number of phases is constant along this line</span>
 <span class="sd">    Defines a list of fixed phases (the zero phases) and list of free phases and list of Point that represents the line</span>
@@ -696,7 +696,7 @@
 <span class="sd">        Direction to set ZPF line in</span>
 <span class="sd">    current_delta : float</span>
 <span class="sd">        Step size of axis variable to step ZPF line in</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -755,19 +755,19 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(fixed_phases=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, free_phases=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, points=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="si">}</span><span class="s2">, status=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">, axis_var=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, axis_direction=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="si">}</span><span class="s2">, current_delta=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_delta</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(fixed_phases=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2">, free_phases=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2">, points=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="si">}</span><span class="s2">, status=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">, axis_var=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_var</span><span class="si">}</span><span class="s2">, axis_direction=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis_direction</span><span class="si">}</span><span class="s2">, current_delta=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_delta</span><span class="si">}</span><span class="s2">)"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">)</span><span class="si">}</span><span class="s2"> points) - Fixed phases: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2"> Free phases: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> Start: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2"> End: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">)</span><span class="si">}</span><span class="s2"> points) - Fixed phases: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fixed_phases</span><span class="si">}</span><span class="s2"> Free phases: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">free_phases</span><span class="si">}</span><span class="s2"> Start: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2"> End: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">global_conditions</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">return</span> <span class="n">output</span>
 
 <div class="viewcode-block" id="ZPFLine.get_var_list">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.ZPFLine.get_var_list">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_var_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span> <span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Gets variable along ZPF line and returns list</span>
 <span class="sd">        The variables will decipher between local and global variables</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">to_display_units</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="n">var</span><span class="p">),</span> <span class="n">p</span><span class="o">.</span><span class="n">stable_composition_sets</span><span class="p">,</span> <span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">])</span></div>
 </div>
 
@@ -781,15 +781,15 @@
 <div class="viewcode-block" id="NodeQueue">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.NodeQueue">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NodeQueue</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Not exactly a queue, but functions as a queue with adding and getting node in FIFO order</span>
 <span class="sd">        If we were to use a Queue, we would have to compare the current Node with a buffer stored in the mapper to check for repeating nodes</span>
 <span class="sd">        So using a List allows the Node checking implementation to be here instead</span>
 
 <span class="sd">    When getting a node, it will return the node at the current node index and increase the index counter</span>
 <span class="sd">        Queue is empty once the index counter points to the last node</span>
-<span class="sd">        As we don&#39;t remove any nodes from the list (partly because we have to check for repeated nodes), we&#39;ll assume this will be small enough to not cause memory issues</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        As we don't remove any nodes from the list (partly because we have to check for repeated nodes), we'll assume this will be small enough to not cause memory issues</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_node_index</span> <span class="o">=</span> <span class="mi">0</span>
@@ -797,14 +797,14 @@
 <div class="viewcode-block" id="NodeQueue.add_node">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.NodeQueue.add_node">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">force</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">check_parent</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Checks candidate_node to see if it has been added before</span>
 <span class="sd">            If it has been added before, add parent to the encountered points list in the node</span>
 <span class="sd">            When we have multiple start points, we have the chance of encountering a node from multiple ZPF lines</span>
 <span class="sd">            By keeping a list of all points that lead to this node, we can reduce the number of exits to avoid double calculating ZPF lines</span>
 
 <span class="sd">        Force will force add candidate_node, this is useful for starting the zpf line within a two-phase field</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate_node</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -833,27 +833,27 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_current_node_index</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">return</span> <span class="n">next_node</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">NodesExhaustedError</span><span class="p">(</span><span class="s2">&quot;No unprocessed nodes remain&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">NodesExhaustedError</span><span class="p">(</span><span class="s2">"No unprocessed nodes remain"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="NodeQueue.size">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.NodeQueue.size">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Length of the node queue will be how many nodes are left</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_node_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="NodeQueue.is_empty">
 <a class="viewcode-back" href="../../../api/pycalphad.mapping.html#pycalphad.mapping.primitives.NodeQueue.is_empty">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Since this isn&quot;t a true queue, we can track if the node queue is &quot;empty&quot; by check if the</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Since this isn"t a true queue, we can track if the node queue is "empty" by check if the</span>
 <span class="sd">        current node index reaches the length of the node list</span>
 
-<span class="sd">        This is just so we don&quot;t have to raise an exception when the queue is empty</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        This is just so we don"t have to raise an exception when the queue is empty</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_node_index</span></div>
 </div>
 
@@ -889,7 +889,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

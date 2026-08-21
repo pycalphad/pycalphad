@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.starting_point - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.core.starting_point - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -303,7 +303,7 @@
 <div class="viewcode-block" id="global_min_is_possible">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.starting_point.global_min_is_possible">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">global_min_is_possible</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Determine whether global minimization is possible</span>
 <span class="sd">    to perform under the given set of conditions.</span>
 <span class="sd">    Global minimization is possible when only T, P, N,</span>
@@ -319,7 +319,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    bool</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">global_min</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">state_variables</span> <span class="ow">or</span> \
@@ -338,7 +338,7 @@
 <div class="viewcode-block" id="starting_point">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.starting_point.starting_point">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">starting_point</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">grid</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Find a starting point for the solution using a sample of the system energy surface.</span>
 
 <span class="sd">    Parameters</span>
@@ -356,41 +356,41 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Dataset</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">global_min_enabled</span> <span class="o">=</span> <span class="n">global_min_is_possible</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">)</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">pycalphad_version</span>
     <span class="n">active_phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">phase_records</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    <span class="c1"># Ensure that &#39;_FAKE_&#39; will fit in the phase name array</span>
+    <span class="c1"># Ensure that '_FAKE_' will fit in the phase name array</span>
     <span class="n">max_phase_name_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">]),</span> <span class="mi">6</span><span class="p">)</span>
     <span class="n">maximum_internal_dof</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">prx</span><span class="o">.</span><span class="n">phase_dof</span> <span class="k">for</span> <span class="n">prx</span> <span class="ow">in</span> <span class="n">phase_records</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="n">nonvacant_elements</span> <span class="o">=</span> <span class="n">phase_records</span><span class="p">[</span><span class="n">active_phases</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">nonvacant_elements</span>
     <span class="n">coord_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
     <span class="n">grid_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">coord_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-    <span class="n">coord_dict</span><span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+    <span class="n">coord_dict</span><span class="p">[</span><span class="s1">'vertex'</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
         <span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># +1 is to accommodate the degenerate degree of freedom at the invariant reactions</span>
-    <span class="n">coord_dict</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nonvacant_elements</span>
+    <span class="n">coord_dict</span><span class="p">[</span><span class="s1">'component'</span><span class="p">]</span> <span class="o">=</span> <span class="n">nonvacant_elements</span>
     <span class="n">conds_as_strings</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
     <span class="n">number_dof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">LinearCombination</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">'species'</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">LinearCombination</span><span class="p">)):</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">'species'</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">'phase_name'</span><span class="p">)</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Phase-local conditions do not reduce the total degrees of freedom</span>
             <span class="k">continue</span>
         <span class="n">number_dof</span> <span class="o">-=</span> <span class="mi">1</span>
     <span class="k">if</span> <span class="n">number_dof</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Number of degrees of freedom is not zero&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Number of degrees of freedom is not zero'</span><span class="p">)</span>
 
-    <span class="n">ds_vars</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;NP&#39;</span><span class="p">:</span>     <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,))),</span>
-               <span class="s1">&#39;GM&#39;</span><span class="p">:</span>     <span class="p">(</span><span class="n">conds_as_strings</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">)),</span>
-               <span class="s1">&#39;MU&#39;</span><span class="p">:</span>     <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">),))),</span>
-               <span class="s1">&#39;X&#39;</span><span class="p">:</span>      <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">,</span> <span class="s1">&#39;component&#39;</span><span class="p">],</span>
+    <span class="n">ds_vars</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'NP'</span><span class="p">:</span>     <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">'vertex'</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,))),</span>
+               <span class="s1">'GM'</span><span class="p">:</span>     <span class="p">(</span><span class="n">conds_as_strings</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">)),</span>
+               <span class="s1">'MU'</span><span class="p">:</span>     <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">'component'</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">),))),</span>
+               <span class="s1">'X'</span><span class="p">:</span>      <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">'vertex'</span><span class="p">,</span> <span class="s1">'component'</span><span class="p">],</span>
                           <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">),))),</span>
-               <span class="s1">&#39;Y&#39;</span><span class="p">:</span>      <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_dof&#39;</span><span class="p">],</span>
+               <span class="s1">'Y'</span><span class="p">:</span>      <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">'vertex'</span><span class="p">,</span> <span class="s1">'internal_dof'</span><span class="p">],</span>
                           <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">maximum_internal_dof</span><span class="p">,))),</span>
-               <span class="s1">&#39;Phase&#39;</span><span class="p">:</span>  <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">],</span>
-                          <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">max_phase_name_len</span><span class="p">)),</span>
-               <span class="s1">&#39;points&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">],</span>
+               <span class="s1">'Phase'</span><span class="p">:</span>  <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">'vertex'</span><span class="p">],</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'U</span><span class="si">%s</span><span class="s1">'</span> <span class="o">%</span> <span class="n">max_phase_name_len</span><span class="p">)),</span>
+               <span class="s1">'points'</span><span class="p">:</span> <span class="p">(</span><span class="n">conds_as_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">'vertex'</span><span class="p">],</span>
                           <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
                <span class="p">}</span>
 
@@ -399,12 +399,12 @@
     <span class="k">for</span> <span class="n">f_sv</span> <span class="ow">in</span> <span class="n">free_statevars</span><span class="p">:</span>
         <span class="n">ds_vars</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">str</span><span class="p">(</span><span class="n">f_sv</span><span class="p">):</span> <span class="p">(</span><span class="n">conds_as_strings</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">))})</span>
 
-    <span class="n">result</span> <span class="o">=</span> <span class="n">LightDataset</span><span class="p">(</span><span class="n">ds_vars</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coord_dict</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;engine&#39;</span><span class="p">:</span> <span class="s1">&#39;pycalphad </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">pycalphad_version</span><span class="p">})</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">LightDataset</span><span class="p">(</span><span class="n">ds_vars</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coord_dict</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">'engine'</span><span class="p">:</span> <span class="s1">'pycalphad </span><span class="si">%s</span><span class="s1">'</span> <span class="o">%</span> <span class="n">pycalphad_version</span><span class="p">})</span>
 
     <span class="k">if</span> <span class="n">global_min_enabled</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">lower_convex_hull</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">),</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Conditions not yet supported&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">'Conditions not yet supported'</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">result</span></div>
 
@@ -440,7 +440,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

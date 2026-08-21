@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>High-throughput Calculations - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>High-throughput Calculations - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -318,7 +318,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.tests.databases</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">composition_grid</span><span class="p">(</span><span class="n">component_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">density</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to create an evenly spaced lattice of compositions</span>
+<span class="w">    </span><span class="sd">"""Helper function to create an evenly spaced lattice of compositions</span>
 
 <span class="sd">    component_count : int</span>
 <span class="sd">        number of components in the system</span>
@@ -326,7 +326,7 @@
 <span class="sd">        number of lattice points in each dimension</span>
 <span class="sd">    eps : float</span>
 <span class="sd">        Minimum amount of each component to avoid edges of composition space</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">counts</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">density</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">repeat</span><span class="o">=</span><span class="n">component_count</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span> <span class="o">==</span> <span class="n">density</span><span class="p">:</span>
@@ -337,7 +337,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">drop_empty_columns</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"columns"</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"all"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -348,8 +348,8 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up the composition grid</span>
-<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AL&quot;</span><span class="p">,</span> <span class="s2">&quot;MG&quot;</span><span class="p">,</span> <span class="s2">&quot;SI&quot;</span><span class="p">,</span> <span class="s2">&quot;CU&quot;</span><span class="p">,</span> <span class="s2">&quot;VA&quot;</span><span class="p">]</span>
-<span class="n">elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">component</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">components</span> <span class="k">if</span> <span class="n">component</span> <span class="o">!=</span> <span class="s2">&quot;VA&quot;</span><span class="p">]</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"AL"</span><span class="p">,</span> <span class="s2">"MG"</span><span class="p">,</span> <span class="s2">"SI"</span><span class="p">,</span> <span class="s2">"CU"</span><span class="p">,</span> <span class="s2">"VA"</span><span class="p">]</span>
+<span class="n">elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">component</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">components</span> <span class="k">if</span> <span class="n">component</span> <span class="o">!=</span> <span class="s2">"VA"</span><span class="p">]</span>
 <span class="n">solutes</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 
 <span class="n">temperatures</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1000.0</span><span class="p">,</span> <span class="mf">1250.0</span><span class="p">,</span> <span class="mf">1500.0</span><span class="p">]</span>
@@ -370,23 +370,23 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">'ignore'</span><span class="p">)</span>
 
 <span class="c1"># set up a Workspace and perform the calculations</span>
 <span class="n">test_database_directory</span> <span class="o">=</span> <span class="n">files</span><span class="p">(</span><span class="n">pycalphad</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">databases</span><span class="p">)</span>
-<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">test_database_directory</span> <span class="o">/</span> <span class="s2">&quot;COST507.tdb&quot;</span><span class="p">)</span>
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">test_database_directory</span> <span class="o">/</span> <span class="s2">"COST507.tdb"</span><span class="p">)</span>
 <span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="n">wks</span> <span class="o">=</span> <span class="n">Workspace</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">)</span>
 
 <span class="n">data_rows</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">composition_rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> simplex points × </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span><span class="si">}</span><span class="s2"> temperatures = </span><span class="si">{</span><span class="n">n_points</span><span class="si">}</span><span class="s2"> total&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Evaluating </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">composition_rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> simplex points × </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span><span class="si">}</span><span class="s2"> temperatures = </span><span class="si">{</span><span class="n">n_points</span><span class="si">}</span><span class="s2"> total"</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">temperature</span> <span class="ow">in</span> <span class="n">temperatures</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">comp_conds</span> <span class="ow">in</span> <span class="n">composition_conditions</span><span class="p">:</span>
         <span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">comp_conds</span><span class="p">}</span>
         <span class="n">wks</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="n">conditions</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">{</span>
             <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">value</span><span class="p">[()]</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">wks</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="s2">&quot;X(*)&quot;</span><span class="p">,</span> <span class="s2">&quot;NP(*)&quot;</span><span class="p">,</span> <span class="s2">&quot;X(*,*)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">wks</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(</span><span class="s2">"T"</span><span class="p">,</span> <span class="s2">"X(*)"</span><span class="p">,</span> <span class="s2">"NP(*)"</span><span class="p">,</span> <span class="s2">"X(*,*)"</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
         <span class="n">data_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
 </pre></div>
@@ -484,9 +484,9 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
     <tr>
       <th>1</th>
       <td>1000.0</td>
-      <td>9.999978e-07</td>
+      <td>9.999973e-07</td>
       <td>7.499985e-01</td>
-      <td>9.999978e-07</td>
+      <td>9.999973e-07</td>
       <td>2.499995e-01</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -532,9 +532,9 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
     <tr>
       <th>3</th>
       <td>1000.0</td>
-      <td>9.999975e-07</td>
+      <td>9.999968e-07</td>
       <td>2.499995e-01</td>
-      <td>9.999979e-07</td>
+      <td>9.999980e-07</td>
       <td>7.499985e-01</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -546,7 +546,7 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
       <td>NaN</td>
       <td>0.026528</td>
       <td>6.892290e-01</td>
-      <td>2.655091e-02</td>
+      <td>2.655092e-02</td>
       <td>2.576923e-01</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -558,7 +558,7 @@ Evaluating 35 simplex points × 3 temperatures = 105 total
       <td>1000.0</td>
       <td>1.000000e-06</td>
       <td>1.000000e-06</td>
-      <td>1.000000e-06</td>
+      <td>9.999999e-07</td>
       <td>9.999970e-01</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -739,9 +739,9 @@ internally in PyCalphad’s starting point generation.</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">point_sample</span>
 
-<span class="c1"># Set up the composition grid using PyCalphad&#39;s scrambled Halton sequence sampler</span>
-<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AL&quot;</span><span class="p">,</span> <span class="s2">&quot;MG&quot;</span><span class="p">,</span> <span class="s2">&quot;SI&quot;</span><span class="p">,</span> <span class="s2">&quot;CU&quot;</span><span class="p">,</span> <span class="s2">&quot;VA&quot;</span><span class="p">]</span>
-<span class="n">elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">component</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">components</span> <span class="k">if</span> <span class="n">component</span> <span class="o">!=</span> <span class="s2">&quot;VA&quot;</span><span class="p">]</span>
+<span class="c1"># Set up the composition grid using PyCalphad's scrambled Halton sequence sampler</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"AL"</span><span class="p">,</span> <span class="s2">"MG"</span><span class="p">,</span> <span class="s2">"SI"</span><span class="p">,</span> <span class="s2">"CU"</span><span class="p">,</span> <span class="s2">"VA"</span><span class="p">]</span>
+<span class="n">elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">component</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">components</span> <span class="k">if</span> <span class="n">component</span> <span class="o">!=</span> <span class="s2">"VA"</span><span class="p">]</span>
 <span class="n">solutes</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 
 <span class="n">temperatures</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1000.0</span><span class="p">,</span> <span class="mf">1250.0</span><span class="p">,</span> <span class="mf">1500.0</span><span class="p">]</span>
@@ -761,23 +761,23 @@ internally in PyCalphad’s starting point generation.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">'ignore'</span><span class="p">)</span>
 
 <span class="c1"># set up a Workspace and perform the calculations</span>
 <span class="n">test_database_directory</span> <span class="o">=</span> <span class="n">files</span><span class="p">(</span><span class="n">pycalphad</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">databases</span><span class="p">)</span>
-<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">test_database_directory</span> <span class="o">/</span> <span class="s2">&quot;COST507.tdb&quot;</span><span class="p">)</span>
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">test_database_directory</span> <span class="o">/</span> <span class="s2">"COST507.tdb"</span><span class="p">)</span>
 <span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="n">wks</span> <span class="o">=</span> <span class="n">Workspace</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">phases</span><span class="p">)</span>
 
 <span class="n">data_rows</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">composition_rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> simplex points × </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span><span class="si">}</span><span class="s2"> temperatures = </span><span class="si">{</span><span class="n">n_points</span><span class="si">}</span><span class="s2"> total&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Evaluating </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">composition_rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> simplex points × </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span><span class="si">}</span><span class="s2"> temperatures = </span><span class="si">{</span><span class="n">n_points</span><span class="si">}</span><span class="s2"> total"</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">temperature</span> <span class="ow">in</span> <span class="n">temperatures</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">comp_conds</span> <span class="ow">in</span> <span class="n">composition_conditions</span><span class="p">:</span>
         <span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">comp_conds</span><span class="p">}</span>
         <span class="n">wks</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="n">conditions</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">{</span>
             <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">value</span><span class="p">[()]</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">wks</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="s2">&quot;X(*)&quot;</span><span class="p">,</span> <span class="s2">&quot;NP(*)&quot;</span><span class="p">,</span> <span class="s2">&quot;X(*,*)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">wks</span><span class="o">.</span><span class="n">get_dict</span><span class="p">(</span><span class="s2">"T"</span><span class="p">,</span> <span class="s2">"X(*)"</span><span class="p">,</span> <span class="s2">"NP(*)"</span><span class="p">,</span> <span class="s2">"X(*,*)"</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
         <span class="n">data_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
 </pre></div>
@@ -1189,7 +1189,7 @@ Evaluating 30 simplex points × 3 temperatures = 90 total
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Gibbs Energy of Each Phase at Fixed Composition - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>Gibbs Energy of Each Phase at Fixed Composition - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -163,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -187,7 +187,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -316,15 +316,15 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;../databases/Al-Mg_Zhong.tdb&#39;</span><span class="p">)</span>
-<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;MG&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">'../databases/Al-Mg_Zhong.tdb'</span><span class="p">)</span>
+<span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'AL'</span><span class="p">,</span> <span class="s1">'MG'</span><span class="p">,</span> <span class="s1">'VA'</span><span class="p">]</span>
 <span class="n">mg_composition</span> <span class="o">=</span> <span class="mf">0.3</span>  <span class="c1"># mole fraction</span>
 
 <span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mf">1e5</span><span class="p">,</span>
     <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
-    <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;MG&#39;</span><span class="p">):</span> <span class="n">mg_composition</span><span class="p">,</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">'MG'</span><span class="p">):</span> <span class="n">mg_composition</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -341,16 +341,16 @@
 <span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
     <span class="n">wks</span> <span class="o">=</span> <span class="n">Workspace</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="p">[</span><span class="n">phase_name</span><span class="p">],</span> <span class="n">conditions</span><span class="p">)</span>
     <span class="n">T</span> <span class="o">=</span> <span class="n">wks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-    <span class="n">GM</span> <span class="o">=</span> <span class="n">wks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;GM&#39;</span><span class="p">)</span>
+    <span class="n">GM</span> <span class="o">=</span> <span class="n">wks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GM'</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">GM</span><span class="p">)):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Skipping </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">: no valid solution at X(Mg)=</span><span class="si">{</span><span class="n">mg_composition</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Skipping </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">: no valid solution at X(Mg)=</span><span class="si">{</span><span class="n">mg_composition</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
         <span class="k">continue</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">GM</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">phase_name</span><span class="p">)</span>
 
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Gibbs energy vs temperature in Al-Mg at X(Mg)=</span><span class="si">{</span><span class="n">mg_composition</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Temperature (K)&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Gibbs Energy (J/mol)&#39;</span><span class="p">)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Gibbs energy vs temperature in Al-Mg at X(Mg)=</span><span class="si">{</span><span class="n">mg_composition</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Temperature (K)'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Gibbs Energy (J/mol)'</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">'best'</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -421,7 +421,7 @@ Skipping ALMG_EPSILON: no valid solution at X(Mg)=0.3
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

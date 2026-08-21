@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.halton - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.core.halton - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -291,10 +291,10 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for pycalphad.core.halton</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">The halton module allows the construction of multi-dimensional</span>
 <span class="sd">scrambled Halton sequences.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
 
@@ -305,7 +305,7 @@
 <span class="c1"># The rest are generated from the procedure discussed in the paper.</span>
 <span class="c1"># Note that the choice of multipliers is not unique even when using their procedure.</span>
 <span class="c1"># Some of their multpliers (e.g. for primes 11 and 29) are not primitive roots.</span>
-<span class="c1"># It&#39;s unclear why they work so well despite that, but they do.</span>
+<span class="c1"># It's unclear why they work so well despite that, but they do.</span>
 <span class="n">_scrambling_multipliers</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
                            <span class="p">(</span><span class="mi">19</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">18</span><span class="p">),</span> <span class="p">(</span><span class="mi">29</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span> <span class="p">(</span><span class="mi">31</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span> <span class="p">(</span><span class="mi">37</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">41</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span>
                            <span class="p">(</span><span class="mi">43</span><span class="p">,</span> <span class="mi">26</span><span class="p">),</span> <span class="p">(</span><span class="mi">47</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="p">(</span><span class="mi">53</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span> <span class="p">(</span><span class="mi">59</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="p">(</span><span class="mi">61</span><span class="p">,</span> <span class="mi">44</span><span class="p">),</span> <span class="p">(</span><span class="mi">67</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
@@ -379,7 +379,7 @@
 <div class="viewcode-block" id="halton">
 <a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.halton.halton">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">halton</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">nbpts</span><span class="p">,</span> <span class="n">primes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scramble</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Generate a multi-dimensional Halton sequence.</span>
 
 <span class="sd">    Parameters</span>
@@ -389,20 +389,20 @@
 <span class="sd">    nbpts  : int</span>
 <span class="sd">        Number of points along each dimension.</span>
 <span class="sd">    primes : sequence, optional</span>
-<span class="sd">        A sequence of at least &#39;dim&#39; prime numbers.</span>
+<span class="sd">        A sequence of at least 'dim' prime numbers.</span>
 <span class="sd">    scramble : boolean, optional (default: True)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    ndarray of shape (nbpts, dim)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">primes</span> <span class="o">=</span> <span class="n">_primes</span> <span class="k">if</span> <span class="n">primes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">primes</span>
     <span class="n">scrambler</span> <span class="o">=</span> <span class="n">_scrambling_multipliers</span> <span class="k">if</span> <span class="n">scramble</span> <span class="k">else</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">dim</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">primes</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;A Halton sequence of </span><span class="si">{0}</span><span class="s1"> dimensions cannot be &#39;</span>
-                         <span class="s1">&#39;calculated when </span><span class="se">\&#39;</span><span class="s1">primes</span><span class="se">\&#39;</span><span class="s1"> is only of length </span><span class="si">{1}</span><span class="s1">. &#39;</span>
-                         <span class="s1">&#39;Use the </span><span class="se">\&#39;</span><span class="s1">primes</span><span class="se">\&#39;</span><span class="s1"> parameter to pass additional &#39;</span>
-                         <span class="s1">&#39;primes.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">primes</span><span class="p">)))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'A Halton sequence of </span><span class="si">{0}</span><span class="s1"> dimensions cannot be '</span>
+                         <span class="s1">'calculated when </span><span class="se">\'</span><span class="s1">primes</span><span class="se">\'</span><span class="s1"> is only of length </span><span class="si">{1}</span><span class="s1">. '</span>
+                         <span class="s1">'Use the </span><span class="se">\'</span><span class="s1">primes</span><span class="se">\'</span><span class="s1"> parameter to pass additional '</span>
+                         <span class="s1">'primes.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">primes</span><span class="p">)))</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nbpts</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="n">dim_primes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">primes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">dim</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">dim_primes</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
@@ -449,7 +449,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

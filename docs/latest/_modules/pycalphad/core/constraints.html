@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.constraints - pycalphad 0.11.3.dev15+gaa05d26e5 documentation</title>
+        <title>pycalphad.core.constraints - pycalphad 0.11.3.dev16+gc44d90cf9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev15+gaa05d26e5 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev16+gc44d90cf9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -295,8 +295,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.codegen.sympydiff_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_constraint_functions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">namedtuple</span>
 
-<span class="n">ConstraintTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ConstraintTuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;internal_cons_func&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">,</span>
-                                                 <span class="s1">&#39;num_internal_cons&#39;</span><span class="p">])</span>
+<span class="n">ConstraintTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">'ConstraintTuple'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'internal_cons_func'</span><span class="p">,</span> <span class="s1">'internal_cons_jac'</span><span class="p">,</span> <span class="s1">'internal_cons_hess'</span><span class="p">,</span>
+                                                 <span class="s1">'num_internal_cons'</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="build_constraints">
@@ -328,7 +328,7 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">):</span>
             <span class="n">cons</span> <span class="o">=</span> <span class="n">key</span> <span class="o">-</span> <span class="n">value</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported phase-local condition: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Unsupported phase-local condition: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
         <span class="n">phase_local_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cons</span><span class="o">.</span><span class="n">expand</span><span class="p">())</span>
 
     <span class="n">cf_output</span> <span class="o">=</span> <span class="n">build_constraint_functions</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">phase_local_constraints</span><span class="p">,</span>
@@ -373,7 +373,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=a5e8335b"></script>
+</div><script src="../../../_static/documentation_options.js?v=b913f55b"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
