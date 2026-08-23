@@ -106,6 +106,26 @@ def test_ternary_strategy(load_database):
     new_num_nodes = len(strategy.node_queue.nodes)
     assert new_num_nodes == num_nodes + 1
 
+
+@select_database("crtiv_ghosh.tdb")
+def test_plot_ternary_without_tielines(load_database):
+    dbf = load_database()
+    comps = ["CR", "TI", "V", "VA"]
+    phases = ["BCC_A2", "HCP_A3", "LAVES_C15"]
+    conds = {
+        v.X("V"): (0, 0.2, 0.05),
+        v.X("TI"): (0, 1, 0.05),
+        v.T: 923,
+        v.P: 101325,
+    }
+    strategy = TernaryStrategy(dbf, comps, phases, conds)
+
+    assert strategy.get_tieline_data(v.X("V"), v.X("TI")) == []
+    ax = plot_ternary(strategy)
+    assert ax.name == "triangular"
+    plt.close(ax.figure)
+
+
 @select_database("alcocrni.tdb")
 def test_step_strategy_through_single_phase(load_database):
     dbf = load_database()
