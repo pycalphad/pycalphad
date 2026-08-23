@@ -111,11 +111,11 @@ def test_ternary_strategy(load_database):
 def test_plot_ternary_without_tielines(load_database):
     dbf = load_database()
     comps = ["CR", "TI", "V", "VA"]
-    phases = ["BCC_A2", "HCP_A3", "LAVES_C15"]
+    phases = ["LIQUID"]
     conds = {
-        v.X("V"): (0, 0.2, 0.05),
-        v.X("TI"): (0, 1, 0.05),
-        v.T: 923,
+        v.X("V"): (0, 1, 0.2),
+        v.X("TI"): (0, 1, 0.2),
+        v.T: 2000,
         v.P: 101325,
     }
     strategy = TernaryStrategy(dbf, comps, phases, conds)
