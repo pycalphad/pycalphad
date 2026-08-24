@@ -968,11 +968,23 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
             # The largest allowable step size satisfies the equation: (NP + step_size * delta_NP = MIN_PHASE_AMOUNT)
             if abs(equilibrium_soln[soln_index_offset + i]) > MIN_PHASE_AMOUNT:
                 phase_amt_step_size = min(phase_amt_step_size, (MIN_PHASE_AMOUNT - state.phase_amt[compset_idx]) / equilibrium_soln[soln_index_offset + i])
+    # Assumption 1 can be violated (a free stable compset can sit at, or slip
+    # below, MIN_PHASE_AMOUNT), which makes the allowable step zero or negative.
+    # A negative step would move all phase amounts backward along their updates
+    # and can drive an amount negative.
+    phase_amt_step_size = max(phase_amt_step_size, 0.0)
     # Update the phase amounts using the largest allowable step size
     state.largest_phase_amt_change[0] = 0
     for i in range(state.free_stable_compset_indices.shape[0]):
         compset_idx = state.free_stable_compset_indices[i]
         state.phase_amt[compset_idx] += phase_amt_step_size * equilibrium_soln[soln_index_offset + i]
+        # A free stable compset must keep a positive amount so that a lone
+        # stable compset cannot zero out the system amount (normalizing global
+        # mole fractions by a zero system amount is a division by zero).
+        # remove_and_consolidate_phases is responsible for removing compsets
+        # driven down to this floor.
+        if state.phase_amt[compset_idx] < MIN_PHASE_AMOUNT:
+            state.phase_amt[compset_idx] = MIN_PHASE_AMOUNT
         state.largest_phase_amt_change[0] = max(state.largest_phase_amt_change[0], abs(phase_amt_step_size * equilibrium_soln[soln_index_offset + i]))
     soln_index_offset += state.free_stable_compset_indices.shape[0]
 
