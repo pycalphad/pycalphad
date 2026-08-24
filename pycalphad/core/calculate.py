@@ -85,7 +85,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
     ALLOWED_CHARGE=1E-10
     vacancy_indices = []
     for sublattice in model.constituents:
-        subl_va_indices = [idx for idx, spec in enumerate(sorted(set(sublattice))) if spec.number_of_atoms == 0]
+        subl_va_indices = [idx for idx, spec in enumerate(sorted(set(sublattice), key=lambda s: s.escaped_name)) if spec.number_of_atoms == 0]
         vacancy_indices.append(subl_va_indices)
     if len(vacancy_indices) != len(model.constituents):
         vacancy_indices = None
@@ -103,7 +103,11 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
             constant_site_ratios = False
     species_charge = []
     for sublattice in range(len(model.constituents)):
-        for species in sorted(model.constituents[sublattice]):
+        # Points columns are ordered following model.site_fractions, which sorts by the
+        # string of the SiteFraction, i.e. by the escaped species name within a sublattice.
+        # Sorting Species objects directly gives a different order when a sublattice mixes
+        # charged species with escaped names, e.g. VA with V+3 ('V+3' < 'VA', but 'VA' < 'V_POS3').
+        for species in sorted(model.constituents[sublattice], key=lambda s: s.escaped_name):
             species_charge.append(species.charge*site_ratios[sublattice])
     species_charge = np.array(species_charge)
     charge_constrained_space = constant_site_ratios and np.any(species_charge != 0)
@@ -163,8 +167,14 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
                                                                         model.site_fractions)
             num_points = (pdens ** 2) * (constraint_jac.shape[1] - constraint_jac.shape[0])
             num_points = min(num_points, MAX_EXTRA_POINTS)
-            extra_points = sample(num_points, np.full(constraint_jac.shape[1], MIN_SITE_FRACTION),
-                                  np.ones(constraint_jac.shape[1]), A2=constraint_jac, b2=constraint_rhs)
+            try:
+                extra_points = sample(num_points, np.full(constraint_jac.shape[1], MIN_SITE_FRACTION),
+                                      np.ones(constraint_jac.shape[1]), A2=constraint_jac, b2=constraint_rhs)
+            except ValueError:
+                # No feasible points satisfy the constraints, e.g. phase-local
+                # conditions outside the phase's accessible composition range.
+                # Return an array of nan to preserve shape.
+                return np.full((num_points, constraint_jac.shape[1]), np.nan)
             if (len(phase_local_conditions.keys()) > 0):
                 points = extra_points
             else:

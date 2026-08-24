@@ -251,6 +251,75 @@ def test_charged_infeasible_minimum_norm():
     assert np.any(np.logical_and(output[:, 1] > 0.25, output[:, 1] < 0.35))
 
 
+CORUNDUM_VA_TDB = """
+TYPE_DEFINITION % SEQ * !
+
+ELEMENT /-   ELECTRON_GAS              0.0 0.0 0.0 !
+ELEMENT VA   VACUUM                    0.0 0.0 0.0 !
+ELEMENT O    1/2_MOLE_O2(G)            0.0 0.0 0.0 !
+ELEMENT TI   HCP_A3                    0.0 0.0 0.0 !
+ELEMENT V    BCC_A2                    0.0 0.0 0.0 !
+
+SPECIES O-2  O1.0/-2 !
+SPECIES TI+3 TI1.0/+3 !
+SPECIES V+3  V1.0/+3 !
+SPECIES V+4  V1.0/+4 !
+
+PHASE CORUNDUM_D51:I %  2 2.0 3.0 !
+CONSTITUENT CORUNDUM_D51:I :TI+3,V+3,V+4,VA:O-2: !
+
+PARAMETER G(CORUNDUM_D51,TI+3:O-2;0) 298.15 -1000000; 6000 N !
+PARAMETER G(CORUNDUM_D51,V+3:O-2;0)  298.15 -1000000; 6000 N !
+PARAMETER G(CORUNDUM_D51,V+4:O-2;0)  298.15 -1000000; 6000 N !
+PARAMETER G(CORUNDUM_D51,VA:O-2;0)   298.15 -1000000; 6000 N !
+"""
+
+
+def test_charged_phase_with_va_and_multiple_cation_charges():
+    """calculate generates feasible points when VA and multiple charged cations mix on a sublattice.
+
+    Species sort order (TI+3 < V+3 < V+4 < VA) differs from the site fraction
+    order used for points columns (TI_POS3 < VA < V_POS3 < V_POS4), so charges
+    assigned by species order ended up on the wrong columns and the sampled
+    pseudo-endmembers violated charge balance, tripping the feasibility assert
+    in _sample_phase_constitution.
+    """
+    dbf = Database(CORUNDUM_VA_TDB)
+    # Site fraction (column) order: TI_POS3, VA, V_POS3, V_POS4 | O_NEG2
+    constraint_jac = np.array([[1, 1, 1, 1, 0],
+                               [0, 0, 0, 0, 1],
+                               [2*3, 0, 2*3, 2*4, 3*-2]])
+    constraint_rhs = np.array([1, 1, 0])
+    res = calculate(dbf, ['TI', 'V', 'O', 'VA'], 'CORUNDUM_D51', T=873.15, P=101325, N=1, pdens=10)
+    output = np.squeeze(res.Y.values)
+    assert output.shape[0] > 0
+    cons_infeasibility = np.max(np.abs(constraint_jac.dot(output.T).T - constraint_rhs))
+    assert cons_infeasibility < 1e-10
+
+
+def test_phase_local_conditions_charged_phase():
+    "Phase-local mole fraction conditions combine correctly with charge balance constraints."
+    dbf = Database(CORUNDUM_VA_TDB)
+    comps = ['TI', 'V', 'O', 'VA']
+    # X(O) is accessible in [0.6, 2/3] for this phase (cation vacancies increase X(O))
+    res = calculate(dbf, comps, 'CORUNDUM_D51', T=873.15, P=101325, N=1, pdens=10,
+                    conditions={v.X('CORUNDUM_D51', 'O'): 0.62})
+    x_o = res.X.sel(component='O').values
+    x_o = x_o[~np.isnan(x_o)]
+    assert x_o.size > 0
+    assert_allclose(x_o, 0.62)
+
+
+def test_phase_local_conditions_infeasible_charged_phase():
+    "Infeasible phase-local conditions produce no valid points instead of raising."
+    dbf = Database(CORUNDUM_VA_TDB)
+    comps = ['TI', 'V', 'O', 'VA']
+    # X(O)=0.25 is outside the accessible range [0.6, 2/3] of this phase
+    res = calculate(dbf, comps, 'CORUNDUM_D51', T=873.15, P=101325, N=1, pdens=10,
+                    conditions={v.X('CORUNDUM_D51', 'O'): 0.25})
+    assert np.all(np.isnan(res.GM.values))
+
+
 @pytest.mark.filterwarnings("ignore:The order-disorder model for \"BCC_4SL\" has a contribution from the physical property model*:UserWarning")
 @pytest.mark.filterwarnings("ignore:The order-disorder model for \"BCC_NOB\" has a contribution from the physical property model*:UserWarning")
 @select_database("Al-Fe_sundman2009.tdb")
