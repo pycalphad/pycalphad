@@ -286,6 +286,7 @@ def filter_phases(dbf, comps, candidate_phases=None):
     Filters out phases that
     * Have no active components in any sublattice of a phase
     * Are disordered phases in an order-disorder model
+    * Have only vacancies active on every sublattice (cannot contain any atoms)
 
     Parameters
     ----------
@@ -306,6 +307,13 @@ def filter_phases(dbf, comps, candidate_phases=None):
         active_sublattices = [len(set(comps).intersection(subl)) > 0 for
                               subl in phase.constituents]
         return all(active_sublattices)
+
+    def any_active_atoms(comps, phase):
+        # A phase where every active constituent is atom-free (only vacancies)
+        # cannot contain any atoms; Model raises DofError for these phases.
+        return any(spec.number_of_atoms > 0
+                   for subl in phase.constituents
+                   for spec in set(comps).intersection(subl))
     if candidate_phases == None:
         candidate_phases = dbf.phases.keys()
     else:
@@ -314,6 +322,7 @@ def filter_phases(dbf, comps, candidate_phases=None):
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
                 all_sublattices_active(species, dbf.phases[phase]) and
+                any_active_atoms(species, dbf.phases[phase]) and
                 (phase not in disordered_phases or (phase in disordered_phases and
                 dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
     # for all ordered phases, get components of ordered and disordered phase
