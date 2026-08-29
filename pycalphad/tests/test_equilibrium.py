@@ -1150,3 +1150,242 @@ def test_charged_stoichiometric_phases_converge(load_database):
     stable_amounts = eq.NP.values.squeeze()
     assert_allclose(np.sort(stable_amounts[~np.isnan(stable_amounts)]), [0.1, 0.9], atol=1e-8)
     assert_allclose(eq.MU.values.squeeze(), [-486633.66127366, -71070.20485795])
+
+
+@pytest.mark.solver
+@select_database("ionic_liquid_metal_minimal.tdb")
+def test_eq_ionic_liquid_mixed_valence_metal_converges(load_database):
+    """Metal-only 2SL ionic liquid with mixed-valence cations converges.
+
+    The (HF+4, NB+2)(VA) ionic liquid in this database is mathematically
+    identical to the substitutional LIQUID_SUBS phase in the same database.
+    The Lagrangian for the phase matrix becomes non-linear because formula moles
+    of the ionic liquid have site ratios P and Q that depend on the site
+    fractions. Prior to the fix, site fractions in metastable composition sets
+    could oscillate leading to a convergence failure.
+    """
+    dbf = load_database()
+    comps = ["HF", "NB", "VA"]
+    for x_nb in [0.3, 0.5, 0.7]:
+        conds = {v.P: 101325, v.T: 2500.0, v.N: 1, v.X("NB"): x_nb}
+        eq_ionic = equilibrium(dbf, comps, ["LIQUID"], conds)
+        eq_subst = equilibrium(dbf, comps, ["LIQUID_SUBS"], conds)
+        gm_subst = eq_subst.GM.values.squeeze()
+        assert np.all(np.isfinite(gm_subst))
+        # the ionic liquid must converge to the identical substitutional result
+        assert np.all(np.isfinite(eq_ionic.GM.values)), f"NaN at X(NB)={x_nb}"
+        assert_allclose(eq_ionic.GM.values.squeeze(), gm_subst, atol=1e-3)
+        assert_allclose(eq_ionic.MU.values.squeeze(), eq_subst.MU.values.squeeze(), atol=1e-2)
+    # regression value for the equimolar point
+    conds = {v.P: 101325, v.T: 2500.0, v.N: 1, v.X("NB"): 0.5}
+    eq_ionic = equilibrium(dbf, comps, ["LIQUID"], conds)
+    assert_allclose(eq_ionic.GM.values.squeeze(), -196219.7955, atol=1e-3)
+
+
+@pytest.mark.solver
+@select_database("KLiNdCl.tdb")
+def test_eq_ionic_liquid_salt_with_anions_converges(load_database):
+    """KCl-NdCl3 2SL ionic liquid converges.
+
+    As P and Q vary with composition, formula moles are non-linear in the
+    site fractions and can fail to converge (NaN) or crash with ZeroDivisionError
+    """
+    dbf = load_database()
+    # on the KCl-NdCl3 join: X(K) = x/(4-2x), X(CL) = (3-2x)/(4-2x)
+    comps = ["K", "ND", "CL", "VA"]
+    # x(KCl)=0.5: crashed with ZeroDivisionError
+    x = 0.5
+    conds = {v.P: 101325, v.T: 1100.0, v.N: 1,
+             v.X("K"): x / (4 - 2 * x), v.X("CL"): (3 - 2 * x) / (4 - 2 * x)}
+    eq = equilibrium(dbf, comps, ["IONIC_LIQUID"], conds)
+    assert np.all(np.isfinite(eq.GM.values)), "x(KCl)=0.5 salt liquid did not converge"
+    assert_allclose(eq.GM.values.squeeze(), -315530.117, atol=0.1)
+    # x(KCl)=0.7: crashed with ZeroDivisionError
+    x = 0.7
+    conds = {v.P: 101325, v.T: 900.0, v.N: 1,
+             v.X("K"): x / (4 - 2 * x), v.X("CL"): (3 - 2 * x) / (4 - 2 * x)}
+    eq = equilibrium(dbf, comps, ["IONIC_LIQUID"], conds)
+    assert np.all(np.isfinite(eq.GM.values)), "x(KCl)=0.7 salt liquid did not converge"
+    assert_allclose(eq.GM.values.squeeze(), -290558.751, atol=0.1)
+
+
+@pytest.mark.solver
+@select_database("C_A_S_Fe_O_M.tdb")
+def test_eq_issue652_dilute_species_converges(load_database):
+    """Slag equilibria with dilute species (N) converge (gh-652).
+
+    Very small amounts of some species make the phase matrices poorly
+    conditioned, so noise from inverting them enters the solver steps and
+    convergence can hinge on that noise satisfying ALLOWED_DELTA_PHASE_AMT.
+    """
+    dbf = load_database()
+    comps = ["L", "Q", "A", "FE", "O", "N", "VA"]
+    phases = ["AC2S", "ACRIS", "APC2S", "AQUARTZ", "BC2S", "BCRIS", "BQUARTZ",
+              "C12A7", "C2AS", "C2F", "C3A", "CA", "CA2", "CA6", "CAO", "CAS2",
+              "GC2S", "MC3S", "MULLITE", "PCS", "RC3S", "RC3S2", "TC3S", "WCS",
+              "FERRITE", "CF", "CF2", "BCC_A2", "FCC_A1", "HALITE", "CORUNDUM",
+              "SPINEL", "LIQUID", "GAS"]
+    # expected energies determined from testing at pdens = 100_000
+    all_expGM_pdens_conds = [
+        (-893721.739167, None, {v.X("L"): 0.6762553264673202, v.X("Q"): 0.20638875675869772, v.X("A"): 0.0333274011650397, v.X("FE"): 0.028668770864977013, v.X("N"): 0.006178294223249905, v.T: 1900.0, v.P: 101325, v.N: 1}),
+        # TODO: remove need to input pdens
+        # liquid point density currently required for global min
+        # without it, we don't get liquid in the starting point and converge to a
+        # solid-only solution with liquid ~1080 J above the global min
+        (-876516.456539, 10_000, {v.X("L"): 0.6737139382404836, v.X("Q"): 0.20561314149024873, v.X("A"): 0.03320215577082691, v.X("FE"): 0.03006424499589477, v.X("N"): 0.006155076004351841, v.T: 1800.0, v.P: 101325, v.N: 1}),
+        (-891388.48767, None, {v.X("L"): 0.6737139382404836, v.X("Q"): 0.20561314149024873, v.X("A"): 0.03320215577082691, v.X("FE"): 0.03006424499589477, v.X("N"): 0.006155076004351841, v.T: 1900.0, v.P: 101325, v.N: 1}),
+    ]
+    expected_energies = []
+    actual_energies = []
+    for (expected_energy, LIQUID_pdens, conds) in all_expGM_pdens_conds:
+        if LIQUID_pdens is not None:
+            eq = equilibrium(dbf, comps, phases, conds, calc_opts={"pdens": {"LIQUID": LIQUID_pdens}})
+        else:
+            eq = equilibrium(dbf, comps, phases, conds)
+        expected_energies.append(expected_energy)
+        actual_energies.append(eq.GM.values.squeeze())
+    assert_allclose(actual_energies, expected_energies)
+
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_issue641_trace_composition_conditions_converge(load_database):
+    """Equilibrium with trace composition conditions converges (gh-641).
+
+    Point from the AA6005 alloy Scheil solidification path where Ti has
+    depleted to X(TI)~3.5e-10. Guards the composition residual convergence
+    criteria: tolerances must scale with the magnitude of each prescribed
+    composition, or convergence is unattainable at trace conditions (an
+    absolute tolerance derived from min|rhs| falls below the solver's
+    floating point noise floor). Expected values checked with Thermo-Calc.
+    Failures are sensitive to PYTHONHASHSEED, because set/dict ordering
+    changes the starting composition sets and the numerical noise path.
+    """
+    dbf = load_database()
+    comps = ["AL", "CR", "CU", "FE", "MG", "MN", "SI", "TI", "ZN", "VA"]
+    phases = list(dbf.phases.keys())
+    conds = {
+        v.N: 1, v.P: 101325, v.T: 864.3471074380166,
+        v.X("CR"): 7.723742795983076e-07,
+        v.X("CU"): 0.010545262150718276,
+        v.X("FE"): 0.0022208033531704585,
+        v.X("MG"): 0.04811934722735042,
+        v.X("MN"): 0.0012220211670977072,
+        v.X("SI"): 0.06683377134719204,
+        v.X("TI"): 3.4849373248879975e-10,
+        v.X("ZN"): 0.0003600924591985512,
+    }
+    eq = equilibrium(dbf, comps, phases, conds, calc_opts=dict(pdens=60))
+    stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
+    assert stable_phases == {"LIQUID", "FCC_A1", "ALFESI_BETA", "ALMNSI_ALPHA"}
+    # component (alphabetical) order: AL, CR, CU, FE, MG, MN, SI, TI, ZN
+    expected_chempots = [-33919.533, -150735.76, -101571.65, -138093.12, -64870.783, -127532.8, -32012.164, -258465.82, -96667.985]
+    assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
+
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_issue641_unstable_compset_jitter_does_not_block_convergence(load_database):
+    """Convergence is not blocked by site fraction noise in unstable phases (gh-641).
+
+    Point from the AA6005 alloy Scheil solidification path, deeper into
+    solidification than test_eq_issue641_trace_composition_conditions_converge.
+    Guards the scope of the largest_y_change convergence criterion: unstable
+    (zero phase amount) composition sets are advanced so that they track the
+    current hyperplane, but a metastable phase mixing on trace components
+    (here CRSI2, with X(CR)~7e-8 prescribed) has site fractions that jitter
+    ~1e-5 per iteration chasing noise in the trace chemical potentials, so
+    including it in the criterion prevents convergence long after the actual
+    solution is converged. Expected values checked with Thermo-Calc.
+    Failures are sensitive to PYTHONHASHSEED, because set/dict ordering
+    changes the starting composition sets and the numerical noise path.
+    """
+    dbf = load_database()
+    comps = ["AL", "CR", "CU", "FE", "MG", "MN", "SI", "TI", "ZN", "VA"]
+    phases = list(dbf.phases.keys())
+    conds = {
+        v.N: 1, v.P: 101325, v.T: 840.11174886,
+        v.X("CR"): 7.11127487e-08,
+        v.X("CU"): 0.0167186,
+        v.X("FE"): 0.00083973,
+        v.X("MG"): 0.06076564,
+        v.X("MN"): 0.00065837,
+        v.X("SI"): 0.09677693,
+        v.X("TI"): 1.88395242e-10,
+        v.X("ZN"): 0.00048991,
+    }
+    eq = equilibrium(dbf, comps, phases, conds, calc_opts=dict(pdens=60))
+    stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
+    assert stable_phases == {"LIQUID", "FCC_A1", "ALFESI_BETA", "ALMNSI_ALPHA", "MG2SI"}
+    # component (alphabetical) order: AL, CR, CU, FE, MG, MN, SI, TI, ZN
+    expected_chempots = [-32552.373, -161719.44, -95882.234, -141119.8, -62706.455, -129909.47, -26732.757, -261540.58, -90886.89]
+    assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
+
+
+@pytest.mark.solver
+@select_database("crtiv_ghosh.tdb")
+def test_eq_underdetermined_multicomponent_condition_row(load_database):
+    """Underdetermined compositions correctly converge
+
+    The combination W(i) and MU(i) conditions leave mole fractions underdetermined by the conditions.
+    Designed to test solver behavior for mass residual on undetermined condition rows.
+    """
+    dbf = load_database()
+    comps = ["CR", "TI", "V", "VA"]
+    phases = list(dbf.phases.keys())
+    # Reference: single-phase BCC_A2 equilibrium prescribed by mole fractions
+    ref_conds = {v.N: 1, v.P: 101325, v.T: 1500, v.X("TI"): 0.2, v.X("V"): 0.3}
+    ref = equilibrium(dbf, comps, phases, ref_conds)
+    mu_v = float(ref.MU.sel(component="V").values.squeeze())
+    w_ti = v.get_mass_fractions({v.X("TI"): 0.2, v.X("V"): 0.3}, "CR", dbf)[v.W("TI")]
+    # The same state prescribed by W(TI) and MU(V)
+    conds = {v.N: 1, v.P: 101325, v.T: 1500, v.W("TI"): w_ti, v.MU("V"): mu_v}
+    eq = equilibrium(dbf, comps, phases, conds)
+    assert_allclose(eq.GM.values.flat[0], ref.GM.values.flat[0], rtol=1e-8)
+    # component order: CR, TI, V
+    assert_allclose(eq.X.values.squeeze()[0], [0.5, 0.2, 0.3], atol=1e-7)
+
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_mass_residual_rtol_not_too_loose(load_database):
+    """Point that is sensitive to mass residual tolerance."""
+    dbf = load_database()
+    comps = ["AL", "CU", "MG", "SI", "ZN", "VA"]
+    phases = list(dbf.phases.keys())
+    conds = {
+        v.N: 1, v.P: 101325, v.T: 500.0,
+        v.X("CU"): 0.08505275349420967,
+        v.X("MG"): 0.2916654140864986,
+        v.X("SI"): 0.5356749005415306,
+        v.X("ZN"): 0.06342988258993769,
+    }
+    eq = equilibrium(dbf, comps, phases, conds)
+    stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
+    assert stable_phases == {"ALCU_DELTA", "CUMGSI_TAU", "DIAMOND_A4", "HCP_A3", "MG2SI"}
+    assert_allclose(eq.GM.values.squeeze(), -25977.4458, atol=0.1)
+    # component (alphabetical) order: AL, CU, MG, SI, ZN
+    expected_chempots = [-32829.503, -41561.663, -48234.831, -10614.715, -29864.835]
+    assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
+
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_mass_residual_rtol_not_too_tight(load_database):
+    """Point that converges with MASS_RESIDUAL_RTOL=1e-6 but fails (NaN) at 1e-8."""
+    dbf = load_database()
+    comps = ["AL", "CU", "MG", "SI", "ZN", "VA"]
+    phases = list(dbf.phases.keys())
+    conds = {
+        v.N: 1, v.P: 101325, v.T: 600.0,
+        v.X("CU"): 0.32666666666666666,
+        v.X("MG"): 0.006666666666666672,
+        v.X("SI"): 0.006666666666666672,
+        v.X("ZN"): 0.006666666666666672,
+    }
+    eq = equilibrium(dbf, comps, phases, conds)
+    stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
+    assert stable_phases == {"ALCU_THETA", "BCC_B2", "DIAMOND_A4", "MG2SI"}
+    # component (alphabetical) order: AL, CU, MG, SI, ZN
+    expected_chempots = [-21937.529, -62341.746, -52538.422, -13847.333, -32543.343]
+    assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
