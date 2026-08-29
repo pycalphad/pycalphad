@@ -1320,3 +1320,27 @@ def test_eq_issue641_unstable_compset_jitter_does_not_block_convergence(load_dat
     # component (alphabetical) order: AL, CR, CU, FE, MG, MN, SI, TI, ZN
     expected_chempots = [-32552.373, -161719.44, -95882.234, -141119.8, -62706.455, -129909.47, -26732.757, -261540.58, -90886.89]
     assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
+
+
+@pytest.mark.solver
+@select_database("crtiv_ghosh.tdb")
+def test_eq_underdetermined_multicomponent_condition_row(load_database):
+    """Underdetermined compositions correctly converge
+
+    The combination W(i) and MU(i) conditions leave mole fractions underdetermined by the conditions.
+    Designed to test solver behavior for mass residual on undetermined condition rows.
+    """
+    dbf = load_database()
+    comps = ["CR", "TI", "V", "VA"]
+    phases = list(dbf.phases.keys())
+    # Reference: single-phase BCC_A2 equilibrium prescribed by mole fractions
+    ref_conds = {v.N: 1, v.P: 101325, v.T: 1500, v.X("TI"): 0.2, v.X("V"): 0.3}
+    ref = equilibrium(dbf, comps, phases, ref_conds)
+    mu_v = float(ref.MU.sel(component="V").values.squeeze())
+    w_ti = v.get_mass_fractions({v.X("TI"): 0.2, v.X("V"): 0.3}, "CR", dbf)[v.W("TI")]
+    # The same state prescribed by W(TI) and MU(V)
+    conds = {v.N: 1, v.P: 101325, v.T: 1500, v.W("TI"): w_ti, v.MU("V"): mu_v}
+    eq = equilibrium(dbf, comps, phases, conds)
+    assert_allclose(eq.GM.values.flat[0], ref.GM.values.flat[0], rtol=1e-8)
+    # component order: CR, TI, V
+    assert_allclose(eq.X.values.squeeze()[0], [0.5, 0.2, 0.3], atol=1e-7)
