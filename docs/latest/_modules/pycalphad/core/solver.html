@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.solver - pycalphad 0.11.3.dev17+g2c9e5e90a documentation</title>
+        <title>pycalphad.core.solver - pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev17+g2c9e5e90a documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev17+g2c9e5e90a documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -415,7 +415,7 @@
                     <span class="n">denominator_idx</span> <span class="o">=</span> <span class="n">cond</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cond</span><span class="o">.</span><span class="n">denominator</span><span class="p">)</span>
                     <span class="n">coefs</span><span class="p">[</span><span class="n">denominator_idx</span><span class="p">]</span> <span class="o">-=</span> <span class="n">value</span>
                 <span class="n">prescribed_mole_fraction_coefficients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
-        <span class="n">prescribed_mole_fraction_coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">prescribed_mole_fraction_coefficients</span><span class="p">)</span>
+        <span class="n">prescribed_mole_fraction_coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prescribed_mole_fraction_coefficients</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_components</span><span class="p">)</span>
         <span class="n">prescribed_mole_fraction_rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prescribed_mole_fraction_rhs</span><span class="p">)</span>
         <span class="n">prescribed_system_amount</span> <span class="o">=</span> <span class="n">conditions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'N'</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">fixed_chemical_potential_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nonvacant_elements</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)[</span><span class="mi">3</span><span class="p">:])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'MU_'</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
@@ -539,7 +539,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=38a9d55a"></script>
+</div><script src="../../../_static/documentation_options.js?v=d329a79e"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
