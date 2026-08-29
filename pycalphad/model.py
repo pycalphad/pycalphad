@@ -707,7 +707,7 @@ class Model(object):
         # chemical groups use a Toop-type approximation.
         kohler_filter = _kohler_filter(phase.model_hints['chemical_groups'], i, j)
         kohler_correction = S.Zero
-        active_subl_comps = phase.constituents[sublattice_index].intersection(self.components)
+        active_subl_comps = sorted(phase.constituents[sublattice_index].intersection(self.components))
         for k in filter(kohler_filter, active_subl_comps):
             kohler_correction += v.Y(self.phase_name, sublattice_index, k)
         return 1 -  kohler_correction
