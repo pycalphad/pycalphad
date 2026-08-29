@@ -1349,22 +1349,23 @@ def test_eq_underdetermined_multicomponent_condition_row(load_database):
 @pytest.mark.solver
 @select_database("COST507.tdb")
 def test_eq_mass_residual_rtol_not_too_loose(load_database):
-    """Point that fails to converge (NaN) with MASS_RESIDUAL_RTOL=1e-4 but converges at 1e-6."""
+    """Point that is sensitive to mass residual tolerance."""
     dbf = load_database()
     comps = ["AL", "CU", "MG", "SI", "ZN", "VA"]
     phases = list(dbf.phases.keys())
     conds = {
-        v.N: 1, v.P: 101325, v.T: 400.0,
-        v.X("CU"): 0.3526024393972598,
-        v.X("MG"): 0.07358429780236979,
-        v.X("SI"): 0.14339010792962312,
-        v.X("ZN"): 0.1139633801578363,
+        v.N: 1, v.P: 101325, v.T: 500.0,
+        v.X("CU"): 0.08505275349420967,
+        v.X("MG"): 0.2916654140864986,
+        v.X("SI"): 0.5356749005415306,
+        v.X("ZN"): 0.06342988258993769,
     }
     eq = equilibrium(dbf, comps, phases, conds)
     stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
-    assert stable_phases == {"ALCU_ETA", "DIAMOND_A4", "HCP_A3", "MG2SI"}
+    assert stable_phases == {"ALCU_DELTA", "CUMGSI_TAU", "DIAMOND_A4", "HCP_A3", "MG2SI"}
+    assert_allclose(eq.GM.values.squeeze(), -25977.4458, atol=0.1)
     # component (alphabetical) order: AL, CU, MG, SI, ZN
-    expected_chempots = [-20215.249, -44530.959, -44426.559, -7850.7463, -19444.182]
+    expected_chempots = [-32829.503, -41561.663, -48234.831, -10614.715, -29864.835]
     assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
 
 
