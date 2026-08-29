@@ -1322,6 +1322,75 @@ def test_eq_issue641_unstable_compset_jitter_does_not_block_convergence(load_dat
     assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
 
 
+@pytest.mark.solver
+@select_database("crtiv_ghosh.tdb")
+def test_eq_underdetermined_multicomponent_condition_row(load_database):
+    """Underdetermined compositions correctly converge
+
+    The combination W(i) and MU(i) conditions leave mole fractions underdetermined by the conditions.
+    Designed to test solver behavior for mass residual on undetermined condition rows.
+    """
+    dbf = load_database()
+    comps = ["CR", "TI", "V", "VA"]
+    phases = list(dbf.phases.keys())
+    # Reference: single-phase BCC_A2 equilibrium prescribed by mole fractions
+    ref_conds = {v.N: 1, v.P: 101325, v.T: 1500, v.X("TI"): 0.2, v.X("V"): 0.3}
+    ref = equilibrium(dbf, comps, phases, ref_conds)
+    mu_v = float(ref.MU.sel(component="V").values.squeeze())
+    w_ti = v.get_mass_fractions({v.X("TI"): 0.2, v.X("V"): 0.3}, "CR", dbf)[v.W("TI")]
+    # The same state prescribed by W(TI) and MU(V)
+    conds = {v.N: 1, v.P: 101325, v.T: 1500, v.W("TI"): w_ti, v.MU("V"): mu_v}
+    eq = equilibrium(dbf, comps, phases, conds)
+    assert_allclose(eq.GM.values.flat[0], ref.GM.values.flat[0], rtol=1e-8)
+    # component order: CR, TI, V
+    assert_allclose(eq.X.values.squeeze()[0], [0.5, 0.2, 0.3], atol=1e-7)
+
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_mass_residual_rtol_not_too_loose(load_database):
+    """Point that is sensitive to mass residual tolerance."""
+    dbf = load_database()
+    comps = ["AL", "CU", "MG", "SI", "ZN", "VA"]
+    phases = list(dbf.phases.keys())
+    conds = {
+        v.N: 1, v.P: 101325, v.T: 500.0,
+        v.X("CU"): 0.08505275349420967,
+        v.X("MG"): 0.2916654140864986,
+        v.X("SI"): 0.5356749005415306,
+        v.X("ZN"): 0.06342988258993769,
+    }
+    eq = equilibrium(dbf, comps, phases, conds)
+    stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
+    assert stable_phases == {"ALCU_DELTA", "CUMGSI_TAU", "DIAMOND_A4", "HCP_A3", "MG2SI"}
+    assert_allclose(eq.GM.values.squeeze(), -25977.4458, atol=0.1)
+    # component (alphabetical) order: AL, CU, MG, SI, ZN
+    expected_chempots = [-32829.503, -41561.663, -48234.831, -10614.715, -29864.835]
+    assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
+
+
+@pytest.mark.solver
+@select_database("COST507.tdb")
+def test_eq_mass_residual_rtol_not_too_tight(load_database):
+    """Point that converges with MASS_RESIDUAL_RTOL=1e-6 but fails (NaN) at 1e-8."""
+    dbf = load_database()
+    comps = ["AL", "CU", "MG", "SI", "ZN", "VA"]
+    phases = list(dbf.phases.keys())
+    conds = {
+        v.N: 1, v.P: 101325, v.T: 600.0,
+        v.X("CU"): 0.32666666666666666,
+        v.X("MG"): 0.006666666666666672,
+        v.X("SI"): 0.006666666666666672,
+        v.X("ZN"): 0.006666666666666672,
+    }
+    eq = equilibrium(dbf, comps, phases, conds)
+    stable_phases = set(np.unique(eq.Phase.values.squeeze())) - {""}
+    assert stable_phases == {"ALCU_THETA", "BCC_B2", "DIAMOND_A4", "MG2SI"}
+    # component (alphabetical) order: AL, CU, MG, SI, ZN
+    expected_chempots = [-21937.529, -62341.746, -52538.422, -13847.333, -32543.343]
+    assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
+
+
 # HALITE_B1 and its Ti-V-O parameters extracted from HfNbTaTiVZrO.tdb.
 # The real parameter values matter: with dummy G parameters the minimizer
 # never wanders toward the all-vacancy corner that this database exercises.
