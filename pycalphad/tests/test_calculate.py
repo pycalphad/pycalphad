@@ -251,72 +251,61 @@ def test_charged_infeasible_minimum_norm():
     assert np.any(np.logical_and(output[:, 1] > 0.25, output[:, 1] < 0.35))
 
 
-CORUNDUM_VA_TDB = """
-TYPE_DEFINITION % SEQ * !
-
-ELEMENT /-   ELECTRON_GAS              0.0 0.0 0.0 !
-ELEMENT VA   VACUUM                    0.0 0.0 0.0 !
-ELEMENT O    1/2_MOLE_O2(G)            0.0 0.0 0.0 !
-ELEMENT TI   HCP_A3                    0.0 0.0 0.0 !
-ELEMENT V    BCC_A2                    0.0 0.0 0.0 !
-
-SPECIES O-2  O1.0/-2 !
-SPECIES TI+3 TI1.0/+3 !
-SPECIES V+3  V1.0/+3 !
-SPECIES V+4  V1.0/+4 !
-
-PHASE CORUNDUM_D51:I %  2 2.0 3.0 !
-CONSTITUENT CORUNDUM_D51:I :TI+3,V+3,V+4,VA:O-2: !
-
-PARAMETER G(CORUNDUM_D51,TI+3:O-2;0) 298.15 -1000000; 6000 N !
-PARAMETER G(CORUNDUM_D51,V+3:O-2;0)  298.15 -1000000; 6000 N !
-PARAMETER G(CORUNDUM_D51,V+4:O-2;0)  298.15 -1000000; 6000 N !
-PARAMETER G(CORUNDUM_D51,VA:O-2;0)   298.15 -1000000; 6000 N !
-"""
-
-
-def test_charged_phase_with_va_and_multiple_cation_charges():
+@select_database("halite_tivo.tdb")
+def test_charged_phase_with_va_and_multiple_cation_charges(load_database):
     """calculate generates feasible points when VA and multiple charged cations mix on a sublattice.
 
-    Species sort order (TI+3 < V+3 < V+4 < VA) differs from the site fraction
-    order used for points columns (TI_POS3 < VA < V_POS3 < V_POS4), so charges
-    assigned by species order ended up on the wrong columns and the sampled
-    pseudo-endmembers violated charge balance, tripping the feasibility assert
-    in _sample_phase_constitution.
+    Species sort order on the cation sublattice (... V+2 < V+3 < VA) differs
+    from the site fraction order used for points columns (... VA < V_POS2 <
+    V_POS3), so charges assigned by species order ended up on the wrong columns
+    and the sampled pseudo-endmembers violated charge balance, tripping the
+    feasibility assert in _sample_phase_constitution.
     """
-    dbf = Database(CORUNDUM_VA_TDB)
-    # Site fraction (column) order: TI_POS3, VA, V_POS3, V_POS4 | O_NEG2
-    constraint_jac = np.array([[1, 1, 1, 1, 0],
-                               [0, 0, 0, 0, 1],
-                               [2*3, 0, 2*3, 2*4, 3*-2]])
+    dbf = load_database()
+    # Site fraction (column) order: TI, TI_POS2, TI_POS3, V, VA, V_POS2, V_POS3 | O_NEG2, VA
+    constraint_jac = np.array([[1, 1, 1, 1, 1, 1, 1, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 1, 1],
+                               [0, 2, 3, 0, 0, 2, 3, -2, 0]])
     constraint_rhs = np.array([1, 1, 0])
-    res = calculate(dbf, ['TI', 'V', 'O', 'VA'], 'CORUNDUM_D51', T=873.15, P=101325, N=1, pdens=10)
+    res = calculate(dbf, ['TI', 'V', 'O', 'VA'], 'HALITE_B1', T=873.15, P=101325, N=1, pdens=10)
     output = np.squeeze(res.Y.values)
     assert output.shape[0] > 0
     cons_infeasibility = np.max(np.abs(constraint_jac.dot(output.T).T - constraint_rhs))
     assert cons_infeasibility < 1e-10
 
 
-def test_phase_local_conditions_charged_phase():
+@select_database("halite_tivo.tdb")
+def test_phase_local_conditions_charged_phase(load_database):
     "Phase-local mole fraction conditions combine correctly with charge balance constraints."
-    dbf = Database(CORUNDUM_VA_TDB)
+    dbf = load_database()
     comps = ['TI', 'V', 'O', 'VA']
-    # X(O) is accessible in [0.6, 2/3] for this phase (cation vacancies increase X(O))
-    res = calculate(dbf, comps, 'CORUNDUM_D51', T=873.15, P=101325, N=1, pdens=10,
-                    conditions={v.X('CORUNDUM_D51', 'O'): 0.62})
+    # X(O) is accessible in [0, 0.6] for this phase; the upper bound comes from
+    # a fully occupied anion sublattice charge-balanced by +3 cations with
+    # vacancies on the remaining cation sites: (TI+3 2/3, VA 1/3)(O-2)
+    res = calculate(dbf, comps, 'HALITE_B1', T=873.15, P=101325, N=1, pdens=10,
+                    conditions={v.X('HALITE_B1', 'O'): 0.55})
     x_o = res.X.sel(component='O').values
     x_o = x_o[~np.isnan(x_o)]
     assert x_o.size > 0
-    assert_allclose(x_o, 0.62)
+    assert_allclose(x_o, 0.55)
 
 
-def test_phase_local_conditions_infeasible_charged_phase():
-    "Infeasible phase-local conditions produce no valid points instead of raising."
-    dbf = Database(CORUNDUM_VA_TDB)
-    comps = ['TI', 'V', 'O', 'VA']
+@select_database("al2o3_nd2o3_zro2.tdb")
+def test_phase_local_conditions_infeasible_charged_phase(load_database):
+    """Infeasible phase-local conditions produce no valid points instead of raising.
+
+    Needs a phase whose sublattices cannot all be emptied of atoms: with
+    vacancies available on every sublattice, the zero-atom configuration
+    trivially satisfies any phase-local mole fraction constraint and no
+    condition is linearly infeasible. FLUO (AL+3,ND+3,ZR+4)2(O-2,VA)4 has no
+    vacancies on its cation sublattice, so X(O) is only accessible in
+    [0.6, 2/3].
+    """
+    dbf = load_database()
+    comps = ['AL', 'ND', 'ZR', 'O', 'VA']
     # X(O)=0.25 is outside the accessible range [0.6, 2/3] of this phase
-    res = calculate(dbf, comps, 'CORUNDUM_D51', T=873.15, P=101325, N=1, pdens=10,
-                    conditions={v.X('CORUNDUM_D51', 'O'): 0.25})
+    res = calculate(dbf, comps, 'FLUO', T=1500, P=101325, N=1, pdens=10,
+                    conditions={v.X('FLUO', 'O'): 0.25})
     assert np.all(np.isnan(res.GM.values))
 
 

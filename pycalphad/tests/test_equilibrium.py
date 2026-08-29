@@ -1391,87 +1391,8 @@ def test_eq_mass_residual_rtol_not_too_tight(load_database):
     assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
 
 
-# HALITE_B1 and its Ti-V-O parameters extracted from HfNbTaTiVZrO.tdb.
-# The real parameter values matter: with dummy G parameters the minimizer
-# never wanders toward the all-vacancy corner that this database exercises.
-HALITE_TIVO_TDB = """
-ELEMENT /- ELECTRON_GAS 0.0 0.0 0.0 !
-ELEMENT O 1/2_MOLE_O2(G) 15.999 4341.0 102.52 !
-ELEMENT TI HCP_A3 47.88 4824.0 30.72 !
-ELEMENT V BCC_A2 50.9415 4507.0 30.89 !
-ELEMENT VA VACUUM 0.0 0.0 0.0 !
-
-SPECIES O-2 O1.0/-2 !
-SPECIES TI+2 TI1.0/+2 !
-SPECIES TI+3 TI1.0/+3 !
-SPECIES V+2 V1.0/+2 !
-SPECIES V+3 V1.0/+3 !
-
-FUNCTION GFCCTI 298.15 6000.0+GHSERTI-0.1*T; 4000.0 N !
-FUNCTION GFCCVV 298.15 7500.0+GHSERVV+1.7*T; 4000.0 N !
-FUNCTION GHSEROO 298.15 -3480.87+6.61845833E-07*T**(3)-25.503038*T
-  -0.005098875*T**(2)-38365.0*T**(-1)-11.1355*T*LOG(T); 1000.0 Y -6568.763
-  +6.781E-09*T**(3)+12.659879*T-0.0005957975*T**(2)+262905.0*T**(-1)
-  -16.8138*T*LOG(T); 3300.0 Y -13986.728+1.0721E-08*T**(3)+31.259624*T
-  -0.000425243*T**(2)+4383200.0*T**(-1)-18.9536*T*LOG(T); 6000.0 N !
-FUNCTION GHSERTI 298.15 -8059.921+1.06716E-07*T**(3)+133.615208*T
-  -0.004777975*T**(2)+72636.0*T**(-1)-23.9933*T*LOG(T); 900.0 Y -7811.815
-  -9.0876E-08*T**(3)+132.988068*T-0.0042033*T**(2)+42680.0*T**(-1)
-  -23.9887*T*LOG(T); 1155.0 Y 908.837+2.02715E-07*T**(3)+66.976538*T
-  -0.0081465*T**(2)-1477660.0*T**(-1)-14.9466*T*LOG(T); 1941.0 Y -124526.786
-  -3.04747E-07*T**(3)+638.806871*T+0.008204849*T**(2)+36699805.0*T**(-1)
-  -87.2182461*T*LOG(T); 4000.0 N !
-FUNCTION GHSERVV 298.15 -7930.43+1.2175E-07*T**(3)+133.346053*T
-  -0.003098*T**(2)+69460.0*T**(-1)-24.134*T*LOG(T); 790.0 Y -7967.842
-  -25.9*T*LOG(T)-6.8E-07*T**(3)+143.291093*T+6.25E-05*T**(2); 2183.0 Y
-  -41689.864+321.140783*T+6.44389E+31*T**(-9)-47.43*T*LOG(T); 4000.0 N !
-FUNCTION GTI2O3 298.15 -1545045.776-5.93279345E-06*T**(3)+185.96227*T
-  -0.099958898*T**(2)-117799.056*T**(-1)-30.3934128*T*LOG(T); 470.0 Y
-  -1586585.8-1.53383348E-10*T**(3)+937.087*T-0.00173711312*T**(2)
-  +2395423.68*T**(-1)-147.673862*T*LOG(T); 2115.0 N !
-FUNCTION GTIO 298.15 -526988.0+179.303*T+GHSERTI-11.0*T*LOG(T)+GHSEROO;
-   6000.0 N !
-FUNCTION GV1O1 298.15 -452649.127+5.33969167E-11*T**(3)+334.032868*T
-  -0.00655714*T**(2)+818200.0*T**(-1)-52.91877*T*LOG(T); 2063.0 Y -459188.444
-  +454.230294*T-70.0*T*LOG(T); 5000.0 N !
-FUNCTION GV2O3 298.15 -1270647.05-1.81532333E-06*T**(3)+886.334178*T
-  +0.00933134*T**(2)+1722474.0*T**(-1)-144.3096*T*LOG(T); 2230.0 Y
-  -1310233.34+1037.18289*T-160.0*T*LOG(T); 5000.0 N !
-FUNCTION ZERO 298.15 0.0; 6000.0 N !
-
-TYPE_DEFINITION % SEQ * !
-DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
-DEFAULT_COMMAND DEFINE_SYSTEM_ELEMENT /- VA !
-
-PHASE HALITE_B1:I %  2 1.0 1.0 !
-CONSTITUENT HALITE_B1:I :TI, TI+2, TI+3, V, V+2, V+3, VA:O-2, VA: !
-
-PARAMETER G(HALITE_B1,VA:O-2;0) 0.01 ZERO; , N !
-PARAMETER G(HALITE_B1,TI:VA;0) 0.01 GFCCTI; , N !
-PARAMETER G(HALITE_B1,TI+2:VA;0) 0.01 0.5*GFCCTI+0.5*GTIO; , N !
-PARAMETER G(HALITE_B1,TI+3:VA;0) 0.01 GFCCTI; , N !
-PARAMETER L(HALITE_B1,TI,VA:VA;0) 0.01 20.0*T; , N !
-PARAMETER G(HALITE_B1,V:VA;0) 0.01 GFCCVV; , N !
-PARAMETER G(HALITE_B1,V+2:VA;0) 0.01 GV1O1+30.0*T; , N !
-PARAMETER G(HALITE_B1,V+3:VA;0) 0.01 10956.0+0.5*GV2O3+30.0*T; , N !
-PARAMETER G(HALITE_B1,VA:VA;0) 0.01 30.0*T; , N !
-PARAMETER G(HALITE_B1,TI:O-2;0) 0.01 0.5*GFCCTI+0.5*GTIO; , N !
-PARAMETER G(HALITE_B1,TI+2:O-2;0) 0.01 GTIO; , N !
-PARAMETER G(HALITE_B1,TI+3:O-2;0) 0.01 158885.45+0.5*GTI2O3+15.7134*T; , N !
-PARAMETER L(HALITE_B1,TI,TI+2:O-2;0) 0.01 -76227.0+18.1321*T; , N !
-PARAMETER L(HALITE_B1,TI+2,VA:O-2;0) 0.01 -339888.0+7.3928*T; , N !
-PARAMETER L(HALITE_B1,TI+3:O-2,VA;0) 0.01 -436076.0+42.0674*T; , N !
-PARAMETER L(HALITE_B1,TI+3,VA:O-2;0) 0.01 -471462.0-9.8944*T; , N !
-PARAMETER G(HALITE_B1,V:O-2;0) 0.01 GFCCVV-30.0*T; , N !
-PARAMETER G(HALITE_B1,V+2:O-2;0) 0.01 GV1O1; , N !
-PARAMETER G(HALITE_B1,V+3:O-2;0) 0.01 10956.0+0.5*GV2O3; , N !
-PARAMETER L(HALITE_B1,V+2,V+3:O-2;0) 0.01 -7958.4; , N !
-PARAMETER L(HALITE_B1,V+3:O-2,VA;0) 0.01 38002.0; , N !
-PARAMETER L(HALITE_B1,V,V+2:O-2,VA;0) 0.01 37205.229; , N !
-"""
-
-
-def test_eq_charged_phase_negative_phase_amount_zero_division():
+@select_database("halite_tivo.tdb")
+def test_eq_charged_phase_negative_phase_amount_zero_division(load_database):
     """A lone stable ionic compset driven to a tiny negative amount must not crash the minimizer.
 
     In advance_state, the allowable phase-amount step assumed every free stable
@@ -1487,7 +1408,7 @@ def test_eq_charged_phase_negative_phase_amount_zero_division():
     that avoids the crash).
     """
     from pycalphad import Workspace
-    dbf = Database(HALITE_TIVO_TDB)
+    dbf = load_database()
     comps = ["TI", "V", "O", "VA"]
     conds = {v.T: 873.15, v.P: 101325, v.N: 1, v.X("O"): 0.25, v.X("TI"): 0.375}
     wks = Workspace(dbf, comps, ["HALITE_B1"], conditions=conds)
