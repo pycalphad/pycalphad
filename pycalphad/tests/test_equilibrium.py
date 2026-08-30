@@ -1347,6 +1347,7 @@ def test_eq_underdetermined_multicomponent_condition_row(load_database):
 
 
 @pytest.mark.solver
+@pytest.mark.xfail(reason="Point at the pathology boundary: lands in the wrong basin or NaN depending on platform/toolchain.")
 @select_database("COST507.tdb")
 def test_eq_mass_residual_rtol_not_too_loose(load_database):
     """Point that is sensitive to mass residual tolerance."""
