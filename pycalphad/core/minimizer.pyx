@@ -959,28 +959,44 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
     # 1. Step in phase amounts
     # Determine largest allowable step size such that the smallest phase amount is zero
     phase_amt_step_size = step_size
+    compset_indices_to_remove = set()
     for i in range(state.free_stable_compset_indices.shape[0]):
         compset_idx = state.free_stable_compset_indices[i]
+        if state.phase_amt[compset_idx] <= MIN_PHASE_AMOUNT and equilibrium_soln[soln_index_offset + i] < 0.0:
+            # The compset already sits at (or, through floating point rounding,
+            # below) the amount floor and the solution is pushing it further
+            # down: it is leaving the active set. Its allowable step would be
+            # zero or negative, stalling (or reversing) every phase amount
+            # update, so eject it below instead of clamping the step.
+            compset_indices_to_remove.add(compset_idx)
+            continue
         if state.phase_amt[compset_idx] + equilibrium_soln[soln_index_offset + i] < MIN_PHASE_AMOUNT:
-            # Assuming:
-            # 1. NP>0 (the phase would not be a free_stable_compset if not) and
-            # 2. delta_NP<0 (must be true if assumption #1 is true and this condition is true)
-            # The largest allowable step size satisfies the equation: (NP + step_size * delta_NP = MIN_PHASE_AMOUNT)
+            # NP > MIN_PHASE_AMOUNT here (at-floor compsets are ejected above), so
+            # delta_NP < 0 and the largest allowable step size, satisfying the
+            # equation (NP + step_size * delta_NP = MIN_PHASE_AMOUNT), is positive.
             if abs(equilibrium_soln[soln_index_offset + i]) > MIN_PHASE_AMOUNT:
                 phase_amt_step_size = min(phase_amt_step_size, (MIN_PHASE_AMOUNT - state.phase_amt[compset_idx]) / equilibrium_soln[soln_index_offset + i])
-    # enforce a non-negative step size in case floating point precision near
-    # MIN_PHASE_AMOUNT causes phase_amt_step_size to be a negative step
-    phase_amt_step_size = max(phase_amt_step_size, 0.0)
+    if len(compset_indices_to_remove) == state.free_stable_compset_indices.shape[0]:
+        # Do not allow every free stable compset to leave the system; keep them
+        # at the amount floor instead.
+        compset_indices_to_remove = set()
     # Update the phase amounts using the largest allowable step size
     state.largest_phase_amt_change[0] = 0
     for i in range(state.free_stable_compset_indices.shape[0]):
         compset_idx = state.free_stable_compset_indices[i]
+        if compset_idx in compset_indices_to_remove:
+            state.phase_amt[compset_idx] = 0
+            state.times_compset_removed[compset_idx] += 1
+            continue
         state.phase_amt[compset_idx] += phase_amt_step_size * equilibrium_soln[soln_index_offset + i]
         if state.phase_amt[compset_idx] < MIN_PHASE_AMOUNT:
             # force non-zero, positive amounts to avoid divide by zero
             state.phase_amt[compset_idx] = MIN_PHASE_AMOUNT
         state.largest_phase_amt_change[0] = max(state.largest_phase_amt_change[0], abs(phase_amt_step_size * equilibrium_soln[soln_index_offset + i]))
     soln_index_offset += state.free_stable_compset_indices.shape[0]
+    if len(compset_indices_to_remove) > 0:
+        state.free_stable_compset_indices = np.array(sorted(set(state.free_stable_compset_indices) - compset_indices_to_remove), dtype=np.int32)
+        state.iterations_since_last_phase_change = 0
 
     # 2. Step in state variables
     state.largest_statevar_change[0] = 0
