@@ -1402,10 +1402,7 @@ def test_eq_charged_phase_negative_phase_amount_zero_division(load_database):
     amount. SystemState.recompute then skipped it (phase_amt > 0), giving
     system_amount == 0 exactly and nan mole fractions, and
     write_row_fixed_mole_fraction raised ZeroDivisionError dividing by the
-    system amount. Requires the real HALITE_B1 Ti-V-O parameters so the
-    minimizer visits the all-vacancy corner ((VA)1(VA)1 contains no atoms),
-    and the Workspace starting point (equilibrium() takes an iteration path
-    that avoids the crash).
+    system amount.
     """
     from pycalphad import Workspace
     dbf = load_database()
