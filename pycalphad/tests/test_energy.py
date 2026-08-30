@@ -777,6 +777,179 @@ def test_MQMQA_site_fraction_energy(load_database):
     assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.15384615384,1e-5)
 
 
+def _mqmqa_pair_fraction_star(mod, cation, anion, subs):
+    """Independently recompute the zeta-weighted pair fraction X*_{i/k} from the
+    quadruplet site fractions and coordination zeta, WITHOUT calling the model's
+    own ``_X_ik_star`` (which the B/H implementation uses). This gives the B/H
+    test an oracle independent of the code under test, so it validates the choice
+    of fraction -- not just the exponent wiring. Mirrors ``_n_ik_star`` /
+    ``_X_ik_star`` and Thermochimica ``dNsij`` (CompExcessGibbsEnergySUBG.f90:210).
+    """
+    def n_star(c, a):
+        total = 0.0
+        for (qa, qb, qx, qy) in mod._quadruplets:
+            yv = float(mod._X_ijkl(qa, qb, qx, qy).subs(subs))
+            total += yv * ((qa == c) + (qb == c)) * ((qx == a) + (qy == a))
+        return total / float(mod._zeta_ik(c, a))
+    return n_star(cation, anion) / sum(n_star(c, a) for (c, a) in mod._pairs)
+
+
+def _check_mqmqa_BH(dbf, comps, phase, template, const_array, term_pairs, subs_dict):
+    """Validate the Bragg-Williams (B/H) excess term for pycalphad#403.
+
+    B/H contributes its full value ``g = L * mixing_term`` to the energy, with NO
+    G/Q quadruplet wrapper: Thermochimica distributes B/H through a separate loop
+    (CompExcessGibbsEnergySUBG.f90:591-631) and summing n_l*mu_l^xs over it
+    collapses to dGex (verified end-to-end against a compiled-Thermochimica oracle,
+    see test_MQMQA_bragg_williams_oracle_vs_thermochimica). So for the two term
+    pairs (c1,a1),(c2,a2)::
+
+        E_B = L * X*_{c1/a1}^(1+p) * X*_{c2/a2}^(1+q)
+                / (X*_{c1/a1} + X*_{c2/a2})^(1+p+q)
+
+    where X*_{i/k} is recomputed independently of the implementation. This pins
+    the absolute value (and is a regression guard against re-introducing the
+    G/Q wrapper, which would scale E_B by ~0.5*X_ijkl).
+    """
+    import copy
+    from tinydb import Query
+    (c1, a1), (c2, a2) = term_pairs
+    L = 5000.0
+
+    def one_param_db(mixing_code, exponents, value=L):
+        d = copy.deepcopy(dbf)
+        prm = dict(template)
+        prm.update(constituent_array=const_array, mixing_code=mixing_code,
+                   exponents=list(exponents), parameter=value,
+                   additional_mixing_constituent=v.Species(None), additional_mixing_exponent=0)
+        d._parameters.remove(Query().parameter_type == "MQMX")
+        d._parameters.insert(prm)
+        return d
+
+    def excess(db):
+        return float(ModelMQMQA(db, comps, phase).excess_mixing_energy(db).subs(subs_dict))
+
+    # Pair fractions computed independently of the implementation's _X_ik_star.
+    mod = ModelMQMQA(one_param_db("B", [0, 0, 0, 0]), comps, phase)
+    X1 = _mqmqa_pair_fraction_star(mod, c1, a1, subs_dict)
+    X2 = _mqmqa_pair_fraction_star(mod, c2, a2, subs_dict)
+    assert 0.0 < X1 < 1.0 and 0.0 < X2 < 1.0
+
+    # Absolute value of the B term for several exponents.
+    for (p, q) in [(0, 0), (1, 0), (1, 2)]:
+        expected = L * X1 ** (1 + p) * X2 ** (1 + q) / (X1 + X2) ** (1 + p + q)
+        assert np.isclose(excess(one_param_db("B", [p, q, 0, 0])), expected, rtol=1e-9), (p, q)
+
+    # B and H must evaluate identically (Thermochimica uses the same branch).
+    assert np.isclose(excess(one_param_db("B", [1, 0, 0, 0])),
+                      excess(one_param_db("H", [1, 0, 0, 0])), rtol=1e-12)
+    # L = 0 -> exactly zero excess contribution.
+    assert excess(one_param_db("B", [1, 0, 0, 0], 0.0)) == 0.0
+
+
+@select_database("Viitala.dat")
+def test_MQMQA_bragg_williams_BH_cation(load_database):
+    """B/H excess for the cation-mixing arm (A!=B, X==Y); Viitala (all-CL anion)."""
+    from tinydb import Query
+    dbf = load_database()
+    CU1 = v.Species("CU+1.0", constituents={"CU": 1.0}, charge=1)
+    CU2 = v.Species("CU+2.0", constituents={"CU": 1.0}, charge=2)
+    ZN  = v.Species("ZN+2.0", constituents={"ZN": 1.0}, charge=2)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    CL  = v.Species("CL-1.0", constituents={"CL": 1.0}, charge=-1)
+    comps, phase = ["CU", "ZN", "FE", "CL"], "LIQUIDSOLN"
+
+    # An existing cation-mixing pair, used as template so the stored species
+    # ordering is exactly the loader's.
+    template = next(pr for pr in dbf._parameters.search(Query().parameter_type == "MQMX")
+                    if pr["constituent_array"][0][0] != pr["constituent_array"][0][1]
+                    and pr["constituent_array"][1][0] == pr["constituent_array"][1][1])
+    (A, B), (X, Y) = template["constituent_array"]
+
+    mod0 = ModelMQMQA(dbf, comps, phase)
+    subs_dict = {  # valid Viitala site-fraction point (from test_MQMQA_site_fraction_energy)
+        mod0._X_ijkl(CU1, CU1, CL, CL): 3.6411159329213960E-002,
+        mod0._X_ijkl(FE3, FE3, CL, CL): 0.19187702069719115,
+        mod0._X_ijkl(FE2, FE2, CL, CL): 6.6706457325108374E-004,
+        mod0._X_ijkl(CU2, CU2, CL, CL): 7.4480630453876051E-004,
+        mod0._X_ijkl(ZN, ZN, CL, CL): 6.3597725840616029E-002,
+        mod0._X_ijkl(CU1, FE3, CL, CL): 0.26054793342102595,
+        mod0._X_ijkl(CU1, CU2, CL, CL): 1.1687135533100841E-002,
+        mod0._X_ijkl(CU2, FE3, CL, CL): 2.3762278972894308E-002,
+        mod0._X_ijkl(CU1, FE2, CL, CL): 1.1060387601365204E-002,
+        mod0._X_ijkl(FE2, FE3, CL, CL): 2.5177769772622496E-002,
+        mod0._X_ijkl(CU1, ZN, CL, CL): 9.3472468895210881E-002,
+        mod0._X_ijkl(CU2, FE2, CL, CL): 1.6621696354116697E-003,
+        mod0._X_ijkl(FE3, ZN, CL, CL): 0.25634822067819923,
+        mod0._X_ijkl(CU2, ZN, CL, CL): 1.1808559140386612E-002,
+        mod0._X_ijkl(FE2, ZN, CL, CL): 1.1175299604972171E-002,
+        v.T: 800,
+    }
+    # cation mixing: term pairs are (A,X) and (B,X) since Y == X
+    _check_mqmqa_BH(dbf, comps, phase, template, ((A, B), (X, X)),
+                    term_pairs=((A, X), (B, X)), subs_dict=subs_dict)
+
+
+@select_database("Shishin_Fe-Sb-O-S_slag.dat")
+def test_MQMQA_bragg_williams_BH_anion(load_database):
+    """B/H excess for the anion-mixing arm (A==B, X!=Y); Shishin slag (O/S anions)."""
+    from tinydb import Query
+    dbf = load_database()
+    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
+    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
+    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
+    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
+    comps, phase = ["FE", "SB", "O", "S"], "SLAG-LIQ"
+
+    template = dbf._parameters.search(Query().parameter_type == "MQMX")[0]
+    mod0 = ModelMQMQA(dbf, comps, phase)
+    subs_dict = {  # Thermochimica site fractions (from test_MQMQA_SUBQ_Q_mixing_1000K)
+        mod0._X_ijkl(FE2, FE2, O, O): 1.1862E-32,
+        mod0._X_ijkl(FE3, FE3, O, O): 5.5017E-03,
+        mod0._X_ijkl(SB3, SB3, O, O): 0.26528,
+        mod0._X_ijkl(FE2, FE3, O, O): 6.6681E-17,
+        mod0._X_ijkl(FE2, SB3, O, O): 1.3130E-16,
+        mod0._X_ijkl(FE3, SB3, O, O): 7.6407E-02,
+        mod0._X_ijkl(FE2, FE2, S, S): 3.1247E-29,
+        mod0._X_ijkl(FE3, FE3, S, S): 0.26528,
+        mod0._X_ijkl(SB3, SB3, S, S): 5.5017E-03,
+        mod0._X_ijkl(FE2, FE3, S, S): 6.7388E-15,
+        mod0._X_ijkl(FE2, SB3, S, S): 9.7047E-16,
+        mod0._X_ijkl(FE3, SB3, S, S): 7.6407E-02,
+        mod0._X_ijkl(FE2, FE2, O, S): 8.8748E-31,
+        mod0._X_ijkl(FE3, FE3, O, S): 7.6407E-02,
+        mod0._X_ijkl(SB3, SB3, O, S): 7.6407E-02,
+        mod0._X_ijkl(FE2, FE3, O, S): 1.1446E-15,
+        mod0._X_ijkl(FE2, SB3, O, S): 6.0950E-16,
+        mod0._X_ijkl(FE3, SB3, O, S): 0.15281,
+        v.T: 1000.0,
+    }
+    # anion mixing: A==B==FE3, term pairs are (FE3,O) and (FE3,S)
+    _check_mqmqa_BH(dbf, comps, phase, template, ((FE3, FE3), (O, S)),
+                    term_pairs=((FE3, O), (FE3, S)), subs_dict=subs_dict)
+
+
+@select_database("Viitala.dat")
+def test_MQMQA_bragg_williams_ternary_not_implemented(load_database):
+    """A B/H parameter carrying an additional mixing constituent must raise:
+    Thermochimica applies no ternary factor to B/H, so the form is unvalidated."""
+    import copy
+    from tinydb import Query
+    dbf = copy.deepcopy(load_database())  # don't mutate the shared fixture database
+    CU2 = v.Species("CU+2.0", constituents={"CU": 1.0}, charge=2)
+    template = next(pr for pr in dbf._parameters.search(Query().parameter_type == "MQMX")
+                    if pr["constituent_array"][0][0] != pr["constituent_array"][0][1])
+    prm = dict(template)
+    prm.update(mixing_code="B", exponents=[0, 0, 0, 0],
+               additional_mixing_constituent=CU2, additional_mixing_exponent=1)
+    dbf._parameters.remove(Query().parameter_type == "MQMX")
+    dbf._parameters.insert(prm)
+    with pytest.raises(NotImplementedError):
+        ModelMQMQA(dbf, ["CU", "ZN", "FE", "CL"], "LIQUIDSOLN")
+
+
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     dbf = load_database()
@@ -821,6 +994,49 @@ def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     assert np.isclose(float(mod.moles("SB").subs(subs_dict)), 0.2, 1e-5)
     assert np.isclose(float(mod.moles("O").subs(subs_dict)), 0.3, 1e-5)
     assert np.isclose(float(mod.moles("S").subs(subs_dict)), 0.3, 1e-5)
+
+
+@select_database("Shishin_Fe-Sb-O-S_slag-Bvariant.dat")
+def test_MQMQA_bragg_williams_anion_oracle_vs_thermochimica(load_database):
+    """Anion-arm Bragg-Williams (code B) validated against compiled Thermochimica (pycalphad#403).
+
+    This database is Shishin_Fe-Sb-O-S_slag.dat with one excess line changed to an
+    anion-mixing B parameter on (Fe3+,Fe3+)/(O,S): `G 1 1 4 5` -> `B 2 2 4 5` (only that
+    line differs). Running Thermochimica (ORNL-CEES, master) on phase Slag-liq at
+    Fe0.2 Sb0.2 O0.3 S0.3 / 1000 K gives integral Gibbs energy -1.31637E5 J at the
+    quadruplet fractions below; pycalphad reproduces it to <2e-7 relative. Companion to
+    the cation-arm oracle test_MQMQA_bragg_williams_oracle_vs_thermochimica.
+    """
+    dbf = load_database()
+    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
+    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
+    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
+    S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
+    mod = ModelMQMQA(dbf, ["FE", "SB", "O", "S"], "SLAG-LIQ")
+    subs_dict = {  # Thermochimica converged quadruplet fractions (anion-mixing B variant)
+        mod._X_ijkl(FE2, FE2, O, O): 3.030330e-32,
+        mod._X_ijkl(FE3, FE3, O, O): 4.638728e-03,
+        mod._X_ijkl(SB3, SB3, O, O): 2.793684e-01,
+        mod._X_ijkl(FE2, FE3, O, O): 1.972053e-16,
+        mod._X_ijkl(FE2, SB3, O, O): 4.339716e-16,
+        mod._X_ijkl(FE3, SB3, O, O): 7.199762e-02,
+        mod._X_ijkl(FE2, FE2, S, S): 6.627872e-29,
+        mod._X_ijkl(FE3, FE3, S, S): 2.793684e-01,
+        mod._X_ijkl(SB3, SB3, S, S): 4.638728e-03,
+        mod._X_ijkl(FE2, FE3, S, S): 2.029567e-14,
+        mod._X_ijkl(FE2, SB3, S, S): 2.615256e-15,
+        mod._X_ijkl(FE3, SB3, S, S): 7.199762e-02,
+        mod._X_ijkl(FE2, FE2, O, S): 2.834405e-30,
+        mod._X_ijkl(FE3, FE3, O, S): 7.199762e-02,
+        mod._X_ijkl(SB3, SB3, O, S): 7.199762e-02,
+        mod._X_ijkl(FE2, FE3, O, S): 4.001207e-15,
+        mod._X_ijkl(FE2, SB3, O, S): 2.130678e-15,
+        mod._X_ijkl(FE3, SB3, O, S): 1.439952e-01,
+        v.T: 1000.0,
+    }
+    check_energy(mod, subs_dict, -1.31637E+05, mode="sympy")  # Thermochimica result
+
 
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
 def test_MQMQA_SUBQ_Q_mixing_1000K_FACTSAGE(load_database):
