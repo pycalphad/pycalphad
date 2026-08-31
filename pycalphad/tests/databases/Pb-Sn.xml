@@ -1,0 +1,482 @@
+
+<database xmlns="http://calphad.org/thermml/v0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xi="http://www.w3.org/2001/XInclude" xsi:schemaLocation="http://calphad.org/thermml/v0 ../../schema/thermml-schema.xsd" name="" version="0.1.0">
+    <metadata>
+        <title>Pb-Sn</title>
+        <version>1.0</version>
+        <description>Generated from ChemSage DAT input 'Pb-Sn'.</description>
+        <license>unspecified</license>
+        <authors/>
+        <created>2025-04-01</created>
+        <revisions>
+            <revision>
+                <version>1.0</version>
+                <date>2025-04-01</date>
+                <author>ChemSage automated tests</author>
+                <description>Initial XML fixture generated from ChemSage DAT input 'Pb-Sn.dat' during an automated test run.</description>
+            </revision>
+        </revisions>
+        <references/>
+    </metadata>
+    <systemComponents>
+        <systemComponent symbol="Pb" refstate="" molarMass="207.2" h298="0" s298="0"/>
+        <systemComponent symbol="Sn" refstate="" molarMass="118.71" h298="0" s298="0"/>
+    </systemComponents>
+    <phases>
+        <phase xsi:type="CEFPhaseType" name="LIQUID" state="solid">
+            <description/>
+            <species>
+                <specie name="Pb" composition="Pb"/>
+                <specie name="Sn" composition="Sn"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Pb Sn" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Pb">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Pb"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Pb#F1}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Sn">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sn"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sn#F1}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Pb,Sn">
+                    <constituents>
+                        <site>
+                            <const species="Pb"/>
+                            <const species="Sn"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref/>
+                        <comment/>
+                        <expr rank="0">
+                            0
+                        </expr>
+                        <expr rank="1">
+                            0
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="FCC_A1" state="solid">
+            <description/>
+            <species>
+                <specie name="Pb" composition="Pb"/>
+                <specie name="Sn" composition="Sn"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Pb Sn" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Pb">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Pb"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Pb#F2}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Sn">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sn"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sn#F2}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Pb,Sn">
+                    <constituents>
+                        <site>
+                            <const species="Pb"/>
+                            <const species="Sn"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref/>
+                        <comment/>
+                        <expr rank="0">
+                            0
+                        </expr>
+                        <expr rank="1">
+                            0
+                        </expr>
+                        <expr rank="2">
+                            0
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="BCT_A5" state="solid">
+            <description/>
+            <species>
+                <specie name="Pb" composition="Pb"/>
+                <specie name="Sn" composition="Sn"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Pb Sn" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Pb">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Pb"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Pb#F3}</expr>
+                    </property>
+                </endmember>
+                <endmember name="Sn">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sn"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sn#F3}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+            <interactions>
+                <interaction name="Pb,Sn">
+                    <constituents>
+                        <site>
+                            <const species="Pb"/>
+                            <const species="Sn"/>
+                        </site>
+                    </constituents>
+                    <description/>
+                    <property xsi:type="L">
+                        <ref/>
+                        <comment/>
+                        <expr rank="0">
+                            0
+                        </expr>
+                        <expr rank="1">
+                            0
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Sn_liq" state="solid">
+            <description/>
+            <species>
+                <specie name="Sn" composition="Sn"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Sn" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Sn_liq">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sn"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sn#Sn_liq}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Pb_liq" state="solid">
+            <description/>
+            <species>
+                <specie name="Pb" composition="Pb"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Pb" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Pb_liq">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Pb"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Pb#Pb_liq}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Sn_BCT_A5" state="solid">
+            <description/>
+            <species>
+                <specie name="Sn" composition="Sn"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Sn" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Sn_BCT_A5">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sn"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sn#Sn_BCT_A5}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Pb_FCC_A1" state="solid">
+            <description/>
+            <species>
+                <specie name="Pb" composition="Pb"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Pb" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Pb_FCC_A1">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Pb"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Pb#Pb_FCC_A1}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+    </phases>
+    <globalExpressions>
+        <expression xsi:type="FunctionTypeExpr" name="Pb#F1">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="600.61">
+                -2977.961003287829+93.94956104099347*T-24.524223*T*LN(T)-3.6589e-3*T**2-2.4395e-7*T**3-6.0190e-19*T**7
+            </range>
+            <range low="600.61" high="1200">
+                -5677.958015741546+146.17604904473689*T-32.491396*T*LN(T)+1.5461e-3*T**2
+            </range>
+            <range low="1200" high="2100">
+                +9010.752594925125+45.071940373906436*T-18.964064*T*LN(T)-2.8829e-3*T**2+9.8144e-8*T**3-2.6968e6*T**(-1)
+            </range>
+            <range low="2100" high="2100.00001">
+                -5204.055888312971+127.72355996196731*T-29.6985525*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Pb#F2">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="600.61">
+                -7650.084769421149+101.70023995294116*T-24.524223*T*LN(T)-3.6589e-3*T**2-2.4395e-7*T**3
+            </range>
+            <range low="600.61" high="1200">
+                -10531.095758675485+154.24317953046975*T-32.491396*T*LN(T)+1.5461e-3*T**2+8.0545e25*T**(-9)
+            </range>
+            <range low="1200" high="2100">
+                +4157.614851991191+53.13907085963927*T-18.964064*T*LN(T)-2.8829e-3*T**2+9.8144e-8*T**3-2.6968e6*T**(-1)+8.0545e25*T**(-9)
+            </range>
+            <range low="2100" high="2100.00001">
+                -10057.183587186431+135.79065281942454*T-29.6985482*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Pb#F3">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="600.61">
+                -7161.085000421149+105.22023995294117*T-24.524223*T*LN(T)-3.6589e-3*T**2-2.4395e-7*T**3
+            </range>
+            <range low="600.61" high="1200">
+                -10042.095989675485+157.76317953046976*T-32.491396*T*LN(T)+1.5461e-3*T**2+8.0545e25*T**(-9)
+            </range>
+            <range low="1200" high="2100">
+                +4646.614620991189+56.65907085963928*T-18.964064*T*LN(T)-2.8829e-3*T**2+9.8144e-8*T**3-2.6968e6*T**(-1)+8.0545e25*T**(-9)
+            </range>
+            <range low="2100" high="6000">
+                -9568.183398186426+139.310651089486*T-29.698548*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Pb#Pb_FCC_A1">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="600.61">
+                -7650.08479923615+101.70024402270084*T-24.5242231*T*LN(T)-3.6589e-3*T**2-2.4395e-7*T**3
+            </range>
+            <range low="600.61" high="1200">
+                -10531.095668368482+154.24318212064026*T-32.4913959*T*LN(T)+1.5461e-3*T**2+8.0545e25*T**(-9)
+            </range>
+            <range low="1200" high="2100">
+                +4157.615182298192+53.13907183179444*T-18.9640637*T*LN(T)-2.8829e-3*T**2+9.8144e-8*T**3-2.6968e6*T**(-1)+8.0545e25*T**(-9)
+            </range>
+            <range low="2100" high="2100.00001">
+                -10057.183256879427+135.79065379157967*T-29.6985479*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Pb#Pb_liq">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="600.61">
+                -2977.9610031028296+93.94956101075316*T-24.5242231*T*LN(T)-3.6589e-3*T**2-2.4395e-7*T**3-6.0190e-19*T**7
+            </range>
+            <range low="600.61" high="1200">
+                -5677.957895434542+146.1760475349074*T-32.4913959*T*LN(T)+1.5461e-3*T**2
+            </range>
+            <range low="1200" high="2100">
+                +9010.752955232128+45.07193724606161*T-18.9640637*T*LN(T)-2.8829e-3*T**2+9.8144e-8*T**3-2.6968e6*T**(-1)
+            </range>
+            <range low="2100" high="2100.00001">
+                -5204.055528005971+127.72355683412243*T-29.6985522*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sn#F1">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="505.078">
+                +1247.9569984911814+51.355548010608715*T-15.961*T*LN(T)-1.8870e-2*T**2+3.1212e-6*T**3+1.4703e-18*T**7-61960*T**(-1)
+            </range>
+            <range low="505.078" high="800">
+                +9496.30955286618-9.809035370647138*T-8.2590486*T*LN(T)-1.6814e-2*T**2+2.6231e-6*T**3-1.0812e6*T**(-1)
+            </range>
+            <range low="800" high="3000">
+                -1285.3731511338192+125.18257695463922*T-28.4512*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sn#F2">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="505.078">
+                -345.1350040817024+56.983315036641585*T-15.961*T*LN(T)-1.8870e-2*T**2+3.1212e-6*T**3-61960*T**(-1)
+            </range>
+            <range low="505.078" high="800">
+                +8034.724092022659-4.454655511496583*T-8.2590486*T*LN(T)-1.6814e-2*T**2+2.6231e-6*T**3-1.0812e6*T**(-1)-1.2307e25*T**(-9)
+            </range>
+            <range low="800" high="3000">
+                -2746.9586119773376+130.53695681378974*T-28.4512*T*LN(T)-1.2307e25*T**(-9)
+            </range>
+            <range low="3000" high="3000.00001">
+                -2746.958618229939+130.53695681566552*T-28.4512*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sn#F3">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="505.078">
+                -5855.134934081702+65.4433150366416*T-15.961*T*LN(T)-1.8870e-2*T**2+3.1212e-6*T**3-61960*T**(-1)
+            </range>
+            <range low="505.078" high="800">
+                +2524.7241620226596+4.005344488503418*T-8.2590486*T*LN(T)-1.6814e-2*T**2+2.6231e-6*T**3-1.0812e6*T**(-1)-1.2307e25*T**(-9)
+            </range>
+            <range low="800" high="3000">
+                -8256.95854197734+138.99695681378978*T-28.4512*T*LN(T)-1.2307e25*T**(-9)
+            </range>
+            <range low="3000" high="3000.00001">
+                -8256.958548229944+138.99695681566556*T-28.4512*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sn#Sn_BCT_A5">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="505.078">
+                -5855.134934081702+65.4433150366416*T-15.961*T*LN(T)-1.8870e-2*T**2+3.1212e-6*T**3-61960*T**(-1)
+            </range>
+            <range low="505.078" high="800">
+                +2524.7241620226596+4.005344488503418*T-8.2590486*T*LN(T)-1.6814e-2*T**2+2.6231e-6*T**3-1.0812e6*T**(-1)-1.2307e25*T**(-9)
+            </range>
+            <range low="800" high="3000">
+                -8256.95854197734+138.99695681378978*T-28.4512*T*LN(T)-1.2307e25*T**(-9)
+            </range>
+            <range low="3000" high="3000.00001">
+                -8256.958548229944+138.99695681566556*T-28.4512*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sn#Sn_liq">
+            <ref/>
+            <comment/>
+            <range low="0.01" high="505.078">
+                +1247.9569984911814+51.355548010608715*T-15.961*T*LN(T)-1.8870e-2*T**2+3.1212e-6*T**3+1.4703e-18*T**7-61960*T**(-1)
+            </range>
+            <range low="505.078" high="800">
+                +9496.30955286618-9.809035370647138*T-8.2590486*T*LN(T)-1.6814e-2*T**2+2.6231e-6*T**3-1.0812e6*T**(-1)
+            </range>
+            <range low="800" high="3000">
+                -1285.3731511338192+125.18257695463922*T-28.4512*T*LN(T)
+            </range>
+        </expression>
+    </globalExpressions>
+</database>
