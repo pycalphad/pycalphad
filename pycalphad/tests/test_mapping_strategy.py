@@ -793,6 +793,40 @@ def test_no_degenerate_edge_pinned_zpf_lines(load_database):
         "No non-degenerate HCP_A3+LIQUID ZPF line found"
     )
 
+@select_database("BaCa-86Alc.tdb")
+def test_circular_loop_check_normalizes_axes(load_database):
+    """
+    The liquidus must be traced past a congruent minimum, back up to the
+    temperature it started at.
+
+    Ba-Ca is isomorphous (BCC) with a congruent liquidus minimum at ~894 K. The
+    BCC_A2+LIQUID ZPF line seeded at one pure-element melting point (Ba: ~1000 K,
+    Ca: ~1115 K) traces down through the minimum and back up to the other
+    element's melting point, so its temperature necessarily returns to its
+    starting temperature partway along.
+
+    check_circular_loop ends a line when it gets closer to its first point than
+    to its previous point. With raw axis values, the kelvin scale of the
+    temperature axis swamps the mole-fraction axis and the line is silently
+    ended the moment its temperature comes back within one step of the starting
+    temperature, truncating the liquidus at exactly the lower-melting element's
+    melting point. Axis distances must be normalized for the check to only
+    catch genuine loops.
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["BA", "CA", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    liq_lines = [zl for zl in strategy.zpf_lines if set(zl.stable_phases) == {"BCC_A2", "LIQUID"}]
+    assert len(liq_lines) > 0, "No BCC_A2+LIQUID ZPF line mapped"
+    for zl in liq_lines:
+        xs = [np.squeeze(pt.get_property(v.X("CA"))) for pt in zl.points]
+        assert np.min(xs) < 0.05 and np.max(xs) > 0.95, (
+            f"BCC_A2+LIQUID line truncated: x(CA) spans [{np.min(xs):.3f}, {np.max(xs):.3f}] "
+            "instead of the full composition range"
+        )
+
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):
     T = 2260

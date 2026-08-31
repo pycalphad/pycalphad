@@ -550,6 +550,12 @@ def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[Compo
     is smaller than the distance to the previous point. The only times this should
     occur is if the zpf line rapidly switched directions or if it loops in on itself
 
+    Distances along each axis are normalized by that axis's step size so that axes
+    with different units (e.g. temperature in K vs. mole fraction) are comparable.
+    Without this, the temperature axis dominates and any boundary whose temperature
+    returns near the first point's temperature (e.g. a liquidus rising again after a
+    congruent minimum) is killed even though it is compositionally far from a loop.
+
     Parameters
     ----------
     zpf_line : ZPFLine
@@ -567,15 +573,18 @@ def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[Compo
     if len(zpf_line.points) < 2:
         return None
 
-    x_curr = np.array([step_results[0].get_property(var) for var in axis_data['axis_vars']])
-    x_first = np.array([zpf_line.points[0].get_property(var) for var in axis_data['axis_vars']])
-    x_prev = np.array([zpf_line.points[-1].get_property(var) for var in axis_data['axis_vars']])
+    axis_vars = axis_data["axis_vars"]
+    normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})
+    x_curr = np.array([step_results[0].get_property(var) / normalize_factor[var] for var in axis_vars])
+    x_first = np.array([zpf_line.points[0].get_property(var) / normalize_factor[var] for var in axis_vars])
+    x_prev = np.array([zpf_line.points[-1].get_property(var) / normalize_factor[var] for var in axis_vars])
     vfirst = x_first - x_curr
     vprev = x_curr - x_prev
     dist_first = np.sqrt(np.sum(vfirst**2))
     dist_prev = np.sqrt(np.sum(vprev**2))
     # if distance to first point is smaller than to previous point, then stop zpf line
     if dist_first < dist_prev:
+        _log.info(f"ZPF line looped back near its first point (normalized distance to first {dist_first:.3g} < distance to previous {dist_prev:.3g}). Ending ZPF line.")
         zpf_line.status = ZPFState.REACHED_LIMIT
 
     return None
