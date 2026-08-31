@@ -290,38 +290,73 @@ class TielineStrategy(MapStrategy):
         """
         # If stepping in a state variable, then grab all the nodes
         if map_utils.is_state_variable(step.axis_vars[0]):
-            # Get all nodes that has a parent. We set axis variable to None so that the node will find a good starting direction
+            # Get all two-phase nodes. We set axis variable to None so that the node will find a good starting direction
             #  We force add nodes for positive and negative direction. This is in case the starting point ends up being in the middle
             #  of a zpf line (can happen for low solubility phases) so we want to step both in positive and negative direction
+            # Nodes without a parent are starting points the step map force-added to recover
+            #  from a failure (e.g. a failed node solve or a rejected metastable node). They can
+            #  be the only record of a phase field whose bounding node solve failed (a narrow
+            #  allotrope window straddled by the coarse edge step), so harvest them too. They
+            #  are deduplicated against the parented nodes, which the step map guarantees are
+            #  distinct phase-change events.
+            harvested = [node for node in step.node_queue.nodes
+                         if node.parent is not None and len(node.stable_composition_sets) == 2]
             for node in step.node_queue.nodes:
-                if node.parent is not None and len(node.stable_composition_sets) == 2:
-                    _log.info(f"Adding node {node.fixed_phases}, {node.free_phases}, {node.global_conditions}")
-                    node.axis_var = None
-                    node.axis_direction = Direction.POSITIVE
-                    node.exit_hint = ExitHint.POINT_IS_EXIT
-                    self.node_queue.add_node(node, True)
+                if node.parent is None and len(node.stable_composition_sets) == 2:
+                    if not any(node == other for other in harvested):
+                        harvested.append(node)
+            for node in harvested:
+                _log.info(f"Adding node {node.fixed_phases}, {node.free_phases}, {node.global_conditions}")
+                node.axis_var = None
+                node.axis_direction = Direction.POSITIVE
+                node.exit_hint = ExitHint.POINT_IS_EXIT
+                node.skip_if_covered = True
+                self.node_queue.add_node(node, True)
 
-                    alt_node = Node(node.global_conditions, node.chemical_potentials, node.fixed_composition_sets, node.free_composition_sets, node.parent)
-                    alt_node.axis_var = None
-                    alt_node.axis_direction = Direction.NEGATIVE
-                    alt_node.exit_hint = ExitHint.POINT_IS_EXIT
-                    self.node_queue.add_node(alt_node, True)
+                alt_node = Node(node.global_conditions, node.chemical_potentials, node.fixed_composition_sets, node.free_composition_sets, node.parent)
+                alt_node.axis_var = None
+                alt_node.axis_direction = Direction.NEGATIVE
+                alt_node.exit_hint = ExitHint.POINT_IS_EXIT
+                alt_node.skip_if_covered = True
+                self.node_queue.add_node(alt_node, True)
 
-        # If stepping in non-state variable, then for all two-phase zpf lines, grab one point to add as node
+        # If stepping in non-state variable, then for all two-phase zpf lines, grab one point per
+        # contiguous two-phase field to add as node
         else:
+            # A step line can silently merge several distinct two-phase fields whose phases have
+            # identical names (e.g. ordered/disordered variants of a partitioned phase): the
+            # warm-started solver slides the same composition sets from one field into the next,
+            # so no phase-change node separates them. With potential conditions fixed, tie-line
+            # endpoint compositions are constant within each two-phase field, so a jump in either
+            # endpoint between consecutive points marks a new field. Harvest one starting point
+            # per contiguous segment so that every merged field gets seeded.
+            segment_tol = 1e-3
+            harvested_points = []
             for zpf_line in step.zpf_lines:
                 if len(zpf_line.stable_phases) == 2:
-                    p_index = 0
-                    while len(zpf_line.points[p_index].stable_phases) != 2:
-                        p_index += 1
+                    segment_points = []
+                    prev_comps = None
+                    for point in zpf_line.points:
+                        if len(point.stable_phases) != 2:
+                            continue
+                        comps = np.sort([np.asarray(cs.X, dtype=float) for cs in point.stable_composition_sets], axis=0)
+                        if prev_comps is None or np.amax(np.abs(comps - prev_comps)) > segment_tol:
+                            # A step line can jump out of a field and back into it, so
+                            # dedup against points with the same tie-line already harvested
+                            # (tie-line endpoints identify the field at fixed potentials)
+                            if not any(point == other for other in harvested_points):
+                                segment_points.append(point)
+                                harvested_points.append(point)
+                        prev_comps = comps
 
-                    if len(zpf_line.points[p_index].stable_phases) == 2:
-                        new_point = zpf_line.points[p_index]
+                    for new_point in segment_points:
                         _log.info(f"Adding point {new_point.fixed_phases}, {new_point.free_phases}, {new_point.global_conditions}")
                         node = self._create_node_from_point(new_point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT)
+                        node.skip_if_covered = True
                         self.node_queue.add_node(node, True)
 
                         node = self._create_node_from_point(new_point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT)
+                        node.skip_if_covered = True
                         self.node_queue.add_node(node, True)
 
     def _add_starting_points_from_step_composition_axes(self, step: StepStrategy):
@@ -397,12 +432,45 @@ class TielineStrategy(MapStrategy):
 
         return exits, exit_dirs
 
+    def _point_on_existing_zpf_line(self, point: Point):
+        """
+        Returns True if an existing zpf line with the same set of stable phases already
+        passes through (or ended at) the position of point
+
+        Starting points (harvested from the edge step maps or added by a user) can land on
+        a boundary that an earlier zpf line already traced, in which case starting a line
+        there would only re-trace the same boundary. A line that merely *starts* at the
+        point's position does not count as covering it: the opposite-direction sibling of a
+        starting point must still be allowed to trace the other side of the boundary, so
+        matches against a line's first point are ignored.
+        """
+        point_phases = sorted(point.stable_phases)
+        pos = np.array([point.get_property(av) / self.normalize_factor(av) for av in self.axis_vars], dtype=float)
+        for zpf_line in self.zpf_lines:
+            if sorted(zpf_line.stable_phases) != point_phases:
+                continue
+            for line_point in zpf_line.points[1:]:
+                line_pos = np.array([line_point.get_property(av) / self.normalize_factor(av) for av in self.axis_vars], dtype=float)
+                # Traced points are ~1 normalized step apart, so anything within a
+                # fraction of a step is on (not merely near) the traced boundary
+                if np.sqrt(np.sum((pos - line_pos)**2)) < 0.75:
+                    _log.info(f"Point {point.stable_phases}, {point.global_conditions} is already covered by zpf line {zpf_line.stable_phases}. Skipping.")
+                    return True
+        return False
+
     def _determine_start_direction(self, node: Node, exit_point: Point, proposed_direction: Direction):
         """
         For stepping, only one direction is possible from a node since we either step positive or negative
 
         If a direction cannot be found, then we force add a starting point just past the exit_point
         """
+        # Skip redundant harvested starting points whose boundary was already traced by
+        # an earlier zpf line to avoid duplicating work. Only automatically harvested
+        # starting points opt in to this check (via skip_if_covered): a user manually
+        # adding a starting point should always get it traced
+        if getattr(node, "skip_if_covered", False) and self._point_on_existing_zpf_line(exit_point):
+            return None
+
         if self.num_potential_condition > 0:
             return self._determine_start_direction_potential_axis(node, exit_point, proposed_direction)
         else:

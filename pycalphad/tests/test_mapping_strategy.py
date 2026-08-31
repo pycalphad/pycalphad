@@ -827,6 +827,63 @@ def test_circular_loop_check_normalizes_axes(load_database):
             "instead of the full composition range"
         )
 
+@select_database("GaLa-11Idb.tdb")
+def test_edge_harvest_keeps_forced_starting_points(load_database):
+    """
+    Phase fields only recorded by a force-added recovery point in an edge step map
+    must still be seeded.
+
+    La has a narrow BCC window (1134-1194 K) between DHCP/FCC and melting. The
+    coarse starting-point search along the x(LA)~1 edge (step = T-range/20 = 185 K)
+    straddles the window, lands on a metastable FCC+LIQUID node, fails the exit
+    direction test, and force-adds a recovery point (a parentless node) at the true
+    LIQUID+BCC_A2 equilibrium inside the window. Harvesting only parented step-map
+    nodes discards that recovery point, so the whole La-side BCC_A2+LIQUID boundary
+    is lost and the La liquidus dead-ends below the window.
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("LA"): (0.75, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["GA", "LA", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(set(zpf_line.stable_phases)) == ["BCC_A2", "LIQUID"]:
+            Ts = [np.squeeze(pt.get_property(v.T)) for pt in zpf_line.points]
+            xs = [np.squeeze(pt.get_property(v.X("LA"))) for pt in zpf_line.points]
+            if np.min(Ts) < 1195 and np.max(Ts) > 1140 and np.max(xs) > 0.9:
+                break
+    else:
+        assert False, "No BCC_A2+LIQUID ZPF line mapped inside the La BCC window (1134-1194 K)"
+
+@select_database("AuCu-98Sun-LB.tdb")
+def test_edge_harvest_seeds_every_merged_field(load_database):
+    """
+    Every two-phase field merged into a single same-name edge step line must get its
+    own starting point.
+
+    In Au-Cu all fcc-ordered phases (fcc, AuCu3, AuCu, ...) share the FCC_4SL phase
+    name, so the step map along the T=300 K edge merges several distinct two-phase
+    fields into single step lines: the warm-started solver slides the same
+    composition sets from one field into the next without creating a phase-change
+    node. Harvesting one starting point per step line then seeds only one of the
+    merged fields; the Au-rich fcc+AuCu3 field (tie-lines spanning x(CU)=[0.078,
+    0.237] at 300 K) is fully present in the step results but was never traced.
+    Harvesting one starting point per contiguous segment (tie-line endpoints are
+    constant within a field at fixed potentials, so a jump marks a new field)
+    recovers it.
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["AU", "CU", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        xs = [np.squeeze(pt.get_property(v.X("CU"))) for pt in zpf_line.points]
+        if np.min(xs) < 0.15 and np.max(xs) > 0.20:
+            break
+    else:
+        assert False, "Au-rich fcc+AuCu3 field (x(CU)~0.08-0.24) was never traced"
+
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):
     T = 2260
