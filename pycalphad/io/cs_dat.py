@@ -22,6 +22,7 @@ CP_TERMS = (S.Zero, S.One, v.T, v.T**2.0, v.T**(-2.0))
 EXCESS_TERMS = (S.Zero, S.One, v.T, v.T*log(v.T), v.T**2.0, v.T**3.0, v.T**(-1.0), v.P, v.P**2.0)
 DEFAULT_T_MIN = 0.01  # The same as for TDBs when no minimum temperature is given.
 
+
 def _parse_species_postfix_charge(formula) -> v.Species:
     name = formula
     # handle postfix charge: FE[2+] CU[+] CL[-] O[2-]
@@ -36,9 +37,11 @@ def _parse_species_postfix_charge(formula) -> v.Species:
     constituents = dict(parse_chemical_formula(formula)[0])
     return v.Species(name, constituents=constituents, charge=charge)
 
+
 class TokenParserError(Exception):
     """Exception raised when the TokenParser hits a parsing error."""
     pass
+
 
 class TokenParser():
     def __init__(self, string):
@@ -53,13 +56,13 @@ class TokenParser():
         tmp_parser = TokenParser(lines)
         if i > 0:
             for _ in range(i - 1):
-                token = tmp_parser._next()
+                tmp_parser._next()
         return tmp_parser._next()
 
     def _next(self):
         try:
             token = self._tokens_deque.popleft()
-        except IndexError as e:
+        except IndexError:
             # If we're out of tokens, get the next line and try to grab a token again
             self._current_line = self._lines_deque.popleft()
             self._line_number += 1
@@ -211,6 +214,7 @@ class Endmember():
 
     def insert(self, dbf: Database, phase_name: str, constituent_array: List[List[str]], gibbs_coefficient_idxs: List[int]):
         dbf.add_parameter('G', phase_name, constituent_array, 0, self.expr(gibbs_coefficient_idxs), force_insert=False)
+
 
 @dataclass
 class EndmemberQKTO(Endmember):
@@ -396,6 +400,7 @@ class ExcessQKTO(ExcessBase):
             force_insert=False,
             )
 
+
 @dataclass
 class PhaseBase:
     phase_name: str
@@ -542,7 +547,7 @@ class Phase_CEF(PhaseBase):
 
 
 def rename_element_charge(element, charge):
-    """We use the _ to separate so we have something to split on."""
+    element = "".join(filter(str.isalpha, element))
     if charge == 0:
         return f'{element}'
     elif charge > 0:
@@ -649,10 +654,25 @@ class SUBQExcessQuadruplet:
 
 
 def _species(el_chg):
-    el, chg = el_chg
+    el, const, chg = el_chg
+    el = "".join(filter(str.isalpha, el))
     name = rename_element_charge(el, chg)
-    constituents = dict(parse_chemical_formula(el)[0])
+    constituents = dict(parse_chemical_formula(const)[0])
     return v.Species(name, constituents=constituents, charge=chg)
+
+def element_check(spec,element):
+    unwanted_characters = ['(',')','[',']','{','}','+','-','.',',']
+    if len(spec) > 2:
+        spec = [i for count,i in enumerate(spec) if count < 2 and i not in unwanted_characters]
+        spec = ''.join(spec)
+    else:
+        pass
+    if spec == element:
+        bool_ = True
+    else:
+        bool_ = False
+
+    return bool_
 
 
 def _process_chemical_group_override_string(s):
@@ -714,6 +734,18 @@ class Phase_SUBQ(PhaseBase):
     chemical_group_overrides: List[str]
 
     def insert(self, dbf: Database, pure_elements: List[str], gibbs_coefficient_idxs: List[int], excess_coefficient_idxs: List[int]):
+        # THIS SECTION WILL HANDLE WHEN THE SPECIES ARE SWITCHED IN THE .DAT FILE. Need to be more clear here but NiF2 system is a good example I think
+        #THE ASSUMPTIONS MADE HERE ARE THAT THE
+        # CHARGES IN THE FILE ARE CORRECT BUT JUST NOT PROPERLY ASSIGNED AND THAT THE STOICHIOMETRY OF THE ENDMEMBERS ARE THE
+        # CORRECT ONES
+        ########################################################################################################
+                                                  #(MAKE THE TEXT BELOW MORE CLEAR)
+        # ANOTHER ASSUMPTION BEING MADE IS THAT THE ORDER OF THE ELEMENTS IN THE SPECIES NEEDS TO FOLLOW THE ORDER IN WHICH THEY ARE PRESENTED
+        # BY THE ENDMEMBERS. THAT IS SOMETHING USUALLY OBSERVED WHEN THE CHEMSAGE FILES ARE CREATED
+        ###############################################################################################
+        # ANOTHER MAJOR ASSUMPTION WILL BE THAT ANIONS WILL ONLY GET MIXED UP WITH ANIONS AND LIKEWISE FOR CATIONS
+        # MEANING THAT AN ERROR OF PUTTING F IN THE CATION SUBLATTICE WILL NOT BE HANDLED BY THE CODE
+
         # First: get the pair and quadruplet species added to the database:
         # Here we rename the species names according to their charges, to avoid creating duplicate pairs/quadruplets
         cation_el_chg_pairs = list(zip(self.subl_1_const, self.subl_1_charges))
@@ -722,7 +754,7 @@ class Phase_SUBQ(PhaseBase):
         anion_el_chg_pairs = list(zip(self.subl_2_const, [-1*c for c in self.subl_2_charges]))
         # pycalphad usually uses Species to differentiate charged species, for
         # example Species('CU', charge=1) vs. Species('CU', charge=2). In the
-        # implementation of the model, we will use Speices to refer to a
+        # implementation of the model, we will use Species to refer to a
         # quadruplet which may have both CU+1 and CU+2 species inside, so we
         # need to add an additional qualifier that mangles the name of the
         # elements in the species so that we can clearly differentiate the
@@ -730,19 +762,215 @@ class Phase_SUBQ(PhaseBase):
         # do that by adding the charge to the name (without +/-), i.e. CU_1 or
         # CU_1.0. This mangling frees us from worrying about Species name
         # collisions within the Database.
-        cations = [rename_element_charge(el, chg) for el, chg in cation_el_chg_pairs]
-        anions = [rename_element_charge(el, chg) for el, chg in anion_el_chg_pairs]
-        # Add the (renamed) species to the database so the phase constituents can be added
-        dbf.species.update(map(_species, cation_el_chg_pairs))
-        dbf.species.update(map(_species, anion_el_chg_pairs))
 
+        # CURRENTLY THE ONLY ISSUE REMAINING HERE IS HOW TO HANDLE IT WHEN THE PHASE HAS VACANCIES
+        # IN THIS PART OF THE CODE I RENAME THE CATION AND ANION SPECIES THAT ARE SPECIFIED IN THE LOWER PORTION
+        # OF THE CHEMSAGE FILE. HERE I AM RENAMING THEM TO HAVE THEIR RESPECTIVE CHARGES ADDED TO THEIR NAME
+        # IT IS SIMILAR TO THE DEVELOPER BRANCH BUT I MADE CHANGES TO THE RENAME_ELEMENT_CHARGE FUNCTION TO GET RID OF
+        # UNNECESSARY CHARACTERS IN THE NAME
+        #ADDITIONALLY I AM ADDING VACANCY TO THE pure_elementsSUBQ LIST
+        pure_elementsSUBQ = pure_elements
+        if 'VA' not in pure_elements:
+            pure_elementsSUBQ.append('VA')
+        else:
+            pass
+    #Making a list of the elements that are in the cation and anion sublattice after vacancies are introduced
+    #This list will only include elements and no information about the charge of the species
+    #In the pre_anions and pre_cations one will know where the vacancies will be 
+        pre_cations = [pure for el, chg in cation_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el, pure)]
+        pre_anions = [pure for el, chg in anion_el_chg_pairs for pure in pure_elementsSUBQ if element_check(el, pure)]
+
+        cation_sublattice_elements = []
+        anion_sublattice_elements = []
+    #endmember_ makes a list of the elements in the endmember/unary quadruplets. It does not incude VA in the nested list
+    #It should be noted that it creates the list of elements from the endmember section of the solution phase (section with Gibbs parameters) and does
+    #not interact with the species/charge section of the chemsage file. This is on purpose
+    #spec_endmember makes a list of all the permutations of cations and anions from the species/charge section of the 
+    #solution phase in the chemsage file. 
+    #no_vac_endmember gives a list of the elements in the endmember and but does not account for vacancies. It is created from the spec_endmember list
+        endmember_ = [list(sorted([pure_elementsSUBQ[count] for count, stoi in enumerate(endmember.stoichiometry_pure_elements) if stoi != 0.0])) for endmember in self.endmembers]
+        spec_endmember = [list(sorted(combination)) for combination in list(itertools.product(pre_cations, pre_anions))]
+        no_vac_spec_endmember = [[ele for ele in endmember if ele != 'VA'] for endmember in spec_endmember]
+        common_anion_check = [ele_an for ele_an in list(itertools.chain.from_iterable(endmember_)) if ele_an in pre_anions]
+        common_cation_check = [ele_cat for ele_cat in list(itertools.chain.from_iterable(endmember_)) if ele_cat in pre_cations]
+    #The first part of the if loop is to identify whether the elements have vacancies or not. if the lists are the same then
+    # the cation/anion_sublattice_elements are assigned as the pre_cations and pre_anions
+        if sorted(endmember_) == sorted(no_vac_spec_endmember):
+            cation_sublattice_elements = pre_cations
+            anion_sublattice_elements = pre_anions
+#######The second part of the if statement addresses the situation when the elements in the endmember section of a solution phase
+#### do not match the species of the charge section of the solution phase. This situation is covered by the test_equilibrium
+###### test that uses the Ocadiz-Flores.dat file.##################################### 
+        elif len(common_anion_check)>1 or len(common_cation_check)>1:
+# Here common anion and cation check just figure out which sublattice has the correct match of elements between the endmemberss
+#and the species. Once that is established, the following lines appropriately assign the correct element from
+#the endmember section to the cation/anion_sublattice_elements list. 
+
+            prelim_spec_={
+'cation': [ele if ele not in common_anion_check else None for endmember in endmember_ for ele in endmember],
+'anion': [ele if ele in common_anion_check else None for endmember in endmember_ for ele in endmember]
+}
+            cat_=[cat_ for cat_ in prelim_spec_['cation'] if cat_!=None]
+            an_=list(set([an_ for an_ in prelim_spec_['anion'] if an_!=None]))
+            cation_sublattice_elements.extend(list(dict.fromkeys(cat_)))
+            anion_sublattice_elements.extend(list(dict.fromkeys(an_)))
+        else:
+            raise ValueError('Too mamy degrees of liberty between elements depicted in endmembers and elements listed as species')
+
+                
+#Overall the if statement has been developed to primarily address whether or not the endmember section of the solution phase
+#Agree with the species/charge section of the solution phase. And if they do not, then the endmember section is given the
+#Major importance
+###Not entirely sure yet how to make this section more concise, but I will keep in mind and maybe discuss with Brandon
+#######################################################################################################################
+
+    ##The new cation and anion el_chg assigns the elements to the respective charge rather than the name assigned
+    ##in the .dat file
+    #An unaccounted for issue here is the inappropriate assignment of charge to element. Luckily it worked out in the Ocadiz-Flores
+    #Scenario but a strong assumption is being made here where we assume the introduction of endmembers and species in the chemsage file
+    #will be in the same order in the database and therefore no additional lines need to be added to make sure the assignment of
+    #charge is correct.
+####This approach will cause an issue with reciprocal systems IF what happens with Ocadiz-Flores happens again here############ 
+        
+        new_cation_el_chg_pair = list(zip(cation_sublattice_elements, self.subl_1_charges))
+        new_anion_el_chg_pair = list(zip(anion_sublattice_elements, [-1*c for c in self.subl_2_charges]))
+        ###Here the cations and anions are used for the labeling of species for the XML format. Not used again at all in any of the following tests. If that is the case maybe I can move this further down the code OR use some other list
+        cations = [rename_element_charge(pure, chg) for el, chg in new_cation_el_chg_pair for pure in pure_elementsSUBQ if element_check(el, pure)]
+        anions = [rename_element_charge(pure, chg) for el, chg in new_anion_el_chg_pair for pure in pure_elementsSUBQ if element_check(el, pure)]
+        # MAKING STRONG ASSUMPTIONS ABOUT VACANCIES. THEIR STOICHIOMETRIC VALUE WILL ALWAYS BE THE SAME TO
+        # ITS QUADRUPLET STOICHIOMETRY. MEANING NEVER WILL BE DIMER FOR VACANCY AND ALWAYS WILL BE ANION
+        cat_el_pairs_edited = []
+        cat_chg_pairs_edited = []
+        cat_mass_pairs_edited = []
+        an_el_pairs_edited = []
+        an_chg_pairs_edited = []
+        an_mass_pairs_edited = []
+####################################### Addressed in the previous loop but good to know I documented this#########################################################
+        # HERE I AM GOING TO LOOP OVER ALL THE ENDMEMBERS TO GET THE STOICHIOMETRIC DATA SO THAT I KNOW WHICH SPECIES
+        # ARE DIMERS, WHICH ARE SPECIFIC CHARGES AND SO FORTH\
+        # THIS FIRST PART OF THE FOR LOOP CREATES THE ELE_NAME_CAT AND ELE_NAME_AN WHICH SEPARATE THE ELEMENTS FROM
+        # CHARGES AND CREATES A LIST OF ALL THE CATION AND ANION ELEMENTS AS STRINGS
+        # ANOTHER MAJOR ISSUE IN THIS PARSER IS THAT APPARENTLY IF THE LINE RIGHT BEFORE CHARGES AND QUADRUPLETS LISTS THE WRONG ELEMENT
+        # IT WILL STILL BE CORRECTLY ASSUMED OR READ IN FACTSAGE BUT NOT HERE
+        # NEW STRATEGY..BEFORE DEFINING ELE_NAME_CAT AND ELE_NAME_AN I HAVE TO CHECK WITH THE PURE ELEMENTS IN THE SYSTEM AND DETERMINE WHETHER
+        # WHICH CATION AND ANION IT IS REFERRING TO
+##################################################################################################################################################################
+
+        for count, endmember in enumerate(self.endmembers):
+           
+            # HERE the ENDMEMBER_PURE_ELEMENT list is made where a list of the stoichiometry of the pure elements in the
+            # endmember specified in the current loop. (Probably need a better name)
+            # Here I am also adding endmember stoichiometry which has the stoichiometry based on the species that is included
+            # so if a dimer species is used here it will appear as 1 while in pure elements it will appear as 2
+            # finally the multi speciation is just a list of the ratios between pure elements and stoichiometry which
+            # will show as a number other than 1 if there is multispeciation in a specific species
+            # The if statement does not break anything here I think but I should triple check!!!!!
+            # THIS PART OF THE CODE WILL WORK WITH VACANCIES JUST BY THE WAY IT IS WRITTEN. HOWEVER IT IS NOT GOING TO BE ABLE#
+            # TO CORRECTLY DETECT THEM AND IT WILL ALWAYS RESULT IN NEVER PICKING UP DIMER FOR VACANCY. WHICH IS SOMETHING
+            # THAT WAS ALREADY BEING ASSUMMED
+            #The first line of endmember_pure_element gives the stoichiometry of the cation element
+            endmember_pure_element = [ele_stoi for count, ele_stoi in enumerate(endmember.stoichiometry_pure_elements) if ele_stoi != 0.0 and pure_elementsSUBQ[count] in cation_sublattice_elements]
+            if len([ele_stoi for ele_stoi in endmember.stoichiometry_pure_elements if ele_stoi != 0]) == 2:
+                endmember_pure_element_anion_contribution = [ele_stoi for count, ele_stoi in enumerate(endmember.stoichiometry_pure_elements) if ele_stoi != 0.0 and pure_elementsSUBQ[count] in anion_sublattice_elements]
+            else:
+        #The line below I am assumming is to recognize that likely there is a vacancy in the endmember
+        #and it adds it here
+                endmember_pure_element_anion_contribution = [endmember.stoichiometry_quadruplet[1]]
+            
+            endmember_pure_element.extend(endmember_pure_element_anion_contribution)
+            endmember_stoichiometry = [ele_stoi for ele_stoi in endmember.stoichiometry_quadruplet if ele_stoi != 0.0]
+            finding_multispeciation = [ele_endmember/ele_quadruplet for ele_endmember, ele_quadruplet in zip(endmember_pure_element, endmember_stoichiometry)]
+            # CREATING ENDMEMBER_ELE_FULL WHERE I HAVE A LIST OF THE ELEMENT STRINGS OF THE ENDMEMBER IN QUESTION
+            # I CREATE THE LIST IN THIS ORDER IN ORDER TO HAVE A LIST WHERE THE ORDER OF CATION AND ANION IS MAINTAINED
+            # CATION GOES FIRST THEN ANION GOES SECOND
+            # SHOULD PROBABLY MAKE IT A LITTLE MORE EASY TO READ BECAUSE THE ENDMEMBER_ELE_FULL IS PRETTY DECEIVING SINCE IT IS NOT
+            # THE FULL ENDMEMBER UNTIL THE END OF THE IF STATEMENTS. IT ONLY HOLDS THE ELEMENTS OF THE CATION SUBLATTICE
+            endmember_ele_full = [pure_elementsSUBQ[count] for count, ele in enumerate(endmember.stoichiometry_pure_elements) if ele != 0.0 if pure_elementsSUBQ[count] in cation_sublattice_elements]
+            endmember_ele_an = [pure_elementsSUBQ[count] for count, i in enumerate(endmember.stoichiometry_pure_elements) if i != 0.0 if pure_elementsSUBQ[count] not in cation_sublattice_elements]
+            if len(endmember_ele_full) == 0 and len(endmember_ele_an) != 0:
+                endmember_ele_full.append('VA')
+            elif len(endmember_ele_an) == 0 and len(endmember_ele_full) != 0:
+                endmember_ele_an.append('VA')
+            elif len(endmember_ele_an) != 0 and len(endmember_ele_full) != 0:
+                pass
+            else:
+                print('ERROR! THIS STRUCTURE IN THE MQMQA MODEL IS FORBIDDEN!!! ERROR INEVITABLE')
+            endmember_ele_full.append(endmember_ele_an[0])
+
+            # HERE IS WHERE I AM CREATING THE STRING WHERE I WILL HAVE THE ELEMENT AND THE MASS OF THE ELEMENT
+            el_mass_editing = [str(i)+str(int(j)) for i, j in zip(endmember_ele_full, finding_multispeciation)]
+            cat_mass_pairs_edited.append(el_mass_editing[0])
+            an_mass_pairs_edited.append(el_mass_editing[1])
+            # AT THE BOTTOM I WILL BEGIN TO WORK ON DIFFERENT BOOLEAN APPROACHES SO I KNOW WHICH SPECIES OF THE ENDMEMBER
+            # HAVE MULTIVALENCY OR ARE DIMERS. ONCE I KNOW THAT I WILL KNOW HOW TO GET APPROPRIATE CHARGES FOR THE SPECIES
+            # WITHOUT RELYING ON THE ORDER OF THE ENDMEMBERS IN THE CHEMSAGE FILE
+            which_multi_spec = [i for i, multi in zip(endmember_ele_full, finding_multispeciation) if int(multi) > 1]
+            multi_cat = [True for i in which_multi_spec if i in cation_sublattice_elements]
+            multi_an = [True for i in which_multi_spec if i in anion_sublattice_elements]
+#            print('which_multi_spec',which_multi_spec,'multi_cat',multi_cat,'multi_an',multi_an)
+            cation_count = {i: cation_sublattice_elements.count(i) for i in cation_sublattice_elements}
+            anion_count = {i: anion_sublattice_elements.count(i) for i in anion_sublattice_elements}
+
+            full_count = {**cation_count, **anion_count}
+            multi_valence_spec_bool = [full_count[i] for i in endmember_ele_full]
+
+            # Making assumption here that there will not be a charge that is not an integer
+            # First part of this if statement works for simple NiF2-KF system
+            # elements where only one valence and one different species are looked at here
+            if len(which_multi_spec) == 0 and sum(multi_valence_spec_bool) == 2:
+                _cat = {i.split('+')[0]: i.split('+')[1] for i in cations}
+                _an = {i.split('-')[0]: i.split('-')[1] for i in anions}
+                quadruplet_charges_cat = float([_cat[i] for i in endmember_ele_full if i in cation_sublattice_elements][0])
+                quadruplet_charges_an = float([_an[i] for i in endmember_ele_full if i in anion_sublattice_elements][0])*-1
+                quadruplet_el_cat = endmember_ele_full[0]+str('+')+str(quadruplet_charges_cat)
+                quadruplet_el_an = endmember_ele_full[1]+str(quadruplet_charges_an)
+            # Second part of this if statement works for simple Shishin system with multivalent Fe
+            # elements where only multiple valences are looked at here
+            elif len(which_multi_spec) == 0 and sum(multi_valence_spec_bool) > 2:
+                if multi_valence_spec_bool[1] == 1 and multi_valence_spec_bool[0] != 1:
+                    _an = {i.split('-')[0]: i.split('-')[1] for i in anions}
+                    quadruplet_charges_an = float([_an[i] for i in endmember_ele_full if i in anion_sublattice_elements][0])*-1
+                    quadruplet_charges_cat = -1*quadruplet_charges_an\
+                *float(endmember.stoichiometry_quadruplet[1])/float(endmember.stoichiometry_quadruplet[0])
+                    quadruplet_el_cat = endmember_ele_full[0]+str('+')+str(quadruplet_charges_cat)
+                    quadruplet_el_an = endmember_ele_full[1]+str(quadruplet_charges_an)
+                elif multi_valence_spec_bool[0] == 1 and multi_valence_spec_bool[1] != 1:
+                    _cat = {i.split('-')[0]: i.split('-')[1] for i in cations}
+                    quadruplet_charges_cat = float([_cat[i] for i in endmember_ele_full if i in cation_sublattice_elements][0])
+                    quadruplet_charges_an = -1*quadruplet_charges_cat\
+                *float(endmember.stoichiometry_quadruplet[0])/float(endmember.stoichiometry_quadruplet[1])
+                    quadruplet_el_cat = endmember_ele_full[0]+str('+')+str(quadruplet_charges_cat)
+                    quadruplet_el_an = endmember_ele_full[1]+str(quadruplet_charges_an)
+                else:
+                    pass
+            # THIS PART IS WHERE THERE IS ACTUAL MULTISPECIATION OF AN SPECIES
+            elif len(which_multi_spec) != 0 and len(multi_cat) != 0 and len(multi_an) == 0:
+                _an = {i.split('-')[0]: i.split('-')[1] for i in anions}
+
+                quadruplet_charges_an = float([_an[i] for i in endmember_ele_full if i in anion_sublattice_elements][0])*-1
+                quadruplet_charges_cat = -1*quadruplet_charges_an\
+                *float(endmember.stoichiometry_quadruplet[1])/float(endmember.stoichiometry_quadruplet[0])
+                quadruplet_el_cat = endmember_ele_full[0]+str('+')+str(quadruplet_charges_cat)
+                quadruplet_el_an = endmember_ele_full[1]+str(quadruplet_charges_an)
+            else:
+                pass
+            cat_chg_pairs_edited.append(quadruplet_charges_cat)
+            an_chg_pairs_edited.append(quadruplet_charges_an)
+            cat_el_pairs_edited.append(quadruplet_el_cat)
+            an_el_pairs_edited.append(quadruplet_el_an)
+
+        cation_el_chg_pairs_edited = list(sorted(set(zip(cat_el_pairs_edited, cat_mass_pairs_edited, cat_chg_pairs_edited))))
+        anion_el_chg_pairs_edited = list(sorted(set(zip(an_el_pairs_edited, an_mass_pairs_edited, an_chg_pairs_edited))))
+        # Add the (renamed) species to the database so the phase constituents can be added
+        dbf.species.update(map(_species, cation_el_chg_pairs_edited))
+        dbf.species.update(map(_species, anion_el_chg_pairs_edited))
         # Second: add the phase and phase constituents
         model_hints = {
             "mqmqa": {
                 "type": self.phase_type,
                 "chemical_groups": {
-                    "cations": dict(zip(map(_species, cation_el_chg_pairs), self.subl_1_chemical_groups)),
-                    "anions": dict(zip(map(_species, anion_el_chg_pairs), self.subl_2_chemical_groups)),
+                    "cations": dict(zip(map(_species, cation_el_chg_pairs_edited), self.subl_1_chemical_groups)),
+                    "anions": dict(zip(map(_species, anion_el_chg_pairs_edited), self.subl_2_chemical_groups)),
                 }
             }
         }
@@ -753,7 +981,6 @@ class Phase_SUBQ(PhaseBase):
         # Third: add the endmember (pair) Gibbs energies
         num_pairs = len(list(itertools.product(cations, anions)))
         assert len(self.endmembers) == num_pairs
-
         # Endmember pairs came in order of the specified subl_const_idx_pairs labels.
         for (i, j), endmember in zip(self.subl_const_idx_pairs, self.endmembers):
             endmember.insert(dbf, self.phase_name, [[cations[i-1]], [anions[j-1]]], gibbs_coefficient_idxs)
@@ -970,7 +1197,6 @@ def parse_phase_subq(toks, phase_name, phase_type, num_pure_elements, num_gibbs_
                 chemical_group_overrides.append(" ".join(toks.parseN(10, str)))
             break
         excess_parameters.append(parse_subq_excess(toks, mixing_type, num_excess_coeffs))
-
     return Phase_SUBQ(phase_name, phase_type, endmembers, num_pairs, num_quadruplets, num_subl_1_const, num_subl_2_const, subl_1_const, subl_2_const, subl_1_charges, subl_1_chemical_groups, subl_2_charges, subl_2_chemical_groups, subl_const_idx_pairs, quadruplets, excess_parameters, chemical_group_overrides)
 
 
@@ -1211,5 +1437,6 @@ def read_cs_dat(dbf: Database, fd):
 
     # process all the parameters that got added with dbf.add_parameter
     dbf.process_parameter_queue()
+
 
 Database.register_format("dat", read=read_cs_dat, write=None)

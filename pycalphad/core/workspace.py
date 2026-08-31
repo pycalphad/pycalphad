@@ -517,6 +517,8 @@ class Workspace:
             chemical_potentials = prop_MU_values[index]
 
             for arg in args:
+                prop_implementation_units, prop_display_units = arg_units[arg]
+                context = unit_conversion_context(composition_sets, arg)
                 if results.get(arg, None) is None:
                     results[arg] = np.zeros((arr_size,) + arg.shape)
                 values = arg.compute_property(composition_sets, cur_conds, chemical_potentials)

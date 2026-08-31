@@ -781,13 +781,12 @@ def test_MQMQA_site_fraction_energy(load_database):
 def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
-    mod = ModelMQMQA(dbf, ["FE", "SB", "O", "S"], "SLAG-LIQ")
-
+    mod = ModelMQMQA(dbf, ["FE", "SB", "O","S"], "SLAG-LIQ")
     assert FE2 in mod.cations
     assert FE3 in mod.cations
     assert SB3 in mod.cations
@@ -826,12 +825,12 @@ def test_MQMQA_SUBQ_Q_mixing_1000K(load_database):
 def test_MQMQA_SUBQ_Q_mixing_1000K_FACTSAGE(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
-    mod = ModelMQMQA(dbf, ["FE", "SB", "O", "S"], "SLAG-LIQ")
+    mod = ModelMQMQA(dbf, ["FE", "SB", "O","S"], "SLAG-LIQ")
 
     assert FE2 in mod.cations
     assert FE3 in mod.cations
@@ -872,12 +871,12 @@ def test_MQMQA_SUBQ_Q_mixing_1000K_FACTSAGE(load_database):
 def test_MQMQA_SUBQ_Q_mixing_400K(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
-    mod = ModelMQMQA(dbf, ["FE", "SB", "O", "S"], "SLAG-LIQ")
+    mod = ModelMQMQA(dbf, ["FE", "SB", "O","S"], "SLAG-LIQ")
 
     assert FE2 in mod.cations
     assert FE3 in mod.cations
@@ -918,12 +917,12 @@ def test_MQMQA_SUBQ_Q_mixing_400K(load_database):
 def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_400K(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
-    mod = ModelMQMQA(dbf, ["SB", "O", "S"], "SLAG-LIQ")
+    mod = ModelMQMQA(dbf, ["SB", "O","S"], "SLAG-LIQ")
 
     assert FE2 not in mod.cations
     assert FE3 not in mod.cations
@@ -976,12 +975,12 @@ def test_DAT_coordination_numbers_are_order_invariant(load_database):
 def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_1000K(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
-    mod = ModelMQMQA(dbf, ["SB", "O", "S"], "SLAG-LIQ")
+    mod = ModelMQMQA(dbf, ["SB", "S", "O"], "SLAG-LIQ")
 
     assert FE2 not in mod.cations
     assert FE3 not in mod.cations
@@ -1006,12 +1005,12 @@ def test_MQMQA_SUBQ_Q_mixing_Sb_O_S_1000K(load_database):
 def test_MQMQA_SUBQ_Q_mixing_Fe_O_S(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
-    mod = ModelMQMQA(dbf, ["FE", "O", "S"], "SLAG-LIQ")
+    mod = ModelMQMQA(dbf, ["FE", "S", "O"], "SLAG-LIQ")
 
     assert FE2 in mod.cations
     assert FE3 in mod.cations
@@ -1041,12 +1040,12 @@ def test_MQMQA_SUBQ_Q_mixing_Fe_O_S(load_database):
 def test_MQMQA_SUBQ_Q_mixing_Fe_O_S_2(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
-    mod = ModelMQMQA(dbf, ["FE", "O", "S"], "SLAG-LIQ")
+    mod = ModelMQMQA(dbf, ["FE", "S", "O"], "SLAG-LIQ")
 
     assert FE2 in mod.cations
     assert FE3 in mod.cations
@@ -1077,9 +1076,9 @@ def test_MQMQA_SUBQ_Q_mixing_Fe_O_S_2(load_database):
 def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_S(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
     mod = ModelMQMQA(dbf, ["FE", "SB", "S"], "SLAG-LIQ")
@@ -1110,9 +1109,9 @@ def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_S(load_database):
 def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_O(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
     mod = ModelMQMQA(dbf, ["FE", "SB", "O"], "SLAG-LIQ")
@@ -1143,9 +1142,9 @@ def test_MQMQA_SUBQ_Q_mixing_Fe3_Sb_O(load_database):
 def test_MQMQA_SUBQ_Q_mixing_Fe2_Fe3_Sb_S(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
     mod = ModelMQMQA(dbf, ["FE", "SB", "S"], "SLAG-LIQ")
@@ -1175,9 +1174,9 @@ def test_MQMQA_SUBQ_Q_mixing_Fe2_Fe3_Sb_S(load_database):
 def test_MQMQA_SUBQ_Q_mixing_Fe2_Fe3_Sb_O(load_database):
     dbf = load_database()
 
-    FE2 = v.Species("FE2++2.0", constituents={"FE": 2.0}, charge=2)
-    FE3 = v.Species("FE3++3.0", constituents={"FE": 3.0}, charge=3)
-    SB3 = v.Species("SB3++3.0", constituents={"SB": 3.0}, charge=3)
+    FE2 = v.Species("FE+2.0", constituents={"FE": 1.0}, charge=2)
+    FE3 = v.Species("FE+3.0", constituents={"FE": 1.0}, charge=3)
+    SB3 = v.Species("SB+3.0", constituents={"SB": 1.0}, charge=3)
     O = v.Species("O-2.0", constituents={"O": 1.0}, charge=-2)
     S = v.Species("S-2.0", constituents={"S": 1.0}, charge=-2)
     mod = ModelMQMQA(dbf, ["FE", "SB", "O"], "SLAG-LIQ")
@@ -1401,7 +1400,31 @@ def test_higher_order_reciprocal_parameter():
     }
     check_output(mod, subs_dict, 'GM', -12817.416, mode='sympy')
 
+@select_database("Be-F-Li.dat")
+def test_MQMQA_species_of_different_moles_internal_degrees_of_freedom(load_database):
+    """Ternary ideal"""
+    dbf = load_database()
+    comps = ['F', 'LI', 'BE', 'VA']
 
+    F = v.Species('F-1.0',constituents={'F':1.0}, charge=-1)
+    LI = v.Species('LI+1.0',constituents={'LI':1.0}, charge=1)
+    BE = v.Species('BE+2.0',constituents={'BE':1.0}, charge=2)
+    BE2 = v.Species('BE+4.0',constituents={'BE':2.0}, charge=4)
+    mod = ModelMQMQA(dbf, comps, "MSFL")
+
+    subs_dict = {  # Thermochimica site fractions
+        mod._X_ijkl(LI,LI,F,F): 9.8365E-02,
+        mod._X_ijkl(BE,BE,F,F): 5.4835E-05,
+        mod._X_ijkl(BE2,BE2,F,F):0.21381,
+        mod._X_ijkl(LI,BE,F,F): 2.6583E-02,
+        mod._X_ijkl(LI,BE2,F,F):0.65434,
+        mod._X_ijkl(BE,BE2,F,F):6.8482E-03,
+        v.T: 1200.0
+    }
+    check_energy(mod, subs_dict, -3.75743E+05, mode="sympy")  # Thermochimica energy
+    assert np.isclose(float(mod.moles("BE").subs(subs_dict)), 0.2, 1e-5)
+    assert np.isclose(float(mod.moles("LI").subs(subs_dict)), 0.2, 1e-5)
+    assert np.isclose(float(mod.moles("F").subs(subs_dict)), 0.6, 1e-5)
 
 @select_database("CoV-20Wan.tdb")
 def test_never_disorder_model(load_database):
