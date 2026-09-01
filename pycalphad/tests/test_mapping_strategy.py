@@ -818,10 +818,17 @@ def test_circular_loop_check_normalizes_axes(load_database):
     strategy = TielineStrategy(dbf, ["BA", "CA", "VA"], list(dbf.phases.keys()), conds)
     strategy.do_map()
 
-    liq_lines = [zl for zl in strategy.zpf_lines if set(zl.stable_phases) == {"BCC_A2", "LIQUID"}]
+    # Zero-extent 2-point stubs at the pure-element melting points (ended by the
+    # degenerate tie-line check after a single step) are not the lens; only
+    # substantial lines are held to the full-composition-range requirement
+    liq_lines = []
+    for zl in strategy.zpf_lines:
+        if set(zl.stable_phases) == {"BCC_A2", "LIQUID"}:
+            xs = [np.squeeze(pt.get_property(v.X("CA"))) for pt in zl.points]
+            if np.max(xs) - np.min(xs) > 0.01:
+                liq_lines.append((zl, xs))
     assert len(liq_lines) > 0, "No BCC_A2+LIQUID ZPF line mapped"
-    for zl in liq_lines:
-        xs = [np.squeeze(pt.get_property(v.X("CA"))) for pt in zl.points]
+    for zl, xs in liq_lines:
         assert np.min(xs) < 0.05 and np.max(xs) > 0.95, (
             f"BCC_A2+LIQUID line truncated: x(CA) spans [{np.min(xs):.3f}, {np.max(xs):.3f}] "
             "instead of the full composition range"
@@ -966,6 +973,60 @@ def test_no_duplicate_boundary_retracing(load_database):
     # the ~710 K invariant
     Ts = [np.squeeze(pt.get_property(v.T)) for zl in target_lines for pt in zl.points]
     assert np.min(Ts) < 310 and np.max(Ts) > 700
+
+@select_database("CrV-92Lee-LB.tdb")
+def test_degenerate_check_does_not_veto_narrow_lens(load_database):
+    """
+    A genuinely narrow melting lens must still be traced.
+
+    Cr-V is isomorphous with a solidus-liquidus lens only a few kelvin tall; near
+    the pure-element edges its tie-line width is genuinely below the degenerate
+    zero-width tolerance. Running the degenerate tie-line check inside the exit
+    direction test (whose trial step uses the minimum delta, right at the edge)
+    vetoes both directions from the edge melting nodes, so the entire lens - and
+    with it the whole diagram - is lost. The direction test must not apply the
+    degenerate check; line tracing's own check still ends truly degenerate lines
+    one step later.
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("V"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CR", "V", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(set(zpf_line.stable_phases)) == ["BCC_A2", "LIQUID"]:
+            xs = [np.squeeze(pt.get_property(v.X("V"))) for pt in zpf_line.points]
+            if np.min(xs) < 0.05 and np.max(xs) > 0.9:
+                break
+    else:
+        assert False, "BCC_A2+LIQUID melting lens was not traced across the composition range"
+
+@select_database("CrPt-98Spe-LB.tdb")
+def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database):
+    """
+    A boundary crossing a congruent extremum must be traced through it.
+
+    In Cr-Pt the fcc liquidus passes over a congruent maximum at x(PT)~0.78,
+    2058 K, where the tie-line width passes continuously through zero. At a fine
+    composition step the degenerate tie-line check landed a point inside the
+    (genuinely) sub-tolerance pinch and ended the line - with no node and no
+    restart - losing the entire Pt-rich liquidus down to the pure-Pt melting
+    point. A line whose composition is still advancing step over step is crossing
+    a pinch, not tracking a degenerate boundary (those are pinned at a fixed
+    composition), and must not be ended.
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (1700, 2200, 10), v.X("PT"): (0, 1, 0.01)}
+    strategy = TielineStrategy(dbf, ["CR", "PT", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(set(zpf_line.stable_phases)) == ["FCC_A1", "LIQUID"]:
+            xs = [np.squeeze(pt.get_property(v.X("PT"))) for pt in zpf_line.points]
+            if np.max(xs) > 0.95:
+                break
+    else:
+        assert False, "FCC_A1+LIQUID liquidus was not traced past the congruent maximum to the Pt side"
 
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):

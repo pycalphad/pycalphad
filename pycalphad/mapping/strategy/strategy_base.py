@@ -590,12 +590,17 @@ class MapStrategy:
                 "global_num_candidates": self.GLOBAL_MIN_NUM_CANDIDATES,
             }
 
-            # Check valid equilibrium, global min, change in phases and degenerate equilibria
+            # Check valid equilibrium, global min and change in phases
+            # NOTE: the degenerate tie-line check is deliberately NOT applied here: the
+            # trial step uses the minimum delta, so near a pure-element edge or congruent
+            # point the trial result is legitimately narrower than the degenerate
+            # tolerance and both directions would be vetoed, losing e.g. an entire
+            # narrow melting lens. Line tracing's own degenerate check still ends truly
+            # degenerate (pinned) lines one step later.
             check_functions = [
                 zchk.simple_check_valid_point,
                 zchk.simple_check_change_in_phases,
                 zchk.simple_check_global_min,
-                zchk.simple_check_degenerate_tieline,
             ]
             valid_point = True
             for checks in check_functions:

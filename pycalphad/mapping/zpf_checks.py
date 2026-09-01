@@ -40,7 +40,9 @@ Normal checks
     a new node
 """
 
-def _degenerate_zero_width_tieline(comp_sets: list[CompositionSet], tol: float = 10*MIN_COMPOSITION):
+DEGENERATE_TIELINE_TOL = 1e-7
+
+def _degenerate_zero_width_tieline(comp_sets: list[CompositionSet], tol: float = DEGENERATE_TIELINE_TOL):
     """
     Returns True if there are multiple composition sets and all of them have (nearly)
     the same composition, i.e. the tie-line has collapsed to zero width.
@@ -59,7 +61,9 @@ def _degenerate_zero_width_tieline(comp_sets: list[CompositionSet], tol: float =
 
     The tolerance is far below the composition width of any resolvable two-phase
     region (spurious converged results have widths ~1e-9 or less), so real ZPF lines
-    passing near congruent points are not affected.
+    passing near congruent points are not affected. Genuinely narrow features (e.g.
+    a shallow melting lens near a congruent minimum) can be ~1e-6 wide, so the
+    tolerance must stay below that.
 
     Unary systems are exempt: with a single component, multi-phase coexistence along
     a univariant line (e.g. in a P-T diagram) is allowed by the Gibbs phase rule, and
@@ -536,8 +540,22 @@ def check_degenerate_tieline(zpf_line: ZPFLine, step_results: tuple[Point, list[
 
     new_point, orig_cs = step_results
     if _degenerate_zero_width_tieline(new_point.stable_composition_sets):
-        zpf_line.status = ZPFState.REACHED_LIMIT
-        _log.info(f"All composition sets of {new_point.stable_phases} have the same composition (zero-width tie-line). Ending ZPF line.")
+        # Only end the line if it is pinned in composition: a spurious degenerate
+        # boundary tracks a fixed composition (a pure-element edge or a compound
+        # stoichiometry) while stepping in a potential, whereas a real boundary
+        # crossing a congruent extremum (where the width passes continuously
+        # through zero) keeps advancing in composition and must not be ended
+        axis_vars = axis_data["axis_vars"]
+        normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})
+        composition_axes = [av for av in axis_vars if isinstance(av, v.MoleFraction)]
+        prev_point = zpf_line.points[-1]
+        movement = [np.squeeze(np.abs(new_point.get_property(av) - prev_point.get_property(av)) / normalize_factor[av]) for av in composition_axes]
+        pinned = len(movement) == 0 or np.amax(movement) < 0.25
+        if pinned:
+            zpf_line.status = ZPFState.REACHED_LIMIT
+            _log.info(f"All composition sets of {new_point.stable_phases} have the same composition (zero-width tie-line). Ending ZPF line.")
+        else:
+            _log.info(f"Zero-width tie-line at {new_point.stable_phases} but composition is still advancing (crossing a congruent extremum). Continuing ZPF line.")
     return None
 
 def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
