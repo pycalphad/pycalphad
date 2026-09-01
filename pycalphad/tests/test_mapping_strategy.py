@@ -884,6 +884,89 @@ def test_edge_harvest_seeds_every_merged_field(load_database):
     else:
         assert False, "Au-rich fcc+AuCu3 field (x(CU)~0.08-0.24) was never traced"
 
+@select_database("CrTa-93Dup-LB.tdb")
+def test_starting_point_dedup_distinguishes_twin_fields(load_database):
+    """
+    Two distinct two-phase fields with the same phase pair flanking a line compound
+    must both be traced.
+
+    In Cr-Ta, BCC_A2+C15_LAVES fields exist on both sides of the CR2TA_C15 line
+    compound. The x-edge harvested starting point for the Cr-rich field sits (in
+    condition space) within a fraction of a step of the already-traced Ta-rich
+    field's line at the compound composition, so a coverage check based on
+    condition-space position alone discards it and the whole Cr-rich low-T field
+    (x < 0.03, 300-849 K) is lost. Coverage must compare tie-lines (potential
+    coordinates plus phase compositions), which differ between the two fields by
+    a mole fraction of ~0.3.
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("TA"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CR", "TA", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(set(zpf_line.stable_phases)) == ["BCC_A2", "C15_LAVES"]:
+            Ts = [np.squeeze(pt.get_property(v.T)) for pt in zpf_line.points]
+            xs = [np.squeeze(pt.get_property(v.X("TA"))) for pt in zpf_line.points]
+            if np.min(xs) < 0.05 and np.min(Ts) < 350:
+                break
+    else:
+        assert False, "Cr-rich BCC_A2+C15_LAVES field (x(TA)<0.05) was not traced down to 300 K"
+
+@select_database("BaCa-86Alc.tdb")
+def test_starting_point_coverage_semantics(load_database):
+    """
+    The coverage test used to skip redundant harvested starting points must:
+    - treat a point deep on a traced line as covered (that is its purpose), and
+    - NOT treat the start region of a line as covering: the opposite-direction
+      sibling of a starting point sits at (or within a refined first step of) the
+      line's first point, and skipping it would lose the whole other side of the
+      boundary (e.g. the entire lens below a top-edge starting point).
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["BA", "CA", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    long_lines = [zl for zl in strategy.zpf_lines if len(zl.points) > 10]
+    assert len(long_lines) > 0
+    zpf_line = long_lines[0]
+    # a point in the start region must not count as covered
+    assert not strategy._point_on_existing_zpf_line(zpf_line.points[1]), (
+        "Start region of a line must not cover its opposite-direction sibling"
+    )
+    # a point deep on the line is covered
+    assert strategy._point_on_existing_zpf_line(zpf_line.points[8]), (
+        "A point on an already-traced tie-line should be reported as covered"
+    )
+
+@select_database("CaMg-06Zho.tdb")
+def test_no_duplicate_boundary_retracing(load_database):
+    """
+    Recovery starting points harvested from the edge step maps must not re-trace a
+    boundary that is already mapped.
+
+    In Ca-Mg the CAMG2_C14+FCC_A1 boundary gets one seed from the T=300 K edge and
+    additional parentless recovery seeds at the x(MG)=0 edge; without tie-line-based
+    coverage checking the same boundary is traced up to five times (visible as
+    interleaved duplicate tie-lines in the plot, since the re-traces start at
+    off-grid temperatures).
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("MG"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CA", "MG", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    target_lines = [zl for zl in strategy.zpf_lines
+                    if sorted(set(zl.stable_phases)) == ["CAMG2_C14", "FCC_A1"] and len(zl.points) > 1]
+    assert 1 <= len(target_lines) <= 2, (
+        f"CAMG2_C14+FCC_A1 traced {len(target_lines)} times; expected at most 2 segments"
+    )
+    # deduplication must not cost coverage: the boundary still spans 300 K up to
+    # the ~710 K invariant
+    Ts = [np.squeeze(pt.get_property(v.T)) for zl in target_lines for pt in zl.points]
+    assert np.min(Ts) < 310 and np.max(Ts) > 700
+
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):
     T = 2260

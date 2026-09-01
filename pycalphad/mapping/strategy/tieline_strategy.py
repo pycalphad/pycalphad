@@ -256,6 +256,8 @@ class TielineStrategy(MapStrategy):
             step.do_map()
             self.add_starting_points_from_step(step)
 
+        self._dedup_harvested_starting_points()
+
     def add_starting_points_from_step(self, step: StepStrategy):
         """
         Grabs starting points from a step calc
@@ -432,29 +434,84 @@ class TielineStrategy(MapStrategy):
 
         return exits, exit_dirs
 
+    def _dedup_harvested_starting_points(self):
+        """
+        Removes queued harvested starting points that duplicate an earlier queued one:
+        same set of stable phases, same starting direction, same tie-line (potential
+        coordinates within a step and phase compositions matching)
+
+        The different edge harvests can seed the same boundary more than once (e.g. a
+        parentless recovery node from an x-edge temperature step a fraction of a step
+        above a T-edge composition-step point on the same boundary). Each seed lands in
+        the start region of the other's traced line, which the runtime coverage check
+        deliberately exempts (see _point_on_existing_zpf_line), so these duplicates can
+        only be removed before tracing starts. Both directions of the surviving
+        representative are kept.
+        """
+        potential_axes = [av for av in self.axis_vars if map_utils.is_state_variable(av)]
+        kept = []
+        kept_keys = []
+        for node in self.node_queue.nodes:
+            if not getattr(node, "skip_if_covered", False):
+                kept.append(node)
+                continue
+            phases = sorted(node.stable_phases)
+            pot = np.array([np.squeeze(node.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
+            comps = np.sort([np.asarray(cs.X, dtype=float) for cs in node.stable_composition_sets], axis=0)
+            duplicate = False
+            for o_phases, o_dir, o_pot, o_comps in kept_keys:
+                if (o_phases == phases and o_dir == node.axis_direction
+                        and (len(pot) == 0 or np.amax(np.abs(o_pot - pot)) < 0.75)
+                        and o_comps.shape == comps.shape and np.amax(np.abs(o_comps - comps)) < 0.01):
+                    duplicate = True
+                    break
+            if duplicate:
+                _log.info(f"Dropping duplicate harvested starting point {node.stable_phases}, {node.global_conditions}")
+                continue
+            kept.append(node)
+            kept_keys.append((phases, node.axis_direction, pot, comps))
+        self.node_queue.nodes = kept
+
     def _point_on_existing_zpf_line(self, point: Point):
         """
-        Returns True if an existing zpf line with the same set of stable phases already
-        passes through (or ended at) the position of point
+        Returns True if an existing zpf line already traces the tie-line that point lies
+        on: a line with the same set of stable phases containing a point with the same
+        potential-axis coordinates and the same phase compositions
 
-        Starting points (harvested from the edge step maps or added by a user) can land on
-        a boundary that an earlier zpf line already traced, in which case starting a line
-        there would only re-trace the same boundary. A line that merely *starts* at the
-        point's position does not count as covering it: the opposite-direction sibling of a
-        starting point must still be allowed to trace the other side of the boundary, so
-        matches against a line's first point are ignored.
+        Position in condition space alone cannot decide coverage: distinct two-phase
+        fields with the same phase pair flank a line compound at nearly identical
+        conditions (only their tie-line endpoint compositions differ, by up to the
+        compound-to-compound spacing), and conversely every global composition along a
+        tie-line shares that tie-line, so the lever position (the composition condition)
+        must be ignored. A tie-line is identified by its potential coordinates plus its
+        phase compositions.
+
+        Points within one normalized step of a line's own first point do not count as
+        covering: a line merely starting at a position covers only the side it traced,
+        and the opposite-direction sibling of a starting point (which sits at, or within
+        a refined first step of, that first point) must still be allowed to trace the
+        other side of the boundary.
         """
         point_phases = sorted(point.stable_phases)
-        pos = np.array([point.get_property(av) / self.normalize_factor(av) for av in self.axis_vars], dtype=float)
+        potential_axes = [av for av in self.axis_vars if map_utils.is_state_variable(av)]
+        point_pot = np.array([np.squeeze(point.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
+        point_comps = np.sort([np.asarray(cs.X, dtype=float) for cs in point.stable_composition_sets], axis=0)
         for zpf_line in self.zpf_lines:
             if sorted(zpf_line.stable_phases) != point_phases:
                 continue
+            first_pos = np.array([np.squeeze(zpf_line.points[0].get_property(av)) / self.normalize_factor(av) for av in self.axis_vars], dtype=float)
             for line_point in zpf_line.points[1:]:
-                line_pos = np.array([line_point.get_property(av) / self.normalize_factor(av) for av in self.axis_vars], dtype=float)
-                # Traced points are ~1 normalized step apart, so anything within a
-                # fraction of a step is on (not merely near) the traced boundary
-                if np.sqrt(np.sum((pos - line_pos)**2)) < 0.75:
-                    _log.info(f"Point {point.stable_phases}, {point.global_conditions} is already covered by zpf line {zpf_line.stable_phases}. Skipping.")
+                line_pos = np.array([np.squeeze(line_point.get_property(av)) / self.normalize_factor(av) for av in self.axis_vars], dtype=float)
+                # Start region of the line: does not cover the other direction
+                if np.sqrt(np.sum((line_pos - first_pos)**2)) < 1.0:
+                    continue
+                if len(potential_axes) > 0:
+                    line_pot = np.array([np.squeeze(line_point.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
+                    if np.amax(np.abs(line_pot - point_pot)) >= 0.75:
+                        continue
+                line_comps = np.sort([np.asarray(cs.X, dtype=float) for cs in line_point.stable_composition_sets], axis=0)
+                if line_comps.shape == point_comps.shape and np.amax(np.abs(line_comps - point_comps)) < 0.01:
+                    _log.info(f"Point {point.stable_phases}, {point.global_conditions} is already covered by zpf line {zpf_line.stable_phases} (same tie-line). Skipping.")
                     return True
         return False
 
@@ -464,11 +521,13 @@ class TielineStrategy(MapStrategy):
 
         If a direction cannot be found, then we force add a starting point just past the exit_point
         """
-        # Skip redundant harvested starting points whose boundary was already traced by
-        # an earlier zpf line to avoid duplicating work. Only automatically harvested
-        # starting points opt in to this check (via skip_if_covered): a user manually
-        # adding a starting point should always get it traced
-        if getattr(node, "skip_if_covered", False) and self._point_on_existing_zpf_line(exit_point):
+        # Skip exits that would re-trace an already-mapped tie-line, to avoid duplicate
+        # boundary traces: automatically harvested starting points (skip_if_covered) and
+        # exits from mapping-found or recovery nodes (ExitHint.NORMAL, e.g. re-found
+        # invariants whose exits would re-trace covered fields). A two-phase starting
+        # point added explicitly by a user (POINT_IS_EXIT without skip_if_covered) is
+        # always honored
+        if (getattr(node, "skip_if_covered", False) or node.exit_hint == ExitHint.NORMAL) and self._point_on_existing_zpf_line(exit_point):
             return None
 
         if self.num_potential_condition > 0:
