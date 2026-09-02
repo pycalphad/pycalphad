@@ -15,6 +15,7 @@ from pycalphad import Database, Model, calculate, variables as v
 from pycalphad.variables import Species
 from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
+from pycalphad.io.database import DiffusionStatement
 import pycalphad.tests.databases
 from pycalphad.tests.fixtures import select_database, load_database
 
@@ -907,6 +908,124 @@ def test_database_passes_with_diffusion_commands():
     """
 
     dbf = Database.from_string(tdb_string, fmt='tdb')
+
+DIFFUSION_COMMANDS_TDB = """
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT FE   BCC_A2                    5.5847E+01  4.4890E+03  2.7280E+01 !
+ ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7400E+00 !
+
+ ZEROVOLUME_SPECIES C VA !
+ DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 ALPHA2&C=1.8 ALPHA2&N=0.6 !
+ DIFFUSION DILUTE D011_CEMENTITE :FE:C: !
+"""
+
+
+def test_zerovolume_species_are_stored():
+    "ZEROVOLUME_SPECIES names are read into the Database."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    assert dbf.zerovolume_species == {'C', 'VA'}
+
+
+def test_diffusion_commands_are_stored():
+    "DIFFUSION commands are read into the Database, with their arguments kept as text."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    assert dbf.diffusion == [
+        DiffusionStatement('MAGNETIC', 'BCC_A2', 'ALPHA=0.3 ALPHA2&C=1.8 ALPHA2&N=0.6'),
+        DiffusionStatement('DILUTE', 'D011_CEMENTITE', ':FE:C:'),
+    ]
+
+
+def test_magnetic_diffusion_parameters():
+    "The MAGNETIC form of the DIFFUSION command is interpreted on request."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    expected = {'ALPHA': 0.3, 'ALPHA2&C': 1.8, 'ALPHA2&N': 0.6}
+    assert dbf.magnetic_diffusion_parameters('BCC_A2') == expected
+    # Phase names are matched case-insensitively, as everywhere else in the Database.
+    assert dbf.magnetic_diffusion_parameters('bcc_a2') == expected
+    # A phase with no MAGNETIC command has no parameters, rather than raising.
+    assert dbf.magnetic_diffusion_parameters('D011_CEMENTITE') == {}
+    assert dbf.magnetic_diffusion_parameters('FCC_A1') == {}
+
+
+def test_diffusion_commands_roundtrip():
+    "DIFFUSION and ZEROVOLUME_SPECIES commands survive a write/read cycle."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    reloaded = Database.from_string(dbf.to_string(fmt='tdb'), fmt='tdb')
+    assert reloaded.zerovolume_species == dbf.zerovolume_species
+    assert reloaded.diffusion == dbf.diffusion
+    assert reloaded == dbf
+
+
+def test_diffusion_command_without_phase_warns():
+    "A DIFFUSION command naming no phase is skipped with a warning, not a parse error."
+    tdb_string = """
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+
+ DIFFUSION MAGNETIC !
+"""
+    with pytest.warns(UserWarning, match='DIFFUSION'):
+        dbf = Database.from_string(tdb_string, fmt='tdb')
+    assert dbf.diffusion == []
+
+
+@select_database("crfe_bcc_magnetic.tdb")
+def test_diffusion_commands_are_read_from_a_shipped_database(load_database):
+    "A database file's DIFFUSION and ZEROVOLUME_SPECIES commands are read alongside its thermodynamics."
+    dbf = load_database()
+    assert dbf.zerovolume_species == {'VA'}
+    assert dbf.diffusion == [DiffusionStatement('MAGNETIC', 'BCC_A2', 'ALPHA=0.3')]
+    assert dbf.magnetic_diffusion_parameters('BCC_A2') == {'ALPHA': 0.3}
+    # The commands are inert for the thermodynamic description, which parses as before.
+    assert set(dbf.phases.keys()) == {'BCC_A2'}
+    assert dbf.phases['BCC_A2'].model_hints['ihj_magnetic_afm_factor'] == -1.0
+
+
+@select_database("crfe_bcc_magnetic.tdb")
+def test_diffusion_commands_are_written_before_the_phases(load_database):
+    "Written back out, the commands sit after the type definitions and before the first PHASE, and read back equal."
+    dbf = load_database()
+    written = dbf.to_string(fmt='tdb')
+    zerovolume_at = written.index('ZEROVOLUME_SPECIES VA !')
+    diffusion_at = written.index('DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 !')
+    assert written.rindex('TYPE_DEFINITION') < zerovolume_at < diffusion_at < written.index('PHASE BCC_A2')
+    reloaded = Database.from_string(written, fmt='tdb')
+    assert reloaded.zerovolume_species == dbf.zerovolume_species
+    assert reloaded.diffusion == dbf.diffusion
+
+
+@select_database("diffusion.tdb")
+def test_zerovolume_species_are_read_from_the_mobility_database(load_database):
+    "The mobility test database declares vacancies volume-free, and carries no DIFFUSION command."
+    dbf = load_database()
+    assert dbf.zerovolume_species == {'VA'}
+    assert dbf.diffusion == []
+
+
+def test_database_without_the_commands_has_empty_defaults():
+    "A Database built in code, or from a file without the commands, has nothing recorded."
+    assert Database().diffusion == []
+    assert Database().zerovolume_species == set()
+    elements_only = DIFFUSION_COMMANDS_TDB.split(' ZEROVOLUME_SPECIES')[0]
+    dbf = Database.from_string(elements_only, fmt='tdb')
+    assert dbf.diffusion == []
+    assert dbf.zerovolume_species == set()
+    assert dbf.magnetic_diffusion_parameters('BCC_A2') == {}
+
+
+def test_database_unpickled_from_before_the_commands_gets_defaults():
+    "State saved by an older pycalphad lacks the attributes; loading it still yields a complete Database."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    state = dbf.__getstate__()
+    del state['diffusion']
+    del state['zerovolume_species']
+    restored = object.__new__(Database)
+    restored.__setstate__(state)
+    assert restored.diffusion == []
+    assert restored.zerovolume_species == set()
+    assert 'ZEROVOLUME_SPECIES' not in restored.to_string(fmt='tdb')
+    assert restored.phases == dbf.phases
+
 
 def test_tc_printer_no_division_symbols():
     "TCPrinter does not produce division symbols in string output of symbolic expressions."
