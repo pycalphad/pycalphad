@@ -13,7 +13,7 @@ from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add,
 from symengine import Float, Symbol, LessThan, StrictLessThan, S, E
 from tinydb import where
 from pycalphad import Database
-from pycalphad.io.database import DatabaseExportError
+from pycalphad.io.database import DatabaseExportError, DiffusionStatement
 from pycalphad.io.grammar import float_number, chemical_formula
 from pycalphad.variables import Species
 import pycalphad.variables as v
@@ -393,6 +393,24 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """
     pass
 
+def _process_zerovolume_species(db, species_line):
+    """Record the species a database declares to occupy no volume."""
+    db.zerovolume_species.update(species_line.replace(',', ' ').upper().split())
+
+def _process_diffusion(db, diffusion_line):
+    """Record a DIFFUSION command, without interpreting its arguments.
+
+    The argument syntax depends on the model the command selects, so the arguments are kept as
+    text. Database.magnetic_diffusion_parameters interprets the MAGNETIC form.
+    """
+    tokens = diffusion_line.split()
+    if len(tokens) < 2:
+        warnings.warn(f"Ignoring DIFFUSION command with no phase name: 'DIFFUSION {diffusion_line}'")
+        return
+    db.diffusion.append(
+        DiffusionStatement(tokens[0].upper(), tokens[1].upper(), ' '.join(tokens[2:]))
+    )
+
 def _process_species(db, sp_name, sp_comp, charge=0, *args):
     """Add a species to the Database. If charge not specified, the Species will be neutral."""
     # process the species composition list of [element1, ratio1, element2, ratio2, ..., elementN, ratioN]
@@ -450,8 +468,8 @@ _TDB_PROCESSOR = {
         lambda db, name, c: db.add_phase_constituents(
             name.split(':')[0].upper(), c),
     'PARAMETER': _process_parameter,
-    'ZEROVOLUME_SPECIES': _unimplemented,
-    'DIFFUSION': _unimplemented,
+    'ZEROVOLUME_SPECIES': _process_zerovolume_species,
+    'DIFFUSION': _process_diffusion,
 }
 
 def to_interval(relational):
@@ -841,6 +859,13 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         if len(model_hints) > 0:
             # Some model hints were not properly consumed
             raise ValueError('Not all model hints are supported: {}'.format(model_hints))
+    # ZEROVOLUME_SPECIES and DIFFUSION go after the type definitions, before the first PHASE.
+    if len(dbf.zerovolume_species) > 0:
+        output += "ZEROVOLUME_SPECIES {} !\n".format(' '.join(sorted(dbf.zerovolume_species)))
+    for statement in dbf.diffusion:
+        output += "{} !\n".format(statement)
+    if len(dbf.zerovolume_species) > 0 or len(dbf.diffusion) > 0:
+        output += "\n"
     # Perform a second loop now that all typedefs / model hints are consistent
     for name, phase_obj in sorted(dbf.phases.items()):
         # model_hints may also contain "phase options", e.g., ionic liquid

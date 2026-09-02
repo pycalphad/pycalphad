@@ -9,6 +9,7 @@ from tinydb.storages import MemoryStorage
 from datetime import datetime
 from collections import namedtuple
 import os
+import re
 from symengine import Expr
 from pycalphad.variables import Species
 from pycalphad.core.cache import fhash
@@ -55,6 +56,34 @@ class Phase(object): #pylint: disable=R0903
                      tuple(sorted(recursive_tuplify(self.model_hints.items())))))
 
 ElementReferenceData = TypedDict('ElementReferenceData', {'phase': str, 'mass': float, "H298": float, "S298": float})
+
+
+#: ``KEY=VALUE`` pair in a DIFFUSION command's arguments, e.g. ``ALPHA2&C=1.8``.
+_DIFFUSION_ARGUMENT = re.compile(r'([A-Z0-9_&]+)\s*=\s*([-+0-9.eE]+)')
+
+
+class DiffusionStatement(namedtuple('DiffusionStatement', ['model', 'phase_name', 'arguments'])):
+    """A standard DIFFUSION command, stored without interpreting its arguments.
+
+    Attributes
+    ----------
+    model : str
+        The diffusion model the command selects, e.g. ``'MAGNETIC'`` or ``'DILUTE'``.
+    phase_name : str
+        The phase the command applies to.
+    arguments : str
+        Everything after the phase name, whitespace-normalized. Kept as text because the
+        argument syntax differs per model: ``MAGNETIC`` takes ``KEY=VALUE`` pairs while
+        ``DILUTE`` takes a constituent array. :meth:`Database.magnetic_diffusion_parameters`
+        interprets the ``MAGNETIC`` form.
+    """
+
+    __slots__ = ()
+
+    def __str__(self):
+        arguments = f' {self.arguments}' if self.arguments else ''
+        return f'DIFFUSION {self.model} {self.phase_name}{arguments}'
+
 DatabaseFormat = namedtuple('DatabaseFormat', ['read', 'write'])
 format_registry = {}
 
@@ -84,6 +113,10 @@ class Database(object): #pylint: disable=R0902
     references: dict[str, Any]
     """Reference objects indexed by their system-local identifier."""
     _structure_dict: dict[str, Any]
+    diffusion: list[DiffusionStatement]
+    """DIFFUSION commands from a TDB file, in file order, with their arguments kept as text."""
+    zerovolume_species: set[str]
+    """Names of the species a TDB file declares to occupy no volume (ZEROVOLUME_SPECIES)."""
 
     def __new__(cls, *args):
         if len(args) == 0:
@@ -98,6 +131,10 @@ class Database(object): #pylint: disable=R0902
             obj._parameter_queue = []
             obj.symbols = {}
             obj.references = {}
+            # DIFFUSION and ZEROVOLUME_SPECIES commands. Stored rather than interpreted; see
+            # DiffusionStatement and Database.magnetic_diffusion_parameters.
+            obj.diffusion = []
+            obj.zerovolume_species = set()
             # Note: No public typedefs here (from TDB files)
             # Instead we put that information in the model_hint for phases
             return obj
@@ -142,6 +179,9 @@ class Database(object): #pylint: disable=R0902
         return pickle_dict
 
     def __setstate__(self, state):
+        # Databases pickled before these attributes existed do not carry them.
+        self.diffusion = []
+        self.zerovolume_species = set()
         for key, value in state.items():
             if key == '_parameters':
                 self._parameters = TinyDB(storage=MemoryStorage)
@@ -360,6 +400,37 @@ class Database(object): #pylint: disable=R0902
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def magnetic_diffusion_parameters(self, phase_name):
+        """
+        Return the coefficients of the DIFFUSION MAGNETIC command for one phase.
+
+        Parameters
+        ----------
+        phase_name : str
+            Name of the phase.
+
+        Returns
+        -------
+        dict
+            Argument name mapped to its value, e.g. ``{'ALPHA': 0.3, 'ALPHA2&C': 1.8}``.
+            Empty if the phase has no magnetic diffusion command.
+
+        Examples
+        --------
+        >>> dbf = Database('femn.tdb')  # doctest: +SKIP
+        >>> dbf.magnetic_diffusion_parameters('BCC_A2')  # doctest: +SKIP
+        {'ALPHA': 0.3, 'ALPHA2&C': 1.8}
+        """
+        parameters = {}
+        for statement in self.diffusion:
+            if statement.model != 'MAGNETIC':
+                continue
+            if statement.phase_name != phase_name.upper():
+                continue
+            for key, value in _DIFFUSION_ARGUMENT.findall(statement.arguments):
+                parameters[key] = float(value)
+        return parameters
 
     def add_structure_entry(self, local_name, global_name):
         """
