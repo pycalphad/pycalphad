@@ -968,11 +968,17 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
             # The largest allowable step size satisfies the equation: (NP + step_size * delta_NP = MIN_PHASE_AMOUNT)
             if abs(equilibrium_soln[soln_index_offset + i]) > MIN_PHASE_AMOUNT:
                 phase_amt_step_size = min(phase_amt_step_size, (MIN_PHASE_AMOUNT - state.phase_amt[compset_idx]) / equilibrium_soln[soln_index_offset + i])
+    # enforce a non-negative step size in case floating point precision near
+    # MIN_PHASE_AMOUNT causes phase_amt_step_size to be a negative step
+    phase_amt_step_size = max(phase_amt_step_size, 0.0)
     # Update the phase amounts using the largest allowable step size
     state.largest_phase_amt_change[0] = 0
     for i in range(state.free_stable_compset_indices.shape[0]):
         compset_idx = state.free_stable_compset_indices[i]
         state.phase_amt[compset_idx] += phase_amt_step_size * equilibrium_soln[soln_index_offset + i]
+        if state.phase_amt[compset_idx] < MIN_PHASE_AMOUNT:
+            # force non-zero, positive amounts to avoid divide by zero
+            state.phase_amt[compset_idx] = MIN_PHASE_AMOUNT
         state.largest_phase_amt_change[0] = max(state.largest_phase_amt_change[0], abs(phase_amt_step_size * equilibrium_soln[soln_index_offset + i]))
     soln_index_offset += state.free_stable_compset_indices.shape[0]
 

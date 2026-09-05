@@ -17,3 +17,5 @@ INTERNAL_CONSTRAINT_SCALING = 1.0
 # This avoids running out of RAM
 MAX_ENDMEMBER_PAIRS = 5000 # ~100 endmembers
 MAX_EXTRA_POINTS = 90000
+# Net charge (per formula unit) below which a constitution is treated as charge neutral
+ALLOWED_NET_CHARGE = 1e-10

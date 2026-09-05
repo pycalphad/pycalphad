@@ -41,6 +41,40 @@ def test_filter_phases_removes_phases_with_inactive_sublattices(load_database):
     assert all_phases.difference(filtered_phases) == {'FCC_A1', 'PT8AL21', 'PT5AL21', 'PT2AL', 'PT2AL3', 'PT5AL3', 'ALPT2'}
 
 
+def test_filter_phases_removes_pure_vacancy_phases():
+    """Phases where only vacancies are active on every sublattice should be filtered.
+
+    Model raises DofError for such phases, so leaving them active breaks
+    calculate/equilibrium/Workspace with default phase lists.
+    """
+    tdb = """
+    ELEMENT AL FCC_A1 26.98 4577.3 28.32 !
+    ELEMENT VA VACUUM 0.0 0.0 0.0 !
+    TYPE_DEFINITION % SEQ * !
+    PHASE FCC_A1 % 2 1.0 1.0 !
+    CONSTITUENT FCC_A1 :AL:VA: !
+    PHASE PURE_VA % 1 1.0 !
+    CONSTITUENT PURE_VA :VA: !
+    PHASE PURE_VA_2SL % 2 1.0 3.0 !
+    CONSTITUENT PURE_VA_2SL :VA:VA: !
+    PHASE AL_VA_MIX % 2 1.0 1.0 !
+    CONSTITUENT AL_VA_MIX :AL,VA:VA: !
+    PARAMETER G(FCC_A1,AL:VA;0) 298.15 -10000; 6000 N !
+    PARAMETER G(PURE_VA,VA;0) 298.15 0; 6000 N !
+    PARAMETER G(PURE_VA_2SL,VA:VA;0) 298.15 0; 6000 N !
+    PARAMETER G(AL_VA_MIX,AL:VA;0) 298.15 -5000; 6000 N !
+    PARAMETER G(AL_VA_MIX,VA:VA;0) 298.15 0; 6000 N !
+    """
+    dbf = Database(tdb)
+    # Phases mixing atoms and vacancies stay; phases with only vacancies active are removed
+    filtered_phases = set(filter_phases(dbf, unpack_species(dbf, ['AL', 'VA'])))
+    assert filtered_phases == {'FCC_A1', 'AL_VA_MIX'}
+    # Every phase that passes the filter can build a Model
+    instantiate_models(dbf, ['AL', 'VA'], sorted(filtered_phases))
+    # With AL inactive, all phases with atoms lose their active sublattices too
+    assert filter_phases(dbf, unpack_species(dbf, ['VA'])) == []
+
+
 @select_database("CoV-20Wan.tdb")
 def test_filter_phases_removes_disordered_part_of_never_disorder_models(load_database):
     """Phases that are the disordered part of a never disorder model should be removed"""

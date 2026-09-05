@@ -3,6 +3,7 @@ The calculate test module verifies that calculate() calculates
 Model quantities correctly.
 """
 
+import warnings
 import pytest
 from pycalphad import Database, calculate, Model, variables as v
 from itertools import chain
@@ -251,6 +252,64 @@ def test_charged_infeasible_minimum_norm():
     assert np.any(np.logical_and(output[:, 1] > 0.25, output[:, 1] < 0.35))
 
 
+@select_database("halite_tivo.tdb")
+def test_charged_phase_with_va_and_multiple_cation_charges(load_database):
+    """calculate generates feasible points when VA and multiple charged cations mix on a sublattice.
+
+    Species sort order on the cation sublattice (... V+2 < V+3 < VA) differs
+    from the site fraction order used for points columns (... VA < V_POS2 <
+    V_POS3), so charges assigned by species order ended up on the wrong columns
+    and the sampled pseudo-endmembers violated charge balance, tripping the
+    feasibility assert in _sample_phase_constitution.
+    """
+    dbf = load_database()
+    # Site fraction (column) order: TI, TI_POS2, TI_POS3, V, VA, V_POS2, V_POS3 | O_NEG2, VA
+    constraint_jac = np.array([[1, 1, 1, 1, 1, 1, 1, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 1, 1],
+                               [0, 2, 3, 0, 0, 2, 3, -2, 0]])
+    constraint_rhs = np.array([1, 1, 0])
+    res = calculate(dbf, ['TI', 'V', 'O', 'VA'], 'HALITE_B1', T=873.15, P=101325, N=1, pdens=10)
+    output = np.squeeze(res.Y.values)
+    assert output.shape[0] > 0
+    cons_infeasibility = np.max(np.abs(constraint_jac.dot(output.T).T - constraint_rhs))
+    assert cons_infeasibility < 1e-10
+
+
+@select_database("halite_tivo.tdb")
+def test_phase_local_conditions_charged_phase(load_database):
+    "Phase-local mole fraction conditions combine correctly with charge balance constraints."
+    dbf = load_database()
+    comps = ['TI', 'V', 'O', 'VA']
+    # X(O) is accessible in [0, 0.6] for this phase; the upper bound comes from
+    # a fully occupied anion sublattice charge-balanced by +3 cations with
+    # vacancies on the remaining cation sites: (TI+3 2/3, VA 1/3)(O-2)
+    res = calculate(dbf, comps, 'HALITE_B1', T=873.15, P=101325, N=1, pdens=10,
+                    conditions={v.X('HALITE_B1', 'O'): 0.55})
+    x_o = res.X.sel(component='O').values
+    x_o = x_o[~np.isnan(x_o)]
+    assert x_o.size > 0
+    assert_allclose(x_o, 0.55)
+
+
+@select_database("al2o3_nd2o3_zro2.tdb")
+def test_phase_local_conditions_infeasible_charged_phase(load_database):
+    """Infeasible phase-local conditions produce no valid points instead of raising.
+
+    Needs a phase whose sublattices cannot all be emptied of atoms: with
+    vacancies available on every sublattice, the zero-atom configuration
+    trivially satisfies any phase-local mole fraction constraint and no
+    condition is linearly infeasible. FLUO (AL+3,ND+3,ZR+4)2(O-2,VA)4 has no
+    vacancies on its cation sublattice, so X(O) is only accessible in
+    [0.6, 2/3].
+    """
+    dbf = load_database()
+    comps = ['AL', 'ND', 'ZR', 'O', 'VA']
+    # X(O)=0.25 is outside the accessible range [0.6, 2/3] of this phase
+    res = calculate(dbf, comps, 'FLUO', T=1500, P=101325, N=1, pdens=10,
+                    conditions={v.X('FLUO', 'O'): 0.25})
+    assert np.all(np.isnan(res.GM.values))
+
+
 @pytest.mark.filterwarnings("ignore:The order-disorder model for \"BCC_4SL\" has a contribution from the physical property model*:UserWarning")
 @pytest.mark.filterwarnings("ignore:The order-disorder model for \"BCC_NOB\" has a contribution from the physical property model*:UserWarning")
 @select_database("Al-Fe_sundman2009.tdb")
@@ -384,15 +443,16 @@ def test_calculate_raises_if_no_feasible_points_exist():
     # as it is the only active phase, there will be no points and should raise
     with pytest.raises(ConditionError):
         grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
-    # SPINEL still suspended, but doesn't raise because GAS phase provides points
-    with pytest.warns(match="No valid points found for phase SPINEL"):
+    # SPINEL is filtered out before sampling (no warning), and GAS provides points
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
         grid = calculate(dbf, ["O", "ZR", "VA"], ["GAS", "SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
-    # fake_points provides points and therefore calculate should not raise for having no points
-    # fake_points also prevents the warning here
-    grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
+    assert "SPINEL" not in set(grid.Phase.ravel())
+    # SPINEL is filtered out, so there are no active phases regardless of fake_points
+    with pytest.raises(ConditionError):
+        grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
 
 
-@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
 def test_calculate_raises_correctly_when_charged_phases_cannot_charge_balance():
     """calculate should _not_ raise if there are phases that are infeasible, but overall there are still points
 
@@ -420,12 +480,14 @@ def test_calculate_raises_correctly_when_charged_phases_cannot_charge_balance():
     # As it is the only active phase, there will be no points and should raise.
     with pytest.raises(ConditionError):
         grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
-    # SPINEL still suspended, but doesn't raise because GAS phase provides points
-    with pytest.warns(match="No valid points found for phase SPINEL"):
+    # SPINEL is filtered out before sampling (no warning), and GAS provides points
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
         grid = calculate(dbf, ["AL", "ZR", "VA"], ["GAS", "SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
-    # fake_points provides points and therefore calculate should not raise for having no points
-    # fake_points also prevents the warning here
-    grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
+    assert "SPINEL" not in set(grid.Phase.ravel())
+    # SPINEL is filtered out, so there are no active phases regardless of fake_points
+    with pytest.raises(ConditionError):
+        grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
 
 
 def test_calculate_produces_no_infeasible_points_for_charged_phase():
