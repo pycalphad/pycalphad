@@ -5,7 +5,7 @@ import warnings
 
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
-from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.core.constants import MIN_SITE_FRACTION, ALLOWED_NET_CHARGE
 from pycalphad.property_framework.units import Q_
 from symengine import Symbol
 import numpy as np
@@ -287,6 +287,7 @@ def filter_phases(dbf, comps, candidate_phases=None):
     * Have no active components in any sublattice of a phase
     * Are disordered phases in an order-disorder model
     * Are pure vacancies on all sublattices
+    * Cannot charge balance with the active species
 
     Parameters
     ----------
@@ -301,8 +302,6 @@ def filter_phases(dbf, comps, candidate_phases=None):
     list
         Sorted list of phases that are valid for the Database and components
     """
-    # TODO: filter phases that can not charge balance
-
     def all_sublattices_active(comps, phase):
         active_sublattices = [len(set(comps).intersection(subl)) > 0 for
                               subl in phase.constituents]
@@ -310,6 +309,32 @@ def filter_phases(dbf, comps, candidate_phases=None):
 
     def has_any_nonvacant_constituents(comps, phase):
         return any(spec.number_of_atoms > 0 for subl in phase.constituents for spec in set(comps).intersection(subl))
+
+    def can_charge_balance(comps, phase):
+        # A phase can change balance iff Q_min <= 0 <= Q_max where Q_min (Q_max)
+        # is the most negative (positive) charged endmember.
+        if phase.model_hints.get('ionic_liquid_2SL', False) or 'mqmqa' in phase.model_hints:
+            return True # charge balance by construction
+        active = [set(comps).intersection(subl) for subl in phase.constituents]
+        if all(spec.charge == 0 for subl in active for spec in subl):
+            return True
+        site_ratios = [float(ratio) for ratio in phase.sublattices[:len(active)]]
+        min_charges = [min(spec.charge for spec in subl) for subl in active]
+        max_charges = [max(spec.charge for spec in subl) for subl in active]
+        q_min = sum(ratio * charge for ratio, charge in zip(site_ratios, min_charges))
+        q_max = sum(ratio * charge for ratio, charge in zip(site_ratios, max_charges))
+        if q_min < -ALLOWED_NET_CHARGE and q_max > ALLOWED_NET_CHARGE:
+            return True
+        # When the interval only touches zero at an end, the neutral constitutions are
+        # exactly the endmembers built from the extreme-charge species. Those must
+        # contain atoms: pure-vacancy endmembers are excluded from the calculation,
+        # e.g. (A+4,VA)(VA) is only neutral at VA:VA and cannot form.
+        for q_end, end_charges in ((q_min, min_charges), (q_max, max_charges)):
+            if abs(q_end) <= ALLOWED_NET_CHARGE:
+                if any(spec.number_of_atoms > 0 and spec.charge == charge
+                       for subl, charge in zip(active, end_charges) for spec in subl):
+                    return True
+        return False
 
     if candidate_phases == None:
         candidate_phases = dbf.phases.keys()
@@ -320,6 +345,7 @@ def filter_phases(dbf, comps, candidate_phases=None):
     phases = [phase for phase in candidate_phases if
                 all_sublattices_active(species, dbf.phases[phase]) and
                 has_any_nonvacant_constituents(species, dbf.phases[phase]) and
+                can_charge_balance(species, dbf.phases[phase]) and
                 (phase not in disordered_phases or (phase in disordered_phases and
                 dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
     # for all ordered phases, get components of ordered and disordered phase

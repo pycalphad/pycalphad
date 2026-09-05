@@ -19,7 +19,7 @@ from pycalphad.model import Model
 from pycalphad.core.utils import endmember_matrix, extract_parameters, \
     get_pure_elements, filter_phases, instantiate_models, point_sample, \
     unpack_species, unpack_condition, unpack_kwarg
-from pycalphad.core.constants import MIN_SITE_FRACTION, MAX_ENDMEMBER_PAIRS, MAX_EXTRA_POINTS
+from pycalphad.core.constants import MIN_SITE_FRACTION, MAX_ENDMEMBER_PAIRS, MAX_EXTRA_POINTS, ALLOWED_NET_CHARGE
 
 
 def _jacobian_from_constraints(constraints, variables):
@@ -82,7 +82,6 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
     ndarray of points
     """
     # Eliminate pure vacancy endmembers from the calculation
-    ALLOWED_CHARGE=1E-10
     vacancy_indices = []
     for sublattice in model.constituents:
         subl_va_indices = [idx for idx, spec in enumerate(sorted(set(sublattice), key=lambda s: s.escaped_name)) if spec.number_of_atoms == 0]
@@ -125,9 +124,9 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
         charge_positive_endmember_idxs = []
         charge_negative_endmember_idxs = []
         for em_idx in range(endmembers.shape[0]):
-            if Q[em_idx] > ALLOWED_CHARGE:
+            if Q[em_idx] > ALLOWED_NET_CHARGE:
                 charge_positive_endmember_idxs.append(em_idx)
-            elif Q[em_idx] < -ALLOWED_CHARGE:
+            elif Q[em_idx] < -ALLOWED_NET_CHARGE:
                 charge_negative_endmember_idxs.append(em_idx)
             else:
                 charge_neutral_endmember_idxs.append(em_idx)

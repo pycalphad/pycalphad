@@ -3,6 +3,7 @@ The calculate test module verifies that calculate() calculates
 Model quantities correctly.
 """
 
+import warnings
 import pytest
 from pycalphad import Database, calculate, Model, variables as v
 from itertools import chain
@@ -442,15 +443,16 @@ def test_calculate_raises_if_no_feasible_points_exist():
     # as it is the only active phase, there will be no points and should raise
     with pytest.raises(ConditionError):
         grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
-    # SPINEL still suspended, but doesn't raise because GAS phase provides points
-    with pytest.warns(match="No valid points found for phase SPINEL"):
+    # SPINEL is filtered out before sampling (no warning), and GAS provides points
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
         grid = calculate(dbf, ["O", "ZR", "VA"], ["GAS", "SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
-    # fake_points provides points and therefore calculate should not raise for having no points
-    # fake_points also prevents the warning here
-    grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
+    assert "SPINEL" not in set(grid.Phase.ravel())
+    # SPINEL is filtered out, so there are no active phases regardless of fake_points
+    with pytest.raises(ConditionError):
+        grid = calculate(dbf, ["O", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
 
 
-@pytest.mark.filterwarnings("ignore:No valid points found for phase SPINEL*:UserWarning")  # Filter out an expected warning so we don't fail the test
 def test_calculate_raises_correctly_when_charged_phases_cannot_charge_balance():
     """calculate should _not_ raise if there are phases that are infeasible, but overall there are still points
 
@@ -478,12 +480,14 @@ def test_calculate_raises_correctly_when_charged_phases_cannot_charge_balance():
     # As it is the only active phase, there will be no points and should raise.
     with pytest.raises(ConditionError):
         grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
-    # SPINEL still suspended, but doesn't raise because GAS phase provides points
-    with pytest.warns(match="No valid points found for phase SPINEL"):
+    # SPINEL is filtered out before sampling (no warning), and GAS provides points
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
         grid = calculate(dbf, ["AL", "ZR", "VA"], ["GAS", "SPINEL"], P=1e5, T=1000, fake_points=False, to_xarray=False)
-    # fake_points provides points and therefore calculate should not raise for having no points
-    # fake_points also prevents the warning here
-    grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
+    assert "SPINEL" not in set(grid.Phase.ravel())
+    # SPINEL is filtered out, so there are no active phases regardless of fake_points
+    with pytest.raises(ConditionError):
+        grid = calculate(dbf, ["AL", "ZR", "VA"], ["SPINEL"], P=1e5, T=1000, fake_points=True, to_xarray=False)
 
 
 def test_calculate_produces_no_infeasible_points_for_charged_phase():
