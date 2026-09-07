@@ -169,9 +169,6 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
                 extra_points = sample(num_points, np.full(constraint_jac.shape[1], MIN_SITE_FRACTION),
                                       np.ones(constraint_jac.shape[1]), A2=constraint_jac, b2=constraint_rhs)
             except ValueError:
-                # No feasible points satisfy the constraints, e.g. phase-local
-                # conditions outside the phase's accessible composition range.
-                # Return an array of nan to preserve shape.
                 return np.full((num_points, constraint_jac.shape[1]), np.nan)
             if (len(phase_local_conditions.keys()) > 0):
                 points = extra_points
