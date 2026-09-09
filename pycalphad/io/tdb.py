@@ -6,14 +6,14 @@ Thermo-Calc TDB format.
 from pyparsing import CaselessKeyword, CharsNotIn, Group
 from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
-from pyparsing import DelimitedList, ParseException
+from pyparsing import DelimitedList, ParseException, Regex
 import re
 from symengine.lib.symengine_wrapper import UniversalSet, Union, Complement
 from symengine import sympify, And, Or, Not, EmptySet, Interval, Piecewise, Add, Mul, Pow
 from symengine import Float, Symbol, LessThan, StrictLessThan, S, E
 from tinydb import where
 from pycalphad import Database
-from pycalphad.io.database import DatabaseExportError, DiffusionStatement
+from pycalphad.io.database import DatabaseExportError, DiffusionModel
 from pycalphad.io.grammar import float_number, chemical_formula
 from pycalphad.variables import Species
 import pycalphad.variables as v
@@ -397,19 +397,72 @@ def _process_zerovolume_species(db, species_line):
     """Record the species a database declares to occupy no volume."""
     db.zerovolume_species.update(species_line.replace(',', ' ').upper().split())
 
-def _process_diffusion(db, diffusion_line):
-    """Record a DIFFUSION command, without interpreting its arguments.
+def _diffusion_grammar():
+    """Grammar for the arguments of a DIFFUSION command: ``<model> <phase> [arguments]``.
 
-    The argument syntax depends on the model the command selects, so the arguments are kept as
-    text. Database.magnetic_diffusion_parameters interprets the MAGNETIC form.
+    The models and their arguments follow the DICTRA extensions to the TDB syntax:
+    ``NONE`` takes nothing, ``DILUTE`` and ``SIMPLE`` take the constituent array of the
+    dependent species in each sublattice, and ``MAGNETIC`` takes ``ALPHA`` and ``ALPHA2``
+    coefficients, optionally per species as ``ALPHA2&C=1.8``.
     """
-    tokens = diffusion_line.split()
-    if len(tokens) < 2:
-        warnings.warn(f"Ignoring DIFFUSION command with no phase name: 'DIFFUSION {diffusion_line}'")
-        return
-    db.diffusion.append(
-        DiffusionStatement(tokens[0].upper(), tokens[1].upper(), ' '.join(tokens[2:]))
+    # The same characters the CONSTITUENT and PHASE commands accept, so a DIFFUSION command
+    # cannot fail on a species or a phase the rest of the file defines happily. ':' is left out
+    # of the phase name because it opens the constituent array of the DILUTE and SIMPLE forms.
+    species_name = Word(alphanums + '+-*/_.')
+    phase_name = Word(alphanums + '_-()/')
+    coefficient = Group(
+        Regex(r'ALPHA2?', re.IGNORECASE).set_parse_action(lambda t: t[0].upper())
+        + Optional(Suppress('&') + species_name, default=None)
+        + Suppress('=') + float_number
     )
+    constituent_array = Suppress(':') + ZeroOrMore(Group(DelimitedList(species_name)) + Suppress(':'))
+    model = MatchFirst([CaselessKeyword(name) for name in ('NONE', 'DILUTE', 'SIMPLE', 'MAGNETIC')])
+    return model('model') + phase_name('phase') + Optional(
+        Group(OneOrMore(coefficient))('coefficients') | Group(constituent_array)('constituents')
+    )
+
+#: The grammar is the same for every file, so it is built once.
+_DIFFUSION_GRAMMAR = _diffusion_grammar()
+
+def _process_diffusion(db, diffusion_line):
+    """Queue a DIFFUSION command for the phase it names.
+
+    Like type definitions, DIFFUSION commands precede the PHASE lines in a TDB file, so the
+    parsed model is queued and attached to the phase's model_hints once every phase is known.
+    A command that does not follow the DICTRA syntax is skipped with a warning.
+    """
+    try:
+        tokens = _DIFFUSION_GRAMMAR.parse_string(diffusion_line, parse_all=True)
+    except ParseException as e:
+        warnings.warn(f"Ignoring DIFFUSION command with invalid syntax: 'DIFFUSION {diffusion_line}' ({e.msg})")
+        return
+    model = tokens['model'].upper()
+    alpha, alpha2, constituents = [], [], ()
+    if 'coefficients' in tokens:
+        if model != 'MAGNETIC':
+            warnings.warn(f"Ignoring DIFFUSION command: only the MAGNETIC model takes coefficients: 'DIFFUSION {diffusion_line}'")
+            return
+        for keyword, species, value in tokens['coefficients']:
+            target = alpha if keyword == 'ALPHA' else alpha2
+            target.append((None if species is None else species.upper(), float(value)))
+    if 'constituents' in tokens:
+        if model not in ('DILUTE', 'SIMPLE'):
+            warnings.warn(f"Ignoring DIFFUSION command: only the DILUTE and SIMPLE models take a constituent array: 'DIFFUSION {diffusion_line}'")
+            return
+        constituents = tuple(tuple(species.upper() for species in sublattice) for sublattice in tokens['constituents'])
+    db._diffusion_queue.append((tokens['phase'].upper(), DiffusionModel(model, tuple(alpha), tuple(alpha2), constituents)))
+
+def _apply_diffusion_queue(db):
+    """Attach the queued DIFFUSION models to their phases' model_hints.
+
+    A command naming a phase the file does not define is dropped silently: mobility databases
+    are often distributed as an appendix to a thermodynamic database and carry DIFFUSION lines
+    for phases defined only there.
+    """
+    for phase_name, model in db._diffusion_queue:
+        phase = db.phases.get(phase_name)
+        if phase is not None:
+            phase.model_hints['diffusion'] = model
 
 def _process_species(db, sp_name, sp_comp, charge=0, *args):
     """Add a species to the Database. If charge not specified, the Species will be neutral."""
@@ -856,15 +909,24 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                         model_hints['ihj_magnetic_structure_factor'])
             del model_hints['ihj_magnetic_afm_factor']
             del model_hints['ihj_magnetic_structure_factor']
+        # The diffusion model is written as a DIFFUSION command below, after the type definitions
+        model_hints.pop('diffusion', None)
         if len(model_hints) > 0:
             # Some model hints were not properly consumed
             raise ValueError('Not all model hints are supported: {}'.format(model_hints))
     # ZEROVOLUME_SPECIES and DIFFUSION go after the type definitions, before the first PHASE.
+    diffusion_lines = []
+    for name, phase_obj in sorted(dbf.phases.items()):
+        diffusion = phase_obj.model_hints.get('diffusion')
+        if diffusion is None:
+            continue
+        arguments = diffusion.arguments()
+        diffusion_lines.append("DIFFUSION {} {}{} !\n".format(diffusion.model, name.upper(),
+                                                              ' ' + arguments if arguments else ''))
     if len(dbf.zerovolume_species) > 0:
         output += "ZEROVOLUME_SPECIES {} !\n".format(' '.join(sorted(dbf.zerovolume_species)))
-    for statement in dbf.diffusion:
-        output += "{} !\n".format(statement)
-    if len(dbf.zerovolume_species) > 0 or len(dbf.diffusion) > 0:
+    output += ''.join(diffusion_lines)
+    if len(dbf.zerovolume_species) > 0 or len(diffusion_lines) > 0:
         output += "\n"
     # Perform a second loop now that all typedefs / model hints are consistent
     for name, phase_obj in sorted(dbf.phases.items()):
@@ -1004,6 +1066,7 @@ def read_tdb(dbf, fd):
     # Map {typedef character: [phases using that typedef]}
     dbf._typechar_map = defaultdict(list)
     dbf._typedefs_queue = []  # queue of type defintion lines to process
+    dbf._diffusion_queue = []  # (phase name, DiffusionModel) pairs, attached once phases exist
 
     grammar = _tdb_grammar()
 
@@ -1043,6 +1106,8 @@ def read_tdb(dbf, fd):
                       f"{phases_expecting_typechar}, but no corresponding TYPE_DEFINITION line was found in the TDB.")
     del dbf._typechar_map
     del dbf._typedefs_queue
+    _apply_diffusion_queue(dbf)
+    del dbf._diffusion_queue
 
     dbf.process_parameter_queue()
 

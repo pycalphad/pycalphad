@@ -15,7 +15,7 @@ from pycalphad import Database, Model, calculate, variables as v
 from pycalphad.variables import Species
 from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
-from pycalphad.io.database import DiffusionStatement
+from pycalphad.io.database import DiffusionModel
 import pycalphad.tests.databases
 from pycalphad.tests.fixtures import select_database, load_database
 
@@ -914,59 +914,125 @@ DIFFUSION_COMMANDS_TDB = """
  ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
  ELEMENT FE   BCC_A2                    5.5847E+01  4.4890E+03  2.7280E+01 !
  ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7400E+00 !
+ ELEMENT N    1/2_MOLE_N2(G)            1.4007E+01  4.3350E+03  9.5751E+01 !
 
- ZEROVOLUME_SPECIES C VA !
+ ZEROVOLUME_SPECIES C N VA !
  DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 ALPHA2&C=1.8 ALPHA2&N=0.6 !
- DIFFUSION DILUTE D011_CEMENTITE :FE:C: !
+ DIFFUSION DILUTE CEMENTITE : FE : C : !
+ DIFFUSION NONE SIGMA !
+
+ PHASE BCC_A2 %  2 1 3 !
+ CONSTITUENT BCC_A2 :FE:C,N,VA: !
+ PHASE FCC_A1 %  2 1 1 !
+ CONSTITUENT FCC_A1 :FE:C,N,VA: !
+ PHASE CEMENTITE %  2 3 1 !
+ CONSTITUENT CEMENTITE :FE:C: !
+ PHASE SIGMA %  3 10 4 16 !
+ CONSTITUENT SIGMA :FE:FE:FE: !
 """
 
 
 def test_zerovolume_species_are_stored():
     "ZEROVOLUME_SPECIES names are read into the Database."
     dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
-    assert dbf.zerovolume_species == {'C', 'VA'}
+    assert dbf.zerovolume_species == {'C', 'N', 'VA'}
 
 
-def test_diffusion_commands_are_stored():
-    "DIFFUSION commands are read into the Database, with their arguments kept as text."
+def test_diffusion_commands_become_phase_model_hints():
+    "Each DIFFUSION command is parsed into a DiffusionModel on the phase it names."
     dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
-    assert dbf.diffusion == [
-        DiffusionStatement('MAGNETIC', 'BCC_A2', 'ALPHA=0.3 ALPHA2&C=1.8 ALPHA2&N=0.6'),
-        DiffusionStatement('DILUTE', 'D011_CEMENTITE', ':FE:C:'),
-    ]
+    assert dbf.phases['BCC_A2'].model_hints['diffusion'] == DiffusionModel(
+        'MAGNETIC', alpha=((None, 0.3),), alpha2=(('C', 1.8), ('N', 0.6)))
+    assert dbf.phases['CEMENTITE'].model_hints['diffusion'] == DiffusionModel(
+        'DILUTE', constituents=(('FE',), ('C',)))
+    assert dbf.phases['SIGMA'].model_hints['diffusion'] == DiffusionModel('NONE')
+    # A phase without a command has no hint, so Model construction is untouched.
+    assert 'diffusion' not in dbf.phases['FCC_A1'].model_hints
+    # The hint keeps the phase hashable, as the other hints do.
+    hash(dbf.phases['BCC_A2'])
 
 
-def test_magnetic_diffusion_parameters():
-    "The MAGNETIC form of the DIFFUSION command is interpreted on request."
-    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
-    expected = {'ALPHA': 0.3, 'ALPHA2&C': 1.8, 'ALPHA2&N': 0.6}
-    assert dbf.magnetic_diffusion_parameters('BCC_A2') == expected
-    # Phase names are matched case-insensitively, as everywhere else in the Database.
-    assert dbf.magnetic_diffusion_parameters('bcc_a2') == expected
-    # A phase with no MAGNETIC command has no parameters, rather than raising.
-    assert dbf.magnetic_diffusion_parameters('D011_CEMENTITE') == {}
-    assert dbf.magnetic_diffusion_parameters('FCC_A1') == {}
+def test_magnetic_diffusion_coefficients_resolve_per_species():
+    "ALPHA and ALPHA2 resolve to the species-specific value, else the bare one, else None."
+    model = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb').phases['BCC_A2'].model_hints['diffusion']
+    assert model.alpha_for('FE') == 0.3  # bare ALPHA applies to every substitutional species
+    assert model.alpha_for() == 0.3
+    assert model.alpha2_for('C') == 1.8
+    assert model.alpha2_for('n') == 0.6  # species are matched case-insensitively
+    assert model.alpha2_for('B') is None  # no bare ALPHA2 to fall back on
+    assert DiffusionModel('NONE').alpha_for('FE') is None
+    # A bare ALPHA2 covers every interstitial the command does not name.
+    bare = Database.from_string(
+        DIFFUSION_COMMANDS_TDB.replace('ALPHA2&C=1.8', 'ALPHA2=1.8'), fmt='tdb'
+    ).phases['BCC_A2'].model_hints['diffusion']
+    assert bare.alpha2_for() == 1.8
+    assert bare.alpha2_for('C') == 1.8
+    assert bare.alpha2_for('N') == 0.6  # the named value still wins over the bare one
+
+
+def test_diffusion_commands_accept_the_names_the_other_commands_accept():
+    "Phase and species names take the characters of the PHASE and CONSTITUENT commands."
+    tdb_string = DIFFUSION_COMMANDS_TDB.replace('SIGMA', 'KSI-CARBIDE')
+    tdb_string = tdb_string.replace(' DIFFUSION DILUTE CEMENTITE : FE : C :',
+                                    ' DIFFUSION DILUTE CEMENTITE : FE : *,C :')
+    dbf = Database.from_string(tdb_string, fmt='tdb')
+    assert dbf.phases['KSI-CARBIDE'].model_hints['diffusion'] == DiffusionModel('NONE')
+    assert dbf.phases['CEMENTITE'].model_hints['diffusion'].constituents == (('FE',), ('*', 'C'))
 
 
 def test_diffusion_commands_roundtrip():
     "DIFFUSION and ZEROVOLUME_SPECIES commands survive a write/read cycle."
     dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
-    reloaded = Database.from_string(dbf.to_string(fmt='tdb'), fmt='tdb')
+    written = dbf.to_string(fmt='tdb')
+    assert 'DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 ALPHA2&C=1.8 ALPHA2&N=0.6 !' in written
+    assert 'DIFFUSION DILUTE CEMENTITE :FE:C: !' in written
+    assert 'DIFFUSION NONE SIGMA !' in written
+    reloaded = Database.from_string(written, fmt='tdb')
     assert reloaded.zerovolume_species == dbf.zerovolume_species
-    assert reloaded.diffusion == dbf.diffusion
+    assert reloaded.phases == dbf.phases
     assert reloaded == dbf
 
 
-def test_diffusion_command_without_phase_warns():
-    "A DIFFUSION command naming no phase is skipped with a warning, not a parse error."
-    tdb_string = """
- ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+def test_diffusion_commands_survive_pickling():
+    "The hint is a plain tuple, so a pickled Database carries it."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    restored = pickle.loads(pickle.dumps(dbf))
+    assert restored.phases['BCC_A2'].model_hints['diffusion'] == dbf.phases['BCC_A2'].model_hints['diffusion']
+    assert restored.zerovolume_species == dbf.zerovolume_species
 
- DIFFUSION MAGNETIC !
-"""
-    with pytest.warns(UserWarning, match='DIFFUSION'):
+
+def test_model_ignores_the_diffusion_hint():
+    "A Model built for a phase carrying the hint is the same Model as without it."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    with_hint = Model(dbf, ['FE', 'C', 'VA'], 'BCC_A2')
+    del dbf.phases['BCC_A2'].model_hints['diffusion']
+    without_hint = Model(dbf, ['FE', 'C', 'VA'], 'BCC_A2')
+    assert with_hint.GM == without_hint.GM
+
+
+def test_diffusion_command_for_an_undefined_phase_is_ignored():
+    "A DIFFUSION command naming a phase the file never defines is dropped, as a mobility appendix may do."
+    tdb_string = DIFFUSION_COMMANDS_TDB + " DIFFUSION NONE LIQUID !\n"
+    dbf = Database.from_string(tdb_string, fmt='tdb')
+    assert 'LIQUID' not in dbf.phases
+    assert dbf.phases['SIGMA'].model_hints['diffusion'] == DiffusionModel('NONE')
+
+
+@pytest.mark.parametrize('command', [
+    'DIFFUSION MAGNETIC !',  # no phase
+    'DIFFUSION FULL BCC_A2 !',  # unknown model
+    'DIFFUSION MAGNETIC BCC_A2 :FE:C: !',  # constituent array on the wrong model
+    'DIFFUSION DILUTE CEMENTITE ALPHA=0.3 !',  # coefficients on the wrong model
+    'DIFFUSION MAGNETIC BCC_A2 BETA=0.3 !',  # unknown coefficient
+])
+def test_malformed_diffusion_commands_warn_and_are_skipped(command):
+    "A DIFFUSION command outside the DICTRA syntax is skipped with a warning, not a parse error."
+    tdb_string = DIFFUSION_COMMANDS_TDB.replace(' DIFFUSION NONE SIGMA !', ' ' + command)
+    with pytest.warns(UserWarning, match='Ignoring DIFFUSION command'):
         dbf = Database.from_string(tdb_string, fmt='tdb')
-    assert dbf.diffusion == []
+    assert 'diffusion' not in dbf.phases['SIGMA'].model_hints
+    # The well-formed commands in the same file are unaffected.
+    assert dbf.phases['CEMENTITE'].model_hints['diffusion'].model == 'DILUTE'
 
 
 @select_database("crfe_bcc_magnetic.tdb")
@@ -974,11 +1040,11 @@ def test_diffusion_commands_are_read_from_a_shipped_database(load_database):
     "A database file's DIFFUSION and ZEROVOLUME_SPECIES commands are read alongside its thermodynamics."
     dbf = load_database()
     assert dbf.zerovolume_species == {'VA'}
-    assert dbf.diffusion == [DiffusionStatement('MAGNETIC', 'BCC_A2', 'ALPHA=0.3')]
-    assert dbf.magnetic_diffusion_parameters('BCC_A2') == {'ALPHA': 0.3}
-    # The commands are inert for the thermodynamic description, which parses as before.
+    hints = dbf.phases['BCC_A2'].model_hints
+    assert hints['diffusion'] == DiffusionModel('MAGNETIC', alpha=((None, 0.3),))
+    # The command sits next to the thermodynamic hints from the type definitions.
+    assert hints['ihj_magnetic_afm_factor'] == -1.0
     assert set(dbf.phases.keys()) == {'BCC_A2'}
-    assert dbf.phases['BCC_A2'].model_hints['ihj_magnetic_afm_factor'] == -1.0
 
 
 @select_database("crfe_bcc_magnetic.tdb")
@@ -991,7 +1057,7 @@ def test_diffusion_commands_are_written_before_the_phases(load_database):
     assert written.rindex('TYPE_DEFINITION') < zerovolume_at < diffusion_at < written.index('PHASE BCC_A2')
     reloaded = Database.from_string(written, fmt='tdb')
     assert reloaded.zerovolume_species == dbf.zerovolume_species
-    assert reloaded.diffusion == dbf.diffusion
+    assert reloaded.phases == dbf.phases
 
 
 @select_database("diffusion.tdb")
@@ -999,29 +1065,25 @@ def test_zerovolume_species_are_read_from_the_mobility_database(load_database):
     "The mobility test database declares vacancies volume-free, and carries no DIFFUSION command."
     dbf = load_database()
     assert dbf.zerovolume_species == {'VA'}
-    assert dbf.diffusion == []
+    assert not any('diffusion' in phase.model_hints for phase in dbf.phases.values())
 
 
 def test_database_without_the_commands_has_empty_defaults():
     "A Database built in code, or from a file without the commands, has nothing recorded."
-    assert Database().diffusion == []
     assert Database().zerovolume_species == set()
     elements_only = DIFFUSION_COMMANDS_TDB.split(' ZEROVOLUME_SPECIES')[0]
     dbf = Database.from_string(elements_only, fmt='tdb')
-    assert dbf.diffusion == []
     assert dbf.zerovolume_species == set()
-    assert dbf.magnetic_diffusion_parameters('BCC_A2') == {}
+    assert 'ZEROVOLUME_SPECIES' not in dbf.to_string(fmt='tdb')
 
 
 def test_database_unpickled_from_before_the_commands_gets_defaults():
-    "State saved by an older pycalphad lacks the attributes; loading it still yields a complete Database."
+    "State saved by an older pycalphad lacks the attribute; loading it still yields a complete Database."
     dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
     state = dbf.__getstate__()
-    del state['diffusion']
     del state['zerovolume_species']
     restored = object.__new__(Database)
     restored.__setstate__(state)
-    assert restored.diffusion == []
     assert restored.zerovolume_species == set()
     assert 'ZEROVOLUME_SPECIES' not in restored.to_string(fmt='tdb')
     assert restored.phases == dbf.phases

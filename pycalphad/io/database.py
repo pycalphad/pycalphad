@@ -2,14 +2,13 @@
 The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
-from typing import Any, TypedDict
+from typing import Any, NamedTuple, TypedDict
 from io import StringIO
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
 from datetime import datetime
 from collections import namedtuple
 import os
-import re
 from symengine import Expr
 from pycalphad.variables import Species
 from pycalphad.core.cache import fhash
@@ -58,31 +57,77 @@ class Phase(object): #pylint: disable=R0903
 ElementReferenceData = TypedDict('ElementReferenceData', {'phase': str, 'mass': float, "H298": float, "S298": float})
 
 
-#: ``KEY=VALUE`` pair in a DIFFUSION command's arguments, e.g. ``ALPHA2&C=1.8``.
-_DIFFUSION_ARGUMENT = re.compile(r'([A-Z0-9_&]+)\s*=\s*([-+0-9.eE]+)')
+class DiffusionModel(NamedTuple):
+    """The diffusion model a TDB ``DIFFUSION`` command selects for one phase.
 
-
-class DiffusionStatement(namedtuple('DiffusionStatement', ['model', 'phase_name', 'arguments'])):
-    """A standard DIFFUSION command, stored without interpreting its arguments.
+    Stored in ``Phase.model_hints['diffusion']``, next to the other per-phase hints read from
+    a TDB file. A plain tuple, so the phase stays hashable and picklable.
 
     Attributes
     ----------
     model : str
-        The diffusion model the command selects, e.g. ``'MAGNETIC'`` or ``'DILUTE'``.
-    phase_name : str
-        The phase the command applies to.
-    arguments : str
-        Everything after the phase name, whitespace-normalized. Kept as text because the
-        argument syntax differs per model: ``MAGNETIC`` takes ``KEY=VALUE`` pairs while
-        ``DILUTE`` takes a constituent array. :meth:`Database.magnetic_diffusion_parameters`
-        interprets the ``MAGNETIC`` form.
+        ``'NONE'`` (no diffusion in the phase), ``'DILUTE'`` or ``'SIMPLE'`` (diagonal
+        diffusion matrix from ``DF``/``DQ`` parameters) or ``'MAGNETIC'`` (full matrix with
+        the ferromagnetic correction to the mobilities).
+    alpha : tuple of (str or None, float)
+        ``MAGNETIC`` only: the substitutional ferromagnetic coefficient, one entry per
+        ``ALPHA`` argument. The species is ``None`` for a bare ``ALPHA=`` that applies to every
+        substitutional species, or the species named by ``ALPHA&<species>=``.
+    alpha2 : tuple of (str or None, float)
+        ``MAGNETIC`` only: the interstitial coefficient from ``ALPHA2`` and ``ALPHA2&<species>``
+        arguments, in the same form.
+    constituents : tuple of tuple of str
+        ``DILUTE`` and ``SIMPLE`` only: the dependent species of each sublattice, from the
+        constituent array the command carries.
+
+    Examples
+    --------
+    >>> dbf = Database('fe_c_mobility.tdb')  # doctest: +SKIP
+    >>> dbf.phases['BCC_A2'].model_hints['diffusion']  # doctest: +SKIP
+    DiffusionModel(model='MAGNETIC', alpha=((None, 0.3),), alpha2=(('C', 1.8),), constituents=())
     """
 
-    __slots__ = ()
+    model: str
+    alpha: tuple = ()
+    alpha2: tuple = ()
+    constituents: tuple = ()
 
-    def __str__(self):
-        arguments = f' {self.arguments}' if self.arguments else ''
-        return f'DIFFUSION {self.model} {self.phase_name}{arguments}'
+    @staticmethod
+    def _coefficient_for(coefficients, species):
+        """The value named for ``species``, else the value named for every species, else None."""
+        species = None if species is None else str(species).upper()
+        fallback = None
+        for named, value in coefficients:
+            if named == species:
+                return value
+            if named is None:
+                fallback = value
+        return fallback
+
+    def alpha_for(self, species=None):
+        """Return the substitutional ``ALPHA`` coefficient that applies to ``species``.
+
+        A value named for the species wins over a bare ``ALPHA=``; ``None`` if neither is
+        given (a ``MAGNETIC`` command without ``ALPHA``, or another model).
+        """
+        return self._coefficient_for(self.alpha, species)
+
+    def alpha2_for(self, species=None):
+        """Return the interstitial ``ALPHA2`` coefficient that applies to ``species``, or None."""
+        return self._coefficient_for(self.alpha2, species)
+
+    def arguments(self):
+        """Return the command's arguments in TDB syntax, without the model and phase name."""
+        if self.model == 'MAGNETIC':
+            parts = []
+            for keyword, coefficients in (('ALPHA', self.alpha), ('ALPHA2', self.alpha2)):
+                for species, value in coefficients:
+                    name = keyword if species is None else f'{keyword}&{species}'
+                    parts.append(f'{name}={value}')
+            return ' '.join(parts)
+        if self.constituents:
+            return ':' + ':'.join(','.join(sublattice) for sublattice in self.constituents) + ':'
+        return ''
 
 DatabaseFormat = namedtuple('DatabaseFormat', ['read', 'write'])
 format_registry = {}
@@ -113,10 +158,12 @@ class Database(object): #pylint: disable=R0902
     references: dict[str, Any]
     """Reference objects indexed by their system-local identifier."""
     _structure_dict: dict[str, Any]
-    diffusion: list[DiffusionStatement]
-    """DIFFUSION commands from a TDB file, in file order, with their arguments kept as text."""
     zerovolume_species: set[str]
-    """Names of the species a TDB file declares to occupy no volume (ZEROVOLUME_SPECIES)."""
+    """Names of the species a TDB file declares to occupy no volume (ZEROVOLUME_SPECIES).
+
+    The DIFFUSION commands, which are per phase, live in ``Phase.model_hints['diffusion']``
+    as :class:`DiffusionModel` instances.
+    """
 
     def __new__(cls, *args):
         if len(args) == 0:
@@ -131,9 +178,6 @@ class Database(object): #pylint: disable=R0902
             obj._parameter_queue = []
             obj.symbols = {}
             obj.references = {}
-            # DIFFUSION and ZEROVOLUME_SPECIES commands. Stored rather than interpreted; see
-            # DiffusionStatement and Database.magnetic_diffusion_parameters.
-            obj.diffusion = []
             obj.zerovolume_species = set()
             # Note: No public typedefs here (from TDB files)
             # Instead we put that information in the model_hint for phases
@@ -179,8 +223,7 @@ class Database(object): #pylint: disable=R0902
         return pickle_dict
 
     def __setstate__(self, state):
-        # Databases pickled before these attributes existed do not carry them.
-        self.diffusion = []
+        # Databases pickled before this attribute existed do not carry it.
         self.zerovolume_species = set()
         for key, value in state.items():
             if key == '_parameters':
@@ -400,37 +443,6 @@ class Database(object): #pylint: disable=R0902
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-    def magnetic_diffusion_parameters(self, phase_name):
-        """
-        Return the coefficients of the DIFFUSION MAGNETIC command for one phase.
-
-        Parameters
-        ----------
-        phase_name : str
-            Name of the phase.
-
-        Returns
-        -------
-        dict
-            Argument name mapped to its value, e.g. ``{'ALPHA': 0.3, 'ALPHA2&C': 1.8}``.
-            Empty if the phase has no magnetic diffusion command.
-
-        Examples
-        --------
-        >>> dbf = Database('femn.tdb')  # doctest: +SKIP
-        >>> dbf.magnetic_diffusion_parameters('BCC_A2')  # doctest: +SKIP
-        {'ALPHA': 0.3, 'ALPHA2&C': 1.8}
-        """
-        parameters = {}
-        for statement in self.diffusion:
-            if statement.model != 'MAGNETIC':
-                continue
-            if statement.phase_name != phase_name.upper():
-                continue
-            for key, value in _DIFFUSION_ARGUMENT.findall(statement.arguments):
-                parameters[key] = float(value)
-        return parameters
 
     def add_structure_entry(self, local_name, global_name):
         """
