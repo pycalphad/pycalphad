@@ -63,23 +63,6 @@ class DiffusionModel(NamedTuple):
     Stored in ``Phase.model_hints['diffusion']``, next to the other per-phase hints read from
     a TDB file. A plain tuple, so the phase stays hashable and picklable.
 
-    Attributes
-    ----------
-    model : str
-        ``'NONE'`` (no diffusion in the phase), ``'DILUTE'`` or ``'SIMPLE'`` (diagonal
-        diffusion matrix from ``DF``/``DQ`` parameters) or ``'MAGNETIC'`` (full matrix with
-        the ferromagnetic correction to the mobilities).
-    alpha : tuple of (str or None, float)
-        ``MAGNETIC`` only: the substitutional ferromagnetic coefficient, one entry per
-        ``ALPHA`` argument. The species is ``None`` for a bare ``ALPHA=`` that applies to every
-        substitutional species, or the species named by ``ALPHA&<species>=``.
-    alpha2 : tuple of (str or None, float)
-        ``MAGNETIC`` only: the interstitial coefficient from ``ALPHA2`` and ``ALPHA2&<species>``
-        arguments, in the same form.
-    constituents : tuple of tuple of str
-        ``DILUTE`` and ``SIMPLE`` only: the dependent species of each sublattice, from the
-        constituent array the command carries.
-
     Examples
     --------
     >>> dbf = Database('fe_c_mobility.tdb')  # doctest: +SKIP
@@ -88,9 +71,19 @@ class DiffusionModel(NamedTuple):
     """
 
     model: str
+    """``'NONE'`` (no diffusion in the phase), ``'DILUTE'`` or ``'SIMPLE'`` (diagonal diffusion
+    matrix from ``DF``/``DQ`` parameters) or ``'MAGNETIC'`` (full matrix with the ferromagnetic
+    correction to the mobilities)."""
     alpha: tuple = ()
+    """``MAGNETIC`` only: the substitutional ferromagnetic coefficient as ``(species, value)``
+    pairs, one per ``ALPHA`` argument. The species is ``None`` for a bare ``ALPHA=`` that applies
+    to every substitutional species, or the species named by ``ALPHA&<species>=``."""
     alpha2: tuple = ()
+    """``MAGNETIC`` only: the interstitial coefficient from ``ALPHA2`` and ``ALPHA2&<species>``
+    arguments, as the same ``(species, value)`` pairs."""
     constituents: tuple = ()
+    """``DILUTE`` and ``SIMPLE`` only: the dependent species of each sublattice, from the
+    constituent array the command carries."""
 
     @staticmethod
     def _coefficient_for(coefficients, species):
