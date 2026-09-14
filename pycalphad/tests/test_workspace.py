@@ -342,12 +342,13 @@ def test_issue_503_suspend_phase_infeasible_internal_constraints():
     PHASE GAS:G %  1  1.0  !
     CONSTITUENT GAS:G :O,ZR :  !
     """
-    # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended
+    # SPINEL phase cannot charge balance, so even though it contains ZR, O, and VA, it must be suspended.
+    # It is filtered out of the active phases, like a phase with an inactive sublattice.
     wks = Workspace(TDB, ['O', 'ZR', 'VA'], ['SPINEL', 'GAS'], {v.P: 1e5, v.X('O'): 0.5, v.T: 1000})
     wks.verbose = True
+    assert wks.phases == ['GAS']
     print(wks.get_dict('X(*,*)'))
     print(wks.get_dict('NP(*)'))
-    assert np.isnan(wks.get('NP(SPINEL)'))
     np.testing.assert_almost_equal(wks.get('NP(GAS)'), 1.0)
 
 
