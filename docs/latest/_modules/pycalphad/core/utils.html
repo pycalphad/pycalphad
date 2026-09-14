@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.utils - pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</title>
+        <title>pycalphad.core.utils - pycalphad 0.11.3.dev19+g99e63e800 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev19+g99e63e800 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev19+g99e63e800 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -298,7 +298,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.halton</span><span class="w"> </span><span class="kn">import</span> <span class="n">halton</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">,</span> <span class="n">ALLOWED_NET_CHARGE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.property_framework.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Q_</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">symengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Symbol</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -608,6 +608,8 @@
 <span class="sd">    Filters out phases that</span>
 <span class="sd">    * Have no active components in any sublattice of a phase</span>
 <span class="sd">    * Are disordered phases in an order-disorder model</span>
+<span class="sd">    * Are pure vacancies on all sublattices</span>
+<span class="sd">    * Cannot charge balance with the active species</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -622,12 +624,40 @@
 <span class="sd">    list</span>
 <span class="sd">        Sorted list of phases that are valid for the Database and components</span>
 <span class="sd">    """</span>
-    <span class="c1"># TODO: filter phases that can not charge balance</span>
-
     <span class="k">def</span><span class="w"> </span><span class="nf">all_sublattices_active</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
         <span class="n">active_sublattices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">subl</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span>
                               <span class="n">subl</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">active_sublattices</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_any_nonvacant_constituents</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">number_of_atoms</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">subl</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">can_charge_balance</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
+        <span class="c1"># A phase can change balance iff Q_min &lt;= 0 &lt;= Q_max where Q_min (Q_max)</span>
+        <span class="c1"># is the most negative (positive) charged endmember.</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ionic_liquid_2SL'</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">'mqmqa'</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span> <span class="c1"># charge balance by construction</span>
+        <span class="n">active</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">subl</span><span class="p">)</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">charge</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">active</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="n">site_ratios</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">ratio</span><span class="p">)</span> <span class="k">for</span> <span class="n">ratio</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">active</span><span class="p">)]]</span>
+        <span class="n">min_charges</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">charge</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">)</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">active</span><span class="p">]</span>
+        <span class="n">max_charges</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">charge</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">)</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">active</span><span class="p">]</span>
+        <span class="n">q_min</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ratio</span> <span class="o">*</span> <span class="n">charge</span> <span class="k">for</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">charge</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">site_ratios</span><span class="p">,</span> <span class="n">min_charges</span><span class="p">))</span>
+        <span class="n">q_max</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ratio</span> <span class="o">*</span> <span class="n">charge</span> <span class="k">for</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">charge</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">site_ratios</span><span class="p">,</span> <span class="n">max_charges</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">q_min</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">ALLOWED_NET_CHARGE</span> <span class="ow">and</span> <span class="n">q_max</span> <span class="o">&gt;</span> <span class="n">ALLOWED_NET_CHARGE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="c1"># When the interval only touches zero at an end, the neutral constitutions are</span>
+        <span class="c1"># exactly the endmembers built from the extreme-charge species. Those must</span>
+        <span class="c1"># contain atoms: pure-vacancy endmembers are excluded from the calculation,</span>
+        <span class="c1"># e.g. (A+4,VA)(VA) is only neutral at VA:VA and cannot form.</span>
+        <span class="k">for</span> <span class="n">q_end</span><span class="p">,</span> <span class="n">end_charges</span> <span class="ow">in</span> <span class="p">((</span><span class="n">q_min</span><span class="p">,</span> <span class="n">min_charges</span><span class="p">),</span> <span class="p">(</span><span class="n">q_max</span><span class="p">,</span> <span class="n">max_charges</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">q_end</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">ALLOWED_NET_CHARGE</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">number_of_atoms</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">spec</span><span class="o">.</span><span class="n">charge</span> <span class="o">==</span> <span class="n">charge</span>
+                       <span class="k">for</span> <span class="n">subl</span><span class="p">,</span> <span class="n">charge</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">active</span><span class="p">,</span> <span class="n">end_charges</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
     <span class="k">if</span> <span class="n">candidate_phases</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">candidate_phases</span> <span class="o">=</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
@@ -636,6 +666,8 @@
     <span class="n">disordered_phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'disordered_phase'</span><span class="p">)</span> <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">candidate_phases</span><span class="p">]</span>
     <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">phase</span> <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">candidate_phases</span> <span class="k">if</span>
                 <span class="n">all_sublattices_active</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">])</span> <span class="ow">and</span>
+                <span class="n">has_any_nonvacant_constituents</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">])</span> <span class="ow">and</span>
+                <span class="n">can_charge_balance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">])</span> <span class="ow">and</span>
                 <span class="p">(</span><span class="n">phase</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">disordered_phases</span> <span class="ow">or</span> <span class="p">(</span><span class="n">phase</span> <span class="ow">in</span> <span class="n">disordered_phases</span> <span class="ow">and</span>
                 <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ordered_phase'</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">candidate_phases</span><span class="p">))]</span>
     <span class="c1"># for all ordered phases, get components of ordered and disordered phase</span>
@@ -923,7 +955,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=d329a79e"></script>
+</div><script src="../../../_static/documentation_options.js?v=856da495"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>

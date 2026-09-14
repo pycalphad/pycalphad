@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.core.calculate - pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</title>
+        <title>pycalphad.core.calculate - pycalphad 0.11.3.dev19+g99e63e800 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev19+g99e63e800 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev18+g02c1ce1f1 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev19+g99e63e800 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -312,7 +312,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">extract_parameters</span><span class="p">,</span> \
     <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">filter_phases</span><span class="p">,</span> <span class="n">instantiate_models</span><span class="p">,</span> <span class="n">point_sample</span><span class="p">,</span> \
     <span class="n">unpack_species</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_kwarg</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">,</span> <span class="n">MAX_ENDMEMBER_PAIRS</span><span class="p">,</span> <span class="n">MAX_EXTRA_POINTS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">,</span> <span class="n">MAX_ENDMEMBER_PAIRS</span><span class="p">,</span> <span class="n">MAX_EXTRA_POINTS</span><span class="p">,</span> <span class="n">ALLOWED_NET_CHARGE</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_jacobian_from_constraints</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">variables</span><span class="p">):</span>
@@ -375,7 +375,6 @@
 <span class="sd">    ndarray of points</span>
 <span class="sd">    """</span>
     <span class="c1"># Eliminate pure vacancy endmembers from the calculation</span>
-    <span class="n">ALLOWED_CHARGE</span><span class="o">=</span><span class="mf">1E-10</span>
     <span class="n">vacancy_indices</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">constituents</span><span class="p">:</span>
         <span class="n">subl_va_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)))</span> <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">number_of_atoms</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
@@ -415,9 +414,9 @@
         <span class="n">charge_positive_endmember_idxs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">charge_negative_endmember_idxs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">em_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">endmembers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-            <span class="k">if</span> <span class="n">Q</span><span class="p">[</span><span class="n">em_idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ALLOWED_CHARGE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">Q</span><span class="p">[</span><span class="n">em_idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ALLOWED_NET_CHARGE</span><span class="p">:</span>
                 <span class="n">charge_positive_endmember_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">em_idx</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">Q</span><span class="p">[</span><span class="n">em_idx</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">ALLOWED_CHARGE</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">Q</span><span class="p">[</span><span class="n">em_idx</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">ALLOWED_NET_CHARGE</span><span class="p">:</span>
                 <span class="n">charge_negative_endmember_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">em_idx</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">charge_neutral_endmember_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">em_idx</span><span class="p">)</span>
@@ -456,8 +455,11 @@
                                                                         <span class="n">model</span><span class="o">.</span><span class="n">site_fractions</span><span class="p">)</span>
             <span class="n">num_points</span> <span class="o">=</span> <span class="p">(</span><span class="n">pdens</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">constraint_jac</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">constraint_jac</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">num_points</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">num_points</span><span class="p">,</span> <span class="n">MAX_EXTRA_POINTS</span><span class="p">)</span>
-            <span class="n">extra_points</span> <span class="o">=</span> <span class="n">sample</span><span class="p">(</span><span class="n">num_points</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">constraint_jac</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">),</span>
-                                  <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">constraint_jac</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">A2</span><span class="o">=</span><span class="n">constraint_jac</span><span class="p">,</span> <span class="n">b2</span><span class="o">=</span><span class="n">constraint_rhs</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">extra_points</span> <span class="o">=</span> <span class="n">sample</span><span class="p">(</span><span class="n">num_points</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">constraint_jac</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">),</span>
+                                      <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">constraint_jac</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">A2</span><span class="o">=</span><span class="n">constraint_jac</span><span class="p">,</span> <span class="n">b2</span><span class="o">=</span><span class="n">constraint_rhs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">num_points</span><span class="p">,</span> <span class="n">constraint_jac</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phase_local_conditions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
                 <span class="n">points</span> <span class="o">=</span> <span class="n">extra_points</span>
             <span class="k">else</span><span class="p">:</span>
@@ -904,7 +906,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=d329a79e"></script>
+</div><script src="../../../_static/documentation_options.js?v=856da495"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
