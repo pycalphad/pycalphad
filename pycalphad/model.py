@@ -243,6 +243,8 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         if phase.model_hints.get('ordered_phase', False):
             phase = _extend_ordered_if_subset_of_disorder(dbe, active_species, phase)
+        if len(phase.constituents) != len(phase.sublattices):
+            warnings.warn(f"Phase constituents define {len(phase.constituents)} sublattice(s) while site ratios define {len(phase.sublattices)} sublattice(s) for {phase}.")
         self.site_ratios = list(phase.sublattices)
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(active_species)
@@ -289,9 +291,7 @@ class Model(object):
         if sum(is_pure_VA) == 0:
             #The only possible component in a sublattice is vacancy
             #We cannot build a model of this phase
-            raise DofError(
-                '{0}: Sublattices of {1} contains only VA (VACUUM) constituents' \
-                .format(self.phase_name, phase.constituents))
+            raise DofError(f'{self.phase_name}: Sublattices of {phase.constituents} contains only VA (VACUUM) constituents')
         self.components = sorted(self.components)
         desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements

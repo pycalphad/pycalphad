@@ -468,7 +468,7 @@ def test_calculate_raises_correctly_when_charged_phases_cannot_charge_balance():
     SPECIES AL+3                        AL1/+3!
     SPECIES ZR+4                        ZR1/+4!
     PHASE SPINEL %  4 1 2 2 4 !
-    CONSTITUENT SPINEL : AL+3,ZR+4,VA : VA : VA :  !
+    CONSTITUENT SPINEL : AL+3,ZR+4,VA : VA : VA : VA :  !
     PHASE GAS:G %  1  1.0  !
     CONSTITUENT GAS:G :AL,VA,ZR :  !
     """
