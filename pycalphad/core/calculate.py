@@ -84,7 +84,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
     # Eliminate pure vacancy endmembers from the calculation
     vacancy_indices = []
     for sublattice in model.constituents:
-        subl_va_indices = [idx for idx, spec in enumerate(sorted(set(sublattice), key=lambda s: s.escaped_name)) if spec.number_of_atoms == 0]
+        subl_va_indices = [idx for idx, spec in enumerate(sorted(set(sublattice))) if spec.number_of_atoms == 0]
         vacancy_indices.append(subl_va_indices)
     if len(vacancy_indices) != len(model.constituents):
         vacancy_indices = None
@@ -102,10 +102,7 @@ def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_co
             constant_site_ratios = False
     species_charge = []
     for sublattice in range(len(model.constituents)):
-        # Points columns are ordered following model.site_fractions, which sorts by the
-        # string of the SiteFraction, that uses species escaped_name sorting.
-        # This may differ from species.name sorting, particularly when species are charged.
-        for species in sorted(model.constituents[sublattice], key=lambda s: s.escaped_name):
+        for species in sorted(model.constituents[sublattice]):
             species_charge.append(species.charge*site_ratios[sublattice])
     species_charge = np.array(species_charge)
     charge_constrained_space = constant_site_ratios and np.any(species_charge != 0)
