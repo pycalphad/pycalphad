@@ -81,6 +81,7 @@ TDB_PARAM_TYPES = sorted([
     'VA',     # Integrated thermal expansivity
     'VC',     # High-pressure fitting parameter
     'VK',     # Isothermal compressibility
+    'VB',     # Bulk modulus at 1 bar
     # Property model parameters
     'VISC',   # Viscosity, RT*log(viscosity)
     'ELRS',   # Electric resistivity
