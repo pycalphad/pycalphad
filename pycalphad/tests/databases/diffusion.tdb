@@ -49,7 +49,7 @@ $Molar volume set to 1E-5
 $VS: volume counted per mole of volume carrying species
 $ PARAM VS(HCP_A3) 0 1.0E-5; 6000 N !
 $====================ZERO VOLUME DATA==========================
-$ ZEROVOLUME_SPECIES VA !
+ ZEROVOLUME_SPECIES VA !
 $===================DIFFUSION FORMULA==========================
 $ GIVEN GENERAL FORM: D=AEXP(-Q/RT)
 $ DEFINE MQ=-Q+RTLN(A)

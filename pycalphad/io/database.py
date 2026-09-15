@@ -2,7 +2,7 @@
 The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
-from typing import Any, TypedDict
+from typing import Any, NamedTuple, TypedDict
 from io import StringIO
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
@@ -55,6 +55,73 @@ class Phase(object): #pylint: disable=R0903
                      tuple(sorted(recursive_tuplify(self.model_hints.items())))))
 
 ElementReferenceData = TypedDict('ElementReferenceData', {'phase': str, 'mass': float, "H298": float, "S298": float})
+
+
+class DiffusionModel(NamedTuple):
+    """The diffusion model a TDB ``DIFFUSION`` command selects for one phase.
+
+    Stored in ``Phase.model_hints['diffusion']``, next to the other per-phase hints read from
+    a TDB file. A plain tuple, so the phase stays hashable and picklable.
+
+    Examples
+    --------
+    >>> dbf = Database('fe_c_mobility.tdb')  # doctest: +SKIP
+    >>> dbf.phases['BCC_A2'].model_hints['diffusion']  # doctest: +SKIP
+    DiffusionModel(model='MAGNETIC', alpha=((None, 0.3),), alpha2=(('C', 1.8),), constituents=())
+    """
+
+    model: str
+    """``'NONE'`` (no diffusion in the phase), ``'DILUTE'`` or ``'SIMPLE'`` (diagonal diffusion
+    matrix from ``DF``/``DQ`` parameters) or ``'MAGNETIC'`` (full matrix with the ferromagnetic
+    correction to the mobilities)."""
+    alpha: tuple = ()
+    """``MAGNETIC`` only: the substitutional ferromagnetic coefficient as ``(species, value)``
+    pairs, one per ``ALPHA`` argument. The species is ``None`` for a bare ``ALPHA=`` that applies
+    to every substitutional species, or the species named by ``ALPHA&<species>=``."""
+    alpha2: tuple = ()
+    """``MAGNETIC`` only: the interstitial coefficient from ``ALPHA2`` and ``ALPHA2&<species>``
+    arguments, as the same ``(species, value)`` pairs."""
+    constituents: tuple = ()
+    """``DILUTE`` and ``SIMPLE`` only: the dependent species of each sublattice, from the
+    constituent array the command carries."""
+
+    @staticmethod
+    def _coefficient_for(coefficients, species):
+        """The value named for ``species``, else the value named for every species, else None."""
+        species = None if species is None else str(species).upper()
+        fallback = None
+        for named, value in coefficients:
+            if named == species:
+                return value
+            if named is None:
+                fallback = value
+        return fallback
+
+    def alpha_for(self, species=None):
+        """Return the substitutional ``ALPHA`` coefficient that applies to ``species``.
+
+        A value named for the species wins over a bare ``ALPHA=``; ``None`` if neither is
+        given (a ``MAGNETIC`` command without ``ALPHA``, or another model).
+        """
+        return self._coefficient_for(self.alpha, species)
+
+    def alpha2_for(self, species=None):
+        """Return the interstitial ``ALPHA2`` coefficient that applies to ``species``, or None."""
+        return self._coefficient_for(self.alpha2, species)
+
+    def arguments(self):
+        """Return the command's arguments in TDB syntax, without the model and phase name."""
+        if self.model == 'MAGNETIC':
+            parts = []
+            for keyword, coefficients in (('ALPHA', self.alpha), ('ALPHA2', self.alpha2)):
+                for species, value in coefficients:
+                    name = keyword if species is None else f'{keyword}&{species}'
+                    parts.append(f'{name}={value}')
+            return ' '.join(parts)
+        if self.constituents:
+            return ':' + ':'.join(','.join(sublattice) for sublattice in self.constituents) + ':'
+        return ''
+
 DatabaseFormat = namedtuple('DatabaseFormat', ['read', 'write'])
 format_registry = {}
 
@@ -84,6 +151,12 @@ class Database(object): #pylint: disable=R0902
     references: dict[str, Any]
     """Reference objects indexed by their system-local identifier."""
     _structure_dict: dict[str, Any]
+    zerovolume_species: set[str]
+    """Names of the species a TDB file declares to occupy no volume (ZEROVOLUME_SPECIES).
+
+    The DIFFUSION commands, which are per phase, live in ``Phase.model_hints['diffusion']``
+    as :class:`DiffusionModel` instances.
+    """
 
     def __new__(cls, *args):
         if len(args) == 0:
@@ -98,6 +171,7 @@ class Database(object): #pylint: disable=R0902
             obj._parameter_queue = []
             obj.symbols = {}
             obj.references = {}
+            obj.zerovolume_species = set()
             # Note: No public typedefs here (from TDB files)
             # Instead we put that information in the model_hint for phases
             return obj
@@ -142,6 +216,8 @@ class Database(object): #pylint: disable=R0902
         return pickle_dict
 
     def __setstate__(self, state):
+        # Databases pickled before this attribute existed do not carry it.
+        self.zerovolume_species = set()
         for key, value in state.items():
             if key == '_parameters':
                 self._parameters = TinyDB(storage=MemoryStorage)
