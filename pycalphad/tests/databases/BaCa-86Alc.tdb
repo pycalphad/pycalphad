@@ -1,0 +1,129 @@
+$
+$ Database for Ba-Ca from C.B. Alcock and V.P. Itkin 1986.
+$
+$ C.B. Alcock, V.P. Itkin, Bull. Alloy Phase Diag., 7, 338-40(1986).
+$
+$ Dataset created 2021.11.01 by Bengt Hallstedt.
+$
+$ The phase diagram is only approximately reproduced.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 298.15 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    ! 
+ ELEMENT BA   BCC_A2                    137.33      6910.0     62.50   ! 
+ ELEMENT CA   FCC_A1                     40.08      5736.0     41.588  ! 
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : BA CA : !
+$
+$ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : BA CA% : VA : !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : BA% CA% : VA : !
+$
+$ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+$
+ PHASE HCP_A3 %A 2 1 0.5 !
+ CONST HCP_A3 : BA CA : VA : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+ FUNCTION ZERO      298.15  0;                                         6000 N !
+ FUNCTION UN_ASS    298.15  0;                                         6000 N !
+ FUNCTION R         298.15  +8.31451;                                  6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ Ba
+$
+ PAR  G(BCC_A2,BA:VA),,                 +GHSERBA;                4000 N 91Din !
+ PAR  G(HCP_A3,BA:VA),,                 +GHSERBA+2000+1.3*T;     4000 N 91Din !
+ PAR  G(FCC_A1,BA:VA),,                 +GHSERBA+1800+0.6*T;     4000 N 91Din !
+ PAR  G(LIQUID,BA),,                    +GLIQBA;                 4000 N 91Din !
+$
+ FUNCTION GHSERBA   298.15  -17685.226+233.78606*T-42.889*T*LN(T)
+       -0.0018314*T**2-9.5E-11*T**3+705880*T**(-1);
+      1000.00  Y  -64873.614+608.188389*T-94.2824199*T*LN(T)
+       +0.019504772*T**2-1.051353E-06*T**3+8220192*T**(-1);
+      2995.00  Y  +8083.889+136.780042*T-32.2*T*LN(T);
+      4000.00  N !
+ FUNCTION GLIQBA    298.15  -9738.988+229.540143*T-43.4961089*T*LN(T)
+       -0.002346416*T**2+9.91223E-07*T**3+723016*T**(-1);
+      1000.00  Y  -7381.093+235.49642*T-45.103*T*LN(T)
+       +0.002154*T**2+2.7E-11*T**3-365*T**(-1);
+      2995.00  Y  +3856.393-4.568042*T+GHSERBA;
+      4000.00  N !
+$ ------------------------------------------------------------------------------
+$ Ca
+$
+$ FCC_A1, BCC_A2, HCP_A3 and LIQUID modified in unary 5.0
+$ (upper T interval added + trailing decimals added)
+$
+ PAR  G(FCC_A1,CA:VA),,                 +GHSERCA;                3001 N 91Din !
+ PAR  G(BCC_A2,CA:VA),,                 +GBCCCA;                 3001 N 91Din !
+ PAR  G(HCP_A3,CA:VA),,                 +GHSERCA+500+0.7*T;      3001 N 91Din !
+ PAR  G(LIQUID,CA),,                    +GLIQCA;                 3001 N 91Din !
+$
+ FUNCTION GHSERCA   298.15  -4955.062+72.794266*T-16.3138*T*LN(T)
+       -0.01110455*T**2-133574*T**(-1);
+      1115.00  Y  -107304.428+799.982066*T-114.2922467*T*LN(T)
+       +0.023733814*T**2-1.2438E-06*T**3+18245540*T**(-1);
+      3000.00  Y  -3703.12+192.63995*T-35.0*T*LN(T);
+      3001.00  N !
+ FUNCTION GBCCCA    298.15  -7020.852+142.970155*T-28.2541*T*LN(T)
+       +0.0072326*T**2-4.500217E-06*T**3+60578*T**(-1);
+       716.00  Y  +1640.475+1.999694*T-6.276*T*LN(T)
+       -0.0161921*T**2-523000*T**(-1);
+      1115.00  Y  -142331.096+1023.549046*T-143.8726979*T*LN(T)
+       +0.032543127*T**2-1.704079E-06*T**3+25353771*T**(-1);
+      3000.00  Y  +321.63+189.433057*T-35*T*LN(T);
+      3001.00  N !
+ FUNCTION GLIQCA    298.15  +10799.908-10.310466*T+GHSERCA;
+       500.00  Y  +7838.856+18.2979*T-8.9874787*T*LN(T)
+       -0.02266537*T**2+3.338303E-06*T**3-230193*T**(-1);
+      1115.00  Y  -2654.938+188.9223*T-35*T*LN(T);
+      3001.00  N !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ C.B. Alcock, V.P. Itkin, Bull. Alloy Phase Diag., 7, 338-40(1986).
+$
+$ Checked against paper. Checked at 6000 K.
+$
+$ The phase diagram is only approximately reproduced.
+$
+ PAR  L(LIQUID,BA,CA;0),,               -9200;,,                      N 86Alc !
+$
+ PAR  L(FCC_A1,BA,CA:VA;0),,            -4200;,,                      N Same !
+ PAR  L(BCC_A2,BA,CA:VA;0),,            -4200;,,                      N 86Alc !
+$
+$ Metastable
+$
+ PAR  L(HCP_A3,BA,CA:VA;0),,            -4200;,,                      N Same !
+$ ------------------------------------------------------------------------------
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  Same   'Same or similar interaction as in the corresponding stable phase'
+  COST   'COST 507 database'
+  86Alc  'C.B. Alcock, V.P. Itkin,
+          Bull. Alloy Phase Diag., 7, 338-40(1986); Ba-Ca'
+  91Din  'A.T. Dinsdale, Calphad, 15, 317-425(1991).'
+!
