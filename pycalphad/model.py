@@ -1184,28 +1184,43 @@ class Model(object):
             return S.Zero
         return -v.R * v.T * log(1 + exp(-gd / (v.R * v.T))) / site_ratio_normalization
 
+    @staticmethod
+    def _einstein_function(theta):
+        return 1.5*theta + 3*v.T*log(1-exp(-theta/v.T))
+
     def einstein_energy(self, dbe):
         """
         Return the energy based on the Einstein model.
-        Note that THETA parameters are actually LN(THETA).
-        All Redlich-Kister summation is done in log-space,
-        then exp() is called on the result.
+
+        Both single-temperature and multi-temperature forms are supported.
         """
         phase = dbe.phases[self.phase_name]
         if phase.model_hints.get('ordered_phase', False):
             phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
-        theta_param_query = (
-            (where('phase_name') == phase.name) & \
-            (where('parameter_type') == 'THETA') & \
-            (where('constituent_array').test(self._array_validity))
-        )
-        lntheta = self.redlich_kister_sum(phase, param_search, theta_param_query)
-        theta = exp(lntheta)
-        if lntheta != 0:
-            result = 1.5*v.R*theta + 3*v.R*v.T*log(1-exp(-theta/v.T))
-        else:
-            result = 0
+
+        def _query(parameter_type):
+            return (
+                (where('phase_name') == phase.name) & \
+                (where('parameter_type') == parameter_type) & \
+                (where('constituent_array').test(self._array_validity))
+            )
+
+        result = S.Zero
+
+        lntheta = self.redlich_kister_sum(phase, param_search, _query('THETA'))
+        if lntheta != S.Zero:
+            result += v.R * self._einstein_function(exp(lntheta))
+
+        # LNTHETA parameters are per-mole-atoms that we convert to per-mole formula
+        num_atoms = self._site_ratio_normalization
+        for idx in range(1, 6):  # LNTHETA {1..5} supported, consistent with commercial software
+            lntheta_i = self.redlich_kister_sum(phase, param_search, _query(f'LNTHETA{idx}'))
+            if lntheta_i == S.Zero:
+                continue
+            weight_i = self.redlich_kister_sum(phase, param_search, _query(f'THETAF{idx}'))
+            result += weight_i * num_atoms * v.R * self._einstein_function(exp(lntheta_i))
+
         return result / self._site_ratio_normalization
 
     @staticmethod

@@ -76,6 +76,9 @@ TDB_PARAM_TYPES = sorted([
     'BMAGN',  # Bohr magneton number
     'GD',     # Gibbs energy difference between liquid and amorphous states
     'THETA',  # Einstein temperature (log)
+    # General Einstein model and weights
+    'LNTHETA1', 'LNTHETA2', 'LNTHETA3', 'LNTHETA4', 'LNTHETA5',
+    'THETAF1', 'THETAF2', 'THETAF3', 'THETAF4', 'THETAF5',
     # Molar volume parameters
     'V0',     # Molar volume at STP
     'VA',     # Integrated thermal expansivity

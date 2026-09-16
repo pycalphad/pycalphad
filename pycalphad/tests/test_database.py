@@ -1022,3 +1022,33 @@ def test_database_ignore_if_then_type_definition():
     """
     with pytest.warns(UserWarning, match='Type definitions using IF/THEN logic is not supported'):
         Database.from_string(tdb_string, fmt='tdb')
+
+INDEXED_EINSTEIN_TDB = """
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    !
+ ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 !
+ ELEMENT W    BCC_A2                    183.85      4970.0     32.6176 !
+ PHASE MC_SHP % 2 1 1 !
+ CONST MC_SHP : W : C : !
+ PAR  G(MC_SHP,W:C),,                   -60767-8.623395E-4*T**2;,,   N REF0 !
+ PAR  LNTHETA1(MC_SHP,W:C),,            +LN(887);,,                  N REF0 !
+ PAR  THETAF1(MC_SHP,W:C),,             0.535374;,,                  N REF0 !
+ PAR  lntheta2(MC_SHP,W:C),,            +LN(276);,,                  N REF0 !
+ PAR  thetaf2(MC_SHP,W:C),,             0.464626;,,                  N REF0 !
+ PAR  LNTHETA5(MC_SHP,W:C;0) 298.15     +LN(100); 6000                N REF0 !
+ PAR  THETAF5(MC_SHP,W:C;0) 298.15      0.1; 6000                     N REF0 !
+"""
+
+def test_indexed_einstein_parameters_write_and_roundtrip():
+    """Indexed LNTHETA/THETAF parameters are written with their index and survive a round-trip."""
+    dbf = Database.from_string(INDEXED_EINSTEIN_TDB, fmt='tdb')
+    written = dbf.to_string(fmt='tdb')
+    for expected in ('PARAMETER LNTHETA1(MC_SHP,W:C;0)', 'PARAMETER THETAF1(MC_SHP,W:C;0)',
+                     'PARAMETER LNTHETA2(MC_SHP,W:C;0)', 'PARAMETER THETAF2(MC_SHP,W:C;0)',
+                     'PARAMETER LNTHETA5(MC_SHP,W:C;0)', 'PARAMETER THETAF5(MC_SHP,W:C;0)'):
+        assert expected in written
+    assert 'LNTHETA(' not in written
+    assert 'THETAF(' not in written
+    roundtrip = Database.from_string(written, fmt='tdb')
+    sort_key = lambda p: (p['parameter_type'], str(p['constituent_array']), p['parameter_order'])
+    for orig, new in zip(sorted(dbf._parameters.all(), key=sort_key), sorted(roundtrip._parameters.all(), key=sort_key)):
+        assert float(orig['parameter'].subs({v.T: 500})) == pytest.approx(float(new['parameter'].subs({v.T: 500})))
