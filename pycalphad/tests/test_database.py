@@ -1052,3 +1052,22 @@ def test_einstein_parameters_write_and_roundtrip():
     sort_key = lambda p: (p['parameter_type'], str(p['constituent_array']), p['parameter_order'])
     for orig, new in zip(sorted(dbf._parameters.all(), key=sort_key), sorted(roundtrip._parameters.all(), key=sort_key)):
         assert float(orig['parameter'].subs({v.T: 500})) == pytest.approx(float(new['parameter'].subs({v.T: 500})))
+
+
+def test_tdb_reader_ignores_composition_set_hints():
+    """PyCalphad TDB reader should ignore composition set hints"""
+    tdb_species_str = """
+    ELEMENT A FCC_A1 0 0 0 !
+    ELEMENT B FCC_A1 0 0 0 !
+    ELEMENT VA VACUUM 0 0 0 !
+
+    PHASE FCC_A1 ABCDE 2 1 1 !
+    CONSTITUENT FCC_A1 : A,B : VA : !
+
+    TYPE-DEF A GES AMEND_PHASE_DESCRIPTION FCC_A1 MAJOR_CONSTITUENT 1 A:VA: !
+    TYPE-DEF B GES AMEND_PHASE_DESCRIPTION FCC_A1 COMPOSITION_SETS 2 A:VA: !
+    TYPE-DEF C GES AMEND_PHASE_DESCRIPTION FCC_A1 C_S 2 A:VA: !
+    TYPE-DEF D GES AMEND_PHASE_DESCRIPTION FCC_A1 MAJ 1 A:VA: !
+    TYPE-DEF E GES AMEND_PHASE_DESCRIPTION FCC_A1 FRACTION_LIMITS A 0 1 B 0 0.5 !
+    """
+    test_dbf = Database.from_string(tdb_species_str, fmt='tdb')
