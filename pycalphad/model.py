@@ -1214,13 +1214,22 @@ class Model(object):
 
         # LNTHETA parameters are per-mole-atoms that we convert to per-mole formula
         num_atoms = self._site_ratio_normalization
-        for idx in range(1, 6):  # LNTHETA {1..5} supported, consistent with commercial software
-            lntheta_i = self.redlich_kister_sum(phase, param_search, _query(f'LNTHETA{idx}'))
-            if lntheta_i == S.Zero:
-                continue
-            weight_i = self.redlich_kister_sum(phase, param_search, _query(f'THETAF{idx}'))
+        # we can't preform arbitrary RK sum because
+        # 1. the normal missing parameter convention of theta_i = 0 is invalid
+        # 2. each LNTHETA parameter is matched to a THETAF parameter
+        # so we dynamically accept any integer-indexed LNTHETA parameter
+        lntheta_query = (
+                (where('phase_name') == phase.name) & \
+                (where('parameter_type').matches("LNTHETA[0-9]+")) & \
+                (where('constituent_array').test(self._array_validity))
+            )
+        lntheta_parameters = {x["parameter_type"] for x in param_search(lntheta_query)}
+        for lntheta_param in lntheta_parameters:
+            lntheta_i = self.redlich_kister_sum(phase, param_search, _query(lntheta_param))
+            # add the matching weight
+            weight_param = lntheta_param.replace("LNTHETA", "THETAF")
+            weight_i = self.redlich_kister_sum(phase, param_search, _query(weight_param))
             result += weight_i * num_atoms * v.R * self._einstein_function(exp(lntheta_i))
-
         return result / self._site_ratio_normalization
 
     @staticmethod
