@@ -1071,3 +1071,11 @@ def test_tdb_reader_ignores_composition_set_hints():
     TYPE-DEF E GES AMEND_PHASE_DESCRIPTION FCC_A1 FRACTION_LIMITS A 0 1 B 0 0.5 !
     """
     test_dbf = Database.from_string(tdb_species_str, fmt='tdb')
+
+@select_database("MnTi-23Wal-3g.tdb")
+def test_tdb_reader_reads_legacy_never_disorder_status_bits(load_database):
+    """PyCalphad TDB reader should read legacy STATUS_BITS for never disorder phases"""
+    dbf = load_database()
+    assert dbf.phases["CBCC_A12"].model_hints.get("never_disorder") == True
+    assert dbf.phases["CBCC_A12"].model_hints.get("ordered_phase") == "CBCC_A12"
+    assert dbf.phases["CBCC_A12"].model_hints.get("disordered_phase") == "DIS_A12"
