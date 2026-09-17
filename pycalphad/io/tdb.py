@@ -348,6 +348,16 @@ def _process_typedef(targetdb, typechar, line):
             targetdb.phases[disordered_phase].model_hints.update(hint)
         else:
             raise ValueError(f"The {disordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
+    elif keyword == "STATUS_BITS" and tokens[4] == "02200800":
+        # GES A_P_D ORD STATUS 02200800
+        # This is a legacy hint for NEVER_DISORDER that is assumed to be paired with a DIS_PART
+        # The status bit MUST be set on the ordered phase
+        ordered_phase = tokens[2].upper()
+        hint = {"never_disorder": True}
+        if ordered_phase in targetdb.phases:
+            targetdb.phases[ordered_phase].model_hints.update(hint)
+        else:
+            raise ValueError(f"The {ordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
     elif keyword in IGNORED_KEYWORDS:
         pass
     else:
