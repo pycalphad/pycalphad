@@ -1429,3 +1429,11 @@ def test_never_disorder_model(load_database):
                 }
     # Values checked in Thermo-Calc
     check_output(m, statevars, 'GM', -73928.245)
+
+@select_database("WC-22He-3g.tdb")
+def test_general_einstein_model_multiple_theta(load_database):
+    """General Einstein model with several Einstein temperatures (LNTHETAn/THETAFn) matches Thermo-Calc."""
+    dbf = load_database()
+    mod = Model(dbf, ['W', 'C'], 'MC_SHP')
+    dof = {v.T: 300, v.P: 101325, v.SiteFraction('MC_SHP', 0, 'W'): 1, v.SiteFraction('MC_SHP', 1, 'C'): 1}
+    check_energy(mod, dof, -24881.965)  # Thermo-Calc checked

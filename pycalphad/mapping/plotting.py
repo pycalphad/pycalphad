@@ -156,6 +156,8 @@ def plot_tielines(ax, strategy: Union[BinaryStrategy, TernaryStrategy], x: v.Sta
     tieline_color : color
     """
     tieline_data = strategy.get_tieline_data(x, y)
+    if len(tieline_data) == 0:
+        return
     x_all = np.concatenate([st.x for st in tieline_data], axis=1)
     y_all = np.concatenate([st.y for st in tieline_data], axis=1)
     min_x_range = PLOT_TIELINE_AS_NODE_THRESHOLD * np.ptp(x_all)

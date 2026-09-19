@@ -243,6 +243,8 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         if phase.model_hints.get('ordered_phase', False):
             phase = _extend_ordered_if_subset_of_disorder(dbe, active_species, phase)
+        if len(phase.constituents) != len(phase.sublattices):
+            warnings.warn(f"Phase constituents define {len(phase.constituents)} sublattice(s) while site ratios define {len(phase.sublattices)} sublattice(s) for {phase}.")
         self.site_ratios = list(phase.sublattices)
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(active_species)
@@ -255,7 +257,7 @@ class Model(object):
                     subl_idx = 0
                 else:
                     raise ValueError('Two-sublattice ionic liquid specified with more than two sublattices')
-                self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_comps])
+                self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in sorted(subl_comps)])
 
         if phase.model_hints.get('ionic_liquid_2SL', False):
             # Special treatment of "neutral" vacancies in 2SL ionic liquid
@@ -289,9 +291,7 @@ class Model(object):
         if sum(is_pure_VA) == 0:
             #The only possible component in a sublattice is vacancy
             #We cannot build a model of this phase
-            raise DofError(
-                '{0}: Sublattices of {1} contains only VA (VACUUM) constituents' \
-                .format(self.phase_name, phase.constituents))
+            raise DofError(f'{self.phase_name}: Sublattices of {phase.constituents} contains only VA (VACUUM) constituents')
         self.components = sorted(self.components)
         desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements
@@ -417,7 +417,7 @@ class Model(object):
         if is_pure_element:
             element = list(species.constituents.keys())[0]
             for idx, sublattice in enumerate(self.constituents):
-                active = set(sublattice).intersection(self.components)
+                active = sorted(set(sublattice).intersection(self.components))
                 result += self.site_ratios[idx] * \
                     sum(int(spec.number_of_atoms > 0) * spec.constituents.get(element, 0) * v.SiteFraction(self.phase_name, idx, spec)
                         for spec in active)
@@ -426,7 +426,7 @@ class Model(object):
                         for spec in active)
         else:
             for idx, sublattice in enumerate(self.constituents):
-                active = set(sublattice).intersection({species})
+                active = sorted(set(sublattice).intersection({species}))
                 if len(active) == 0:
                     continue
                 result += self.site_ratios[idx] * sum(v.SiteFraction(self.phase_name, idx, spec) for spec in active)
@@ -454,12 +454,12 @@ class Model(object):
         site_ratio_normalization = S.Zero
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(self.components)
+            active = sorted(set(sublattice).intersection(self.components))
             subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
             site_ratio_normalization += self.site_ratios[idx] * subl_content
 
         site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
-        for comp in self.components:
+        for comp in sorted(self.components):
             if comp.number_of_atoms == 0:
                 continue
             comp_result = S.Zero
@@ -545,7 +545,7 @@ class Model(object):
         constraints = []
         # Site fraction balance
         for idx, sublattice in enumerate(self.constituents):
-            constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
+            constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sorted(sublattice)) - 1)
         # Charge balance for all phases that are charged
         has_charge = len({sp for sp in self.components if sp.charge != 0}) > 0
         constant_site_ratios = True
@@ -562,7 +562,7 @@ class Model(object):
             total_charge = 0
             for idx, (sublattice, site_ratio) in enumerate(zip(self.constituents, self.site_ratios)):
                 total_charge += sum(v.SiteFraction(self.phase_name, idx, spec) * spec.charge * site_ratio
-                                    for spec in sublattice)
+                                    for spec in sorted(sublattice))
             # If every constituent of a sublattice carries the same charge, then the charge
             # contributed by that sublattice is a constant multiple of its site fraction sum and
             # the charge balance constraint is a linear combination of the site fraction balance
@@ -652,7 +652,7 @@ class Model(object):
         site_ratio_normalization = S.Zero
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(self.components)
+            active = sorted(set(sublattice).intersection(self.components))
             subl_content = sum(spec.number_of_atoms * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
             site_ratio_normalization += self.site_ratios[idx] * subl_content
         return site_ratio_normalization
@@ -691,7 +691,7 @@ class Model(object):
         # Species of different chemical groups use a Toop-type approximation.
         toop_filter = _toop_filter(phase.model_hints['chemical_groups'], i, j)
         toop_correction = S.Zero
-        active_subl_comps = phase.constituents[sublattice_index].intersection(self.components)
+        active_subl_comps = sorted(phase.constituents[sublattice_index].intersection(self.components))
         for k in filter(toop_filter, active_subl_comps):
             toop_correction += v.Y(self.phase_name, sublattice_index, k)
         return v.Y(self.phase_name, sublattice_index, i) + toop_correction
@@ -707,7 +707,7 @@ class Model(object):
         # chemical groups use a Toop-type approximation.
         kohler_filter = _kohler_filter(phase.model_hints['chemical_groups'], i, j)
         kohler_correction = S.Zero
-        active_subl_comps = phase.constituents[sublattice_index].intersection(self.components)
+        active_subl_comps = sorted(phase.constituents[sublattice_index].intersection(self.components))
         for k in filter(kohler_filter, active_subl_comps):
             kohler_correction += v.Y(self.phase_name, sublattice_index, k)
         return 1 -  kohler_correction
@@ -962,7 +962,7 @@ class Model(object):
         ideal_mixing_term = S.Zero
         sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
         for subl_index, sublattice in enumerate(phase.constituents):
-            active_comps = set(sublattice).intersection(self.components)
+            active_comps = sorted(set(sublattice).intersection(self.components))
             ratio = site_ratios[subl_index]
             for comp in active_comps:
                 sitefrac = \
@@ -1179,28 +1179,52 @@ class Model(object):
             return S.Zero
         return -v.R * v.T * log(1 + exp(-gd / (v.R * v.T)))
 
+    @staticmethod
+    def _einstein_function(theta):
+        return 1.5*theta + 3*v.T*log(1-exp(-theta/v.T))
+
     def einstein_energy(self, dbe):
         """
         Return the energy based on the Einstein model.
-        Note that THETA parameters are actually LN(THETA).
-        All Redlich-Kister summation is done in log-space,
-        then exp() is called on the result.
+
+        Both single-temperature and multi-temperature forms are supported.
         """
         phase = dbe.phases[self.phase_name]
         if phase.model_hints.get('ordered_phase', False):
             phase = _extend_ordered_if_subset_of_disorder(dbe, self.components, phase)
         param_search = dbe.search
-        theta_param_query = (
-            (where('phase_name') == phase.name) & \
-            (where('parameter_type') == 'THETA') & \
-            (where('constituent_array').test(self._array_validity))
-        )
-        lntheta = self.redlich_kister_sum(phase, param_search, theta_param_query)
-        theta = exp(lntheta)
-        if lntheta != 0:
-            result = 1.5*v.R*theta + 3*v.R*v.T*log(1-exp(-theta/v.T))
-        else:
-            result = 0
+
+        def _query(parameter_type):
+            return (
+                (where('phase_name') == phase.name) & \
+                (where('parameter_type') == parameter_type) & \
+                (where('constituent_array').test(self._array_validity))
+            )
+
+        result = S.Zero
+
+        lntheta = self.redlich_kister_sum(phase, param_search, _query('THETA'))
+        if lntheta != S.Zero:
+            result += v.R * self._einstein_function(exp(lntheta))
+
+        # LNTHETA parameters are per-mole-atoms that we convert to per-mole formula
+        num_atoms = self._site_ratio_normalization
+        # we can't preform arbitrary RK sum because
+        # 1. the normal missing parameter convention of theta_i = 0 is invalid
+        # 2. each LNTHETA parameter is matched to a THETAF parameter
+        # so we dynamically accept any integer-indexed LNTHETA parameter
+        lntheta_query = (
+                (where('phase_name') == phase.name) & \
+                (where('parameter_type').matches("LNTHETA[0-9]+")) & \
+                (where('constituent_array').test(self._array_validity))
+            )
+        lntheta_parameters = {x["parameter_type"] for x in param_search(lntheta_query)}
+        for lntheta_param in lntheta_parameters:
+            lntheta_i = self.redlich_kister_sum(phase, param_search, _query(lntheta_param))
+            # add the matching weight
+            weight_param = lntheta_param.replace("LNTHETA", "THETAF")
+            weight_i = self.redlich_kister_sum(phase, param_search, _query(weight_param))
+            result += weight_i * num_atoms * v.R * self._einstein_function(exp(lntheta_i))
         return result
 
     @staticmethod

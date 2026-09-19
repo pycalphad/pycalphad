@@ -1,0 +1,186 @@
+$
+$ Database for W-C from Z. He and M. Selleby 2022.
+$
+$ Z. He, M. Selleby, Calphad, 78, 102449(2022).
+$
+$ Dataset created 2022.03.13 by Bengt Hallstedt.
+$
+$ 3rd generation modelling. Thermo-Calc 2022a or later needed. The tdb can
+$ be rewritten for use with earlier versions.
+$
+$ There is some problem with the liquid interaction when using the Einstein
+$ temperature.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 0.01 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    ! 
+ ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 ! 
+ ELEMENT W    BCC_A2                    183.85      4970.0     32.6176 ! 
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : C W : !
+$
+$ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : W : C VA% : !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : W : C VA% : !
+$
+$ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+$
+ PHASE HCP_A3 %A 2 1 0.5 !
+ CONST HCP_A3 : W : C VA% : !
+$
+$ Prototype C (cF8, Fd-3m)
+$
+ PHASE DIAMOND_A4 % 1 1 !
+ CONST DIAMOND_A4 : C : !
+$
+$ Prototype C (hP4, P6_3/mmc)
+$
+ PHASE GRAPHITE_A9 % 1 1 !
+ CONST GRAPHITE_A9 : C : !
+$
+$ Prototype WC (hP2, P-6m2, SB: B_h)
+$
+ PHASE MC_SHP % 2 1 1 !
+ CONST MC_SHP : W : C : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+ FUNCTION ZERO        0.01  0;                                         6000 N !
+ FUNCTION UN_ASS      0.01  0;                                         6000 N !
+ FUNCTION R           0.01  +8.31451;                                  6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ C
+$
+ PAR  G(GRAPHITE_A9,C),,                +G0SERCC;,,                   N 18Big !
+ PAR  LNTHETA1(GRAPHITE_A9,C),,         +LN(1953.2502);,,             N 18Big !
+ PAR  THETAF1(GRAPHITE_A9,C),,          0.484047107;,,                N 18Big !
+ PAR  LNTHETA2(GRAPHITE_A9,C),,         +LN(947.01605);,,             N 18Big !
+ PAR  THETAF2(GRAPHITE_A9,C),,          0.349684332;,,                N 18Big !
+ PAR  LNTHETA3(GRAPHITE_A9,C),,         +LN(447.96926);,,             N 18Big !
+ PAR  THETAF3(GRAPHITE_A9,C),,          0.121581878;,,                N 18Big !
+ PAR  LNTHETA4(GRAPHITE_A9,C),,         +LN(192.65039);,,             N 18Big !
+ PAR  THETAF4(GRAPHITE_A9,C),,          0.0388463641;,,               N 18Big !
+ PAR  LNTHETA5(GRAPHITE_A9,C),,         +LN(64.463356);,,             N 18Big !
+ PAR  THETAF5(GRAPHITE_A9,C),,          0.00584032345;,,              N 18Big !
+$
+ PAR  G(DIAMOND_A4,C),,                 +G0DIACC;,,                   N 18Big !
+ PAR  LNTHETA1(DIAMOND_A4,C),,          +LN(1601.4467);,,             N 18Big !
+ PAR  THETAF1(DIAMOND_A4,C),,           0.763257386;,,                N 18Big !
+ PAR  LNTHETA2(DIAMOND_A4,C),,          +LN(813.63716);,,             N 18Big !
+ PAR  THETAF2(DIAMOND_A4,C),,           0.231791;,,                   N 18Big !
+ PAR  LNTHETA3(DIAMOND_A4,C),,          +LN(345.35022);,,             N 18Big !
+ PAR  THETAF3(DIAMOND_A4,C),,           0.0114797;,,                  N 18Big !
+$
+ PAR  LNTHETA1(LIQUID,C),,              +LN(608);,,                   N 22He2 !
+ PAR  THETAF1(LIQUID,C),,               1;,,                          N 22He2 !
+ PAR  G(LIQUID,C),,                     +88884-0.0004185*T**2;,,      N 22He2 !
+ PAR  GD(LIQUID,C),,                    +34523-24.6*T
+             +1.93765*T*LN(T);,,                                      N 22He2 !
+$
+ FUNCTION G0SERCC     0.01  -17752.213-2.9531332E-04*T**2
+       -3.3998492E-16*T**5;
+      6000.00  N !
+ FUNCTION GTSERCC     0.01  -2.9531332E-04*T**2-3.3998492E-16*T**5;    6000 N !
+ FUNCTION G0DIACC     0.01  -16275.2024-9.12442869E-05*T**2
+       -2.16534137E-16*T**5;
+      6000.00  N !
+$ ------------------------------------------------------------------------------
+$ W
+$
+ PAR  G(BCC_A2,W:VA),,                  +G0SERWW;,,                   N 22He1 !
+ PAR  LNTHETA1(BCC_A2,W:VA),,           +LN(230);,,                   N 22He1 !
+ PAR  THETAF1(BCC_A2,W:VA),,            1;,,                          N 22He1 !
+$
+ PAR  G(FCC_A1,W:VA),,                  +G0SERWW+16243;,,             N 22He1 !
+ PAR  LNTHETA1(FCC_A1,W:VA),,           +LN(236);,,                   N 22He1 !
+ PAR  THETAF1(FCC_A1,W:VA),,            1;,,                          N 22He1 !
+$
+ PAR  G(HCP_A3,W:VA),,                  +G0SERWW+13692;,,             N 22He1 !
+ PAR  LNTHETA1(HCP_A3,W:VA),,           +LN(230);,,                   N 22He1 !
+ PAR  THETAF1(HCP_A3,W:VA),,            1;,,                          N 22He1 !
+$
+ PAR  G(LIQUID,W),,                     +22973-9.164E-4*T**2;,,       N 22He1 !
+ PAR  GD(LIQUID,W),,                    +98814-13.653*T
+             -1.178678*T*LN(T);,,                                     N 22He1 !
+ PAR  LNTHETA1(LIQUID,W),,              +LN(183);,,                   N 22He1 !
+ PAR  THETAF1(LIQUID,W),,               1;,,                          N 22He1 !
+$
+ FUNCTION G0SERWW     0.01  -7893-1.021774E-3*T**2
+       -6.23675524E-15*T**5;
+      6000.00  N !
+ FUNCTION GTSERWW     0.01  -1.021774E-3*T**2-6.23675524E-15*T**5;     6000 N !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ Z. He, M. Selleby, Calphad, 78, 102449(2022).
+$
+$ Checked against paper and author's tdb. Checked at 6000 K.
+$
+$ 3rd generation modelling. Thermo-Calc 2022a or later needed. The tdb can
+$ be rewritten for use with earlier versions.
+$
+$ There is some problem with the liquid interaction when using the Einstein
+$ temperature.
+$
+ PAR  L(LIQUID,C,W;0),,                 -94206;,,                     N 22He2 !
+ PAR  L(LIQUID,C,W;1),,                 +140715-24.1*T;,,             N 22He2 !
+$PAR  L(LIQUID,C,W;1),,                 +140715;,,                    N 22He2 !
+$PAR  LNTHETA1(LIQUID,W,C;1),,          +LN(2.627897);,,              N 22He2 !
+$PAR  THETAF1(LIQUID,W,C;1),,           1;,,                          N 22He2 !
+ PAR  L(LIQUID,C,W;2),,                 +79220;,,                     N 22He2 !
+$
+ PAR  G(BCC_A2,W:C),,                   +GTSERWW+3*GTSERCC+439603;,,  N 22He2 !
+ PAR  LNTHETA1(BCC_A2,W:C),,            +LN(862);,,                   N 22He2 !
+ PAR  THETAF1(BCC_A2,W:C),,             1;,,                          N 22He2 !
+ PAR  L(BCC_A2,W:C,VA;0),,              +ZERO;,,                      N 22He2 !
+$
+ PAR  G(FCC_A1,W:C),,                   +GTSERWW+GTSERCC-41041;,,     N 22He2 !
+ PAR  LNTHETA1(FCC_A1,W:C),,            +LN(518);,,                   N 22He2 !
+ PAR  THETAF1(FCC_A1,W:C),,             1;,,                          N 22He2 !
+ PAR  L(FCC_A1,W:C,VA;0),,              +10482;,,                     N 22He2 !
+$
+ PAR  G(HCP_A3,W:C),,                   +GTSERWW+0.5*GTSERCC-22014;,, N 22He2 !
+ PAR  LNTHETA1(HCP_A3,W:C),,            +LN(322);,,                   N 22He2 !
+ PAR  THETAF1(HCP_A3,W:C),,             1;,,                          N 22He2 !
+ PAR  L(HCP_A3,W:C,VA;0),,              +16621;,,                     N 22He2 !
+$
+ PAR  G(MC_SHP,W:C),,                   -60767-8.623395E-4*T**2
+             -4.15324459E-11*T**4;,,                                  N 22He2 !
+ PAR  LNTHETA1(MC_SHP,W:C),,            +LN(887);,,                   N 22He2 !
+ PAR  THETAF1(MC_SHP,W:C),,             0.535374;,,                   N 22He2 !
+ PAR  LNTHETA2(MC_SHP,W:C),,            +LN(276);,,                   N 22He2 !
+ PAR  THETAF2(MC_SHP,W:C),,             0.464626;,,                   N 22He2 !
+$ ------------------------------------------------------------------------------
+$
+ ASSESSED_SYSTEM
+  C-W(TDB -* +LIQ +BCC_A2 +FCC_A1 +HCP_A3 +MC_SHP +GRAPH
+  ;G5 C_S:HCP_A3/W:C C_S:FCC/W:C ;P3 TMM:300/4500 STP:0.9/2000/-1) !
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  18Big  'S. Bigdeli, Q. Chen, M. Selleby,
+          J. Phase Equilib. Diffus., 39, 832-40(2018); C'
+  22He1  'Z. He, M. Selleby, Mater. Chem. Phys., 276, 125445(2022); W'
+  22He2  'Z. He, M. Selleby, Calphad, 78, 102449(2022); C, W-C'
+!
