@@ -63,7 +63,8 @@ TDB_PHASE_DESCRIPTIONS = sorted([
     'HKF_ELECTROSTATIC',
     'DEFAULT_STABLE',
     'SITE_RATIOS',
-    'FRACTION_LIMITS'
+    'FRACTION_LIMITS',
+    'NEVER_DISORDER',
 ])
 
 TDB_PARAM_TYPES = sorted([
@@ -76,11 +77,15 @@ TDB_PARAM_TYPES = sorted([
     'BMAGN',  # Bohr magneton number
     'GD',     # Gibbs energy difference between liquid and amorphous states
     'THETA',  # Einstein temperature (log)
+    # General Einstein model and weights
+    'LNTHETA1', 'LNTHETA2', 'LNTHETA3', 'LNTHETA4', 'LNTHETA5',
+    'THETAF1', 'THETAF2', 'THETAF3', 'THETAF4', 'THETAF5',
     # Molar volume parameters
     'V0',     # Molar volume at STP
     'VA',     # Integrated thermal expansivity
     'VC',     # High-pressure fitting parameter
     'VK',     # Isothermal compressibility
+    'VB',     # Bulk modulus at 1 bar
     # Property model parameters
     'VISC',   # Viscosity, RT*log(viscosity)
     'ELRS',   # Electric resistivity
