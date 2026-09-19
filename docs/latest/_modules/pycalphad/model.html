@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.model - pycalphad 0.11.3.dev20+g3b0e79ba0 documentation</title>
+        <title>pycalphad.model - pycalphad 0.11.3.dev21+ga4f9b9021 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev20+g3b0e79ba0 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev21+ga4f9b9021 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev20+g3b0e79ba0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev21+ga4f9b9021 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1524,30 +1524,54 @@
         <span class="k">return</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">gd</span> <span class="o">/</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
 
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_einstein_function</span><span class="p">(</span><span class="n">theta</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">1.5</span><span class="o">*</span><span class="n">theta</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">theta</span><span class="o">/</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+
 <div class="viewcode-block" id="Model.einstein_energy">
 <a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.einstein_energy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">einstein_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return the energy based on the Einstein model.</span>
-<span class="sd">        Note that THETA parameters are actually LN(THETA).</span>
-<span class="sd">        All Redlich-Kister summation is done in log-space,</span>
-<span class="sd">        then exp() is called on the result.</span>
+
+<span class="sd">        Both single-temperature and multi-temperature forms are supported.</span>
 <span class="sd">        """</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ordered_phase'</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
-        <span class="n">theta_param_query</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'phase_name'</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
-            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'parameter_type'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'THETA'</span><span class="p">)</span> <span class="o">&amp;</span> \
-            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'constituent_array'</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
-        <span class="p">)</span>
-        <span class="n">lntheta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">theta_param_query</span><span class="p">)</span>
-        <span class="n">theta</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">lntheta</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">lntheta</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="mf">1.5</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="o">*</span><span class="n">theta</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">theta</span><span class="o">/</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_query</span><span class="p">(</span><span class="n">parameter_type</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'phase_name'</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+                <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'parameter_type'</span><span class="p">)</span> <span class="o">==</span> <span class="n">parameter_type</span><span class="p">)</span> <span class="o">&amp;</span> \
+                <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'constituent_array'</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+
+        <span class="n">lntheta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">_query</span><span class="p">(</span><span class="s1">'THETA'</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">lntheta</span> <span class="o">!=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_einstein_function</span><span class="p">(</span><span class="n">exp</span><span class="p">(</span><span class="n">lntheta</span><span class="p">))</span>
+
+        <span class="c1"># LNTHETA parameters are per-mole-atoms that we convert to per-mole formula</span>
+        <span class="n">num_atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
+        <span class="c1"># we can't preform arbitrary RK sum because</span>
+        <span class="c1"># 1. the normal missing parameter convention of theta_i = 0 is invalid</span>
+        <span class="c1"># 2. each LNTHETA parameter is matched to a THETAF parameter</span>
+        <span class="c1"># so we dynamically accept any integer-indexed LNTHETA parameter</span>
+        <span class="n">lntheta_query</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'phase_name'</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+                <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'parameter_type'</span><span class="p">)</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">"LNTHETA[0-9]+"</span><span class="p">))</span> <span class="o">&amp;</span> \
+                <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'constituent_array'</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="n">lntheta_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">[</span><span class="s2">"parameter_type"</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">param_search</span><span class="p">(</span><span class="n">lntheta_query</span><span class="p">)}</span>
+        <span class="k">for</span> <span class="n">lntheta_param</span> <span class="ow">in</span> <span class="n">lntheta_parameters</span><span class="p">:</span>
+            <span class="n">lntheta_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">_query</span><span class="p">(</span><span class="n">lntheta_param</span><span class="p">))</span>
+            <span class="c1"># add the matching weight</span>
+            <span class="n">weight_param</span> <span class="o">=</span> <span class="n">lntheta_param</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"LNTHETA"</span><span class="p">,</span> <span class="s2">"THETAF"</span><span class="p">)</span>
+            <span class="n">weight_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">_query</span><span class="p">(</span><span class="n">weight_param</span><span class="p">))</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="n">weight_i</span> <span class="o">*</span> <span class="n">num_atoms</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_einstein_function</span><span class="p">(</span><span class="n">exp</span><span class="p">(</span><span class="n">lntheta_i</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">result</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
 
 
@@ -2061,7 +2085,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=b45afcc0"></script>
+</div><script src="../../_static/documentation_options.js?v=c52abe5a"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

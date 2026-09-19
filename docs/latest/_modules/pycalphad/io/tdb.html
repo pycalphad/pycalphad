@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.io.tdb - pycalphad 0.11.3.dev20+g3b0e79ba0 documentation</title>
+        <title>pycalphad.io.tdb - pycalphad 0.11.3.dev21+ga4f9b9021 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev20+g3b0e79ba0 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev21+ga4f9b9021 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev20+g3b0e79ba0 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev21+ga4f9b9021 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -310,7 +310,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.grammar</span><span class="w"> </span><span class="kn">import</span> <span class="n">float_number</span><span class="p">,</span> <span class="n">chemical_formula</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="kn">import</span> <span class="n">Species</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.tdb_keywords</span><span class="w"> </span><span class="kn">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.tdb_keywords</span><span class="w"> </span><span class="kn">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span><span class="p">,</span> <span class="n">TDB_PHASE_DESCRIPTIONS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.core.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_symmetric_group</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
@@ -575,22 +575,29 @@
 <span class="sd">    phase names may be defined in this TYPE_DEF line.</span>
 
 <span class="sd">    """</span>
+    <span class="n">IGNORED_KEYWORDS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># PyCalphad does not use these hints</span>
+        <span class="s2">"COMPOSITION_SETS"</span><span class="p">,</span>
+        <span class="s2">"MAJOR_CONSTITUENT"</span><span class="p">,</span>
+        <span class="s2">"FRACTION_LIMITS"</span>
+    <span class="p">}</span>
+
     <span class="n">matching_phases</span> <span class="o">=</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">_typechar_map</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span>
     <span class="k">del</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">_typechar_map</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span>
-    <span class="c1"># GES A_P_D BCC_A2 MAGNETIC  -1    0.4</span>
     <span class="n">tokens</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">','</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="c1">#Don't process IF-THEN type definitions for now</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matching_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The type definition character `</span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2">` in `TYPE_DEFINITION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">` is not used by any phase."</span><span class="p">)</span>
+    <span class="c1"># Don't process IF-THEN type definitions for now</span>
     <span class="k">if</span> <span class="s1">'IF'</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="ow">or</span> <span class="s1">'THEN'</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"Type definitions using IF/THEN logic is not supported"</span><span class="p">)</span>
         <span class="k">return</span>
-    <span class="n">keyword</span> <span class="o">=</span> <span class="n">expand_keyword</span><span class="p">([</span><span class="s1">'DISORDERED_PART'</span><span class="p">,</span> <span class="s1">'MAGNETIC'</span><span class="p">,</span> <span class="s1">'NEVER_DISORDER'</span><span class="p">],</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">keyword</span> <span class="o">=</span> <span class="n">expand_keyword</span><span class="p">(</span><span class="n">TDB_PHASE_DESCRIPTIONS</span><span class="p">,</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyword</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Unknown type definition keyword: </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matching_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The type definition character `</span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2">` in `TYPE_DEFINITION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">` is not used by any phase."</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">'MAGNETIC'</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">'MAGNETIC_ORDERING'</span><span class="p">:</span>
+        <span class="c1"># GES A_P_D BCC_A2 MAGNETIC  -1    0.4</span>
         <span class="c1"># Magnetic model, both IHJ and Xiong models use these model hints when</span>
         <span class="c1"># constructing Model instances, despite being prefixed `ihj_magnetic_`</span>
         <span class="n">model_hints</span> <span class="o">=</span> <span class="p">{</span>
@@ -599,9 +606,8 @@
         <span class="p">}</span>
         <span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">matching_phases</span><span class="p">:</span>
             <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">model_hints</span><span class="p">)</span>
-
-    <span class="c1"># GES A_P_D L12_FCC DIS_PART FCC_A1</span>
-    <span class="k">if</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">'DISORDERED_PART'</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">'DISORDERED_PART'</span><span class="p">:</span>
+        <span class="c1"># GES A_P_D L12_FCC DIS_PART FCC_A1</span>
         <span class="c1"># order-disorder model: since we need to add model_hints to both the</span>
         <span class="c1"># ordered and disorderd phase, we special case to update the phase</span>
         <span class="c1"># names defined by the TYPE_DEF, rather than the updating the phases</span>
@@ -620,9 +626,8 @@
             <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">disordered_phase</span><span class="si">}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">`"</span><span class="p">)</span>
-
-    <span class="c1"># GES A_P_D SIGMA_D8B NEVER_DIS SIGMA_DIS</span>
-    <span class="k">if</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">'NEVER_DISORDER'</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">'NEVER_DISORDER'</span><span class="p">:</span>
+        <span class="c1"># GES A_P_D SIGMA_D8B NEVER_DIS SIGMA_DIS</span>
         <span class="c1"># never disorder model: since we need to add model_hints to both the</span>
         <span class="c1"># ordered and disorderd phase, we special case to update the phase</span>
         <span class="c1"># names defined by the TYPE_DEF, rather than the updating the phases</span>
@@ -642,6 +647,25 @@
             <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">disordered_phase</span><span class="si">}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">`"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s2">"STATUS_BITS"</span> <span class="ow">and</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"02200800"</span><span class="p">:</span>
+        <span class="c1"># GES A_P_D ORD STATUS 02200800</span>
+        <span class="c1"># This is a legacy hint for NEVER_DISORDER that is assumed to be paired with a DIS_PART</span>
+        <span class="c1"># The status bit MUST be set on the ordered phase</span>
+        <span class="n">ordered_phase</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">hint</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"never_disorder"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">ordered_phase</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
+            <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hint</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">ordered_phase</span><span class="si">}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">`"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">IGNORED_KEYWORDS</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"The type definition keyword </span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s2"> used by `TYPE_DEFINITION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">` used by the phases "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">matching_phases</span><span class="si">}</span><span class="s2"> is not handled by PyCalphad. If you need to use this feature, please report an issue: "</span>
+            <span class="sa">f</span><span class="s2">"https://github.com/pycalphad/pycalphad/issues"</span>
+            <span class="p">)</span>
+
 
 
 <span class="n">phase_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'ionic_liquid_2SL'</span><span class="p">:</span> <span class="s1">'Y'</span><span class="p">,</span>
@@ -1382,7 +1406,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b45afcc0"></script>
+</div><script src="../../../_static/documentation_options.js?v=c52abe5a"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
