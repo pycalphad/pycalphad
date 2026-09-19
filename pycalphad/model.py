@@ -1477,18 +1477,13 @@ class Model(object):
             ordering_energy = self._partitioned_expr(S.Zero, ordered_energy, {}, molefraction_dict)
 
         # 2: Replace the ordered energy contributions with the disordered contributions
-        # The disordered model contributions are energies per mole of formula units of
-        # the disordered phase. Scale them to be per mole of formula units of the
-        # ordered phase. The interstitial-to-substitutional site ratios of the two
-        # phases are validated to be equal, so the scaling factor from the
-        # substitutional sublattices applies to the whole formula unit.
-        ordered_sub_sites = sum(ordered_phase.sublattices[i] for i in substitutional_sublattice_idxs)
-        disordered_sub_sites = disordered_phase.sublattices[0]
-        if ordered_sub_sites == disordered_sub_sites:
-            # avoid a float coefficient on every term in the common 1:1 case
+        # Some models (e.g. never disorder) can have different number of formula units in each phase. Scale disordered contribution to ordered here.
+        ordered_sites = sum(ordered_phase.sublattices)
+        disordered_sites = sum(disordered_phase.sublattices)
+        if ordered_sites == disordered_sites:
             formula_units_ratio = S.One
         else:
-            formula_units_ratio = S(ordered_sub_sites / disordered_sub_sites)
+            formula_units_ratio = S(ordered_sites / disordered_sites)
         self.models.clear()
         for name, value in disordered_model.models.items():
             self.models[name] = formula_units_ratio * value.xreplace(variable_rename_dict)
@@ -1563,17 +1558,16 @@ class Model(object):
             # apply the modifications to the Models
             for contrib, new_val in contrib_mods.items():
                 mod_pure.models[contrib] = new_val
-            # set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix
             site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
-            for mod_key, mod_val in mod_pure.models.items():
-                mod_pure.models[mod_key] = self.symbol_replace(mod_val, site_frac_subs)
             moles = self.moles(ref_state.species)
-            # get the output property of interest, substitute the fixed state variables (e.g. T=298.15) and add the pure element moles weighted term to the list of terms
-            # substitution of fixed state variables has to happen after getting the attribute in case there are any derivatives involving that state variable
+            # Get the property from the pure model set all free site
+            # fractions to one, substitute the fixed state variables
+            # (e.g. T=298.15), and add the term weighted by moles of the pure
+            # element. Molar properties divide by the site ratio
+            # normalization, which contains site fractions that are not in
+            # mod_pure.models, and derivatives with respect to a fixed state
+            # variable must be taken before that variable is fixed.
             for out in reference_dict.keys():
-                # site fractions also need to be substituted here because molar
-                # properties are normalized by the site ratio normalization factor,
-                # which contains site fractions that are not part of self.models
                 mod_out = self.symbol_replace(getattr(mod_pure, out), site_frac_subs)
                 mod_out = self.symbol_replace(mod_out, ref_state.fixed_statevars)
                 reference_dict[out].append(mod_out*moles)
@@ -1633,8 +1627,7 @@ class Model(object):
             (where('constituent_array').test(self._array_validity))
         )
 
-        # V0 is given in databases per mole of formula, matching the per-formula-unit
-        # basis of the energy contributions, so it does not need to be normalized
+        # V0 is given in databases per mole of formula
         self.V0 = V0 = self.symbol_replace(self.redlich_kister_sum(phase, param_search, V0_param_query), self._symbols)
         # VA is a dimensionless integrated thermal expansion
         self.VA = VA = self.symbol_replace(self.redlich_kister_sum(phase, param_search, VA_param_query), self._symbols)
