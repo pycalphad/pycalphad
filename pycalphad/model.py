@@ -1628,7 +1628,8 @@ class Model(object):
         )
 
         # V0 is given in databases per mole of formula
-        self.V0 = V0 = self.symbol_replace(self.redlich_kister_sum(phase, param_search, V0_param_query), self._symbols)
+        V0 = self.symbol_replace(self.redlich_kister_sum(phase, param_search, V0_param_query), self._symbols)
+        self.V0 = V0 / self._site_ratio_normalization
         # VA is a dimensionless integrated thermal expansion
         self.VA = VA = self.symbol_replace(self.redlich_kister_sum(phase, param_search, VA_param_query), self._symbols)
         # TODO: unsure about the normalization of VK and VC parameters
