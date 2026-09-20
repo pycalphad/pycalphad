@@ -201,14 +201,12 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int num_components = compositions.shape[1]
     cdef int num_fixed_chempots = fixed_chempot_indices.shape[0]
     cdef int simplex_size = num_components - num_fixed_chempots
-    cdef int i, j
     cdef int fixed_index = 0
     cdef int saved_trial = 0
     cdef int min_df
     cdef int max_iterations = 1000
     cdef int iterations = 0
-    cdef int idx, ici, comp_idx, simplex_idx, trial_idx, chempot_idx
-    cdef bint tmp3
+    cdef int i, j, idx, ici, comp_idx, simplex_idx, trial_idx, chempot_idx
     cdef bint skip_index = False
     cdef double lowest_df = 0
     cdef double out_energy = 0
@@ -230,20 +228,17 @@ cpdef double hyperplane(double[:,::1] compositions,
     for i in range(simplex_size):
         free_chempot_indices[i] = best_guess_simplex[i]
         candidate_simplex[i] = best_guess_simplex[i]
-    cdef int* int_tmp = <int*>malloc(simplex_size * sizeof(int)) # np.empty(simplex_size, dtype=np.int32)
-    cdef double* free_candidate_potentials = <double*>malloc(simplex_size * sizeof(double)) # np.empty(simplex_size)
+    cdef int* int_tmp = <int*>malloc(simplex_size * sizeof(int))
+    cdef double* free_candidate_potentials = <double*>malloc(simplex_size * sizeof(double))
     cdef double* candidate_potentials = <double*>malloc(num_components * sizeof(double))
-    cdef double* smallest_fractions = <double*>malloc(simplex_size * sizeof(double)) # np.empty(simplex_size)
+    cdef double* smallest_fractions = <double*>malloc(simplex_size * sizeof(double))
     # 2-D
-    cdef int* trial_simplices = <int*>malloc(simplex_size * simplex_size * sizeof(int)) # np.empty((simplex_size, simplex_size), dtype=np.int32)
-    cdef double* fractions = <double*>malloc(simplex_size * simplex_size * sizeof(double)) # np.empty((simplex_size, simplex_size))
+    cdef int* trial_simplices = <int*>malloc(simplex_size * simplex_size * sizeof(int))
+    cdef double* fractions = <double*>malloc(simplex_size * simplex_size * sizeof(double))
     for i in range(simplex_size):
         for j in range(simplex_size):
             trial_simplices[i*simplex_size + j] = best_guess_simplex[j]
-    cdef double* f_contig_trial = <double*>malloc(simplex_size * simplex_size * sizeof(double)) # np.empty((simplex_size, simplex_size), order='F')
-    cdef double* f_candidate_tieline = <double*>malloc(simplex_size * simplex_size * sizeof(double)) # np.empty((simplex_size, simplex_size), order='F')
-    # 3-D
-    cdef double* f_trial_matrix = <double*>malloc(simplex_size * simplex_size * simplex_size * sizeof(double)) # np.empty((simplex_size, simplex_size, simplex_size), order='F')
+    cdef double* f_candidate_tieline = <double*>malloc(simplex_size * simplex_size * sizeof(double))
 
 
     while iterations < max_iterations:
@@ -328,9 +323,6 @@ cpdef double hyperplane(double[:,::1] compositions,
     # 2-D
     free(trial_simplices)
     free(fractions)
-    free(f_contig_trial)
     free(f_candidate_tieline)
-    # 3-D
-    free(f_trial_matrix)
 
     return out_energy
