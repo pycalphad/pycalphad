@@ -197,16 +197,16 @@ cpdef double hyperplane(double[:,::1] compositions,
     P: N+1, max phases by gibbs phase rule that we can find in a point calculations
     """
     # Scalars
-    cdef int num_points = compositions.shape[0]
-    cdef int num_components = compositions.shape[1]
-    cdef int num_fixed_chempots = fixed_chempot_indices.shape[0]
-    cdef int simplex_size = num_components - num_fixed_chempots
-    cdef int fixed_index = 0
-    cdef int saved_trial = 0
-    cdef int min_df
+    cdef Py_ssize_t num_points = compositions.shape[0]
+    cdef Py_ssize_t num_components = compositions.shape[1]
+    cdef Py_ssize_t num_fixed_chempots = fixed_chempot_indices.shape[0]
+    cdef Py_ssize_t simplex_size = num_components - num_fixed_chempots
+    cdef Py_ssize_t fixed_index = 0
+    cdef Py_ssize_t saved_trial = 0
+    cdef Py_ssize_t min_df
     cdef int max_iterations = 1000
     cdef int iterations = 0
-    cdef int i, j, idx, ici, comp_idx, simplex_idx, trial_idx, chempot_idx
+    cdef Py_ssize_t i, j, idx, ici, comp_idx, simplex_idx, trial_idx, chempot_idx
     cdef bint skip_index = False
     cdef double lowest_df = 0
     cdef double out_energy = 0
