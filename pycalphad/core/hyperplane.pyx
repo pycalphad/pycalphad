@@ -231,8 +231,8 @@ cpdef double hyperplane(double[:,::1] compositions,
         free_chempot_indices[i] = best_guess_simplex[i]
         candidate_simplex[i] = best_guess_simplex[i]
     cdef int* int_tmp = <int*>malloc(simplex_size * sizeof(int)) # np.empty(simplex_size, dtype=np.int32)
-    cdef double* candidate_potentials = <double*>malloc(simplex_size * sizeof(double)) # np.empty(simplex_size)
-    cdef double* mu_full = <double*>malloc(num_components * sizeof(double))
+    cdef double* free_candidate_potentials = <double*>malloc(simplex_size * sizeof(double)) # np.empty(simplex_size)
+    cdef double* candidate_potentials = <double*>malloc(num_components * sizeof(double))
     cdef double* smallest_fractions = <double*>malloc(simplex_size * sizeof(double)) # np.empty(simplex_size)
     # 2-D
     cdef int* trial_simplices = <int*>malloc(simplex_size * simplex_size * sizeof(int)) # np.empty((simplex_size, simplex_size), dtype=np.int32)
@@ -267,24 +267,24 @@ cpdef double hyperplane(double[:,::1] compositions,
             for ici in range(simplex_size):
                 chempot_idx = free_chempot_indices[ici]
                 f_candidate_tieline[i + simplex_size*ici] = compositions[idx, chempot_idx]
-            candidate_potentials[i] = energies[idx]
-            for ici in range(fixed_chempot_indices.shape[0]):
+            free_candidate_potentials[i] = energies[idx]
+            for ici in range(num_fixed_chempots):
                 chempot_idx = fixed_chempot_indices[ici]
-                candidate_potentials[i] -= chemical_potentials[chempot_idx] * compositions[idx, chempot_idx]
-        solve(f_candidate_tieline, simplex_size, candidate_potentials, int_tmp)
-        if candidate_potentials[0] == -1e19:
+                free_candidate_potentials[i] -= chemical_potentials[chempot_idx] * compositions[idx, chempot_idx]
+        solve(f_candidate_tieline, simplex_size, free_candidate_potentials, int_tmp)
+        if free_candidate_potentials[0] == -1e19:
             break
         for ici in range(simplex_size):
-            mu_full[free_chempot_indices[ici]] = candidate_potentials[ici]
-        for ici in range(fixed_chempot_indices.shape[0]):
+            candidate_potentials[free_chempot_indices[ici]] = free_candidate_potentials[ici]
+        for ici in range(num_fixed_chempots):
             chempot_idx = fixed_chempot_indices[ici]
-            mu_full[chempot_idx] = chemical_potentials[chempot_idx]
+            candidate_potentials[chempot_idx] = chemical_potentials[chempot_idx]
         lowest_df = 1e10
         min_df = -1
         for idx in range(num_points):
             driving_force = energies[idx]
             for comp_idx in range(num_components):
-                driving_force -= mu_full[comp_idx] * compositions[idx, comp_idx]
+                driving_force -= candidate_potentials[comp_idx] * compositions[idx, comp_idx]
             if driving_force < lowest_df:
                 lowest_df = driving_force
                 min_df = idx
@@ -310,7 +310,7 @@ cpdef double hyperplane(double[:,::1] compositions,
         result_fractions[i] = fractions[saved_trial*simplex_size + i]
     for ici in range(simplex_size):
         chempot_idx = free_chempot_indices[ici]
-        chemical_potentials[chempot_idx] = candidate_potentials[ici]
+        chemical_potentials[chempot_idx] = free_candidate_potentials[ici]
         result_simplex[ici] = best_guess_simplex[ici]
 
     # Hack to enforce Gibbs phase rule, shape of result is comp+1, shape of hyperplane is comp
@@ -322,8 +322,8 @@ cpdef double hyperplane(double[:,::1] compositions,
     free(free_chempot_indices)
     free(candidate_simplex)
     free(int_tmp)
+    free(free_candidate_potentials)
     free(candidate_potentials)
-    free(mu_full)
     free(smallest_fractions)
     # 2-D
     free(trial_simplices)
