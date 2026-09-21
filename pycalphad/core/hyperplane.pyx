@@ -231,6 +231,9 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int* int_tmp = <int*>malloc(simplex_size * sizeof(int))
     cdef double* free_candidate_potentials = <double*>malloc(simplex_size * sizeof(double))
     cdef double* candidate_potentials = <double*>malloc(num_components * sizeof(double))
+    for ici in range(num_fixed_chempots):
+        chempot_idx = fixed_chempot_indices[ici]
+        candidate_potentials[chempot_idx] = chemical_potentials[chempot_idx]
     cdef double* smallest_fractions = <double*>malloc(simplex_size * sizeof(double))
     # 2-D
     cdef int* trial_simplices = <int*>malloc(simplex_size * simplex_size * sizeof(int))
@@ -271,9 +274,6 @@ cpdef double hyperplane(double[:,::1] compositions,
             break
         for ici in range(simplex_size):
             candidate_potentials[free_chempot_indices[ici]] = free_candidate_potentials[ici]
-        for ici in range(num_fixed_chempots):
-            chempot_idx = fixed_chempot_indices[ici]
-            candidate_potentials[chempot_idx] = chemical_potentials[chempot_idx]
         lowest_df = 1e10
         min_df = -1
         for idx in range(num_points):
