@@ -421,7 +421,9 @@ def test_changing_model_ast_also_changes_mixing_energy(load_database):
     """If a models contribution is modified, the mixing energy should update accordingly."""
     dbf = load_database()
     m = Model(dbf, ['CU', 'MG', 'VA'], 'CU2MG')
-    m.models['mag'] = 1000
+    # Model contributions are per mole of formula units; CU2MG has 3 moles of
+    # atoms per mole of formula units, so 3000 J/mol-formula is 1000 J/mol-atom
+    m.models['mag'] = 3000
     statevars = {
                     v.T: 300,
                     v.SiteFraction('CU2MG', 0, 'CU'): 1, v.SiteFraction('CU2MG', 0, 'MG'): 0,
@@ -429,7 +431,7 @@ def test_changing_model_ast_also_changes_mixing_energy(load_database):
                 }
     check_output(m, statevars, 'GM_MIX', 1000)
 
-    m.endmember_reference_model.models['mag'] = 1000
+    m.endmember_reference_model.models['mag'] = 3000
     check_output(m, statevars, 'GM_MIX', 0)
 
 
@@ -479,6 +481,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
     potentials = {v.P: 101325, v.T: 1600}
 
     # All values checked by Thermo-Calc using set-start-constitution and show gm(ionic_liq)
+    # gm(ionic_liq) is per mole of atoms, matching Model.GM
 
     # Test the three endmembers produce the corect energy
     em_FE_Sneg2 = {
@@ -487,7 +490,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1e-12,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1e-12,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_Sneg2}).n(real=True), dtype=np.complex128)
+    out = np.array(mod.GM.subs({**potentials, **em_FE_Sneg2}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -148395.0, atol=0.1)
 
     em_FE_VA = {
@@ -496,7 +499,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.0,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1e-12,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_VA}).n(real=True), dtype=np.complex128)
+    out = np.array(mod.GM.subs({**potentials, **em_FE_VA}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -87735.077, atol=0.1)
 
     em_FE_S = {
@@ -505,7 +508,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1e-12,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 1.0,
     }
-    out = np.array(mod.ast.subs({**potentials, **em_FE_S}).n(real=True), dtype=np.complex128)
+    out = np.array(mod.GM.subs({**potentials, **em_FE_S}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -102463.52, atol=0.1)
 
     # Test some ficticious "nice" mixing cases
@@ -515,7 +518,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.33333333,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 0.33333333,
     }
-    out = np.array(mod.ast.subs({**potentials, **mix_equal}).n(real=True), dtype=np.complex128)
+    out = np.array(mod.GM.subs({**potentials, **mix_equal}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -130358.2, atol=0.1)
 
     mix_unequal = {
@@ -524,7 +527,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.25,
         v.Y('IONIC_LIQ', 1, v.Species('S', {'S': 1.0})): 0.25,
     }
-    out = np.array(mod.ast.subs({**potentials, **mix_unequal}).n(real=True), dtype=np.complex128)
+    out = np.array(mod.GM.subs({**potentials, **mix_unequal}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -138484.11, atol=0.1)
 
     # Test the energies for the two equilibrium internal DOF for the conditions
@@ -534,7 +537,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.00545E-04,
         v.Y('IONIC_LIQ', 1, v.Species('S-2', {'S': 1.0}, charge=-2)): 6.00994E-01,
     }
-    out = np.array(mod.ast.subs({**potentials, **eq_sf_1}).n(real=True), dtype=np.complex128)
+    out = np.array(mod.GM.subs({**potentials, **eq_sf_1}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -141545.37, atol=0.1)
 
     eq_sf_2 = {
@@ -543,7 +546,7 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 1.45273E-04,
         v.Y('IONIC_LIQ', 1, v.Species('S')): 9.84476E-01,
     }
-    out = np.array(mod.ast.subs({**potentials, **eq_sf_2}).n(real=True), dtype=np.complex128)
+    out = np.array(mod.GM.subs({**potentials, **eq_sf_2}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -104229.18, atol=0.1)
 
 
