@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.model - pycalphad 0.11.3.dev21+ga4f9b9021 documentation</title>
+        <title>pycalphad.model - pycalphad 0.11.3.dev22+g1606b43d9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev21+ga4f9b9021 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev22+g1606b43d9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev21+ga4f9b9021 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev22+g1606b43d9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -750,7 +750,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">ast</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="s2">"Return the full abstract syntax tree of the model."</span>
+        <span class="s2">"Return the full abstract syntax tree of the model, in units of J/mole-formula."</span>
         <span class="k">return</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
 
     <span class="nd">@property</span>
@@ -791,8 +791,8 @@
 
     <span class="c1">#pylint: disable=C0103</span>
     <span class="c1"># These are standard abbreviations from Thermo-Calc for these quantities</span>
-    <span class="n">energy</span> <span class="o">=</span> <span class="n">GM</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="p">)</span>
-    <span class="n">formulaenergy</span> <span class="o">=</span> <span class="n">G</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">)</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">GM</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">)</span>
+    <span class="n">formulaenergy</span> <span class="o">=</span> <span class="n">G</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="p">)</span>
     <span class="n">entropy</span> <span class="o">=</span> <span class="n">SM</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
     <span class="n">enthalpy</span> <span class="o">=</span> <span class="n">HM</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">GM</span> <span class="o">-</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
     <span class="n">formulaenthalpy</span> <span class="o">=</span> <span class="n">H</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">-</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
@@ -1272,7 +1272,7 @@
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="n">pure_energy_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span>
                                                    <span class="n">pure_param_query</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pure_energy_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
+        <span class="k">return</span> <span class="n">pure_energy_term</span></div>
 
 
 <div class="viewcode-block" id="Model.ideal_mixing_energy">
@@ -1301,7 +1301,7 @@
                                         <span class="p">)</span>
                 <span class="n">ideal_mixing_term</span> <span class="o">+=</span> <span class="p">(</span><span class="n">mixing_term</span><span class="o">*</span><span class="n">ratio</span><span class="p">)</span>
         <span class="n">ideal_mixing_term</span> <span class="o">*=</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ideal_mixing_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
+        <span class="k">return</span> <span class="n">ideal_mixing_term</span></div>
 
 
 <div class="viewcode-block" id="Model.excess_mixing_energy">
@@ -1326,7 +1326,7 @@
             <span class="p">)</span>
         <span class="n">excess_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">param_query</span><span class="p">)</span>
         <span class="n">excess_term</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kohler_toop_excess_sum</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">excess_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
+        <span class="k">return</span> <span class="n">excess_term</span></div>
 
 
 <div class="viewcode-block" id="Model.magnetic_energy">
@@ -1349,7 +1349,6 @@
         <span class="k">if</span> <span class="s1">'ihj_magnetic_afm_factor'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
 
-        <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
         <span class="c1"># define basic variables</span>
         <span class="n">afm_factor</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">'ihj_magnetic_afm_factor'</span><span class="p">]</span>
 
@@ -1413,8 +1412,7 @@
                            <span class="p">]</span>
         <span class="n">g_term</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> \
-            <span class="n">g_term</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">g_term</span></div>
 
 
 <div class="viewcode-block" id="Model.xiong_magnetic_energy">
@@ -1434,7 +1432,6 @@
         <span class="k">if</span> <span class="s1">'ihj_magnetic_afm_factor'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
 
-        <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
         <span class="c1"># define basic variables</span>
         <span class="n">afm_factor</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">'ihj_magnetic_afm_factor'</span><span class="p">]</span>
 
@@ -1498,8 +1495,7 @@
                                <span class="p">]</span>
         <span class="n">g_term</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs_curie</span><span class="p">)</span> <span class="o">+</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs_neel</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> \
-            <span class="n">g_term</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">g_term</span></div>
 
 
 <div class="viewcode-block" id="Model.twostate_energy">
@@ -1512,7 +1508,6 @@
         <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ordered_phase'</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="n">phase</span> <span class="o">=</span> <span class="n">_extend_ordered_if_subset_of_disorder</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
-        <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
         <span class="n">gd_param_query</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'phase_name'</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'parameter_type'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'GD'</span><span class="p">)</span> <span class="o">&amp;</span> \
@@ -1521,7 +1516,7 @@
         <span class="n">gd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">gd_param_query</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gd</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
-        <span class="k">return</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">gd</span> <span class="o">/</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
+        <span class="k">return</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">gd</span> <span class="o">/</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span></div>
 
 
     <span class="nd">@staticmethod</span>
@@ -1572,7 +1567,7 @@
             <span class="n">weight_param</span> <span class="o">=</span> <span class="n">lntheta_param</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"LNTHETA"</span><span class="p">,</span> <span class="s2">"THETAF"</span><span class="p">)</span>
             <span class="n">weight_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">_query</span><span class="p">(</span><span class="n">weight_param</span><span class="p">))</span>
             <span class="n">result</span> <span class="o">+=</span> <span class="n">weight_i</span> <span class="o">*</span> <span class="n">num_atoms</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_einstein_function</span><span class="p">(</span><span class="n">exp</span><span class="p">(</span><span class="n">lntheta_i</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">result</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
+        <span class="k">return</span> <span class="n">result</span></div>
 
 
     <span class="nd">@staticmethod</span>
@@ -1797,7 +1792,7 @@
         <span class="c1"># Compute the variable_rename_dict, which will map disordered phase site</span>
         <span class="c1"># fractions to the quasi mole fractions representing the disordered state</span>
         <span class="n">variable_rename_dict</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">disordered_sitefracs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">disordered_model</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)]</span>
+        <span class="n">disordered_sitefracs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">disordered_model</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)]</span>
         <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">disordered_sitefracs</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">sublattice_index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># only the first sublattice is substitutional</span>
                 <span class="n">variable_rename_dict</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span> <span class="o">=</span> \
@@ -1827,9 +1822,16 @@
             <span class="n">ordering_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partitioned_expr</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">ordered_energy</span><span class="p">,</span> <span class="p">{},</span> <span class="n">molefraction_dict</span><span class="p">)</span>
 
         <span class="c1"># 2: Replace the ordered energy contributions with the disordered contributions</span>
+        <span class="c1"># Some models (e.g. never disorder) can have different number of formula units in each phase. Scale disordered contribution to ordered here.</span>
+        <span class="n">ordered_sites</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span>
+        <span class="n">disordered_sites</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">disordered_phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ordered_sites</span> <span class="o">==</span> <span class="n">disordered_sites</span><span class="p">:</span>
+            <span class="n">formula_units_ratio</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">formula_units_ratio</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="n">ordered_sites</span> <span class="o">/</span> <span class="n">disordered_sites</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">disordered_model</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">variable_rename_dict</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">formula_units_ratio</span> <span class="o">*</span> <span class="n">value</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">variable_rename_dict</span><span class="p">)</span>
 
         <span class="c1"># 3: Handle physical properties, these also are contributed to by the</span>
         <span class="c1"># disordered phase *and* an "ordering" contribution. For now, we only</span>
@@ -1904,15 +1906,18 @@
             <span class="c1"># apply the modifications to the Models</span>
             <span class="k">for</span> <span class="n">contrib</span><span class="p">,</span> <span class="n">new_val</span> <span class="ow">in</span> <span class="n">contrib_mods</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">mod_pure</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">contrib</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_val</span>
-            <span class="c1"># set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix</span>
             <span class="n">site_frac_subs</span> <span class="o">=</span> <span class="p">{</span><span class="n">sf</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">sf</span> <span class="ow">in</span> <span class="n">mod_pure</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)}</span>
-            <span class="k">for</span> <span class="n">mod_key</span><span class="p">,</span> <span class="n">mod_val</span> <span class="ow">in</span> <span class="n">mod_pure</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">mod_pure</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">mod_key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">mod_val</span><span class="p">,</span> <span class="n">site_frac_subs</span><span class="p">)</span>
             <span class="n">moles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">ref_state</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
-            <span class="c1"># get the output property of interest, substitute the fixed state variables (e.g. T=298.15) and add the pure element moles weighted term to the list of terms</span>
-            <span class="c1"># substitution of fixed state variables has to happen after getting the attribute in case there are any derivatives involving that state variable</span>
+            <span class="c1"># Get the property from the pure model set all free site</span>
+            <span class="c1"># fractions to one, substitute the fixed state variables</span>
+            <span class="c1"># (e.g. T=298.15), and add the term weighted by moles of the pure</span>
+            <span class="c1"># element. Molar properties divide by the site ratio</span>
+            <span class="c1"># normalization, which contains site fractions that are not in</span>
+            <span class="c1"># mod_pure.models, and derivatives with respect to a fixed state</span>
+            <span class="c1"># variable must be taken before that variable is fixed.</span>
             <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">reference_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">mod_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod_pure</span><span class="p">,</span> <span class="n">out</span><span class="p">),</span> <span class="n">ref_state</span><span class="o">.</span><span class="n">fixed_statevars</span><span class="p">)</span>
+                <span class="n">mod_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod_pure</span><span class="p">,</span> <span class="n">out</span><span class="p">),</span> <span class="n">site_frac_subs</span><span class="p">)</span>
+                <span class="n">mod_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">mod_out</span><span class="p">,</span> <span class="n">ref_state</span><span class="o">.</span><span class="n">fixed_statevars</span><span class="p">)</span>
                 <span class="n">reference_dict</span><span class="p">[</span><span class="n">out</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mod_out</span><span class="o">*</span><span class="n">moles</span><span class="p">)</span>
 
         <span class="c1"># set the attribute on the class</span>
@@ -1973,22 +1978,24 @@
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">'constituent_array'</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
         <span class="p">)</span>
 
-        <span class="c1"># V0 is given in databases per mole of formula, so we should normalize it</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V0</span> <span class="o">=</span> <span class="n">V0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">V0_param_query</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
-        <span class="c1"># VA is given in databases per mole of atoms, so we should not normalize it</span>
+        <span class="c1"># V0 is given in databases per mole of formula</span>
+        <span class="n">V0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">V0_param_query</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V0</span> <span class="o">=</span> <span class="n">V0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
+        <span class="c1"># VA is a dimensionless integrated thermal expansion</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">VA</span> <span class="o">=</span> <span class="n">VA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">VA_param_query</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
         <span class="c1"># TODO: unsure about the normalization of VK and VC parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">VK</span> <span class="o">=</span> <span class="n">VK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">VK_param_query</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">VC</span> <span class="o">=</span> <span class="n">VC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">VC_param_query</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
 
-        <span class="c1"># nonmagnetic contribution to volume</span>
+        <span class="c1"># nonmagnetic contribution to volume, per mole of formula units</span>
         <span class="n">V_p0</span> <span class="o">=</span> <span class="n">V0</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="n">VA</span><span class="p">)</span>
 
-        <span class="c1"># magnetic contribution to volume</span>
+        <span class="c1"># magnetic contribution to volume, per mole of formula units</span>
         <span class="n">G_mag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mag'</span><span class="p">)</span>
         <span class="n">V_mag</span> <span class="o">=</span> <span class="n">G_mag</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">VM</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">molar_volume</span> <span class="o">=</span> <span class="n">V_p0</span> <span class="o">+</span> <span class="n">V_mag</span>
+        <span class="c1"># molar volume is normalized to per mole of atoms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VM</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">molar_volume</span> <span class="o">=</span> <span class="p">(</span><span class="n">V_p0</span> <span class="o">+</span> <span class="n">V_mag</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
         <span class="n">volume_energy</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
 
         <span class="k">if</span> <span class="n">VK</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -2034,6 +2041,9 @@
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
 <span class="sd">    """</span>
+    <span class="c1"># TestModel has no sublattice model; one mole of formula is one mole of atoms</span>
+    <span class="n">_site_ratio_normalization</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kmax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">'VA'</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
@@ -2085,7 +2095,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=c52abe5a"></script>
+</div><script src="../../_static/documentation_options.js?v=867e666c"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
