@@ -393,10 +393,6 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """
     pass
 
-def _process_zerovolume_species(db, species_line):
-    """Record the species a database declares to occupy no volume."""
-    db.zerovolume_species.update(species_line.replace(',', ' ').upper().split())
-
 def _diffusion_grammar():
     """Grammar for the arguments of a DIFFUSION command: ``<model> <phase> [arguments]``.
 
@@ -521,7 +517,7 @@ _TDB_PROCESSOR = {
         lambda db, name, c: db.add_phase_constituents(
             name.split(':')[0].upper(), c),
     'PARAMETER': _process_parameter,
-    'ZEROVOLUME_SPECIES': _process_zerovolume_species,
+    'ZEROVOLUME_SPECIES': _unimplemented,
     'DIFFUSION': _process_diffusion,
 }
 
@@ -914,7 +910,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         if len(model_hints) > 0:
             # Some model hints were not properly consumed
             raise ValueError('Not all model hints are supported: {}'.format(model_hints))
-    # ZEROVOLUME_SPECIES and DIFFUSION go after the type definitions, before the first PHASE.
+    # DIFFUSION commands go after the type definitions, before the first PHASE.
     diffusion_lines = []
     for name, phase_obj in sorted(dbf.phases.items()):
         diffusion = phase_obj.model_hints.get('diffusion')
@@ -923,11 +919,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         arguments = diffusion.arguments()
         diffusion_lines.append("DIFFUSION {} {}{} !\n".format(diffusion.model, name.upper(),
                                                               ' ' + arguments if arguments else ''))
-    if len(dbf.zerovolume_species) > 0:
-        output += "ZEROVOLUME_SPECIES {} !\n".format(' '.join(sorted(dbf.zerovolume_species)))
-    output += ''.join(diffusion_lines)
-    if len(dbf.zerovolume_species) > 0 or len(diffusion_lines) > 0:
-        output += "\n"
+    if len(diffusion_lines) > 0:
+        output += ''.join(diffusion_lines) + '\n'
     # Perform a second loop now that all typedefs / model hints are consistent
     for name, phase_obj in sorted(dbf.phases.items()):
         # model_hints may also contain "phase options", e.g., ionic liquid

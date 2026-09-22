@@ -151,12 +151,6 @@ class Database(object): #pylint: disable=R0902
     references: dict[str, Any]
     """Reference objects indexed by their system-local identifier."""
     _structure_dict: dict[str, Any]
-    zerovolume_species: set[str]
-    """Names of the species a TDB file declares to occupy no volume (ZEROVOLUME_SPECIES).
-
-    The DIFFUSION commands, which are per phase, live in ``Phase.model_hints['diffusion']``
-    as :class:`DiffusionModel` instances.
-    """
 
     def __new__(cls, *args):
         if len(args) == 0:
@@ -171,7 +165,6 @@ class Database(object): #pylint: disable=R0902
             obj._parameter_queue = []
             obj.symbols = {}
             obj.references = {}
-            obj.zerovolume_species = set()
             # Note: No public typedefs here (from TDB files)
             # Instead we put that information in the model_hint for phases
             return obj
@@ -216,8 +209,6 @@ class Database(object): #pylint: disable=R0902
         return pickle_dict
 
     def __setstate__(self, state):
-        # Databases pickled before this attribute existed do not carry it.
-        self.zerovolume_species = set()
         for key, value in state.items():
             if key == '_parameters':
                 self._parameters = TinyDB(storage=MemoryStorage)
