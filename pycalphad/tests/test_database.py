@@ -939,9 +939,7 @@ def test_diffusion_commands_become_phase_model_hints():
     assert dbf.phases['CEMENTITE'].model_hints['diffusion'] == DiffusionModel(
         'DILUTE', constituents=(('FE',), ('C',)))
     assert dbf.phases['SIGMA'].model_hints['diffusion'] == DiffusionModel('NONE')
-    # A phase without a command has no hint, so Model construction is untouched.
     assert 'diffusion' not in dbf.phases['FCC_A1'].model_hints
-    # The hint keeps the phase hashable, as the other hints do.
     hash(dbf.phases['BCC_A2'])
 
 
@@ -951,7 +949,7 @@ def test_magnetic_diffusion_coefficients_resolve_per_species():
     assert model.alpha_for('FE') == 0.3  # bare ALPHA applies to every substitutional species
     assert model.alpha_for() == 0.3
     assert model.alpha2_for('C') == 1.8
-    assert model.alpha2_for('n') == 0.6  # species are matched case-insensitively
+    assert model.alpha2_for('n') == 0.6
     assert model.alpha2_for('B') is None  # no bare ALPHA2 to fall back on
     assert DiffusionModel('NONE').alpha_for('FE') is None
     # A bare ALPHA2 covers every interstitial the command does not name.

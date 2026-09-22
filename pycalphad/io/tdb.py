@@ -394,16 +394,8 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     pass
 
 def _diffusion_grammar():
-    """Grammar for the arguments of a DIFFUSION command: ``<model> <phase> [arguments]``.
-
-    The models and their arguments follow the DICTRA extensions to the TDB syntax:
-    ``NONE`` takes nothing, ``DILUTE`` and ``SIMPLE`` take the constituent array of the
-    dependent species in each sublattice, and ``MAGNETIC`` takes ``ALPHA`` and ``ALPHA2``
-    coefficients, optionally per species as ``ALPHA2&C=1.8``.
-    """
-    # The same characters the CONSTITUENT and PHASE commands accept, so a DIFFUSION command
-    # cannot fail on a species or a phase the rest of the file defines happily. ':' is left out
-    # of the phase name because it opens the constituent array of the DILUTE and SIMPLE forms.
+    """Grammar for the arguments of a DIFFUSION command: ``<model> <phase> [arguments]``."""
+    # the characters the PHASE and CONSTITUENT commands accept, less ':' on the phase name
     species_name = Word(alphanums + '+-*/_.')
     phase_name = Word(alphanums + '_-()/')
     coefficient = Group(
@@ -417,7 +409,6 @@ def _diffusion_grammar():
         Group(OneOrMore(coefficient))('coefficients') | Group(constituent_array)('constituents')
     )
 
-#: The grammar is the same for every file, so it is built once.
 _DIFFUSION_GRAMMAR = _diffusion_grammar()
 
 def _process_diffusion(db, diffusion_line):
@@ -425,7 +416,6 @@ def _process_diffusion(db, diffusion_line):
 
     Like type definitions, DIFFUSION commands precede the PHASE lines in a TDB file, so the
     parsed model is queued and attached to the phase's model_hints once every phase is known.
-    A command that does not follow the DICTRA syntax is skipped with a warning.
     """
     try:
         tokens = _DIFFUSION_GRAMMAR.parse_string(diffusion_line, parse_all=True)
@@ -451,9 +441,7 @@ def _process_diffusion(db, diffusion_line):
 def _apply_diffusion_queue(db):
     """Attach the queued DIFFUSION models to their phases' model_hints.
 
-    A command naming a phase the file does not define is dropped silently: mobility databases
-    are often distributed as an appendix to a thermodynamic database and carry DIFFUSION lines
-    for phases defined only there.
+    A command naming a phase the file does not define is dropped.
     """
     for phase_name, model in db._diffusion_queue:
         phase = db.phases.get(phase_name)
@@ -910,7 +898,6 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         if len(model_hints) > 0:
             # Some model hints were not properly consumed
             raise ValueError('Not all model hints are supported: {}'.format(model_hints))
-    # DIFFUSION commands go after the type definitions, before the first PHASE.
     diffusion_lines = []
     for name, phase_obj in sorted(dbf.phases.items()):
         diffusion = phase_obj.model_hints.get('diffusion')
