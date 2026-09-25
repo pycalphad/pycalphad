@@ -1,0 +1,264 @@
+$
+$ Database for Cr-Ni from F. Tang and B. Hallstedt, 2016
+$
+$ F. Tang, B. Hallstedt, Calphad, 55, 260-69(2016).
+$
+$ Dataset created 2016.11.01 by Bengt Hallstedt.
+$
+$ Metastable ordering in fcc and bcc from N. Dupin.
+$
+$ The hcp interaction is set 2kJ more positive than the fcc interaction
+$ to avoid having hcp stable in Cr-Ni-C.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 298.15 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    ! 
+ ELEMENT CR   BCC_A2                     51.996     4050.0     23.5429 ! 
+ ELEMENT NI   FCC_A1                     58.69      4787.0     29.7955 ! 
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : CR NI : !
+$
+$ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : CR NI% : VA : !
+$
+$ Disordered part of FCC_4SL, identical to FCC_A1
+$
+ PHASE A1_FCC %A 2 1 1 !
+ CONST A1_FCC : CR NI% : VA : !
+$
+$ Prototype AuCu3 (cP4, Pm-3m)
+$
+ PHASE FCC_4SL:F %AY 5 0.25 0.25 0.25 0.25 1 !
+ CONST FCC_4SL:F : CR NI : CR NI : CR NI : CR NI : VA :  !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : CR% NI : VA : !
+$
+$ Disordered part of B2_BCC, identical to BCC_A2 (except Va)
+$
+ PHASE A2_BCC %B 2 1 3 !
+ CONST A2_BCC : CR% NI VA : VA : !
+$
+$ Prototype CsCl (cP2, Pm-3m)
+$
+ PHASE B2_BCC %BO 3 0.5 0.5 3 !
+ CONST B2_BCC : CR NI VA : CR NI% VA : VA : !
+$
+$ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+$
+ PHASE HCP_A3 %A 2 1 0.5 !
+ CONST HCP_A3 : CR NI : VA : !
+$
+$ Prototype MoPt2 (oP6, Immm)
+$
+ PHASE CRNI2 % 2 1 2 !
+ CONST CRNI2 : CR : NI : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+ DEFAULT-COM REJECT_PHASE FCC_4SL B2_BCC A1_FCC A2_BCC !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+ TYPE-DEF O GES AMEND_PHASE_DESCRIPTION B2_BCC DIS_PART A2_BCC !
+ TYPE-DEF Y GES AMEND_PHASE_DESCRIPTION FCC_4SL DIS_PART A1_FCC !
+ FUNCTION ZERO      298.15  0;                                         6000 N !
+ FUNCTION UN_ASS    298.15  0;                                         6000 N !
+ FUNCTION R         298.15  +8.31451;                                  6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ Cr
+$
+ PAR  G(BCC_A2,CR:VA),,                 +GHSERCR;,,                   N 91Din !
+ PAR  TC(BCC_A2,CR:VA),,                 -311.50;,,                   N 91Din !
+ PAR  BM(BCC_A2,CR:VA),,                   -0.008;,,                  N 91Din !
+ PAR  G(A2_BCC,CR:VA),,                 +GHSERCR;,,                   N 91Din !
+ PAR  TC(A2_BCC,CR:VA),,                 -311.50;,,                   N 91Din !
+ PAR  BM(A2_BCC,CR:VA),,                   -0.008;,,                  N 91Din !
+ PAR  G(FCC_A1,CR:VA),,                 +GHSERCR+7284+0.163*T;,,      N 91Din !
+ PAR  TC(FCC_A1,CR:VA),,                -1109.00;,,                   N 91Din !
+ PAR  BM(FCC_A1,CR:VA),,                   -2.46;,,                   N 91Din !
+ PAR  G(A1_FCC,CR:VA),,                 +GHSERCR+7284+0.163*T;,,      N 91Din !
+ PAR  TC(A1_FCC,CR:VA),,                -1109.00;,,                   N 91Din !
+ PAR  BM(A1_FCC,CR:VA),,                   -2.46;,,                   N 91Din !
+ PAR  G(HCP_A3,CR:VA),,                 +GHSERCR+4438;,,              N 91Din !
+ PAR  TC(HCP_A3,CR:VA),,                -1109.00;,,                   N 91Din !
+ PAR  BM(HCP_A3,CR:VA),,                   -2.46;,,                   N 91Din !
+ PAR  G(CUB_A13,CR:VA),,                +GHSERCR+15899+0.6276*T;,,    N 91Din !
+ PAR  G(CBCC_A12,CR:VA),,               +GHSERCR+11087+2.7196*T;,,    N 91Din !
+ PAR  G(LIQUID,CR),,                    +GLIQCR;,,                    N 91Din !
+$
+ PAR  L(A2_BCC,CR,VA:VA;0),,            +120*T;,,                     N 02Sun !
+ PAR  G(B2_BCC,CR:VA:VA),,              +100000;,,                    N 16Hal2 !
+ PAR  G(B2_BCC,VA:CR:VA),,              +100000;,,                    N 16Hal2 !
+$
+ FUNCTION GHSERCR   298.15  -8856.94+157.48*T-26.908*T*LN(T)
+       +0.00189435*T**2-1.47721E-06*T**3+139250*T**(-1);
+      2180.00  Y  -34869.344+344.18*T-50*T*LN(T)-2.88526E+32*T**(-9);
+      6000.00  N !
+ FUNCTION GLIQCR    298.15  +24339.955-11.420225*T+GHSERCR+2.37615E-21*T**7;
+      2180.00  Y  -16459.984+335.616316*T-50*T*LN(T);
+      6000.00  N !
+ FUNCTION GFCCCR    298.15  +GHSERCR+7284+0.163*T;                     6000 N !
+$ ------------------------------------------------------------------------------
+$ Ni
+$
+$ FCC_A1 and LIQUID modified in unary 5.0 (slight change in upper T interval)
+$ BCT_A5 added in unary 5.0
+$
+ PAR  G(FCC_A1,NI:VA),,                 +GHSERNI;                3000 N 91Din !
+ PAR  TC(FCC_A1,NI:VA),,                  633.00;                3000 N 91Din !
+ PAR  BM(FCC_A1,NI:VA),,                    0.52;                3000 N 91Din !
+ PAR  G(A1_FCC,NI:VA),,                 +GHSERNI;                3000 N 91Din !
+ PAR  TC(A1_FCC,NI:VA),,                  633.00;                3000 N 91Din !
+ PAR  BM(A1_FCC,NI:VA),,                    0.52;                3000 N 91Din !
+ PAR  G(BCC_A2,NI:VA),,                 +GHSERNI
+             +8715.084-3.556*T;                                  3000 N 91Din !
+ PAR  TC(BCC_A2,NI:VA),,                  575.00;                3000 N 91Din !
+ PAR  BM(BCC_A2,NI:VA),,                    0.85;                3000 N 91Din !
+ PAR  G(A2_BCC,NI:VA),,                 +GHSERNI
+             +8715.084-3.556*T;                                  3000 N 91Din !
+ PAR  TC(A2_BCC,NI:VA),,                  575.00;                3000 N 91Din !
+ PAR  BM(A2_BCC,NI:VA),,                    0.85;                3000 N 91Din !
+ PAR  G(HCP_A3,NI:VA),,                 +GHSERNI+1046+1.255*T;   3000 N 91Din !
+ PAR  TC(HCP_A3,NI:VA),,                  633.00;                3000 N 91Din !
+ PAR  BM(HCP_A3,NI:VA),,                    0.52;                3000 N 91Din !
+ PAR  G(BCT_A5,NI),,                    +GHSERNI+10023-4.556*T;  3000 N 99Gho !
+ PAR  G(CUB_A13,NI:VA),,                +GHSERNI+2092;           3000 N 91Din !
+ PAR  G(CBCC_A12,NI:VA),,               +GHSERNI+3556;           3000 N 91Din !
+ PAR  G(LIQUID,NI),,                    +GLIQNI;                 3000 N 91Din !
+$
+ PAR  L(A2_BCC,NI,VA:VA;0),,            +B2NIVA+LB2NIVA;,,            N 99Dup1 !
+ PAR  G(B2_BCC,VA:NI:VA),,              +0.5*B2NIVA-0.5*LB2NIVA;,,    N 99Dup1 !
+ PAR  G(B2_BCC,NI:VA:VA),,              +0.5*B2NIVA-0.5*LB2NIVA;,,    N 99Dup1 !
+$
+ FUNCTION GHSERNI   298.15  -5179.159+117.854*T-22.096*T*LN(T)-0.0048407*T**2;
+      1728.00  Y  -27840.62+279.134977*T-43.1*T*LN(T)+1.12754E+31*T**(-9);
+      3000.00  N !
+ FUNCTION GLIQNI    298.15  +16414.686-9.397*T+GHSERNI-3.82318E-21*T**7;
+      1728.00  Y  -9549.817+268.597977*T-43.1*T*LN(T);
+      3000.00  N !
+ FUNCTION GBCCNI    298.15  +GHSERNI+8715.084-3.556*T;                 6000 N !
+$
+ FUNCTION B2NIVA    298.15  +162397.3-27.40575*T;                      6000 N !
+ FUNCTION LB2NIVA   298.15  -64024.38+26.49419*T;                      6000 N !
+$ ------------------------------------------------------------------------------
+$ Va
+$
+ PAR  G(A2_BCC,VA:VA),,                 +ZERO;,,                      N 01Sun !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ F. Tang, B. Hallstedt, Calphad, 55, 260-69(2016).
+$
+$ Checked against paper. Checked at 6000 K.
+$
+$ Metastable ordering in fcc and bcc from N. Dupin. Changed to a 4SL fcc
+$ model with option F. Adding a reciprocal term makes CrNi3 (the only
+$ ordered state) less stable; max T decreases from 450 K to 235 K.
+$
+$ The hcp interaction is set 2kJ more positive than the fcc interaction
+$ to avoid having hcp stable in Cr-Ni-C.
+$
+ PAR  L(LIQUID,CR,NI;0),,               -13300+2.7*T;,,               N 16Tan !
+ PAR  L(LIQUID,CR,NI;1),,               +2900+1*T;,,                  N 16Tan !
+$
+ PAR  L(FCC_A1,CR,NI:VA;0),,            +4300-8.9*T;,,                N 16Tan !
+ PAR  L(FCC_A1,CR,NI:VA;1),,            +27000-13.8*T;,,              N 16Tan !
+ PAR  TC(FCC_A1,CR,NI:VA;0),,           -3605;,,                      N 86Din !
+ PAR  BM(FCC_A1,CR,NI:VA;0),,              -1.91;,,                   N 86Din !
+$
+ PAR  L(A1_FCC,CR,NI:VA;0),,            +4300-8.9*T;,,                N 16Tan !
+ PAR  L(A1_FCC,CR,NI:VA;1),,            +27000-13.8*T;,,              N 16Tan !
+ PAR  TC(A1_FCC,CR,NI:VA;0),,           -3605;,,                      N 86Din !
+ PAR  BM(A1_FCC,CR,NI:VA;0),,              -1.91;,,                   N 86Din !
+$
+ PAR  G(FCC_4SL,CR:CR:CR:NI:VA),,       +GFCR3NI;,,                   N 01Dup !
+ PAR  G(FCC_4SL,CR:CR:NI:NI:VA),,       +GFCR2NI2;,,                  N 01Dup !
+ PAR  G(FCC_4SL,CR:NI:NI:NI:VA),,       +GFCRNI3;,,                   N 01Dup !
+$PAR  L(FCC_4SL,CR,NI:CR,NI:*:*:VA),,   +USCRNI;,,                    N 16Hal3 !
+$
+ PAR  L(BCC_A2,CR,NI:VA;0),,            +14500-9*T;,,                 N 16Tan !
+ PAR  L(BCC_A2,CR,NI:VA;1),,            +27500-7.6*T;,,               N 16Tan !
+ PAR  TC(BCC_A2,CR,NI:VA;0),,           +2373;,,                      N 86Din !
+ PAR  TC(BCC_A2,CR,NI:VA;1),,            +617;,,                      N 86Din !
+ PAR  BM(BCC_A2,CR,NI:VA;0),,              +4;,,                      N 86Din !
+$
+ PAR  L(A2_BCC,CR,NI:VA;0),,            +14500-9*T;,,                 N 16Tan !
+ PAR  L(A2_BCC,CR,NI:VA;1),,            +27500-7.6*T;,,               N 16Tan !
+ PAR  TC(A2_BCC,CR,NI:VA;0),,           +2373;,,                      N 86Din !
+ PAR  TC(A2_BCC,CR,NI:VA;1),,            +617;,,                      N 86Din !
+ PAR  BM(A2_BCC,CR,NI:VA;0),,              +4;,,                      N 86Din !
+$
+ PAR  G(B2_BCC,CR:NI:VA),,              +4000;,,                      N 01Dup !
+ PAR  G(B2_BCC,NI:CR:VA),,              +4000;,,                      N 01Dup !
+$
+ PAR  G(CRNI2,CR:NI),,                  +GHSERCR+2*GHSERNI
+             -6000-6.8*T;,,                                           N 16Tan !
+$
+$ Metastable
+$
+ PAR  L(HCP_A3,CR,NI:VA;0),,            +6300-8.9*T;,,                N Same !
+ PAR  L(HCP_A3,CR,NI:VA;1),,            +27000-13.8*T;,,              N Same !
+ PAR  TC(HCP_A3,CR,NI:VA;0),,           -3605;,,                      N 95Dup !
+ PAR  BM(HCP_A3,CR,NI:VA;0),,              -1.91;,,                   N 95Dup !
+$
+$PAR  G(SIGMA_D8B,NI:CR:CR),,           +10*GHSERNI+20*GHSERCR
+$            +258130-254.715*T;,,                                     N 93Lee4 !
+ PAR  G(SIGMA_D8B,NI:CR:CR),,           +10*GHSERNI+20*GHSERCR
+             +240000-254.715*T;,,                                     N 16Hal4 !
+ PAR  G(SIGMA_D8B,NI:CR:NI),,           +10*GHSERNI+4*GHSERCR+16*GBCCNI
+             +175400;,,                                               N 88Gus6 !
+$
+$PAR  G(SIGMA_OLD,NI:CR:CR),,           +8*GHSERNI+22*GHSERCR
+$            +173460-188*T;,,                                         N 88Gus6 !
+ PAR  G(SIGMA_OLD,NI:CR:CR),,           +8*GHSERNI+22*GHSERCR
+             +221157-227*T;,,                                         N 93Lee4 !
+ PAR  G(SIGMA_OLD,NI:CR:NI),,           +8*GHSERNI+4*GHSERCR+18*GBCCNI
+             +175400;,,                                               N 88Gus6 !
+$
+ FUNCTION UFCRNI    298.15  -1980;                                     6000 N !
+ FUNCTION USCRNI    298.15  +UFCRNI;                                   6000 N !
+ FUNCTION GFCRNI3   298.15  +3*UFCRNI;                                 6000 N !
+ FUNCTION GFCR2NI2  298.15  +4*UFCRNI;                                 6000 N !
+ FUNCTION GFCR3NI   298.15  +3*UFCRNI;                                 6000 N !
+$ ------------------------------------------------------------------------------
+$
+ ASSESSED_SYSTEM
+  CR-NI(TDB -* +LIQ +BCC_A2 +FCC_A1 +CRNI2 ;P3 TMM:300/2500 *) !
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  Lin    'Linear combination of lattice stabilities'
+  Same   'Same or similar interaction as in the corresponding stable phase'
+  86Din  'A.T. Dinsdale, T.G. Chart, NPL, unpublished, 1986; Cr-Ni'
+  88Gus4 'P. Gustafson, Metall. Trans. A, 19A, 2531-46(1988); Cr-Fe-W'
+  88Gus6 'P. Gustafson, Calphad, 11, 277-92(1987); Cr-Ni-W'
+  91Din  'A.T. Dinsdale, Calphad, 15, 317-425(1991).'
+  93Lee4 'B.-J. Lee, Taehan Kumsok Hakhoechi, 31, 480-89(1993); Cr-Fe-Ni'
+  95Dup  'N. Dupin, Thesis, LTPCM, France, 1995; Al-Cr-Ni'
+  99Dup1 'N. Dupin, I. Ansara, Z. Metallkd., 90, 76-85(1999); Al-Ni'
+  99Gho  'G. Ghosh, Metall. Mater. Trans. A, 30A, 1481-94(1999),
+          SGTE unary database V.5.0, 2009; Ni'
+  01Dup  'N. Dupin, I. Ansara, B. Sundman, Calphad, 25, 279-98(2001); Al-Cr-Ni'
+  01Sun  'B. Sundman, fix to avoid BCC with just Va (in LB1-v2).'
+  02Sun  'B. Sundman, default vacancy interaction in BCC, 2002'
+  16Hal2 'B. Hallstedt, parameter to destabilise Va in B2_BCC, 2016'
+  16Hal3 'B. Hallstedt, added reciprocal to fcc-ordering, 2016; Cr-Ni'
+  16Tan  'F. Tang, B. Hallstedt, Calphad, 55, 260-69(2016); Cr-Ni'
+!
