@@ -25,8 +25,8 @@ class MapStrategy:
     Derived Classes
     ---------------
     - SteppingStrategy: For single-axis diagrams.
-    - BinaryStrategy: For binary phase diagrams (1 composition, 1 potential axis).
-    - TernaryStrategy: For ternary phase diagrams (2 composition axes).
+    - TielineStrategy: For phase diagrams with tie-lines in the plane of the axis variables
+      (binary phase diagrams and ternary isothermal sections).
     - IsoplethStrategy: For isopleths (tested only for 1 composition, 1 potential axis so far).
 
     Constants
@@ -54,7 +54,7 @@ class MapStrategy:
         self.dbf = dbf
 
         # Don't add vacancies to components in case user needs to restrict non-stoichiometric phases
-        self.components = sorted(components)
+        self.components = sorted(v.unpack_components(components, self.dbf))
         self.elements = get_pure_elements(self.dbf, self.components)
         self.phases = filter_phases(self.dbf, unpack_species(self.dbf, self.components), phases)
         self.conditions = copy.deepcopy(conditions)
@@ -102,6 +102,10 @@ class MapStrategy:
         self.zpf_lines: list[ZPFLine] = []
         self.node_queue = NodeQueue()
 
+        # Whether mapping has been run. Used with _ensure_mapped() to do just-in-time mapping.
+        # gets reset if new starting points are added.
+        self._mapping_complete = False
+
         self._current_node = None
         self._exits = []
         self._exit_dirs = []
@@ -129,6 +133,17 @@ class MapStrategy:
             }
         return const_kwargs
 
+    def _ensure_mapped(self):
+        """
+        Run mapping just in time if it has not been run yet, or if new starting
+        points were added since the last run
+
+        This is called by the data retrieval methods (get_*) so that users do not
+        need to call do_map explicitly before retrieving data or plotting
+        """
+        if not self._mapping_complete:
+            self.do_map()
+
     def get_all_phases(self):
         """
         Goes through ZPF lines to get all unique phases. For miscibility gaps, phases will have #n added to it
@@ -136,6 +151,7 @@ class MapStrategy:
         In some cases, there might be no ZPF lines (e.g. ternaries with all line compounds), in which case, we return an empty set.
         There should always be nodes in the node_queue since it includes starting points (even if they're not nodes in the mapping sense)
         """
+        self._ensure_mapped()
         if len(self.zpf_lines) > 0:
             zpf_phases = set.union(*[set(zpf_line.stable_phases_with_multiplicity) for zpf_line in self.zpf_lines])
         else:
@@ -193,6 +209,8 @@ class MapStrategy:
                 self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
             else:
                 self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
+        # New starting points need to be processed by mapping before the next data retrieval
+        self._mapping_complete = False
         return True
 
     def _validate_custom_starting_point(self, point: Point, direction: Direction):
@@ -271,6 +289,7 @@ class MapStrategy:
         while (not finished) and (max_iter == -1 or n < max_iter):
             finished = self.iterate()
             n += 1
+        self._mapping_complete = True
 
     def _continue_zpf_line(self):
         """
@@ -377,6 +396,7 @@ class MapStrategy:
             zchk.check_global_min,
             zchk.check_axis_values,
             zchk.check_similar_phase_composition,
+            zchk.check_degenerate_tieline,
             zchk.check_circular_loop,
             ]
         axis_data = {
@@ -571,7 +591,17 @@ class MapStrategy:
             }
 
             # Check valid equilibrium, global min and change in phases
-            check_functions = [zchk.simple_check_valid_point, zchk.simple_check_change_in_phases, zchk.simple_check_global_min]
+            # NOTE: the degenerate tie-line check is deliberately NOT applied here: the
+            # trial step uses the minimum delta, so near a pure-element edge or congruent
+            # point the trial result is legitimately narrower than the degenerate
+            # tolerance and both directions would be vetoed, losing e.g. an entire
+            # narrow melting lens. Line tracing's own degenerate check still ends truly
+            # degenerate (pinned) lines one step later.
+            check_functions = [
+                zchk.simple_check_valid_point,
+                zchk.simple_check_change_in_phases,
+                zchk.simple_check_global_min,
+            ]
             valid_point = True
             for checks in check_functions:
                 if not checks(step_results, **extra_args):
