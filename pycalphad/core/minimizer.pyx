@@ -8,7 +8,7 @@ from libc.stdlib cimport malloc, free
 from libc.math cimport isnan
 
 @cython.boundscheck(False)
-cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
+cdef void lstsq(double *A, int M, int N, double* x, double rcond) noexcept nogil:
     # Note: This function will destroy input matrix A
     cdef int i
     cdef int NRHS = 1
@@ -51,7 +51,7 @@ cpdef void lstsq_check_infeasible(double[:,::] A, double[::] b, double[::] out_x
         out_x[:] = np.nan
 
 @cython.boundscheck(False)
-cdef void invert_matrix(double *A, int N, int* ipiv) nogil:
+cdef void invert_matrix(double *A, int N, int* ipiv) noexcept nogil:
     "A will be overwritten."
     cdef int info = 0
     cdef int i
@@ -79,7 +79,7 @@ cdef void compute_phase_matrix(double[:,::1] phase_matrix, double[:,::1] hess,
                                double[:, ::1] cons_jac_tmp, double[:, ::1] phase_local_jac_tmp,
                                double[:, ::1] mass_hess_tmp,
                                CompositionSet compset, int num_statevars, double[::1] chemical_potentials,
-                               double[::1] phase_dof) nogil:
+                               double[::1] phase_dof) noexcept nogil:
     "Compute the LHS of Eq. 41, Sundman 2015."
     cdef int comp_idx, i, j
     cdef int num_components = chemical_potentials.shape[0]
