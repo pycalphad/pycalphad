@@ -738,8 +738,15 @@ cdef class SystemState:
 
     cdef void increment_phase_metastability_counters(self):
         cdef int idx
+        cdef int i
+        cdef bint stable
         for idx in range(len(self.compsets)):
-            if idx in self.free_stable_compset_indices or self.compsets[idx].fixed:
+            stable = False
+            for i in range(self.free_stable_compset_indices.shape[0]):
+                if self.free_stable_compset_indices[i] == idx:
+                    stable = True
+                    break
+            if stable or self.compsets[idx].fixed:
                 self.metastable_phase_iterations[idx] = 0
             else:
                 self.metastable_phase_iterations[idx] += 1
