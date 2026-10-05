@@ -579,6 +579,8 @@ cdef class SystemState:
     def __init__(self, SystemSpecification spec, list compsets):
         cdef CompositionSet compset
         cdef int idx, comp_idx
+        cdef int max_num_dof = 0
+        cdef double[::1] x
         self.compsets = compsets
         cdef double phase_comp_sum
         for compset in compsets:
@@ -587,7 +589,12 @@ cdef class SystemState:
             compset = compsets[idx]
             compset.fixed = True
         self.cs_states = [CompsetState(spec, compset) for compset in compsets]
-        self.dof = [np.array(compset.dof) for compset in compsets]
+        for compset in compsets:
+            max_num_dof = max(max_num_dof, compset.dof.shape[0])
+        self.dof = np.zeros((len(compsets), max_num_dof))
+        for idx in range(len(compsets)):
+            compset = compsets[idx]
+            self.dof[idx, :compset.dof.shape[0]] = compset.dof
         self.iteration = 0
         self.iterations_since_last_phase_change = 0
         self.metastable_phase_iterations = np.zeros(len(compsets), dtype=np.int32)
@@ -615,7 +622,7 @@ cdef class SystemState:
         cdef double[:, ::1] masses_tmp = np.zeros((spec.num_components, 1))
         for idx in range(self.phase_amt.shape[0]):
             compset = self.compsets[idx]
-            x = self.dof[idx]
+            x = self.dof[idx, :compset.dof.shape[0]]
             phase_comp_sum = 0.0
             for comp_idx in range(spec.num_components):
                 compset.phase_record.formulamole_obj(masses_tmp[comp_idx, :], x, comp_idx)
@@ -626,7 +633,7 @@ cdef class SystemState:
             self.phase_amt[idx] /= phase_comp_sum
 
     def __getstate__(self):
-        return (self.compsets, self.cs_states, self.dof, self.iteration, self.iterations_since_last_phase_change,
+        return (self.compsets, self.cs_states, np.asarray(self.dof), self.iteration, self.iterations_since_last_phase_change,
                 self.metastable_phase_iterations, self.times_compset_removed,
                 np.array(self.phase_amt), np.array(self.chemical_potentials), np.array(self.previous_chemical_potentials),
                 np.array(self.delta_ms), np.array(self.phase_compositions), self.largest_chemical_potential_difference,
@@ -654,8 +661,8 @@ cdef class SystemState:
         self.system_amount = 0
         # Compute normalized global quantities
         for idx in range(len(self.compsets)):
-            x = self.dof[idx]
             compset = self.compsets[idx]
+            x = self.dof[idx, :compset.dof.shape[0]]
             csst = self.cs_states[idx]
             csst.masses[:,:] = 0
             for comp_idx in range(num_components):
@@ -670,9 +677,8 @@ cdef class SystemState:
         for idx in range(len(self.compsets)):
             compset = self.compsets[idx]
             csst = self.cs_states[idx]
-            # TODO: Use better dof storage
             # Calculate key phase quantities starting here
-            x = self.dof[idx]
+            x = self.dof[idx, :compset.dof.shape[0]]
             phase_comp_sum = 0.0
             for comp_idx in range(num_components):
                 phase_comp_sum += self.phase_compositions[idx, comp_idx]
@@ -736,7 +742,7 @@ cdef class SystemState:
         self._driving_forces[:] = 0
         for idx in range(len(self.compsets)):
             compset = self.compsets[idx]
-            x = self.dof[idx]
+            x = self.dof[idx, :compset.dof.shape[0]]
             for comp_idx in range(num_components):
                 compset.phase_record.mass_obj(self._phase_amounts_per_mole_atoms[idx, comp_idx, :], x, comp_idx)
                 self._driving_forces[idx] += self.chemical_potentials[comp_idx] * self._phase_amounts_per_mole_atoms[idx, comp_idx, 0]
@@ -1002,6 +1008,7 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
     cdef int i, idx, cons_idx, compset_idx, statevar_idx, chempot_idx
     cdef int soln_index_offset = spec.free_chemical_potential_indices.shape[0]  # Chemical potentials handled after solving
     cdef double[::1] new_y, x
+    cdef CompositionSet compset
     cdef CompsetState csst
 
     cdef double MIN_PHASE_AMOUNT = 1e-16
@@ -1038,10 +1045,10 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
     for i in range(spec.free_statevar_indices.shape[0]):
         statevar_idx = spec.free_statevar_indices[i]
         state.delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
-        if state.dof[0][statevar_idx] == 0:
+        if state.dof[0, statevar_idx] == 0:
             psc = INFINITY
         else:
-            psc = abs(state.delta_statevars[statevar_idx] / state.dof[0][statevar_idx])
+            psc = abs(state.delta_statevars[statevar_idx] / state.dof[0, statevar_idx])
         state.largest_statevar_change[0] = max(state.largest_statevar_change[0], psc)
     # Update state variables in the `x` array
     for idx in range(len(state.compsets)):
@@ -1053,8 +1060,8 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
     # 3. Step in phase internal degrees of freedom
     state.largest_y_change[0] = 0.0
     for idx in range(len(state.compsets)):
-        # TODO: Use better dof storage
-        x = state.dof[idx]
+        compset = state.compsets[idx]
+        x = state.dof[idx, :compset.dof.shape[0]]
         csst = state.cs_states[idx]
 
         # Construct delta_y from Eq. 43 in Sundman 2015
@@ -1092,7 +1099,7 @@ cpdef advance_state(SystemSpecification spec, SystemState state, double[::1] equ
                 continue
             break
         # Only allow stable or fixed phases can contribute to state.largest_y_change
-        if (state.phase_amt[idx] > 0) or (<CompositionSet>state.compsets[idx]).fixed:
+        if (state.phase_amt[idx] > 0) or compset.fixed:
             for i in range(spec.num_statevars, new_y.shape[0]):
                 state.largest_y_change[0] = max(state.largest_y_change[0], abs(x[i] - new_y[i]))
         x[:] = new_y
