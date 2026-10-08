@@ -4,7 +4,7 @@ from importlib.resources import files
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pycalphad import binplot, ternplot, Database, variables as v
+from pycalphad import binplot, ternplot, Database, Model, variables as v
 from pycalphad.tests.fixtures import select_database, load_database
 from pycalphad.core.utils import instantiate_models, get_state_variables
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
@@ -730,3 +730,53 @@ def test_strategy_plotting_respects_units(load_database):
     np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T))[-1], 933.600, atol=1e-3)  # value in Kelvin
     np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["celsius"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
     np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["degC"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
+
+@select_database("dummy.tdb")
+def test_mapping_custom_models(load_database):
+    dbf = load_database()
+
+    def make_custom_model(gibbs_function):
+        class CustomModel(Model):
+            def build_phase(self, dbe):
+                super(CustomModel, self).build_phase(dbe)
+
+            contributions = [
+                ("custom", "custom_gibbs"),
+            ]
+
+            def custom_gibbs(self, dbe):
+                tmp = sorted(list(dbe.species)) # guarantee order to be [A, B]
+                xs = [
+                    v.SiteFraction(self.phase_name, 0, s) for s in tmp
+                ]
+                return gibbs_function(xs, v.T)
+
+        return CustomModel
+
+    def custom_energy_1(x, T):
+        return (x[0]-0.1)**2 + (x[1]-0.9)**2 + T
+    def custom_energy_2(x, T):
+        return (x[0]-0.9)**2 + (x[1]-0.1)**2 + 0.99*T
+    # exact phase boundaries for the above energies
+    def exact_sm(T):
+        return (0.1-0.003125*T)
+    def exact_ms(T):
+        return (0.9-0.003125*T)
+
+    ens = [custom_energy_1, custom_energy_2]
+    phases = ["S", "M"]
+    comps = ["A", "B"]
+    models = { k: make_custom_model(v)(dbf, comps, k) for k,v  in zip(phases, ens)}
+    conds = {v.N : 1, v.P : 1e5, v.T : (0, 10, 1), v.X("A") : (0, 1, 0.05) }
+    binary = BinaryStrategy(dbf,  comps, phases, conditions=conds, models=models)
+    binary.do_map()
+    assert len(binary.zpf_lines) > 0 # without the fix passing in models this will be empty for the dummy DB
+    tls = binary.get_tieline_data(v.X("A"), v.T)
+    idx1, idx2 = 0, 1
+    if tls[0].data[0].phase == "M": # check order
+        idx1, idx2 = idx2, idx1
+    xms, xsm = tls[0].x[idx1], tls[0].x[idx2]
+    T = tls[0].y[0] # is this guaranteed to be the same for binary tielines?
+    # error is mostly O(1e-11), though some O(1e-10) occur -> set tolerance above this
+    np.testing.assert_allclose([exact_sm(T), exact_ms(T)], [xms, xsm], atol=1e-9, rtol=1e-9)
+    # diff from machine precision probably via search/solver tolerances
