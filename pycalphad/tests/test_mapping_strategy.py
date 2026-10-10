@@ -38,7 +38,9 @@ from pycalphad.mapping.plotting import get_label
 
 import pycalphad.tests.databases
 
-MAX_MQMQA_MAPPING_INTERNAL_CONSTRAINT_RESIDUAL = 0.0
+# Bounds mapped MQMQA simplex residuals; the fixture's observed maximum is
+# 4.88e-15 across 32 MSCL composition sets.
+MAX_MQMQA_MAPPING_INTERNAL_CONSTRAINT_RESIDUAL = 1e-10
 
 @select_database("alcocrni.tdb")
 def test_binary_strategy(load_database):
