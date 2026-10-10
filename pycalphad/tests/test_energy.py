@@ -1,6 +1,10 @@
 """
-The energy test module verifies that the Model class produces the
-correct abstract syntax tree for the energy.
+Purpose: Verify Model energy expressions and construction-time invariants.
+Created: pre-existing test module; header expanded 2026-10-10.
+Authoring agent/model: pre-existing authorship; materially updated by gpt-5.6-luna.
+Rationale: Preserve regression coverage for model and parser behavior.
+Inputs: Inline and repository TDB fixtures, Database, and Model APIs.
+Outputs: Pytest pass/fail results; no runtime side effects.
 """
 
 import pytest
@@ -24,6 +28,20 @@ def test_sympify_safety():
     teststr = "().__class__.__base__.__subclasses__()[216]('ls')"
     with pytest.raises(ValueError):
         _sympify_string(teststr)
+
+
+def test_ionic_liquid_2sl_requires_two_sublattices():
+    tdb = """
+ELEMENT VA VACUUM 0 0 0 !
+ELEMENT A A 1 0 0 !
+ELEMENT B B 1 0 0 !
+PHASE BAD:Y % 1 1 !
+CONSTITUENT BAD:Y : A, B : !
+"""
+    dbf = Database(tdb)
+
+    with pytest.raises(ValueError, match="BAD|sublattice|2"):
+        Model(dbf, ["A", "B"], "BAD")
 
 
 def calculate_output(model, variables, output, mode='sympy'):
