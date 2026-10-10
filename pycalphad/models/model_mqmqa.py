@@ -1,3 +1,18 @@
+"""Modified quasichemical model in the quadruplet approximation.
+
+Purpose: Build symbolic MQMQA phase models for supported SUBG and SUBQ forms.
+Created: Pre-existing; original creation date and authorship are preserved in
+the repository history.
+Authoring agent/model: Header last materially updated by OpenAI Codex
+(gpt-5.6-sol) on 2026-10-10.
+Rationale: Centralize the model implementation and reject unsupported model
+semantics before symbolic energy construction.
+Inputs: A thermodynamic Database, active components, phase metadata, and
+optional symbolic parameter overrides.
+Outputs: A symbolic thermodynamic model or a deterministic validation error;
+no persistent side effects.
+"""
+
 import itertools
 from typing import List, Union
 from collections import OrderedDict
@@ -77,6 +92,13 @@ class ModelMQMQA(Model):
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
+        solution_type = phase.model_hints["mqmqa"]["type"]
+        supported_solution_types = ("SUBG", "SUBQ")
+        if solution_type not in supported_solution_types:
+            raise ValueError(
+                f"Invalid MQMQA solution type {solution_type!r} for phase "
+                f"{self.phase_name!r}. Expected one of {supported_solution_types}."
+            )
         self.site_ratios = tuple(list(phase.sublattices))
 
         active_species = unpack_species(dbe, comps)

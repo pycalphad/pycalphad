@@ -792,7 +792,10 @@ def test_MQMQA_invalid_solution_type_raises_value_error(load_database):
     dbf = load_database()
     dbf.phases["LIQUID2"].model_hints["mqmqa"]["type"] = "INVALID"
 
-    with pytest.raises(ValueError, match="INVALID|SUBG|SUBQ"):
+    with pytest.raises(
+        ValueError,
+        match=r"Invalid MQMQA solution type 'INVALID'.*LIQUID2.*SUBG.*SUBQ",
+    ):
         Model(dbf, ["K", "NI", "F"], "LIQUID2")
 
 
