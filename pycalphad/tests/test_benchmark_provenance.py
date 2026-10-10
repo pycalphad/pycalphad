@@ -30,6 +30,17 @@ class BenchmarkFixture:
     evidence_tests: tuple[str, ...]
 
 
+EVIDENCE_STATUSES = frozenset(
+    {
+        "qualified-state-point",
+        "qualified-state-points",
+        "provisional-no-independent-oracle",
+        "provisional-source-publication-not-recorded",
+    }
+)
+DISTRIBUTION_STATUSES = frozenset({"explicit license not recorded"})
+
+
 MANIFEST = (
     BenchmarkFixture(
         fixture="Shishin_Fe-Sb-O-S_slag.dat",
@@ -101,7 +112,9 @@ def test_manifest_metadata_is_explicit_and_immutable():
     for item in MANIFEST:
         assert item.fixture and item.model_family and item.source
         assert item.oracle_or_reference
-        assert item.evidence_status and item.distribution_status and item.claim_boundary
+        assert item.evidence_status in EVIDENCE_STATUSES
+        assert item.distribution_status in DISTRIBUTION_STATUSES
+        assert item.claim_boundary
         assert re.fullmatch(r"[0-9a-f]{64}", item.expected_sha256)
         with pytest.raises(FrozenInstanceError):
             setattr(item, "fixture", "mutated")
@@ -119,4 +132,15 @@ def test_manifest_evidence_functions_resolve(item):
     for reference in item.evidence_tests:
         module_name, function_name = reference.split("::", 1)
         module = importlib.import_module(f"pycalphad.tests.{module_name}")
-        assert callable(getattr(module, function_name))
+        test_function = getattr(module, function_name)
+        assert callable(test_function)
+
+        database_marks = tuple(
+            mark
+            for mark in getattr(test_function, "pytestmark", ())
+            if mark.name == "parametrize"
+            and mark.args[0] == "load_database"
+            and mark.kwargs.get("indirect") is True
+        )
+        assert len(database_marks) == 1
+        assert tuple(database_marks[0].args[1]) == (item.fixture,)
