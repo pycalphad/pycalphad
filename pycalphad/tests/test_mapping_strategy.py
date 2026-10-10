@@ -128,7 +128,12 @@ def test_binary_mapping_mqmqa_preserves_quadruplet_simplex(load_database):
     for composition_set in mscl_composition_sets:
         num_state_variables = len(composition_set.phase_record.state_variables)
         quadruplet_values = np.asarray(composition_set.dof)[num_state_variables:]
-        substitutions = dict(zip(models["MSCL"].site_fractions, quadruplet_values))
+        phase_record_variables = tuple(composition_set.phase_record.variables)
+        model_variables = tuple(models["MSCL"].site_fractions)
+
+        assert phase_record_variables == model_variables
+        assert len(quadruplet_values) == len(phase_record_variables)
+        substitutions = dict(zip(phase_record_variables, quadruplet_values))
         constraint_residuals = np.array(
             [
                 float(constraint.subs(substitutions))
