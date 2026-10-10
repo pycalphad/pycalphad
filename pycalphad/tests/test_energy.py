@@ -40,7 +40,10 @@ CONSTITUENT BAD:Y : A, B : !
 """
     dbf = Database(tdb)
 
-    with pytest.raises(ValueError, match="BAD|sublattice|2"):
+    with pytest.raises(
+        ValueError,
+        match=r"Phase 'BAD'.*requires exactly 2.*Got 1.*and 1",
+    ):
         Model(dbf, ["A", "B"], "BAD")
 
 

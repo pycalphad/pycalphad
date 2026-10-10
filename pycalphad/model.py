@@ -1,6 +1,15 @@
-"""
-The model module provides support for using a Database to perform
+"""Build symbolic thermodynamic models from a Database.
+
+Purpose: Provide phase-model construction and thermodynamic contributions for
 calculations under specified conditions.
+Created: Pre-existing; original creation date and authorship are preserved in
+the repository history.
+Authoring agent/model: Header last materially updated by OpenAI Codex
+(gpt-5.6-sol) on 2026-10-10.
+Rationale: Centralize model semantics, validation, and symbolic properties.
+Inputs: Database phase definitions, active components, and parameter overrides.
+Outputs: Symbolic Model objects and deterministic validation errors; no
+persistent side effects.
 """
 import copy
 import warnings
@@ -243,6 +252,17 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         if phase.model_hints.get('ordered_phase', False):
             phase = _extend_ordered_if_subset_of_disorder(dbe, active_species, phase)
+        if phase.model_hints.get('ionic_liquid_2SL', False):
+            constituent_sublattice_count = len(phase.constituents)
+            site_ratio_count = len(phase.sublattices)
+            if constituent_sublattice_count != 2 or site_ratio_count != 2:
+                raise ValueError(
+                    f"Phase {self.phase_name!r} uses the two-sublattice ionic "
+                    "liquid model, which requires exactly 2 constituent "
+                    "sublattices and 2 site ratios. Got "
+                    f"{constituent_sublattice_count} constituent sublattice(s) "
+                    f"and {site_ratio_count} site ratio(s)."
+                )
         if len(phase.constituents) != len(phase.sublattices):
             warnings.warn(f"Phase constituents define {len(phase.constituents)} sublattice(s) while site ratios define {len(phase.sublattices)} sublattice(s) for {phase}.")
         self.site_ratios = list(phase.sublattices)
