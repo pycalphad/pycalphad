@@ -1,6 +1,13 @@
-"""
-The energy test module verifies that the Model class produces the
-correct abstract syntax tree for the energy.
+"""Energy-model regression tests.
+
+Purpose: Verify that Model implementations produce the expected symbolic
+energy expressions and fail clearly for invalid model inputs.
+Created: Pre-existing; original creation date and authorship are unknown.
+Authoring agent/model: Header last materially updated by OpenAI Codex
+(gpt-5.6-sol) on 2026-10-10.
+Rationale: Keep energy-model behavior and input-validation contracts covered.
+Inputs: Test thermodynamic databases, model configurations, and state values.
+Outputs: Pytest assertions and regression failures; no persistent side effects.
 """
 
 import pytest
@@ -778,6 +785,15 @@ def test_MQMQA_site_fraction_energy(load_database):
     assert np.isclose(float(mod.moles("CL").subs(subs_dict)), 0.6923076923,1e-5)
     assert np.isclose(float(mod.moles("ZN").subs(subs_dict)), 0.07692307692,1e-5)
     assert np.isclose(float(mod.moles("FE").subs(subs_dict)), 0.15384615384,1e-5)
+
+
+@select_database("Ocadiz-Flores.dat")
+def test_MQMQA_invalid_solution_type_raises_value_error(load_database):
+    dbf = load_database()
+    dbf.phases["LIQUID2"].model_hints["mqmqa"]["type"] = "INVALID"
+
+    with pytest.raises(ValueError, match="INVALID|SUBG|SUBQ"):
+        Model(dbf, ["K", "NI", "F"], "LIQUID2")
 
 
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
