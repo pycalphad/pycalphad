@@ -1,3 +1,17 @@
+"""Shared infrastructure for thermodynamic mapping strategies.
+
+Purpose: Initialize mapping systems and coordinate node, exit, and ZPF-line
+    continuation for the concrete mapping strategies.
+Created: Pre-existing; provenance header expanded 2026-10-10.
+Authoring agent/model: Original authors unknown; endpoint-status handling and
+    provenance header added by gpt-5.6-sol.
+Rationale: Centralize mapping lifecycle behavior so all strategies share the
+    same termination and continuation semantics.
+Inputs: Thermodynamic databases, components, phases, conditions, models, phase
+    records, mapping points, and numerical strategy options.
+Outputs: Mapping nodes and ZPF lines; updates strategy state in memory.
+"""
+
 from typing import Union
 import logging
 import copy
@@ -283,11 +297,46 @@ class MapStrategy:
         # Test if axis needs to be swapped
         self._test_swap_axis(self.zpf_lines[-1])
 
+        # A valid point already at the directional hard limit is a completed
+        # line, not a failed equilibrium step. Without this guard, the next
+        # clipped step returns None and is retried until the line is marked
+        # FAILED by check_valid_point.
+        if self._at_axis_limit(self.zpf_lines[-1]):
+            self.zpf_lines[-1].status = ZPFState.REACHED_LIMIT
+            return
+
         # Take step
         step_results = self._step_zpf_line(self.zpf_lines[-1])
 
         # Check new point and try to add it to zpf line
         self._attempt_to_add_point(self.zpf_lines[-1], step_results)
+
+    def _at_axis_limit(self, zpf_line: ZPFLine) -> bool:
+        """Return whether the final point is at its directional axis limit."""
+        axis_var = zpf_line.axis_var
+        axis_limits = self.axis_lims[axis_var]
+        offset = 0 if map_utils.is_state_variable(axis_var) else MIN_COMPOSITION
+        if zpf_line.axis_direction == Direction.POSITIVE:
+            directional_limit = max(axis_limits) - offset
+        elif zpf_line.axis_direction == Direction.NEGATIVE:
+            directional_limit = min(axis_limits) + offset
+        else:
+            return False
+
+        current_value = float(
+            np.asarray(zpf_line.points[-1].global_conditions[axis_var]).item()
+        )
+        absolute_tolerance = (
+            10 * np.finfo(float).eps * max(1.0, abs(directional_limit))
+        )
+        return bool(
+            np.isclose(
+                current_value,
+                directional_limit,
+                rtol=0.0,
+                atol=absolute_tolerance,
+            )
+        )
 
     def _test_swap_axis(self, zpf_line: ZPFLine):
         """
