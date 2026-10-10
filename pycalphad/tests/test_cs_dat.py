@@ -19,8 +19,8 @@ from pycalphad.io.cs_dat import TokenParser, TokenParserError, parse_header
 from pycalphad.tests.fixtures import load_database, select_database
 
 
-EXPECTED_DIXON_RECIPROCAL_ENERGY = "UNBOUND"
-EXPECTED_SWITCHED_COORDINATIONS = "UNBOUND"
+EXPECTED_DIXON_RECIPROCAL_ENERGY = -4500.0
+EXPECTED_SWITCHED_COORDINATIONS = (3.0, 6.0, 3.0, 3.0)
 
 
 def _find_parameter(dbf, phase_name, parameter_type, constituent_array):
@@ -142,4 +142,4 @@ def test_subg_parser_canonically_reorders_coordination_numbers(load_database):
         "MQMZ",
         ((k, nickel), (fluorine, fluorine)),
     )
-    assert mixed_coordination["coordinations"] == EXPECTED_SWITCHED_COORDINATIONS
+    assert tuple(mixed_coordination["coordinations"]) == EXPECTED_SWITCHED_COORDINATIONS
