@@ -39,6 +39,24 @@ EVIDENCE_STATUSES = frozenset(
     }
 )
 DISTRIBUTION_STATUSES = frozenset({"explicit license not recorded"})
+EXPECTED_CLASSIFICATIONS = {
+    "Shishin_Fe-Sb-O-S_slag.dat": (
+        "qualified-state-points",
+        "explicit license not recorded",
+    ),
+    "2026-Dixon-Na-K-Cl-I.dat": (
+        "qualified-state-point",
+        "explicit license not recorded",
+    ),
+    "TiO-17Yan.tdb": (
+        "provisional-no-independent-oracle",
+        "explicit license not recorded",
+    ),
+    "alfeo.tdb": (
+        "provisional-source-publication-not-recorded",
+        "explicit license not recorded",
+    ),
+}
 
 
 MANIFEST = (
@@ -109,11 +127,16 @@ MANIFEST = (
 
 def test_manifest_metadata_is_explicit_and_immutable():
     assert MANIFEST
+    assert {item.fixture for item in MANIFEST} == set(EXPECTED_CLASSIFICATIONS)
     for item in MANIFEST:
         assert item.fixture and item.model_family and item.source
         assert item.oracle_or_reference
         assert item.evidence_status in EVIDENCE_STATUSES
         assert item.distribution_status in DISTRIBUTION_STATUSES
+        assert (
+            item.evidence_status,
+            item.distribution_status,
+        ) == EXPECTED_CLASSIFICATIONS[item.fixture]
         assert item.claim_boundary
         assert re.fullmatch(r"[0-9a-f]{64}", item.expected_sha256)
         with pytest.raises(FrozenInstanceError):
