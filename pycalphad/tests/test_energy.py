@@ -788,9 +788,11 @@ def test_MQMQA_site_fraction_energy(load_database):
 
 
 @select_database("Ocadiz-Flores.dat")
-def test_MQMQA_invalid_solution_type_raises_value_error(load_database):
+def test_MQMQA_invalid_solution_type_raises_value_error(load_database, monkeypatch):
     dbf = load_database()
-    dbf.phases["LIQUID2"].model_hints["mqmqa"]["type"] = "INVALID"
+    monkeypatch.setitem(
+        dbf.phases["LIQUID2"].model_hints["mqmqa"], "type", "INVALID"
+    )
 
     with pytest.raises(
         ValueError,
