@@ -1,6 +1,7 @@
 """Benchmark provenance contract tests.
 
-Purpose: Hash-bind selected fixtures and validate benchmark evidence metadata.
+Purpose: Canonically hash-bind selected text fixtures and validate benchmark
+    evidence metadata across platform-specific Git checkouts.
 Created: 2026-10-10.
 Authoring agents/models: gpt-5.6-luna (initial draft); gpt-5.6-sol (review).
 Rationale: Establish an explicit, auditable public reliability-corpus contract.
@@ -20,7 +21,7 @@ import pytest
 @dataclass(frozen=True)
 class BenchmarkFixture:
     fixture: str
-    expected_sha256: str
+    expected_canonical_sha256: str
     model_family: str
     source: str
     oracle_or_reference: str
@@ -62,8 +63,8 @@ EXPECTED_CLASSIFICATIONS = {
 MANIFEST = (
     BenchmarkFixture(
         fixture="Shishin_Fe-Sb-O-S_slag.dat",
-        expected_sha256=(
-            "9feef8188a6c41813b64c635657cd4d227bc89e4352726b4ce84cfc48df94d4e"
+        expected_canonical_sha256=(
+            "d17d6f34bf704b57762422265c2119b873a2fd4fc28077c1c80898152718ec60"
         ),
         model_family="MQMQA-SUBQ",
         source="doi:10.1016/j.calphad.2019.01.016",
@@ -81,8 +82,8 @@ MANIFEST = (
     ),
     BenchmarkFixture(
         fixture="2026-Dixon-Na-K-Cl-I.dat",
-        expected_sha256=(
-            "d1c4b5f52fba2e9c326da1a7ea1ad26b6f9db4d0f02646ea00088ce84c1d6f06"
+        expected_canonical_sha256=(
+            "83e1b1c067b43058ae3a06f21238fb2304ea495fc9d19723381888279e86e075"
         ),
         model_family="MQMQA-SUBQ-reciprocal",
         source="doi:10.1080/00295639.2026.2653362",
@@ -96,7 +97,7 @@ MANIFEST = (
     ),
     BenchmarkFixture(
         fixture="TiO-17Yan.tdb",
-        expected_sha256=(
+        expected_canonical_sha256=(
             "f79af7f26633b1d664d2a44a87efea098b4ae288e3ac3eb1676c1a996cd08647"
         ),
         model_family="charged-CEF",
@@ -111,7 +112,7 @@ MANIFEST = (
     ),
     BenchmarkFixture(
         fixture="alfeo.tdb",
-        expected_sha256=(
+        expected_canonical_sha256=(
             "bb4e3a57aa59b9149529f5851689ba2106e965b99bd853c6d959b0e1bf5c2119"
         ),
         model_family="charged-CEF",
@@ -138,16 +139,32 @@ def test_manifest_metadata_is_explicit_and_immutable():
             item.distribution_status,
         ) == EXPECTED_CLASSIFICATIONS[item.fixture]
         assert item.claim_boundary
-        assert re.fullmatch(r"[0-9a-f]{64}", item.expected_sha256)
+        assert re.fullmatch(
+            r"[0-9a-f]{64}", item.expected_canonical_sha256
+        )
         with pytest.raises(FrozenInstanceError):
             setattr(item, "fixture", "mutated")
 
 
+def _canonical_text_sha256(content: bytes) -> str:
+    """Hash text bytes after normalizing Git checkout line endings to LF."""
+    canonical_content = content.replace(b"\r\n", b"\n")
+    return hashlib.sha256(canonical_content).hexdigest()
+
+
+def test_canonical_text_hash_is_line_ending_independent():
+    lf_content = b"line one\nline two\n"
+    crlf_content = b"line one\r\nline two\r\n"
+    assert _canonical_text_sha256(lf_content) == _canonical_text_sha256(
+        crlf_content
+    )
+
+
 @pytest.mark.parametrize("item", MANIFEST, ids=lambda item: item.fixture)
-def test_fixture_hash_matches_manifest(item):
+def test_fixture_canonical_hash_matches_manifest(item):
     resource = files("pycalphad.tests.databases").joinpath(item.fixture)
-    digest = hashlib.sha256(resource.read_bytes()).hexdigest()
-    assert digest == item.expected_sha256
+    digest = _canonical_text_sha256(resource.read_bytes())
+    assert digest == item.expected_canonical_sha256
 
 
 @pytest.mark.parametrize("item", MANIFEST, ids=lambda item: item.fixture)
