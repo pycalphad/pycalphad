@@ -4,8 +4,7 @@ Purpose: Verify coordinate, composition, charge, and property invariants of
     ModelMQMQA within explicitly bounded fixture states.
 Created: 2026-10-10.
 Authoring agent/model: gpt-5.6-sol.
-Rationale: Separate model-local correctness checks from parser and equilibrium
-    regressions.
+Rationale: Separate direct-model checks from equilibrium-solver regressions.
 Inputs: Packaged MQMQA DAT fixtures and explicit quadruplet populations.
 Outputs: Pytest pass/fail results; no side effects.
 """
@@ -18,7 +17,7 @@ from pycalphad.tests.fixtures import load_database, select_database
 
 
 # The fixture's stored coordination numbers have finite decimal precision.
-MAX_CHARGE_RESIDUAL_PER_FORMULA_UNIT = 5e-8
+MAX_PURE_QUADRUPLET_CHARGE_RESIDUAL = 2e-7
 
 
 def _model_states(load_database):
@@ -43,6 +42,7 @@ def _value(expression, substitutions):
 def test_mqmqa_coordinate_normalization_and_limits(load_database):
     _, model, quadruplet_fractions, interior = _model_states(load_database)
 
+    # The current coordinate API exposes only quadruplet normalization.
     constraints = model.get_internal_constraints()
     assert len(constraints) == 1
     np.testing.assert_allclose(_value(constraints[0], interior), 0.0, atol=1e-14)
@@ -81,8 +81,10 @@ def test_mqmqa_coordinate_normalization_and_limits(load_database):
 
 
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
-def test_mqmqa_element_and_charge_accounting(load_database):
-    dbf, model, _, interior = _model_states(load_database)
+def test_mqmqa_element_accounting_and_pure_coordinate_charge_residuals(
+    load_database,
+):
+    dbf, model, quadruplet_fractions, interior = _model_states(load_database)
 
     np.testing.assert_allclose(
         _value(
@@ -96,9 +98,16 @@ def test_mqmqa_element_and_charge_accounting(load_database):
         species.charge * model._n_i(dbf, species)
         for species in model.cations + model.anions
     )
-    assert abs(_value(charge_per_formula_unit, interior)) <= (
-        MAX_CHARGE_RESIDUAL_PER_FORMULA_UNIT
-    )
+    # The largest observed pure-coordinate residual is 1.4054681e-7 because
+    # the fixture stores coordination numbers at finite decimal precision.
+    for active_fraction in quadruplet_fractions:
+        pure_state = {
+            fraction: float(fraction == active_fraction)
+            for fraction in quadruplet_fractions
+        }
+        assert abs(_value(charge_per_formula_unit, pure_state)) <= (
+            MAX_PURE_QUADRUPLET_CHARGE_RESIDUAL
+        )
 
 
 @select_database("Shishin_Fe-Sb-O-S_slag.dat")
