@@ -17,7 +17,8 @@ from pycalphad.models.model_mqmqa import ModelMQMQA
 from pycalphad.tests.fixtures import load_database, select_database
 
 
-MAX_CHARGE_RESIDUAL_PER_FORMULA_UNIT = 0.0
+# The fixture's stored coordination numbers have finite decimal precision.
+MAX_CHARGE_RESIDUAL_PER_FORMULA_UNIT = 5e-8
 
 
 def _model_states(load_database):
