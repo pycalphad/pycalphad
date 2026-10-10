@@ -1,6 +1,13 @@
-"""
-The energy test module verifies that the Model class produces the
-correct abstract syntax tree for the energy.
+"""Energy-model regression tests.
+
+Purpose: Verify that Model implementations produce the expected symbolic
+energy expressions and fail clearly for invalid model inputs.
+Created: Pre-existing; original creation date and authorship are unknown.
+Authoring agent/model: Header last materially updated by OpenAI Codex
+(gpt-5.6-sol) on 2026-10-10.
+Rationale: Keep energy-model behavior and input-validation contracts covered.
+Inputs: Test thermodynamic databases, model configurations, and state values.
+Outputs: Pytest assertions and regression failures; no persistent side effects.
 """
 
 import pytest
@@ -11,6 +18,62 @@ from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
 from pycalphad.models.model_mqmqa import ModelMQMQA
+
+
+def test_ionic_cation_neutral_matches_regular_solution():
+    """A cation-neutral 2SL ionic liquid reduces to a regular solution.
+
+    This synthetic test exercises the binary special case described in
+    pycalphad issue 647 without relying on an assessed or proprietary database.
+    """
+    tdb = """
+ELEMENT VA VACUUM 0 0 0 !
+ELEMENT A A 1 0 0 !
+ELEMENT B B 1 0 0 !
+SPECIES A+1 A1/+1 !
+TYPE_DEFINITION % SEQ * !
+PHASE SUBS % 1 1 !
+CONSTITUENT SUBS : A, B : !
+PHASE IONIC:Y % 2 1 1 !
+CONSTITUENT IONIC:Y : A+1 : VA, B : !
+PARAMETER G(SUBS,A;0) 298.15 0; 6000 N !
+PARAMETER G(SUBS,B;0) 298.15 0; 6000 N !
+PARAMETER L(SUBS,A,B;0) 298.15 10000; 6000 N !
+PARAMETER L(SUBS,A,B;1) 298.15 2000; 6000 N !
+PARAMETER G(IONIC,A+1:VA;0) 298.15 0; 6000 N !
+PARAMETER G(IONIC,B;0) 298.15 0; 6000 N !
+PARAMETER L(IONIC,A+1:VA,B;0) 298.15 10000; 6000 N !
+PARAMETER L(IONIC,A+1:VA,B;1) 298.15 2000; 6000 N !
+"""
+    dbf = Database(tdb)
+    regular = Model(dbf, ["A", "B"], "SUBS")
+    ionic = Model(dbf, ["A", "B", "VA"], "IONIC")
+    cation = v.Species("A+1", {"A": 1.0}, charge=1)
+    temperature = 1000.0
+    x_c = np.array([0.01, 0.2, 0.5, 0.8, 0.99])
+    x_b = 1.0 - x_c
+    expected = (
+        float(v.R) * temperature * (x_c * np.log(x_c) + x_b * np.log(x_b))
+        + x_c * x_b * (10000.0 + 2000.0 * (x_c - x_b))
+    )
+    regular_values = []
+    ionic_values = []
+    for x_c_i, x_b_i in zip(x_c, x_b):
+        regular_values.append(float(regular.GM.subs({
+            v.T: temperature,
+            v.Y("SUBS", 0, "A"): x_c_i,
+            v.Y("SUBS", 0, "B"): x_b_i,
+        })))
+        ionic_values.append(float(ionic.GM.subs({
+            v.T: temperature,
+            v.Y("IONIC", 0, cation): 1.0,
+            v.Y("IONIC", 1, "VA"): x_c_i,
+            v.Y("IONIC", 1, "B"): x_b_i,
+        })))
+
+    np.testing.assert_allclose(regular_values, expected, rtol=1e-10, atol=1e-7)
+    np.testing.assert_allclose(ionic_values, expected, rtol=1e-10, atol=1e-7)
+    np.testing.assert_allclose(ionic_values, regular_values, rtol=1e-10, atol=1e-7)
 
 
 def make_callable(model, variables, mode=None):
