@@ -73,12 +73,19 @@ def test_subq_parser_preserves_reciprocal_parameter_semantics(load_database):
     dbf = load_database()
     phase = dbf.phases["MSCL"]
     species = {item.name: item for item in dbf.species}
+    # The doubled charge suffixes are the lookup keys currently emitted from
+    # this fixture's already charged labels, not a canonical naming claim.
     na = species["NA+1+1.0"]
     k = species["K+1+1.0"]
     cl = species["CL-1.0"]
     iodine = species["I-1.0"]
 
-    assert phase.model_hints["mqmqa"]["type"] == "SUBQ"
+    mqmqa_hints = phase.model_hints["mqmqa"]
+    assert mqmqa_hints["type"] == "SUBQ"
+    assert mqmqa_hints["chemical_groups"] == {
+        "cations": {na: 1, k: 1},
+        "anions": {cl: 1, iodine: 1},
+    }
     assert phase.constituents == (frozenset({na, k}), frozenset({cl, iodine}))
     assert {
         item.name: (item.charge, item.constituents)
@@ -122,7 +129,12 @@ def test_subg_parser_canonically_reorders_coordination_numbers(load_database):
     nickel = species["NI+2.0"]
     fluorine = species["F-1.0"]
 
-    assert phase.model_hints["mqmqa"]["type"] == "SUBG"
+    mqmqa_hints = phase.model_hints["mqmqa"]
+    assert mqmqa_hints["type"] == "SUBG"
+    assert mqmqa_hints["chemical_groups"] == {
+        "cations": {nickel: 2, k: 1},
+        "anions": {fluorine: 1},
+    }
     assert phase.constituents == (
         frozenset({k, nickel}),
         frozenset({fluorine}),
