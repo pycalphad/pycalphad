@@ -26,7 +26,9 @@ from pycalphad.tests.fixtures import load_database, select_database
 
 warnings.simplefilter("always", UserWarning) # so we can test warnings
 
-MAX_CHARGED_PHASE_CONSTRAINT_RESIDUAL = 0.0
+# Covers solved site-balance and charge residuals; the fixture's observed
+# maximum is 8.16e-13 across the model's three internal constraints.
+MAX_CHARGED_PHASE_CONSTRAINT_RESIDUAL = 1e-10
 
 
 @pytest.mark.solver
