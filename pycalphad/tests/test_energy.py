@@ -1,10 +1,13 @@
-"""
-Purpose: Verify Model energy expressions and construction-time invariants.
-Created: pre-existing test module; header expanded 2026-10-10.
-Authoring agent/model: pre-existing authorship; materially updated by gpt-5.6-luna.
-Rationale: Preserve regression coverage for model and parser behavior.
-Inputs: Inline and repository TDB fixtures, Database, and Model APIs.
-Outputs: Pytest pass/fail results; no runtime side effects.
+"""Energy-model regression tests.
+
+Purpose: Verify that Model implementations produce the expected symbolic
+energy expressions and fail clearly for invalid model inputs.
+Created: Pre-existing; original creation date and authorship are unknown.
+Authoring agent/model: Header last materially updated by OpenAI Codex
+(gpt-5.6-sol) on 2026-10-10.
+Rationale: Keep energy-model behavior and input-validation contracts covered.
+Inputs: Test thermodynamic databases, model configurations, and state values.
+Outputs: Pytest assertions and regression failures; no persistent side effects.
 """
 
 import pytest
