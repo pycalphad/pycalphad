@@ -1,6 +1,15 @@
-"""
-The model module provides support for using a Database to perform
+"""Build symbolic thermodynamic models from a Database.
+
+Purpose: Provide phase-model construction and thermodynamic contributions for
 calculations under specified conditions.
+Created: Pre-existing; original creation date and authorship are preserved in
+the repository history.
+Authoring agent/model: Header last materially updated by OpenAI Codex
+(gpt-5.6-sol) on 2026-10-10.
+Rationale: Centralize model semantics, validation, and symbolic properties.
+Inputs: Database phase definitions, active components, and parameter overrides.
+Outputs: Symbolic Model objects and deterministic validation errors; no
+persistent side effects.
 """
 import copy
 import warnings
@@ -912,13 +921,14 @@ class Model(object):
                     # The last index that contains a vacancy
                     va_subl_idx = (len(phase.constituents) - 1) - va_subls[::-1].index(True)
                     va_present = any((v.Species('VA') in c) for c in param['constituent_array'])
-                    if va_present and (max(len(c) for c in param['constituent_array']) == 1):
-                        # No need to apply pair rule for VA-containing endmember
+                    charged_symbols = [sym for sym in mixing_term.free_symbols if sym.species.charge > 0]
+                    if va_present and len(charged_symbols) == 1:
+                        # The explicit VA already pairs the sole cation. This applies
+                        # to VA-containing endmembers and cation-neutral interactions.
                         pass
                     elif va_subl_idx > -1:
-                        for sym in mixing_term.free_symbols:
-                            if sym.species.charge > 0:
-                                pair_rule[sym] = sym * v.SiteFraction(sym.phase_name, va_subl_idx, v.Species('VA'))
+                        for sym in charged_symbols:
+                            pair_rule[sym] = sym * v.SiteFraction(sym.phase_name, va_subl_idx, v.Species('VA'))
                     mixing_term = mixing_term.xreplace(pair_rule)
                     # This parameter is normalized differently due to the variable charge valence of vacancies
                     mixing_term *= self.site_ratios[va_subl_idx]
