@@ -1,6 +1,14 @@
-"""
-The equilibrium test module verifies that the Equilibrium class produces the
-correct solution for thermodynamic equilibrium.
+"""Tests for thermodynamic equilibrium calculations.
+
+Purpose: Verify equilibrium outputs, solver regressions, and selected result
+    contracts against synthetic and packaged thermodynamic databases.
+Created: Pre-existing; provenance header expanded 2026-10-10.
+Authoring agent/model: Original authors unknown; header and charged-phase result
+    contracts added by gpt-5.6-sol.
+Rationale: Keep numerical regressions and evidence-bounded equilibrium checks in
+    the project's established integration-test module.
+Inputs: Inline and packaged databases, equilibrium conditions, and reference data.
+Outputs: Pytest pass/fail results; no side effects beyond diagnostic stdout.
 """
 
 import warnings
@@ -17,6 +25,8 @@ import pycalphad.variables as v
 from pycalphad.tests.fixtures import load_database, select_database
 
 warnings.simplefilter("always", UserWarning) # so we can test warnings
+
+MAX_CHARGED_PHASE_CONSTRAINT_RESIDUAL = 0.0
 
 
 @pytest.mark.solver
@@ -1149,6 +1159,13 @@ def test_charged_stoichiometric_phases_converge(load_database):
     assert_allclose(eq.GM.values, -241451.22198839)
     stable_amounts = eq.NP.values.squeeze()
     assert_allclose(np.sort(stable_amounts[~np.isnan(stable_amounts)]), [0.1, 0.9], atol=1e-8)
+    assert np.all(stable_amounts[~np.isnan(stable_amounts)] > 0)
+    assert_allclose(eq.NP.sum(dim="vertex", skipna=True), 1.0, atol=1e-12)
+    for component, expected in (("O", 0.41), ("TI", 0.59)):
+        reconstructed = (
+            eq.NP * eq.X.sel(component=component)
+        ).sum(dim="vertex", skipna=True)
+        assert_allclose(reconstructed, expected, atol=1e-12)
     assert_allclose(eq.MU.values.squeeze(), [-486633.66127366, -71070.20485795])
 
 
@@ -1413,6 +1430,22 @@ def test_eq_charged_phase_negative_phase_amount_zero_division(load_database):
     composition_sets = wks.get_composition_sets()
     assert len(composition_sets) > 0
     assert all(cs.phase_record.phase_name == "HALITE_B1" for cs in composition_sets)
+    assert all(np.isfinite(cs.NP) and cs.NP > 0 for cs in composition_sets)
     # The overall composition (phase-fraction weighted) must satisfy the conditions
     assert_allclose(wks.get(v.X("O")), 0.25, atol=1e-8)
     assert_allclose(wks.get(v.X("TI")), 0.375, atol=1e-8)
+
+    model = Model(dbf, comps, "HALITE_B1")
+    for composition_set in composition_sets:
+        num_state_variables = len(composition_set.phase_record.state_variables)
+        site_fraction_values = np.asarray(composition_set.dof)[num_state_variables:]
+        substitutions = dict(zip(model.site_fractions, site_fraction_values))
+        constraint_residuals = np.array(
+            [
+                float(constraint.subs(substitutions))
+                for constraint in model.get_internal_constraints()
+            ]
+        )
+        assert np.max(np.abs(constraint_residuals)) <= (
+            MAX_CHARGED_PHASE_CONSTRAINT_RESIDUAL
+        )
