@@ -12,6 +12,7 @@ from dataclasses import FrozenInstanceError, dataclass
 import hashlib
 import importlib
 from importlib.resources import files
+import re
 
 import pytest
 
@@ -32,7 +33,9 @@ class BenchmarkFixture:
 MANIFEST = (
     BenchmarkFixture(
         fixture="Shishin_Fe-Sb-O-S_slag.dat",
-        expected_sha256="UNBOUND",
+        expected_sha256=(
+            "9feef8188a6c41813b64c635657cd4d227bc89e4352726b4ce84cfc48df94d4e"
+        ),
         model_family="MQMQA-SUBQ",
         source="doi:10.1016/j.calphad.2019.01.016",
         oracle_or_reference="Thermochimica and FactSage point-energy values",
@@ -49,7 +52,9 @@ MANIFEST = (
     ),
     BenchmarkFixture(
         fixture="2026-Dixon-Na-K-Cl-I.dat",
-        expected_sha256="UNBOUND",
+        expected_sha256=(
+            "d1c4b5f52fba2e9c326da1a7ea1ad26b6f9db4d0f02646ea00088ce84c1d6f06"
+        ),
         model_family="MQMQA-SUBQ-reciprocal",
         source="doi:10.1080/00295639.2026.2653362",
         oracle_or_reference="FactSage 800 K equilibrium Gibbs energy",
@@ -62,7 +67,9 @@ MANIFEST = (
     ),
     BenchmarkFixture(
         fixture="TiO-17Yan.tdb",
-        expected_sha256="UNBOUND",
+        expected_sha256=(
+            "f79af7f26633b1d664d2a44a87efea098b4ae288e3ac3eb1676c1a996cd08647"
+        ),
         model_family="charged-CEF",
         source="Yang et al., J. Alloys Compd. 722 (2017) 365-374",
         oracle_or_reference="internal charged-stoichiometric equilibrium regression",
@@ -75,7 +82,9 @@ MANIFEST = (
     ),
     BenchmarkFixture(
         fixture="alfeo.tdb",
-        expected_sha256="UNBOUND",
+        expected_sha256=(
+            "bb4e3a57aa59b9149529f5851689ba2106e965b99bd853c6d959b0e1bf5c2119"
+        ),
         model_family="charged-CEF",
         source="fixture attribution: Greta Lindwall, Xuan L. Liu, Zi-Kui Liu (2015)",
         oracle_or_reference="Thermo-Calc equilibrium point values",
@@ -93,7 +102,7 @@ def test_manifest_metadata_is_explicit_and_immutable():
         assert item.fixture and item.model_family and item.source
         assert item.oracle_or_reference
         assert item.evidence_status and item.distribution_status and item.claim_boundary
-        assert item.expected_sha256
+        assert re.fullmatch(r"[0-9a-f]{64}", item.expected_sha256)
         with pytest.raises(FrozenInstanceError):
             setattr(item, "fixture", "mutated")
 
