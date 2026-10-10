@@ -137,13 +137,18 @@ def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5
     dGs = np.dot(x, mu) - gm
 
     # Get list of phase indices for each unique phase as candidates
-    # 1. Sort the phase ID array by driving force
-    # 2. Get all the unique phases in the truncated sorted ID array (truncated by number of candidates)
+    # 1. Get the indices of the samples with the largest driving force (truncated by number of candidates),
+    #    sorted by driving force. Only these are needed, so we avoid sorting all the samples.
+    #    Equal driving forces are ordered as in np.argsort(dGs, kind='stable')[::-1]
+    # 2. Get all the unique phases in the truncated sorted ID array
     # 3. For each phase, get the first index it shows up
     #    The index will correspond to the sorted_indices list, so we have to get the unsorted index
     #    From there
-    sorted_indices = np.argsort(dGs)[::-1]
-    sorted_phases = phase_ids[sorted_indices][:np.amin([num_candidates, len(sorted_indices)])]
+    num_candidates = np.amin([num_candidates, len(dGs)])
+    threshold = np.partition(dGs, -num_candidates)[-num_candidates]
+    top_indices = np.flatnonzero(dGs >= threshold)
+    sorted_indices = top_indices[np.argsort(dGs[top_indices], kind='stable')[::-1]][:num_candidates]
+    sorted_phases = phase_ids[sorted_indices]
     unique_phases = np.unique(sorted_phases)
     phase_indices = [np.argmax(sorted_phases == p) for p in unique_phases]
 
