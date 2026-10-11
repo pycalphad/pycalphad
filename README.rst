@@ -63,6 +63,12 @@ Documentation
 -------------
 See the documentation on `pycalphad.org`_.
 
+Contributing
+------------
+Please read the documentation for `contributing to PyCalphad <https://pycalphad.org/docs/latest/developer/contributing.html>`_ before submitting a pull request.
+
+Our `AI policy <https://pycalphad.org/docs/latest/developer/contributing.html#ai-policy>`_ can be found in the contributing guide.
+
 Getting Help
 ------------
 
