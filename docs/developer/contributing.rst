@@ -38,11 +38,11 @@ The PyCalphad project values human contributors more than their contributions.
 Maintainers/Reviewers expect to engage with humans, not with AI.
 We encourage new contributors to _not_ use AI as they learn the project.
 
-Human contibutors, are responsible for:
+Human contributors, are responsible for:
 
 - authoring issue and pull request descriptions
 - understanding every change
 - reviewing and testing the changes, and
-- ensuring the changes are correct (to the best of your ability)
+- ensuring the changes are correct (to the best of their ability)
 
 Please read `Numba's AI Tool Use Policy <https://numba.readthedocs.io/en/latest/reference/ai_tools_policy.html>`_, which informed our policy, for additional details and rationale.
