@@ -14,33 +14,6 @@ import numpy as np
 from copy import copy
 
 
-def _delta_phase_amounts_in_moles_of_atoms(state, delta_phase_amounts, delta_sitefracs):
-    """
-    Convert phase amount deltas from moles of formula units to moles of atoms.
-
-    The ``*_differential`` functions solve for changes in ``SystemState.phase_amt`` (moles of formula units),
-    but Jansson derivatives treat ``delta_phase_amounts`` as changes in ``CompositionSet.NP`` (moles of atoms).
-    With ``M`` the moles of atoms per formula unit, ``NP = phase_amt * M``, so
-    ``dNP = d(phase_amt) * M + phase_amt * dM``.
-    """
-    result = np.array(delta_phase_amounts, dtype=float)
-    for idx, compset in enumerate(state.compsets):
-        phase_record = compset.phase_record
-        num_statevars = len(phase_record.state_variables)
-        dof = np.ascontiguousarray(compset.dof, dtype=float)
-        moles, moles_grad = np.zeros(1), np.zeros(num_statevars + phase_record.phase_dof)
-        atoms_per_formula_unit, delta_atoms_per_formula_unit = 0.0, 0.0
-        for comp_idx in range(len(state.chemical_potentials)):
-            phase_record.formulamole_obj(moles, dof, comp_idx)
-            phase_record.formulamole_grad(moles_grad, dof, comp_idx)
-            atoms_per_formula_unit += moles[0]
-            # Site ratios do not depend on state variables, so only the site fraction terms contribute
-            delta_atoms_per_formula_unit += np.dot(moles_grad[num_statevars:], delta_sitefracs[idx])
-        formula_units = compset.NP / atoms_per_formula_unit
-        result[idx] = result[idx] * atoms_per_formula_unit + formula_units * delta_atoms_per_formula_unit
-    return result
-
-
 class Component(object):
     """
     A chemical component, either a pure element or a linear combination of pure elements.
@@ -382,7 +355,6 @@ class StateVariable(Symbol):
             delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                          delta_statevars)
             compsets_delta_sitefracs.append(delta_sitefracs)
-        delta_phase_amounts = _delta_phase_amounts_in_moles_of_atoms(state, delta_phase_amounts, compsets_delta_sitefracs)
         return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
@@ -669,7 +641,6 @@ class MoleFraction(StateVariable):
             delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                          delta_statevars)
             compsets_delta_sitefracs.append(delta_sitefracs)
-        delta_phase_amounts = _delta_phase_amounts_in_moles_of_atoms(state, delta_phase_amounts, compsets_delta_sitefracs)
         return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
@@ -908,7 +879,6 @@ class ChemicalPotential(StateVariable):
             delta_sitefracs = site_fraction_differential(state.cs_states[idx], delta_chemical_potentials,
                                                          delta_statevars)
             compsets_delta_sitefracs.append(delta_sitefracs)
-        delta_phase_amounts = _delta_phase_amounts_in_moles_of_atoms(state, delta_phase_amounts, compsets_delta_sitefracs)
         return JanssonDerivativeDeltas(delta_chemical_potentials=delta_chemical_potentials, delta_statevars=delta_statevars,
                                    delta_phase_amounts=delta_phase_amounts, delta_sitefracs=compsets_delta_sitefracs,
                                    delta_parameters=None)
