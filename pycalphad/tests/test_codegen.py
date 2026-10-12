@@ -130,3 +130,22 @@ def test_complex_numbers_generated_in_complicated_models_can_be_built(load_datab
 
     build_functions(mod.GM, mod_vars, include_obj=True, include_grad=True, include_hess=True)
     build_constraint_functions(mod_vars, int_cons)
+
+
+def test_build_functions_independent_of_term_order():
+    "Equal expressions built with their terms in different orders compile to the same function"
+    from itertools import permutations
+    from symengine import Symbol
+    terms = [Symbol('a'), Symbol('b'), Symbol('c')]
+    # Floating point addition is not associative: (1e16 + 1) - 1e16 = 0, but (1e16 - 1e16) + 1 = 1
+    point = np.array([1e16, 1.0, -1e16])
+    values = set()
+    for order in permutations(terms):
+        expr = 0
+        for term in order:
+            expr = expr + term
+        build_functions.cache_clear()
+        build_constraint_functions.cache_clear()
+        values.add(float(np.ravel(build_functions(expr, terms).func(point))[0]))
+        values.add(float(np.ravel(build_constraint_functions(terms, [expr]).cons_func(point))[0]))
+    assert len(values) == 1
