@@ -31,10 +31,13 @@ from pycalphad.core.cache import cacheit
 from pycalphad.core.utils import wrap_symbol
 import hashlib
 from operator import itemgetter
-from symengine import Add, ComplexDouble, Mul, Piecewise, RealDouble, sympify, lambdify, I, zoo, oo, have_llvm
+from symengine import Add, Basic, ComplexDouble, Mul, Piecewise, RealDouble, sympify, lambdify, I, zoo, oo, have_llvm
 from collections import namedtuple
 
 _ComplexInfinity = type(zoo)
+# SymEngine's own hash. pycalphad's Symbol subclasses override __hash__ with Python's string hash,
+# which varies between processes (PYTHONHASHSEED); SymEngine's does not.
+_symengine_hash = Basic.__hash__
 
 BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
 ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac', 'cons_hess'])
@@ -72,8 +75,8 @@ def _canonical_real_graph(expr):
     functions that round differently, and because compiled functions are cached by equality, results
     could depend on what was compiled earlier in the process.
 
-    Terms are ordered by their SymEngine hash, which depends only on their content; ties, which are rare,
-    are broken by a digest of the content. All of this is done in a single pass over the expression.
+    Terms are ordered by their SymEngine hash, which depends only on their content (also between
+    processes); ties, which are rare, are broken by a digest of the content. All of this is done in a single pass over the expression.
     """
     rebuilt = {}
     digests = {}
@@ -104,7 +107,7 @@ def _canonical_real_graph(expr):
         if out is None:
             args = [rebuild(a) for a in args]
             if isinstance(e, (Add, Mul)):
-                keys = [hash(a) for a in args]
+                keys = [_symengine_hash(a) for a in args]
                 if len(set(keys)) < len(keys):
                     keys = [(k, digest(a)) for k, a in zip(keys, args)]
                 out = type(e)(*[a for _, a in sorted(zip(keys, args), key=itemgetter(0))])
