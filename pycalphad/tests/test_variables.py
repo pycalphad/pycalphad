@@ -148,3 +148,16 @@ def test_issue557_state_variable_unit_changes_survive_roundtrip_pickle():
     assert T2.display_units == T2_roundtrip.display_units
     T3 = pickle.loads(pickle.dumps(v.T["degC"]))
     assert T2.display_units == T3.display_units
+
+def test_state_variable_set_order_independent_of_memory_layout():
+    """Sets of state variables iterate in the same order in every process with the same PYTHONHASHSEED.
+    Hashes must not depend on where objects (e.g. the variable classes) happen to be in memory, which
+    changes with unrelated imports."""
+    import os, subprocess, sys
+    code = ("{}\nfrom pycalphad import variables as v\n"
+            "print([str(x) for x in {{v.T, v.P, v.N, v.X('AL'), v.MU('NI'), v.NP('FCC_A1'), v.Y('LIQUID', 0, 'AL')}}])")
+    env = dict(os.environ, PYTHONHASHSEED='0')
+    orders = {subprocess.run([sys.executable, '-c', code.format(preamble)], env=env, capture_output=True, text=True, check=True).stdout
+              for preamble in ('', 'import decimal, fractions, statistics', 'import xml.dom.minidom, http.client, email.mime.text',
+                               'allocations = [object() for _ in range(5000)]')}
+    assert len(orders) == 1

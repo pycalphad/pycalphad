@@ -373,7 +373,7 @@ class StateVariable(Symbol):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash((self.__class__, self.name))
+        return hash((self.__class__.__qualname__, self.name))
 
     def __getitem__(self, new_units: str) -> "StateVariable":
         "Get StateVariable with different display units"
