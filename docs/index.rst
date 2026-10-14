@@ -1,14 +1,9 @@
-.. pycalphad documentation master file, created by
-   sphinx-quickstart on Sat Apr 11 16:58:12 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 .. |logo| image:: pycalphad-logo-notext.png
           :height: 20pt
           :width: 20pt
           :alt: Logo
 
-|logo| pycalphad: Computational Thermodynamics
+|logo| PyCalphad: Computational Thermodynamics
 ==============================================
 
 .. figure:: AlNi.png
@@ -19,7 +14,12 @@
     :figclass: align-center
 
 
-pycalphad is a Python library for computational thermodynamics using the CALPHAD method.
+PyCalphad is a free and open-source Python library for
+designing thermodynamic models, calculating phase diagrams and
+investigating phase equilibria within the CALPHAD method. It
+provides routines for reading Thermo-Calc TDB and ChemSage DAT files
+and for solving the multi-component, multi-phase Gibbs energy
+minimization problem.
 
 The latest development version of the source code can be found on `GitHub`_.
 The newest stable version can be found on `PyPI`_.
@@ -59,20 +59,25 @@ The newest stable version can be found on `PyPI`_.
    developer/contributing
    api/modules
 
+Contributing
+------------
+Please read the documentation for `contributing to PyCalphad <https://pycalphad.org/docs/latest/developer/contributing.html>`_ before submitting a pull request.
+
+Our `AI policy <https://pycalphad.org/docs/latest/developer/contributing.html#ai-policy>`_ can be found in the contributing guide.
+
 Getting Help
 ============
 
-Questions about installing and using pycalphad can be addressed in the `pycalphad Google Group`_.
+Questions about installing and using PyCalphad can be addressed on the `PyCalphad Discussion board <https://github.com/pycalphad/pycalphad/discussions>`_.
 Technical issues and bugs should be reported on on `GitHub`_.
 A public chat channel is available on `Gitter`_.
 
 .. _Gitter: https://gitter.im/pycalphad/pycalphad
-.. _pycalphad Google Group: https://groups.google.com/d/forum/pycalphad
 
 Citing
 ======
 
-If you use pycalphad in your research, please consider citing the following work:
+If you use PyCalphad in your research, please consider citing the following work:
 
 Otis, R. & Liu, Z.-K., (2017). pycalphad: CALPHAD-based Computational Thermodynamics in Python. Journal of Open Research Software. 5(1), p.1. DOI: http://doi.org/10.5334/jors.140
 

@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOG_DIR=$ROOT_DIR/docs/_build/logs
+
+mkdir -p $LOG_DIR
 
 shopt -s nullglob
 max_build_num=0
 
-for f in "$ROOT_DIR"/doc-build-*.log; do
+for f in "$LOG_DIR"/doc-build-*.log; do
     name="$(basename "$f")"
     if [[ "$name" =~ ^doc-build-([0-9]+)\.log$ ]]; then
         n="${BASH_REMATCH[1]}"
@@ -14,7 +17,7 @@ for f in "$ROOT_DIR"/doc-build-*.log; do
 done
 
 next_build_num=$((max_build_num + 1))
-DOC_BUILD_LOG_FILE="$ROOT_DIR/doc-build-${next_build_num}.log"
+DOC_BUILD_LOG_FILE="$LOG_DIR/doc-build-${next_build_num}.log"
 
 # Optional: show which log file will be used
 echo "Using log file: $DOC_BUILD_LOG_FILE"
