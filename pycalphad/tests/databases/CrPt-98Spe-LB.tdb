@@ -1,0 +1,162 @@
+$
+$ Database for Cr-Pt from P.J. Spencer 1998 (included in LB Vol. 2)
+$
+$ P.J. Spencer, unpublished, 1998.
+$
+$ Dataset created 2015.05.17 by Bengt Hallstedt.
+$ 2020.12.26: Modified for use with GES6.
+$
+$ CR3PT_A15 becomes stable again above 4600 K.
+$
+$ Hcp becomes stable in the centre of the system if the fcc interaction is
+$ used. To prevent this it was modified by +10kJ/mol.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 298.15 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    ! 
+ ELEMENT CR   BCC_A2                     51.996     4050.0     23.5429 ! 
+ ELEMENT PT   FCC_A1                    195.08      5723.712   41.6308 !
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : CR PT : !
+$
+$ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : CR PT% : VA : !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : CR% PT : VA : !
+$
+$ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+$
+ PHASE HCP_A3 %A 2 1 0.5 !
+ CONST HCP_A3 : CR PT : VA : !
+$
+$ Prototype Cr3Si (cP8, Pm-3n)
+$
+ PHASE CR3PT_A15 % 2 4 1 !
+ CONST CR3PT_A15 : CR : PT : !
+$
+$ Prototype AuCu3 (cP4, Pm-3m)
+$
+ PHASE CRPT3_L12 % 1 1 !
+ CONST CRPT3_L12 : CR PT : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+ FUNCTION ZERO      298.15  0;                                         6000 N !
+ FUNCTION UN_ASS    298.15  0;                                         6000 N !
+ FUNCTION R         298.15  +8.31451;                                  6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ Cr
+$
+ PAR  G(BCC_A2,CR:VA),,                 +GHSERCR;,,                   N 91Din !
+ PAR  TC(BCC_A2,CR:VA),,                 -311.50;,,                   N 91Din !
+ PAR  BM(BCC_A2,CR:VA),,                   -0.008;,,                  N 91Din !
+ PAR  G(FCC_A1,CR:VA),,                 +GHSERCR+7284+0.163*T;,,      N 91Din !
+ PAR  TC(FCC_A1,CR:VA),,                -1109.00;,,                   N 91Din !
+ PAR  BM(FCC_A1,CR:VA),,                   -2.46;,,                   N 91Din !
+ PAR  G(HCP_A3,CR:VA),,                 +GHSERCR+4438;,,              N 91Din !
+ PAR  TC(HCP_A3,CR:VA),,                -1109.00;,,                   N 91Din !
+ PAR  BM(HCP_A3,CR:VA),,                   -2.46;,,                   N 91Din !
+$PAR  G(CUB_A13,CR:VA),,                +GHSERCR+15899+0.6276*T;,,    N 91Din !
+$PAR  G(CBCC_A12,CR:VA),,               +GHSERCR+11087+2.7196*T;,,    N 91Din !
+ PAR  G(LIQUID,CR),,                    +GLIQCR;,,                    N 91Din !
+$
+ PAR  G(CRPT3_L12,CR),,                 +GFCCCR+5000;,,               N 98Spe0 !
+$
+ FUNCTION GHSERCR   298.15  -8856.94+157.48*T-26.908*T*LN(T)
+       +0.00189435*T**2-1.47721E-06*T**3+139250*T**(-1);
+      2180.00  Y  -34869.344+344.18*T-50*T*LN(T)-2.88526E+32*T**(-9);
+      6000.00  N !
+ FUNCTION GLIQCR    298.15  +24339.955-11.420225*T+GHSERCR+2.37615E-21*T**7;
+      2180.00  Y  -16459.984+335.616316*T-50*T*LN(T);
+      6000.00  N !
+ FUNCTION GFCCCR    298.15  +GHSERCR+7284+0.163*T;                     6000 N !
+$ ------------------------------------------------------------------------------
+$ Pt
+$
+ PAR  G(FCC_A1,PT:VA),,                 +GHSERPT;                4000 N 91Din !
+ PAR  G(BCC_A2,PT:VA),,                 +GHSERPT+15000-2.4*T;    4000 N 91Din !
+ PAR  G(HCP_A3,PT:VA),,                 +GHSERPT+2500+0.1*T;     4000 N 91Din !
+ PAR  G(LIQUID,PT),,                    +GLIQPT;                 4000 N 91Din !
+$
+ PAR  G(CRPT3_L12,PT),,                 +GHSERPT+5000;           4000 N 98Spe0 !
+$
+ FUNCTION GHSERPT   298.15  -7595.631+124.388275*T-24.5526*T*LN(T)
+       -0.00248297*T**2-2.0138E-08*T**3+7974*T**(-1);
+      1300.00  Y  -9253.174+161.529615*T-30.2527*T*LN(T)
+       +0.002321665*T**2-6.56946E-07*T**3-272106*T**(-1);
+      2041.50  Y  -222048.216+1019.35892*T-136.192996*T*LN(T)
+       +0.020454938*T**2-7.59259E-07*T**3+71539020*T**(-1);
+      4000.00  N !
+ FUNCTION GLIQPT    298.15  +20114.016-9.275183*T+GHSERPT;
+       600.00  Y  +19023.491+32.94182*T-12.3403769*T*LN(T)
+       -0.011551507*T**2+9.31516E-07*T**3-601426*T**(-1);
+      2041.50  Y  +1404.468+205.858962*T-36.5*T*LN(T);
+      4000.00  N !
+ FUNCTION GBCCPT    298.15  +GHSERPT+15000-2.4*T;                      6000 N !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ From from P.J. Spencer 1998 (included in LB Vol. 2)
+$
+$ P.J. Spencer, unpublished, 1998.
+$
+$ Checked against LB. Checked at 6000 K.
+$
+$ CR3PT_A15 becomes stable again above 4600 K.
+$
+$ Hcp becomes stable in the centre of the system if the fcc interaction is
+$ used. To prevent this it was modified by +10kJ/mol.
+$
+ PAR  L(LIQUID,CR,PT;0),,               -132200;,,                    N 98Spe0 !
+ PAR  L(LIQUID,CR,PT;1),,               +7640;,,                      N 98Spe0 !
+$
+ PAR  L(FCC_A1,CR,PT:VA;0),,            -143220;,,                    N 98Spe0 !
+ PAR  L(FCC_A1,CR,PT:VA;1),,            +4072.6;,,                    N 98Spe0 !
+$
+ PAR  L(BCC_A2,CR,PT:VA;0),,            -97336.139-3.623716*T;,,      N 98Spe0 !
+$
+ PAR  G(CR3PT_A15,CR:PT),,              +5*GCR3PT;,,                  N 98Spe0 !
+$
+ PAR  L(CRPT3_L12,CR,PT;0),,            -187619.47+18.428697*T;,,     N 98Spe0 !
+ PAR  L(CRPT3_L12,CR,PT;1),,            +16522.311;,,                 N 98Spe0 !
+$
+$ Metastable
+$
+ PAR  L(HCP_A3,CR,PT:VA;0),,            -143220+10000;,,              N Same !
+ PAR  L(HCP_A3,CR,PT:VA;1),,            +4072.6;,,                    N Same !
+$
+ FUNCTION GCR3PT    298.15  -31495+157.89*T-27.744*T*LN(T)
+       +0.002001*T**2-1.272E-06*T**3+36411*T**(-1);
+      6000.00  N !
+$ ------------------------------------------------------------------------------
+$
+ ASSESSED_SYSTEM
+  CR-PT(TDB -* +LIQ +BCC_A2 +CR3PT_A15 +CRPT3_L12 +FCC_A1 ;P3 TMM:300/2500 *) !
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  Same   'Same or similar interaction as in the corresponding stable phase'
+  COST   'COST 507 database'
+  91Din  'A.T. Dinsdale, Calphad, 15, 317-425(1991).'
+  98Spe0 'P.J. Spencer, unpublished, 1998; Cr-Pt'
+!

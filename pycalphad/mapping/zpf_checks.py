@@ -7,7 +7,7 @@ from pycalphad import variables as v
 from pycalphad.core.constants import COMP_DIFFERENCE_TOL
 from pycalphad.core.composition_set import CompositionSet
 
-from pycalphad.mapping.primitives import ZPFLine, Point, ZPFState
+from pycalphad.mapping.primitives import ZPFLine, Point, ZPFState, MIN_COMPOSITION
 import pycalphad.mapping.zpf_equilibrium as zeq
 
 _log = logging.getLogger(__name__)
@@ -19,6 +19,7 @@ Simple checks
     simple_check_valid_point
     simple_check_change_in_phases
     simple_check_global_min
+    simple_check_degenerate_tieline
 
     These quickly check a step result and returns
     a bool whether the step result is valid or not
@@ -32,11 +33,50 @@ Normal checks
     check_change_in_phases
     check_global_min
     check_similar_phase_composition
+    check_degenerate_tieline
 
     These will check whether the step result is valid or
     if not valid, then will modify the zpf line or create
     a new node
 """
+
+DEGENERATE_TIELINE_TOL = 1e-7
+
+def _degenerate_zero_width_tieline(comp_sets: list[CompositionSet], tol: float = DEGENERATE_TIELINE_TOL):
+    """
+    Returns True if there are multiple composition sets and all of them have (nearly)
+    the same composition, i.e. the tie-line has collapsed to zero width.
+
+    Distinct phases of the same composition can only be in equilibrium at discrete
+    conditions (a pure-element melting point, a congruent melting point, a polymorphic
+    transition), never along a line, so a converged multi-phase step result with a
+    zero-width tie-line is degenerate.
+
+    Some pathological cases:
+    - a solid+liquid "boundary" pinned to a pure-element edge of the diagram, tracked
+      far above the element's melting point (mole fraction of the dilute component -> 0)
+    - a compound+liquid "boundary" pinned at the compound's stoichiometry, tracked
+      above its congruent melting point, when the liquid has an associate species at
+      that stoichiometry (site fractions of the non-associate species -> 0)
+
+    The tolerance is far below the composition width of any resolvable two-phase
+    region (spurious converged results have widths ~1e-9 or less), so real ZPF lines
+    passing near congruent points are not affected. Genuinely narrow features (e.g.
+    a shallow melting lens near a congruent minimum) can be ~1e-6 wide, so the
+    tolerance must stay below that.
+
+    Unary systems are exempt: with a single component, multi-phase coexistence along
+    a univariant line (e.g. in a P-T diagram) is allowed by the Gibbs phase rule, and
+    without a dilute degree of freedom the pathology cannot occur.
+    """
+    if len(comp_sets) < 2:
+        return False
+    # Unary system (single non-vacant component)
+    if len(comp_sets[0].X) < 2:
+        return False
+    comps = np.array([np.asarray(cs.X) for cs in comp_sets])
+    width = np.amax(np.amax(comps, axis=0) - np.amin(comps, axis=0))
+    return width < tol
 
 def simple_check_valid_point(step_results: tuple[Point, list[CompositionSet]], **kwargs):
     """
@@ -106,6 +146,30 @@ def simple_check_global_min(step_results: tuple[Point, list[CompositionSet]], **
         _log.info(f"Point is not global minimum. Current CS: {new_point.stable_phases}, new CS: {global_test_point.stable_phases}")
 
     return global_test_point is None
+
+def simple_check_degenerate_tieline(step_results: tuple[Point, list[CompositionSet]], **kwargs):
+    """
+    Returns True or False for whether the step result is a non-degenerate equilibrium,
+    i.e. the tie-line between the composition sets has not collapsed to zero width
+
+    Parameters
+    ----------
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+
+    Returns
+    -------
+    bool whether step result is non-degenerate
+    """
+    if step_results is None:
+        return False
+
+    new_point, orig_cs = step_results
+    degenerate = _degenerate_zero_width_tieline(new_point.stable_composition_sets)
+    if degenerate:
+        _log.info(f"All composition sets of {new_point.stable_phases} have the same composition (zero-width tie-line)")
+
+    return not degenerate
 
 def check_valid_point(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
     """
@@ -445,6 +509,55 @@ def check_similar_phase_composition(zpf_line: ZPFLine, step_results: tuple[Point
                 return None
     return None
 
+def check_degenerate_tieline(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
+    """
+    If the tie-line between the composition sets has collapsed to zero width, then the
+    equilibrium is degenerate and the ZPF conditions are trivially satisfiable at any
+    temperature, so we stop the zpf line to avoid tracking a spurious zero-width
+    boundary (e.g. along a pure-component edge above the element's melting point, or
+    at a compound stoichiometry above its congruent melting point)
+
+    2 possible outcomes
+        a) Composition sets have distinct compositions -> pass
+        b) Tie-line collapsed to zero width -> end zpf line gracefully
+
+    Parameters
+    ----------
+    zpf_line : ZPFLine
+        ZPFLine that the point is stepping in
+    step_results : [Point, [CompositionSet]]
+        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
+    axis_data : dict
+        Axis variable data from a map strategy class
+
+    Returns
+    -------
+    None : this check does not attempt to make a new node
+    However, the zpf line will end if this check fails
+    """
+    if step_results is None:
+        return None
+
+    new_point, orig_cs = step_results
+    if _degenerate_zero_width_tieline(new_point.stable_composition_sets):
+        # Only end the line if it is pinned in composition: a spurious degenerate
+        # boundary tracks a fixed composition (a pure-element edge or a compound
+        # stoichiometry) while stepping in a potential, whereas a real boundary
+        # crossing a congruent extremum (where the width passes continuously
+        # through zero) keeps advancing in composition and must not be ended
+        axis_vars = axis_data["axis_vars"]
+        normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})
+        composition_axes = [av for av in axis_vars if isinstance(av, v.MoleFraction)]
+        prev_point = zpf_line.points[-1]
+        movement = [np.squeeze(np.abs(new_point.get_property(av) - prev_point.get_property(av)) / normalize_factor[av]) for av in composition_axes]
+        pinned = len(movement) == 0 or np.amax(movement) < 0.25
+        if pinned:
+            zpf_line.status = ZPFState.REACHED_LIMIT
+            _log.info(f"All composition sets of {new_point.stable_phases} have the same composition (zero-width tie-line). Ending ZPF line.")
+        else:
+            _log.info(f"Zero-width tie-line at {new_point.stable_phases} but composition is still advancing (crossing a congruent extremum). Continuing ZPF line.")
+    return None
+
 def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
     """
     If the composition of the new result loops back to beginning of ZPF line, then
@@ -454,6 +567,12 @@ def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[Compo
     This stops the zpf line if the distance from the step result to the first point
     is smaller than the distance to the previous point. The only times this should
     occur is if the zpf line rapidly switched directions or if it loops in on itself
+
+    Distances along each axis are normalized by that axis's step size so that axes
+    with different units (e.g. temperature in K vs. mole fraction) are comparable.
+    Without this, the temperature axis dominates and any boundary whose temperature
+    returns near the first point's temperature (e.g. a liquidus rising again after a
+    congruent minimum) is killed even though it is compositionally far from a loop.
 
     Parameters
     ----------
@@ -472,15 +591,18 @@ def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[Compo
     if len(zpf_line.points) < 2:
         return None
 
-    x_curr = np.array([step_results[0].get_property(var) for var in axis_data['axis_vars']])
-    x_first = np.array([zpf_line.points[0].get_property(var) for var in axis_data['axis_vars']])
-    x_prev = np.array([zpf_line.points[-1].get_property(var) for var in axis_data['axis_vars']])
+    axis_vars = axis_data["axis_vars"]
+    normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})
+    x_curr = np.array([step_results[0].get_property(var) / normalize_factor[var] for var in axis_vars])
+    x_first = np.array([zpf_line.points[0].get_property(var) / normalize_factor[var] for var in axis_vars])
+    x_prev = np.array([zpf_line.points[-1].get_property(var) / normalize_factor[var] for var in axis_vars])
     vfirst = x_first - x_curr
     vprev = x_curr - x_prev
     dist_first = np.sqrt(np.sum(vfirst**2))
     dist_prev = np.sqrt(np.sum(vprev**2))
     # if distance to first point is smaller than to previous point, then stop zpf line
     if dist_first < dist_prev:
+        _log.info(f"ZPF line looped back near its first point (normalized distance to first {dist_first:.3g} < distance to previous {dist_prev:.3g}). Ending ZPF line.")
         zpf_line.status = ZPFState.REACHED_LIMIT
 
     return None

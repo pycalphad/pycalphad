@@ -1,6 +1,6 @@
 import numpy as np
 
-from pycalphad.mapping import BinaryStrategy, TernaryStrategy, plot_binary, plot_ternary
+from pycalphad.mapping import TielineStrategy, plot_binary, plot_ternary
 import pycalphad.mapping.utils as map_utils
 
 def binplot(database, components, phases, conditions, return_strategy=False, plot_kwargs=None, **map_kwargs):
@@ -19,9 +19,9 @@ def binplot(database, components, phases, conditions, return_strategy=False, plo
         Maps StateVariables to values and/or iterables of values.
         For binplot only one changing composition and one potential coordinate each is supported.
     return_strategy : bool, optional
-        Return the BinaryStrategy object in addition to the Axes. Defaults to False.
+        Return the TielineStrategy object in addition to the Axes. Defaults to False.
     map_kwargs : dict, optional
-        Additional keyword arguments to BinaryStrategy().
+        Additional keyword arguments to TielineStrategy().
     plot_kwargs : dict, optional
         Keyword arguments to plot_binary()
         Possible key,val pairs in plot_kwargs
@@ -40,7 +40,7 @@ def binplot(database, components, phases, conditions, return_strategy=False, plo
     -------
     Axes
         Matplotlib Axes of the phase diagram
-    (Axes, BinaryStrategy)
+    (Axes, TielineStrategy)
         If return_strategy is True.
 
     """
@@ -49,8 +49,7 @@ def binplot(database, components, phases, conditions, return_strategy=False, plo
     if (len(indep_comps) != 1) or (len(indep_pots) != 1):
         raise ValueError('binplot() requires exactly one composition coordinate and one potential coordinate')
 
-    strategy = BinaryStrategy(database, components, phases, conditions, **map_kwargs)
-    strategy.do_map()
+    strategy = TielineStrategy(database, components, phases, conditions, **map_kwargs)
 
     plot_kwargs = plot_kwargs if plot_kwargs is not None else dict()
     ax = plot_binary(strategy, **plot_kwargs)
@@ -84,7 +83,7 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy=False, m
         instance of a pycalphad.variables.composition to plot on the y-axis.
         Must correspond to an independent condition.
     return_strategy : bool, optional
-        Return the TernaryStrategy object in addition to the Axes. Defaults to False.
+        Return the TielineStrategy object in addition to the Axes. Defaults to False.
     label_nodes : bool (optional)
         Whether to plot points for phases on three-phase regions
         Default = False
@@ -95,7 +94,7 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy=False, m
         Color for tie triangles
         Default = (1,0,0,1)
     map_kwargs : dict, optional
-        Additional keyword arguments to TernaryStrategy().
+        Additional keyword arguments to TielineStrategy().
     plot_kwargs : dict, optional
         Keyword arguments to plot_ternary().
 
@@ -103,7 +102,7 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy=False, m
     -------
     Axes
         Matplotlib Axes of the phase diagram
-    (Axes, TernaryStrategy)
+    (Axes, TielineStrategy)
         If return_strategy is True.
 
     """
@@ -113,8 +112,7 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, return_strategy=False, m
         raise ValueError('ternplot() requires exactly two composition coordinates')
 
     map_kwargs = map_kwargs if map_kwargs is not None else dict()
-    strategy = TernaryStrategy(dbf, comps, phases, conds, **map_kwargs)
-    strategy.do_map()
+    strategy = TielineStrategy(dbf, comps, phases, conds, **map_kwargs)
 
     ax = plot_ternary(strategy, x, y, **plot_kwargs)
     ax.set_xlim(0, 1)

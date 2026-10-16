@@ -196,6 +196,7 @@ class StepStrategy(MapStrategy):
               This is in contrast to v.X(component) or v.NP where composition or phase fraction will be
               taken for all stable phases
         """
+        self._ensure_mapped()
         if hasattr(x, 'phase_name') and x.phase_name is None:
             if not global_x:
                 x = copy.deepcopy(x)
