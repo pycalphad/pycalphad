@@ -1022,3 +1022,60 @@ def test_database_ignore_if_then_type_definition():
     """
     with pytest.warns(UserWarning, match='Type definitions using IF/THEN logic is not supported'):
         Database.from_string(tdb_string, fmt='tdb')
+
+
+def test_einstein_parameters_write_and_roundtrip():
+    """LNTHETA/THETAF parameters read/write."""
+    TDB = """
+    ELEMENT VA   VACUUM                      0.0          0.0      0.0    !
+    ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 !
+    ELEMENT W    BCC_A2                    183.85      4970.0     32.6176 !
+    PHASE MC_SHP % 2 1 1 !
+    CONST MC_SHP : W : C : !
+    PAR  G(MC_SHP,W:C),,                   -60767-8.623395E-4*T**2;,,   N REF0 !
+    PAR  LNTHETA1(MC_SHP,W:C),,            +LN(887);,,                  N REF0 !
+    PAR  THETAF1(MC_SHP,W:C),,             0.535374;,,                  N REF0 !
+    PAR  lntheta2(MC_SHP,W:C),,            +LN(276);,,                  N REF0 !
+    PAR  thetaf2(MC_SHP,W:C),,             0.464626;,,                  N REF0 !
+    PAR  LNTHETA5(MC_SHP,W:C;0) 298.15     +LN(100); 6000                N REF0 !
+    PAR  THETAF5(MC_SHP,W:C;0) 298.15      0.1; 6000                     N REF0 !
+    """
+    dbf = Database.from_string(TDB, fmt='tdb')
+    written = dbf.to_string(fmt='tdb')
+    for expected in ('PARAMETER LNTHETA1(MC_SHP,W:C;0)', 'PARAMETER THETAF1(MC_SHP,W:C;0)',
+                     'PARAMETER LNTHETA2(MC_SHP,W:C;0)', 'PARAMETER THETAF2(MC_SHP,W:C;0)',
+                     'PARAMETER LNTHETA5(MC_SHP,W:C;0)', 'PARAMETER THETAF5(MC_SHP,W:C;0)'):
+        assert expected in written
+    assert 'LNTHETA(' not in written
+    assert 'THETAF(' not in written
+    roundtrip = Database.from_string(written, fmt='tdb')
+    sort_key = lambda p: (p['parameter_type'], str(p['constituent_array']), p['parameter_order'])
+    for orig, new in zip(sorted(dbf._parameters.all(), key=sort_key), sorted(roundtrip._parameters.all(), key=sort_key)):
+        assert float(orig['parameter'].subs({v.T: 500})) == pytest.approx(float(new['parameter'].subs({v.T: 500})))
+
+
+def test_tdb_reader_ignores_composition_set_hints():
+    """PyCalphad TDB reader should ignore composition set hints"""
+    tdb_species_str = """
+    ELEMENT A FCC_A1 0 0 0 !
+    ELEMENT B FCC_A1 0 0 0 !
+    ELEMENT VA VACUUM 0 0 0 !
+
+    PHASE FCC_A1 ABCDE 2 1 1 !
+    CONSTITUENT FCC_A1 : A,B : VA : !
+
+    TYPE-DEF A GES AMEND_PHASE_DESCRIPTION FCC_A1 MAJOR_CONSTITUENT 1 A:VA: !
+    TYPE-DEF B GES AMEND_PHASE_DESCRIPTION FCC_A1 COMPOSITION_SETS 2 A:VA: !
+    TYPE-DEF C GES AMEND_PHASE_DESCRIPTION FCC_A1 C_S 2 A:VA: !
+    TYPE-DEF D GES AMEND_PHASE_DESCRIPTION FCC_A1 MAJ 1 A:VA: !
+    TYPE-DEF E GES AMEND_PHASE_DESCRIPTION FCC_A1 FRACTION_LIMITS A 0 1 B 0 0.5 !
+    """
+    test_dbf = Database.from_string(tdb_species_str, fmt='tdb')
+
+@select_database("MnTi-23Wal-3g.tdb")
+def test_tdb_reader_reads_legacy_never_disorder_status_bits(load_database):
+    """PyCalphad TDB reader should read legacy STATUS_BITS for never disorder phases"""
+    dbf = load_database()
+    assert dbf.phases["CBCC_A12"].model_hints.get("never_disorder") == True
+    assert dbf.phases["CBCC_A12"].model_hints.get("ordered_phase") == "CBCC_A12"
+    assert dbf.phases["CBCC_A12"].model_hints.get("disordered_phase") == "DIS_A12"

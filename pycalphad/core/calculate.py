@@ -12,7 +12,7 @@ from numpy import broadcast_to
 import pycalphad.variables as v
 from pycalphad import ConditionError
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
-from pycalphad.core.cache import cacheit
+from pycalphad.core.cache import lru_cache
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.polytope import sample
 from pycalphad.model import Model
@@ -61,7 +61,7 @@ def _get_local_constraint_equations(model, phase_local_conditions):
         phase_local_constraints.append(cons.expand())
     return phase_local_constraints
 
-@cacheit
+@lru_cache(maxsize=1024)
 def _sample_phase_constitution(model, sampler, fixed_grid, pdens, phase_local_conditions):
     """
     Sample the internal degrees of freedom of a phase.

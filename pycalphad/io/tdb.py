@@ -17,7 +17,7 @@ from pycalphad.io.database import DatabaseExportError
 from pycalphad.io.grammar import float_number, chemical_formula
 from pycalphad.variables import Species
 import pycalphad.variables as v
-from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
+from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES, TDB_PHASE_DESCRIPTIONS
 from pycalphad.core.utils import generate_symmetric_group
 from collections import defaultdict, namedtuple
 import ast
@@ -276,22 +276,29 @@ def _process_typedef(targetdb, typechar, line):
     phase names may be defined in this TYPE_DEF line.
 
     """
+    IGNORED_KEYWORDS = {
+        # PyCalphad does not use these hints
+        "COMPOSITION_SETS",
+        "MAJOR_CONSTITUENT",
+        "FRACTION_LIMITS"
+    }
+
     matching_phases = targetdb._typechar_map[typechar]
     del targetdb._typechar_map[typechar]
-    # GES A_P_D BCC_A2 MAGNETIC  -1    0.4
     tokens = line.replace(',', '').split()
     if len(tokens) < 4:
         return
-    #Don't process IF-THEN type definitions for now
+    if len(matching_phases) == 0:
+        warnings.warn(f"The type definition character `{typechar}` in `TYPE_DEFINITION {typechar} {line}` is not used by any phase.")
+    # Don't process IF-THEN type definitions for now
     if 'IF' in tokens or 'THEN' in tokens:
         warnings.warn("Type definitions using IF/THEN logic is not supported")
         return
-    keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC', 'NEVER_DISORDER'], tokens[3].upper())[0]
+    keyword = expand_keyword(TDB_PHASE_DESCRIPTIONS, tokens[3].upper())[0]
     if len(keyword) == 0:
         raise ValueError('Unknown type definition keyword: {}'.format(tokens[3]))
-    if len(matching_phases) == 0:
-        warnings.warn(f"The type definition character `{typechar}` in `TYPE_DEFINITION {typechar} {line}` is not used by any phase.")
-    if keyword == 'MAGNETIC':
+    elif keyword == 'MAGNETIC_ORDERING':
+        # GES A_P_D BCC_A2 MAGNETIC  -1    0.4
         # Magnetic model, both IHJ and Xiong models use these model hints when
         # constructing Model instances, despite being prefixed `ihj_magnetic_`
         model_hints = {
@@ -300,9 +307,8 @@ def _process_typedef(targetdb, typechar, line):
         }
         for phase_name in matching_phases:
             targetdb.phases[phase_name].model_hints.update(model_hints)
-
-    # GES A_P_D L12_FCC DIS_PART FCC_A1
-    if keyword == 'DISORDERED_PART':
+    elif keyword == 'DISORDERED_PART':
+        # GES A_P_D L12_FCC DIS_PART FCC_A1
         # order-disorder model: since we need to add model_hints to both the
         # ordered and disorderd phase, we special case to update the phase
         # names defined by the TYPE_DEF, rather than the updating the phases
@@ -321,9 +327,8 @@ def _process_typedef(targetdb, typechar, line):
             targetdb.phases[disordered_phase].model_hints.update(hint)
         else:
             raise ValueError(f"The {disordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
-
-    # GES A_P_D SIGMA_D8B NEVER_DIS SIGMA_DIS
-    if keyword == 'NEVER_DISORDER':
+    elif keyword == 'NEVER_DISORDER':
+        # GES A_P_D SIGMA_D8B NEVER_DIS SIGMA_DIS
         # never disorder model: since we need to add model_hints to both the
         # ordered and disorderd phase, we special case to update the phase
         # names defined by the TYPE_DEF, rather than the updating the phases
@@ -343,6 +348,25 @@ def _process_typedef(targetdb, typechar, line):
             targetdb.phases[disordered_phase].model_hints.update(hint)
         else:
             raise ValueError(f"The {disordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
+    elif keyword == "STATUS_BITS" and tokens[4] == "02200800":
+        # GES A_P_D ORD STATUS 02200800
+        # This is a legacy hint for NEVER_DISORDER that is assumed to be paired with a DIS_PART
+        # The status bit MUST be set on the ordered phase
+        ordered_phase = tokens[2].upper()
+        hint = {"never_disorder": True}
+        if ordered_phase in targetdb.phases:
+            targetdb.phases[ordered_phase].model_hints.update(hint)
+        else:
+            raise ValueError(f"The {ordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
+    elif keyword in IGNORED_KEYWORDS:
+        pass
+    else:
+        raise ValueError(
+            f"The type definition keyword {keyword} used by `TYPE_DEFINITION {typechar} {line}` used by the phases "
+            f"{matching_phases} is not handled by PyCalphad. If you need to use this feature, please report an issue: "
+            f"https://github.com/pycalphad/pycalphad/issues"
+            )
+
 
 
 phase_options = {'ionic_liquid_2SL': 'Y',
