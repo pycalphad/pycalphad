@@ -29,8 +29,15 @@ functions or PhaseRecords. The following issues track this behavior:
 """
 from pycalphad.core.cache import cacheit
 from pycalphad.core.utils import wrap_symbol
-from symengine import ComplexDouble, sympify, lambdify, I, zoo, oo, have_llvm
+import hashlib
+from operator import itemgetter
+from symengine import Add, Basic, ComplexDouble, Mul, Piecewise, RealDouble, sympify, lambdify, I, zoo, oo, have_llvm
 from collections import namedtuple
+
+_ComplexInfinity = type(zoo)
+# SymEngine's own hash. pycalphad's Symbol subclasses override __hash__ with Python's string hash,
+# which varies between processes (PYTHONHASHSEED); SymEngine's does not.
+_symengine_hash = Basic.__hash__
 
 BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
 ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac', 'cons_hess'])
@@ -50,6 +57,68 @@ def _get_lambidfy_options(user_options):
     if user_options['backend'] == 'llvm':
         user_options.setdefault('opt_level', LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL)
     return user_options
+
+
+def _canonical_real_graph(expr):
+    """Prepare ``expr`` for compilation: replace complex infinity with real infinity, drop the imaginary
+    parts of complex numbers, and rebuild every sum and product with its terms in a canonical order.
+
+    SymEngine cannot lambdify complex numbers, and integer exponents expressed as doubles can evaluate
+    to negligible (1e-16*j) complex parts, which raise runtime errors for ``lambdify(..., real=True)``.
+    Dropping them would also drop legitimate complex numbers (e.g. negative bases for non-integer
+    exponents), but we have been doing this all along internally inside ``lambdify``.
+
+    SymEngine stores the terms of ``Add`` and ``Mul`` in an order that depends on how an expression was
+    built. Equality, hashing and printing ignore that order, but compiled functions evaluate the terms in
+    it, and floating point addition and multiplication are not associative. Equal expressions built
+    differently (e.g. from databases that write the same parameters differently) could then compile to
+    functions that round differently, and because compiled functions are cached by equality, results
+    could depend on what was compiled earlier in the process.
+
+    Terms are ordered by their SymEngine hash, which depends only on their content (also between
+    processes); ties, which are rare, are broken by a digest of the content. All of this is done in a single pass over the expression.
+    """
+    rebuilt = {}
+    digests = {}
+
+    def digest(e):
+        key = digests.get(e)
+        if key is None:
+            if not e.args:
+                text = float(e).hex() if isinstance(e, RealDouble) else str(e)
+                key = hashlib.sha1(f'{type(e).__name__}:{text}'.encode()).hexdigest()
+            else:
+                children = [digest(a) for a in e.args]
+                if isinstance(e, (Add, Mul)):
+                    children.sort()
+                key = hashlib.sha1(f'{type(e).__name__}({",".join(children)})'.encode()).hexdigest()
+            digests[e] = key
+        return key
+
+    def rebuild(e):
+        if isinstance(e, _ComplexInfinity):  # zoo has an argument, so check it before treating e as a leaf
+            return oo
+        args = e.args
+        if not args:
+            if isinstance(e, ComplexDouble):
+                return e.xreplace({I: 0.0})
+            return e
+        out = rebuilt.get(e)
+        if out is None:
+            args = [rebuild(a) for a in args]
+            if isinstance(e, (Add, Mul)):
+                keys = [_symengine_hash(a) for a in args]
+                if len(set(keys)) < len(keys):
+                    keys = [(k, digest(a)) for k, a in zip(keys, args)]
+                out = type(e)(*[a for _, a in sorted(zip(keys, args), key=itemgetter(0))])
+            elif isinstance(e, Piecewise):
+                out = Piecewise(*zip(args[0::2], args[1::2]))
+            else:
+                out = type(e)(*args)
+            rebuilt[e] = out
+        return out
+
+    return rebuild(expr)
 
 
 @cacheit
@@ -113,20 +182,7 @@ def build_functions(symengine_graph, variables, parameters=None, wrt=None,
     # replacement is assumed to be cheap enough that it's safer to replace the
     # complex values and pay the minor time penalty.
     inp = sympify(variables + parameters)
-    graph = sympify(symengine_graph).xreplace({zoo: oo})
-    # We also replace all complex parts of complex numbers with (real) zero,
-    # to address a bug where integer exponents expressed as doubles can evaluate
-    # to have negligible (1e-16*j) complex parts, which raises runtime errors
-    # for the default lambdify(..., real=True).
-    # In practice, this is probably a reasonable workaround, but would drop
-    # cases where we have legitimate, non-negligble complex numbers (e.g. negative
-    # bases for non-integer exponents). Although we have been doing this all
-    # along internally inside `lambdify`.
-    # We have to do this graph.atoms() method to get complex numbers because
-    # just calling xreplace(I, 0.0) doesn't work in SymEngine for some deeply
-    # nested `I`.
-    # We assume that differentiating does create new complex numbers.
-    graph = graph.xreplace({x: x.xreplace({I: 0.0}) for x in graph.atoms(ComplexDouble)})
+    graph = _canonical_real_graph(sympify(symengine_graph))
     func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
     if include_grad or include_hess:
         grad_graphs = list(graph.diff(w).xreplace({zoo: oo}) for w in wrt)
@@ -182,7 +238,7 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     # replacement is assumed to be cheap enough that it's safer to replace the
     # complex values and pay the minor time penalty.
     inp = sympify(variables + parameters)
-    graph = sympify([sympify(f).xreplace({zoo: oo}) for f in constraints])
+    graph = sympify([_canonical_real_graph(sympify(f)) for f in constraints])
     constraint_func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
 
     grad_graphs = list(list(c.diff(w).xreplace({zoo: oo}) for w in wrt) for c in graph)
