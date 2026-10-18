@@ -52,9 +52,6 @@ def _get_lambidfy_options(user_options):
     return user_options
 
 
-# A system with many phases needs more than the default 100 compiled functions (111 for
-# Al-Cr-Ni with all phases of alcocrni.tdb); evicting them makes each new
-# PhaseRecordFactory (e.g. from each equilibrium() call) compile them again.
 @lru_cache(maxsize=512)
 def build_functions(symengine_graph, variables, parameters=None, wrt=None,
                     include_obj=True, include_grad=False, include_hess=False,
