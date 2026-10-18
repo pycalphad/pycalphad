@@ -1419,7 +1419,7 @@ def test_eq_charged_phase_negative_phase_amount_zero_division(load_database):
 
 
 def test_eq_more_than_25_unknowns():
-    "Equilibrium with 26 unknowns (13 components, 13 stable phases), above LAPACK's crossover size in dgelsd"
+    "Equilibrium with 26 unknowns (13 components, 13 stable phases), above reference LAPACK's SMLSIZ crossover in dgelsd"
     comps = list("ABCDEFGHIJKLM")
     TDB = "".join(f"ELEMENT {c} BLANK 0 0 0 !\nPHASE PURE_{c} % 1 1 !\nCONSTITUENT PURE_{c} :{c}: !\n"
                   f"PARAMETER G(PURE_{c},{c};0) 1 {-1000*(i+1)}; 6000 N !\n" for i, c in enumerate(comps))
