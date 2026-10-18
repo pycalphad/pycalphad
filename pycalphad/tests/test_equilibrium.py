@@ -1418,7 +1418,6 @@ def test_eq_charged_phase_negative_phase_amount_zero_division(load_database):
     assert_allclose(wks.get(v.X("TI")), 0.375, atol=1e-8)
 
 
-@pytest.mark.solver
 def test_eq_more_than_25_unknowns():
     "Equilibrium with 26 unknowns (13 components, 13 stable phases), above LAPACK's crossover size in dgelsd"
     comps = list("ABCDEFGHIJKLM")
