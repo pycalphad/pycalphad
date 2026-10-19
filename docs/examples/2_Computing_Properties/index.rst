@@ -10,3 +10,4 @@ Computing Properties
    4_EquilibriumWithOrdering
    5_ViscosityModel
    6_LegacyEnergySurface
+   7_ButlerSurfaceTension
