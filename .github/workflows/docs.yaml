@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0  # fetch the entire repo history, required to guarantee versioneer will pick up the tags
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.13'
           enable-cache: true
       - run: sudo wget https://github.com/jgm/pandoc/releases/download/2.18/pandoc-2.18-1-amd64.deb
       - run: sudo dpkg -i pandoc-2.18-1-amd64.deb
