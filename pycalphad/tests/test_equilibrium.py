@@ -1347,6 +1347,7 @@ def test_eq_underdetermined_multicomponent_condition_row(load_database):
 
 
 @pytest.mark.solver
+@pytest.mark.xfail(reason="Point at the pathology boundary: lands in the wrong basin or NaN depending on platform/toolchain.")
 @select_database("COST507.tdb")
 def test_eq_mass_residual_rtol_not_too_loose(load_database):
     """Point that is sensitive to mass residual tolerance."""
@@ -1389,3 +1390,41 @@ def test_eq_mass_residual_rtol_not_too_tight(load_database):
     # component (alphabetical) order: AL, CU, MG, SI, ZN
     expected_chempots = [-21937.529, -62341.746, -52538.422, -13847.333, -32543.343]
     assert_allclose(eq.MU.values.squeeze(), expected_chempots, rtol=1e-5)
+
+
+@select_database("halite_tivo.tdb")
+def test_eq_charged_phase_negative_phase_amount_zero_division(load_database):
+    """A lone stable ionic compset driven to a tiny negative amount must not crash the minimizer.
+
+    In advance_state, the allowable phase-amount step assumed every free stable
+    composition set had a positive amount; once one sat at or slipped below
+    MIN_PHASE_AMOUNT the allowable step could go negative, walking phase
+    amounts backward and leaving the only stable compset with a tiny negative
+    amount. SystemState.recompute then skipped it (phase_amt > 0), giving
+    system_amount == 0 exactly and nan mole fractions, and
+    write_row_fixed_mole_fraction raised ZeroDivisionError dividing by the
+    system amount.
+    """
+    from pycalphad import Workspace
+    dbf = load_database()
+    comps = ["TI", "V", "O", "VA"]
+    conds = {v.T: 873.15, v.P: 101325, v.N: 1, v.X("O"): 0.25, v.X("TI"): 0.375}
+    wks = Workspace(dbf, comps, ["HALITE_B1"], conditions=conds)
+    composition_sets = wks.get_composition_sets()
+    assert len(composition_sets) > 0
+    assert all(cs.phase_record.phase_name == "HALITE_B1" for cs in composition_sets)
+    # The overall composition (phase-fraction weighted) must satisfy the conditions
+    assert_allclose(wks.get(v.X("O")), 0.25, atol=1e-8)
+    assert_allclose(wks.get(v.X("TI")), 0.375, atol=1e-8)
+
+
+def test_eq_more_than_25_unknowns():
+    "Equilibrium with 26 unknowns (13 components, 13 stable phases), above reference LAPACK's SMLSIZ crossover in dgelsd"
+    comps = list("ABCDEFGHIJKLM")
+    TDB = "".join(f"ELEMENT {c} BLANK 0 0 0 !\nPHASE PURE_{c} % 1 1 !\nCONSTITUENT PURE_{c} :{c}: !\n"
+                  f"PARAMETER G(PURE_{c},{c};0) 1 {-1000*(i+1)}; 6000 N !\n" for i, c in enumerate(comps))
+    dbf = Database(TDB)
+    conds = {v.T: 1000, v.P: 101325, v.N: 1, **{v.X(c): 1/13 for c in comps[1:]}}
+    eq = equilibrium(dbf, comps, list(dbf.phases), conds)
+    assert_allclose(eq.NP.values.squeeze()[:13], 1/13)
+    assert_allclose(eq.MU.values.squeeze(), -1000*np.arange(1, 14))

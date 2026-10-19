@@ -76,7 +76,7 @@ class Component(object):
         return not self.__eq__(other)
 
     def __lt__(self, other):
-        return self.name < other.name
+        return self.escaped_name < other.escaped_name
 
     def __str__(self):
         return self.name
@@ -175,7 +175,8 @@ class Species(object):
         return not self.__eq__(other)
 
     def __lt__(self, other):
-        return self.name < other.name
+        # escaped_name to match sorting order of SiteFraction objects
+        return self.escaped_name < other.escaped_name
 
     def __str__(self):
         return self.name

@@ -27,7 +27,7 @@ functions or PhaseRecords. The following issues track this behavior:
 * SymEngine.py: https://github.com/symengine/symengine.py/issues/294
 
 """
-from pycalphad.core.cache import cacheit
+from pycalphad.core.cache import cacheit, lru_cache
 from pycalphad.core.utils import wrap_symbol
 from symengine import ComplexDouble, sympify, lambdify, I, zoo, oo, have_llvm
 from collections import namedtuple
@@ -52,7 +52,7 @@ def _get_lambidfy_options(user_options):
     return user_options
 
 
-@cacheit
+@lru_cache(maxsize=512)
 def build_functions(symengine_graph, variables, parameters=None, wrt=None,
                     include_obj=True, include_grad=False, include_hess=False,
                     func_options=None, grad_options=None, hess_options=None):

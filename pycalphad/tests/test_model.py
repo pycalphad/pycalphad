@@ -245,7 +245,7 @@ def test_error_raised_for_higher_order_reciprocal_parameter():
 
     PARAMETER G(PHASE_SUBLATTICE,MO,NB:NB,AL:C,VA;1) 298.15 -300000; 6000 N !
 
-    PHASE PHASE_HIGH_ORDER % 3 1 1 1 !
+    PHASE PHASE_HIGH_ORDER % 2 1 1 !
     CONSTITUENT PHASE_HIGH_ORDER : MO,NB : C,VA : !
 
     PARAMETER G(PHASE_HIGH_ORDER,MO,NB:C,VA;3) 298.15 -300000; 6000 N !
