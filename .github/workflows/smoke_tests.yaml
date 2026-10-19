@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v7
         with:
+          python-version: '3.13'
           ignore-empty-workdir: "true"  # resolve warning about "Empty workdir detected. This may cause unexpected behavior. You can enable ignore-empty-workdir to mute this warning."
           cache-dependency-glob: ""  # resolve warning about "No file matched to ... The cache will never get invalidated. Make sure you have checked out the target repository and configured the cache-dependency-glob input correctly."
       - run: uv init --bare --name smoke-test
