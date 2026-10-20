@@ -1,13 +1,6 @@
-"""Energy-model regression tests.
-
-Purpose: Verify that Model implementations produce the expected symbolic
-energy expressions and fail clearly for invalid model inputs.
-Created: Pre-existing; original creation date and authorship are unknown.
-Authoring agent/model: Header last materially updated by OpenAI Codex
-(gpt-5.6-sol) on 2026-10-10.
-Rationale: Keep energy-model behavior and input-validation contracts covered.
-Inputs: Test thermodynamic databases, model configurations, and state values.
-Outputs: Pytest assertions and regression failures; no persistent side effects.
+"""
+The energy test module verifies that the Model class produces the
+correct abstract syntax tree for the energy.
 """
 
 import pytest

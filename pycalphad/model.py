@@ -1,15 +1,6 @@
-"""Build symbolic thermodynamic models from a Database.
-
-Purpose: Provide phase-model construction and thermodynamic contributions for
+"""
+The model module provides support for using a Database to perform
 calculations under specified conditions.
-Created: Pre-existing; original creation date and authorship are preserved in
-the repository history.
-Authoring agent/model: Header last materially updated by OpenAI Codex
-(gpt-5.6-sol) on 2026-10-10.
-Rationale: Centralize model semantics, validation, and symbolic properties.
-Inputs: Database phase definitions, active components, and parameter overrides.
-Outputs: Symbolic Model objects and deterministic validation errors; no
-persistent side effects.
 """
 import copy
 import warnings
