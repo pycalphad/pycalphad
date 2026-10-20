@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.mapping.zpf_equilibrium - pycalphad 0.11.3.dev27+g360937b0d documentation</title>
+        <title>pycalphad.mapping.zpf_equilibrium - pycalphad 0.11.3.dev29+g5b34b27c1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev27+g360937b0d documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev29+g5b34b27c1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev27+g360937b0d documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev29+g5b34b27c1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -432,14 +432,14 @@
     <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">))</span>
     <span class="n">dGs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">)</span> <span class="o">-</span> <span class="n">gm</span>
 
-    <span class="c1"># Get list of phase indices for each unique phase as candidates</span>
-    <span class="c1"># 1. Sort the phase ID array by driving force</span>
-    <span class="c1"># 2. Get all the unique phases in the truncated sorted ID array (truncated by number of candidates)</span>
-    <span class="c1"># 3. For each phase, get the first index it shows up</span>
-    <span class="c1">#    The index will correspond to the sorted_indices list, so we have to get the unsorted index</span>
-    <span class="c1">#    From there</span>
-    <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">dGs</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">sorted_phases</span> <span class="o">=</span> <span class="n">phase_ids</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">][:</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">num_candidates</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_indices</span><span class="p">)])]</span>
+    <span class="c1"># Get the sample with the largest driving force for each candidate phase</span>
+    <span class="c1"># from the top num_candidates samples by driving force.</span>
+    <span class="c1"># Avoid sorting the whole list for performance.</span>
+    <span class="n">num_candidates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">([</span><span class="n">num_candidates</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dGs</span><span class="p">)])</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">dGs</span><span class="p">,</span> <span class="o">-</span><span class="n">num_candidates</span><span class="p">)[</span><span class="o">-</span><span class="n">num_candidates</span><span class="p">]</span>
+    <span class="n">top_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">dGs</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">)</span>
+    <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">top_indices</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">dGs</span><span class="p">[</span><span class="n">top_indices</span><span class="p">],</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]][:</span><span class="n">num_candidates</span><span class="p">]</span>
+    <span class="n">sorted_phases</span> <span class="o">=</span> <span class="n">phase_ids</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">]</span>
     <span class="n">unique_phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">sorted_phases</span><span class="p">)</span>
     <span class="n">phase_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">sorted_phases</span> <span class="o">==</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">unique_phases</span><span class="p">]</span>
 
@@ -731,7 +731,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=3545ff50"></script>
+</div><script src="../../../_static/documentation_options.js?v=dca78736"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
