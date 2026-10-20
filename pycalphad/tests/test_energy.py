@@ -567,6 +567,25 @@ def test_ionic_liquid_vacancy_neutral_interaction(load_database):
     check_energy(mod, dof, -299252.28)  # Thermo-Calc checked using set-start-value and show-value gm(ionic_liq)
 
 
+@pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
+@select_database("Al-Fe-O_Lindwall2015.tdb")
+def test_ionic_liquid_cation_cation_vacancy_interaction(load_database):
+    """Test that a cation,cation:vacancy interaction in a two sublattice ionic liquid produces the correct Gibbs energy"""
+    dbf = load_database()
+    # Uses the sublattice model (AL+3, FE+2)(O-2, VA, ALO3/2, FEO3/2)
+    mod = Model(dbf, ['AL', 'FE', 'O', 'VA'], 'IONIC_LIQ')
+    dof = {
+        v.T: 2000, v.P: 101325,
+        v.Y('IONIC_LIQ', 0, v.Species('AL+3', {'AL': 1.0}, charge=3)): 0.25,
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', {'FE': 1.0}, charge=2)): 0.75,
+        v.Y('IONIC_LIQ', 1, v.Species('O-2', {'O': 1.0}, charge=-2)): 0.5,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.5,
+        v.Y('IONIC_LIQ', 1, v.Species('ALO3/2', {'AL': 1.0, 'O': 1.5})): 1e-12,
+        v.Y('IONIC_LIQ', 1, v.Species('FEO3/2', {'FE': 1.0, 'O': 1.5})): 1e-12,
+    }
+    check_energy(mod, dof, -229223.95)  # Thermo-Calc checked using set-start-value and show-value gm(ionic_liq)
+
+
 def test_order_disorder_interstitial_sublattice():
     """Test that non-vacancy elements are supported on interstitial sublattices"""
 

@@ -920,6 +920,9 @@ class Model(object):
                     elif va_subl_idx > -1:
                         for sym in charged_symbols:
                             pair_rule[sym] = sym * v.SiteFraction(sym.phase_name, va_subl_idx, v.Species('VA'))
+                        if va_present:
+                            # Each cation is paired with its own VA, which replaces the explicit VA
+                            mixing_term /= v.SiteFraction(phase.name, va_subl_idx, v.Species('VA'))
                     mixing_term = mixing_term.xreplace(pair_rule)
                     # This parameter is normalized differently due to the variable charge valence of vacancies
                     mixing_term *= self.site_ratios[va_subl_idx]
