@@ -58,11 +58,6 @@ ElementReferenceData = TypedDict('ElementReferenceData', {'phase': str, 'mass': 
 
 
 class DiffusionModel(NamedTuple):
-    """Diffusion model of a phase, stored in ``Phase.model_hints['diffusion']``.
-
-    A phase without the hint has no diffusion model given; ``model='NONE'`` means no diffusion in the phase.
-    A ``None`` species in ``magnetic_alpha`` or ``magnetic_alpha_2`` means the value names no specific species.
-    """
     model: Literal["NONE", "DILUTE", "SIMPLE", "MAGNETIC"]
     magnetic_alpha: tuple[tuple[Optional[Species], float], ...] = ()  # MAGNETIC only
     magnetic_alpha_2: tuple[tuple[Optional[Species], float], ...] = ()  # MAGNETIC only

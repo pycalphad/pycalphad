@@ -243,17 +243,14 @@ def _tdb_grammar(): #pylint: disable=R0914
     # ZEROVOLUME_SPECIES
     cmd_zerovolume = TCCommand('ZEROVOLUME_SPECIES') + SkipTo(LineEnd())
     # DIFFUSION
-    # phase names take no phase options and species names take no wildcard
-    diffusion_phase_name = Word(alphanums+'_-()/', min=1)
-    diffusion_species_name = Word(alphanums+'+-/_.', min=1)
     diffusion_coefficient = Group((CaselessKeyword('ALPHA2') | CaselessKeyword('ALPHA')) + \
-        Optional(Suppress('&') + diffusion_species_name, default=None) + \
+        Optional(Suppress('&') + species_name, default=None) + \
         Suppress('=') + float_number)
     cmd_diffusion = TCCommand('DIFFUSION') + \
-        ((CaselessKeyword('NONE') + diffusion_phase_name) | \
-         ((CaselessKeyword('DILUTE') | CaselessKeyword('SIMPLE')) + diffusion_phase_name + \
-          Group(Suppress(':') + OneOrMore(diffusion_species_name + Suppress(':')))) | \
-         (CaselessKeyword('MAGNETIC') + diffusion_phase_name + Group(OneOrMore(diffusion_coefficient)))) + \
+        ((CaselessKeyword('NONE') + symbol_name) | \
+         ((CaselessKeyword('DILUTE') | CaselessKeyword('SIMPLE')) + symbol_name + \
+          Group(Suppress(':') + OneOrMore(species_name + Suppress(':')))) | \
+         (CaselessKeyword('MAGNETIC') + symbol_name + Group(OneOrMore(diffusion_coefficient)))) + \
         LineEnd()
     # Now combine the grammar together
     all_commands = cmd_element | \
@@ -432,13 +429,12 @@ def _process_diffusion(targetdb, model, phase_name, arguments=()):
     """
     Process the DIFFUSION command.
 
-    DIFFUSION commands precede the PHASE commands, so the arguments are queued
-    and the DiffusionModel is built once all phases are defined.
+    DIFFUSION commands can precede the PHASE commands, so the arguments are
+    queued and the DiffusionModel is built once all phases are defined.
     """
     phase_name = phase_name.upper()
     if model == 'MAGNETIC':
-        arguments = [(keyword, None if species is None else species.upper(), value)
-                     for keyword, species, value in arguments]
+        arguments = [(keyword, None if species is None else species.upper(), value) for keyword, species, value in arguments]
         given = set()
         for keyword, species, _ in arguments:
             if (keyword, species) in given:
