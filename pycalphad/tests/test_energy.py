@@ -13,62 +13,6 @@ import numpy as np
 from pycalphad.models.model_mqmqa import ModelMQMQA
 
 
-def test_ionic_cation_neutral_matches_regular_solution():
-    """A cation-neutral 2SL ionic liquid reduces to a regular solution.
-
-    This synthetic test exercises the binary special case described in
-    pycalphad issue 647 without relying on an assessed or proprietary database.
-    """
-    tdb = """
-ELEMENT VA VACUUM 0 0 0 !
-ELEMENT A A 1 0 0 !
-ELEMENT B B 1 0 0 !
-SPECIES A+1 A1/+1 !
-TYPE_DEFINITION % SEQ * !
-PHASE SUBS % 1 1 !
-CONSTITUENT SUBS : A, B : !
-PHASE IONIC:Y % 2 1 1 !
-CONSTITUENT IONIC:Y : A+1 : VA, B : !
-PARAMETER G(SUBS,A;0) 298.15 0; 6000 N !
-PARAMETER G(SUBS,B;0) 298.15 0; 6000 N !
-PARAMETER L(SUBS,A,B;0) 298.15 10000; 6000 N !
-PARAMETER L(SUBS,A,B;1) 298.15 2000; 6000 N !
-PARAMETER G(IONIC,A+1:VA;0) 298.15 0; 6000 N !
-PARAMETER G(IONIC,B;0) 298.15 0; 6000 N !
-PARAMETER L(IONIC,A+1:VA,B;0) 298.15 10000; 6000 N !
-PARAMETER L(IONIC,A+1:VA,B;1) 298.15 2000; 6000 N !
-"""
-    dbf = Database(tdb)
-    regular = Model(dbf, ["A", "B"], "SUBS")
-    ionic = Model(dbf, ["A", "B", "VA"], "IONIC")
-    cation = v.Species("A+1", {"A": 1.0}, charge=1)
-    temperature = 1000.0
-    x_c = np.array([0.01, 0.2, 0.5, 0.8, 0.99])
-    x_b = 1.0 - x_c
-    expected = (
-        float(v.R) * temperature * (x_c * np.log(x_c) + x_b * np.log(x_b))
-        + x_c * x_b * (10000.0 + 2000.0 * (x_c - x_b))
-    )
-    regular_values = []
-    ionic_values = []
-    for x_c_i, x_b_i in zip(x_c, x_b):
-        regular_values.append(float(regular.GM.subs({
-            v.T: temperature,
-            v.Y("SUBS", 0, "A"): x_c_i,
-            v.Y("SUBS", 0, "B"): x_b_i,
-        })))
-        ionic_values.append(float(ionic.GM.subs({
-            v.T: temperature,
-            v.Y("IONIC", 0, cation): 1.0,
-            v.Y("IONIC", 1, "VA"): x_c_i,
-            v.Y("IONIC", 1, "B"): x_b_i,
-        })))
-
-    np.testing.assert_allclose(regular_values, expected, rtol=1e-10, atol=1e-7)
-    np.testing.assert_allclose(ionic_values, expected, rtol=1e-10, atol=1e-7)
-    np.testing.assert_allclose(ionic_values, regular_values, rtol=1e-10, atol=1e-7)
-
-
 def make_callable(model, variables, mode=None):
     energy = lambda *vs: model.subs(dict(zip(variables, vs))).n(real=True)
     return energy
@@ -604,6 +548,23 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
     }
     out = np.array(mod.GM.subs({**potentials, **eq_sf_2}).n(real=True), dtype=np.complex128)
     assert np.isclose(out, -104229.18, atol=0.1)
+
+
+@pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
+@select_database("Al-Fe-O_Lindwall2015.tdb")
+def test_ionic_liquid_vacancy_neutral_interaction(load_database):
+    """Test that a cation:vacancy,neutral interaction in a two sublattice ionic liquid produces the correct Gibbs energy"""
+    dbf = load_database()
+    # Uses the sublattice model (AL+3)(O-2, VA, ALO3/2)
+    mod = Model(dbf, ['AL', 'O', 'VA'], 'IONIC_LIQ')
+    dof = {
+        v.T: 2000, v.P: 101325,
+        v.Y('IONIC_LIQ', 0, v.Species('AL+3', {'AL': 1.0}, charge=3)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('O-2', {'O': 1.0}, charge=-2)): 1e-12,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.5,
+        v.Y('IONIC_LIQ', 1, v.Species('ALO3/2', {'AL': 1.0, 'O': 1.5})): 0.5,
+    }
+    check_energy(mod, dof, -299252.28)  # Thermo-Calc checked using set-start-value and show-value gm(ionic_liq)
 
 
 def test_order_disorder_interstitial_sublattice():
