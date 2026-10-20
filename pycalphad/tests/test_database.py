@@ -15,6 +15,7 @@ from pycalphad import Database, Model, calculate, variables as v
 from pycalphad.variables import Species
 from pycalphad.io.tdb import expand_keyword, reflow_text, TCPrinter
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
+from pycalphad.io.database import DiffusionModel
 import pycalphad.tests.databases
 from pycalphad.tests.fixtures import select_database, load_database
 
@@ -896,17 +897,128 @@ def test_long_constituent_line_writes_correctly():
     assert len(dbf.elements) == len(reloaded_dbf.elements)
     assert len(dbf.phases['LIQUID'].constituents[0]) == len(reloaded_dbf.phases['LIQUID'].constituents[0])
 
-def test_database_passes_with_diffusion_commands():
-    "DIFFUSION and ZEROVOLUME_SPECIES commands do not raise errors while parsing (doesn't test implementation)."
+def test_database_passes_with_zerovolume_species_commands():
+    "ZEROVOLUME_SPECIES commands do not raise errors while parsing (doesn't test implementation)."
     tdb_string = """
      ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
      ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
 
      ZEROVOLUME_SPECIES VA !
-     DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 !
     """
 
     dbf = Database.from_string(tdb_string, fmt='tdb')
+
+DIFFUSION_ELEMENTS_TDB = """
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00 !
+ ELEMENT FE   BCC_A2                    5.5847E+01  4.4890E+03  2.7280E+01 !
+ ELEMENT C    GRAPHITE                  1.2011E+01  1.0540E+03  5.7400E+00 !
+ ELEMENT N    1/2_MOLE_N2(G)            1.4007E+01  4.3350E+03  9.5751E+01 !
+"""
+
+DIFFUSION_PHASES_TDB = """
+ PHASE BCC_A2 %  2 1 3 !
+ CONSTITUENT BCC_A2 :FE:C,N,VA: !
+ PHASE FCC_A1 %  2 1 1 !
+ CONSTITUENT FCC_A1 :FE:C,N,VA: !
+ PHASE CEMENTITE %  2 3 1 !
+ CONSTITUENT CEMENTITE :FE:C: !
+ PHASE DIAMOND_A4 %  1 1 !
+ CONSTITUENT DIAMOND_A4 :C: !
+"""
+
+
+def _diffusion_tdb(*commands):
+    "A TDB with the given DIFFUSION commands between the elements and the phases they name."
+    return DIFFUSION_ELEMENTS_TDB + ''.join(f' {command}\n' for command in commands) + DIFFUSION_PHASES_TDB
+
+
+DIFFUSION_COMMANDS_TDB = _diffusion_tdb(
+    'DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 ALPHA2&C=1.8 ALPHA2&N=0.6 !',
+    'DIFFUSION DILUTE CEMENTITE :FE:C: !',
+    'DIFFUSION NONE DIAMOND_A4 !',
+)
+
+
+def test_diffusion_commands_become_phase_model_hints():
+    "Each DIFFUSION command in a file is put on the phase it names, and a phase without one has no hint."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    assert dbf.phases['BCC_A2'].model_hints['diffusion'].model == 'MAGNETIC'
+    assert dbf.phases['CEMENTITE'].model_hints['diffusion'].model == 'DILUTE'
+    assert dbf.phases['DIAMOND_A4'].model_hints['diffusion'].model == 'NONE'
+    assert 'diffusion' not in dbf.phases['FCC_A1'].model_hints
+    hash(dbf.phases['BCC_A2'])
+
+
+# as written in published mobility databases
+PUBLISHED_DIFFUSION_COMMANDS = [
+    ('DIFFUSION DILUTE CEMENTITE :FE:C: !', 'CEMENTITE',
+     DiffusionModel('DILUTE', dependent_constituents=(Species('FE'), Species('C')))),
+    ('DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 ALPHA2&C=1.8 ALPHA2&N=0.6 !', 'BCC_A2',
+     DiffusionModel('MAGNETIC', magnetic_alpha=((None, 0.3),), magnetic_alpha_2=((Species('C'), 1.8), (Species('N'), 0.6)))),
+]
+
+
+@pytest.mark.parametrize('command, phase_name, expected', PUBLISHED_DIFFUSION_COMMANDS + [
+    # MAGNETIC needs only one of ALPHA and ALPHA2
+    ('DIFFUSION MAGNETIC BCC_A2 ALPHA2=1.8 !', 'BCC_A2',
+     DiffusionModel('MAGNETIC', magnetic_alpha_2=((None, 1.8),))),
+    ('DIFFUSION SIMPLE CEMENTITE :FE:C: !', 'CEMENTITE',
+     DiffusionModel('SIMPLE', dependent_constituents=(Species('FE'), Species('C')))),
+    ('DIFFUSION DILUTE CEMENTITE : FE : C : !', 'CEMENTITE',
+     DiffusionModel('DILUTE', dependent_constituents=(Species('FE'), Species('C')))),
+])
+def test_diffusion_commands_are_read(command, phase_name, expected):
+    "A DIFFUSION command is read into a DiffusionModel on the phase it names."
+    dbf = Database.from_string(_diffusion_tdb(command), fmt='tdb')
+    assert dbf.phases[phase_name].model_hints['diffusion'] == expected
+
+
+@pytest.mark.parametrize('command', [command for command, _, _ in PUBLISHED_DIFFUSION_COMMANDS])
+def test_published_diffusion_commands_are_written_back_unchanged(command):
+    "A DIFFUSION command from a published database is written back in the same form."
+    dbf = Database.from_string(_diffusion_tdb(command), fmt='tdb')
+    assert command in dbf.to_string(fmt='tdb')
+
+
+def test_diffusion_commands_roundtrip():
+    "DIFFUSION commands survive a write/read cycle."
+    dbf = Database.from_string(DIFFUSION_COMMANDS_TDB, fmt='tdb')
+    reloaded = Database.from_string(dbf.to_string(fmt='tdb'), fmt='tdb')
+    assert reloaded.phases == dbf.phases
+    assert reloaded == dbf
+
+
+def test_second_diffusion_command_for_a_phase_warns_and_replaces_the_first():
+    "When a phase has two DIFFUSION commands, the last one is used."
+    tdb_string = _diffusion_tdb('DIFFUSION NONE CEMENTITE !', 'DIFFUSION DILUTE CEMENTITE :FE:C: !')
+    with pytest.warns(UserWarning, match='more than one DIFFUSION command'):
+        dbf = Database.from_string(tdb_string, fmt='tdb')
+    assert dbf.phases['CEMENTITE'].model_hints['diffusion'].model == 'DILUTE'
+
+
+@pytest.mark.parametrize('command', [
+    'DIFFUSION MAGNETIC !',  # no phase
+    'DIFFUSION FULL BCC_A2 !',  # unknown model
+    'DIFFUSION NONE DIAMOND_A4 ALPHA=0.3 !',  # arguments on NONE
+    'DIFFUSION MAGNETIC BCC_A2 !',  # neither ALPHA nor ALPHA2
+    'DIFFUSION MAGNETIC BCC_A2 :FE:C: !',  # constituent array on MAGNETIC
+    'DIFFUSION MAGNETIC BCC_A2 BETA=0.3 !',  # unknown coefficient
+    'DIFFUSION DILUTE CEMENTITE !',  # no constituent array
+    'DIFFUSION DILUTE CEMENTITE ALPHA=0.3 !',  # coefficients on DILUTE
+    'DIFFUSION SIMPLE BCC_A2 :FE,C:VA: !',  # two dependent species in a sublattice
+    'DIFFUSION NONE LIQUID !',  # undefined phase
+    'DIFFUSION DILUTE CEMENTITE :FE: !',  # one dependent species for two sublattices
+    'DIFFUSION DILUTE CEMENTITE :C:FE: !',  # dependent species outside its sublattice
+    'DIFFUSION MAGNETIC BCC_A2 ALPHA2&B=0.6 !',  # species outside the phase
+    'DIFFUSION MAGNETIC BCC_A2 ALPHA=0.3 ALPHA=0.4 !',  # bare ALPHA twice
+    'DIFFUSION MAGNETIC BCC_A2 ALPHA2&C=1.8 ALPHA2&C=0.6 !',  # species named twice
+])
+def test_invalid_diffusion_command_raises(command):
+    "A DIFFUSION command outside the Thermo-Calc syntax, or inconsistent with the database, is an error."
+    with pytest.raises((ParseException, ValueError)):
+        Database.from_string(_diffusion_tdb(command), fmt='tdb')
+
 
 def test_tc_printer_no_division_symbols():
     "TCPrinter does not produce division symbols in string output of symbolic expressions."
