@@ -967,7 +967,8 @@ def test_MQMQA_ternary_equilibrium_xs_symm_123(load_database):
     assert np.allclose(eq.Y.values.squeeze()[0, :], [0.25023, 0.19915, 0.30039, 4.0755E-02, 0.11934, 9.0136E-02], atol=1e-5)  # Thermochimica result
 
 @pytest.mark.solver
-@select_database("alfeo.tdb")
+@pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
+@select_database("Al-Fe-O_Lindwall2015.tdb")
 def test_eq_charge_halite(load_database):
     """Halite (with charged species) is correctly calculated and charged balanced in equilibrium"""
     alfeo = load_database()
@@ -979,7 +980,8 @@ def test_eq_charge_halite(load_database):
 
 
 @pytest.mark.solver
-@select_database("alfeo.tdb")
+@pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
+@select_database("Al-Fe-O_Lindwall2015.tdb")
 def test_eq_charge_alfeo(load_database):
     """Phases with charged species are correctly calculated and charged balanced in equilibrium"""
     alfeo = load_database()
@@ -988,8 +990,8 @@ def test_eq_charge_alfeo(load_database):
     conds = {v.P: 101325, v.N: 1, v.T: 500, v.X('FE'): 0.2, v.X('O'): 0.6}
     res = equilibrium(alfeo, comps, phases, conds, verbose=True)
     # Values below checked with Thermo-Calc
-    assert np.allclose(res.NP.values.squeeze()[:2], [0.47826862, 0.52173138])
-    assert np.allclose(res.GM.values.flat[0], -257462.33)
+    assert np.allclose(res.NP.values.squeeze()[:2], [0.48578826, 0.51421174])
+    assert np.allclose(res.GM.values.flat[0], -258045.42)
 
 
 @pytest.mark.solver
