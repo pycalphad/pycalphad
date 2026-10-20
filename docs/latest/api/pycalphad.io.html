@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.io package - pycalphad 0.11.3.dev28+g3f2f9cc34 documentation</title>
+        <title>pycalphad.io package - pycalphad 0.11.3.dev30+gdf383d8c9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.3.dev28+g3f2f9cc34 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.3.dev30+gdf383d8c9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev28+g3f2f9cc34 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev30+gdf383d8c9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1505,6 +1505,36 @@ This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pycalphad.io.database.DiffusionModel">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.io.database.</span></span><span class="sig-name descname"><span class="pre">DiffusionModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetic_alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetic_alpha_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependent_constituents</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#DiffusionModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pycalphad.io.database.DiffusionModel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.DiffusionModel.dependent_constituents">
+<span class="sig-name descname"><span class="pre">dependent_constituents</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.Species" title="pycalphad.variables.Species"><span class="pre">Species</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.DiffusionModel.dependent_constituents" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.DiffusionModel.magnetic_alpha">
+<span class="sig-name descname"><span class="pre">magnetic_alpha</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.Species" title="pycalphad.variables.Species"><span class="pre">Species</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.DiffusionModel.magnetic_alpha" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.DiffusionModel.magnetic_alpha_2">
+<span class="sig-name descname"><span class="pre">magnetic_alpha_2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="pycalphad.html#pycalphad.variables.Species" title="pycalphad.variables.Species"><span class="pre">Species</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.DiffusionModel.magnetic_alpha_2" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pycalphad.io.database.DiffusionModel.model">
+<span class="sig-name descname"><span class="pre">model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'NONE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'DILUTE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'SIMPLE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MAGNETIC'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pycalphad.io.database.DiffusionModel.model" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pycalphad.io.database.ElementReferenceData">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pycalphad.io.database.</span></span><span class="sig-name descname"><span class="pre">ElementReferenceData</span></span><a class="headerlink" href="#pycalphad.io.database.ElementReferenceData" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
@@ -2034,6 +2064,13 @@ Note that not all of these keywords are fully supported yet.</p>
 <li><a class="reference internal" href="#pycalphad.io.database.DatabaseFormat.write"><code class="docutils literal notranslate"><span class="pre">DatabaseFormat.write</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#pycalphad.io.database.DiffusionModel"><code class="docutils literal notranslate"><span class="pre">DiffusionModel</span></code></a><ul>
+<li><a class="reference internal" href="#pycalphad.io.database.DiffusionModel.dependent_constituents"><code class="docutils literal notranslate"><span class="pre">DiffusionModel.dependent_constituents</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.DiffusionModel.magnetic_alpha"><code class="docutils literal notranslate"><span class="pre">DiffusionModel.magnetic_alpha</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.DiffusionModel.magnetic_alpha_2"><code class="docutils literal notranslate"><span class="pre">DiffusionModel.magnetic_alpha_2</span></code></a></li>
+<li><a class="reference internal" href="#pycalphad.io.database.DiffusionModel.model"><code class="docutils literal notranslate"><span class="pre">DiffusionModel.model</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData"><code class="docutils literal notranslate"><span class="pre">ElementReferenceData</span></code></a><ul>
 <li><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData.H298"><code class="docutils literal notranslate"><span class="pre">ElementReferenceData.H298</span></code></a></li>
 <li><a class="reference internal" href="#pycalphad.io.database.ElementReferenceData.S298"><code class="docutils literal notranslate"><span class="pre">ElementReferenceData.S298</span></code></a></li>
@@ -2087,7 +2124,7 @@ Note that not all of these keywords are fully supported yet.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=79b9e1f8"></script>
+</div><script src="../_static/documentation_options.js?v=e295f9b2"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

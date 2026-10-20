@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.io.tdb - pycalphad 0.11.3.dev28+g3f2f9cc34 documentation</title>
+        <title>pycalphad.io.tdb - pycalphad 0.11.3.dev30+gdf383d8c9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev28+g3f2f9cc34 documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev30+gdf383d8c9 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev28+g3f2f9cc34 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev30+gdf383d8c9 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -306,7 +306,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">symengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tinydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">where</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad</span><span class="w"> </span><span class="kn">import</span> <span class="n">Database</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseExportError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseExportError</span><span class="p">,</span> <span class="n">DiffusionModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.io.grammar</span><span class="w"> </span><span class="kn">import</span> <span class="n">float_number</span><span class="p">,</span> <span class="n">chemical_formula</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="kn">import</span> <span class="n">Species</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pycalphad.variables</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">v</span>
@@ -542,7 +542,15 @@
     <span class="c1"># ZEROVOLUME_SPECIES</span>
     <span class="n">cmd_zerovolume</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">'ZEROVOLUME_SPECIES'</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
     <span class="c1"># DIFFUSION</span>
-    <span class="n">cmd_diffusion</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">'DIFFUSION'</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="n">diffusion_coefficient</span> <span class="o">=</span> <span class="n">Group</span><span class="p">((</span><span class="n">CaselessKeyword</span><span class="p">(</span><span class="s1">'ALPHA2'</span><span class="p">)</span> <span class="o">|</span> <span class="n">CaselessKeyword</span><span class="p">(</span><span class="s1">'ALPHA'</span><span class="p">))</span> <span class="o">+</span> \
+        <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">'&amp;'</span><span class="p">)</span> <span class="o">+</span> <span class="n">species_name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="s1">'='</span><span class="p">)</span> <span class="o">+</span> <span class="n">float_number</span><span class="p">)</span>
+    <span class="n">cmd_diffusion</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">'DIFFUSION'</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="p">((</span><span class="n">CaselessKeyword</span><span class="p">(</span><span class="s1">'NONE'</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span><span class="p">)</span> <span class="o">|</span> \
+         <span class="p">((</span><span class="n">CaselessKeyword</span><span class="p">(</span><span class="s1">'DILUTE'</span><span class="p">)</span> <span class="o">|</span> <span class="n">CaselessKeyword</span><span class="p">(</span><span class="s1">'SIMPLE'</span><span class="p">))</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
+          <span class="n">Group</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">':'</span><span class="p">)</span> <span class="o">+</span> <span class="n">OneOrMore</span><span class="p">(</span><span class="n">species_name</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">':'</span><span class="p">))))</span> <span class="o">|</span> \
+         <span class="p">(</span><span class="n">CaselessKeyword</span><span class="p">(</span><span class="s1">'MAGNETIC'</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> <span class="n">Group</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">diffusion_coefficient</span><span class="p">))))</span> <span class="o">+</span> \
+        <span class="n">LineEnd</span><span class="p">()</span>
     <span class="c1"># Now combine the grammar together</span>
     <span class="n">all_commands</span> <span class="o">=</span> <span class="n">cmd_element</span> <span class="o">|</span> \
                     <span class="n">cmd_species</span> <span class="o">|</span> \
@@ -716,6 +724,63 @@
 <span class="sd">    """</span>
     <span class="k">pass</span>
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_diffusion</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">arguments</span><span class="o">=</span><span class="p">()):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Process the DIFFUSION command.</span>
+
+<span class="sd">    DIFFUSION commands can precede the PHASE commands, so the arguments are</span>
+<span class="sd">    queued and the DiffusionModel is built once all phases are defined.</span>
+<span class="sd">    """</span>
+    <span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">'MAGNETIC'</span><span class="p">:</span>
+        <span class="n">arguments</span> <span class="o">=</span> <span class="p">[(</span><span class="n">keyword</span><span class="p">,</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">species</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">]</span>
+        <span class="n">given</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">keyword</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span> <span class="ow">in</span> <span class="n">given</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">keyword</span> <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s1">&amp;</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s1">'</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`DIFFUSION </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2">` gives </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> more than once"</span><span class="p">)</span>
+            <span class="n">given</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">keyword</span><span class="p">,</span> <span class="n">species</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">arguments</span> <span class="o">=</span> <span class="p">[</span><span class="n">species</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">_diffusion_queue</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2"> phase has more than one DIFFUSION command. Using the last one: `DIFFUSION </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2">`"</span><span class="p">)</span>
+    <span class="n">targetdb</span><span class="o">.</span><span class="n">_diffusion_queue</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_diffusion_queue</span><span class="p">(</span><span class="n">targetdb</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Add the queued DIFFUSION commands to the model hints of the phases they name.</span>
+<span class="sd">    """</span>
+    <span class="k">for</span> <span class="n">phase_name</span><span class="p">,</span> <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">_diffusion_queue</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'DIFFUSION </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s1">'</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">phase_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">phase</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2"> phase is not in the database, but is named by: `</span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s2">`"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'DILUTE'</span><span class="p">,</span> <span class="s1">'SIMPLE'</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s2">` gives </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span><span class="si">}</span><span class="s2"> dependent species, but the </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2"> phase has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">)</span><span class="si">}</span><span class="s2"> sublattices"</span><span class="p">)</span>
+            <span class="n">dependent_constituents</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sublattice</span><span class="p">,</span> <span class="n">species_name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span> <span class="n">arguments</span><span class="p">):</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="p">{</span><span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">sp</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">sublattice</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s2">` gives the dependent species </span><span class="si">{</span><span class="n">species_name</span><span class="si">}</span><span class="s2">, which is not a constituent of its sublattice"</span><span class="p">)</span>
+                <span class="n">dependent_constituents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+            <span class="n">diffusion</span> <span class="o">=</span> <span class="n">DiffusionModel</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dependent_constituents</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">dependent_constituents</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">'MAGNETIC'</span><span class="p">:</span>
+            <span class="n">phase_species</span> <span class="o">=</span> <span class="p">{</span><span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">sp</span> <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">sublattice</span><span class="p">}</span>
+            <span class="n">alphas</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'ALPHA'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'ALPHA2'</span><span class="p">:</span> <span class="p">[]}</span>
+            <span class="k">for</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">species_name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">species_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">species</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">elif</span> <span class="n">species_name</span> <span class="ow">in</span> <span class="n">phase_species</span><span class="p">:</span>
+                    <span class="n">species</span> <span class="o">=</span> <span class="n">phase_species</span><span class="p">[</span><span class="n">species_name</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s2">` gives </span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s2">&amp;</span><span class="si">{</span><span class="n">species_name</span><span class="si">}</span><span class="s2">, but </span><span class="si">{</span><span class="n">species_name</span><span class="si">}</span><span class="s2"> is not a constituent of the </span><span class="si">{</span><span class="n">phase_name</span><span class="si">}</span><span class="s2"> phase"</span><span class="p">)</span>
+                <span class="n">alphas</span><span class="p">[</span><span class="n">keyword</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">species</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+            <span class="n">diffusion</span> <span class="o">=</span> <span class="n">DiffusionModel</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">magnetic_alpha</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">alphas</span><span class="p">[</span><span class="s1">'ALPHA'</span><span class="p">]),</span> <span class="n">magnetic_alpha_2</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">alphas</span><span class="p">[</span><span class="s1">'ALPHA2'</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">diffusion</span> <span class="o">=</span> <span class="n">DiffusionModel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">'diffusion'</span><span class="p">]</span> <span class="o">=</span> <span class="n">diffusion</span>
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_process_species</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">sp_name</span><span class="p">,</span> <span class="n">sp_comp</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Add a species to the Database. If charge not specified, the Species will be neutral."""</span>
     <span class="c1"># process the species composition list of [element1, ratio1, element2, ratio2, ..., elementN, ratioN]</span>
@@ -774,7 +839,7 @@
             <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">':'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">c</span><span class="p">),</span>
     <span class="s1">'PARAMETER'</span><span class="p">:</span> <span class="n">_process_parameter</span><span class="p">,</span>
     <span class="s1">'ZEROVOLUME_SPECIES'</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
-    <span class="s1">'DIFFUSION'</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">'DIFFUSION'</span><span class="p">:</span> <span class="n">_process_diffusion</span><span class="p">,</span>
 <span class="p">}</span>
 
 <div class="viewcode-block" id="to_interval">
@@ -1032,6 +1097,18 @@
     <span class="k">return</span> <span class="p">{</span><span class="n">Symbol</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="vm">__dict__</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">IndependentPotential</span><span class="p">,</span> <span class="n">Float</span><span class="p">))}</span></div>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_diffusion_command</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">diffusion</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Return the DIFFUSION command for the DiffusionModel of a phase.</span>
+<span class="sd">    """</span>
+    <span class="n">arguments</span> <span class="o">=</span> <span class="p">[</span><span class="n">diffusion</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">diffusion</span><span class="o">.</span><span class="n">dependent_constituents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">arguments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">':'</span> <span class="o">+</span> <span class="s1">':'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">diffusion</span><span class="o">.</span><span class="n">dependent_constituents</span><span class="p">)</span> <span class="o">+</span> <span class="s1">':'</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">coefficients</span> <span class="ow">in</span> <span class="p">((</span><span class="s1">'ALPHA'</span><span class="p">,</span> <span class="n">diffusion</span><span class="o">.</span><span class="n">magnetic_alpha</span><span class="p">),</span> <span class="p">(</span><span class="s1">'ALPHA2'</span><span class="p">,</span> <span class="n">diffusion</span><span class="o">.</span><span class="n">magnetic_alpha_2</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">coefficients</span><span class="p">:</span>
+            <span class="n">arguments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s1">=</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">'</span> <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s1">&amp;</span><span class="si">{</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">=</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">'DIFFUSION </span><span class="si">{}</span><span class="s1"> !</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arguments</span><span class="p">))</span>
+
 
 <div class="viewcode-block" id="write_tdb">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.write_tdb">[docs]</a>
@@ -1181,9 +1258,15 @@
                         <span class="n">model_hints</span><span class="p">[</span><span class="s1">'ihj_magnetic_structure_factor'</span><span class="p">])</span>
             <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">'ihj_magnetic_afm_factor'</span><span class="p">]</span>
             <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">'ihj_magnetic_structure_factor'</span><span class="p">]</span>
+        <span class="c1"># The diffusion model is written as a DIFFUSION command below, after the type definitions</span>
+        <span class="n">model_hints</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'diffusion'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_hints</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Some model hints were not properly consumed</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Not all model hints are supported: </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_hints</span><span class="p">))</span>
+    <span class="n">diffusion_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">_diffusion_command</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">'diffusion'</span><span class="p">])</span>
+                       <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="k">if</span> <span class="s1">'diffusion'</span> <span class="ow">in</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">model_hints</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">diffusion_lines</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">diffusion_lines</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span>
     <span class="c1"># Perform a second loop now that all typedefs / model hints are consistent</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
         <span class="c1"># model_hints may also contain "phase options", e.g., ionic liquid</span>
@@ -1325,6 +1408,7 @@
     <span class="c1"># Map {typedef character: [phases using that typedef]}</span>
     <span class="n">dbf</span><span class="o">.</span><span class="n">_typechar_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">dbf</span><span class="o">.</span><span class="n">_typedefs_queue</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># queue of type defintion lines to process</span>
+    <span class="n">dbf</span><span class="o">.</span><span class="n">_diffusion_queue</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># {phase name: (model, arguments)} of the DIFFUSION commands</span>
 
     <span class="n">grammar</span> <span class="o">=</span> <span class="n">_tdb_grammar</span><span class="p">()</span>
 
@@ -1364,6 +1448,8 @@
                       <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">phases_expecting_typechar</span><span class="si">}</span><span class="s2">, but no corresponding TYPE_DEFINITION line was found in the TDB."</span><span class="p">)</span>
     <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typechar_map</span>
     <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typedefs_queue</span>
+    <span class="n">_apply_diffusion_queue</span><span class="p">(</span><span class="n">dbf</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_diffusion_queue</span>
 
     <span class="n">dbf</span><span class="o">.</span><span class="n">process_parameter_queue</span><span class="p">()</span>
 
@@ -1406,7 +1492,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=79b9e1f8"></script>
+</div><script src="../../../_static/documentation_options.js?v=e295f9b2"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
