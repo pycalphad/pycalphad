@@ -102,8 +102,7 @@ class MapStrategy:
         self.zpf_lines: list[ZPFLine] = []
         self.node_queue = NodeQueue()
 
-        # Whether mapping has run to completion. Used with _ensure_mapped() to do just-in-time mapping.
-        # gets reset if new starting points are added.
+        # Set when do_map finishes, reset when starting points are added
         self._mapping_complete = False
 
         self._current_node = None
@@ -135,12 +134,7 @@ class MapStrategy:
 
     def _ensure_mapped(self):
         """
-        Run mapping just in time if it has not run to completion yet (including a
-        do_map stopped early by max_iter), or if new starting points were added since
-        the last run
-
-        This is called by the data retrieval methods (get_*) so that users do not
-        need to call do_map explicitly before retrieving data or plotting
+        Runs do_map before data retrieval if mapping has not finished
         """
         if not self._mapping_complete:
             self.do_map()
@@ -210,7 +204,6 @@ class MapStrategy:
                 self.node_queue.add_node(self._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), force_add)
             else:
                 self.node_queue.add_node(self._create_node_from_point(point, None, None, direction, ExitHint.POINT_IS_EXIT), force_add)
-        # New starting points need to be processed by mapping before the next data retrieval
         self._mapping_complete = False
         return True
 
@@ -591,13 +584,6 @@ class MapStrategy:
                 "global_num_candidates": self.GLOBAL_MIN_NUM_CANDIDATES,
             }
 
-            # Check valid equilibrium, global min and change in phases
-            # NOTE: the degenerate tie-line check is deliberately NOT applied here: the
-            # trial step uses the minimum delta, so near a pure-element edge or congruent
-            # point the trial result is legitimately narrower than the degenerate
-            # tolerance and both directions would be vetoed, losing e.g. an entire
-            # narrow melting lens. Line mapping's own degenerate check still ends truly
-            # degenerate (pinned) lines one step later.
             check_functions = [
                 zchk.simple_check_valid_point,
                 zchk.simple_check_change_in_phases,

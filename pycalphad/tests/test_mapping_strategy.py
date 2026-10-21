@@ -447,7 +447,6 @@ def test_ternary_strategy_process_metastable_node(load_database):
     the TielineStrategy should be able to detect whether a node is metastable
     and perform the following:
         a) if node is metastable, do not add to node queue and end the zpf line
-           (the zpf line is kept since its points have passed their own global min checks)
         b) if node is stable, add to node queue
     """
     # Create system
@@ -480,7 +479,7 @@ def test_ternary_strategy_process_metastable_node(load_database):
     # In _process_new_node, this will fail the global min check and end the zpf line
     num_nodes = len(strategy.node_queue.nodes)
     strategy._process_new_node(strategy.zpf_lines[0], metastable_node)
-    # Test that zpf line was kept, but ended for leading to a metastable node
+    # Test that zpf line was kept, but ended
     assert len(strategy.zpf_lines) == 1
     assert strategy.zpf_lines[0].status == ZPFState.FAILED
     assert len(strategy.node_queue.nodes) == num_nodes
@@ -648,29 +647,23 @@ def test_issue_638_degenerate_cs_binary(load_database):
 @select_database("cumg.tdb")
 def test_mapping_runs_just_in_time_on_data_retrieval(load_database):
     """
-    Data retrieval (get_* methods, and therefore plotting) should run mapping just in
-    time, so users do not need to call do_map() explicitly. Adding starting points
-    after mapping resets the mapping complete flag so the new points are processed on
-    the next data retrieval.
+    Data retrieval maps just in time, and again after starting points are added
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (850, 1000, 20), v.X("MG"): (0.9, 1, 0.05)}
     strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
     assert not strategy._mapping_complete
 
-    # Retrieving data without calling do_map() runs the mapping
     tieline_data = strategy.get_tieline_data(v.X("MG"), v.T)
     assert strategy._mapping_complete
     assert len(tieline_data) > 0
     assert len(strategy.zpf_lines) > 0
     num_zpf_lines = len(strategy.zpf_lines)
 
-    # Retrieving data again does not re-run the mapping
     strategy.get_tieline_data(v.X("MG"), v.T)
     assert len(strategy.zpf_lines) == num_zpf_lines
 
-    # Adding a starting point (here, inside the HCP_A3+LIQUID two-phase region)
-    # resets the flag, and the next retrieval maps the new starting points
+    # HCP_A3+LIQUID
     added = strategy.add_nodes_from_conditions({v.T: 900, v.P: 101325, v.X("MG"): 0.99})
     assert added
     assert not strategy._mapping_complete
@@ -681,8 +674,7 @@ def test_mapping_runs_just_in_time_on_data_retrieval(load_database):
 @select_database("cumg.tdb")
 def test_mapping_stopped_by_max_iter_finishes_on_data_retrieval(load_database):
     """
-    A do_map() stopped early by max_iter leaves mapping incomplete, so the next data
-    retrieval finishes it
+    Data retrieval finishes a do_map stopped by max_iter
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (850, 1000, 20), v.X("MG"): (0.9, 1, 0.05)}
@@ -706,12 +698,7 @@ def test_binary_and_ternary_strategy_are_deprecated(load_database):
 @select_database("AlTe-19Shi.tdb")
 def test_degenerate_tieline_rejected_above_congruent_melting(load_database):
     """
-    ZPF line for AL2TE3_BETA+LIQUID should not extend above a congruent melting point
-
-    This constructs the ZPF line configuration (compound fixed at zero amount, liquid
-    free) and steps it just past the congruent point, where the solver converges to
-    the degenerate zero-width result, and checks that the degenerate tie-line check
-    rejects it while accepting the real result below the congruent point.
+    The AL2TE3_BETA+LIQUID tie-line is degenerate just above the congruent melting point (~1138.7 K)
     """
     from pycalphad.mapping.zpf_equilibrium import update_equilibrium_with_new_conditions
     from pycalphad.mapping.zpf_checks import _degenerate_zero_width_tieline
@@ -721,24 +708,18 @@ def test_degenerate_tieline_rejected_above_congruent_melting(load_database):
     comps = ["AL", "TE", "VA"]
     phases = list(dbf.phases.keys())
 
-    # Two-phase point on the Te-rich branch of the AL2TE3_BETA+LIQUID region
-    # (congruent melting of AL2TE3_BETA is at ~1138.7 K, x(TE)=0.6)
     pt = point_from_equilibrium(dbf, comps, phases, {v.P: 101325, v.N: 1, v.T: 1100, v.X("TE"): 0.61})
     assert set(pt.stable_phases) == {"AL2TE3_BETA", "LIQUID"}
     beta = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "AL2TE3_BETA"][0]
     liquid = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "LIQUID"][0]
     zpf_point = map_utils._generate_point_with_fixed_cs(pt, beta, liquid)
 
-    # Below the congruent point, the boundary is real (finite tie-line width)
     conds = copy.deepcopy(zpf_point.global_conditions)
     conds[v.T] = 1135
     below_results = update_equilibrium_with_new_conditions(zpf_point, conds, v.X("TE"))
     assert below_results is not None
     assert not _degenerate_zero_width_tieline(below_results[0].stable_composition_sets)
 
-    # Just above the congruent point, the solver converges to the degenerate
-    # zero-width solution (liquid collapsed onto the AL2TE3 associate), which
-    # must be rejected so mapping does not track it
     conds = copy.deepcopy(below_results[0].global_conditions)
     conds[v.T] = 1140
     above_results = update_equilibrium_with_new_conditions(below_results[0], conds, v.X("TE"))
@@ -748,14 +729,10 @@ def test_degenerate_tieline_rejected_above_congruent_melting(load_database):
 @select_database("cfe_broshe.tdb")
 def test_unary_pt_mapping_not_flagged_as_degenerate(load_database):
     """
-    In a unary P-T diagram, every multi-phase equilibrium trivially has all phases at
-    the same pure composition, but two-phase coexistence along a univariant line is
-    allowed by the Gibbs phase rule. The degenerate tie-line detection (see
-    test_no_degenerate_edge_pinned_zpf_lines) must not end these zpf lines.
+    Univariant lines in a unary P-T diagram are not ended as degenerate
     """
     dbf = load_database()
-    # Window of the Fe P-T diagram containing the bcc-fcc-hcp triple point
-    # (~799 K, ~9.7 GPa in this database) and its three univariant lines
+    # Around the bcc-fcc-hcp triple point (~799 K, ~9.7 GPa)
     conds = {v.N: 1, v.T: (600, 1300, 50), v.P: (0, 20e9, 2e9)}
     strategy = TielineStrategy(dbf, ["FE", "VA"], ["BCC_A2", "FCC_A1", "HCP_A3", "LIQUID"], conds)
     strategy.do_map()
@@ -767,20 +744,9 @@ def test_unary_pt_mapping_not_flagged_as_degenerate(load_database):
 @select_database("cumg.tdb")
 def test_no_degenerate_edge_pinned_zpf_lines(load_database):
     """
-    Mapping over a temperature range extending above a pure-element melting point
-    should not produce spurious two-phase ZPF lines pinned to the pure-element edge.
-
-    At a pure-element composition, a "two-phase" equilibrium is degenerate: the second
-    phase has vanishing amount and both phases have essentially the pure-element
-    composition, so the ZPF conditions are trivially satisfiable at any temperature.
-    Without detecting this, the mapper follows these zero-width lines from the melting
-    point up to the temperature axis limit (e.g. HCP_A3+LIQUID above the melting point
-    of Mg and FCC_A1+LIQUID above the melting point of Cu in Cu-Mg).
+    No zpf line follows the pure Mg edge above its melting point
     """
     dbf = load_database()
-    # A window around the melting point of Mg (923 K) is sufficient to reproduce the
-    # bug and keeps the test fast. Without the degenerate equilibrium detection, the
-    # HCP_A3+LIQUID zpf line follows the x(MG)=1 edge from 923 K to the T axis limit.
     conds = {v.P: 101325, v.N: 1, v.T: (850, 1100, 20), v.X("MG"): (0.9, 1, 0.05)}
     strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
     strategy.do_map()
@@ -796,16 +762,12 @@ def test_no_degenerate_edge_pinned_zpf_lines(load_database):
             same_component = len(set(np.argmax(comps, axis=1))) == 1
             if all_pure and same_component:
                 num_degenerate_points += 1
-        # A real boundary may legitimately end at a pure-element melting point, so a
-        # single point at the pure composition is fine, but a line tracking a
-        # degenerate equilibrium along the pure-element edge is not
+        # A real boundary can end at the melting point
         assert num_degenerate_points <= 1, (
             f"ZPF line {zpf_line.stable_phases_with_multiplicity} has "
             f"{num_degenerate_points} points pinned at a pure-element composition"
         )
 
-    # The real phase boundaries should be unaffected, including the ones that
-    # terminate at the pure-element melting points
     def _composition_extent(zpf_line):
         comps = [
             point.get_local_property(cs, v.X("MG"))
@@ -822,31 +784,14 @@ def test_no_degenerate_edge_pinned_zpf_lines(load_database):
 @select_database("BaCa-86Alc.tdb")
 def test_circular_loop_check_normalizes_axes(load_database):
     """
-    The liquidus must be mapped past a congruent minimum, back up to the
-    temperature it started at.
-
-    Ba-Ca is isomorphous (BCC) with a congruent liquidus minimum at ~894 K. The
-    BCC_A2+LIQUID ZPF line started at one pure-element melting point (Ba: ~1000 K,
-    Ca: ~1115 K) is mapped down through the minimum and back up to the other
-    element's melting point, so its temperature necessarily returns to its
-    starting temperature partway along.
-
-    check_circular_loop ends a line when it gets closer to its first point than
-    to its previous point. With raw axis values, the kelvin scale of the
-    temperature axis swamps the mole-fraction axis and the line is silently
-    ended the moment its temperature comes back within one step of the starting
-    temperature, truncating the liquidus at exactly the lower-melting element's
-    melting point. Axis distances must be normalized for the check to only
-    catch genuine loops.
+    The Ba-Ca liquidus is mapped through its congruent minimum (~894 K) back to its starting temperature
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
     strategy = TielineStrategy(dbf, ["BA", "CA", "VA"], list(dbf.phases.keys()), conds)
     strategy.do_map()
 
-    # Zero-extent 2-point stubs at the pure-element melting points (ended by the
-    # degenerate tie-line check after a single step) are not the lens; only
-    # substantial lines are held to the full-composition-range requirement
+    # Skip degenerate stubs at the pure-element melting points
     liq_lines = []
     for zl in strategy.zpf_lines:
         if set(zl.stable_phases) == {"BCC_A2", "LIQUID"}:
@@ -863,16 +808,7 @@ def test_circular_loop_check_normalizes_axes(load_database):
 @select_database("GaLa-11Idb.tdb")
 def test_automatic_starting_points_keep_forced_starting_points(load_database):
     """
-    Phase fields only recorded by a force-added recovery point in an edge step map
-    must still get a starting point.
-
-    La has a narrow BCC window (1134-1194 K) between DHCP/FCC and melting. The
-    coarse starting-point search along the x(LA)~1 edge (step = T-range/20 = 185 K)
-    straddles the window, lands on a metastable FCC+LIQUID node, fails the exit
-    direction test, and force-adds a recovery point (a parentless node) at the true
-    LIQUID+BCC_A2 equilibrium inside the window. Taking only parented step-map
-    nodes discards that recovery point, so the whole La-side BCC_A2+LIQUID boundary
-    is lost and the La liquidus dead-ends below the window.
+    Parentless recovery nodes from the edge step maps are kept, e.g. for the narrow La BCC window (1134-1194 K)
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("LA"): (0.75, 1, 0.05)}
@@ -891,19 +827,7 @@ def test_automatic_starting_points_keep_forced_starting_points(load_database):
 @select_database("AuCu-98Sun-LB.tdb")
 def test_automatic_starting_points_for_every_merged_field(load_database):
     """
-    Every two-phase field merged into a single same-name edge step line must get its
-    own starting point.
-
-    In Au-Cu all fcc-ordered phases (fcc, AuCu3, AuCu, ...) share the FCC_4SL phase
-    name, so the step map along the T=300 K edge merges several distinct two-phase
-    fields into single step lines: the warm-started solver slides the same
-    composition sets from one field into the next without creating a phase-change
-    node. Adding one starting point per step line then covers only one of the
-    merged fields; the Au-rich fcc+AuCu3 field (tie-lines spanning x(CU)=[0.078,
-    0.237] at 300 K) is fully present in the step results but was never mapped.
-    Adding one starting point per contiguous segment (tie-line endpoints are
-    constant within a field at fixed potentials, so a jump marks a new field)
-    recovers it.
+    Fields merged into one same-name step zpf line each get a starting point (Au-rich fcc+AuCu3 at 300 K)
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
@@ -920,17 +844,7 @@ def test_automatic_starting_points_for_every_merged_field(load_database):
 @select_database("CrTa-93Dup-LB.tdb")
 def test_starting_point_dedup_distinguishes_twin_fields(load_database):
     """
-    Two distinct two-phase fields with the same phase pair flanking a line compound
-    must both be mapped.
-
-    In Cr-Ta, BCC_A2+C15_LAVES fields exist on both sides of the CR2TA_C15 line
-    compound. The x-edge automatic starting point for the Cr-rich field sits (in
-    condition space) within a fraction of a step of the already mapped Ta-rich
-    field's line at the compound composition, so a coverage check based on
-    condition-space position alone discards it and the whole Cr-rich low-T field
-    (x < 0.03, 300-849 K) is lost. Coverage must compare tie-lines (potential
-    coordinates plus phase compositions), which differ between the two fields by
-    a mole fraction of ~0.3.
+    BCC_A2+C15_LAVES fields on both sides of the CR2TA_C15 line compound are mapped
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("TA"): (0, 1, 0.05)}
@@ -949,12 +863,7 @@ def test_starting_point_dedup_distinguishes_twin_fields(load_database):
 @select_database("BaCa-86Alc.tdb")
 def test_starting_point_coverage_semantics(load_database):
     """
-    The coverage test used to skip redundant starting directions must:
-    - treat a point deep on a mapped line as covered in both directions,
-    - treat the start of a line as covered in the direction the line was mapped, and
-    - NOT treat the start of a line as covered in the opposite direction: skipping the
-      opposite-direction sibling of a starting point would lose the whole other side
-      of the boundary (e.g. the entire lens below a top-edge starting point).
+    A mapped zpf line covers its interior in both directions and its start only in the direction it was mapped
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
@@ -984,14 +893,7 @@ def test_starting_point_coverage_semantics(load_database):
 @select_database("CaMg-06Zho.tdb")
 def test_no_duplicate_boundary_remapping(load_database):
     """
-    Recovery starting points taken from the edge step maps must not map a
-    boundary that is already mapped.
-
-    In Ca-Mg the CAMG2_C14+FCC_A1 boundary gets one starting point from the T=300 K edge and
-    additional parentless recovery starting points at the x(MG)=0 edge; without tie-line-based
-    coverage checking the same boundary is mapped up to five times (visible as
-    interleaved duplicate tie-lines in the plot, since the repeats start at
-    off-grid temperatures).
+    Recovery starting points do not map the CAMG2_C14+FCC_A1 boundary again
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("MG"): (0, 1, 0.05)}
@@ -1003,23 +905,14 @@ def test_no_duplicate_boundary_remapping(load_database):
     assert 1 <= len(target_lines) <= 2, (
         f"CAMG2_C14+FCC_A1 mapped {len(target_lines)} times; expected at most 2 segments"
     )
-    # deduplication must not cost coverage: the boundary still spans 300 K up to
-    # the ~710 K invariant
+    # Still mapped from 300 K to the ~710 K invariant
     Ts = [np.squeeze(pt.get_property(v.T)) for zl in target_lines for pt in zl.points]
     assert np.min(Ts) < 310 and np.max(Ts) > 700
 
 @select_database("AuCu-98Sun-LB.tdb")
 def test_no_remapping_from_start_of_mapped_line(load_database):
     """
-    An exit at the start of an already mapped line, heading the same way, must not
-    map the line again.
-
-    In Au-Cu the FCC_4SL+FCC_4SL+FCC_4SL invariant at ~578 K is found twice (once from
-    each boundary ending there) and both copies have an exit to the FCC_4SL+FCC_4SL
-    boundary rising from it. The second exit sits at the first point of the line
-    mapped from the first, which a coverage check that ignores direction must exempt
-    (to let the opposite-direction sibling of a starting point through), so the
-    boundary was mapped twice.
+    An exit at the start of a mapped zpf line, heading the same way, does not map it again
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
@@ -1027,7 +920,11 @@ def test_no_remapping_from_start_of_mapped_line(load_database):
     strategy.do_map()
 
     def tielines(zpf_line):
-        return [np.concatenate([[np.squeeze(pt.get_property(v.T))], np.sort([np.squeeze(pt.get_local_property(cs, v.X("CU"))) for cs in pt.stable_composition_sets])]) for pt in zpf_line.points]
+        rows = []
+        for pt in zpf_line.points:
+            xs = sorted(np.squeeze(pt.get_local_property(cs, v.X("CU"))) for cs in pt.stable_composition_sets)
+            rows.append([np.squeeze(pt.get_property(v.T))] + xs)
+        return np.array(rows)
 
     lines = [zl for zl in strategy.zpf_lines if len(zl.points) > 1]
     for i, zpf_line in enumerate(lines):
@@ -1041,16 +938,7 @@ def test_no_remapping_from_start_of_mapped_line(load_database):
 @select_database("CrV-92Lee-LB.tdb")
 def test_degenerate_check_does_not_veto_narrow_lens(load_database):
     """
-    A genuinely narrow melting lens must still be mapped.
-
-    Cr-V is isomorphous with a solidus-liquidus lens only a few kelvin tall; near
-    the pure-element edges its tie-line width is genuinely below the degenerate
-    zero-width tolerance. Running the degenerate tie-line check inside the exit
-    direction test (whose trial step uses the minimum delta, right at the edge)
-    vetoes both directions from the edge melting nodes, so the entire lens - and
-    with it the whole diagram - is lost. The direction test must not apply the
-    degenerate check; line mapping's own check still ends truly degenerate lines
-    one step later.
+    The narrow Cr-V melting lens is mapped
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("V"): (0, 1, 0.05)}
@@ -1068,16 +956,7 @@ def test_degenerate_check_does_not_veto_narrow_lens(load_database):
 @select_database("CrPt-98Spe-LB.tdb")
 def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database):
     """
-    A boundary crossing a congruent extremum must be mapped through it.
-
-    In Cr-Pt the fcc liquidus passes over a congruent maximum at x(PT)~0.78,
-    2058 K, where the tie-line width passes continuously through zero. At a fine
-    composition step the degenerate tie-line check landed a point inside the
-    (genuinely) sub-tolerance pinch and ended the line - with no node and no
-    restart - losing the entire Pt-rich liquidus down to the pure-Pt melting
-    point. A line whose composition is still advancing step over step is crossing
-    a pinch, not tracking a degenerate boundary (those are pinned at a fixed
-    composition), and must not be ended.
+    The Cr-Pt fcc liquidus is mapped through its congruent maximum (~2058 K, x(PT)~0.78)
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (1700, 2200, 10), v.X("PT"): (0, 1, 0.01)}

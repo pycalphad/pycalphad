@@ -25,17 +25,15 @@ from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyDa
 
 _log = logging.getLogger(__name__)
 
-# Two points are on the same tie-line if their potential coordinates (in units of the axis
-# step) and their phase compositions agree within these tolerances
+# Same tie-line if potentials (in axis steps) and phase compositions are within these
 TIELINE_POTENTIAL_TOL = 0.75
 TIELINE_COMPOSITION_TOL = 0.01
-# Minimum distance (in units of the axis step) that a zpf line must extend past an exit
-# point in the stepping direction for that direction to count as already mapped
+# Distance past an exit point (in axis steps) for a direction to count as already mapped
 MAPPED_DISTANCE_TOL = 0.25
 
 def _tieline_compositions(point: Point):
     """
-    Phase compositions of the composition sets of point, ordered by phase name, then composition
+    Phase compositions of point, ordered by phase name
     """
     rows = sorted((cs.phase_record.phase_name, tuple(np.asarray(cs.X, dtype=float))) for cs in point.stable_composition_sets)
     return np.array([comps for _, comps in rows])
@@ -54,8 +52,7 @@ def _same_tieline(key, other_key):
 
 def _get_phase_local_property(point: Point, comp_set: CompositionSet, var: v.StateVariable):
     """
-    Local property of the composition set in point with the same phase as comp_set (the
-    closest in composition if there is a miscibility gap)
+    Local property of the composition set in point with the same phase as comp_set
     """
     phase_name = comp_set.phase_record.phase_name
     candidates = [cs for cs in point.stable_composition_sets if cs.phase_record.phase_name == phase_name]
@@ -146,9 +143,7 @@ def _create_linear_comb_conditions(point: Point, axis_vars: list[v.StateVariable
     try:
         av1_value = point.get_property(axis_vars[1])
     except ValueError:
-        # A node can consist solely of fixed composition sets with zero phase amount, where
-        # the global composition cannot be recovered from the phases (0/0). The node's
-        # coordinates are bookkept in its conditions, so anchor the line there instead.
+        # Nodes with only zero-amount composition sets have no global composition
         if axis_vars[1] in point.global_conditions:
             av1_value = point.global_conditions[axis_vars[1]]
         else:
@@ -216,25 +211,13 @@ def _sort_point_composition_axes(point: Point, axis_vars: list[v.StateVariable])
 
 class TielineStrategy(MapStrategy):
     """
-    Map strategy for phase diagrams where tie-lines lie in the plane of the two axis variables
-
-    This covers:
-
-    - Binary phase diagrams (1 composition axis, 1 potential axis)
-    - Ternary isothermal sections (2 composition axes)
-    - Pseudo-binary sections (1 composition axis, 1 potential axis, with the remaining
-      degrees of freedom fixed by potential conditions, e.g. chemical potentials).
-      The caller is responsible for ensuring that tie-lines lie in the mapping plane
-
-    Where mapping with and without a potential axis behave differently, methods dispatch
-    on ``self.num_potential_condition``.
-
-    NOTE: this strategy assumes two axis variables
+    Map strategy for phase diagrams with tie-lines in the plane of the two axis variables,
+    e.g. binary phase diagrams and ternary isothermal sections
     """
     def __init__(self, dbf: Database, components: list[str], phases: list[str], conditions: dict[v.StateVariable, Union[float, tuple[float]]], **kwargs):
         super().__init__(dbf, components, phases, conditions, **kwargs)
         if self.num_potential_condition == 0:
-            # The remaining (dependent) composition variable of the mapping simplex
+            # Dependent composition variable
             axis_species = {str(av.species) for av in self.axis_vars}
             mu_species = {str(key.species) for key in self.conditions if isinstance(key, v.ChemicalPotential)}
             unlisted_components = [c for c in self.components if str(c) not in {'VA'} | axis_species | mu_species]
@@ -311,7 +294,6 @@ class TielineStrategy(MapStrategy):
         When mapping with only composition axes, this is all 2-phase and 3-phase regions,
         with a global min check to make sure these phase regions are truly the phases they say they are
         """
-        # New starting points need to be processed by mapping before the next data retrieval
         self._mapping_complete = False
         if self.num_potential_condition > 0:
             self._add_starting_points_from_step_potential_axis(step)
@@ -337,12 +319,7 @@ class TielineStrategy(MapStrategy):
             # Get all two-phase nodes. We set axis variable to None so that the node will find a good starting direction
             #  We force add nodes for positive and negative direction. This is in case the starting point ends up being in the middle
             #  of a zpf line (can happen for low solubility phases) so we want to step both in positive and negative direction
-            # Nodes without a parent are starting points the step map force-added to recover
-            #  from a failure (e.g. a failed node solve or a rejected metastable node). They can
-            #  be the only record of a phase field whose bounding node solve failed (a narrow
-            #  allotrope window straddled by the coarse edge step), so grab them too. They
-            #  are deduplicated against the parented nodes, which the step map guarantees are
-            #  distinct phase-change events.
+            # Also grab parentless (recovery) nodes, which can be the only record of a narrow field
             step_nodes = [node for node in step.node_queue.nodes
                           if node.parent is not None and len(node.stable_composition_sets) == 2]
             for node in step.node_queue.nodes:
@@ -367,13 +344,8 @@ class TielineStrategy(MapStrategy):
         # If stepping in non-state variable, then for all two-phase zpf lines, grab one point per
         # contiguous two-phase field to add as node
         else:
-            # A step line can silently merge several distinct two-phase fields whose phases have
-            # identical names (e.g. ordered/disordered variants of a partitioned phase): the
-            # warm-started solver slides the same composition sets from one field into the next,
-            # so no phase-change node separates them. With potential conditions fixed, tie-line
-            # endpoint compositions are constant within each two-phase field, so a jump in either
-            # endpoint between consecutive points marks a new field. Add one starting point
-            # per contiguous segment so that every merged field gets a starting point.
+            # Fields with the same phase names can merge into one step zpf line, and a jump in
+            # the tie-line compositions marks a new field
             segment_tol = 1e-3
             added_points = []
             for zpf_line in step.zpf_lines:
@@ -385,9 +357,6 @@ class TielineStrategy(MapStrategy):
                             continue
                         comps = _tieline_compositions(point)
                         if prev_comps is None or np.amax(np.abs(comps - prev_comps)) > segment_tol:
-                            # A step line can jump out of a field and back into it, so
-                            # dedup against points with the same tie-line already added
-                            # (tie-line endpoints identify the field at fixed potentials)
                             if not any(point == other for other in added_points):
                                 segment_points.append(point)
                                 added_points.append(point)
@@ -478,16 +447,7 @@ class TielineStrategy(MapStrategy):
 
     def _dedup_automatic_starting_points(self):
         """
-        Removes queued automatic starting points that duplicate an earlier queued one:
-        same set of stable phases, same starting direction, same tie-line (potential
-        coordinates within a step and phase compositions matching)
-
-        The different edge step maps can add starting points on the same boundary more than once (e.g. a
-        parentless recovery node from an x-edge temperature step a fraction of a step
-        above a T-edge composition-step point on the same boundary). The gap between such
-        starting points can be too short for _exit_already_mapped to count as mapped, so each would
-        map a duplicate sliver of the boundary. Both directions of the surviving
-        representative are kept.
+        Removes automatic starting points with the same tie-line and direction as one already queued
         """
         kept = []
         kept_keys = []
@@ -505,13 +465,7 @@ class TielineStrategy(MapStrategy):
 
     def _tieline_key(self, point: Point):
         """
-        Identifies the tie-line through point by its stable phases, its potential-axis
-        coordinates (in units of the axis step) and its phase compositions
-
-        Position in condition space cannot identify a tie-line: distinct two-phase fields
-        with the same phase pair flank a line compound at nearly identical conditions
-        (only their tie-line endpoint compositions differ), and conversely every global
-        composition along a tie-line shares that tie-line.
+        Stable phases, potential-axis coordinates (in axis steps) and phase compositions of the tie-line through point
         """
         potential_axes = [av for av in self.axis_vars if map_utils.is_state_variable(av)]
         potentials = np.array([np.squeeze(point.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
@@ -519,18 +473,7 @@ class TielineStrategy(MapStrategy):
 
     def _exit_already_mapped(self, exit_point: Point, axis_var: v.StateVariable, direction: Direction):
         """
-        Returns True if an existing zpf line already maps the tie-line of exit_point
-        onward in direction: the line contains a point on the same tie-line from which
-        the line, followed for as long as it keeps moving in direction, gets beyond
-        exit_point along axis_var
-
-        A line only covers the side of its starting point that it mapped, so the
-        opposite-direction sibling of a starting point can still map the other side.
-
-        Positions along axis_var are compared using the composition of the free phase of
-        exit_point (and the same phase in each zpf line point), since the
-        global composition of a zpf line point depends on which of its composition sets
-        is fixed.
+        Returns True if a zpf line through the same tie-line as exit_point already continues past it in direction
         """
         exit_key = self._tieline_key(exit_point)
         free_cs = exit_point.free_composition_sets[0]
@@ -540,7 +483,7 @@ class TielineStrategy(MapStrategy):
             if sorted(zpf_line.stable_phases) != exit_key[0]:
                 continue
             points = zpf_line.points
-            # Distance past exit_point in the stepping direction, in units of the axis step
+            # Distance past exit_point (in axis steps) of the free phase, since global composition depends on which phase is fixed
             distances = None
             for i, line_point in enumerate(points):
                 if not _same_tieline(exit_key, self._tieline_key(line_point)):
@@ -564,13 +507,7 @@ class TielineStrategy(MapStrategy):
 
         If a direction cannot be found, then we force add a starting point just past the exit_point
         """
-        # Skip exits that would map an already mapped tie-line again, to avoid mapping
-        # a boundary more than once: automatic starting points (skip_if_covered) and
-        # exits from mapping-found or recovery nodes (ExitHint.NORMAL, e.g. re-found
-        # invariants whose exits would map covered fields again). A two-phase starting
-        # point added explicitly by a user (POINT_IS_EXIT without skip_if_covered) is
-        # always honored. Once a direction is found to be mapped, the boundary from the
-        # exit is already mapped, so other directions are not tried
+        # Skip already mapped exits, except for starting points added by the user
         skip_mapped = node.skip_if_covered or node.exit_hint == ExitHint.NORMAL
         if self.num_potential_condition > 0:
             return self._determine_start_direction_potential_axis(node, exit_point, proposed_direction, skip_mapped)
@@ -676,9 +613,7 @@ class TielineStrategy(MapStrategy):
     def _process_new_node(self, zpf_line: ZPFLine, new_node: Node):
         """
         Post global min check after finding node to ensure it's not a metastable node
-
-        If the node is metastable, the zpf line is kept (the points on it have already
-        passed their own global min checks) but ended, and the node is not added
+        If it is, the zpf line is ended and the node is not added
         """
         _log.info("Checking if new node is metastable")
         cs_result = zeq._find_global_min_cs(new_node, system_info=self.system_info, pdens=self.GLOBAL_MIN_PDENS, tol=self.GLOBAL_MIN_TOL, num_candidates=self.GLOBAL_MIN_NUM_CANDIDATES)

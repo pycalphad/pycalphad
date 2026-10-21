@@ -85,12 +85,9 @@ def _update_global_conditions(point: Point):
     Recomputes the global conditions of point from its composition sets
     """
     for key in point.global_conditions:
-        # Imposed potentials (e.g. MU conditions) are inputs, not outcomes: refreshing them
-        # from the computed state would silently absorb any solver deviation into the
-        # condition value and corrupt every descendant point.
-        if isinstance(key, v.ChemicalPotential):
-            continue
-        point.global_conditions[key] = point.get_property(key)
+        if not isinstance(key, v.ChemicalPotential):
+            # copying chemical potentials that were conditions from the solver can cause error accumulation.
+            point.global_conditions[key] = point.get_property(key)
 
 def _generate_point_with_fixed_cs(point: Point, cs_to_fix: CompositionSet, cs_to_free: CompositionSet):
     """

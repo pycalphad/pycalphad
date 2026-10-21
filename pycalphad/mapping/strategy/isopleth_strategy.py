@@ -93,7 +93,6 @@ class IsoplethStrategy(MapStrategy):
         # Get all nodes that have a parent. We set axis variable to None so that the node will find a good starting direction
         # NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
         #      as starting points (which has no parents), so no starting points for isopleth mapping would be added
-        # New starting points need to be processed by mapping before the next data retrieval
         self._mapping_complete = False
         for node in step.node_queue.nodes:
             if node.parent is not None:

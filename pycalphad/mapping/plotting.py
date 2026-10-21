@@ -155,7 +155,6 @@ def plot_tielines(ax, strategy: TielineStrategy, x: v.StateVariable, y: v.StateV
     tieline_color : color
     """
     tieline_data = strategy.get_tieline_data(x, y)
-    # A map can have no zpf lines (e.g. all conditions are in a single phase region)
     if len(tieline_data) == 0:
         return
     x_all = np.concatenate([st.x for st in tieline_data], axis=1)
