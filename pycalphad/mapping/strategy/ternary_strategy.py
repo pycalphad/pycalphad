@@ -1,0 +1,1 @@
+from pycalphad.mapping.strategy.tieline_strategy import TernaryStrategy

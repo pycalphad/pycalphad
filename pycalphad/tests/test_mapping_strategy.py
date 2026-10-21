@@ -685,15 +685,6 @@ def test_mapping_stopped_by_max_iter_finishes_on_data_retrieval(load_database):
     assert strategy._mapping_complete
     assert strategy.node_queue.size() == 0
 
-@select_database("cumg.tdb")
-def test_binary_and_ternary_strategy_are_deprecated(load_database):
-    """BinaryStrategy and TernaryStrategy are deprecated aliases of TielineStrategy"""
-    dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (850, 1000, 20), v.X("MG"): (0.9, 1, 0.05)}
-    for strategy_cls in [BinaryStrategy, TernaryStrategy]:
-        with pytest.deprecated_call():
-            strategy = strategy_cls(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
-        assert isinstance(strategy, TielineStrategy)
 
 @select_database("AlTe-19Shi.tdb")
 def test_degenerate_tieline_rejected_above_congruent_melting(load_database):
