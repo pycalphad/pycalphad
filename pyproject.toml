@@ -82,8 +82,8 @@ cache-keys = [
     { file = "pyproject.toml" },
     # ensure we rebuild if our Cython files or build script changes
     { file = "setup.py" },
-    { file = "**/*.pyx" },
-    { file = "**/*.pxd" },
+    { file = "pycalphad/**/*.pyx" },
+    { file = "pycalphad/**/*.pxd" },
 ]
 
 [tool.setuptools]
