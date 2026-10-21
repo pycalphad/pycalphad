@@ -85,7 +85,7 @@ class IsoplethStrategy(MapStrategy):
 
                 # Step map
                 map_kwargs = self._constant_kwargs()
-                step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
+                step = StepStrategy(self.dbf, self.components, self.phases, conds, models=self.models, phase_record_factory=self.phase_records, **map_kwargs)
                 step.do_map()
                 self.add_starting_points_from_step(step)
 

@@ -269,7 +269,7 @@ class TielineStrategy(MapStrategy):
                             conds[av] = 1 - MIN_COMPOSITION
 
                     # Step map
-                    step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
+                    step = StepStrategy(self.dbf, self.components, self.phases, conds, models=self.models, phase_record_factory=self.phase_records, **map_kwargs)
                     step.do_map()
                     self.add_starting_points_from_step(step)
         else:
@@ -284,7 +284,7 @@ class TielineStrategy(MapStrategy):
                         conds[av] = MIN_COMPOSITION
 
                 # Step map
-                step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
+                step = StepStrategy(self.dbf, self.components, self.phases, conds, models=self.models, phase_record_factory=self.phase_records, **map_kwargs)
                 step.do_map()
                 self.add_starting_points_from_step(step)
 
@@ -294,7 +294,7 @@ class TielineStrategy(MapStrategy):
             del conds[self.axis_vars[0]]
 
             # Step map
-            step = StepStrategy(self.dbf, self.components, self.phases, conds, **map_kwargs)
+            step = StepStrategy(self.dbf, self.components, self.phases, conds, models=self.models, phase_record_factory=self.phase_records, **map_kwargs)
             step.do_map()
             self.add_starting_points_from_step(step)
 
