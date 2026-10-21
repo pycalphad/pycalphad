@@ -564,7 +564,7 @@ def test_ionic_liquid_vacancy_neutral_interaction(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.5,
         v.Y('IONIC_LIQ', 1, v.Species('ALO3/2', {'AL': 1.0, 'O': 1.5})): 0.5,
     }
-    check_energy(mod, dof, -299252.28)  # Thermo-Calc checked using set-start-value and show-value gm(ionic_liq)
+    check_energy(mod, dof, -299252.28)  # Thermo-Calc checked
 
 
 @pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
@@ -583,7 +583,7 @@ def test_ionic_liquid_cation_cation_vacancy_interaction(load_database):
         v.Y('IONIC_LIQ', 1, v.Species('ALO3/2', {'AL': 1.0, 'O': 1.5})): 1e-12,
         v.Y('IONIC_LIQ', 1, v.Species('FEO3/2', {'FE': 1.0, 'O': 1.5})): 1e-12,
     }
-    check_energy(mod, dof, -229223.95)  # Thermo-Calc checked using set-start-value and show-value gm(ionic_liq)
+    check_energy(mod, dof, -229223.95)  # Thermo-Calc checked
 
 
 @select_database("TiO-17Yan.tdb")
@@ -601,7 +601,7 @@ def test_ionic_liquid_neutral_neutral_interaction(load_database):
         v.Y('ION', 1, v.Species('TIO1.5', {'TI': 1.0, 'O': 1.5})): 0.25,
         v.Y('ION', 1, v.Species('TIO2', {'TI': 1.0, 'O': 2.0})): 0.75,
     }
-    check_energy(mod, dof, -436963.06)  # Thermo-Calc checked using set-start-value and show-value gm(ion)
+    check_energy(mod, dof, -436963.06)  # Thermo-Calc checked
 
 
 @pytest.mark.parametrize("phase_name, expected", [
@@ -630,7 +630,7 @@ def test_ionic_liquid_no_anion_interactions(load_database, phase_name, expected)
         v.Y(phase_name, 1, v.Species('N', {'N': 1.0})): 0.2,
         v.Y(phase_name, 1, v.Species('SI', {'SI': 1.0})): 0.1,
     }
-    check_energy(mod, dof, expected)  # Thermo-Calc checked using set-start-value and show-value gm(phase_name)
+    check_energy(mod, dof, expected)  # Thermo-Calc checked
 
 
 @pytest.mark.parametrize("phase_name, expected", [
@@ -655,7 +655,7 @@ def test_ionic_liquid_cation_wildcard_interactions(load_database, phase_name, ex
         v.Y(phase_name, 1, v.Species('C', {'C': 1.0})): 0.3,
         v.Y(phase_name, 1, v.Species('SI', {'SI': 1.0})): 0.1,
     }
-    check_energy(mod, dof, expected)  # Thermo-Calc checked using set-start-value and show-value gm(phase_name)
+    check_energy(mod, dof, expected)  # Thermo-Calc checked
 
 
 def test_order_disorder_interstitial_sublattice():
