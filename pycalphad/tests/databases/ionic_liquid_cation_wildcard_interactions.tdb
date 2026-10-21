@@ -1,0 +1,48 @@
+$ Fictitious database with one two-sublattice ionic liquid phase for each kind
+$ of interaction with a wildcard for the cations. All endmember energies are
+$ zero.
+
+ELEMENT /-   ELECTRON_GAS              0.0          0.0      0.0    !
+ELEMENT VA   VACUUM                    0.0          0.0      0.0    !
+ELEMENT AL   FCC_A1                   26.982        0.0      0.0    !
+ELEMENT C    GRAPHITE                 12.011        0.0      0.0    !
+ELEMENT CA   FCC_A1                   40.078        0.0      0.0    !
+ELEMENT NA   BCC_A2                   22.990        0.0      0.0    !
+ELEMENT O    1/2_MOLE_O2(G)           15.999        0.0      0.0    !
+ELEMENT SI   DIAMOND_A4               28.085        0.0      0.0    !
+
+SPECIES AL+3 AL1/+3 !
+SPECIES CA+2 CA1/+2 !
+SPECIES NA+1 NA1/+1 !
+SPECIES O-2 O1/-2 !
+
+DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+DEFAULT_COMMAND DEF_SYS_ELEMENT VA /- !
+TYPE_DEFINITION % SEQ * !
+
+$ Binary vacancy-neutral with Redlich-Kister terms
+PHASE WILD_VA_NEU:Y % 2 1 1 !
+CONSTITUENT WILD_VA_NEU:Y :AL+3,CA+2,NA+1:O-2,VA,C,SI: !
+PARAMETER L(WILD_VA_NEU,*:VA,C;0) 298.15 10000; 6000 N !
+PARAMETER L(WILD_VA_NEU,*:VA,C;1) 298.15 -7000; 6000 N !
+PARAMETER L(WILD_VA_NEU,*:VA,C;2) 298.15 3000; 6000 N !
+
+$ Binary anion-vacancy with Redlich-Kister terms
+PHASE WILD_ANI_VA:Y % 2 1 1 !
+CONSTITUENT WILD_ANI_VA:Y :AL+3,CA+2,NA+1:O-2,VA,C,SI: !
+PARAMETER L(WILD_ANI_VA,*:O-2,VA;0) 298.15 10000; 6000 N !
+PARAMETER L(WILD_ANI_VA,*:O-2,VA;1) 298.15 -7000; 6000 N !
+PARAMETER L(WILD_ANI_VA,*:O-2,VA;2) 298.15 3000; 6000 N !
+
+$ Composition dependent ternaries
+PHASE WILD_VA_NEU_NEU_DEP:Y % 2 1 1 !
+CONSTITUENT WILD_VA_NEU_NEU_DEP:Y :AL+3,CA+2,NA+1:O-2,VA,C,SI: !
+PARAMETER L(WILD_VA_NEU_NEU_DEP,*:VA,C,SI;0) 298.15 10000; 6000 N !
+PARAMETER L(WILD_VA_NEU_NEU_DEP,*:VA,C,SI;1) 298.15 -7000; 6000 N !
+PARAMETER L(WILD_VA_NEU_NEU_DEP,*:VA,C,SI;2) 298.15 3000; 6000 N !
+
+PHASE WILD_ANI_VA_NEU_DEP:Y % 2 1 1 !
+CONSTITUENT WILD_ANI_VA_NEU_DEP:Y :AL+3,CA+2,NA+1:O-2,VA,C,SI: !
+PARAMETER L(WILD_ANI_VA_NEU_DEP,*:O-2,VA,C;0) 298.15 10000; 6000 N !
+PARAMETER L(WILD_ANI_VA_NEU_DEP,*:O-2,VA,C;1) 298.15 -7000; 6000 N !
+PARAMETER L(WILD_ANI_VA_NEU_DEP,*:O-2,VA,C;2) 298.15 3000; 6000 N !
