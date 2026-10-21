@@ -1193,23 +1193,15 @@ def test_tdb_reader_reads_legacy_never_disorder_status_bits(load_database):
     assert dbf.phases["CBCC_A12"].model_hints.get("disordered_phase") == "DIS_A12"
 
 
-
 def test_database_maxlen_can_be_changed():
-    "Database equality comparison."
-    tdb_file = """
-    ELEMENT H GAS 1.00794 0.0 32.67 !
-
-
-    TYPE_DEFINITION % SEQ * !
-    DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
-
-    PHASE GAS %  1 1 !
-    CONSTITUENT GAS :H: !
-
-    PARAMETER G(GAS,H;0) 1.0 T*VV000000000000+T**(2)*VV000000000001+T**(3)*VV000000000003+T*LOG(T)*VV000000000004; 10000 N !
-
+    "Database: write_tdb maxlen allows lines that cannot be reflowed to the default width."
+    long_var = "V" * 100
+    tdb_str = f"""
+    ELEMENT A GAS 0 0 0 !
+    PARAMETER G(GAS,A;0) {long_var}; 10000 N !
     """
-
-    from pycalphad import Database
-    dbf = Database(tdb_file)
-    print(dbf.to_string(fmt="tdb", maxlen=200))
+    dbf = Database.from_string(tdb_str, fmt='tdb')
+    with pytest.raises(ValueError):
+        dbf.to_string(fmt='tdb')
+    roundtrip_dbf = Database.from_string(dbf.to_string(fmt='tdb', maxlen=200), fmt='tdb')
+    assert roundtrip_dbf == dbf
