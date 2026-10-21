@@ -1,0 +1,585 @@
+
+<database xmlns="http://calphad.org/thermml/v0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xi="http://www.w3.org/2001/XInclude" xsi:schemaLocation="http://calphad.org/thermml/v0 ../../schema/thermml-schema.xsd" name="System Sb-Fe-S-O https://doi.org/10.1016/j.calphad.2019.01.016" version="0.1.0">
+    <metadata>
+        <title>Shishin_Fe-Sb-O-S_slag</title>
+        <version>1.0</version>
+        <description>Generated from ChemSage DAT input 'Shishin_Fe-Sb-O-S_slag'.</description>
+        <license>unspecified</license>
+        <authors/>
+        <created>2025-04-01</created>
+        <revisions>
+            <revision>
+                <version>1.0</version>
+                <date>2025-04-01</date>
+                <author>ChemSage automated tests</author>
+                <description>Initial XML fixture generated from ChemSage DAT input 'Shishin_Fe-Sb-O-S_slag.dat' during an automated test run.</description>
+            </revision>
+        </revisions>
+        <references/>
+    </metadata>
+    <systemComponents>
+        <systemComponent symbol="Sb" refstate="" molarMass="121.76" h298="0" s298="0"/>
+        <systemComponent symbol="Fe" refstate="" molarMass="55.845" h298="0" s298="0"/>
+        <systemComponent symbol="S" refstate="" molarMass="32.065" h298="0" s298="0"/>
+        <systemComponent symbol="O" refstate="" molarMass="15.9994" h298="0" s298="0"/>
+    </systemComponents>
+    <phases>
+        <phase xsi:type="ModifiedQuasichemicalPhaseType" name="Slag-liq" state="liquid">
+            <numberOfDatComponents>18</numberOfDatComponents>
+            <description/>
+            <species>
+                <specie name="Fe2+" composition="Fe" charge="2" group="1"/>
+                <specie name="Fe3+" composition="Fe" charge="3" group="1"/>
+                <specie name="Sb3+" composition="Sb" charge="3" group="1"/>
+                <specie name="O" composition="O" charge="-2" group="2"/>
+                <specie name="S" composition="S" charge="-2" group="2"/>
+            </species>
+            <endmembers>
+                <endmember name="FeO">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Fe2+"/>
+                        </site>
+                        <site>
+                            <const species="O"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="MQM-G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{FeO#Slag-liq}</expr>
+                        <zeta>1.377</zeta>
+                        <coordinationNumbers>
+                            <cation>2</cation>
+                            <anion>-2</anion>
+                        </coordinationNumbers>
+                    </property>
+                </endmember>
+                <endmember name="Fe2O3">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Fe3+"/>
+                        </site>
+                        <site>
+                            <const species="O"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="MQM-G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Fe2O3#Slag-liq}</expr>
+                        <zeta>1.653</zeta>
+                        <coordinationNumbers>
+                            <cation>3</cation>
+                            <anion>-2</anion>
+                        </coordinationNumbers>
+                    </property>
+                </endmember>
+                <endmember name="FeS">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Fe2+"/>
+                        </site>
+                        <site>
+                            <const species="S"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="MQM-G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{FeS#Slag-liq}</expr>
+                        <zeta>1.377</zeta>
+                        <coordinationNumbers>
+                            <cation>2</cation>
+                            <anion>-2</anion>
+                        </coordinationNumbers>
+                    </property>
+                </endmember>
+                <endmember name="Fe2S3">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Fe3+"/>
+                        </site>
+                        <site>
+                            <const species="S"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="MQM-G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Fe2S3#Slag-liq}</expr>
+                        <zeta>1.653</zeta>
+                        <coordinationNumbers>
+                            <cation>3</cation>
+                            <anion>-2</anion>
+                        </coordinationNumbers>
+                    </property>
+                </endmember>
+                <endmember name="Sb2O3">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sb3+"/>
+                        </site>
+                        <site>
+                            <const species="O"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="MQM-G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sb2O3#Slag-liq}</expr>
+                        <zeta>1.653</zeta>
+                        <coordinationNumbers>
+                            <cation>3</cation>
+                            <anion>-2</anion>
+                        </coordinationNumbers>
+                    </property>
+                </endmember>
+                <endmember name="Sb2S3">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sb3+"/>
+                        </site>
+                        <site>
+                            <const species="S"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="MQM-G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sb2S3#Slag-liq}</expr>
+                        <zeta>1.653</zeta>
+                        <coordinationNumbers>
+                            <cation>3</cation>
+                            <anion>-2</anion>
+                        </coordinationNumbers>
+                    </property>
+                </endmember>
+            </endmembers>
+            <quadruplets>
+                <quadruplet name="Fe2+:O">
+                    <a species="Fe2+" Z="1.3774438"/>
+                    <b species="Fe2+" Z="1.3774438"/>
+                    <x species="O" Z="1.3774438"/>
+                    <y species="O" Z="1.3774438"/>
+                </quadruplet>
+                <quadruplet name="Fe3+:O">
+                    <a species="Fe3+" Z="2.0661656"/>
+                    <b species="Fe3+" Z="2.0661656"/>
+                    <x species="O" Z="1.3774438"/>
+                    <y species="O" Z="1.3774438"/>
+                </quadruplet>
+                <quadruplet name="Fe2+:S">
+                    <a species="Fe2+" Z="1.3774438"/>
+                    <b species="Fe2+" Z="1.3774438"/>
+                    <x species="S" Z="1.3774438"/>
+                    <y species="S" Z="1.3774438"/>
+                </quadruplet>
+                <quadruplet name="Fe3+:S">
+                    <a species="Fe3+" Z="2.0661656"/>
+                    <b species="Fe3+" Z="2.0661656"/>
+                    <x species="S" Z="1.3774438"/>
+                    <y species="S" Z="1.3774438"/>
+                </quadruplet>
+                <quadruplet name="Sb3+:O">
+                    <a species="Sb3+" Z="2.0661656"/>
+                    <b species="Sb3+" Z="2.0661656"/>
+                    <x species="O" Z="1.3774438"/>
+                    <y species="O" Z="1.3774438"/>
+                </quadruplet>
+                <quadruplet name="Sb3+:S">
+                    <a species="Sb3+" Z="2.0661656"/>
+                    <b species="Sb3+" Z="2.0661656"/>
+                    <x species="S" Z="1.3774438"/>
+                    <y species="S" Z="1.3774438"/>
+                </quadruplet>
+            </quadruplets>
+            <interactions>
+                <interaction name="Fe2+,Fe3+:O">
+                    <constituents>
+                        <site>
+                            <const species="Fe2+"/>
+                            <const species="Fe3+"/>
+                        </site>
+                        <site>
+                            <const species="O"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="MQM-L-Quasichemical">
+                        <ref/>
+                        <expr i="0" j="1">
+                            -20957.656
+                        </expr>
+                    </property>
+                    <property xsi:type="MQM-L-Quasichemical">
+                        <ref/>
+                        <expr i="2" j="0">
+                            -2092
+                        </expr>
+                    </property>
+                </interaction>
+                <interaction name="Fe2+:O,S">
+                    <constituents>
+                        <site>
+                            <const species="Fe2+"/>
+                        </site>
+                        <site>
+                            <const species="O"/>
+                            <const species="S"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="MQM-L-PF">
+                        <ref/>
+                        <expr i="0" j="0">
+                            +42915.288-37.656*T
+                        </expr>
+                    </property>
+                </interaction>
+            </interactions>
+            <ternaryInterpolations/>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Sb2O3" state="solid">
+            <description/>
+            <species>
+                <specie name="Sb2O3" composition="Sb2O3"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Sb2O3" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Sb2O3">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sb2O3"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sb2O3#Sb2O3}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Sb2S3" state="solid">
+            <description/>
+            <species>
+                <specie name="Sb2S3" composition="Sb2S3"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Sb2S3" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Sb2S3">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sb2S3"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sb2S3#Sb2S3}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="FeO" state="solid">
+            <description/>
+            <species>
+                <specie name="FeO" composition="FeO"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="FeO" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="FeO">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="FeO"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{FeO#FeO}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Fe2O3" state="solid">
+            <description/>
+            <species>
+                <specie name="Fe2O3" composition="Fe2O3"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Fe2O3" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Fe2O3">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Fe2O3"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Fe2O3#Fe2O3}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Fe" state="solid">
+            <description/>
+            <species>
+                <specie name="Fe" composition="Fe"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Fe" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Fe">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Fe"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Fe#Fe}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="Sb" state="solid">
+            <description/>
+            <species>
+                <specie name="Sb" composition="Sb"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="Sb" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="Sb">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="Sb"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{Sb#Sb}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="S" state="solid">
+            <description/>
+            <species>
+                <specie name="S" composition="S"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="S" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="S">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="S"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{S#S}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+        <phase xsi:type="CEFPhaseType" name="O" state="solid">
+            <description/>
+            <species>
+                <specie name="O" composition="O"/>
+            </species>
+            <structure>
+                <sublattices multiplicities="1">
+                    <site constituents="O" wyckoff=""/>
+                </sublattices>
+            </structure>
+            <endmembers>
+                <endmember name="O">
+                    <description/>
+                    <comment/>
+                    <constituents>
+                        <site>
+                            <const species="O"/>
+                        </site>
+                    </constituents>
+                    <property xsi:type="G">
+                        <ref/>
+                        <comment/>
+                        <expr>+1*{O#O}</expr>
+                    </property>
+                </endmember>
+            </endmembers>
+        </phase>
+    </phases>
+    <globalExpressions>
+        <expression xsi:type="FunctionTypeExpr" name="Fe#Fe">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Fe2O3#Fe2O3">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Fe2O3#Slag-liq">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="9000">
+                -803332.44+873.77363*T-146.85785*T*LN(T)-8.7604525E7*T**(-2)+2.7884488E6*T**(-1)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Fe2S3#Slag-liq">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="1500">
+                -241834.03+1253.142*T-203.37*T*LN(T)-1.0762986E-2*T**2+1.1323263E6*T**(-1)
+            </range>
+            <range low="1500" high="3000">
+                -263251.27+1481.6272*T-234.79915*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="FeO#FeO">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="FeO#Slag-liq">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="1644.1499">
+                -289117.48-349.65712*T+18.024475*T*LN(T)+6003.5987*T**0.5-1.5304031E-2*T**2+1.2666500E6*T**(-1)
+            </range>
+            <range low="1644.1499" high="9999">
+                -266253.73+398.28888*T-68.199213*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="FeS#Slag-liq">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="1500">
+                -123546.34+501.62405*T-80.496932*T*LN(T)-7.0835155E-3*T**2+391377.18*T**(-1)
+            </range>
+            <range low="1500" high="4000">
+                -138440.57+653.96788*T-101.39958*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="O#O">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="S#S">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sb#Sb">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sb2O3#Sb2O3">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sb2O3#Slag-liq">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="700">
+                -693058.98+463.81856*T-92.05*T*LN(T)-3.3055000E-2*T**2
+            </range>
+            <range low="700" high="1729">
+                -722257.03+907.22912*T-156.9*T*LN(T)
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sb2S3#Sb2S3">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="6000">
+                0
+            </range>
+        </expression>
+        <expression xsi:type="FunctionTypeExpr" name="Sb2S3#Slag-liq">
+            <ref/>
+            <comment/>
+            <range low="298.15" high="600">
+                -7307.0197+496.23692*T-101.83856*T*LN(T)-3.0271240E-2*T**2
+            </range>
+            <range low="600" high="2000">
+                -53295.037+1161.2102*T-196.648*T*LN(T)
+            </range>
+        </expression>
+    </globalExpressions>
+</database>
