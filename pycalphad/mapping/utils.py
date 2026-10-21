@@ -80,6 +80,18 @@ def _sort_axis_by_state_vars(axis_vars: list[v.StateVariable]):
     non_state_vars = [av for av in axis_vars if not is_state_variable(av)]
     return state_vars + non_state_vars
 
+def _update_global_conditions(point: Point):
+    """
+    Recomputes the global conditions of point from its composition sets
+    """
+    for key in point.global_conditions:
+        # Imposed potentials (e.g. MU conditions) are inputs, not outcomes: refreshing them
+        # from the computed state would silently absorb any solver deviation into the
+        # condition value and corrupt every descendant point.
+        if isinstance(key, v.ChemicalPotential):
+            continue
+        point.global_conditions[key] = point.get_property(key)
+
 def _generate_point_with_fixed_cs(point: Point, cs_to_fix: CompositionSet, cs_to_free: CompositionSet):
     """
     Generates point with two cs, one fixed and one free
@@ -104,13 +116,7 @@ def _generate_point_with_fixed_cs(point: Point, cs_to_fix: CompositionSet, cs_to
     new_point._free_composition_sets[0].fixed = False
     update_cs_phase_frac(new_point._free_composition_sets[0], 1.0)
 
-    for key in new_point.global_conditions:
-        # Imposed potentials (e.g. MU conditions) are inputs, not outcomes: refreshing them
-        # from the computed state would silently absorb any solver deviation into the
-        # condition value and corrupt every descendant point.
-        if isinstance(key, v.ChemicalPotential):
-            continue
-        new_point.global_conditions[key] = new_point.get_property(key)
+    _update_global_conditions(new_point)
     return new_point
 
 def _generate_point_with_free_cs(point: Point, bias_towards_free : bool = False):
@@ -146,11 +152,5 @@ def _generate_point_with_free_cs(point: Point, bias_towards_free : bool = False)
             update_cs_phase_frac(cs, 1/phase_sum)
         cs.fixed = False
 
-    for key in new_point.global_conditions:
-        # Imposed potentials (e.g. MU conditions) are inputs, not outcomes: refreshing them
-        # from the computed state would silently absorb any solver deviation into the
-        # condition value and corrupt every descendant point.
-        if isinstance(key, v.ChemicalPotential):
-            continue
-        new_point.global_conditions[key] = new_point.get_property(key)
+    _update_global_conditions(new_point)
     return new_point

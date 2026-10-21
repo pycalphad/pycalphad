@@ -19,7 +19,6 @@ Simple checks
     simple_check_valid_point
     simple_check_change_in_phases
     simple_check_global_min
-    simple_check_degenerate_tieline
 
     These quickly check a step result and returns
     a bool whether the step result is valid or not
@@ -146,30 +145,6 @@ def simple_check_global_min(step_results: tuple[Point, list[CompositionSet]], **
         _log.info(f"Point is not global minimum. Current CS: {new_point.stable_phases}, new CS: {global_test_point.stable_phases}")
 
     return global_test_point is None
-
-def simple_check_degenerate_tieline(step_results: tuple[Point, list[CompositionSet]], **kwargs):
-    """
-    Returns True or False for whether the step result is a non-degenerate equilibrium,
-    i.e. the tie-line between the composition sets has not collapsed to zero width
-
-    Parameters
-    ----------
-    step_results : [Point, [CompositionSet]]
-        Results from zpf_equilibrium.update_equilibrium_with_new_conditions
-
-    Returns
-    -------
-    bool whether step result is non-degenerate
-    """
-    if step_results is None:
-        return False
-
-    new_point, orig_cs = step_results
-    degenerate = _degenerate_zero_width_tieline(new_point.stable_composition_sets)
-    if degenerate:
-        _log.info(f"All composition sets of {new_point.stable_phases} have the same composition (zero-width tie-line)")
-
-    return not degenerate
 
 def check_valid_point(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
     """
@@ -544,13 +519,15 @@ def check_degenerate_tieline(zpf_line: ZPFLine, step_results: tuple[Point, list[
         # boundary tracks a fixed composition (a pure-element edge or a compound
         # stoichiometry) while stepping in a potential, whereas a real boundary
         # crossing a congruent extremum (where the width passes continuously
-        # through zero) keeps advancing in composition and must not be ended
+        # through zero) keeps advancing in composition and must not be ended. Movement is
+        # relative to the step just taken, which may be smaller than the default step
         axis_vars = axis_data["axis_vars"]
         normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})
         composition_axes = [av for av in axis_vars if isinstance(av, v.MoleFraction)]
         prev_point = zpf_line.points[-1]
         movement = [np.squeeze(np.abs(new_point.get_property(av) - prev_point.get_property(av)) / normalize_factor[av]) for av in composition_axes]
-        pinned = len(movement) == 0 or np.amax(movement) < 0.25
+        step = zpf_line.current_delta / axis_data["axis_delta"][zpf_line.axis_var]
+        pinned = len(movement) == 0 or np.amax(movement) < 0.25 * step
         if pinned:
             zpf_line.status = ZPFState.REACHED_LIMIT
             _log.info(f"All composition sets of {new_point.stable_phases} have the same composition (zero-width tie-line). Ending ZPF line.")

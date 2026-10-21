@@ -2,6 +2,11 @@ from typing import Union
 import logging
 import itertools
 import copy
+try:
+    # needs Python 3.13+
+    from warnings import deprecated
+except ImportError:
+    from typing_extensions import deprecated
 
 import numpy as np
 
@@ -19,6 +24,40 @@ from pycalphad.mapping.strategy.step_strategy import StepStrategy
 from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyData, PhaseRegionData
 
 _log = logging.getLogger(__name__)
+
+# Two points are on the same tie-line if their potential coordinates (in units of the axis
+# step) and their phase compositions agree within these tolerances
+TIELINE_POTENTIAL_TOL = 0.75
+TIELINE_COMPOSITION_TOL = 0.01
+# Minimum distance (in units of the axis step) that a zpf line must extend past an exit
+# point in the stepping direction for that direction to count as already traced
+TRACED_DISTANCE_TOL = 0.25
+
+def _tieline_compositions(point: Point):
+    """
+    Phase compositions of the composition sets of point, ordered by phase name, then composition
+    """
+    rows = sorted((cs.phase_record.phase_name, tuple(np.asarray(cs.X, dtype=float))) for cs in point.stable_composition_sets)
+    return np.array([comps for _, comps in rows])
+
+def _same_tieline(key, other_key):
+    """
+    Compares tie-line keys from TielineStrategy._tieline_key
+    """
+    phases, potentials, comps = key
+    other_phases, other_potentials, other_comps = other_key
+    if phases != other_phases or comps.shape != other_comps.shape:
+        return False
+    if len(potentials) > 0 and np.amax(np.abs(potentials - other_potentials)) >= TIELINE_POTENTIAL_TOL:
+        return False
+    return np.amax(np.abs(comps - other_comps)) < TIELINE_COMPOSITION_TOL
+
+def _get_closest_local_property(point: Point, comp_set: CompositionSet, var: v.StateVariable):
+    """
+    Local property of the composition set in point closest in composition to comp_set
+    """
+    closest = min(point.stable_composition_sets, key=lambda cs: np.amax(np.abs(np.asarray(cs.X) - np.asarray(comp_set.X))))
+    return point.get_local_property(closest, var)
 
 def _sort_point_potential_axis(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.StateVariable, float]):
     """
@@ -341,7 +380,7 @@ class TielineStrategy(MapStrategy):
                     for point in zpf_line.points:
                         if len(point.stable_phases) != 2:
                             continue
-                        comps = np.sort([np.asarray(cs.X, dtype=float) for cs in point.stable_composition_sets], axis=0)
+                        comps = _tieline_compositions(point)
                         if prev_comps is None or np.amax(np.abs(comps - prev_comps)) > segment_tol:
                             # A step line can jump out of a field and back into it, so
                             # dedup against points with the same tie-line already added
@@ -442,77 +481,70 @@ class TielineStrategy(MapStrategy):
 
         The different edge step maps can seed the same boundary more than once (e.g. a
         parentless recovery node from an x-edge temperature step a fraction of a step
-        above a T-edge composition-step point on the same boundary). Each seed lands in
-        the start region of the other's traced line, which the runtime coverage check
-        deliberately exempts (see _point_on_existing_zpf_line), so these duplicates can
-        only be removed before tracing starts. Both directions of the surviving
+        above a T-edge composition-step point on the same boundary). The gap between such
+        seeds can be too short for _exit_already_traced to count as traced, so each would
+        trace a duplicate sliver of the boundary. Both directions of the surviving
         representative are kept.
         """
-        potential_axes = [av for av in self.axis_vars if map_utils.is_state_variable(av)]
         kept = []
         kept_keys = []
         for node in self.node_queue.nodes:
-            if not getattr(node, "skip_if_covered", False):
+            if not node.skip_if_covered:
                 kept.append(node)
                 continue
-            phases = sorted(node.stable_phases)
-            pot = np.array([np.squeeze(node.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
-            comps = np.sort([np.asarray(cs.X, dtype=float) for cs in node.stable_composition_sets], axis=0)
-            duplicate = False
-            for o_phases, o_dir, o_pot, o_comps in kept_keys:
-                if (o_phases == phases and o_dir == node.axis_direction
-                        and (len(pot) == 0 or np.amax(np.abs(o_pot - pot)) < 0.75)
-                        and o_comps.shape == comps.shape and np.amax(np.abs(o_comps - comps)) < 0.01):
-                    duplicate = True
-                    break
-            if duplicate:
+            key = self._tieline_key(node)
+            if any(other_dir == node.axis_direction and _same_tieline(key, other_key) for other_dir, other_key in kept_keys):
                 _log.info(f"Dropping duplicate automatic starting point {node.stable_phases}, {node.global_conditions}")
                 continue
             kept.append(node)
-            kept_keys.append((phases, node.axis_direction, pot, comps))
+            kept_keys.append((node.axis_direction, key))
         self.node_queue.nodes = kept
 
-    def _point_on_existing_zpf_line(self, point: Point):
+    def _tieline_key(self, point: Point):
         """
-        Returns True if an existing zpf line already traces the tie-line that point lies
-        on: a line with the same set of stable phases containing a point with the same
-        potential-axis coordinates and the same phase compositions
+        Identifies the tie-line through point by its stable phases, its potential-axis
+        coordinates (in units of the axis step) and its phase compositions
 
-        Position in condition space alone cannot decide coverage: distinct two-phase
-        fields with the same phase pair flank a line compound at nearly identical
-        conditions (only their tie-line endpoint compositions differ, by up to the
-        compound-to-compound spacing), and conversely every global composition along a
-        tie-line shares that tie-line, so the lever position (the composition condition)
-        must be ignored. A tie-line is identified by its potential coordinates plus its
-        phase compositions.
-
-        Points within one normalized step of a line's own first point do not count as
-        covering: a line merely starting at a position covers only the side it traced,
-        and the opposite-direction sibling of a starting point (which sits at, or within
-        a refined first step of, that first point) must still be allowed to trace the
-        other side of the boundary.
+        Position in condition space cannot identify a tie-line: distinct two-phase fields
+        with the same phase pair flank a line compound at nearly identical conditions
+        (only their tie-line endpoint compositions differ), and conversely every global
+        composition along a tie-line shares that tie-line.
         """
-        point_phases = sorted(point.stable_phases)
         potential_axes = [av for av in self.axis_vars if map_utils.is_state_variable(av)]
-        point_pot = np.array([np.squeeze(point.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
-        point_comps = np.sort([np.asarray(cs.X, dtype=float) for cs in point.stable_composition_sets], axis=0)
+        potentials = np.array([np.squeeze(point.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
+        return sorted(point.stable_phases), potentials, _tieline_compositions(point)
+
+    def _exit_already_traced(self, exit_point: Point, axis_var: v.StateVariable, direction: Direction):
+        """
+        Returns True if an existing zpf line already traces the tie-line of exit_point
+        onward in direction: the line contains a point on the same tie-line that is, or
+        is next to, a point beyond exit_point along axis_var
+
+        A line only covers the side of its starting point that it traced, so the
+        opposite-direction sibling of a starting point can still trace the other side.
+
+        Positions along axis_var are compared using the composition of the free phase of
+        exit_point (and the closest composition set of each zpf line point), since the
+        global composition of a zpf line point depends on which of its composition sets
+        is fixed.
+        """
+        exit_key = self._tieline_key(exit_point)
+        free_cs = exit_point.free_composition_sets[0]
+        norm = self.normalize_factor(axis_var)
+        exit_pos = exit_point.get_local_property(free_cs, axis_var) / norm
         for zpf_line in self.zpf_lines:
-            if sorted(zpf_line.stable_phases) != point_phases:
+            if sorted(zpf_line.stable_phases) != exit_key[0]:
                 continue
-            first_pos = np.array([np.squeeze(zpf_line.points[0].get_property(av)) / self.normalize_factor(av) for av in self.axis_vars], dtype=float)
-            for line_point in zpf_line.points[1:]:
-                line_pos = np.array([np.squeeze(line_point.get_property(av)) / self.normalize_factor(av) for av in self.axis_vars], dtype=float)
-                # Start region of the line: does not cover the other direction
-                if np.sqrt(np.sum((line_pos - first_pos)**2)) < 1.0:
+            points = zpf_line.points
+            for i, line_point in enumerate(points):
+                if not _same_tieline(exit_key, self._tieline_key(line_point)):
                     continue
-                if len(potential_axes) > 0:
-                    line_pot = np.array([np.squeeze(line_point.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
-                    if np.amax(np.abs(line_pot - point_pot)) >= 0.75:
-                        continue
-                line_comps = np.sort([np.asarray(cs.X, dtype=float) for cs in line_point.stable_composition_sets], axis=0)
-                if line_comps.shape == point_comps.shape and np.amax(np.abs(line_comps - point_comps)) < 0.01:
-                    _log.info(f"Point {point.stable_phases}, {point.global_conditions} is already covered by zpf line {zpf_line.stable_phases} (same tie-line). Skipping.")
-                    return True
+                for j in [i - 1, i, i + 1]:
+                    if 0 <= j < len(points):
+                        pos = _get_closest_local_property(points[j], free_cs, axis_var) / norm
+                        if (pos - exit_pos) * direction.value > TRACED_DISTANCE_TOL:
+                            _log.info(f"Point {exit_point.stable_phases}, {exit_point.global_conditions} is already traced by zpf line {zpf_line.stable_phases} along {axis_var}, {direction}. Skipping.")
+                            return True
         return False
 
     def _determine_start_direction(self, node: Node, exit_point: Point, proposed_direction: Direction):
@@ -526,16 +558,15 @@ class TielineStrategy(MapStrategy):
         # exits from mapping-found or recovery nodes (ExitHint.NORMAL, e.g. re-found
         # invariants whose exits would re-trace covered fields). A two-phase starting
         # point added explicitly by a user (POINT_IS_EXIT without skip_if_covered) is
-        # always honored
-        if (getattr(node, "skip_if_covered", False) or node.exit_hint == ExitHint.NORMAL) and self._point_on_existing_zpf_line(exit_point):
-            return None
-
+        # always honored. Once a direction is found to be traced, the boundary from the
+        # exit is already mapped, so other directions are not tried
+        skip_traced = node.skip_if_covered or node.exit_hint == ExitHint.NORMAL
         if self.num_potential_condition > 0:
-            return self._determine_start_direction_potential_axis(node, exit_point, proposed_direction)
+            return self._determine_start_direction_potential_axis(node, exit_point, proposed_direction, skip_traced)
         else:
-            return self._determine_start_direction_composition_axes(node, exit_point, proposed_direction)
+            return self._determine_start_direction_composition_axes(node, exit_point, proposed_direction, skip_traced)
 
-    def _determine_start_direction_potential_axis(self, node: Node, exit_point: Point, proposed_direction: Direction):
+    def _determine_start_direction_potential_axis(self, node: Node, exit_point: Point, proposed_direction: Direction, skip_traced: bool):
         # If no proposed direction, then we test both directions
         if proposed_direction is None:
             directions = [Direction.POSITIVE, Direction.NEGATIVE]
@@ -546,6 +577,8 @@ class TielineStrategy(MapStrategy):
         norm = {av: self.normalize_factor(av) for av in self.axis_vars}
         exit_point, axis_var = _sort_point_potential_axis(exit_point, self.axis_vars, norm)
         for d in directions:
+            if skip_traced and self._exit_already_traced(exit_point, axis_var, d):
+                return None
             dir_results = self._test_direction(exit_point, axis_var, d)
             if dir_results is not None:
                 av_delta, other_av_delta = dir_results
@@ -554,7 +587,7 @@ class TielineStrategy(MapStrategy):
 
         return None
 
-    def _determine_start_direction_composition_axes(self, node: Node, exit_point: Point, proposed_direction: Direction):
+    def _determine_start_direction_composition_axes(self, node: Node, exit_point: Point, proposed_direction: Direction, skip_traced: bool):
         # Sort exit point to fix composition set that varies the least
         der, exit_point, axis_var, normal = _sort_point_composition_axes(exit_point, self.axis_vars)
 
@@ -582,6 +615,8 @@ class TielineStrategy(MapStrategy):
             directions = [proposed_direction]
 
         for d in directions:
+            if skip_traced and self._exit_already_traced(exit_point, axis_var, d):
+                return None
             dir_results = self._test_direction(exit_point, axis_var, d)
             if dir_results is not None:
                 av_delta, other_av_delta = dir_results
@@ -737,5 +772,10 @@ class TielineStrategy(MapStrategy):
         return zpf_data
 
 
-BinaryStrategy = TielineStrategy
-TernaryStrategy = TielineStrategy
+@deprecated("BinaryStrategy is deprecated. Use `pycalphad.mapping.TielineStrategy` instead.")
+class BinaryStrategy(TielineStrategy):
+    pass
+
+@deprecated("TernaryStrategy is deprecated. Use `pycalphad.mapping.TielineStrategy` instead.")
+class TernaryStrategy(TielineStrategy):
+    pass

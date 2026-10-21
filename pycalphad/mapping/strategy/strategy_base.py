@@ -102,7 +102,7 @@ class MapStrategy:
         self.zpf_lines: list[ZPFLine] = []
         self.node_queue = NodeQueue()
 
-        # Whether mapping has been run. Used with _ensure_mapped() to do just-in-time mapping.
+        # Whether mapping has run to completion. Used with _ensure_mapped() to do just-in-time mapping.
         # gets reset if new starting points are added.
         self._mapping_complete = False
 
@@ -135,8 +135,9 @@ class MapStrategy:
 
     def _ensure_mapped(self):
         """
-        Run mapping just in time if it has not been run yet, or if new starting
-        points were added since the last run
+        Run mapping just in time if it has not run to completion yet (including a
+        do_map stopped early by max_iter), or if new starting points were added since
+        the last run
 
         This is called by the data retrieval methods (get_*) so that users do not
         need to call do_map explicitly before retrieving data or plotting
@@ -289,7 +290,7 @@ class MapStrategy:
         while (not finished) and (max_iter == -1 or n < max_iter):
             finished = self.iterate()
             n += 1
-        self._mapping_complete = True
+        self._mapping_complete = finished
 
     def _continue_zpf_line(self):
         """

@@ -42,13 +42,6 @@ def point_from_equilibrium(dbf: Database, components: list[str], phases: list[st
     for cs in comp_sets:
         map_utils.update_cs_phase_frac(cs, cs.NP/np_sum)
 
-    for key in copy_conds:
-        # Imposed potentials (e.g. MU conditions) are inputs, not outcomes: refreshing them
-        # from the computed state would silently absorb any solver deviation into the
-        # condition value and corrupt every descendant point.
-        if isinstance(key, v.ChemicalPotential):
-            continue
-        copy_conds[key] = key.compute_property(comp_sets, copy_conds, chemical_potentials)
-
     point = Point(copy_conds, chemical_potentials, [cs for cs in comp_sets if cs.fixed], [cs for cs in comp_sets if not cs.fixed])
+    map_utils._update_global_conditions(point)
     return point
