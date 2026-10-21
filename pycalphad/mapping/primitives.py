@@ -284,7 +284,7 @@ class Node(Point):
     exit_hint : ExitHint
         Hints for how exits should be found from this node
     skip_if_covered : bool
-        Whether exits from this node are skipped when an existing zpf line already traces them
+        Whether exits from this node are skipped when an existing zpf line already maps them
     """
     parent: Point
     axis_var: v.StateVariable = None

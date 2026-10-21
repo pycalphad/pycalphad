@@ -596,7 +596,7 @@ class MapStrategy:
             # trial step uses the minimum delta, so near a pure-element edge or congruent
             # point the trial result is legitimately narrower than the degenerate
             # tolerance and both directions would be vetoed, losing e.g. an entire
-            # narrow melting lens. Line tracing's own degenerate check still ends truly
+            # narrow melting lens. Line mapping's own degenerate check still ends truly
             # degenerate (pinned) lines one step later.
             check_functions = [
                 zchk.simple_check_valid_point,

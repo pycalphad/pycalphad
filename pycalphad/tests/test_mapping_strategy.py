@@ -822,12 +822,12 @@ def test_no_degenerate_edge_pinned_zpf_lines(load_database):
 @select_database("BaCa-86Alc.tdb")
 def test_circular_loop_check_normalizes_axes(load_database):
     """
-    The liquidus must be traced past a congruent minimum, back up to the
+    The liquidus must be mapped past a congruent minimum, back up to the
     temperature it started at.
 
     Ba-Ca is isomorphous (BCC) with a congruent liquidus minimum at ~894 K. The
     BCC_A2+LIQUID ZPF line seeded at one pure-element melting point (Ba: ~1000 K,
-    Ca: ~1115 K) traces down through the minimum and back up to the other
+    Ca: ~1115 K) is mapped down through the minimum and back up to the other
     element's melting point, so its temperature necessarily returns to its
     starting temperature partway along.
 
@@ -900,7 +900,7 @@ def test_automatic_starting_points_seed_every_merged_field(load_database):
     composition sets from one field into the next without creating a phase-change
     node. Adding one starting point per step line then seeds only one of the
     merged fields; the Au-rich fcc+AuCu3 field (tie-lines spanning x(CU)=[0.078,
-    0.237] at 300 K) is fully present in the step results but was never traced.
+    0.237] at 300 K) is fully present in the step results but was never mapped.
     Adding one starting point per contiguous segment (tie-line endpoints are
     constant within a field at fixed potentials, so a jump marks a new field)
     recovers it.
@@ -915,17 +915,17 @@ def test_automatic_starting_points_seed_every_merged_field(load_database):
         if np.min(xs) < 0.15 and np.max(xs) > 0.20:
             break
     else:
-        assert False, "Au-rich fcc+AuCu3 field (x(CU)~0.08-0.24) was never traced"
+        assert False, "Au-rich fcc+AuCu3 field (x(CU)~0.08-0.24) was never mapped"
 
 @select_database("CrTa-93Dup-LB.tdb")
 def test_starting_point_dedup_distinguishes_twin_fields(load_database):
     """
     Two distinct two-phase fields with the same phase pair flanking a line compound
-    must both be traced.
+    must both be mapped.
 
     In Cr-Ta, BCC_A2+C15_LAVES fields exist on both sides of the CR2TA_C15 line
     compound. The x-edge automatic starting point for the Cr-rich field sits (in
-    condition space) within a fraction of a step of the already-traced Ta-rich
+    condition space) within a fraction of a step of the already mapped Ta-rich
     field's line at the compound composition, so a coverage check based on
     condition-space position alone discards it and the whole Cr-rich low-T field
     (x < 0.03, 300-849 K) is lost. Coverage must compare tie-lines (potential
@@ -944,14 +944,14 @@ def test_starting_point_dedup_distinguishes_twin_fields(load_database):
             if np.min(xs) < 0.05 and np.min(Ts) < 350:
                 break
     else:
-        assert False, "Cr-rich BCC_A2+C15_LAVES field (x(TA)<0.05) was not traced down to 300 K"
+        assert False, "Cr-rich BCC_A2+C15_LAVES field (x(TA)<0.05) was not mapped down to 300 K"
 
 @select_database("BaCa-86Alc.tdb")
 def test_starting_point_coverage_semantics(load_database):
     """
     The coverage test used to skip redundant starting directions must:
-    - treat a point deep on a traced line as covered in both directions,
-    - treat the start of a line as covered in the direction the line was traced, and
+    - treat a point deep on a mapped line as covered in both directions,
+    - treat the start of a line as covered in the direction the line was mapped, and
     - NOT treat the start of a line as covered in the opposite direction: skipping the
       opposite-direction sibling of a starting point would lose the whole other side
       of the boundary (e.g. the entire lens below a top-edge starting point).
@@ -965,32 +965,32 @@ def test_starting_point_coverage_semantics(load_database):
     assert len(long_lines) > 0
     zpf_line = long_lines[0]
     Ts = [np.squeeze(pt.get_property(v.T)) for pt in zpf_line.points]
-    traced_dir = Direction.POSITIVE if Ts[1] > Ts[0] else Direction.NEGATIVE
-    opposite_dir = Direction.NEGATIVE if traced_dir == Direction.POSITIVE else Direction.POSITIVE
+    mapped_dir = Direction.POSITIVE if Ts[1] > Ts[0] else Direction.NEGATIVE
+    opposite_dir = Direction.NEGATIVE if mapped_dir == Direction.POSITIVE else Direction.POSITIVE
 
-    assert strategy._exit_already_traced(zpf_line.points[0], v.T, traced_dir), (
-        "The start of a line should be covered in the direction it was traced"
+    assert strategy._exit_already_mapped(zpf_line.points[0], v.T, mapped_dir), (
+        "The start of a line should be covered in the direction it was mapped"
     )
-    assert not strategy._exit_already_traced(zpf_line.points[0], v.T, opposite_dir), (
+    assert not strategy._exit_already_mapped(zpf_line.points[0], v.T, opposite_dir), (
         "The start of a line must not cover its opposite-direction sibling"
     )
     # an interior point where the line is monotonic in T
     i = next(i for i in range(4, len(Ts) - 4) if (Ts[i+4] - Ts[i]) * (Ts[i] - Ts[i-4]) > 0)
     for d in [Direction.POSITIVE, Direction.NEGATIVE]:
-        assert strategy._exit_already_traced(zpf_line.points[i], v.T, d), (
-            "A point on an already-traced tie-line should be covered in both directions"
+        assert strategy._exit_already_mapped(zpf_line.points[i], v.T, d), (
+            "A point on an already mapped tie-line should be covered in both directions"
         )
 
 @select_database("CaMg-06Zho.tdb")
-def test_no_duplicate_boundary_retracing(load_database):
+def test_no_duplicate_boundary_remapping(load_database):
     """
-    Recovery starting points taken from the edge step maps must not re-trace a
+    Recovery starting points taken from the edge step maps must not map a
     boundary that is already mapped.
 
     In Ca-Mg the CAMG2_C14+FCC_A1 boundary gets one seed from the T=300 K edge and
     additional parentless recovery seeds at the x(MG)=0 edge; without tie-line-based
-    coverage checking the same boundary is traced up to five times (visible as
-    interleaved duplicate tie-lines in the plot, since the re-traces start at
+    coverage checking the same boundary is mapped up to five times (visible as
+    interleaved duplicate tie-lines in the plot, since the repeats start at
     off-grid temperatures).
     """
     dbf = load_database()
@@ -1001,7 +1001,7 @@ def test_no_duplicate_boundary_retracing(load_database):
     target_lines = [zl for zl in strategy.zpf_lines
                     if sorted(set(zl.stable_phases)) == ["CAMG2_C14", "FCC_A1"] and len(zl.points) > 1]
     assert 1 <= len(target_lines) <= 2, (
-        f"CAMG2_C14+FCC_A1 traced {len(target_lines)} times; expected at most 2 segments"
+        f"CAMG2_C14+FCC_A1 mapped {len(target_lines)} times; expected at most 2 segments"
     )
     # deduplication must not cost coverage: the boundary still spans 300 K up to
     # the ~710 K invariant
@@ -1009,17 +1009,17 @@ def test_no_duplicate_boundary_retracing(load_database):
     assert np.min(Ts) < 310 and np.max(Ts) > 700
 
 @select_database("AuCu-98Sun-LB.tdb")
-def test_no_retracing_from_start_of_traced_line(load_database):
+def test_no_remapping_from_start_of_mapped_line(load_database):
     """
-    An exit at the start of an already traced line, heading the same way, must not
-    trace the line again.
+    An exit at the start of an already mapped line, heading the same way, must not
+    map the line again.
 
     In Au-Cu the FCC_4SL+FCC_4SL+FCC_4SL invariant at ~578 K is found twice (once from
     each boundary ending there) and both copies have an exit to the FCC_4SL+FCC_4SL
     boundary rising from it. The second exit sits at the first point of the line
-    traced from the first, which a coverage check that ignores direction must exempt
+    mapped from the first, which a coverage check that ignores direction must exempt
     (to let the opposite-direction sibling of a starting point through), so the
-    boundary was traced twice.
+    boundary was mapped twice.
     """
     dbf = load_database()
     conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
@@ -1036,12 +1036,12 @@ def test_no_retracing_from_start_of_traced_line(load_database):
                 continue
             other_tielines = tielines(other)
             num_shared = sum(any(np.allclose(tl, other_tl, atol=1e-3) for other_tl in other_tielines) for tl in tielines(zpf_line))
-            assert num_shared < 2, f"{zpf_line.stable_phases} boundary traced more than once"
+            assert num_shared < 2, f"{zpf_line.stable_phases} boundary mapped more than once"
 
 @select_database("CrV-92Lee-LB.tdb")
 def test_degenerate_check_does_not_veto_narrow_lens(load_database):
     """
-    A genuinely narrow melting lens must still be traced.
+    A genuinely narrow melting lens must still be mapped.
 
     Cr-V is isomorphous with a solidus-liquidus lens only a few kelvin tall; near
     the pure-element edges its tie-line width is genuinely below the degenerate
@@ -1049,7 +1049,7 @@ def test_degenerate_check_does_not_veto_narrow_lens(load_database):
     direction test (whose trial step uses the minimum delta, right at the edge)
     vetoes both directions from the edge melting nodes, so the entire lens - and
     with it the whole diagram - is lost. The direction test must not apply the
-    degenerate check; line tracing's own check still ends truly degenerate lines
+    degenerate check; line mapping's own check still ends truly degenerate lines
     one step later.
     """
     dbf = load_database()
@@ -1063,12 +1063,12 @@ def test_degenerate_check_does_not_veto_narrow_lens(load_database):
             if np.min(xs) < 0.05 and np.max(xs) > 0.9:
                 break
     else:
-        assert False, "BCC_A2+LIQUID melting lens was not traced across the composition range"
+        assert False, "BCC_A2+LIQUID melting lens was not mapped across the composition range"
 
 @select_database("CrPt-98Spe-LB.tdb")
 def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database):
     """
-    A boundary crossing a congruent extremum must be traced through it.
+    A boundary crossing a congruent extremum must be mapped through it.
 
     In Cr-Pt the fcc liquidus passes over a congruent maximum at x(PT)~0.78,
     2058 K, where the tie-line width passes continuously through zero. At a fine
@@ -1090,7 +1090,7 @@ def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database)
             if np.max(xs) > 0.95:
                 break
     else:
-        assert False, "FCC_A1+LIQUID liquidus was not traced past the congruent maximum to the Pt side"
+        assert False, "FCC_A1+LIQUID liquidus was not mapped past the congruent maximum to the Pt side"
 
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):

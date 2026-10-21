@@ -30,8 +30,8 @@ _log = logging.getLogger(__name__)
 TIELINE_POTENTIAL_TOL = 0.75
 TIELINE_COMPOSITION_TOL = 0.01
 # Minimum distance (in units of the axis step) that a zpf line must extend past an exit
-# point in the stepping direction for that direction to count as already traced
-TRACED_DISTANCE_TOL = 0.25
+# point in the stepping direction for that direction to count as already mapped
+MAPPED_DISTANCE_TOL = 0.25
 
 def _tieline_compositions(point: Point):
     """
@@ -52,11 +52,14 @@ def _same_tieline(key, other_key):
         return False
     return np.amax(np.abs(comps - other_comps)) < TIELINE_COMPOSITION_TOL
 
-def _get_closest_local_property(point: Point, comp_set: CompositionSet, var: v.StateVariable):
+def _get_phase_local_property(point: Point, comp_set: CompositionSet, var: v.StateVariable):
     """
-    Local property of the composition set in point closest in composition to comp_set
+    Local property of the composition set in point with the same phase as comp_set (the
+    closest in composition if there is a miscibility gap)
     """
-    closest = min(point.stable_composition_sets, key=lambda cs: np.amax(np.abs(np.asarray(cs.X) - np.asarray(comp_set.X))))
+    phase_name = comp_set.phase_record.phase_name
+    candidates = [cs for cs in point.stable_composition_sets if cs.phase_record.phase_name == phase_name]
+    closest = min(candidates, key=lambda cs: np.amax(np.abs(np.asarray(cs.X) - np.asarray(comp_set.X))))
     return point.get_local_property(closest, var)
 
 def _sort_point_potential_axis(point: Point, axis_vars: list[v.StateVariable], norm: dict[v.StateVariable, float]):
@@ -482,8 +485,8 @@ class TielineStrategy(MapStrategy):
         The different edge step maps can seed the same boundary more than once (e.g. a
         parentless recovery node from an x-edge temperature step a fraction of a step
         above a T-edge composition-step point on the same boundary). The gap between such
-        seeds can be too short for _exit_already_traced to count as traced, so each would
-        trace a duplicate sliver of the boundary. Both directions of the surviving
+        seeds can be too short for _exit_already_mapped to count as mapped, so each would
+        map a duplicate sliver of the boundary. Both directions of the surviving
         representative are kept.
         """
         kept = []
@@ -514,17 +517,18 @@ class TielineStrategy(MapStrategy):
         potentials = np.array([np.squeeze(point.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
         return sorted(point.stable_phases), potentials, _tieline_compositions(point)
 
-    def _exit_already_traced(self, exit_point: Point, axis_var: v.StateVariable, direction: Direction):
+    def _exit_already_mapped(self, exit_point: Point, axis_var: v.StateVariable, direction: Direction):
         """
-        Returns True if an existing zpf line already traces the tie-line of exit_point
-        onward in direction: the line contains a point on the same tie-line that is, or
-        is next to, a point beyond exit_point along axis_var
+        Returns True if an existing zpf line already maps the tie-line of exit_point
+        onward in direction: the line contains a point on the same tie-line from which
+        the line, followed for as long as it keeps moving in direction, gets beyond
+        exit_point along axis_var
 
-        A line only covers the side of its starting point that it traced, so the
-        opposite-direction sibling of a starting point can still trace the other side.
+        A line only covers the side of its starting point that it mapped, so the
+        opposite-direction sibling of a starting point can still map the other side.
 
         Positions along axis_var are compared using the composition of the free phase of
-        exit_point (and the closest composition set of each zpf line point), since the
+        exit_point (and the same phase in each zpf line point), since the
         global composition of a zpf line point depends on which of its composition sets
         is fixed.
         """
@@ -536,15 +540,22 @@ class TielineStrategy(MapStrategy):
             if sorted(zpf_line.stable_phases) != exit_key[0]:
                 continue
             points = zpf_line.points
+            # Distance past exit_point in the stepping direction, in units of the axis step
+            distances = None
             for i, line_point in enumerate(points):
                 if not _same_tieline(exit_key, self._tieline_key(line_point)):
                     continue
-                for j in [i - 1, i, i + 1]:
-                    if 0 <= j < len(points):
-                        pos = _get_closest_local_property(points[j], free_cs, axis_var) / norm
-                        if (pos - exit_pos) * direction.value > TRACED_DISTANCE_TOL:
-                            _log.info(f"Point {exit_point.stable_phases}, {exit_point.global_conditions} is already traced by zpf line {zpf_line.stable_phases} along {axis_var}, {direction}. Skipping.")
-                            return True
+                if distances is None:
+                    distances = [(_get_phase_local_property(p, free_cs, axis_var) / norm - exit_pos) * direction.value for p in points]
+                for step in [-1, 1]:
+                    j = i
+                    while distances[j] <= MAPPED_DISTANCE_TOL:
+                        if not 0 <= j + step < len(points) or distances[j + step] < distances[j]:
+                            break
+                        j += step
+                    if distances[j] > MAPPED_DISTANCE_TOL:
+                        _log.info(f"Point {exit_point.stable_phases}, {exit_point.global_conditions} is already mapped by zpf line {zpf_line.stable_phases} along {axis_var}, {direction}. Skipping.")
+                        return True
         return False
 
     def _determine_start_direction(self, node: Node, exit_point: Point, proposed_direction: Direction):
@@ -553,20 +564,20 @@ class TielineStrategy(MapStrategy):
 
         If a direction cannot be found, then we force add a starting point just past the exit_point
         """
-        # Skip exits that would re-trace an already-mapped tie-line, to avoid duplicate
-        # boundary traces: automatic starting points (skip_if_covered) and
+        # Skip exits that would map an already mapped tie-line again, to avoid mapping
+        # a boundary more than once: automatic starting points (skip_if_covered) and
         # exits from mapping-found or recovery nodes (ExitHint.NORMAL, e.g. re-found
-        # invariants whose exits would re-trace covered fields). A two-phase starting
+        # invariants whose exits would map covered fields again). A two-phase starting
         # point added explicitly by a user (POINT_IS_EXIT without skip_if_covered) is
-        # always honored. Once a direction is found to be traced, the boundary from the
+        # always honored. Once a direction is found to be mapped, the boundary from the
         # exit is already mapped, so other directions are not tried
-        skip_traced = node.skip_if_covered or node.exit_hint == ExitHint.NORMAL
+        skip_mapped = node.skip_if_covered or node.exit_hint == ExitHint.NORMAL
         if self.num_potential_condition > 0:
-            return self._determine_start_direction_potential_axis(node, exit_point, proposed_direction, skip_traced)
+            return self._determine_start_direction_potential_axis(node, exit_point, proposed_direction, skip_mapped)
         else:
-            return self._determine_start_direction_composition_axes(node, exit_point, proposed_direction, skip_traced)
+            return self._determine_start_direction_composition_axes(node, exit_point, proposed_direction, skip_mapped)
 
-    def _determine_start_direction_potential_axis(self, node: Node, exit_point: Point, proposed_direction: Direction, skip_traced: bool):
+    def _determine_start_direction_potential_axis(self, node: Node, exit_point: Point, proposed_direction: Direction, skip_mapped: bool):
         # If no proposed direction, then we test both directions
         if proposed_direction is None:
             directions = [Direction.POSITIVE, Direction.NEGATIVE]
@@ -577,7 +588,7 @@ class TielineStrategy(MapStrategy):
         norm = {av: self.normalize_factor(av) for av in self.axis_vars}
         exit_point, axis_var = _sort_point_potential_axis(exit_point, self.axis_vars, norm)
         for d in directions:
-            if skip_traced and self._exit_already_traced(exit_point, axis_var, d):
+            if skip_mapped and self._exit_already_mapped(exit_point, axis_var, d):
                 return None
             dir_results = self._test_direction(exit_point, axis_var, d)
             if dir_results is not None:
@@ -587,7 +598,7 @@ class TielineStrategy(MapStrategy):
 
         return None
 
-    def _determine_start_direction_composition_axes(self, node: Node, exit_point: Point, proposed_direction: Direction, skip_traced: bool):
+    def _determine_start_direction_composition_axes(self, node: Node, exit_point: Point, proposed_direction: Direction, skip_mapped: bool):
         # Sort exit point to fix composition set that varies the least
         der, exit_point, axis_var, normal = _sort_point_composition_axes(exit_point, self.axis_vars)
 
@@ -615,7 +626,7 @@ class TielineStrategy(MapStrategy):
             directions = [proposed_direction]
 
         for d in directions:
-            if skip_traced and self._exit_already_traced(exit_point, axis_var, d):
+            if skip_mapped and self._exit_already_mapped(exit_point, axis_var, d):
                 return None
             dir_results = self._test_direction(exit_point, axis_var, d)
             if dir_results is not None:
