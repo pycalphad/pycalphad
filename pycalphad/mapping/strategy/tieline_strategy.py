@@ -256,7 +256,7 @@ class TielineStrategy(MapStrategy):
             step.do_map()
             self.add_starting_points_from_step(step)
 
-        self._dedup_harvested_starting_points()
+        self._dedup_automatic_starting_points()
 
     def add_starting_points_from_step(self, step: StepStrategy):
         """
@@ -298,16 +298,16 @@ class TielineStrategy(MapStrategy):
             # Nodes without a parent are starting points the step map force-added to recover
             #  from a failure (e.g. a failed node solve or a rejected metastable node). They can
             #  be the only record of a phase field whose bounding node solve failed (a narrow
-            #  allotrope window straddled by the coarse edge step), so harvest them too. They
+            #  allotrope window straddled by the coarse edge step), so grab them too. They
             #  are deduplicated against the parented nodes, which the step map guarantees are
             #  distinct phase-change events.
-            harvested = [node for node in step.node_queue.nodes
-                         if node.parent is not None and len(node.stable_composition_sets) == 2]
+            step_nodes = [node for node in step.node_queue.nodes
+                          if node.parent is not None and len(node.stable_composition_sets) == 2]
             for node in step.node_queue.nodes:
                 if node.parent is None and len(node.stable_composition_sets) == 2:
-                    if not any(node == other for other in harvested):
-                        harvested.append(node)
-            for node in harvested:
+                    if not any(node == other for other in step_nodes):
+                        step_nodes.append(node)
+            for node in step_nodes:
                 _log.info(f"Adding node {node.fixed_phases}, {node.free_phases}, {node.global_conditions}")
                 node.axis_var = None
                 node.axis_direction = Direction.POSITIVE
@@ -330,10 +330,10 @@ class TielineStrategy(MapStrategy):
             # warm-started solver slides the same composition sets from one field into the next,
             # so no phase-change node separates them. With potential conditions fixed, tie-line
             # endpoint compositions are constant within each two-phase field, so a jump in either
-            # endpoint between consecutive points marks a new field. Harvest one starting point
+            # endpoint between consecutive points marks a new field. Add one starting point
             # per contiguous segment so that every merged field gets seeded.
             segment_tol = 1e-3
-            harvested_points = []
+            added_points = []
             for zpf_line in step.zpf_lines:
                 if len(zpf_line.stable_phases) == 2:
                     segment_points = []
@@ -344,11 +344,11 @@ class TielineStrategy(MapStrategy):
                         comps = np.sort([np.asarray(cs.X, dtype=float) for cs in point.stable_composition_sets], axis=0)
                         if prev_comps is None or np.amax(np.abs(comps - prev_comps)) > segment_tol:
                             # A step line can jump out of a field and back into it, so
-                            # dedup against points with the same tie-line already harvested
+                            # dedup against points with the same tie-line already added
                             # (tie-line endpoints identify the field at fixed potentials)
-                            if not any(point == other for other in harvested_points):
+                            if not any(point == other for other in added_points):
                                 segment_points.append(point)
-                                harvested_points.append(point)
+                                added_points.append(point)
                         prev_comps = comps
 
                     for new_point in segment_points:
@@ -434,13 +434,13 @@ class TielineStrategy(MapStrategy):
 
         return exits, exit_dirs
 
-    def _dedup_harvested_starting_points(self):
+    def _dedup_automatic_starting_points(self):
         """
-        Removes queued harvested starting points that duplicate an earlier queued one:
+        Removes queued automatic starting points that duplicate an earlier queued one:
         same set of stable phases, same starting direction, same tie-line (potential
         coordinates within a step and phase compositions matching)
 
-        The different edge harvests can seed the same boundary more than once (e.g. a
+        The different edge step maps can seed the same boundary more than once (e.g. a
         parentless recovery node from an x-edge temperature step a fraction of a step
         above a T-edge composition-step point on the same boundary). Each seed lands in
         the start region of the other's traced line, which the runtime coverage check
@@ -466,7 +466,7 @@ class TielineStrategy(MapStrategy):
                     duplicate = True
                     break
             if duplicate:
-                _log.info(f"Dropping duplicate harvested starting point {node.stable_phases}, {node.global_conditions}")
+                _log.info(f"Dropping duplicate automatic starting point {node.stable_phases}, {node.global_conditions}")
                 continue
             kept.append(node)
             kept_keys.append((phases, node.axis_direction, pot, comps))
@@ -522,7 +522,7 @@ class TielineStrategy(MapStrategy):
         If a direction cannot be found, then we force add a starting point just past the exit_point
         """
         # Skip exits that would re-trace an already-mapped tie-line, to avoid duplicate
-        # boundary traces: automatically harvested starting points (skip_if_covered) and
+        # boundary traces: automatic starting points (skip_if_covered) and
         # exits from mapping-found or recovery nodes (ExitHint.NORMAL, e.g. re-found
         # invariants whose exits would re-trace covered fields). A two-phase starting
         # point added explicitly by a user (POINT_IS_EXIT without skip_if_covered) is

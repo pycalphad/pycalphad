@@ -835,7 +835,7 @@ def test_circular_loop_check_normalizes_axes(load_database):
         )
 
 @select_database("GaLa-11Idb.tdb")
-def test_edge_harvest_keeps_forced_starting_points(load_database):
+def test_automatic_starting_points_keep_forced_starting_points(load_database):
     """
     Phase fields only recorded by a force-added recovery point in an edge step map
     must still be seeded.
@@ -844,7 +844,7 @@ def test_edge_harvest_keeps_forced_starting_points(load_database):
     coarse starting-point search along the x(LA)~1 edge (step = T-range/20 = 185 K)
     straddles the window, lands on a metastable FCC+LIQUID node, fails the exit
     direction test, and force-adds a recovery point (a parentless node) at the true
-    LIQUID+BCC_A2 equilibrium inside the window. Harvesting only parented step-map
+    LIQUID+BCC_A2 equilibrium inside the window. Taking only parented step-map
     nodes discards that recovery point, so the whole La-side BCC_A2+LIQUID boundary
     is lost and the La liquidus dead-ends below the window.
     """
@@ -863,7 +863,7 @@ def test_edge_harvest_keeps_forced_starting_points(load_database):
         assert False, "No BCC_A2+LIQUID ZPF line mapped inside the La BCC window (1134-1194 K)"
 
 @select_database("AuCu-98Sun-LB.tdb")
-def test_edge_harvest_seeds_every_merged_field(load_database):
+def test_automatic_starting_points_seed_every_merged_field(load_database):
     """
     Every two-phase field merged into a single same-name edge step line must get its
     own starting point.
@@ -872,10 +872,10 @@ def test_edge_harvest_seeds_every_merged_field(load_database):
     name, so the step map along the T=300 K edge merges several distinct two-phase
     fields into single step lines: the warm-started solver slides the same
     composition sets from one field into the next without creating a phase-change
-    node. Harvesting one starting point per step line then seeds only one of the
+    node. Adding one starting point per step line then seeds only one of the
     merged fields; the Au-rich fcc+AuCu3 field (tie-lines spanning x(CU)=[0.078,
     0.237] at 300 K) is fully present in the step results but was never traced.
-    Harvesting one starting point per contiguous segment (tie-line endpoints are
+    Adding one starting point per contiguous segment (tie-line endpoints are
     constant within a field at fixed potentials, so a jump marks a new field)
     recovers it.
     """
@@ -898,7 +898,7 @@ def test_starting_point_dedup_distinguishes_twin_fields(load_database):
     must both be traced.
 
     In Cr-Ta, BCC_A2+C15_LAVES fields exist on both sides of the CR2TA_C15 line
-    compound. The x-edge harvested starting point for the Cr-rich field sits (in
+    compound. The x-edge automatic starting point for the Cr-rich field sits (in
     condition space) within a fraction of a step of the already-traced Ta-rich
     field's line at the compound composition, so a coverage check based on
     condition-space position alone discards it and the whole Cr-rich low-T field
@@ -923,7 +923,7 @@ def test_starting_point_dedup_distinguishes_twin_fields(load_database):
 @select_database("BaCa-86Alc.tdb")
 def test_starting_point_coverage_semantics(load_database):
     """
-    The coverage test used to skip redundant harvested starting points must:
+    The coverage test used to skip redundant automatic starting points must:
     - treat a point deep on a traced line as covered (that is its purpose), and
     - NOT treat the start region of a line as covering: the opposite-direction
       sibling of a starting point sits at (or within a refined first step of) the
@@ -950,7 +950,7 @@ def test_starting_point_coverage_semantics(load_database):
 @select_database("CaMg-06Zho.tdb")
 def test_no_duplicate_boundary_retracing(load_database):
     """
-    Recovery starting points harvested from the edge step maps must not re-trace a
+    Recovery starting points taken from the edge step maps must not re-trace a
     boundary that is already mapped.
 
     In Ca-Mg the CAMG2_C14+FCC_A1 boundary gets one seed from the T=300 K edge and
