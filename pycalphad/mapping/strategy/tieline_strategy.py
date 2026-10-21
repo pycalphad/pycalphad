@@ -373,7 +373,7 @@ class TielineStrategy(MapStrategy):
             # so no phase-change node separates them. With potential conditions fixed, tie-line
             # endpoint compositions are constant within each two-phase field, so a jump in either
             # endpoint between consecutive points marks a new field. Add one starting point
-            # per contiguous segment so that every merged field gets seeded.
+            # per contiguous segment so that every merged field gets a starting point.
             segment_tol = 1e-3
             added_points = []
             for zpf_line in step.zpf_lines:
@@ -482,10 +482,10 @@ class TielineStrategy(MapStrategy):
         same set of stable phases, same starting direction, same tie-line (potential
         coordinates within a step and phase compositions matching)
 
-        The different edge step maps can seed the same boundary more than once (e.g. a
+        The different edge step maps can add starting points on the same boundary more than once (e.g. a
         parentless recovery node from an x-edge temperature step a fraction of a step
         above a T-edge composition-step point on the same boundary). The gap between such
-        seeds can be too short for _exit_already_mapped to count as mapped, so each would
+        starting points can be too short for _exit_already_mapped to count as mapped, so each would
         map a duplicate sliver of the boundary. Both directions of the surviving
         representative are kept.
         """

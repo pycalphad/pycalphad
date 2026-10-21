@@ -826,7 +826,7 @@ def test_circular_loop_check_normalizes_axes(load_database):
     temperature it started at.
 
     Ba-Ca is isomorphous (BCC) with a congruent liquidus minimum at ~894 K. The
-    BCC_A2+LIQUID ZPF line seeded at one pure-element melting point (Ba: ~1000 K,
+    BCC_A2+LIQUID ZPF line started at one pure-element melting point (Ba: ~1000 K,
     Ca: ~1115 K) is mapped down through the minimum and back up to the other
     element's melting point, so its temperature necessarily returns to its
     starting temperature partway along.
@@ -864,7 +864,7 @@ def test_circular_loop_check_normalizes_axes(load_database):
 def test_automatic_starting_points_keep_forced_starting_points(load_database):
     """
     Phase fields only recorded by a force-added recovery point in an edge step map
-    must still be seeded.
+    must still get a starting point.
 
     La has a narrow BCC window (1134-1194 K) between DHCP/FCC and melting. The
     coarse starting-point search along the x(LA)~1 edge (step = T-range/20 = 185 K)
@@ -889,7 +889,7 @@ def test_automatic_starting_points_keep_forced_starting_points(load_database):
         assert False, "No BCC_A2+LIQUID ZPF line mapped inside the La BCC window (1134-1194 K)"
 
 @select_database("AuCu-98Sun-LB.tdb")
-def test_automatic_starting_points_seed_every_merged_field(load_database):
+def test_automatic_starting_points_for_every_merged_field(load_database):
     """
     Every two-phase field merged into a single same-name edge step line must get its
     own starting point.
@@ -898,7 +898,7 @@ def test_automatic_starting_points_seed_every_merged_field(load_database):
     name, so the step map along the T=300 K edge merges several distinct two-phase
     fields into single step lines: the warm-started solver slides the same
     composition sets from one field into the next without creating a phase-change
-    node. Adding one starting point per step line then seeds only one of the
+    node. Adding one starting point per step line then covers only one of the
     merged fields; the Au-rich fcc+AuCu3 field (tie-lines spanning x(CU)=[0.078,
     0.237] at 300 K) is fully present in the step results but was never mapped.
     Adding one starting point per contiguous segment (tie-line endpoints are
@@ -987,8 +987,8 @@ def test_no_duplicate_boundary_remapping(load_database):
     Recovery starting points taken from the edge step maps must not map a
     boundary that is already mapped.
 
-    In Ca-Mg the CAMG2_C14+FCC_A1 boundary gets one seed from the T=300 K edge and
-    additional parentless recovery seeds at the x(MG)=0 edge; without tie-line-based
+    In Ca-Mg the CAMG2_C14+FCC_A1 boundary gets one starting point from the T=300 K edge and
+    additional parentless recovery starting points at the x(MG)=0 edge; without tie-line-based
     coverage checking the same boundary is mapped up to five times (visible as
     interleaved duplicate tie-lines in the plot, since the repeats start at
     off-grid temperatures).
