@@ -748,18 +748,14 @@ def test_mapping_custom_models():
 
     def make_custom_model(gibbs_function):
         class CustomModel(Model):
+            contributions = [("custom", "custom_gibbs")]
+
             def build_phase(self, dbe):
                 super(CustomModel, self).build_phase(dbe)
 
-            contributions = [
-                ("custom", "custom_gibbs"),
-            ]
-
             def custom_gibbs(self, dbe):
                 tmp = sorted(list(dbe.species)) # guarantee order to be [A, B]
-                xs = [
-                    v.SiteFraction(self.phase_name, 0, s) for s in tmp
-                ]
+                xs = [v.SiteFraction(self.phase_name, 0, s) for s in tmp]
                 return gibbs_function(xs, v.T)
 
         return CustomModel
