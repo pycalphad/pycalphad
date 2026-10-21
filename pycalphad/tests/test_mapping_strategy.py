@@ -731,9 +731,20 @@ def test_strategy_plotting_respects_units(load_database):
     np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["celsius"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
     np.testing.assert_allclose(node_zpf_line.get_var_list(_get_phase_specific_variable(None, v.T["degC"]))[-1], 933.600 - 273.15, atol=1e-3)  # value in Celsius
 
-@select_database("dummy.tdb")
-def test_mapping_custom_models(load_database):
-    dbf = load_database()
+def test_mapping_custom_models():
+    dbf = Database("""
+    ELEMENT A A 1 1 1 !
+    ELEMENT B B 1 1 1 !
+
+    TYPE_DEFINITION % SEQ * !
+    DEFINE_SYSTEM_DEFAULT VA !
+
+    PHASE S %  1 1.0 !
+    CONSTITUENT S :A,B: !
+
+    PHASE M %  1 1.0 !
+    CONSTITUENT M :A,B: !
+    """)
 
     def make_custom_model(gibbs_function):
         class CustomModel(Model):
@@ -771,12 +782,8 @@ def test_mapping_custom_models(load_database):
     binary = BinaryStrategy(dbf,  comps, phases, conditions=conds, models=models)
     binary.do_map()
     assert len(binary.zpf_lines) > 0 # without the fix passing in models this will be empty for the dummy DB
-    tls = binary.get_tieline_data(v.X("A"), v.T)
-    idx1, idx2 = 0, 1
-    if tls[0].data[0].phase == "M": # check order
-        idx1, idx2 = idx2, idx1
-    xms, xsm = tls[0].x[idx1], tls[0].x[idx2]
-    T = tls[0].y[0] # is this guaranteed to be the same for binary tielines?
-    # error is mostly O(1e-11), though some O(1e-10) occur -> set tolerance above this
-    np.testing.assert_allclose([exact_sm(T), exact_ms(T)], [xms, xsm], atol=1e-9, rtol=1e-9)
-    # diff from machine precision probably via search/solver tolerances
+    for tl in binary.get_tieline_data(v.X("A"), v.T):
+        T = tl["S"].y
+        # error is mostly O(1e-11), though some O(1e-10) occur -> set tolerance above this
+        np.testing.assert_allclose([tl["S"].x, tl["M"].x], [exact_sm(T), exact_ms(T)], atol=1e-9, rtol=1e-9)
+        # diff from machine precision probably via search/solver tolerances
