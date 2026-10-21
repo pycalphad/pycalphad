@@ -793,7 +793,7 @@ def _diffusion_command(phase_name, diffusion):
     return 'DIFFUSION {} !\n'.format(' '.join(arguments))
 
 
-def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
+def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn', maxlen=78):
     """
     Write a TDB file from a pycalphad Database object.
 
@@ -850,7 +850,6 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
 
     # Begin constructing the written database
     writetime = datetime.datetime.now()
-    maxlen = 78
     output = ""
     # Comment header block
     # Import here to prevent circular imports
