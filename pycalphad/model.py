@@ -777,6 +777,12 @@ class Model(object):
         """
         Construct parameter in Redlich-Kister polynomial basis, using
         the Muggianu ternary parameter extension.
+
+        We handle two-sublattice ionic liquids here. The rules for ionic liquids are:
+        1. The model will be ordered (C)(A, Va, B) for cations (C), anions (A), vacancies (Va) and neutrals (B)
+        2. A wildcard ("*") in the first sublattice means we treat the parameter as for a single sublattice (of the second sublattice)
+        3. If we have cations and no (charged) anions, the cations and neutrals are merged into a single sublattice without vacancies
+        4. A parameter with no cations or no anions replaces y_C by y_VA*y_C and is multiplied by Q
         """
         rk_terms = []
 
@@ -814,19 +820,11 @@ class Model(object):
                 else:
                     if ionic_liquid_2SL:
                         # We need to special case sorting for this model, because the constituents
-                        # should not be alphabetically sorted. The model should be (C)(A, Va, B)
-                        # for cations (C), anions (A), vacancies (Va) and neutrals (B). Thus the
-                        # second sublattice should be sorted by species with charge, then by
-                        # vacancies, if present, then by neutrals. Hint: in Thermo-Calc, using
-                        # `set-start-constitution` for a phase will prompt you to enter site
-                        # fractions for species in the order they are sorted internally within
-                        # Thermo-Calc. This can be used to verify sorting behavior.
-
-                        # Assume that the constituent array is already in sorted order
-                        # alphabetically, so we need to rearrange the species first by charged
-                        # species, then VA, then netural species. Since the cation sublattice
-                        # should only have charged species by definition, this is equivalent to
-                        # a no-op for the first sublattice.
+                        # should not be alphabetically sorted. We assume that the constituent array
+                        # starts alphabetically sorted, so we need to rearrange the species first
+                        # by charged species, then VA, then neutral species. Since the cation
+                        # sublattice should only have charged species by definition, this is
+                        # equivalent to a no-op for the first sublattice.
                         comp_symbols = [v.SiteFraction(phase.name, (0 if comp.charge > 0 else 1), comp) for comp in comps]
                         charged_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge != 0 and sitefrac.species.number_of_atoms > 0]
                         va_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species == v.Species('VA')]
