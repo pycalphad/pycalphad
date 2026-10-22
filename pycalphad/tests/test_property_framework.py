@@ -1,3 +1,4 @@
+from pycalphad import Database
 from pycalphad.core.workspace import Workspace
 from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set import CompositionSet
@@ -9,6 +10,25 @@ import pytest
 import numpy as np
 import numpy.testing
 
+# Closed-form system: ideal LIQUID, A2B line compound, ideal interstitial IS with 1+y(B) atoms per formula unit
+AB_TDB = """
+ELEMENT /-   ELECTRON_GAS 0 0 0 !
+ELEMENT VA   VACUUM 0 0 0 !
+ELEMENT A    FCC_A1 10 0 0 !
+ELEMENT B    FCC_A1 20 0 0 !
+TYPE_DEFINITION % SEQ * !
+PHASE LIQUID % 1 1 !
+CONSTITUENT LIQUID :A,B: !
+PARAMETER G(LIQUID,A;0) 1 0; 6000 N !
+PARAMETER G(LIQUID,B;0) 1 0; 6000 N !
+PHASE A2B % 2 2 1 !
+CONSTITUENT A2B :A:B: !
+PARAMETER G(A2B,A:B;0) 1 -40000+10*T; 6000 N !
+PHASE IS % 2 1 1 !
+CONSTITUENT IS :A:B,VA: !
+PARAMETER G(IS,A:VA;0) 1 1000-2*T; 6000 N !
+PARAMETER G(IS,A:B;0) 1 -20000+4*T; 6000 N !
+"""
 
 def test_as_property_creation():
     assert as_property('T') == v.T
@@ -224,3 +244,14 @@ def test_chemical_potentials_for_isolated_phases(load_database):
     isolated_chempots = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["MU(PB)", "MU(SN)"]])
     np.testing.assert_allclose(isolated_chempots, np.asarray([-2992.70848448, -5280.02439881]))
     np.testing.assert_allclose(isolated_GM, np.dot(isolated_chempots, isolated_X))
+
+def test_jansson_derivative_with_respect_to_chemical_potential():
+    "Derivatives with respect to MU(A), which is not the last component"
+    T, y = 600, 0.2
+    R = float(v.R)
+    # IS: MU(A) = G(IS,A:VA) + RT ln(1-y), X(B) = y/(1+y)
+    mu_a = 1000 - 2 * T + R * T * np.log(1 - y)
+    wks = Workspace(Database(AB_TDB), ['A', 'B', 'VA'], ['IS'], {v.N: 1, v.P: 101325, v.T: T, v.MU('A'): mu_a})
+    # MU(B).MU(A) from Gibbs-Duhem
+    np.testing.assert_allclose(np.squeeze(wks.get('MU(A).MU(A)', 'MU(B).MU(A)', 'X(B).MU(A)')),
+                               [1, -1 / y, -(1 - y) / (R * T * (1 + y)**2)], rtol=1e-8)

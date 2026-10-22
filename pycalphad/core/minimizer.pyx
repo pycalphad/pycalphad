@@ -889,7 +889,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
     try:
         equilibrium_matrix, equilibrium_soln = construct_equilibrium_system(spec, state, 1)
         equilibrium_soln[:] = 0
-        equilibrium_matrix[-1, target_component_index] = 1
+        equilibrium_matrix[-1, spec.free_chemical_potential_indices.shape[0] - 1] = 1
         equilibrium_soln[-1] = 1
         lstsq_check_infeasible(equilibrium_matrix, equilibrium_soln, equilibrium_soln)
         for i in range(spec.free_chemical_potential_indices.shape[0]):
