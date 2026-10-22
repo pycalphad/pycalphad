@@ -791,12 +791,33 @@ def test_reflow_text_raises_on_unbreakable_lines():
         reflow_text(very_long_line, 80)
 
 def test_reflow_text_for_line_breaks():
-    """Should accept line breaks only at `linebreak_chars` or before number addition/subtractions since they are not preceded by 'E' or '(', e.g.: '6.14599E-07', 'T**(-3)', and 'LOG(-3)'."""
+    """Should accept line breaks only at `linebreak_chars` or before binary addition/subtraction, not exponent or unary signs, e.g.: '6.14599E-07', 'T**(-3)', and 'LOG(-3)'."""
     linebreak_chars = [" ", "$"]
     test_string = "FUNCTION SYMBOL 000 -1.111111*2.2222222E-02-LOG(-3.333333)*3.333333*T**(-3.33333)+4.4444444E-04+T**(-5.55555)*LOG(-5.55555)*5.555555; 000 N !"
     lines = reflow_text(test_string, 80).replace("  ", "").split("\n")
     for i in range(1, len(lines)):
         assert lines[i][0] in linebreak_chars or (lines[i][0] in ['+', '-'] and lines[i-1][-1] not in ["E", "("])
+
+@pytest.mark.parametrize("expr", [
+    "{v}0+{v}1*T+{v}2*T**2+{v}3*T**3+{v}4*T*LN(T)",
+    "-{v}0-{v}1*T-{v}2*T**2-{v}3*T**3-{v}4*T*LN(T)",
+])
+@pytest.mark.parametrize("command", [
+    "FUNCTION FN 298.15 {expr}; 6000 N !",
+    "FUNCTION FN 298.15 {expr}; 1000 Y {expr}; 6000 N !",
+    "PARAMETER G(GAS,A;0) 298.15 {expr}; 6000 N !",
+])
+def test_write_tdb_breaks_long_expressions_at_binary_operators(command, expr):
+    "Database: long expressions are broken at binary addition/subtraction to fit the default line width."
+    expr = expr.format(v="V" * 20)
+    tdb_str = f"""
+    ELEMENT A GAS 0 0 0 !
+    {command.format(expr=expr)}
+    """
+    dbf = Database.from_string(tdb_str, fmt='tdb')
+    written = dbf.to_string(fmt='tdb')
+    assert all(len(line) <= 78 for line in written.splitlines())
+    assert Database.from_string(written, fmt='tdb') == dbf
 
 # TODO: when the new database-as-files test fixture is merged, replace with unary 50 proper.
 def test_long_constituent_line_writes_correctly():

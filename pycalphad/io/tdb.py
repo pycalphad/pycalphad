@@ -695,6 +695,8 @@ def reflow_text(text, linewidth=80):
     """
     lines = text.split("\n")
     linebreak_chars = [" ", "$"]
+    # Binary addition/subtraction follows an operand, unlike exponent and unary signs: '6.14599E-07', 'T**(-3)', 'LOG(-3)'
+    binary_add_sub = re.compile(r'(?<=[\w.)])(?<![0-9.][Ee])[+-]')
     output_lines = []
     for line in lines:
         if len(line) <= linewidth:
@@ -702,8 +704,7 @@ def reflow_text(text, linewidth=80):
         else:
             while len(line) > linewidth:
                 linebreak_idx = linewidth - 1
-                # Makes expressions breakable at `linebreak_chars` plus at [+-][0-9], since they are not preceded by 'E' or '('. This should prevent breaking lines inside EXP or LN/LOG or power expression: '6.14599E-07', 'T**(-3)', and 'LOG(-3)'
-                while linebreak_idx > 0 and not re.match(r'[^E\(][+-][0-9]', line[linebreak_idx-1:linebreak_idx+2]) and line[linebreak_idx] not in linebreak_chars:
+                while linebreak_idx > 0 and not binary_add_sub.match(line, linebreak_idx) and line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
                 # Need to check 2 (rather than zero) because we prepend newlines with 2 characters
                 if linebreak_idx <= 2:
