@@ -283,14 +283,14 @@ class Node(Point):
         Axis direction that parent was stepping in to find node
     exit_hint : ExitHint
         Hints for how exits should be found from this node
-    skip_if_covered : bool
+    skip_if_mapped : bool
         Whether exits from this node are skipped when an existing zpf line already maps them
     """
     parent: Point
     axis_var: v.StateVariable = None
     axis_direction: Direction = None
     exit_hint: ExitHint = ExitHint.NORMAL
-    skip_if_covered: bool = False
+    skip_if_mapped: bool = False
 
     def __post_init__(self):
         self.encountered_points = []

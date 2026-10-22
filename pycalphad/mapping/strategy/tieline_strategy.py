@@ -331,14 +331,14 @@ class TielineStrategy(MapStrategy):
                 node.axis_var = None
                 node.axis_direction = Direction.POSITIVE
                 node.exit_hint = ExitHint.POINT_IS_EXIT
-                node.skip_if_covered = True
+                node.skip_if_mapped = True
                 self.node_queue.add_node(node, True)
 
                 alt_node = Node(node.global_conditions, node.chemical_potentials, node.fixed_composition_sets, node.free_composition_sets, node.parent)
                 alt_node.axis_var = None
                 alt_node.axis_direction = Direction.NEGATIVE
                 alt_node.exit_hint = ExitHint.POINT_IS_EXIT
-                alt_node.skip_if_covered = True
+                alt_node.skip_if_mapped = True
                 self.node_queue.add_node(alt_node, True)
 
         # If stepping in non-state variable, then for all two-phase zpf lines, grab one point per
@@ -365,11 +365,11 @@ class TielineStrategy(MapStrategy):
                     for new_point in segment_points:
                         _log.info(f"Adding point {new_point.fixed_phases}, {new_point.free_phases}, {new_point.global_conditions}")
                         node = self._create_node_from_point(new_point, None, None, Direction.POSITIVE, ExitHint.POINT_IS_EXIT)
-                        node.skip_if_covered = True
+                        node.skip_if_mapped = True
                         self.node_queue.add_node(node, True)
 
                         node = self._create_node_from_point(new_point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT)
-                        node.skip_if_covered = True
+                        node.skip_if_mapped = True
                         self.node_queue.add_node(node, True)
 
     def _add_starting_points_from_step_composition_axes(self, step: StepStrategy):
@@ -452,7 +452,7 @@ class TielineStrategy(MapStrategy):
         kept = []
         kept_keys = []
         for node in self.node_queue.nodes:
-            if not node.skip_if_covered:
+            if not node.skip_if_mapped:
                 kept.append(node)
                 continue
             key = self._tieline_key(node)
@@ -508,7 +508,7 @@ class TielineStrategy(MapStrategy):
         If a direction cannot be found, then we force add a starting point just past the exit_point
         """
         # Skip already mapped exits, except for starting points added by the user
-        skip_mapped = node.skip_if_covered or node.exit_hint == ExitHint.NORMAL
+        skip_mapped = node.skip_if_mapped or node.exit_hint == ExitHint.NORMAL
         if self.num_potential_condition > 0:
             return self._determine_start_direction_potential_axis(node, exit_point, proposed_direction, skip_mapped)
         else:
