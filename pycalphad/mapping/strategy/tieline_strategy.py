@@ -25,12 +25,6 @@ from pycalphad.mapping.strategy.strategy_data import SinglePhaseData, StrategyDa
 
 _log = logging.getLogger(__name__)
 
-# Same tie-line if potentials (in axis steps) and phase compositions are within these
-TIELINE_POTENTIAL_TOL = 0.75
-TIELINE_COMPOSITION_TOL = 0.01
-# Distance past an exit point (in axis steps) for a direction to count as already mapped
-MAPPED_DISTANCE_TOL = 0.25
-
 def _tieline_compositions(point: Point):
     """
     Phase compositions of point, ordered by phase name
@@ -38,17 +32,17 @@ def _tieline_compositions(point: Point):
     rows = sorted((cs.phase_record.phase_name, tuple(np.asarray(cs.X, dtype=float))) for cs in point.stable_composition_sets)
     return np.array([comps for _, comps in rows])
 
-def _same_tieline(key, other_key):
+def _same_tieline(key, other_key, potential_tol: float = 0.75, composition_tol: float = 0.01):
     """
-    Compares tie-line keys from TielineStrategy._tieline_key
+    Compares tie-line keys from TielineStrategy._tieline_key, with potential_tol in axis steps and composition_tol in mole fraction
     """
     phases, potentials, comps = key
     other_phases, other_potentials, other_comps = other_key
     if phases != other_phases or comps.shape != other_comps.shape:
         return False
-    if len(potentials) > 0 and np.amax(np.abs(potentials - other_potentials)) >= TIELINE_POTENTIAL_TOL:
+    if len(potentials) > 0 and np.amax(np.abs(potentials - other_potentials)) >= potential_tol:
         return False
-    return np.amax(np.abs(comps - other_comps)) < TIELINE_COMPOSITION_TOL
+    return np.amax(np.abs(comps - other_comps)) < composition_tol
 
 def _get_phase_local_property(point: Point, comp_set: CompositionSet, var: v.StateVariable):
     """
@@ -471,9 +465,9 @@ class TielineStrategy(MapStrategy):
         potentials = np.array([np.squeeze(point.get_property(av)) / self.normalize_factor(av) for av in potential_axes], dtype=float)
         return sorted(point.stable_phases), potentials, _tieline_compositions(point)
 
-    def _exit_already_mapped(self, exit_point: Point, axis_var: v.StateVariable, direction: Direction):
+    def _exit_already_mapped(self, exit_point: Point, axis_var: v.StateVariable, direction: Direction, distance_tol: float = 0.25):
         """
-        Returns True if a zpf line through the same tie-line as exit_point already continues past it in direction
+        Returns True if a zpf line through the same tie-line as exit_point already continues more than distance_tol (in axis steps) past it in direction
         """
         exit_key = self._tieline_key(exit_point)
         free_cs = exit_point.free_composition_sets[0]
@@ -492,11 +486,11 @@ class TielineStrategy(MapStrategy):
                     distances = [(_get_phase_local_property(p, free_cs, axis_var) / norm - exit_pos) * direction.value for p in points]
                 for step in [-1, 1]:
                     j = i
-                    while distances[j] <= MAPPED_DISTANCE_TOL:
+                    while distances[j] <= distance_tol:
                         if not 0 <= j + step < len(points) or distances[j + step] < distances[j]:
                             break
                         j += step
-                    if distances[j] > MAPPED_DISTANCE_TOL:
+                    if distances[j] > distance_tol:
                         _log.info(f"Point {exit_point.stable_phases}, {exit_point.global_conditions} is already mapped by zpf line {zpf_line.stable_phases} along {axis_var}, {direction}. Skipping.")
                         return True
         return False

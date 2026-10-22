@@ -39,11 +39,9 @@ Normal checks
     a new node
 """
 
-DEGENERATE_TIELINE_TOL = 1e-7
-
-def _degenerate_zero_width_tieline(comp_sets: list[CompositionSet], tol: float = DEGENERATE_TIELINE_TOL):
+def _degenerate_zero_width_tieline(comp_sets: list[CompositionSet], tol: float = 1e-7):
     """
-    Returns True if multiple composition sets all have (nearly) the same composition
+    Returns True if multiple composition sets all have (nearly) the same composition, within tol in mole fraction
 
     Unary systems are exempt, since phases coexist along univariant lines
     """
