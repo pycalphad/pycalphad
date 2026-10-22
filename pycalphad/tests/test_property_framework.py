@@ -46,6 +46,9 @@ def test_nonconditionable_derivative_fails():
     # can't set Gibbs energy as condition, so this should raise
     with pytest.raises(TypeError):
         JanssonDerivative(v.T, ModelComputedProperty('GM'))
+    # phase compositions can't replace a system condition
+    with pytest.raises(TypeError):
+        JanssonDerivative('HM', 'X(LIQUID,B)')
 
 def test_property_units():
     model_prop = ModelComputedProperty('test')
@@ -255,3 +258,18 @@ def test_jansson_derivative_with_respect_to_chemical_potential():
     # MU(B).MU(A) from Gibbs-Duhem
     np.testing.assert_allclose(np.squeeze(wks.get('MU(A).MU(A)', 'MU(B).MU(A)', 'X(B).MU(A)')),
                                [1, -1 / y, -(1 - y) / (R * T * (1 + y)**2)], rtol=1e-8)
+
+def test_jansson_derivative_of_phase_property():
+    "Phase-specific Jansson derivatives follow that phase and are NaN when it is absent"
+    T = 600
+    wks = Workspace(Database(AB_TDB), ['A', 'B', 'VA'], ['LIQUID', 'A2B', 'IS'],
+                    {v.N: 1, v.P: 101325, v.T: T, v.X('B'): 0.25})
+    # IS + A2B: y(1-y) = K from 2 MU(A) + MU(B) = G(A2B)
+    R = float(v.R)
+    K = np.exp((-21000 + 8 * T) / (R * T))
+    y = (1 - np.sqrt(1 - 4 * K)) / 2
+    dy_dT = 21000 * K / (R * T**2 * (1 - 2 * y))
+    # HM(IS) = (1000 (1-y) - 20000 y) / (1+y)
+    np.testing.assert_allclose(wks.get('HM(IS).T'), -22000 / (1 + y)**2 * dy_dT, rtol=1e-8)
+    assert np.isnan(wks.get('HM(LIQUID)'))
+    assert np.isnan(wks.get('HM(LIQUID).T'))
