@@ -685,6 +685,27 @@ def test_mapping_stopped_by_max_iter_finishes_on_data_retrieval(load_database):
     assert strategy._mapping_complete
     assert strategy.node_queue.size() == 0
 
+@select_database("alcocrni.tdb")
+def test_data_retrieval_leaves_shared_axis_variable_unchanged(load_database):
+    """
+    Phase-local data retrieval does not make the cached axis variable, shared by all strategies, a phase wildcard
+    """
+    dbf = load_database()
+    comps, phases = ["CR", "NI", "VA"], ["BCC_A2", "FCC_A1", "LIQUID"]
+    strategy = TielineStrategy(dbf, comps, phases, {v.P: 101325, v.T: (1500, 2200, 50), v.X("CR"): (0, 1, 0.05)})
+    step = StepStrategy(dbf, comps, phases, {v.P: 101325, v.T: 1600, v.X("CR"): (0, 1, 0.05)})
+    assert strategy.axis_vars[1] is step.axis_vars[0]
+
+    strategy.get_tieline_data(v.X("CR"), v.T)
+    strategy.get_invariant_data(v.X("CR"), v.T)
+    assert strategy.axis_vars[1].phase_name is None
+    # A stray X(*,CR) condition used to make this fail with nonzero degrees of freedom
+    step.do_map()
+    assert len(step.zpf_lines) > 0
+
+    step.get_data(v.X("CR"), v.NP("*"))
+    assert step.axis_vars[0].phase_name is None
+
 
 @select_database("AlTe-19Shi.tdb")
 def test_degenerate_tieline_rejected_above_congruent_melting(load_database):

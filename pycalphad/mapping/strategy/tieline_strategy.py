@@ -644,12 +644,12 @@ class TielineStrategy(MapStrategy):
         self._ensure_mapped()
         if hasattr(x, 'phase_name') and x.phase_name is None:
             if not global_x:
-                x = copy.deepcopy(x)
+                x = copy.copy(x)
                 x.phase_name = '*'
 
         if hasattr(y, 'phase_name') and y.phase_name is None:
             if not global_y:
-                y = copy.deepcopy(y)
+                y = copy.copy(y)
                 y.phase_name = '*'
 
         invariant_data = []
@@ -691,12 +691,12 @@ class TielineStrategy(MapStrategy):
         self._ensure_mapped()
         if hasattr(x, 'phase_name') and x.phase_name is None:
             if not global_x:
-                x = copy.deepcopy(x)
+                x = copy.copy(x)
                 x.phase_name = '*'
 
         if hasattr(y, 'phase_name') and y.phase_name is None:
             if not global_y:
-                y = copy.deepcopy(y)
+                y = copy.copy(y)
                 y.phase_name = '*'
 
         zpf_data = []
