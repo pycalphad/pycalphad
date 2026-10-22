@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.io.tdb - pycalphad 0.11.3.dev32+g8631e628e documentation</title>
+        <title>pycalphad.io.tdb - pycalphad 0.11.3.dev33+g11f5fb0ba documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev32+g8631e628e documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev33+g11f5fb0ba documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev32+g8631e628e documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev33+g11f5fb0ba documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -1005,6 +1005,8 @@
 <span class="sd">    """</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">linebreak_chars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">" "</span><span class="p">,</span> <span class="s2">"$"</span><span class="p">]</span>
+    <span class="c1"># Binary addition/subtraction follows an operand, unlike exponent and unary signs: '6.14599E-07', 'T**(-3)', 'LOG(-3)'</span>
+    <span class="n">binary_add_sub</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'(?&lt;=[\w.)])(?&lt;![0-9.][Ee])[+-]'</span><span class="p">)</span>
     <span class="n">output_lines</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">linewidth</span><span class="p">:</span>
@@ -1012,8 +1014,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">linewidth</span><span class="p">:</span>
                 <span class="n">linebreak_idx</span> <span class="o">=</span> <span class="n">linewidth</span> <span class="o">-</span> <span class="mi">1</span>
-                <span class="c1"># Makes expressions breakable at `linebreak_chars` plus at [+-][0-9], since they are not preceded by 'E' or '('. This should prevent breaking lines inside EXP or LN/LOG or power expression: '6.14599E-07', 'T**(-3)', and 'LOG(-3)'</span>
-                <span class="k">while</span> <span class="n">linebreak_idx</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">'[^E\(][+-][0-9]'</span><span class="p">,</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="n">linebreak_idx</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span> <span class="ow">and</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">linebreak_chars</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">linebreak_idx</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">binary_add_sub</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">linebreak_idx</span><span class="p">)</span> <span class="ow">and</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">linebreak_chars</span><span class="p">:</span>
                     <span class="n">linebreak_idx</span> <span class="o">-=</span> <span class="mi">1</span>
                 <span class="c1"># Need to check 2 (rather than zero) because we prepend newlines with 2 characters</span>
                 <span class="k">if</span> <span class="n">linebreak_idx</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
@@ -1112,7 +1113,7 @@
 
 <div class="viewcode-block" id="write_tdb">
 <a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.write_tdb">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">write_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">'subsystem'</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">'warn'</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">'subsystem'</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">'warn'</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">78</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Write a TDB file from a pycalphad Database object.</span>
 
@@ -1169,7 +1170,6 @@
 
     <span class="c1"># Begin constructing the written database</span>
     <span class="n">writetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-    <span class="n">maxlen</span> <span class="o">=</span> <span class="mi">78</span>
     <span class="n">output</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="c1"># Comment header block</span>
     <span class="c1"># Import here to prevent circular imports</span>
@@ -1492,7 +1492,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=1f6c6254"></script>
+</div><script src="../../../_static/documentation_options.js?v=7082b325"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
