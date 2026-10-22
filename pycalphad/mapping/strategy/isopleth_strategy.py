@@ -126,7 +126,7 @@ class IsoplethStrategy(MapStrategy):
         if node.exit_hint == ExitHint.POINT_IS_EXIT:
             return exits, exit_dirs
 
-        node_is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
+        node_is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_fixed_potentials) == 0
 
         # Exits for invariant and non-invariant nodes are a bit long, so splitting them to individual functions
         if node_is_invariant:
@@ -327,7 +327,7 @@ class IsoplethStrategy(MapStrategy):
         self._ensure_mapped()
         node_data = []
         for node in self.node_queue.nodes:
-            is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
+            is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_fixed_potentials) == 0
             if is_invariant:
                 x_vals = []
                 y_vals = []

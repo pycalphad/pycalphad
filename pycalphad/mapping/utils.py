@@ -7,26 +7,26 @@ from pycalphad.core.composition_set import CompositionSet
 
 from pycalphad.mapping.primitives import Point, Node
 
-def degrees_of_freedom(point: Union[Point, Node], components: list[str], num_potential_conditions: int):
+def degrees_of_freedom(point: Union[Point, Node], components: list[str], num_fixed_potentials: int):
     """
     Degrees of freedom of point defined by Gibbs phase rule
 
     Components + 2 = Phases + DOF
-        2 is offsetted by the number of potential conditions
+        DOF is offsetted by the number of fixed potential conditions (T, P and chemical potentials)
 
     Parameters
     ----------
     point : Point or Node
     components : [str]
         List of components, VA will be ignored
-    num_potential_conditions : number of variable potential conditions
+    num_fixed_potentials : number of fixed potential conditions
 
     Returns
     -------
     int - degrees of freedom, 0 represents an invariant point/node
     """
     non_va_comps = len({str(c) for c in components} - {"VA"})
-    return non_va_comps + 2 - len(point.stable_composition_sets) - (2 - num_potential_conditions)
+    return non_va_comps + 2 - len(point.stable_composition_sets) - num_fixed_potentials
 
 def is_state_variable(var: v.StateVariable):
     """

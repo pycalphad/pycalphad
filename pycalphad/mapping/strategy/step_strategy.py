@@ -53,7 +53,7 @@ class StepStrategy(MapStrategy):
         num_node_cs = len(node.stable_composition_sets)
         num_parent_cs = len(node.parent.stable_composition_sets)
         is_pot_cond = map_utils.is_state_variable(self.axis_vars[0])
-        is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
+        is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_fixed_potentials) == 0
 
         if num_node_cs == num_parent_cs + 1:
             # Node has more phases than parent

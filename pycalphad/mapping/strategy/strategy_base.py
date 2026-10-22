@@ -88,6 +88,7 @@ class MapStrategy:
 
         state_vars = get_state_variables(self.models, self.conditions)
         self.num_potential_condition = len([av for av in self.axis_lims if av in state_vars])
+        self.num_fixed_potentials = len([key for key in self.conditions if isinstance(key, (v.IndependentPotential, v.ChemicalPotential)) and key not in self.axis_vars])
         self.phase_records = kwargs.get('phase_record_factory', PhaseRecordFactory(self.dbf, self.components, state_vars, self.models))
 
         # In case we need to call pycalphad functions outside this class
