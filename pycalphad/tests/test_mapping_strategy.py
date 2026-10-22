@@ -994,6 +994,30 @@ def test_issue_662_phase_boundary_loop(load_database):
     # without fail
     plot_ternary(strat, label_nodes=True)
 
+@select_database("Al-Cu-Y.tdb")
+def test_starting_points_across_stoichiometric_tielines(load_database):
+    """
+    Exits between two stoichiometric phases add the tie-triangle across the tie-line as a starting point
+    """
+    dbf = load_database()
+    conds = {v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): (0, 1, 0.02), v.X("Y"): (0, 1, 0.02)}
+    strategy = TielineStrategy(dbf, ["AL", "CU", "Y", "VA"], list(dbf.phases.keys()), conds)
+    # ALCUY+ALY2+HCP_A3 and AL2Y3+ALCUY+ALY both neighbor AL2Y3+ALCUY+ALY2
+    strategy.add_nodes_from_conditions({v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): 0.05, v.X("Y"): 0.65})
+    strategy.add_nodes_from_conditions({v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): 0.05, v.X("Y"): 0.5})
+    while strategy.node_queue._current_node_index < 2 or strategy._exit_index < len(strategy._exits):
+        if strategy.iterate():
+            break
+
+    assert len(strategy.zpf_lines) == 0
+    new_nodes = {tuple(sorted(n.stable_phases)): n for n in strategy.node_queue.nodes[2:] if len(n.stable_composition_sets) == 3}
+    assert sorted(new_nodes) == [("AL2Y", "ALCUY", "ALY"), ("AL2Y3", "ALCUY", "ALY2"), ("ALCUY", "CUY", "HCP_A3")]
+    # The tie-line crossed to reach each node is not an exit
+    remaining_exits = {phases: sorted(tuple(sorted(e.stable_phases)) for e in strategy._find_exits_from_node(node)[0]) for phases, node in new_nodes.items()}
+    assert remaining_exits[("AL2Y", "ALCUY", "ALY")] == [("AL2Y", "ALCUY"), ("AL2Y", "ALY")]
+    assert remaining_exits[("AL2Y3", "ALCUY", "ALY2")] == [("AL2Y3", "ALY2")]
+    assert remaining_exits[("ALCUY", "CUY", "HCP_A3")] == [("ALCUY", "CUY"), ("CUY", "HCP_A3")]
+
 @select_database("alzn_mey.tdb")
 def test_step_strategy_get_data_respects_display_units_for_state_and_model_properties(load_database):
     dbf = load_database()
