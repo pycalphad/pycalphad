@@ -810,8 +810,7 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
             statevar_idx = spec.free_statevar_indices[i]
             delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                              state.free_stable_compset_indices.shape[0] + i]
-        phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars,
-                                            delta_phase_amounts)
+        phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars, delta_phase_amounts)
         return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
     finally:
         spec.fixed_statevar_indices = orig_fixed_statevar_indices
@@ -860,8 +859,7 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
         statevar_idx = spec.free_statevar_indices[i]
         delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                             state.free_stable_compset_indices.shape[0] + i]
-    phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars,
-                                        delta_phase_amounts)
+    phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars, delta_phase_amounts)
     return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
 
 cpdef chemical_potential_differential(SystemSpecification spec, SystemState state, int target_component_index):
@@ -903,8 +901,7 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
             statevar_idx = spec.free_statevar_indices[i]
             delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                              state.free_stable_compset_indices.shape[0] + i]
-        phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars,
-                                            delta_phase_amounts)
+        phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars, delta_phase_amounts)
         return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
     finally:
         spec.fixed_chemical_potential_indices = orig_fixed_chemical_potential_indices
