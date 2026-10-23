@@ -760,9 +760,9 @@ cpdef construct_equilibrium_system(SystemSpecification spec, SystemState state, 
     fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, spec, state)
     return np.asarray(equilibrium_matrix), np.asarray(equilibrium_rhs)
 
-cdef void phase_amount_differentials_in_moles_of_atoms(SystemSpecification spec, SystemState state,
-                                                        double[::1] delta_chemical_potentials,
-                                                        double[::1] delta_statevars, double[::1] delta_phase_amounts):
+cdef void phase_amount_differentials_to_atoms(SystemSpecification spec, SystemState state,
+                                               double[::1] delta_chemical_potentials,
+                                               double[::1] delta_statevars, double[::1] delta_phase_amounts):
     # The equilibrium system is solved for changes in SystemState.phase_amt (moles of formula units);
     # convert them to changes in CompositionSet.NP (moles of atoms). With M the moles of atoms per
     # formula unit, NP = phase_amt * M, so dNP = d(phase_amt) * M + phase_amt * dM.
@@ -810,8 +810,8 @@ cpdef state_variable_differential(SystemSpecification spec, SystemState state, i
             statevar_idx = spec.free_statevar_indices[i]
             delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                              state.free_stable_compset_indices.shape[0] + i]
-        phase_amount_differentials_in_moles_of_atoms(spec, state, delta_chemical_potentials, delta_statevars,
-                                                     delta_phase_amounts)
+        phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars,
+                                            delta_phase_amounts)
         return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
     finally:
         spec.fixed_statevar_indices = orig_fixed_statevar_indices
@@ -860,8 +860,8 @@ cpdef fixed_component_differential(SystemSpecification spec, SystemState state, 
         statevar_idx = spec.free_statevar_indices[i]
         delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                             state.free_stable_compset_indices.shape[0] + i]
-    phase_amount_differentials_in_moles_of_atoms(spec, state, delta_chemical_potentials, delta_statevars,
-                                                 delta_phase_amounts)
+    phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars,
+                                        delta_phase_amounts)
     return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
 
 cpdef chemical_potential_differential(SystemSpecification spec, SystemState state, int target_component_index):
@@ -903,8 +903,8 @@ cpdef chemical_potential_differential(SystemSpecification spec, SystemState stat
             statevar_idx = spec.free_statevar_indices[i]
             delta_statevars[statevar_idx] = equilibrium_soln[spec.free_chemical_potential_indices.shape[0] +
                                                              state.free_stable_compset_indices.shape[0] + i]
-        phase_amount_differentials_in_moles_of_atoms(spec, state, delta_chemical_potentials, delta_statevars,
-                                                     delta_phase_amounts)
+        phase_amount_differentials_to_atoms(spec, state, delta_chemical_potentials, delta_statevars,
+                                            delta_phase_amounts)
         return np.asarray(delta_chemical_potentials), np.asarray(delta_statevars), np.asarray(delta_phase_amounts)
     finally:
         spec.fixed_chemical_potential_indices = orig_fixed_chemical_potential_indices
