@@ -175,6 +175,20 @@ def test_jansson_derivative_binary_composition(load_database):
     # Checked by finite difference
     assert_allclose(y_dot, -2806.93592)
 
+@select_database("cumg.tdb")
+def test_jansson_derivative_multiple_atoms_per_formula_unit(load_database):
+    "Derivatives involving phase amounts are per mole of atoms; CU2MG has three atoms per formula unit"
+    dbf = load_database()
+    conditions = {v.N: 1, v.P: 101325, v.T: 700, v.X('MG'): 0.2}
+    wks = Workspace(dbf, ['CU', 'MG', 'VA'], ['FCC_A1', 'CU2MG'], conditions)
+    derivatives = wks.get('NP(CU2MG).T', 'HM.T')
+    # Central finite difference. Much smaller steps are dominated by the solver's convergence tolerance.
+    step = 0.1
+    values = [Workspace(dbf, ['CU', 'MG', 'VA'], ['FCC_A1', 'CU2MG'], {**conditions, v.T: 700 + dT})
+              .get('NP(CU2MG)', 'HM') for dT in (-step, step)]
+    finite_differences = (np.array(values[1], dtype=float) - np.array(values[0], dtype=float)) / (2 * step)
+    assert_allclose(np.array(derivatives, dtype=float), finite_differences, rtol=1e-5)
+
 @select_database("alzn_mey.tdb")
 def test_mass_fraction_binary_condition(load_database):
     dbf = load_database()

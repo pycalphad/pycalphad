@@ -1,3 +1,4 @@
+from pycalphad import Database
 from pycalphad.core.workspace import Workspace
 from pycalphad.core.solver import Solver
 from pycalphad.core.composition_set import CompositionSet
@@ -9,6 +10,39 @@ import pytest
 import numpy as np
 import numpy.testing
 
+# Closed-form system: ideal LIQUID, A2B line compound, ideal interstitial IS with 1+y(B) atoms per formula unit
+AB_TDB = """
+ELEMENT /-   ELECTRON_GAS 0 0 0 !
+ELEMENT VA   VACUUM 0 0 0 !
+ELEMENT A    FCC_A1 10 0 0 !
+ELEMENT B    FCC_A1 20 0 0 !
+TYPE_DEFINITION % SEQ * !
+PHASE LIQUID % 1 1 !
+CONSTITUENT LIQUID :A,B: !
+PARAMETER G(LIQUID,A;0) 1 0; 6000 N !
+PARAMETER G(LIQUID,B;0) 1 0; 6000 N !
+PHASE A2B % 2 2 1 !
+CONSTITUENT A2B :A:B: !
+PARAMETER G(A2B,A:B;0) 1 -40000+10*T; 6000 N !
+PHASE IS % 2 1 1 !
+CONSTITUENT IS :A:B,VA: !
+PARAMETER G(IS,A:VA;0) 1 1000-2*T; 6000 N !
+PARAMETER G(IS,A:B;0) 1 -20000+4*T; 6000 N !
+"""
+
+# Symmetric regular FCC_A1 with a miscibility gap below L/(2R)
+GAP_TDB = """
+ELEMENT /-   ELECTRON_GAS 0 0 0 !
+ELEMENT VA   VACUUM 0 0 0 !
+ELEMENT AL   FCC_A1 27 0 0 !
+ELEMENT ZN   HCP_A3 65 0 0 !
+TYPE_DEFINITION % SEQ * !
+PHASE FCC_A1 % 1 1 !
+CONSTITUENT FCC_A1 :AL,ZN: !
+PARAMETER G(FCC_A1,AL;0) 1 0; 6000 N !
+PARAMETER G(FCC_A1,ZN;0) 1 0; 6000 N !
+PARAMETER L(FCC_A1,AL,ZN;0) 1 20000; 6000 N !
+"""
 
 def test_as_property_creation():
     assert as_property('T') == v.T
@@ -26,6 +60,9 @@ def test_nonconditionable_derivative_fails():
     # can't set Gibbs energy as condition, so this should raise
     with pytest.raises(TypeError):
         JanssonDerivative(v.T, ModelComputedProperty('GM'))
+    # phase compositions can't replace a system condition
+    with pytest.raises(TypeError):
+        JanssonDerivative('HM', 'X(LIQUID,B)')
 
 def test_property_units():
     model_prop = ModelComputedProperty('test')
@@ -224,3 +261,49 @@ def test_chemical_potentials_for_isolated_phases(load_database):
     isolated_chempots = np.asarray([wks.get(IsolatedPhase("BCT_A5",wks=wks)(x)) for x in ["MU(PB)", "MU(SN)"]])
     np.testing.assert_allclose(isolated_chempots, np.asarray([-2992.70848448, -5280.02439881]))
     np.testing.assert_allclose(isolated_GM, np.dot(isolated_chempots, isolated_X))
+
+def test_jansson_derivative_with_respect_to_chemical_potential():
+    "Derivatives with respect to MU(A), which is not the last component"
+    T, y = 600, 0.2
+    R = float(v.R)
+    # IS: MU(A) = G(IS,A:VA) + RT ln(1-y), X(B) = y/(1+y)
+    mu_a = 1000 - 2 * T + R * T * np.log(1 - y)
+    wks = Workspace(Database(AB_TDB), ['A', 'B', 'VA'], ['IS'], {v.N: 1, v.P: 101325, v.T: T, v.MU('A'): mu_a})
+    # MU(B).MU(A) from Gibbs-Duhem
+    np.testing.assert_allclose(np.squeeze(wks.get('MU(A).MU(A)', 'MU(B).MU(A)', 'X(B).MU(A)')),
+                               [1, -1 / y, -(1 - y) / (R * T * (1 + y)**2)], rtol=1e-8)
+
+def test_jansson_derivative_of_phase_property():
+    "Phase-specific Jansson derivatives follow that phase and are NaN when it is absent"
+    T = 600
+    wks = Workspace(Database(AB_TDB), ['A', 'B', 'VA'], ['LIQUID', 'A2B', 'IS'],
+                    {v.N: 1, v.P: 101325, v.T: T, v.X('B'): 0.25})
+    # IS + A2B: y(1-y) = K from 2 MU(A) + MU(B) = G(A2B)
+    R = float(v.R)
+    K = np.exp((-21000 + 8 * T) / (R * T))
+    y = (1 - np.sqrt(1 - 4 * K)) / 2
+    dy_dT = 21000 * K / (R * T**2 * (1 - 2 * y))
+    # HM(IS) = (1000 (1-y) - 20000 y) / (1+y)
+    np.testing.assert_allclose(wks.get('HM(IS).T'), -22000 / (1 + y)**2 * dy_dT, rtol=1e-8)
+    assert np.isnan(wks.get('HM(LIQUID)'))
+    assert np.isnan(wks.get('HM(LIQUID).T'))
+
+def test_jansson_derivative_of_composition_set_property():
+    "Composition-set-specific Jansson derivatives follow that set and are NaN when it is absent"
+    R, L, x, x0 = float(v.R), 20000, 0.1, 0.3
+    # Gap at x and 1-x: RT ln((1-x)/x) = L(1-2x)
+    T = L * (1 - 2 * x) / (R * np.log((1 - x) / x))
+    dx_dT = R * np.log((1 - x) / x)**2 / (L * ((1 - 2 * x) / (x * (1 - x)) - 2 * np.log((1 - x) / x)))
+    conds = {v.N: 1, v.P: 101325, v.T: T, v.X('ZN'): x0}
+    wks = Workspace(Database(GAP_TDB), ['AL', 'ZN', 'VA'], ['FCC_A1'], conds)
+    # +1 on the ZN-poor set
+    sign = np.sign(0.5 - np.squeeze(wks.get('X(FCC_A1#1,ZN)', 'X(FCC_A1#2,ZN)')))
+    np.testing.assert_allclose(np.squeeze(wks.get('X(FCC_A1#1,ZN).T', 'X(FCC_A1#2,ZN).T')), sign * dx_dT, rtol=1e-8)
+    # Lever rule
+    np.testing.assert_allclose(np.squeeze(wks.get('NP(FCC_A1#1).T', 'NP(FCC_A1#2).T')),
+                               sign * (1 - 2 * x0) / (1 - 2 * x)**2 * dx_dT, rtol=1e-8)
+    # HM = L x(1-x)
+    np.testing.assert_allclose(np.squeeze(wks.get('HM(FCC_A1#1).T', 'HM(FCC_A1#2).T')),
+                               L * (1 - 2 * x) * dx_dT, rtol=1e-8)
+    wks = Workspace(Database(GAP_TDB), ['AL', 'ZN', 'VA'], ['FCC_A1'], {**conds, v.X('ZN'): x / 2})
+    assert np.all(np.isnan(wks.get('X(FCC_A1#2,ZN).T', 'NP(FCC_A1#2).T', 'HM(FCC_A1#2).T')))

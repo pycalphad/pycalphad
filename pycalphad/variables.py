@@ -610,12 +610,8 @@ class MoleFraction(StateVariable):
 
         # Sundman et al, 2015, Eq. 73
         jansson_derivative = np.nan
-        for idx, compset in enumerate(compsets):
-            if compset.NP == 0 and not (compset.fixed):
-                continue
+        for idx, compset in self.filtered(compsets):
             func_value = self.compute_per_phase_property(compset, cur_conds)
-            if np.isnan(func_value):
-                continue
             if np.isnan(jansson_derivative):
                 jansson_derivative = 0.0
             grad_value = grad_values[idx]

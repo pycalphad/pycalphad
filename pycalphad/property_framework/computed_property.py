@@ -92,14 +92,14 @@ class ModelComputedProperty(object):
         # Sundman et al, 2015, Eq. 73
         jansson_derivative = np.nan
         for idx, compset in enumerate(compsets):
-            if compset.NP == 0 and not (compset.fixed):
+            grad_value = grad_values[idx]
+            if grad_value is None or (compset.NP == 0 and not (compset.fixed)):
                 continue
             func_value = self._compute_per_phase_property(compset, cur_conds)
             if np.isnan(func_value):
                 continue
             if np.isnan(jansson_derivative):
                 jansson_derivative = 0.0
-            grad_value = grad_values[idx]
             delta_sitefracs = deltas.delta_sitefracs[idx]
 
             if self.phase_name is None:
@@ -117,11 +117,11 @@ class ModelComputedProperty(object):
         return out[0]
 
     def _compute_property_gradient(self, compsets, cur_conds, chemical_potentials):
-        "Compute partial derivatives of property with respect to degrees of freedom of given CompositionSets"
+        "Compute partial derivatives of property with respect to degrees of freedom of given CompositionSets; None where it does not apply"
         if self.phase_name is not None:
             tokens = self.phase_name.split('#')
             phase_name = tokens[0]
-        result = [np.zeros(compset.dof.shape[0]) for compset in compsets]
+        result = [None] * len(compsets)
         multiplicity_seen = 0
         for cs_idx, compset in enumerate(compsets):
             if (self.phase_name is not None) and (compset.phase_record.phase_name != phase_name):
@@ -132,7 +132,7 @@ class ModelComputedProperty(object):
                     continue
             grad = np.zeros((compset.dof.shape[0]))
             compset.phase_record.prop_grad(grad, compset.dof, self.model_attr_name.encode('utf-8'))
-            result[cs_idx][:] = grad
+            result[cs_idx] = grad
         return result
 
 class LinearCombination:
@@ -246,7 +246,8 @@ class JanssonDerivative:
         if not isinstance(self.numerator, DifferentiableComputableProperty):
             raise TypeError(f'{self.numerator} is not a differentiable property')
         self.denominator = as_property(denominator)
-        if not isinstance(self.denominator, ConditionableComputableProperty):
+        if not isinstance(self.denominator, ConditionableComputableProperty) or \
+                getattr(self.denominator, 'phase_name', None) is not None:
             raise TypeError(f'{self.denominator} cannot be used in the denominator of a Jansson derivative')
 
     @property

@@ -777,19 +777,36 @@ class Model(object):
         """
         Construct parameter in Redlich-Kister polynomial basis, using
         the Muggianu ternary parameter extension.
+
+        We handle two-sublattice ionic liquids here. The rules for ionic liquids are:
+        1. The model will be ordered (C)(A, Va, B) for cations (C), anions (A), vacancies (Va) and neutrals (B)
+        2. A wildcard ("*") in the first sublattice means we treat the parameter as for a single sublattice (of the second sublattice)
+        3. If we have cations and no (charged) anions, the cations and neutrals are merged into a single sublattice without vacancies
+        4. A parameter with no cations or no anions replaces y_C by y_VA*y_C and is multiplied by Q
         """
         rk_terms = []
 
         # search for desired parameters
         params = param_search(param_query)
+        ionic_liquid_2SL = phase.model_hints.get('ionic_liquid_2SL', False)
         for param in params:
             # iterate over every sublattice
             mixing_term = S.One
-            param_subl_dof = [len(subl) for subl in param["constituent_array"]]
+            constituent_array = param['constituent_array']
+            if ionic_liquid_2SL:
+                if constituent_array[0][0] == v.Species('*'):
+                    # A wildcard for the cations removes the cation sublattice
+                    constituent_array = constituent_array[1:]
+                cations_present = any(sp.charge > 0 for subl in constituent_array for sp in subl)
+                anions_present = any(sp.charge < 0 for subl in constituent_array for sp in subl)
+                if cations_present and not anions_present:
+                    # Without anions, the cations and neutral species mix as if on one sublattice
+                    constituent_array = (tuple(sp for subl in constituent_array for sp in subl if sp != v.Species('VA')),)
+            param_subl_dof = [len(subl) for subl in constituent_array]
             mixing_sublattice_indices = [subl_index for subl_index, dof in enumerate(param_subl_dof) if dof > 1]
             if len(mixing_sublattice_indices) > 1 and max(param_subl_dof) > 2:
                 raise ValueError(f"Parameters with mixing on multiple sublattices cannot include interactions beyond binary. Got mixing on {len(mixing_sublattice_indices)} sublattices with one sublattice having mixing between {max(param_subl_dof)} constituents for parameter {param}.")
-            for subl_index, comps in enumerate(param['constituent_array']):
+            for subl_index, comps in enumerate(constituent_array):
                 comp_symbols = None
                 # convert strings to symbols
                 if comps[0] == v.Species('*'):
@@ -797,45 +814,24 @@ class Model(object):
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in sorted(set(phase.constituents[subl_index])\
-                                .intersection(self.components))
+                            for comp in sorted(set(phase.constituents[subl_index]).intersection(self.components))
                         ]
                     mixing_term *= Add(*comp_symbols)
                 else:
-                    if (
-                        phase.model_hints.get('ionic_liquid_2SL', False) and  # This is an ionic 2SL
-                        len(param['constituent_array']) == 1 and  # There's only one sublattice
-                        all(const.charge == 0 for const in param['constituent_array'][0])  # All constituents are neutral
-                    ):
-                        # The constituent array is all neutral anion species in what would be the
-                        # second sublattice. TDB syntax allows for specifying neutral species with
-                        # one sublattice model. Set the sublattice index to 1 for the purpose of
-                        # site fractions.
-                        subl_index = 1
-                    comp_symbols = \
-                        [
-                            v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in comps
-                        ]
-                    if phase.model_hints.get('ionic_liquid_2SL', False):  # This is an ionic 2SL
+                    if ionic_liquid_2SL:
                         # We need to special case sorting for this model, because the constituents
-                        # should not be alphabetically sorted. The model should be (C)(A, Va, B)
-                        # for cations (C), anions (A), vacancies (Va) and neutrals (B). Thus the
-                        # second sublattice should be sorted by species with charge, then by
-                        # vacancies, if present, then by neutrals. Hint: in Thermo-Calc, using
-                        # `set-start-constitution` for a phase will prompt you to enter site
-                        # fractions for species in the order they are sorted internally within
-                        # Thermo-Calc. This can be used to verify sorting behavior.
-
-                        # Assume that the constituent array is already in sorted order
-                        # alphabetically, so we need to rearrange the species first by charged
-                        # species, then VA, then netural species. Since the cation sublattice
-                        # should only have charged species by definition, this is equivalent to
-                        # a no-op for the first sublattice.
+                        # should not be alphabetically sorted. We assume that the constituent array
+                        # starts alphabetically sorted, so we need to rearrange the species first
+                        # by charged species, then VA, then neutral species. Since the cation
+                        # sublattice should only have charged species by definition, this is
+                        # equivalent to a no-op for the first sublattice.
+                        comp_symbols = [v.SiteFraction(phase.name, (0 if comp.charge > 0 else 1), comp) for comp in comps]
                         charged_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge != 0 and sitefrac.species.number_of_atoms > 0]
                         va_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species == v.Species('VA')]
                         neutral_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge == 0 and sitefrac.species.number_of_atoms > 0]
                         comp_symbols = charged_symbols + va_symbols + neutral_symbols
+                    else:
+                        comp_symbols = [v.SiteFraction(phase.name, subl_index, comp) for comp in comps]
 
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
@@ -900,28 +896,11 @@ class Model(object):
                     # Perform Muggianu adjustment to site fractions
                     mixing_term *= comp_symbols[param['parameter_order']].subs(
                         self._Muggianu_correction_dict(comp_symbols))
-            if phase.model_hints.get('ionic_liquid_2SL', False):
-                # Special normalization rules for parameters apply under this model
-                # If there are no anions present in the anion sublattice (only VA and neutral
-                # species), then the energy has an additional Q*y(VA) term
-                anions_present = any([m.species.charge < 0 for m in mixing_term.free_symbols])
-                if not anions_present:
-                    pair_rule = {}
-                    # Cation site fractions must always appear with vacancy site fractions
-                    va_subls = [(v.Species('VA') in phase.constituents[idx]) for idx in range(len(phase.constituents))]
-                    # The last index that contains a vacancy
-                    va_subl_idx = (len(phase.constituents) - 1) - va_subls[::-1].index(True)
-                    va_present = any((v.Species('VA') in c) for c in param['constituent_array'])
-                    if va_present and (max(len(c) for c in param['constituent_array']) == 1):
-                        # No need to apply pair rule for VA-containing endmember
-                        pass
-                    elif va_subl_idx > -1:
-                        for sym in mixing_term.free_symbols:
-                            if sym.species.charge > 0:
-                                pair_rule[sym] = sym * v.SiteFraction(sym.phase_name, va_subl_idx, v.Species('VA'))
-                    mixing_term = mixing_term.xreplace(pair_rule)
-                    # This parameter is normalized differently due to the variable charge valence of vacancies
-                    mixing_term *= self.site_ratios[va_subl_idx]
+            if ionic_liquid_2SL and not (cations_present and anions_present):
+                va = v.SiteFraction(phase.name, 1, v.Species('VA'))
+                mixing_term = mixing_term.xreplace({sym: sym * va for sym in mixing_term.free_symbols if sym.species.charge > 0})
+                # This parameter is normalized differently due to the variable charge valence of vacancies
+                mixing_term *= self.site_ratios[1]
             param_val = param['parameter']
             if isinstance(param_val, Piecewise):
                 # Eliminate redundant Piecewise and extrapolate beyond temperature limits
