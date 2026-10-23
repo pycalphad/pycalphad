@@ -550,6 +550,127 @@ def test_ionic_liquid_energy_anion_sublattice(load_database):
     assert np.isclose(out, -104229.18, atol=0.1)
 
 
+@pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
+@select_database("Al-Fe-O_Lindwall2015.tdb")
+def test_ionic_liquid_vacancy_neutral_interaction(load_database):
+    """Test that a cation:vacancy,neutral interaction in a two sublattice ionic liquid produces the correct Gibbs energy"""
+    dbf = load_database()
+    # Uses the sublattice model (AL+3)(O-2, VA, ALO3/2)
+    mod = Model(dbf, ['AL', 'O', 'VA'], 'IONIC_LIQ')
+    dof = {
+        v.T: 2000, v.P: 101325,
+        v.Y('IONIC_LIQ', 0, v.Species('AL+3', {'AL': 1.0}, charge=3)): 1.0,
+        v.Y('IONIC_LIQ', 1, v.Species('O-2', {'O': 1.0}, charge=-2)): 1e-12,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.5,
+        v.Y('IONIC_LIQ', 1, v.Species('ALO3/2', {'AL': 1.0, 'O': 1.5})): 0.5,
+    }
+    check_energy(mod, dof, -299252.28)  # Thermo-Calc checked
+
+
+@pytest.mark.filterwarnings("ignore:Type definitions using IF/THEN logic is not supported:UserWarning")
+@select_database("Al-Fe-O_Lindwall2015.tdb")
+def test_ionic_liquid_cation_cation_vacancy_interaction(load_database):
+    """Test that a cation,cation:vacancy interaction in a two sublattice ionic liquid produces the correct Gibbs energy"""
+    dbf = load_database()
+    # Uses the sublattice model (AL+3, FE+2)(O-2, VA, ALO3/2, FEO3/2)
+    mod = Model(dbf, ['AL', 'FE', 'O', 'VA'], 'IONIC_LIQ')
+    dof = {
+        v.T: 2000, v.P: 101325,
+        v.Y('IONIC_LIQ', 0, v.Species('AL+3', {'AL': 1.0}, charge=3)): 0.25,
+        v.Y('IONIC_LIQ', 0, v.Species('FE+2', {'FE': 1.0}, charge=2)): 0.75,
+        v.Y('IONIC_LIQ', 1, v.Species('O-2', {'O': 1.0}, charge=-2)): 0.5,
+        v.Y('IONIC_LIQ', 1, v.Species('VA')): 0.5,
+        v.Y('IONIC_LIQ', 1, v.Species('ALO3/2', {'AL': 1.0, 'O': 1.5})): 1e-12,
+        v.Y('IONIC_LIQ', 1, v.Species('FEO3/2', {'FE': 1.0, 'O': 1.5})): 1e-12,
+    }
+    check_energy(mod, dof, -229223.95)  # Thermo-Calc checked
+
+
+@select_database("TiO-17Yan.tdb")
+def test_ionic_liquid_neutral_neutral_interaction(load_database):
+    """Test that a neutral,neutral interaction in a two sublattice ionic liquid produces the correct Gibbs energy"""
+    dbf = load_database()
+    # Uses the sublattice model (TI+2)(O-2, VA, O, TIO1.5, TIO2)
+    mod = Model(dbf, ['TI', 'O', 'VA'], 'ION')
+    dof = {
+        v.T: 2500, v.P: 101325,
+        v.Y('ION', 0, v.Species('TI+2', {'TI': 1.0}, charge=2)): 1.0,
+        v.Y('ION', 1, v.Species('O-2', {'O': 1.0}, charge=-2)): 1e-12,
+        v.Y('ION', 1, v.Species('VA')): 1e-12,
+        v.Y('ION', 1, v.Species('O', {'O': 1.0})): 1e-12,
+        v.Y('ION', 1, v.Species('TIO1.5', {'TI': 1.0, 'O': 1.5})): 0.25,
+        v.Y('ION', 1, v.Species('TIO2', {'TI': 1.0, 'O': 2.0})): 0.75,
+    }
+    check_energy(mod, dof, -436963.06)  # Thermo-Calc checked
+
+
+@pytest.mark.parametrize("phase_name", [
+    "CAT_NEU",
+    "CAT_CAT_CAT",
+    "CAT_CAT_NEU",
+    "CAT_NEU_NEU",
+    "NEU_NEU_NEU",
+    "CAT_CAT_CAT_DEP",
+    "CAT_CAT_NEU_DEP",
+    "CAT_NEU_NEU_DEP",
+])
+@select_database("ionic_liquid_no_anion_interactions.tdb")
+def test_ionic_liquid_no_anion_interactions(load_database, phase_name):
+    """Test that interactions without anions in a two sublattice ionic liquid match the equivalent regular solution"""
+    dbf = load_database()
+    comps = ['AL', 'CA', 'NA', 'C', 'N', 'SI', 'VA']
+    # Each phase uses the sublattice model (AL+3, CA+2, NA+1)(VA, C, N, SI) with one kind of interaction
+    mod = Model(dbf, comps, phase_name)
+    dof = {
+        v.T: 1000, v.P: 101325,
+        v.Y(phase_name, 0, v.Species('AL+3', {'AL': 1.0}, charge=3)): 0.2,
+        v.Y(phase_name, 0, v.Species('CA+2', {'CA': 1.0}, charge=2)): 0.3,
+        v.Y(phase_name, 0, v.Species('NA+1', {'NA': 1.0}, charge=1)): 0.5,
+        v.Y(phase_name, 1, v.Species('VA')): 0.4,
+        v.Y(phase_name, 1, v.Species('C', {'C': 1.0})): 0.3,
+        v.Y(phase_name, 1, v.Species('N', {'N': 1.0})): 0.2,
+        v.Y(phase_name, 1, v.Species('SI', {'SI': 1.0})): 0.1,
+    }
+    # Regular solution (AL, CA, NA, C, N, SI) with x(cation) = y(cation)*y(VA)
+    rs_phase_name = phase_name + '_RS'
+    rs_mod = Model(dbf, comps, rs_phase_name)
+    rs_dof = {
+        v.T: 1000, v.P: 101325,
+        v.Y(rs_phase_name, 0, v.Species('AL')): 0.2 * 0.4,
+        v.Y(rs_phase_name, 0, v.Species('CA')): 0.3 * 0.4,
+        v.Y(rs_phase_name, 0, v.Species('NA')): 0.5 * 0.4,
+        v.Y(rs_phase_name, 0, v.Species('C')): 0.3,
+        v.Y(rs_phase_name, 0, v.Species('N')): 0.2,
+        v.Y(rs_phase_name, 0, v.Species('SI')): 0.1,
+    }
+    check_energy(mod, dof, calculate_output(rs_mod, rs_dof, 'GM'))
+
+
+@pytest.mark.parametrize("phase_name, expected", [
+    ("WILD_VA_NEU", -12110.923),
+    ("WILD_ANI_VA", -12271.209),
+    ("WILD_VA_NEU_NEU_DEP", -12992.009),
+    ("WILD_ANI_VA_NEU_DEP", -13011.437),
+])
+@select_database("ionic_liquid_cation_wildcard_interactions.tdb")
+def test_ionic_liquid_cation_wildcard_interactions(load_database, phase_name, expected):
+    """Test that interactions with a wildcard for the cations in a two sublattice ionic liquid produce the correct Gibbs energy"""
+    dbf = load_database()
+    # Each phase uses the sublattice model (AL+3, CA+2, NA+1)(O-2, VA, C, SI) with one kind of interaction
+    mod = Model(dbf, ['AL', 'CA', 'NA', 'O', 'C', 'SI', 'VA'], phase_name)
+    dof = {
+        v.T: 1000, v.P: 101325,
+        v.Y(phase_name, 0, v.Species('AL+3', {'AL': 1.0}, charge=3)): 0.2,
+        v.Y(phase_name, 0, v.Species('CA+2', {'CA': 1.0}, charge=2)): 0.3,
+        v.Y(phase_name, 0, v.Species('NA+1', {'NA': 1.0}, charge=1)): 0.5,
+        v.Y(phase_name, 1, v.Species('O-2', {'O': 1.0}, charge=-2)): 0.2,
+        v.Y(phase_name, 1, v.Species('VA')): 0.4,
+        v.Y(phase_name, 1, v.Species('C', {'C': 1.0})): 0.3,
+        v.Y(phase_name, 1, v.Species('SI', {'SI': 1.0})): 0.1,
+    }
+    check_energy(mod, dof, expected)  # Thermo-Calc checked
+
+
 def test_order_disorder_interstitial_sublattice():
     """Test that non-vacancy elements are supported on interstitial sublattices"""
 
