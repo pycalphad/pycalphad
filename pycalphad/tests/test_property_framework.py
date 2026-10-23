@@ -30,6 +30,20 @@ PARAMETER G(IS,A:VA;0) 1 1000-2*T; 6000 N !
 PARAMETER G(IS,A:B;0) 1 -20000+4*T; 6000 N !
 """
 
+# Symmetric regular FCC_A1 with a miscibility gap below L/(2R)
+GAP_TDB = """
+ELEMENT /-   ELECTRON_GAS 0 0 0 !
+ELEMENT VA   VACUUM 0 0 0 !
+ELEMENT AL   FCC_A1 27 0 0 !
+ELEMENT ZN   HCP_A3 65 0 0 !
+TYPE_DEFINITION % SEQ * !
+PHASE FCC_A1 % 1 1 !
+CONSTITUENT FCC_A1 :AL,ZN: !
+PARAMETER G(FCC_A1,AL;0) 1 0; 6000 N !
+PARAMETER G(FCC_A1,ZN;0) 1 0; 6000 N !
+PARAMETER L(FCC_A1,AL,ZN;0) 1 20000; 6000 N !
+"""
+
 def test_as_property_creation():
     assert as_property('T') == v.T
     assert as_property('X(ZN)') == v.X('ZN')
@@ -273,3 +287,23 @@ def test_jansson_derivative_of_phase_property():
     np.testing.assert_allclose(wks.get('HM(IS).T'), -22000 / (1 + y)**2 * dy_dT, rtol=1e-8)
     assert np.isnan(wks.get('HM(LIQUID)'))
     assert np.isnan(wks.get('HM(LIQUID).T'))
+
+def test_jansson_derivative_of_composition_set_property():
+    "Composition-set-specific Jansson derivatives follow that set and are NaN when it is absent"
+    R, L, x, x0 = float(v.R), 20000, 0.1, 0.3
+    # Gap at x and 1-x: RT ln((1-x)/x) = L(1-2x)
+    T = L * (1 - 2 * x) / (R * np.log((1 - x) / x))
+    dx_dT = R * np.log((1 - x) / x)**2 / (L * ((1 - 2 * x) / (x * (1 - x)) - 2 * np.log((1 - x) / x)))
+    conds = {v.N: 1, v.P: 101325, v.T: T, v.X('ZN'): x0}
+    wks = Workspace(Database(GAP_TDB), ['AL', 'ZN', 'VA'], ['FCC_A1'], conds)
+    # +1 on the ZN-poor set
+    sign = np.sign(0.5 - np.squeeze(wks.get('X(FCC_A1#1,ZN)', 'X(FCC_A1#2,ZN)')))
+    np.testing.assert_allclose(np.squeeze(wks.get('X(FCC_A1#1,ZN).T', 'X(FCC_A1#2,ZN).T')), sign * dx_dT, rtol=1e-8)
+    # Lever rule
+    np.testing.assert_allclose(np.squeeze(wks.get('NP(FCC_A1#1).T', 'NP(FCC_A1#2).T')),
+                               sign * (1 - 2 * x0) / (1 - 2 * x)**2 * dx_dT, rtol=1e-8)
+    # HM = L x(1-x)
+    np.testing.assert_allclose(np.squeeze(wks.get('HM(FCC_A1#1).T', 'HM(FCC_A1#2).T')),
+                               L * (1 - 2 * x) * dx_dT, rtol=1e-8)
+    wks = Workspace(Database(GAP_TDB), ['AL', 'ZN', 'VA'], ['FCC_A1'], {**conds, v.X('ZN'): x / 2})
+    assert np.all(np.isnan(wks.get('X(FCC_A1#2,ZN).T', 'NP(FCC_A1#2).T', 'HM(FCC_A1#2).T')))
