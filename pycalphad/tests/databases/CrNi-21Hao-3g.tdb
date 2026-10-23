@@ -1,0 +1,195 @@
+$
+$ Database for Cr-Ni from L. Hao et al. 2021.
+$
+$ L. Hao, A. Ruban, W. Xiong, Calphad, 73, 102268(2021).
+$
+$ Dataset created 2024.10.17 by Bengt Hallstedt.
+$
+$ This database cannot be used with GES6. It does not understand the THETA
+$ identifier.
+$
+$ 3rd generation modelling. New models for elemental Cr and Ni and new
+$ magnetic model. Melting temperature of Cr changed from 2180 K to 2136 K.
+$ An A+B*T shift makes the entropy non-zero at 0 K. 
+$
+$ CrNi2 is not 3g. Its Gibbs energy is written relative to GHSERXX, which do
+$ not include the Einstein contribution to the Gibbs energy, i.e. highly
+$ questionable. This means that the heat capacity of CrNi2 is about zero.
+$ The author's tdb does not correctly reproduce the CrNi2 phase field in the
+$ paper. For the calculations in the paper the Gibbs energy of CrNi2 was
+$ obviously defined differently, unclear how. In 3g one cannot simply write
+$ a Delta-G. No attempt was made to correct this and the max T of CrNi2 is
+$ 407 K instead of 863 K.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 1.00 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    ! 
+ ELEMENT CR   BCC_A2                     51.996     4050.0     23.5429 ! 
+ ELEMENT NI   FCC_A1                     58.69      4787.0     29.7955 ! 
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : CR NI : !
+$
+$ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : CR NI% : VA : !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : CR% NI : VA : !
+$
+$ Prototype MoPt2 (oP6, Immm)
+$
+ PHASE CRNI2 % 2 1 2 !
+ CONST CRNI2 : CR% NI : CR NI% : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC 0 0.25 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC 0 0.37 !
+ FUNCTION ZERO      298.15  0;                                         6000 N !
+ FUNCTION UN_ASS    298.15  0;                                         6000 N !
+ FUNCTION R         298.15  +8.31451;                                  6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ Cr
+$
+$ 3rd generation data.
+$
+ PAR  G(BCC_A2,CR:VA),,                 +GHSERCR;,,                   N 21Hao !
+ PAR  THETA(BCC_A2,CR:VA),,             +1*LN(344);,,                 N 21Hao !
+ PAR  TC(BCC_A2,CR:VA),,                 -311.50;,,                   N 91Din !
+ PAR  NT(BCC_A2,CR:VA),,                 +311.50;,,                   N 91Din !
+ PAR  BMAG(BCC_A2,CR:VA),,                 +0.0135;,,                 N 21Hao !
+ PAR  G(FCC_A1,CR:VA),,                 +GFCCCR;,,                    N 21Hao !
+ PAR  THETA(FCC_A1,CR:VA),,             +1*LN(356);,,                 N 21Hao !
+ PAR  G(LIQUID,CR),,                    +GLIQCR;,,                    N 21Hao !
+ PAR  THETA(LIQUID,CR),,                +1*LN(260);,,                 N 21Hao !
+ PAR  GD(LIQUID,CR),,                   +40974.1845-13.89*T
+            -0.190447362*T*LN(T);,,                                   N 21Hao !
+$
+ PAR  G(CRNI2,CR:CR),,                  +3*GHSERCR+21081;,,           N 21Hao !
+$
+ FUNCTION  GHSERCR    1.00  +GBCCCRL+30.574229-0.111494976*T;
+      2136.00  Y  +GBCCCRH+30.574229-0.111494976*T;
+      6000.00  N !
+ FUNCTION  GFCCCR     1.00  -2810.13100-7.28682048E-04*T**2
+       -1.06068156E-06*T**3;
+      2136.00  Y  -60660.8960+272.732303*T+37.8126465*T
+       -37.8126465*T*LN(T)-2.52807159E+17*T**(-5)+3.92481496E+38*T**(-11);
+      6000.00  N !
+ FUNCTION  GLIQCR     1.00  +15304.3907-0.00305280790*T**2;            6000 N !
+$
+ FUNCTION  GBCCCRL    1.00  -8380.46986-7.28682048E-04*T**2
+       -1.06068156E-06*T**3;
+      6000.00  N !
+ FUNCTION  GBCCCRH    1.00  -66230.8650+272.730977*T+37.8124734*T
+       -37.8124734*T*LN(T)-2.52807159E+17*T**(-5)+3.92481496E+38*T**(-11);
+      6000.00  N !
+$ ------------------------------------------------------------------------------
+$ Ni
+$
+$ 3rd generation data.
+$
+ PAR  G(FCC_A1,NI:VA),,                 +GHSERNI;,,                   N 21Hao !
+ PAR  THETA(FCC_A1,NI:VA),,             +1*LN(288);,,                 N 21Hao !
+ PAR  TC(FCC_A1,NI:VA),,                 +633.00;,,                   N 91Din !
+ PAR  NT(FCC_A1,NI:VA),,                 -633.00;,,                   N 91Din !
+ PAR  BMAG(FCC_A1,NI:VA),,                 +0.52;,,                   N 91Din !
+ PAR  G(BCC_A2,NI:VA),,                 +GBCCNI;,,                    N 21Hao !
+ PAR  THETA(BCC_A2,NI:VA),,             +1*LN(288);,,                 N 21Hao !
+ PAR  TC(BCC_A2,NI:VA),,                 +456.00;,,                   N 21Hao !
+ PAR  NT(BCC_A2,NI:VA),,                 -456.00;,,                   N 21Hao !
+ PAR  BMAG(BCC_A2,NI:VA),,                 +0.52;,,                   N 21Hao !
+ PAR  G(LIQUID,NI),,                    +GLIQNI;,,                    N 21Hao !
+ PAR  THETA(LIQUID,NI),,                +1*LN(163);,,                 N 21Hao !
+ PAR  GD(LIQUID,NI),,                   +45982.4721-10.11*T
+            -0.438342374*T*LN(T);,,                                   N 21Hao !
+$
+ PAR  G(CRNI2,NI:NI),,                  +3*GHSERNI+88105;,,           N 21Hao !
+$
+ FUNCTION  GHSERNI    1.00  +GFCCNIL+1857.394488-3.481371266*T;
+      1728.00  Y  +GFCCNIH+1857.394488-3.481371266*T;
+      6000.00  N !
+ FUNCTION  GBCCNI     1.00  +GBCCNIL+1397.517799-3.481371266*T;
+      1728.00  Y  +GBCCNIH+1397.517799-3.481371266*T;
+      6000.00  N !
+ FUNCTION  GLIQNI     1.00  +8875.43536-0.00166245786*T**2;            6000 N !
+$
+ FUNCTION  GFCCNIL    1.00  -8381.06180-0.00357550000*T**2
+       -6.74033504E-15*T**5;
+      6000.00  N !
+ FUNCTION  GFCCNIH    1.00  -29632.4682+119.928191*T+17.6705304*T
+       -17.6705304*T*LN(T)+5.47045839E+18*T**(-5)-1.10045747E+37*T**(-11);
+      6000.00  N !
+ FUNCTION  GBCCNIL    1.00  +768.938202-0.00357550000*T**2
+       -6.74033504E-15*T**5;
+      6000.00  N !
+ FUNCTION  GBCCNIH    1.00  -20489.1168+119.956846*T+17.6743753*T
+       -17.6743753*T*LN(T)+5.47045839E+18*T**(-5)-1.10045747E+37*T**(-11);
+      6000.00  N !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ L. Hao, A. Ruban, W. Xiong, Calphad, 73, 102268(2021).
+$
+$ Checked against paper and author's tdb. Checked at 6000 K.
+$
+$ 3rd generation modelling. New models for elemental Cr and Ni and new
+$ magnetic model. Melting temperature of Cr changed from 2180 K to 2136 K.
+$ An A+B*T shift makes the entropy non-zero at 0 K. 
+$
+$ CrNi2 is not 3g. Its Gibbs energy is written relative to GHSERXX, which do
+$ not include the Einstein contribution to the Gibbs energy, i.e. highly
+$ questionable. This means that the heat capacity of CrNi2 is about zero.
+$ The author's tdb does not correctly reproduce the CrNi2 phase field in the
+$ paper. For the calculations in the paper the Gibbs energy of CrNi2 was
+$ obviously defined differently, unclear how. In 3g one cannot simply write
+$ a Delta-G. No attempt was made to correct this and the max T of CrNi2 is
+$ 407 K instead of 863 K.
+$
+ PAR  L(LIQUID,CR,NI;0),,               -14405+3.035*T;,,             N 21Hao !
+ PAR  L(LIQUID,CR,NI;1),,               +1143;,,                      N 21Hao !
+$
+ PAR  L(FCC_A1,CR,NI:VA;0),,            +8419-9.413*T;,,              N 21Hao !
+ PAR  L(FCC_A1,CR,NI:VA;1),,            +25557-12.933*T;,,            N 21Hao !
+ PAR  TC(FCC_A1,CR,NI:VA;0),,           -5210.09;,,                   N 21Hao !
+ PAR  BMAG(FCC_A1,CR,NI:VA;0),,            -4.28;,,                   N 21Hao !
+$
+ PAR  L(BCC_A2,CR,NI:VA;0),,            +11748-12.380*T;,,            N 21Hao !
+ PAR  L(BCC_A2,CR,NI:VA;1),,            +40662-13.099*T;,,            N 21Hao !
+ PAR  TC(BCC_A2,CR,NI:VA;0),,           -11127.98;,,                  N 21Hao !
+ PAR  NT(BCC_A2,CR,NI:VA;0),,           -10967.41;,,                  N 21Hao !
+ PAR  BMAG(BCC_A2,CR,NI:VA;0),,           -12.24;,,                   N 21Hao !
+$
+ PAR  G(CRNI2,CR:NI),,                  +GHSERCR+2*GHSERNI
+             -14849+6.277*T;,,                                        N 21Hao !
+ PAR  G(CRNI2,NI:CR),,                  +GHSERNI+2*GHSERCR
+             +124035-6.277*T;,,                                       N 21Hao !
+ PAR  L(CRNI2,CR,NI:*;0),,              -88982;,,                     N 21Hao !
+ PAR  L(CRNI2,*:CR,NI;0),,              +31662;,,                     N 21Hao !
+$ ------------------------------------------------------------------------------
+$
+ ASSESSED_SYSTEM
+  CR-NI(TDB -* +LIQ +BCC_A2 +FCC_A1 +CRNI2 ;P3 TMM:300/2500 *) !
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  Lin    'Linear combination of lattice stabilities'
+  Same   'Same or similar interaction as in the corresponding stable phase'
+  91Din  'A.T. Dinsdale, Calphad, 15, 317-425(1991).'
+  21Hao  'L. Hao, A. Ruban, W. Xiong, Calphad, 73, 102268(2021); Cr-Ni'
+!
