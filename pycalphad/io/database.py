@@ -2,7 +2,7 @@
 The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
-from typing import Any, TypedDict
+from typing import Any, Literal, NamedTuple, Optional, TypedDict
 from io import StringIO
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
@@ -55,6 +55,14 @@ class Phase(object): #pylint: disable=R0903
                      tuple(sorted(recursive_tuplify(self.model_hints.items())))))
 
 ElementReferenceData = TypedDict('ElementReferenceData', {'phase': str, 'mass': float, "H298": float, "S298": float})
+
+
+class DiffusionModel(NamedTuple):
+    model: Literal["NONE", "DILUTE", "SIMPLE", "MAGNETIC"]
+    magnetic_alpha: tuple[tuple[Optional[Species], float], ...] = ()  # MAGNETIC only
+    magnetic_alpha_2: tuple[tuple[Optional[Species], float], ...] = ()  # MAGNETIC only
+    dependent_constituents: tuple[Species, ...] = ()  # DILUTE and SIMPLE only, one per sublattice
+
 DatabaseFormat = namedtuple('DatabaseFormat', ['read', 'write'])
 format_registry = {}
 

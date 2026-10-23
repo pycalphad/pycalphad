@@ -136,14 +136,14 @@ def _find_global_min_cs(point: Point, system_info: dict, pdens = 500, tol = 1e-5
     mu = np.atleast_1d(np.squeeze(point.chemical_potentials))
     dGs = np.dot(x, mu) - gm
 
-    # Get list of phase indices for each unique phase as candidates
-    # 1. Sort the phase ID array by driving force
-    # 2. Get all the unique phases in the truncated sorted ID array (truncated by number of candidates)
-    # 3. For each phase, get the first index it shows up
-    #    The index will correspond to the sorted_indices list, so we have to get the unsorted index
-    #    From there
-    sorted_indices = np.argsort(dGs)[::-1]
-    sorted_phases = phase_ids[sorted_indices][:np.amin([num_candidates, len(sorted_indices)])]
+    # Get the sample with the largest driving force for each candidate phase
+    # from the top num_candidates samples by driving force.
+    # Avoid sorting the whole list for performance.
+    num_candidates = np.amin([num_candidates, len(dGs)])
+    threshold = np.partition(dGs, -num_candidates)[-num_candidates]
+    top_indices = np.flatnonzero(dGs >= threshold)
+    sorted_indices = top_indices[np.argsort(dGs[top_indices], kind='stable')[::-1]][:num_candidates]
+    sorted_phases = phase_ids[sorted_indices]
     unique_phases = np.unique(sorted_phases)
     phase_indices = [np.argmax(sorted_phases == p) for p in unique_phases]
 

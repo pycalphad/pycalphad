@@ -12,13 +12,13 @@ cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
     # Note: This function will destroy input matrix A
     cdef int i
     cdef int NRHS = 1
-    cdef int iwork = 0
     cdef int info = 0
     cdef int SMLSIZ = 50  # this is a guess
     cdef int NLVL = 10  # this is also a guess
     cdef int lwork = 12*N + 2*N*SMLSIZ + 8*N*NLVL + N*NRHS + (SMLSIZ+1)**2
     cdef int rank = 0
     cdef double* work = <double*>malloc(lwork * sizeof(double))
+    cdef int* iwork = <int*>malloc((3*N*NLVL + 11*N + 1) * sizeof(int))
     cdef double* singular_values = <double*>malloc(N * sizeof(double))
     cdef bint isfinite = True
 
@@ -31,7 +31,8 @@ cdef void lstsq(double *A, int M, int N, double* x, double rcond) nogil:
             x[i] = 0
     else:
         cython_lapack.dgelsd(&M, &N, &NRHS, A, &N, x, &M, singular_values, &rcond, &rank,
-                            work, &lwork, &iwork, &info)
+                            work, &lwork, iwork, &info)
+    free(iwork)
     free(singular_values)
     free(work)
     if info != 0:
