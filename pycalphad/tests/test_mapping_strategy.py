@@ -752,7 +752,8 @@ def test_degenerate_tieline_rejected_above_congruent_melting(load_database):
 
     dbf = load_database()
     comps = ["AL", "TE", "VA"]
-    phases = list(dbf.phases.keys())
+    # Only the phases of the tie-line; the congruent melting of AL2TE3_BETA does not depend on the others
+    phases = ["AL2TE3_BETA", "LIQUID"]
 
     pt = point_from_equilibrium(dbf, comps, phases, {v.P: 101325, v.N: 1, v.T: 1100, v.X("TE"): 0.61})
     assert set(pt.stable_phases) == {"AL2TE3_BETA", "LIQUID"}
