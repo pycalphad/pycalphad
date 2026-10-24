@@ -809,42 +809,38 @@ def test_unary_pt_mapping_not_flagged_as_degenerate():
 @select_database("cumg.tdb")
 def test_no_degenerate_edge_pinned_zpf_lines(load_database):
     """
-    No zpf line follows the pure Mg edge above its melting point
+    A zpf line stepping past the melting point of Mg onto the pure Mg edge is ended there
     """
+    import pycalphad.mapping.utils as map_utils
+
     dbf = load_database()
+    comps, phases = ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"]
     conds = {v.P: 101325, v.N: 1, v.T: (850, 1100, 20), v.X("MG"): (0.9, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
-    strategy.do_map()
+    strategy = TielineStrategy(dbf, comps, phases, conds)
 
-    for zpf_line in strategy.zpf_lines:
-        num_degenerate_points = 0
-        for point in zpf_line.points:
-            comp_sets = point.stable_composition_sets
-            if len(comp_sets) < 2:
-                continue
-            comps = np.array([np.asarray(cs.X, dtype=float) for cs in comp_sets])
-            all_pure = np.all(np.max(comps, axis=1) > 1 - 1e-5)
-            same_component = len(set(np.argmax(comps, axis=1))) == 1
-            if all_pure and same_component:
-                num_degenerate_points += 1
-        # A real boundary can end at the melting point
-        assert num_degenerate_points <= 1, (
-            f"ZPF line {zpf_line.stable_phases_with_multiplicity} has "
-            f"{num_degenerate_points} points pinned at a pure-element composition"
-        )
+    # HCP_A3 (pure Mg) at zero amount and LIQUID on the Mg-rich liquidus, below the melting point of Mg (923 K)
+    pt = point_from_equilibrium(dbf, comps, phases, {v.P: 101325, v.N: 1, v.T: 900, v.X("MG"): 0.99},
+                                models=strategy.models, phase_record_factory=strategy.phase_records)
+    assert set(pt.stable_phases) == {"HCP_A3", "LIQUID"}
+    hcp = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "HCP_A3"][0]
+    liquid = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "LIQUID"][0]
+    zpf_line = ZPFLine(["HCP_A3"], ["LIQUID"], [map_utils._generate_point_with_fixed_cs(pt, hcp, liquid)],
+                       axis_var=v.T, axis_direction=Direction.POSITIVE, current_delta=strategy.axis_delta[v.T])
 
-    def _composition_extent(zpf_line):
-        comps = [
-            point.get_local_property(cs, v.X("MG"))
-            for point in zpf_line.points
-            for cs in point.stable_composition_sets
-        ]
-        return np.nanmax(comps) - np.nanmin(comps)
+    def _tieline_width(point):
+        return np.amax(np.ptp([np.asarray(cs.X) for cs in point.stable_composition_sets], axis=0))
 
-    matching_lines = [zl for zl in strategy.zpf_lines if set(zl.stable_phases) == {"HCP_A3", "LIQUID"}]
-    assert any(_composition_extent(zl) > 0.02 for zl in matching_lines), (
-        "No non-degenerate HCP_A3+LIQUID ZPF line found"
-    )
+    # 920 K: still a real boundary with a finite tie-line, so the zpf line continues
+    strategy._attempt_to_add_point(zpf_line, strategy._step_zpf_line(zpf_line))
+    assert zpf_line.status == ZPFState.NOT_FINISHED
+    assert len(zpf_line.points) == 2
+    assert _tieline_width(zpf_line.points[-1]) > 1e-3
+
+    # 940 K: the solver converges to a zero-width tie-line pinned at x(MG)=1, which must end the zpf line
+    strategy._attempt_to_add_point(zpf_line, strategy._step_zpf_line(zpf_line))
+    assert len(zpf_line.points) == 3
+    assert _tieline_width(zpf_line.points[-1]) < 1e-7
+    assert zpf_line.status == ZPFState.REACHED_LIMIT
 
 @select_database("BaCa-86Alc.tdb")
 def test_circular_loop_check_normalizes_axes(load_database):
