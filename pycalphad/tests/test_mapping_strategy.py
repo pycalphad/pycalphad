@@ -807,38 +807,25 @@ def test_unary_pt_mapping_not_flagged_as_degenerate():
 @select_database("cumg.tdb")
 def test_no_degenerate_edge_pinned_zpf_lines(load_database):
     """
-    A zpf line stepping past the melting point of Mg onto the pure Mg edge is ended there
+    The Mg-rich HCP_A3+LIQUID boundary ends at the melting point of Mg instead of following the pure Mg edge above it
     """
-    import pycalphad.mapping.utils as map_utils
-
     dbf = load_database()
-    comps, phases = ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"]
     conds = {v.P: 101325, v.N: 1, v.T: (850, 1100, 20), v.X("MG"): (0.9, 1, 0.05)}
-    strategy = TielineStrategy(dbf, comps, phases, conds)
+    strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
+    # The automatic starting point of this boundary, on the 850 K edge
+    strategy.add_nodes_from_conditions({v.P: 101325, v.N: 1, v.T: 850, v.X("MG"): 0.95})
+    strategy.do_map()
 
-    # HCP_A3 (pure Mg) at zero amount and LIQUID on the Mg-rich liquidus, below the melting point of Mg (923 K)
-    pt = point_from_equilibrium(dbf, comps, phases, {v.P: 101325, v.N: 1, v.T: 900, v.X("MG"): 0.99},
-                                models=strategy.models, phase_record_factory=strategy.phase_records)
-    assert set(pt.stable_phases) == {"HCP_A3", "LIQUID"}
-    hcp = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "HCP_A3"][0]
-    liquid = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "LIQUID"][0]
-    zpf_line = ZPFLine(["HCP_A3"], ["LIQUID"], [map_utils._generate_point_with_fixed_cs(pt, hcp, liquid)],
-                       axis_var=v.T, axis_direction=Direction.POSITIVE, current_delta=strategy.axis_delta[v.T])
-
-    def _tieline_width(point):
-        return np.amax(np.ptp([np.asarray(cs.X) for cs in point.stable_composition_sets], axis=0))
-
-    # 920 K: still a real boundary with a finite tie-line, so the zpf line continues
-    strategy._attempt_to_add_point(zpf_line, strategy._step_zpf_line(zpf_line))
-    assert zpf_line.status == ZPFState.NOT_FINISHED
-    assert len(zpf_line.points) == 2
-    assert _tieline_width(zpf_line.points[-1]) > 1e-3
-
-    # 940 K: the solver converges to a zero-width tie-line pinned at x(MG)=1, which must end the zpf line
-    strategy._attempt_to_add_point(zpf_line, strategy._step_zpf_line(zpf_line))
-    assert len(zpf_line.points) == 3
-    assert _tieline_width(zpf_line.points[-1]) < 1e-7
-    assert zpf_line.status == ZPFState.REACHED_LIMIT
+    zpf_lines = [zl for zl in strategy.zpf_lines if set(zl.stable_phases) == {"HCP_A3", "LIQUID"}]
+    T = np.concatenate([zl.get_var_list(v.T) for zl in zpf_lines])
+    x_liq = np.concatenate([zl.get_var_list(v.X("LIQUID", "MG")) for zl in zpf_lines])
+    # The liquidus is mapped from the starting point up to the melting point of Mg (923 K)
+    below_melting = T < 923
+    assert np.min(x_liq[below_melting]) < 0.93
+    assert np.max(x_liq[below_melting]) > 0.99
+    # Above it, the tie-line collapses to zero width at x(MG)=1, which ends the line within a step or two
+    # instead of following the pure Mg edge up to the T limit (1100 K)
+    assert np.max(T) < 923 + 2 * 20
 
 def test_circular_loop_check_normalizes_axes():
     """
