@@ -1076,31 +1076,29 @@ def test_no_duplicate_boundary_remapping(load_database):
     Ts = [np.squeeze(pt.get_property(v.T)) for pt in strategy.zpf_lines[0].points]
     assert np.min(Ts) < 671 and np.max(Ts) > 699
 
-@select_database("AuCu-98Sun-LB.tdb")
-def test_no_remapping_from_start_of_mapped_line(load_database):
+def test_no_remapping_from_start_of_mapped_line():
     """
     An exit at the start of a mapped zpf line, heading the same way, does not map it again
     """
-    dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["AU", "CU", "VA"], list(dbf.phases.keys()), conds)
+    from pycalphad.mapping.primitives import ExitHint
+    # Miscibility gap, so that both composition sets are the same phase as in the FCC_4SL+FCC_4SL boundaries of Au-Cu
+    dbf = Database("""
+    ELEMENT A BLANK 0 0 0 !
+    ELEMENT B BLANK 0 0 0 !
+    PHASE ALPHA % 1 1 !
+    CONSTITUENT ALPHA :A,B: !
+    PARAMETER G(ALPHA,A,B;0) 1 20000; 6000 N !
+    """)
+    conds = {v.P: 101325, v.N: 1, v.T: (800, 820, 20), v.X("B"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["A", "B"], ["ALPHA"], conds)
+    # The same node found twice by mapping (like an invariant reached from both boundaries ending there), each
+    # with an exit on the same tie-line, from which the boundary only rises since 800 K is the axis limit
+    for x in [0.3, 0.6]:
+        point = point_from_equilibrium(dbf, strategy.components, strategy.phases, {v.P: 101325, v.N: 1, v.T: 800, v.X("B"): x},
+                                       models=strategy.models, phase_record_factory=strategy.phase_records)
+        strategy.node_queue.add_node(strategy._create_node_from_point(point, None, None, None, ExitHint.NORMAL), True)
     strategy.do_map()
-
-    def tielines(zpf_line):
-        rows = []
-        for pt in zpf_line.points:
-            xs = sorted(np.squeeze(pt.get_local_property(cs, v.X("CU"))) for cs in pt.stable_composition_sets)
-            rows.append([np.squeeze(pt.get_property(v.T))] + xs)
-        return np.array(rows)
-
-    lines = [zl for zl in strategy.zpf_lines if len(zl.points) > 1]
-    for i, zpf_line in enumerate(lines):
-        for other in lines[i+1:]:
-            if sorted(zpf_line.stable_phases) != sorted(other.stable_phases):
-                continue
-            other_tielines = tielines(other)
-            num_shared = sum(any(np.allclose(tl, other_tl, atol=1e-3) for other_tl in other_tielines) for tl in tielines(zpf_line))
-            assert num_shared < 2, f"{zpf_line.stable_phases} boundary mapped more than once"
+    assert len(strategy.zpf_lines) == 1, f"Boundary mapped {len(strategy.zpf_lines)} times"
 
 @select_database("CrV-92Lee-LB.tdb")
 def test_degenerate_check_does_not_veto_narrow_lens(load_database):
