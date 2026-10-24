@@ -644,32 +644,40 @@ def test_issue_638_degenerate_cs_binary(load_database):
     nodes = [set(n.stable_phases) for n in strat.node_queue.nodes]
     assert {'LIQUID', 'HCP_A3', 'AUSN_B81'} in nodes
 
-@select_database("cumg.tdb")
-def test_mapping_runs_just_in_time_on_data_retrieval(load_database):
+def test_mapping_runs_just_in_time_on_data_retrieval():
     """
     Data retrieval maps just in time, and again after starting points are added
     """
-    dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (850, 1000, 20), v.X("MG"): (0.9, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
-    assert not strategy._mapping_complete
+    # Miscibility gap in a single phase (critical temperature ~1200 K), so little code is compiled
+    TDB = """
+    ELEMENT A BLANK 0 0 0 !
+    ELEMENT B BLANK 0 0 0 !
+    TYPE_DEFINITION % SEQ * !
+    PHASE LIQUID % 1 1 !
+    CONSTITUENT LIQUID :A,B: !
+    PARAMETER G(LIQUID,A,B;0) 1 20000; 10000 N !
+    """
+    dbf = Database(TDB)
+    # Each starting point maps one short ZPF line to a temperature limit
+    conds = {v.P: 101325, v.N: 1, v.T: (895, 905, 10), v.X("B"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["A", "B"], ["LIQUID"], conds)
+    # LIQUID+LIQUID#2. Having a starting point skips the automatic starting point search
+    assert strategy.add_nodes_from_conditions({v.T: 900, v.P: 101325, v.X("B"): 0.3}, Direction.POSITIVE)
 
-    tieline_data = strategy.get_tieline_data(v.X("MG"), v.T)
+    # No do_map() before the first retrieval
+    tieline_data = strategy.get_tieline_data(v.X("B"), v.T)
+    assert len(tieline_data) == 1
     assert strategy._mapping_complete
-    assert len(tieline_data) > 0
-    assert len(strategy.zpf_lines) > 0
-    num_zpf_lines = len(strategy.zpf_lines)
 
-    strategy.get_tieline_data(v.X("MG"), v.T)
-    assert len(strategy.zpf_lines) == num_zpf_lines
+    strategy.get_tieline_data(v.X("B"), v.T)
+    assert len(strategy.zpf_lines) == 1
 
-    # HCP_A3+LIQUID
-    added = strategy.add_nodes_from_conditions({v.T: 900, v.P: 101325, v.X("MG"): 0.99})
+    added = strategy.add_nodes_from_conditions({v.T: 900, v.P: 101325, v.X("B"): 0.3}, Direction.NEGATIVE)
     assert added
     assert not strategy._mapping_complete
-    strategy.get_tieline_data(v.X("MG"), v.T)
+    tieline_data = strategy.get_tieline_data(v.X("B"), v.T)
     assert strategy._mapping_complete
-    assert len(strategy.zpf_lines) > num_zpf_lines
+    assert len(tieline_data) == 2
 
 @select_database("cumg.tdb")
 def test_mapping_stopped_by_max_iter_finishes_on_data_retrieval(load_database):
