@@ -7,26 +7,26 @@ from pycalphad.core.composition_set import CompositionSet
 
 from pycalphad.mapping.primitives import Point, Node
 
-def degrees_of_freedom(point: Union[Point, Node], components: list[str], num_potential_conditions: int):
+def degrees_of_freedom(point: Union[Point, Node], components: list[str], num_fixed_potentials: int):
     """
     Degrees of freedom of point defined by Gibbs phase rule
 
     Components + 2 = Phases + DOF
-        2 is offsetted by the number of potential conditions
+        DOF is offsetted by the number of fixed potential conditions (T, P and chemical potentials)
 
     Parameters
     ----------
     point : Point or Node
     components : [str]
         List of components, VA will be ignored
-    num_potential_conditions : number of variable potential conditions
+    num_fixed_potentials : number of fixed potential conditions
 
     Returns
     -------
     int - degrees of freedom, 0 represents an invariant point/node
     """
-    non_va_comps = len(set(components) - {"VA"})
-    return non_va_comps + 2 - len(point.stable_composition_sets) - (2 - num_potential_conditions)
+    non_va_comps = len({str(c) for c in components} - {"VA"})
+    return non_va_comps + 2 - len(point.stable_composition_sets) - num_fixed_potentials
 
 def is_state_variable(var: v.StateVariable):
     """
@@ -80,6 +80,15 @@ def _sort_axis_by_state_vars(axis_vars: list[v.StateVariable]):
     non_state_vars = [av for av in axis_vars if not is_state_variable(av)]
     return state_vars + non_state_vars
 
+def _update_global_conditions(point: Point):
+    """
+    Recomputes the global conditions of point from its composition sets
+    """
+    for key in point.global_conditions:
+        if not isinstance(key, v.ChemicalPotential):
+            # copying chemical potentials that were conditions from the solver can cause error accumulation.
+            point.global_conditions[key] = point.get_property(key)
+
 def _generate_point_with_fixed_cs(point: Point, cs_to_fix: CompositionSet, cs_to_free: CompositionSet):
     """
     Generates point with two cs, one fixed and one free
@@ -104,8 +113,7 @@ def _generate_point_with_fixed_cs(point: Point, cs_to_fix: CompositionSet, cs_to
     new_point._free_composition_sets[0].fixed = False
     update_cs_phase_frac(new_point._free_composition_sets[0], 1.0)
 
-    for key in new_point.global_conditions:
-        new_point.global_conditions[key] = new_point.get_property(key)
+    _update_global_conditions(new_point)
     return new_point
 
 def _generate_point_with_free_cs(point: Point, bias_towards_free : bool = False):
@@ -141,6 +149,5 @@ def _generate_point_with_free_cs(point: Point, bias_towards_free : bool = False)
             update_cs_phase_frac(cs, 1/phase_sum)
         cs.fixed = False
 
-    for key in new_point.global_conditions:
-        new_point.global_conditions[key] = new_point.get_property(key)
+    _update_global_conditions(new_point)
     return new_point

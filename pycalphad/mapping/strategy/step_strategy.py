@@ -53,7 +53,7 @@ class StepStrategy(MapStrategy):
         num_node_cs = len(node.stable_composition_sets)
         num_parent_cs = len(node.parent.stable_composition_sets)
         is_pot_cond = map_utils.is_state_variable(self.axis_vars[0])
-        is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
+        is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_fixed_potentials) == 0
 
         if num_node_cs == num_parent_cs + 1:
             # Node has more phases than parent
@@ -196,14 +196,15 @@ class StepStrategy(MapStrategy):
               This is in contrast to v.X(component) or v.NP where composition or phase fraction will be
               taken for all stable phases
         """
+        self._ensure_mapped()
         if hasattr(x, 'phase_name') and x.phase_name is None:
             if not global_x:
-                x = copy.deepcopy(x)
+                x = copy.copy(x)
                 x.phase_name = '*'
 
         if hasattr(y, 'phase_name') and y.phase_name is None:
             if not global_y:
-                y = copy.deepcopy(y)
+                y = copy.copy(y)
                 y.phase_name = '*'
 
         # if x and y are to be computed for the entire system, the we only have a single x vs y line

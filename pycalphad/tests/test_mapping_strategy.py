@@ -3,6 +3,7 @@ from importlib.resources import files
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pytest
 
 from pycalphad import binplot, ternplot, Database, Model, variables as v
 from pycalphad.tests.fixtures import select_database, load_database
@@ -12,7 +13,7 @@ from pycalphad.core.composition_set import CompositionSet
 from pycalphad.property_framework import as_property
 from pycalphad.property_framework.units import Q_, unit_conversion_context, to_display_units
 
-from pycalphad.mapping import StepStrategy, IsoplethStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth, plot_ternary
+from pycalphad.mapping import StepStrategy, IsoplethStrategy, TielineStrategy, BinaryStrategy, TernaryStrategy, plot_step, plot_isopleth, plot_ternary
 from pycalphad.mapping.starting_points import point_from_equilibrium
 from pycalphad.mapping.zpf_equilibrium import find_global_min_point
 from pycalphad.mapping.primitives import Point, Node, Direction, ZPFLine, ZPFState, _get_phase_specific_variable
@@ -118,7 +119,7 @@ def test_plot_ternary_without_tielines(load_database):
         v.T: 2000,
         v.P: 101325,
     }
-    strategy = TernaryStrategy(dbf, comps, phases, conds)
+    strategy = TielineStrategy(dbf, comps, phases, conds)
 
     assert strategy.get_tieline_data(v.X("V"), v.X("TI")) == []
     ax = plot_ternary(strategy)
@@ -440,12 +441,12 @@ def test_strategy_adjust_composition_limits():
 @select_database("CrFeNb_Jacob2016.tdb")
 def test_ternary_strategy_process_metastable_node(load_database):
     """
-    Tests how TernaryStrategy deals with nodes that are metastable
+    Tests how TielineStrategy deals with nodes that are metastable
 
     This is done by purposely creating a known metastable node, which
-    the TernaryStrategy should be able to detect whether a node is metastable
+    the TielineStrategy should be able to detect whether a node is metastable
     and perform the following:
-        a) if node is metastable, do not add to node queue and remove zpf line
+        a) if node is metastable, do not add to node queue and end the zpf line
         b) if node is stable, add to node queue
     """
     # Create system
@@ -454,7 +455,7 @@ def test_ternary_strategy_process_metastable_node(load_database):
     phases = list(dbf.phases.keys())
     map_conds = {v.T: 1323, v.P: 101325, v.N: 1, v.X('CR'): (0, 1, 0.01), v.X('FE'): (0, 1, 0.01)}
 
-    strategy = TernaryStrategy(dbf, comps, phases, map_conds, initialize=False)
+    strategy = TielineStrategy(dbf, comps, phases, map_conds, initialize=False)
 
     # Conditions where BCC_A2 and LAVES_C14 is stable
     # Add this point as a starting zpf line in the strategy
@@ -475,11 +476,12 @@ def test_ternary_strategy_process_metastable_node(load_database):
     metastable_point = point_from_equilibrium(dbf, comps, metastable_phases, eq_conds, models=models, phase_record_factory=phase_record_factory)
     metastable_node = Node(metastable_point.global_conditions, metastable_point.chemical_potentials, [], metastable_point.stable_composition_sets, None)
 
-    # In _process_new_node, this will fail the global min check and remove the zpf line
+    # In _process_new_node, this will fail the global min check and end the zpf line
     num_nodes = len(strategy.node_queue.nodes)
     strategy._process_new_node(strategy.zpf_lines[0], metastable_node)
-    # Test that zpf line was removed for being a metastable node
-    assert len(strategy.zpf_lines) == 0
+    # Test that zpf line was kept, but ended
+    assert len(strategy.zpf_lines) == 1
+    assert strategy.zpf_lines[0].status == ZPFState.FAILED
     assert len(strategy.node_queue.nodes) == num_nodes
 
     # _process_new_node with correct/stable node
@@ -490,12 +492,12 @@ def test_ternary_strategy_process_metastable_node(load_database):
     stable_node = Node(stable_point.global_conditions, stable_point.chemical_potentials, [], stable_point.stable_composition_sets, None)
 
     strategy.zpf_lines.append(ZPFLine([], point.stable_phases))
-    strategy.zpf_lines[0].axis_var = v.X('FE')
-    strategy.zpf_lines[0].axis_direction = Direction.POSITIVE
+    strategy.zpf_lines[-1].axis_var = v.X('FE')
+    strategy.zpf_lines[-1].axis_direction = Direction.POSITIVE
 
     num_nodes = len(strategy.node_queue.nodes)
     num_zpf_lines = len(strategy.zpf_lines)
-    strategy._process_new_node(strategy.zpf_lines[0], stable_node)
+    strategy._process_new_node(strategy.zpf_lines[-1], stable_node)
     assert len(strategy.zpf_lines) == num_zpf_lines
     assert len(strategy.node_queue.nodes) == 1+num_nodes
     assert strategy.node_queue.nodes[-1] == stable_node
@@ -602,7 +604,7 @@ def test_issue_638_degenerate_cs_ternary(load_database):
     comps = ['AL', 'CU', 'Y', 'VA']
     phases = list(dbf.phases.keys())
     conds = {v.T: temperature, v.P:101325, v.X('AL'): (0,1,0.02), v.X('Y'): (0,1,0.02)}
-    strat = TernaryStrategy(dbf, comps, phases, conds)
+    strat = TielineStrategy(dbf, comps, phases, conds)
 
     # this starting point should be in ['LIQUID', 'ALCU5Y']
     # first two nodes should be ['LIQUID', 'ALCU5Y', 'AL7CU2Y3'] and ['LIQUID', 'ALCU5Y', 'ALCUY']
@@ -630,7 +632,7 @@ def test_issue_638_degenerate_cs_binary(load_database):
     comps = ['AU', 'SN', 'VA']
     phases = list(dbf.phases.keys())
     conds = {v.T: (400, 1300, 20), v.P:101325, v.X('SN'): (0,1,0.02)}
-    strat = BinaryStrategy(dbf, comps, phases, conds)
+    strat = TielineStrategy(dbf, comps, phases, conds)
 
     strat.add_nodes_from_conditions({v.T: 650, v.P: 101325, v.X('SN'): 0.2})
     initial_nodes = len(strat.node_queue.nodes)
@@ -642,6 +644,345 @@ def test_issue_638_degenerate_cs_binary(load_database):
     nodes = [set(n.stable_phases) for n in strat.node_queue.nodes]
     assert {'LIQUID', 'HCP_A3', 'AUSN_B81'} in nodes
 
+@select_database("cumg.tdb")
+def test_mapping_runs_just_in_time_on_data_retrieval(load_database):
+    """
+    Data retrieval maps just in time, and again after starting points are added
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (850, 1000, 20), v.X("MG"): (0.9, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
+    assert not strategy._mapping_complete
+
+    tieline_data = strategy.get_tieline_data(v.X("MG"), v.T)
+    assert strategy._mapping_complete
+    assert len(tieline_data) > 0
+    assert len(strategy.zpf_lines) > 0
+    num_zpf_lines = len(strategy.zpf_lines)
+
+    strategy.get_tieline_data(v.X("MG"), v.T)
+    assert len(strategy.zpf_lines) == num_zpf_lines
+
+    # HCP_A3+LIQUID
+    added = strategy.add_nodes_from_conditions({v.T: 900, v.P: 101325, v.X("MG"): 0.99})
+    assert added
+    assert not strategy._mapping_complete
+    strategy.get_tieline_data(v.X("MG"), v.T)
+    assert strategy._mapping_complete
+    assert len(strategy.zpf_lines) > num_zpf_lines
+
+@select_database("cumg.tdb")
+def test_mapping_stopped_by_max_iter_finishes_on_data_retrieval(load_database):
+    """
+    Data retrieval finishes a do_map stopped by max_iter
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (850, 1000, 20), v.X("MG"): (0.9, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
+    strategy.do_map(max_iter=1)
+    assert not strategy._mapping_complete
+    strategy.get_tieline_data(v.X("MG"), v.T)
+    assert strategy._mapping_complete
+    assert strategy.node_queue.size() == 0
+
+@select_database("alcocrni.tdb")
+def test_data_retrieval_leaves_shared_axis_variable_unchanged(load_database):
+    """
+    Phase-local data retrieval does not make the cached axis variable, shared by all strategies, a phase wildcard
+    """
+    dbf = load_database()
+    comps, phases = ["CR", "NI", "VA"], ["BCC_A2", "FCC_A1", "LIQUID"]
+    strategy = TielineStrategy(dbf, comps, phases, {v.P: 101325, v.T: (1500, 2200, 50), v.X("CR"): (0, 1, 0.05)})
+    step = StepStrategy(dbf, comps, phases, {v.P: 101325, v.T: 1600, v.X("CR"): (0, 1, 0.05)})
+    assert strategy.axis_vars[1] is step.axis_vars[0]
+
+    strategy.get_tieline_data(v.X("CR"), v.T)
+    strategy.get_invariant_data(v.X("CR"), v.T)
+    assert strategy.axis_vars[1].phase_name is None
+    # A stray X(*,CR) condition used to make this fail with nonzero degrees of freedom
+    step.do_map()
+    assert len(step.zpf_lines) > 0
+
+    step.get_data(v.X("CR"), v.NP("*"))
+    assert step.axis_vars[0].phase_name is None
+
+
+@select_database("AlTe-19Shi.tdb")
+def test_degenerate_tieline_rejected_above_congruent_melting(load_database):
+    """
+    The AL2TE3_BETA+LIQUID tie-line is degenerate just above the congruent melting point (~1138.7 K)
+    """
+    from pycalphad.mapping.zpf_equilibrium import update_equilibrium_with_new_conditions
+    from pycalphad.mapping.zpf_checks import _degenerate_zero_width_tieline
+    import pycalphad.mapping.utils as map_utils
+
+    dbf = load_database()
+    comps = ["AL", "TE", "VA"]
+    phases = list(dbf.phases.keys())
+
+    pt = point_from_equilibrium(dbf, comps, phases, {v.P: 101325, v.N: 1, v.T: 1100, v.X("TE"): 0.61})
+    assert set(pt.stable_phases) == {"AL2TE3_BETA", "LIQUID"}
+    beta = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "AL2TE3_BETA"][0]
+    liquid = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "LIQUID"][0]
+    zpf_point = map_utils._generate_point_with_fixed_cs(pt, beta, liquid)
+
+    conds = copy.deepcopy(zpf_point.global_conditions)
+    conds[v.T] = 1135
+    below_results = update_equilibrium_with_new_conditions(zpf_point, conds, v.X("TE"))
+    assert below_results is not None
+    assert not _degenerate_zero_width_tieline(below_results[0].stable_composition_sets)
+
+    conds = copy.deepcopy(below_results[0].global_conditions)
+    conds[v.T] = 1140
+    above_results = update_equilibrium_with_new_conditions(below_results[0], conds, v.X("TE"))
+    assert above_results is not None
+    assert _degenerate_zero_width_tieline(above_results[0].stable_composition_sets)
+
+@select_database("cfe_broshe.tdb")
+def test_unary_pt_mapping_not_flagged_as_degenerate(load_database):
+    """
+    Univariant lines in a unary P-T diagram are not ended as degenerate
+    """
+    dbf = load_database()
+    # Around the bcc-fcc-hcp triple point (~799 K, ~9.7 GPa)
+    conds = {v.N: 1, v.T: (600, 1300, 50), v.P: (0, 20e9, 2e9)}
+    strategy = TielineStrategy(dbf, ["FE", "VA"], ["BCC_A2", "FCC_A1", "HCP_A3", "LIQUID"], conds)
+    strategy.do_map()
+
+    mapped_sets = [set(zl.stable_phases) for zl in strategy.zpf_lines if len(zl.points) > 1]
+    for pair in [{"BCC_A2", "FCC_A1"}, {"BCC_A2", "HCP_A3"}, {"FCC_A1", "HCP_A3"}]:
+        assert pair in mapped_sets, f"No univariant line mapped for {pair}"
+
+@select_database("cumg.tdb")
+def test_no_degenerate_edge_pinned_zpf_lines(load_database):
+    """
+    No zpf line follows the pure Mg edge above its melting point
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (850, 1100, 20), v.X("MG"): (0.9, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        num_degenerate_points = 0
+        for point in zpf_line.points:
+            comp_sets = point.stable_composition_sets
+            if len(comp_sets) < 2:
+                continue
+            comps = np.array([np.asarray(cs.X, dtype=float) for cs in comp_sets])
+            all_pure = np.all(np.max(comps, axis=1) > 1 - 1e-5)
+            same_component = len(set(np.argmax(comps, axis=1))) == 1
+            if all_pure and same_component:
+                num_degenerate_points += 1
+        # A real boundary can end at the melting point
+        assert num_degenerate_points <= 1, (
+            f"ZPF line {zpf_line.stable_phases_with_multiplicity} has "
+            f"{num_degenerate_points} points pinned at a pure-element composition"
+        )
+
+    def _composition_extent(zpf_line):
+        comps = [
+            point.get_local_property(cs, v.X("MG"))
+            for point in zpf_line.points
+            for cs in point.stable_composition_sets
+        ]
+        return np.nanmax(comps) - np.nanmin(comps)
+
+    matching_lines = [zl for zl in strategy.zpf_lines if set(zl.stable_phases) == {"HCP_A3", "LIQUID"}]
+    assert any(_composition_extent(zl) > 0.02 for zl in matching_lines), (
+        "No non-degenerate HCP_A3+LIQUID ZPF line found"
+    )
+
+@select_database("BaCa-86Alc.tdb")
+def test_circular_loop_check_normalizes_axes(load_database):
+    """
+    The Ba-Ca liquidus is mapped through its congruent minimum (~894 K) back to its starting temperature
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["BA", "CA", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    # Skip degenerate stubs at the pure-element melting points
+    liq_lines = []
+    for zl in strategy.zpf_lines:
+        if set(zl.stable_phases) == {"BCC_A2", "LIQUID"}:
+            xs = [np.squeeze(pt.get_property(v.X("CA"))) for pt in zl.points]
+            if np.max(xs) - np.min(xs) > 0.01:
+                liq_lines.append((zl, xs))
+    assert len(liq_lines) > 0, "No BCC_A2+LIQUID ZPF line mapped"
+    for zl, xs in liq_lines:
+        assert np.min(xs) < 0.05 and np.max(xs) > 0.95, (
+            f"BCC_A2+LIQUID line truncated: x(CA) spans [{np.min(xs):.3f}, {np.max(xs):.3f}] "
+            "instead of the full composition range"
+        )
+
+@select_database("GaLa-11Idb.tdb")
+def test_automatic_starting_points_keep_forced_starting_points(load_database):
+    """
+    Parentless recovery nodes from the edge step maps are kept, e.g. for the narrow La BCC window (1134-1194 K)
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("LA"): (0.75, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["GA", "LA", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(set(zpf_line.stable_phases)) == ["BCC_A2", "LIQUID"]:
+            Ts = [np.squeeze(pt.get_property(v.T)) for pt in zpf_line.points]
+            xs = [np.squeeze(pt.get_property(v.X("LA"))) for pt in zpf_line.points]
+            if np.min(Ts) < 1195 and np.max(Ts) > 1140 and np.max(xs) > 0.9:
+                break
+    else:
+        assert False, "No BCC_A2+LIQUID ZPF line mapped inside the La BCC window (1134-1194 K)"
+
+@select_database("AuCu-98Sun-LB.tdb")
+def test_automatic_starting_points_for_every_merged_field(load_database):
+    """
+    Fields merged into one same-name step zpf line each get a starting point (Au-rich fcc+AuCu3 at 300 K)
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["AU", "CU", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        xs = [np.squeeze(pt.get_property(v.X("CU"))) for pt in zpf_line.points]
+        if np.min(xs) < 0.15 and np.max(xs) > 0.20:
+            break
+    else:
+        assert False, "Au-rich fcc+AuCu3 field (x(CU)~0.08-0.24) was never mapped"
+
+@select_database("CrTa-93Dup-LB.tdb")
+def test_starting_point_dedup_distinguishes_twin_fields(load_database):
+    """
+    BCC_A2+C15_LAVES fields on both sides of the CR2TA_C15 line compound are mapped
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("TA"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CR", "TA", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(set(zpf_line.stable_phases)) == ["BCC_A2", "C15_LAVES"]:
+            Ts = [np.squeeze(pt.get_property(v.T)) for pt in zpf_line.points]
+            xs = [np.squeeze(pt.get_property(v.X("TA"))) for pt in zpf_line.points]
+            if np.min(xs) < 0.05 and np.min(Ts) < 350:
+                break
+    else:
+        assert False, "Cr-rich BCC_A2+C15_LAVES field (x(TA)<0.05) was not mapped down to 300 K"
+
+@select_database("BaCa-86Alc.tdb")
+def test_starting_point_coverage_semantics(load_database):
+    """
+    A mapped zpf line covers its interior in both directions and its start only in the direction it was mapped
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["BA", "CA", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    long_lines = [zl for zl in strategy.zpf_lines if len(zl.points) > 10]
+    assert len(long_lines) > 0
+    zpf_line = long_lines[0]
+    Ts = [np.squeeze(pt.get_property(v.T)) for pt in zpf_line.points]
+    mapped_dir = Direction.POSITIVE if Ts[1] > Ts[0] else Direction.NEGATIVE
+    opposite_dir = Direction.NEGATIVE if mapped_dir == Direction.POSITIVE else Direction.POSITIVE
+
+    assert strategy._exit_already_mapped(zpf_line.points[0], v.T, mapped_dir), (
+        "The start of a line should be covered in the direction it was mapped"
+    )
+    assert not strategy._exit_already_mapped(zpf_line.points[0], v.T, opposite_dir), (
+        "The start of a line must not cover its opposite-direction sibling"
+    )
+    # an interior point where the line is monotonic in T
+    i = next(i for i in range(4, len(Ts) - 4) if (Ts[i+4] - Ts[i]) * (Ts[i] - Ts[i-4]) > 0)
+    for d in [Direction.POSITIVE, Direction.NEGATIVE]:
+        assert strategy._exit_already_mapped(zpf_line.points[i], v.T, d), (
+            "A point on an already mapped tie-line should be covered in both directions"
+        )
+
+@select_database("CaMg-06Zho.tdb")
+def test_no_duplicate_boundary_remapping(load_database):
+    """
+    Recovery starting points do not map the CAMG2_C14+FCC_A1 boundary again
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("MG"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CA", "MG", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    target_lines = [zl for zl in strategy.zpf_lines
+                    if sorted(set(zl.stable_phases)) == ["CAMG2_C14", "FCC_A1"] and len(zl.points) > 1]
+    assert 1 <= len(target_lines) <= 2, (
+        f"CAMG2_C14+FCC_A1 mapped {len(target_lines)} times; expected at most 2 segments"
+    )
+    # Still mapped from 300 K to the ~710 K invariant
+    Ts = [np.squeeze(pt.get_property(v.T)) for zl in target_lines for pt in zl.points]
+    assert np.min(Ts) < 310 and np.max(Ts) > 700
+
+@select_database("AuCu-98Sun-LB.tdb")
+def test_no_remapping_from_start_of_mapped_line(load_database):
+    """
+    An exit at the start of a mapped zpf line, heading the same way, does not map it again
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["AU", "CU", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    def tielines(zpf_line):
+        rows = []
+        for pt in zpf_line.points:
+            xs = sorted(np.squeeze(pt.get_local_property(cs, v.X("CU"))) for cs in pt.stable_composition_sets)
+            rows.append([np.squeeze(pt.get_property(v.T))] + xs)
+        return np.array(rows)
+
+    lines = [zl for zl in strategy.zpf_lines if len(zl.points) > 1]
+    for i, zpf_line in enumerate(lines):
+        for other in lines[i+1:]:
+            if sorted(zpf_line.stable_phases) != sorted(other.stable_phases):
+                continue
+            other_tielines = tielines(other)
+            num_shared = sum(any(np.allclose(tl, other_tl, atol=1e-3) for other_tl in other_tielines) for tl in tielines(zpf_line))
+            assert num_shared < 2, f"{zpf_line.stable_phases} boundary mapped more than once"
+
+@select_database("CrV-92Lee-LB.tdb")
+def test_degenerate_check_does_not_veto_narrow_lens(load_database):
+    """
+    The narrow Cr-V melting lens is mapped
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("V"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CR", "V", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(set(zpf_line.stable_phases)) == ["BCC_A2", "LIQUID"]:
+            xs = [np.squeeze(pt.get_property(v.X("V"))) for pt in zpf_line.points]
+            if np.min(xs) < 0.05 and np.max(xs) > 0.9:
+                break
+    else:
+        assert False, "BCC_A2+LIQUID melting lens was not mapped across the composition range"
+
+@select_database("CrPt-98Spe-LB.tdb")
+def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database):
+    """
+    The Cr-Pt fcc liquidus is mapped through its congruent maximum (~2058 K, x(PT)~0.78)
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (1700, 2200, 10), v.X("PT"): (0, 1, 0.01)}
+    strategy = TielineStrategy(dbf, ["CR", "PT", "VA"], list(dbf.phases.keys()), conds)
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(set(zpf_line.stable_phases)) == ["FCC_A1", "LIQUID"]:
+            xs = [np.squeeze(pt.get_property(v.X("PT"))) for pt in zpf_line.points]
+            if np.max(xs) > 0.95:
+                break
+    else:
+        assert False, "FCC_A1+LIQUID liquidus was not mapped past the congruent maximum to the Pt side"
+
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):
     T = 2260
@@ -649,7 +990,7 @@ def test_issue_662_phase_boundary_loop(load_database):
     comps = ['AL', 'CU', 'Y', 'VA']
     phases = list(dbf.phases.keys())
     conds = {v.T: T, v.P:101325, v.X('AL'): (0,1,0.015), v.X('Y'): (0,1,0.015)}
-    strat = TernaryStrategy(dbf, comps, phases, conds)
+    strat = TielineStrategy(dbf, comps, phases, conds)
     strat.add_nodes_from_conditions({v.T: T, v.P: 101325, v.X('AL'): 0.33, v.X('Y'): 0.33})
 
     # this is pretty much the loop in strat.do_map()
@@ -673,6 +1014,30 @@ def test_issue_662_phase_boundary_loop(load_database):
     # this will trigger plotting the zpf line as a point, so just make sure this plots
     # without fail
     plot_ternary(strat, label_nodes=True)
+
+@select_database("Al-Cu-Y.tdb")
+def test_starting_points_across_stoichiometric_tielines(load_database):
+    """
+    Exits between two stoichiometric phases add the tie-triangle across the tie-line as a starting point
+    """
+    dbf = load_database()
+    conds = {v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): (0, 1, 0.02), v.X("Y"): (0, 1, 0.02)}
+    strategy = TielineStrategy(dbf, ["AL", "CU", "Y", "VA"], list(dbf.phases.keys()), conds)
+    # ALCUY+ALY2+HCP_A3 and AL2Y3+ALCUY+ALY both neighbor AL2Y3+ALCUY+ALY2
+    strategy.add_nodes_from_conditions({v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): 0.05, v.X("Y"): 0.65})
+    strategy.add_nodes_from_conditions({v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): 0.05, v.X("Y"): 0.5})
+    while strategy.node_queue._current_node_index < 2 or strategy._exit_index < len(strategy._exits):
+        if strategy.iterate():
+            break
+
+    assert len(strategy.zpf_lines) == 0
+    new_nodes = {tuple(sorted(n.stable_phases)): n for n in strategy.node_queue.nodes[2:] if len(n.stable_composition_sets) == 3}
+    assert sorted(new_nodes) == [("AL2Y", "ALCUY", "ALY"), ("AL2Y3", "ALCUY", "ALY2"), ("ALCUY", "CUY", "HCP_A3")]
+    # The tie-line crossed to reach each node is not an exit
+    remaining_exits = {phases: sorted(tuple(sorted(e.stable_phases)) for e in strategy._find_exits_from_node(node)[0]) for phases, node in new_nodes.items()}
+    assert remaining_exits[("AL2Y", "ALCUY", "ALY")] == [("AL2Y", "ALCUY"), ("AL2Y", "ALY")]
+    assert remaining_exits[("AL2Y3", "ALCUY", "ALY2")] == [("AL2Y3", "ALY2")]
+    assert remaining_exits[("ALCUY", "CUY", "HCP_A3")] == [("ALCUY", "CUY"), ("CUY", "HCP_A3")]
 
 @select_database("alzn_mey.tdb")
 def test_step_strategy_get_data_respects_display_units_for_state_and_model_properties(load_database):
@@ -775,7 +1140,7 @@ def test_mapping_custom_models():
     comps = ["A", "B"]
     models = { k: make_custom_model(v)(dbf, comps, k) for k,v  in zip(phases, ens)}
     conds = {v.N : 1, v.P : 1e5, v.T : (0, 10, 1), v.X("A") : (0, 1, 0.05) }
-    binary = BinaryStrategy(dbf,  comps, phases, conditions=conds, models=models)
+    binary = TielineStrategy(dbf,  comps, phases, conditions=conds, models=models)
     binary.do_map()
     assert len(binary.zpf_lines) > 0 # without the fix passing in models this will be empty for the dummy DB
     for tl in binary.get_tieline_data(v.X("A"), v.T):

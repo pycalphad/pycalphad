@@ -32,11 +32,26 @@ Normal checks
     check_change_in_phases
     check_global_min
     check_similar_phase_composition
+    check_degenerate_tieline
 
     These will check whether the step result is valid or
     if not valid, then will modify the zpf line or create
     a new node
 """
+
+def _degenerate_zero_width_tieline(comp_sets: list[CompositionSet], tol: float = 1e-7):
+    """
+    Returns True if multiple composition sets all have (nearly) the same composition, within tol in mole fraction
+
+    Unary systems are exempt, since phases coexist along univariant lines
+    """
+    if len(comp_sets) < 2:
+        return False
+    if len(comp_sets[0].X) < 2:
+        return False
+    comps = np.array([np.asarray(cs.X) for cs in comp_sets])
+    width = np.amax(np.amax(comps, axis=0) - np.amin(comps, axis=0))
+    return width < tol
 
 def simple_check_valid_point(step_results: tuple[Point, list[CompositionSet]], **kwargs):
     """
@@ -445,6 +460,35 @@ def check_similar_phase_composition(zpf_line: ZPFLine, step_results: tuple[Point
                 return None
     return None
 
+def check_degenerate_tieline(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
+    """
+    Ends the zpf line if its tie-line has collapsed to zero width at a fixed composition
+    (e.g. along a pure-element edge above the melting point)
+
+    2 possible outcomes
+        a) Distinct compositions, or composition still advancing -> pass
+        b) Zero-width tie-line pinned in composition -> end zpf line gracefully
+    """
+    if step_results is None:
+        return None
+
+    new_point, orig_cs = step_results
+    if _degenerate_zero_width_tieline(new_point.stable_composition_sets):
+        # A real boundary crossing a congruent extremum keeps advancing in composition
+        axis_vars = axis_data["axis_vars"]
+        normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})
+        composition_axes = [av for av in axis_vars if isinstance(av, v.MoleFraction)]
+        prev_point = zpf_line.points[-1]
+        movement = [np.squeeze(np.abs(new_point.get_property(av) - prev_point.get_property(av)) / normalize_factor[av]) for av in composition_axes]
+        step = zpf_line.current_delta / axis_data["axis_delta"][zpf_line.axis_var]
+        pinned = len(movement) == 0 or np.amax(movement) < 0.25 * step
+        if pinned:
+            zpf_line.status = ZPFState.REACHED_LIMIT
+            _log.info(f"All composition sets of {new_point.stable_phases} have the same composition (zero-width tie-line). Ending ZPF line.")
+        else:
+            _log.info(f"Zero-width tie-line at {new_point.stable_phases} but composition is still advancing (crossing a congruent extremum). Continuing ZPF line.")
+    return None
+
 def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[CompositionSet]], axis_data: Mapping, **kwargs):
     """
     If the composition of the new result loops back to beginning of ZPF line, then
@@ -454,6 +498,8 @@ def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[Compo
     This stops the zpf line if the distance from the step result to the first point
     is smaller than the distance to the previous point. The only times this should
     occur is if the zpf line rapidly switched directions or if it loops in on itself
+
+    Distances are normalized by each axis step so that one axis does not dominate
 
     Parameters
     ----------
@@ -472,15 +518,18 @@ def check_circular_loop(zpf_line: ZPFLine, step_results: tuple[Point, list[Compo
     if len(zpf_line.points) < 2:
         return None
 
-    x_curr = np.array([step_results[0].get_property(var) for var in axis_data['axis_vars']])
-    x_first = np.array([zpf_line.points[0].get_property(var) for var in axis_data['axis_vars']])
-    x_prev = np.array([zpf_line.points[-1].get_property(var) for var in axis_data['axis_vars']])
+    axis_vars = axis_data["axis_vars"]
+    normalize_factor = kwargs.get("normalize_factor", {av: 1 for av in axis_vars})
+    x_curr = np.array([step_results[0].get_property(var) / normalize_factor[var] for var in axis_vars])
+    x_first = np.array([zpf_line.points[0].get_property(var) / normalize_factor[var] for var in axis_vars])
+    x_prev = np.array([zpf_line.points[-1].get_property(var) / normalize_factor[var] for var in axis_vars])
     vfirst = x_first - x_curr
     vprev = x_curr - x_prev
     dist_first = np.sqrt(np.sum(vfirst**2))
     dist_prev = np.sqrt(np.sum(vprev**2))
     # if distance to first point is smaller than to previous point, then stop zpf line
     if dist_first < dist_prev:
+        _log.info(f"ZPF line looped back near its first point (normalized distance to first {dist_first:.3g} < distance to previous {dist_prev:.3g}). Ending ZPF line.")
         zpf_line.status = ZPFState.REACHED_LIMIT
 
     return None

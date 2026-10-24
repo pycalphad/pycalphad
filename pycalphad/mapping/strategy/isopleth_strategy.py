@@ -93,6 +93,7 @@ class IsoplethStrategy(MapStrategy):
         # Get all nodes that have a parent. We set axis variable to None so that the node will find a good starting direction
         # NOTE: if a stepping has a lot of failed equilibrium calculations, it's possible that the all nodes are generated
         #      as starting points (which has no parents), so no starting points for isopleth mapping would be added
+        self._mapping_complete = False
         for node in step.node_queue.nodes:
             if node.parent is not None:
                 # Add node with both positive and negative step direction
@@ -125,7 +126,7 @@ class IsoplethStrategy(MapStrategy):
         if node.exit_hint == ExitHint.POINT_IS_EXIT:
             return exits, exit_dirs
 
-        node_is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
+        node_is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_fixed_potentials) == 0
 
         # Exits for invariant and non-invariant nodes are a bit long, so splitting them to individual functions
         if node_is_invariant:
@@ -296,6 +297,7 @@ class IsoplethStrategy(MapStrategy):
         -------
         StrategyData where the data pertains to each ZPF line
         """
+        self._ensure_mapped()
         data = []
         for zpf_line in self.zpf_lines:
             data.append(SinglePhaseData(zpf_line.fixed_phases[0], zpf_line.get_var_list(x), zpf_line.get_var_list(y)))
@@ -322,9 +324,10 @@ class IsoplethStrategy(MapStrategy):
                   but rather the p-2 phases where the p-2 phase region intersects with
                   the fixed isopleth conditions
         """
+        self._ensure_mapped()
         node_data = []
         for node in self.node_queue.nodes:
-            is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_potential_condition) == 0
+            is_invariant = map_utils.degrees_of_freedom(node, self.components, self.num_fixed_potentials) == 0
             if is_invariant:
                 x_vals = []
                 y_vals = []
