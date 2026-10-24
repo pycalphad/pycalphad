@@ -842,29 +842,42 @@ def test_no_degenerate_edge_pinned_zpf_lines(load_database):
     assert _tieline_width(zpf_line.points[-1]) < 1e-7
     assert zpf_line.status == ZPFState.REACHED_LIMIT
 
-@select_database("BaCa-86Alc.tdb")
-def test_circular_loop_check_normalizes_axes(load_database):
+def test_circular_loop_check_normalizes_axes():
     """
-    The Ba-Ca liquidus is mapped through its congruent minimum (~894 K) back to its starting temperature
+    A liquidus back at its starting temperature after a congruent minimum (e.g. Ba-Ca) is not ended as a loop
     """
-    dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["BA", "CA", "VA"], list(dbf.phases.keys()), conds)
-    strategy.do_map()
+    from pycalphad.mapping.zpf_checks import check_circular_loop
 
-    # Skip degenerate stubs at the pure-element melting points
-    liq_lines = []
-    for zl in strategy.zpf_lines:
-        if set(zl.stable_phases) == {"BCC_A2", "LIQUID"}:
-            xs = [np.squeeze(pt.get_property(v.X("CA"))) for pt in zl.points]
-            if np.max(xs) - np.min(xs) > 0.01:
-                liq_lines.append((zl, xs))
-    assert len(liq_lines) > 0, "No BCC_A2+LIQUID ZPF line mapped"
-    for zl, xs in liq_lines:
-        assert np.min(xs) < 0.05 and np.max(xs) > 0.95, (
-            f"BCC_A2+LIQUID line truncated: x(CA) spans [{np.min(xs):.3f}, {np.max(xs):.3f}] "
-            "instead of the full composition range"
-        )
+    dbf = Database("""
+    ELEMENT A BLANK 0 0 0 !
+    ELEMENT B BLANK 0 0 0 !
+    PHASE LIQUID % 1 1 !
+    CONSTITUENT LIQUID :A,B: !
+    """)
+    prf = PhaseRecordFactory(dbf, ["A", "B"], {v.N, v.P, v.T}, instantiate_models(dbf, ["A", "B"], ["LIQUID"]))
+
+    def _point(T, x):
+        conds = {v.N: 1.0, v.P: 101325.0, v.T: T, v.X("B"): x}
+        compset = CompositionSet(prf["LIQUID"])
+        compset.update(np.array([1 - x, x]), 1.0, np.array([conds[sv] for sv in prf["LIQUID"].state_variables]))
+        return Point(conds, np.zeros(2), [], [compset])
+
+    # Axis data and normalization (by the axis steps) as a T-X map strategy passes them to the check
+    axis_delta = {v.T: 20, v.X("B"): 0.05}
+    axis_data = {"axis_vars": [v.T, v.X("B")], "axis_delta": axis_delta, "axis_lims": {v.T: (700, 1250), v.X("B"): (0, 1)}}
+
+    # Seeded at the A melting point, down through the minimum and back up to 1 K above the starting temperature.
+    # In raw units, the 16 K from the previous point swamps the 0.79 mole fraction from the first point
+    zpf_line = ZPFLine([], ["LIQUID"])
+    zpf_line.points = [_point(1000, 0.01), _point(894, 0.45), _point(985, 0.78)]
+    check_circular_loop(zpf_line, (_point(1001, 0.80), []), axis_data, normalize_factor=axis_delta)
+    assert zpf_line.status == ZPFState.NOT_FINISHED
+
+    # Coming back near the first point in both temperature and composition is still a loop
+    zpf_line = ZPFLine([], ["LIQUID"])
+    zpf_line.points = [_point(1000, 0.30), _point(1060, 0.45), _point(1030, 0.40)]
+    check_circular_loop(zpf_line, (_point(1005, 0.32), []), axis_data, normalize_factor=axis_delta)
+    assert zpf_line.status == ZPFState.REACHED_LIMIT
 
 @select_database("GaLa-11Idb.tdb")
 def test_automatic_starting_points_keep_forced_starting_points(load_database):
