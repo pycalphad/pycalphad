@@ -679,19 +679,34 @@ def test_mapping_runs_just_in_time_on_data_retrieval():
     assert strategy._mapping_complete
     assert len(tieline_data) == 2
 
-@select_database("cumg.tdb")
-def test_mapping_stopped_by_max_iter_finishes_on_data_retrieval(load_database):
+def test_mapping_stopped_by_max_iter_finishes_on_data_retrieval():
     """
     Data retrieval finishes a do_map stopped by max_iter
     """
-    dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (850, 1000, 20), v.X("MG"): (0.9, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["CU", "MG", "VA"], ["HCP_A3", "LIQUID"], conds)
+    # Miscibility gap in a single phase (critical temperature ~1200 K), so little code is compiled
+    TDB = """
+    ELEMENT A BLANK 0 0 0 !
+    ELEMENT B BLANK 0 0 0 !
+    TYPE_DEFINITION % SEQ * !
+    PHASE LIQUID % 1 1 !
+    CONSTITUENT LIQUID :A,B: !
+    PARAMETER G(LIQUID,A,B;0) 1 20000; 10000 N !
+    """
+    dbf = Database(TDB)
+    # The starting point maps one short ZPF line to a temperature limit
+    conds = {v.P: 101325, v.N: 1, v.T: (895, 905, 10), v.X("B"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["A", "B"], ["LIQUID"], conds)
+    # LIQUID+LIQUID#2
+    assert strategy.add_nodes_from_conditions({v.T: 900, v.P: 101325, v.X("B"): 0.3}, Direction.POSITIVE)
+
+    # The first iteration only finds the exit of the starting point
     strategy.do_map(max_iter=1)
     assert not strategy._mapping_complete
-    strategy.get_tieline_data(v.X("MG"), v.T)
+    assert len(strategy.zpf_lines) == 0
+
+    tieline_data = strategy.get_tieline_data(v.X("B"), v.T)
     assert strategy._mapping_complete
-    assert strategy.node_queue.size() == 0
+    assert len(tieline_data) == 1
 
 @select_database("alcocrni.tdb")
 def test_data_retrieval_leaves_shared_axis_variable_unchanged(load_database):
