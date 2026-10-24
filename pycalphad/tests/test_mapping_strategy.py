@@ -854,43 +854,36 @@ def test_circular_loop_check_normalizes_axes():
     # In raw units, the 20 K steps swamped the mole fraction distance and the liquidus was ended as a loop near 1000 K
     assert np.max(x_liq) > 0.95
 
-def test_automatic_starting_points_keep_forced_starting_points():
+@select_database("GaLa-11Idb.tdb")
+def test_automatic_starting_points_keep_forced_starting_points(load_database):
     """
     Parentless recovery nodes from the edge step maps are kept, e.g. for the narrow La BCC window (1134-1194 K)
-
-    The coarse step map along the x(LA)~1 edge of the Ga-La map (dT = 185 K) straddles the window and only
-    records the LIQUID+BCC_A2 field by the recovery point it force-adds (without a parent) at 1153.8 K
     """
-    from pycalphad.mapping.primitives import ExitHint, MIN_COMPOSITION
-    # Starting points are built from the composition sets of the step map nodes, so no phase energies are needed
-    dbf = Database("""
-    ELEMENT GA BLANK 0 0 0 !
-    ELEMENT LA BLANK 0 0 0 !
-    PHASE LIQUID % 1 1 !
-    CONSTITUENT LIQUID :GA,LA: !
-    PHASE BCC_A2 % 1 1 !
-    CONSTITUENT BCC_A2 :GA,LA: !
-    """)
-    phases = ["LIQUID", "BCC_A2"]
-    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("LA"): (0.75, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["GA", "LA"], phases, conds)
+    from pycalphad.mapping.primitives import MIN_COMPOSITION
+    dbf = load_database()
+    # La side of Ga-La. FCC_A1 is needed for the metastable node that the edge step map lands on
+    phases = ["LIQUID", "BCC_A2", "FCC_A1"]
+    conds = {v.P: 101325, v.N: 1, v.T: (1100, 1250, 20), v.X("LA"): (0.9, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["GA", "LA", "VA"], phases, conds)
+    # Step map of the automatic starting point search along the x(LA)=1 edge of the full Ga-La map (300-4000 K).
+    # Its coarse step (dT = 185 K) jumps over the BCC window to a metastable FCC_A1+LIQUID node, and the step map
+    # only records the LIQUID+BCC_A2 field by the recovery point that it force-adds (without a parent) below the node
     step_conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 185), v.X("LA"): 1 - MIN_COMPOSITION}
-    step = StepStrategy(dbf, ["GA", "LA"], phases, step_conds, models=strategy.models, phase_record_factory=strategy.phase_records)
-
-    # Recovery point at the Ga-La LIQUID+BCC_A2 equilibrium, added like StepStrategy.add_nodes_from_conditions does
-    node_conds = {v.P: 101325, v.N: 1, v.T: 1153.8, v.X("LA"): 1 - MIN_COMPOSITION}
-    state_variables = np.array([node_conds[sv] for sv in strategy.phase_records["LIQUID"].state_variables], dtype=np.float64)
-    liquid, bcc = CompositionSet(strategy.phase_records["LIQUID"]), CompositionSet(strategy.phase_records["BCC_A2"])
-    liquid.update(np.array([0.0212, 0.9788]), 4.6e-5, state_variables)
-    bcc.update(np.array([2.05e-8, 1 - 2.05e-8]), 1 - 4.6e-5, state_variables)
-    point = Point(node_conds, np.array([-244788.1, -85941.1]), [], [liquid, bcc])
-    step.node_queue.add_node(step._create_node_from_point(point, None, None, Direction.NEGATIVE, ExitHint.POINT_IS_EXIT), True)
+    step = StepStrategy(dbf, ["GA", "LA", "VA"], phases, step_conds, models=strategy.models, phase_record_factory=strategy.phase_records)
+    step.do_map()
+    bcc_liquid_nodes = [node for node in step.node_queue.nodes if sorted(node.stable_phases) == ["BCC_A2", "LIQUID"]]
+    assert len(bcc_liquid_nodes) == 1 and bcc_liquid_nodes[0].parent is None
 
     strategy.add_starting_points_from_step(step)
-    starting_points = [node for node in strategy.node_queue.nodes if sorted(node.stable_phases) == ["BCC_A2", "LIQUID"]]
-    assert sorted(node.axis_direction.value for node in starting_points) == [-1, 1], (
-        "The LIQUID+BCC_A2 recovery point inside the La BCC window was not added as a starting point in both directions"
-    )
+    strategy.do_map()
+
+    for zpf_line in strategy.zpf_lines:
+        if sorted(zpf_line.stable_phases) == ["BCC_A2", "LIQUID"]:
+            Ts = zpf_line.get_var_list(v.T)
+            if np.min(Ts) < 1160 and np.max(Ts) > 1190:
+                break
+    else:
+        assert False, "No BCC_A2+LIQUID ZPF line mapped inside the La BCC window (1134-1194 K)"
 
 def test_automatic_starting_points_for_every_merged_field():
     """
