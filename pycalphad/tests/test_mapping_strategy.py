@@ -953,44 +953,73 @@ def test_starting_point_dedup_distinguishes_twin_fields(load_database):
 def test_starting_point_coverage_semantics():
     """
     A mapped zpf line covers its interior in both directions and its start only in the direction it was mapped
+
+    So both directions of a starting point in the middle of a boundary are mapped, and starting points at the start
+    of a mapped line (heading the same way) or inside it do not map it again
     """
+    from pycalphad.mapping.primitives import MIN_COMPOSITION
+    # BCC_A2 and C15_LAVES of CrTa-93Dup-LB.tdb, with the pure-element references dropped
+    # (they are linear in composition, so the phase boundaries are unchanged)
     dbf = Database("""
-    ELEMENT BA BLANK 0 0 0 !
-    ELEMENT CA BLANK 0 0 0 !
-    PHASE BCC_A2 % 1 1 !
-    CONSTITUENT BCC_A2 :BA,CA: !
-    PHASE LIQUID % 1 1 !
-    CONSTITUENT LIQUID :BA,CA: !
+    ELEMENT VA VACUUM 0 0 0 !
+    ELEMENT CR BCC_A2 51.996 4050.0 23.5429 !
+    ELEMENT TA BCC_A2 180.9479 5681.872 41.4718 !
+    TYPE_DEFINITION % SEQ * !
+    TYPE_DEFINITION B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+
+    PHASE BCC_A2 %B 2 1 3 !
+    CONSTITUENT BCC_A2 :CR,TA:VA: !
+    PARAMETER G(BCC_A2,CR:VA;0) 298.15 0; 6000 N !
+    PARAMETER G(BCC_A2,TA:VA;0) 298.15 0; 6000 N !
+    PARAMETER TC(BCC_A2,CR:VA;0) 298.15 -311.5; 6000 N !
+    PARAMETER BMAGN(BCC_A2,CR:VA;0) 298.15 -0.008; 6000 N !
+    PARAMETER L(BCC_A2,CR,TA:VA;0) 298.15 46800-11.4*T; 6000 N !
+    PARAMETER L(BCC_A2,CR,TA:VA;1) 298.15 37200-17.3*T; 6000 N !
+    PARAMETER L(BCC_A2,CR,TA:VA;2) 298.15 16200-5.4*T; 6000 N !
+
+    PHASE C15_LAVES % 2 2 1 !
+    CONSTITUENT C15_LAVES :CR,TA:CR,TA: !
+    PARAMETER G(C15_LAVES,CR:CR;0) 298.15 15000; 6000 N !
+    PARAMETER G(C15_LAVES,TA:TA;0) 298.15 15000; 6000 N !
+    PARAMETER G(C15_LAVES,CR:TA;0) 298.15 -26850+0.69*T; 6000 N !
+    PARAMETER G(C15_LAVES,TA:CR;0) 298.15 56850-0.69*T; 6000 N !
+    PARAMETER L(C15_LAVES,CR,TA:CR;0) 298.15 270000-90*T; 6000 N !
+    PARAMETER L(C15_LAVES,CR,TA:TA;0) 298.15 270000-90*T; 6000 N !
+    PARAMETER L(C15_LAVES,CR:CR,TA;0) 298.15 117000-39*T; 6000 N !
+    PARAMETER L(C15_LAVES,TA:CR,TA;0) 298.15 117000-39*T; 6000 N !
     """)
-    conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["BA", "CA"], ["BCC_A2", "LIQUID"], conds)
+    comps, phases = ["CR", "TA", "VA"], ["BCC_A2", "C15_LAVES"]
+    conds = {v.P: 101325, v.N: 1, v.T: (800, 900, 20), v.X("TA"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, comps, phases, conds)
+    # Step map along the x(TA) = 0 edge, as the automatic starting point search does. Its starting point is where
+    # C15_LAVES precipitates from Cr-rich BCC_A2 (849 K), in the middle of the solvus, which goes on to lower x(TA)
+    # below 849 K and to higher x(TA) above
+    edge_conds = {v.P: 101325, v.N: 1, v.T: (800, 900, 5), v.X("TA"): MIN_COMPOSITION}
+    edge_step = StepStrategy(dbf, comps, phases, edge_conds, models=strategy.models, phase_record_factory=strategy.phase_records)
+    edge_step.do_map()
+    strategy.add_starting_points_from_step(edge_step)
+    strategy.do_map()
 
-    # BCC_A2+LIQUID line mapped in the positive T direction from a starting point at 700 K, with LIQUID
-    # fixed and the refined first steps of mapping
-    zpf_line = ZPFLine(["LIQUID"], ["BCC_A2"])
-    for T in [700, 702, 706, 714, 730, 750, 770, 790, 810]:
-        x_bcc, x_liq = 0.1 + 0.002*(T - 700), 0.2 + 0.002*(T - 700)
-        state_vars = np.array([1, 101325, T], dtype=np.float64)
-        liq = CompositionSet(strategy.phase_records["LIQUID"])
-        bcc = CompositionSet(strategy.phase_records["BCC_A2"])
-        liq.update(np.array([1 - x_liq, x_liq]), 0.0, state_vars)
-        bcc.update(np.array([1 - x_bcc, x_bcc]), 1.0, state_vars)
-        liq.fixed = True
-        zpf_line.append(Point({v.P: 101325, v.N: 1, v.T: T, v.X("CA"): x_bcc}, np.zeros(2), [liq], [bcc]))
-    strategy.zpf_lines.append(zpf_line)
+    # The line mapped up from 849 K has its first points a fraction of a step above the starting point, but it does
+    # not cover the other direction, which maps the solvus down to 800 K
+    Ts = np.concatenate([zpf_line.get_var_list(v.T) for zpf_line in strategy.zpf_lines])
+    assert np.min(Ts) < 810 and np.max(Ts) > 890, (
+        f"The solvus should be mapped from 849 K up to 900 K and down to 800 K, got {np.min(Ts):.0f}-{np.max(Ts):.0f} K"
+    )
+    num_lines = len(strategy.zpf_lines)
 
-    start, interior = zpf_line.points[0], zpf_line.points[5]
-    assert strategy._exit_already_mapped(start, v.T, Direction.POSITIVE), (
-        "The start of a line should be covered in the direction it was mapped"
-    )
-    # The opposite-direction sibling of the starting point is a fraction of a step from the next points of the line
-    assert not strategy._exit_already_mapped(start, v.T, Direction.NEGATIVE), (
-        "The start of a line must not cover its opposite-direction sibling"
-    )
-    for d in [Direction.POSITIVE, Direction.NEGATIVE]:
-        assert strategy._exit_already_mapped(interior, v.T, d), (
-            "A point on an already mapped tie-line should be covered in both directions"
-        )
+    # The same starting points again, each at the start of the line it mapped and heading the same way
+    strategy.add_starting_points_from_step(edge_step)
+    strategy.do_map()
+    assert len(strategy.zpf_lines) == num_lines, "Starting points at the start of mapped lines mapped them again"
+
+    # A starting point inside the line above 849 K, from a step map across the Cr-rich BCC_A2+C15_LAVES field at 870 K
+    field_conds = {v.P: 101325, v.N: 1, v.T: 870, v.X("TA"): (0.05, 0.3, 0.05)}
+    field_step = StepStrategy(dbf, comps, phases, field_conds, models=strategy.models, phase_record_factory=strategy.phase_records)
+    field_step.do_map()
+    strategy.add_starting_points_from_step(field_step)
+    strategy.do_map()
+    assert len(strategy.zpf_lines) == num_lines, "A starting point inside a mapped line mapped it again"
 
 @select_database("CaMg-06Zho.tdb")
 def test_no_duplicate_boundary_remapping(load_database):
