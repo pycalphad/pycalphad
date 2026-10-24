@@ -774,8 +774,9 @@ def test_degenerate_tieline_rejected_above_congruent_melting(load_database):
 
 def test_unary_pt_mapping_not_flagged_as_degenerate():
     """
-    A univariant line in a unary P-T diagram is not ended as a degenerate zero-width tie-line
+    A univariant line in a unary P-T diagram is mapped across the diagram, not ended as a degenerate zero-width tie-line
     """
+    # ALPHA and BETA (both pure A) coexist along T = 1000 K + 1e-7 K/Pa * P
     dbf = Database("""
     ELEMENT A BLANK 0 0 0 !
     TYPE_DEFINITION % SEQ * !
@@ -786,24 +787,22 @@ def test_unary_pt_mapping_not_flagged_as_degenerate():
     PARAMETER G(ALPHA,A;0) 1 0; 6000 N !
     PARAMETER G(BETA,A;0) 1 1000-T+1E-7*P; 6000 N !
     """)
-    strategy = TielineStrategy(dbf, ["A"], ["ALPHA", "BETA"], {v.N: 1, v.T: (900, 1300, 50), v.P: (0, 2e9, 2e8)})
+    comps, phases = ["A"], ["ALPHA", "BETA"]
+    strategy = TielineStrategy(dbf, comps, phases, {v.N: 1, v.T: (900, 1300, 50), v.P: (0, 2e9, 2e8)})
+    # Starting point: the ALPHA -> BETA transition at 1000 K, found by stepping in T along the P = 0 edge,
+    # as the automatic starting point search does
+    step = StepStrategy(dbf, comps, phases, {v.N: 1, v.P: 0, v.T: (900, 1300, 50)}, models=strategy.models, phase_record_factory=strategy.phase_records)
+    step.do_map()
+    strategy.add_starting_points_from_step(step)
+    strategy.do_map()
 
-    # ALPHA+BETA coexist along T = 1000 K + 1e-7 K/Pa * P, where both phases trivially have the same composition
-    conds = {v.N: 1.0, v.T: 1100.0, v.P: 1e9}
-    alpha, beta = CompositionSet(strategy.phase_records["ALPHA"]), CompositionSet(strategy.phase_records["BETA"])
-    state_variables = np.array([conds[sv] for sv in strategy.phase_records["ALPHA"].state_variables])
-    alpha.update(np.array([1.0]), 0.0, state_variables)
-    alpha.fixed = True
-    beta.update(np.array([1.0]), 1.0, state_variables)
-    zpf_line = ZPFLine(["ALPHA"], ["BETA"], [Point(conds, np.zeros(1), [alpha], [beta])],
-                       axis_var=v.T, axis_direction=Direction.POSITIVE, current_delta=strategy.axis_delta[v.T])
-
-    # Stepping in T (freeing P) stays on the univariant line, which must not be ended
-    strategy._attempt_to_add_point(zpf_line, strategy._step_zpf_line(zpf_line))
-    assert zpf_line.status == ZPFState.NOT_FINISHED
-    assert len(zpf_line.points) == 2
-    new_conds = zpf_line.points[-1].global_conditions
-    np.testing.assert_allclose([new_conds[v.T], new_conds[v.P]], [1150, 1.5e9], rtol=1e-6)
+    # Every point on the line has a zero-width tie-line, but the line must still be followed from P = 0 to the P = 2 GPa limit
+    zpf_lines = [zpf_line for zpf_line in strategy.zpf_lines if set(zpf_line.stable_phases) == {"ALPHA", "BETA"}]
+    assert len(zpf_lines) > 0, "No ALPHA+BETA line was mapped"
+    P = np.concatenate([zpf_line.get_var_list(v.P) for zpf_line in zpf_lines])
+    T = np.concatenate([zpf_line.get_var_list(v.T) for zpf_line in zpf_lines])
+    assert np.max(P) == pytest.approx(2e9), "ALPHA+BETA line was ended before reaching P = 2 GPa"
+    np.testing.assert_allclose(T, 1000 + 1e-7*P, atol=1e-3)
 
 @select_database("cumg.tdb")
 def test_no_degenerate_edge_pinned_zpf_lines(load_database):
