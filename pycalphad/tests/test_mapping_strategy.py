@@ -1071,35 +1071,31 @@ def test_no_remapping_from_start_of_mapped_line():
 @select_database("CrV-92Lee-LB.tdb")
 def test_degenerate_check_does_not_veto_narrow_lens(load_database):
     """
-    The exit direction test does not veto the narrow Cr-V melting lens at the pure Cr edge
+    The narrow Cr-V melting lens is mapped from the pure Cr melting point
     """
     from pycalphad.mapping.primitives import MIN_COMPOSITION
-    from pycalphad.mapping.zpf_equilibrium import update_equilibrium_with_new_conditions
-    from pycalphad.mapping.zpf_checks import _degenerate_zero_width_tieline
 
     dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("V"): (0, 1, 0.0002)}
-    strategy = TielineStrategy(dbf, ["CR", "V", "VA"], ["BCC_A2", "LIQUID"], conds)
+    comps, phases = ["CR", "V", "VA"], ["BCC_A2", "LIQUID"]
+    # With an x(V) step of 0.0002, the first step from the Cr edge (a tenth of a step) lands where the
+    # lens is ~3e-8 wide, which is narrower than the degenerate tie-line tolerance
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("V"): (0, 0.001, 0.0002)}
+    strategy = TielineStrategy(dbf, comps, phases, conds)
 
-    # Liquidus at the pure Cr edge (~2180 K), with BCC_A2 fixed at zero amount
-    prf = strategy.phase_records
-    edge_conds = {v.N: 1.0, v.P: 101325.0, v.T: 2180.0, v.X("V"): MIN_COMPOSITION}
-    state_variables = np.array([edge_conds[sv] for sv in prf["BCC_A2"].state_variables])
-    bcc, liquid = CompositionSet(prf["BCC_A2"]), CompositionSet(prf["LIQUID"])
-    bcc.update(np.array([1 - MIN_COMPOSITION, MIN_COMPOSITION, 1.0]), 0.0, state_variables)
-    liquid.update(np.array([1 - MIN_COMPOSITION, MIN_COMPOSITION]), 1.0, state_variables)
-    bcc.fixed = True
-    edge_results = update_equilibrium_with_new_conditions(Point(edge_conds, np.zeros(2), [bcc], [liquid]), copy.deepcopy(edge_conds), v.T)
-    assert edge_results is not None
-    edge_point = edge_results[0]
+    # Starting point at the Cr melting point from the x(V)=0 edge step map, as in the automatic starting point search
+    step = StepStrategy(dbf, comps, phases, {v.P: 101325, v.N: 1, v.T: (300, 4000, 185), v.X("V"): MIN_COMPOSITION},
+                        models=strategy.models, phase_record_factory=strategy.phase_records)
+    step.do_map()
+    strategy.add_starting_points_from_step(step)
+    strategy.do_map()
 
-    # The minimum delta trial step lands where the lens is genuinely narrower than the degenerate tolerance
-    trial_delta = strategy.axis_delta[v.X("V")] * strategy.MIN_DELTA_RATIO
-    trial_results = strategy._take_step(edge_point, v.X("V"), trial_delta, strategy.axis_lims[v.X("V")], Direction.POSITIVE)
-    assert trial_results is not None
-    assert _degenerate_zero_width_tieline(trial_results[0].stable_composition_sets)
-
-    assert strategy._test_direction(edge_point, v.X("V"), Direction.POSITIVE) is not None
+    for zpf_line in strategy.zpf_lines:
+        if sorted(zpf_line.stable_phases) == ["BCC_A2", "LIQUID"]:
+            xs = zpf_line.get_var_list(v.X("V"))
+            if np.min(xs) < 1e-5 and np.max(xs) > 0.0009:
+                break
+    else:
+        assert False, "BCC_A2+LIQUID melting lens was not mapped away from the Cr edge"
 
 @select_database("CrPt-98Spe-LB.tdb")
 def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database):
