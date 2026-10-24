@@ -1103,20 +1103,35 @@ def test_no_remapping_from_start_of_mapped_line():
 @select_database("CrV-92Lee-LB.tdb")
 def test_degenerate_check_does_not_veto_narrow_lens(load_database):
     """
-    The narrow Cr-V melting lens is mapped
+    The exit direction test does not veto the narrow Cr-V melting lens at the pure Cr edge
     """
-    dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("V"): (0, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["CR", "V", "VA"], list(dbf.phases.keys()), conds)
-    strategy.do_map()
+    from pycalphad.mapping.primitives import MIN_COMPOSITION
+    from pycalphad.mapping.zpf_equilibrium import update_equilibrium_with_new_conditions
+    from pycalphad.mapping.zpf_checks import _degenerate_zero_width_tieline
 
-    for zpf_line in strategy.zpf_lines:
-        if sorted(set(zpf_line.stable_phases)) == ["BCC_A2", "LIQUID"]:
-            xs = [np.squeeze(pt.get_property(v.X("V"))) for pt in zpf_line.points]
-            if np.min(xs) < 0.05 and np.max(xs) > 0.9:
-                break
-    else:
-        assert False, "BCC_A2+LIQUID melting lens was not mapped across the composition range"
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("V"): (0, 1, 0.0002)}
+    strategy = TielineStrategy(dbf, ["CR", "V", "VA"], ["BCC_A2", "LIQUID"], conds)
+
+    # Liquidus at the pure Cr edge (~2180 K), with BCC_A2 fixed at zero amount
+    prf = strategy.phase_records
+    edge_conds = {v.N: 1.0, v.P: 101325.0, v.T: 2180.0, v.X("V"): MIN_COMPOSITION}
+    state_variables = np.array([edge_conds[sv] for sv in prf["BCC_A2"].state_variables])
+    bcc, liquid = CompositionSet(prf["BCC_A2"]), CompositionSet(prf["LIQUID"])
+    bcc.update(np.array([1 - MIN_COMPOSITION, MIN_COMPOSITION, 1.0]), 0.0, state_variables)
+    liquid.update(np.array([1 - MIN_COMPOSITION, MIN_COMPOSITION]), 1.0, state_variables)
+    bcc.fixed = True
+    edge_results = update_equilibrium_with_new_conditions(Point(edge_conds, np.zeros(2), [bcc], [liquid]), copy.deepcopy(edge_conds), v.T)
+    assert edge_results is not None
+    edge_point = edge_results[0]
+
+    # The minimum delta trial step lands where the lens is genuinely narrower than the degenerate tolerance
+    trial_delta = strategy.axis_delta[v.X("V")] * strategy.MIN_DELTA_RATIO
+    trial_results = strategy._take_step(edge_point, v.X("V"), trial_delta, strategy.axis_lims[v.X("V")], Direction.POSITIVE)
+    assert trial_results is not None
+    assert _degenerate_zero_width_tieline(trial_results[0].stable_composition_sets)
+
+    assert strategy._test_direction(edge_point, v.X("V"), Direction.POSITIVE) is not None
 
 @select_database("CrPt-98Spe-LB.tdb")
 def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database):
