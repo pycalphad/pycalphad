@@ -1136,20 +1136,46 @@ def test_degenerate_check_does_not_veto_narrow_lens(load_database):
 @select_database("CrPt-98Spe-LB.tdb")
 def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database):
     """
-    The Cr-Pt fcc liquidus is mapped through its congruent maximum (~2058 K, x(PT)~0.78)
+    A zpf line stepping onto the Cr-Pt congruent maximum (~2058 K, x(PT)~0.7756) is not ended as a degenerate tie-line
     """
-    dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (1700, 2200, 10), v.X("PT"): (0, 1, 0.01)}
-    strategy = TielineStrategy(dbf, ["CR", "PT", "VA"], list(dbf.phases.keys()), conds)
-    strategy.do_map()
+    from pycalphad.mapping.zpf_equilibrium import update_equilibrium_with_new_conditions
+    from pycalphad.mapping.zpf_checks import check_degenerate_tieline, _degenerate_zero_width_tieline
 
-    for zpf_line in strategy.zpf_lines:
-        if sorted(set(zpf_line.stable_phases)) == ["FCC_A1", "LIQUID"]:
-            xs = [np.squeeze(pt.get_property(v.X("PT"))) for pt in zpf_line.points]
-            if np.max(xs) > 0.95:
-                break
-    else:
-        assert False, "FCC_A1+LIQUID liquidus was not mapped past the congruent maximum to the Pt side"
+    dbf = load_database()
+    comps = ["CR", "PT", "VA"]
+    prf = PhaseRecordFactory(dbf, comps, {v.N, v.P, v.T}, instantiate_models(dbf, comps, ["FCC_A1", "LIQUID"]))
+
+    # FCC_A1 solidus one composition step below the congruent maximum, with LIQUID fixed at zero amount
+    conds = {v.N: 1.0, v.P: 101325.0, v.T: 2057.8, v.X("PT"): 0.765557}
+    state_variables = np.array([conds[sv] for sv in prf["FCC_A1"].state_variables])
+    fcc, liquid = CompositionSet(prf["FCC_A1"]), CompositionSet(prf["LIQUID"])
+    fcc.update(np.array([0.234443, 0.765557, 1.0]), 1.0, state_variables)
+    liquid.update(np.array([0.24, 0.76]), 0.0, state_variables)
+    liquid.fixed = True
+    prev_results = update_equilibrium_with_new_conditions(Point(conds, np.zeros(2), [liquid], [fcc]), copy.deepcopy(conds), v.T)
+    assert prev_results is not None
+    prev_point = prev_results[0]
+
+    zpf_line = ZPFLine(prev_point.fixed_phases, prev_point.free_phases)
+    zpf_line.points.append(prev_point)
+    zpf_line.axis_var = v.X("PT")
+    zpf_line.axis_direction = Direction.POSITIVE
+    zpf_line.current_delta = 0.01
+
+    # A full step lands where the tie-line width passes through zero
+    new_conds = copy.deepcopy(prev_point.global_conditions)
+    new_conds[v.X("PT")] += zpf_line.current_delta
+    step_results = update_equilibrium_with_new_conditions(prev_point, new_conds, v.T)
+    assert step_results is not None
+    assert _degenerate_zero_width_tieline(step_results[0].stable_composition_sets)
+
+    axis_data = {
+        "axis_vars": [v.X("PT"), v.T],
+        "axis_delta": {v.X("PT"): 0.01, v.T: 10},
+        "axis_lims": {v.X("PT"): (0, 1), v.T: (1700, 2200)},
+    }
+    check_degenerate_tieline(zpf_line, step_results, axis_data, normalize_factor=axis_data["axis_delta"])
+    assert zpf_line.status == ZPFState.NOT_FINISHED
 
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):
