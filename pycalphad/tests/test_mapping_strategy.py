@@ -750,34 +750,27 @@ def test_data_retrieval_leaves_shared_axis_variable_unchanged():
 @select_database("AlTe-19Shi.tdb")
 def test_degenerate_tieline_rejected_above_congruent_melting(load_database):
     """
-    The AL2TE3_BETA+LIQUID tie-line is degenerate just above the congruent melting point (~1138.7 K)
+    The AL2TE3_BETA+LIQUID boundary ends at the congruent melting point (~1138.7 K) instead of following a zero-width tie-line above it
     """
-    from pycalphad.mapping.zpf_equilibrium import update_equilibrium_with_new_conditions
-    from pycalphad.mapping.zpf_checks import _degenerate_zero_width_tieline
-    import pycalphad.mapping.utils as map_utils
-
     dbf = load_database()
-    comps = ["AL", "TE", "VA"]
-    # Only the phases of the tie-line; the congruent melting of AL2TE3_BETA does not depend on the others
-    phases = ["AL2TE3_BETA", "LIQUID"]
+    # Only the phases of the tie-line; the congruent melting of AL2TE3_BETA does not depend on the others.
+    # The coarse composition step keeps the line stepping in temperature up to the congruent point, so the
+    # step past it converges to the zero-width tie-line with the liquid collapsed onto the AL2TE3 associate
+    conds = {v.P: 101325, v.N: 1, v.T: (1100, 1200, 5), v.X("TE"): (0.5, 0.7, 0.1)}
+    strategy = TielineStrategy(dbf, ["AL", "TE", "VA"], ["AL2TE3_BETA", "LIQUID"], conds)
+    # Te-rich side of the AL2TE3_BETA+LIQUID region, mapped up in temperature toward the congruent point
+    assert strategy.add_nodes_from_conditions({v.P: 101325, v.N: 1, v.T: 1120, v.X("TE"): 0.61}, Direction.POSITIVE)
+    strategy.do_map()
 
-    pt = point_from_equilibrium(dbf, comps, phases, {v.P: 101325, v.N: 1, v.T: 1100, v.X("TE"): 0.61})
-    assert set(pt.stable_phases) == {"AL2TE3_BETA", "LIQUID"}
-    beta = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "AL2TE3_BETA"][0]
-    liquid = [cs for cs in pt.stable_composition_sets if cs.phase_record.phase_name == "LIQUID"][0]
-    zpf_point = map_utils._generate_point_with_fixed_cs(pt, beta, liquid)
-
-    conds = copy.deepcopy(zpf_point.global_conditions)
-    conds[v.T] = 1135
-    below_results = update_equilibrium_with_new_conditions(zpf_point, conds, v.X("TE"))
-    assert below_results is not None
-    assert not _degenerate_zero_width_tieline(below_results[0].stable_composition_sets)
-
-    conds = copy.deepcopy(below_results[0].global_conditions)
-    conds[v.T] = 1140
-    above_results = update_equilibrium_with_new_conditions(below_results[0], conds, v.X("TE"))
-    assert above_results is not None
-    assert _degenerate_zero_width_tieline(above_results[0].stable_composition_sets)
+    assert len(strategy.zpf_lines) == 1
+    zpf_line = strategy.zpf_lines[0]
+    widths = [np.ptp([np.asarray(cs.X) for cs in pt.stable_composition_sets], axis=0).max() for pt in zpf_line.points]
+    zero_width_Ts = [float(pt.get_property(v.T)) for pt, width in zip(zpf_line.points, widths) if width < 1e-7]
+    # The boundary reaches the congruent point, where the tie-line has zero width, and ends there
+    # (it used to keep stepping up in temperature along the zero-width tie-line at x(TE)=0.6)
+    assert widths[-1] < 1e-7
+    assert len(zero_width_Ts) == 1, f"ZPF line continued along a zero-width tie-line at T={zero_width_Ts}"
+    assert zpf_line.status == ZPFState.REACHED_LIMIT, f"ZPF line was not ended at the zero-width tie-line ({zpf_line.status})"
 
 def test_unary_pt_mapping_not_flagged_as_degenerate():
     """
