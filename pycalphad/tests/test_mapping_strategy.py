@@ -1209,29 +1209,59 @@ def test_issue_662_phase_boundary_loop(load_database):
     # without fail
     plot_ternary(strat, label_nodes=True)
 
-@select_database("Al-Cu-Y.tdb")
-def test_starting_points_across_stoichiometric_tielines(load_database):
+def test_starting_points_across_stoichiometric_tielines():
     """
-    Exits between two stoichiometric phases add the tie-triangle across the tie-line as a starting point
+    Exits between two stoichiometric phases add the tie-triangle across the tie-line as a starting point,
+    once, and without the crossed tie-lines as exits
     """
-    dbf = load_database()
+    # Al-Cu-Y.tdb phases around AL2Y3+ALCUY+ALY2 at 700 K, with the pure-element references dropped
+    # (they are linear in composition, so the tie-triangles are unchanged)
+    dbf = Database("""
+    ELEMENT VA VACUUM 0 0 0 !
+    ELEMENT AL FCC_A1 26.982 4577.3 28.322 !
+    ELEMENT CU FCC_A1 63.546 5004.1 33.15 !
+    ELEMENT Y HCP_A3 88.906 0 0 !
+    TYPE_DEFINITION % SEQ * !
+
+    PHASE ALY % 2 .5 .5 !
+    CONSTITUENT ALY :AL:Y: !
+    PARAMETER G(ALY,AL:Y;0) 298.15 -54911.9+5.48155*T; 6000 N !
+
+    PHASE AL2Y3 % 2 .4 .6 !
+    CONSTITUENT AL2Y3 :AL:Y: !
+    PARAMETER G(AL2Y3,AL:Y;0) 298.15 -48406.3+4.82944*T; 6000 N !
+
+    PHASE ALY2 % 2 .33333 .66667 !
+    CONSTITUENT ALY2 :AL:Y: !
+    PARAMETER G(ALY2,AL:Y;0) 298.15 -44886.6+7.39566*T; 6000 N !
+
+    PHASE ALCUY % 3 .333334 .333333 .333333 !
+    CONSTITUENT ALCUY :AL:CU:Y: !
+    PARAMETER G(ALCUY,AL:CU:Y;0) 298.15 -60989+2*T; 6000 N !
+
+    PHASE HCP_A3 % 2 1 .5 !
+    CONSTITUENT HCP_A3 :AL,CU,Y:VA: !
+    PARAMETER G(HCP_A3,AL:VA;0) 298.15 5481-1.8*T; 6000 N !
+    PARAMETER G(HCP_A3,CU:VA;0) 298.15 600+0.2*T; 6000 N !
+    PARAMETER G(HCP_A3,Y:VA;0) 298.15 0; 6000 N !
+    PARAMETER G(HCP_A3,CU,Y:VA;0) 298.15 80*T; 6000 N !
+    """)
     conds = {v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): (0, 1, 0.02), v.X("Y"): (0, 1, 0.02)}
     strategy = TielineStrategy(dbf, ["AL", "CU", "Y", "VA"], list(dbf.phases.keys()), conds)
     # ALCUY+ALY2+HCP_A3 and AL2Y3+ALCUY+ALY both neighbor AL2Y3+ALCUY+ALY2
     strategy.add_nodes_from_conditions({v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): 0.05, v.X("Y"): 0.65})
     strategy.add_nodes_from_conditions({v.T: 700, v.P: 101325, v.N: 1, v.X("CU"): 0.05, v.X("Y"): 0.5})
-    while strategy.node_queue._current_node_index < 2 or strategy._exit_index < len(strategy._exits):
-        if strategy.iterate():
-            break
+    starting_nodes = list(strategy.node_queue.nodes)
+    for node, tieline in zip(starting_nodes, [["ALCUY", "ALY2"], ["AL2Y3", "ALCUY"]]):
+        exit_point = next(e for e in strategy._find_exits_from_node(node)[0] if sorted(e.stable_phases) == tieline)
+        # No zpf line can start along the tie-line, so the tie-triangle across it is added as a starting point instead
+        assert strategy._determine_start_direction(node, exit_point, None) is None
 
-    assert len(strategy.zpf_lines) == 0
-    new_nodes = {tuple(sorted(n.stable_phases)): n for n in strategy.node_queue.nodes[2:] if len(n.stable_composition_sets) == 3}
-    assert sorted(new_nodes) == [("AL2Y", "ALCUY", "ALY"), ("AL2Y3", "ALCUY", "ALY2"), ("ALCUY", "CUY", "HCP_A3")]
-    # The tie-line crossed to reach each node is not an exit
-    remaining_exits = {phases: sorted(tuple(sorted(e.stable_phases)) for e in strategy._find_exits_from_node(node)[0]) for phases, node in new_nodes.items()}
-    assert remaining_exits[("AL2Y", "ALCUY", "ALY")] == [("AL2Y", "ALCUY"), ("AL2Y", "ALY")]
-    assert remaining_exits[("AL2Y3", "ALCUY", "ALY2")] == [("AL2Y3", "ALY2")]
-    assert remaining_exits[("ALCUY", "CUY", "HCP_A3")] == [("ALCUY", "CUY"), ("CUY", "HCP_A3")]
+    # Reached across both tie-lines, but added once
+    new_nodes = strategy.node_queue.nodes[len(starting_nodes):]
+    assert [sorted(n.stable_phases) for n in new_nodes] == [["AL2Y3", "ALCUY", "ALY2"]]
+    # Neither crossed tie-line is an exit of the new node
+    assert [sorted(e.stable_phases) for e in strategy._find_exits_from_node(new_nodes[0])[0]] == [["AL2Y3", "ALY2"]]
 
 @select_database("alzn_mey.tdb")
 def test_step_strategy_get_data_respects_display_units_for_state_and_model_properties(load_database):
