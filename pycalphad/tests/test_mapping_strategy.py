@@ -1011,33 +1011,45 @@ def test_starting_point_dedup_distinguishes_twin_fields():
     for d in [Direction.POSITIVE, Direction.NEGATIVE]:
         assert strategy._exit_already_mapped(ta_rich_point, v.T, d)
 
-@select_database("BaCa-86Alc.tdb")
-def test_starting_point_coverage_semantics(load_database):
+def test_starting_point_coverage_semantics():
     """
     A mapped zpf line covers its interior in both directions and its start only in the direction it was mapped
     """
-    dbf = load_database()
+    dbf = Database("""
+    ELEMENT BA BLANK 0 0 0 !
+    ELEMENT CA BLANK 0 0 0 !
+    PHASE BCC_A2 % 1 1 !
+    CONSTITUENT BCC_A2 :BA,CA: !
+    PHASE LIQUID % 1 1 !
+    CONSTITUENT LIQUID :BA,CA: !
+    """)
     conds = {v.P: 101325, v.N: 1, v.T: (700, 1250, 20), v.X("CA"): (0, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["BA", "CA", "VA"], list(dbf.phases.keys()), conds)
-    strategy.do_map()
+    strategy = TielineStrategy(dbf, ["BA", "CA"], ["BCC_A2", "LIQUID"], conds)
 
-    long_lines = [zl for zl in strategy.zpf_lines if len(zl.points) > 10]
-    assert len(long_lines) > 0
-    zpf_line = long_lines[0]
-    Ts = [np.squeeze(pt.get_property(v.T)) for pt in zpf_line.points]
-    mapped_dir = Direction.POSITIVE if Ts[1] > Ts[0] else Direction.NEGATIVE
-    opposite_dir = Direction.NEGATIVE if mapped_dir == Direction.POSITIVE else Direction.POSITIVE
+    # BCC_A2+LIQUID line mapped in the positive T direction from a starting point at 700 K, with LIQUID
+    # fixed and the refined first steps of mapping
+    zpf_line = ZPFLine(["LIQUID"], ["BCC_A2"])
+    for T in [700, 702, 706, 714, 730, 750, 770, 790, 810]:
+        x_bcc, x_liq = 0.1 + 0.002*(T - 700), 0.2 + 0.002*(T - 700)
+        state_vars = np.array([1, 101325, T], dtype=np.float64)
+        liq = CompositionSet(strategy.phase_records["LIQUID"])
+        bcc = CompositionSet(strategy.phase_records["BCC_A2"])
+        liq.update(np.array([1 - x_liq, x_liq]), 0.0, state_vars)
+        bcc.update(np.array([1 - x_bcc, x_bcc]), 1.0, state_vars)
+        liq.fixed = True
+        zpf_line.append(Point({v.P: 101325, v.N: 1, v.T: T, v.X("CA"): x_bcc}, np.zeros(2), [liq], [bcc]))
+    strategy.zpf_lines.append(zpf_line)
 
-    assert strategy._exit_already_mapped(zpf_line.points[0], v.T, mapped_dir), (
+    start, interior = zpf_line.points[0], zpf_line.points[5]
+    assert strategy._exit_already_mapped(start, v.T, Direction.POSITIVE), (
         "The start of a line should be covered in the direction it was mapped"
     )
-    assert not strategy._exit_already_mapped(zpf_line.points[0], v.T, opposite_dir), (
+    # The opposite-direction sibling of the starting point is a fraction of a step from the next points of the line
+    assert not strategy._exit_already_mapped(start, v.T, Direction.NEGATIVE), (
         "The start of a line must not cover its opposite-direction sibling"
     )
-    # an interior point where the line is monotonic in T
-    i = next(i for i in range(4, len(Ts) - 4) if (Ts[i+4] - Ts[i]) * (Ts[i] - Ts[i-4]) > 0)
     for d in [Direction.POSITIVE, Direction.NEGATIVE]:
-        assert strategy._exit_already_mapped(zpf_line.points[i], v.T, d), (
+        assert strategy._exit_already_mapped(interior, v.T, d), (
             "A point on an already mapped tie-line should be covered in both directions"
         )
 
