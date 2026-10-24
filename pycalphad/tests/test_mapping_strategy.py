@@ -917,22 +917,51 @@ def test_automatic_starting_points_keep_forced_starting_points():
         "The LIQUID+BCC_A2 recovery point inside the La BCC window was not added as a starting point in both directions"
     )
 
-@select_database("AuCu-98Sun-LB.tdb")
-def test_automatic_starting_points_for_every_merged_field(load_database):
+def test_automatic_starting_points_for_every_merged_field():
     """
-    Fields merged into one same-name step zpf line each get a starting point (Au-rich fcc+AuCu3 at 300 K)
-    """
-    dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["AU", "CU", "VA"], list(dbf.phases.keys()), conds)
-    strategy.do_map()
+    Fields merged into one same-name step zpf line each get a starting point (Au-rich fcc+Au3Cu at 300 K)
 
-    for zpf_line in strategy.zpf_lines:
-        xs = [np.squeeze(pt.get_property(v.X("CU"))) for pt in zpf_line.points]
-        if np.min(xs) < 0.15 and np.max(xs) > 0.20:
-            break
-    else:
-        assert False, "Au-rich fcc+AuCu3 field (x(CU)~0.08-0.24) was never mapped"
+    The fcc-based phases of Au-Cu (fcc, Au3Cu, AuCu, ...) share one phase name, so the step map along the
+    T = 300 K edge slides the same composition sets from the Au3Cu+AuCu field into the fcc+Au3Cu field
+    without a phase-change node, and both fields end up in one step zpf line
+    """
+    # Starting points are built from the composition sets of the step zpf line, so no phase energies are needed
+    dbf = Database("""
+    ELEMENT AU BLANK 0 0 0 !
+    ELEMENT CU BLANK 0 0 0 !
+    PHASE FCC_A1 % 1 1 !
+    CONSTITUENT FCC_A1 :AU,CU: !
+    """)
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 700, 20), v.X("CU"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["AU", "CU"], ["FCC_A1"], conds)
+    step_conds = {v.P: 101325, v.N: 1, v.T: 300, v.X("CU"): (0, 1, 0.05)}
+    step = StepStrategy(dbf, ["AU", "CU"], ["FCC_A1"], step_conds, models=strategy.models, phase_record_factory=strategy.phase_records)
+
+    # The Au-Cu step zpf line at 300 K, as each field's tie-line (x(CU) of the two composition sets) and the
+    # x(CU) of its points: first the Au3Cu+AuCu field, then the fcc+Au3Cu field
+    fields = [
+        ((0.2803, 0.4616), [0.4616, 0.4566, 0.4466, 0.4266, 0.3866, 0.3366, 0.2866]),
+        ((0.2374, 0.0780), [0.2366, 0.1866, 0.1366, 0.0866, 0.0780]),
+    ]
+    state_variables = np.array([1, 101325, 300], dtype=np.float64)
+    zpf_line = ZPFLine([], ["FCC_A1", "FCC_A1"])
+    for tieline, x_cus in fields:
+        for x_cu in x_cus:
+            comp_sets = [CompositionSet(strategy.phase_records["FCC_A1"]) for _ in tieline]
+            phase_frac = (x_cu - tieline[0]) / (tieline[1] - tieline[0])
+            comp_sets[0].update(np.array([1 - tieline[0], tieline[0]]), 1 - phase_frac, state_variables)
+            comp_sets[1].update(np.array([1 - tieline[1], tieline[1]]), phase_frac, state_variables)
+            zpf_line.append(Point({v.P: 101325, v.N: 1, v.T: 300, v.X("CU"): x_cu}, np.zeros(2), [], comp_sets))
+    step.zpf_lines.append(zpf_line)
+
+    strategy.add_starting_points_from_step(step)
+    # One starting point in each direction per field, labeled by the Au-rich end of its tie-line
+    starting_points = sorted((round(min(cs.X[1] for cs in node.stable_composition_sets), 3), node.axis_direction.value)
+                             for node in strategy.node_queue.nodes)
+    assert starting_points == [(0.078, -1), (0.078, 1), (0.28, -1), (0.28, 1)], (
+        "Each field merged into the step zpf line should get one starting point in each direction, "
+        "including the Au-rich fcc+Au3Cu field (x(CU) = 0.078-0.237)"
+    )
 
 @select_database("CrTa-93Dup-LB.tdb")
 def test_starting_point_dedup_distinguishes_twin_fields(load_database):
