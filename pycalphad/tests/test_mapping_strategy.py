@@ -920,53 +920,35 @@ def test_automatic_starting_points_for_every_merged_field(load_database):
     else:
         assert False, "Au-rich fcc+Au3Cu field (x(CU)~0.08-0.24) was never mapped"
 
-def test_starting_point_dedup_distinguishes_twin_fields():
+@select_database("CrTa-93Dup-LB.tdb")
+def test_starting_point_dedup_distinguishes_twin_fields(load_database):
     """
-    A starting point in the Cr-rich BCC_A2+C15_LAVES field of Cr-Ta is not already mapped by the line of the
-    Ta-rich BCC_A2+C15_LAVES field on the other side of the C15_LAVES compound
+    BCC_A2+C15_LAVES fields on both sides of the C15_LAVES compound (Cr2Ta) are mapped from their 300 K starting points
+
+    The starting point of the Cr-rich field is a fraction of a step from the mapped line of the Ta-rich field at the
+    C15_LAVES composition, but it is on another tie-line, so it is not already mapped
     """
-    dbf = Database("""
-    ELEMENT CR BLANK 0 0 0 !
-    ELEMENT TA BLANK 0 0 0 !
-    PHASE BCC_A2 % 1 1 !
-    CONSTITUENT BCC_A2 :CR,TA: !
-    PHASE C15_LAVES % 2 2 1 !
-    CONSTITUENT C15_LAVES :CR:TA: !
-    """)
-    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("TA"): (0, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["CR", "TA"], ["BCC_A2", "C15_LAVES"], conds)
+    dbf = load_database()
+    comps, phases = ["CR", "TA", "VA"], ["BCC_A2", "C15_LAVES"]
+    conds = {v.P: 101325, v.N: 1, v.T: (300, 340, 20), v.X("TA"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, comps, phases, conds)
+    # Step map along the 300 K edge from x(TA) = 0.5, like the automatic starting point search over the whole edge,
+    # with the same starting points: first the Ta-rich field at x(TA) = 0.5, then the Cr-rich field at x(TA) = 0.3325
+    step_conds = {v.P: 101325, v.N: 1, v.T: 300, v.X("TA"): (0.3, 0.7, 0.05)}
+    step = StepStrategy(dbf, comps, phases, step_conds, models=strategy.models, phase_record_factory=strategy.phase_records)
+    step.do_map()
+    strategy.add_starting_points_from_step(step)
+    strategy.do_map()
 
-    def bcc_c15_point(T, x_bcc, x, bcc_fixed=False):
-        # Tie-line between BCC_A2 with x(TA) = x_bcc and C15_LAVES (Cr2Ta) at overall x(TA) = x
-        state_vars = np.array([1, 101325, T], dtype=np.float64)
-        bcc = CompositionSet(strategy.phase_records["BCC_A2"])
-        c15 = CompositionSet(strategy.phase_records["C15_LAVES"])
-        c15_amount = 1.0 if bcc_fixed else (x - x_bcc) / (1/3 - x_bcc)
-        bcc.update(np.array([1 - x_bcc, x_bcc]), 1 - c15_amount, state_vars)
-        c15.update(np.array([1.0, 1.0]), c15_amount, state_vars)
-        point_conds = {v.P: 101325, v.N: 1, v.T: T, v.X("TA"): x}
-        if bcc_fixed:
-            bcc.fixed = True
-            return Point(point_conds, np.zeros(2), [bcc], [c15])
-        return Point(point_conds, np.zeros(2), [], [bcc, c15])
-
-    # Mapped line of the Ta-rich field, which lies at the C15_LAVES composition with BCC_A2 fixed
-    ta_rich_line = ZPFLine(["BCC_A2"], ["C15_LAVES"])
-    for T in [300, 302, 306, 314, 330, 350, 370, 390]:
-        ta_rich_line.append(bcc_c15_point(T, 1 - 1e-6, 1/3, bcc_fixed=True))
-    strategy.zpf_lines.append(ta_rich_line)
-
-    # Starting point of the Cr-rich field from the 300 K edge, a fraction of a step from the mapped line
-    cr_rich_start = bcc_c15_point(300, 1e-6, 0.3325)
-    for d in [Direction.POSITIVE, Direction.NEGATIVE]:
-        assert not strategy._exit_already_mapped(cr_rich_start, v.T, d), (
-            "The Cr-rich BCC_A2+C15_LAVES field should not be covered by the Ta-rich BCC_A2+C15_LAVES line"
-        )
-
-    # A point on a mapped tie-line of the Ta-rich field is covered
-    ta_rich_point = bcc_c15_point(350, 1 - 1e-6, 0.5)
-    for d in [Direction.POSITIVE, Direction.NEGATIVE]:
-        assert strategy._exit_already_mapped(ta_rich_point, v.T, d)
+    # The two fields differ in the composition of BCC_A2: x(TA) ~ 0 in the Cr-rich field and ~ 1 in the Ta-rich field
+    mapped_fields = []
+    for zpf_line in strategy.zpf_lines:
+        Ts = zpf_line.get_var_list(v.T)
+        if sorted(zpf_line.stable_phases) == ["BCC_A2", "C15_LAVES"] and np.min(Ts) < 301 and np.max(Ts) > 339:
+            mapped_fields.append("Ta-rich" if np.mean(zpf_line.get_var_list(v.X("BCC_A2", "TA"))) > 0.5 else "Cr-rich")
+    assert sorted(mapped_fields) == ["Cr-rich", "Ta-rich"], (
+        f"Each BCC_A2+C15_LAVES field should be mapped once over 300-340 K, got {mapped_fields}"
+    )
 
 def test_starting_point_coverage_semantics():
     """
