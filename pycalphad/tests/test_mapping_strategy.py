@@ -712,33 +712,39 @@ def test_data_retrieval_leaves_shared_axis_variable_unchanged():
     """
     Phase-local data retrieval does not make the cached axis variable, shared by all strategies, a phase wildcard
     """
+    # Ideal solution with a line compound that is stable below ~605 K
     dbf = Database("""
     ELEMENT A   VACUUM                    0 0 0!
     ELEMENT B   VACUUM                    0 0 0!
 
     PHASE ALPHA % 1 1 !
     CONSTITUENT ALPHA :A,B: !
+
+    PHASE AB % 2 1 1 !
+    CONSTITUENT AB :A:B: !
+    PARAMETER G(AB,A:B;0) 1 -10000+5*T; 6000 N !
     """)
-    tieline = TielineStrategy(dbf, ["A", "B"], ["ALPHA"], {v.P: 101325, v.T: (500, 1000, 10), v.X("B"): (0, 1, 0.05)})
-    step = StepStrategy(dbf, ["A", "B"], ["ALPHA"], {v.P: 101325, v.T: 700, v.X("B"): (0, 1, 0.05)})
-    # Conditions are deepcopied, which gives every strategy the same cached axis variable
-    axis_var = step.axis_vars[0]
-    assert tieline.axis_vars[1] is axis_var
+    comps, phases = ["A", "B"], ["ALPHA", "AB"]
+    tieline = TielineStrategy(dbf, comps, phases, {v.P: 101325, v.T: (445, 455, 10), v.X("B"): (0, 1, 0.05)})
+    # A strategy only picks up a stray X(*,B) if it was created before the axis variable was changed
+    steps = [StepStrategy(dbf, comps, phases, {v.P: 101325, v.T: 450, v.X("B"): (0, 0.1, 0.05)}) for _ in range(2)]
+    assert tieline.axis_vars[1] is steps[0].axis_vars[0] is steps[1].axis_vars[0]
+    # Start from a single ALPHA + AB tie-line instead of searching the axis limits for starting points
+    tieline.add_nodes_from_conditions({v.P: 101325, v.T: 450, v.X("B"): 0.3})
 
-    # A finished zpf line stands in for the mapping that data retrieval would otherwise run first
-    cs = CompositionSet(step.phase_records["ALPHA"])
-    cs.update(np.array([0.7, 0.3]), 1.0, np.array([1, 101325, 700], dtype=np.float64))
-    point = Point({v.N: 1, v.P: 101325, v.T: 700, v.X("B"): 0.3}, np.zeros(2), [], [cs])
-    for strategy in [tieline, step]:
-        strategy.zpf_lines.append(ZPFLine([], ["ALPHA"], [point], ZPFState.REACHED_LIMIT))
+    tieline.get_tieline_data(v.X("B"), v.T)
+    tieline.get_tieline_data(v.T, v.X("B"))
+    tieline.get_invariant_data(v.X("B"), v.T)
+    tieline.get_invariant_data(v.T, v.X("B"))
+    assert len(tieline.zpf_lines) > 0
+    # A stray X(*,B) condition used to make this fail with nonzero degrees of freedom
+    steps[0].do_map()
+    assert len(steps[0].zpf_lines) > 0
 
-    for get_data in [tieline.get_tieline_data, tieline.get_invariant_data, step.get_data]:
-        for x, y in [(v.X("B"), v.T), (v.T, v.X("B"))]:
-            # X(B) is not global, so each method makes a phase wildcard X(*,B) to get data for every phase
-            get_data(x, y)
-            assert axis_var.phase_name is None, f"{get_data.__name__}({x}, {y})"
-            # Mapping deepcopies its conditions, which used to give a stray X(*,B) condition
-            assert set(copy.deepcopy(step.conditions)) == {v.N, v.P, v.T, v.X("B")}, f"{get_data.__name__}({x}, {y})"
+    steps[0].get_data(v.X("B"), v.NP("*"))
+    steps[0].get_data(v.NP("*"), v.X("B"))
+    steps[1].do_map()
+    assert len(steps[1].zpf_lines) > 0
 
 
 @select_database("AlTe-19Shi.tdb")
