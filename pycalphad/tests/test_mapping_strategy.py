@@ -1056,21 +1056,25 @@ def test_starting_point_coverage_semantics():
 @select_database("CaMg-06Zho.tdb")
 def test_no_duplicate_boundary_remapping(load_database):
     """
-    Recovery starting points do not map the CAMG2_C14+FCC_A1 boundary again
+    A recovery starting point on a tie-line of the mapped CAMG2_C14+FCC_A1 boundary does not map it again
     """
+    from pycalphad.mapping.primitives import MIN_COMPOSITION
     dbf = load_database()
-    conds = {v.P: 101325, v.N: 1, v.T: (300, 4000, 20), v.X("MG"): (0, 1, 0.05)}
-    strategy = TielineStrategy(dbf, ["CA", "MG", "VA"], list(dbf.phases.keys()), conds)
+    conds = {v.P: 101325, v.N: 1, v.T: (670, 700, 20), v.X("MG"): (0, 1, 0.05)}
+    strategy = TielineStrategy(dbf, ["CA", "MG", "VA"], ["CAMG2_C14", "FCC_A1"], conds)
+    # Automatic starting points on the boundary: one at the T edge, and a recovery node of the x(MG)=0 edge
+    # step map at an off-grid temperature. Mapped line points have FCC_A1 at zero amount, so their global
+    # composition is at the CAMG2_C14 end of the tie-line and the recovery node's is at the FCC_A1 end
+    strategy.add_nodes_from_conditions({v.P: 101325, v.N: 1, v.T: 670, v.X("MG"): 0.3})
+    strategy.add_nodes_from_conditions({v.P: 101325, v.N: 1, v.T: 691.243, v.X("MG"): MIN_COMPOSITION})
+    for node in strategy.node_queue.nodes:
+        assert sorted(node.stable_phases) == ["CAMG2_C14", "FCC_A1"]
+        node.skip_if_mapped = True
     strategy.do_map()
 
-    target_lines = [zl for zl in strategy.zpf_lines
-                    if sorted(set(zl.stable_phases)) == ["CAMG2_C14", "FCC_A1"] and len(zl.points) > 1]
-    assert 1 <= len(target_lines) <= 2, (
-        f"CAMG2_C14+FCC_A1 mapped {len(target_lines)} times; expected at most 2 segments"
-    )
-    # Still mapped from 300 K to the ~710 K invariant
-    Ts = [np.squeeze(pt.get_property(v.T)) for zl in target_lines for pt in zl.points]
-    assert np.min(Ts) < 310 and np.max(Ts) > 700
+    assert len(strategy.zpf_lines) == 1, f"CAMG2_C14+FCC_A1 mapped {len(strategy.zpf_lines)} times"
+    Ts = [np.squeeze(pt.get_property(v.T)) for pt in strategy.zpf_lines[0].points]
+    assert np.min(Ts) < 671 and np.max(Ts) > 699
 
 @select_database("AuCu-98Sun-LB.tdb")
 def test_no_remapping_from_start_of_mapped_line(load_database):
