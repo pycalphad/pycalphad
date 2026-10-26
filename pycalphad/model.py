@@ -1522,7 +1522,7 @@ class Model(object):
             for sublattice in constituent_array:
                 if len(sublattice) != 1:
                     return False
-                all_comps.add(sublattice[0].name)
+                all_comps.update(sublattice[0].constituents.keys())
             pure_els = all_comps.intersection(model_pure_elements)
             return len(pure_els) == 1
 
@@ -1531,7 +1531,7 @@ class Model(object):
         endmember_only_dbe._parameters.remove(~where('constituent_array').test(_pure_element_test))
         reference_dict = {out: [] for out in output}  # output: terms list
         for ref_state in reference_states:
-            if ref_state.species not in self.components:
+            if ref_state.species.name not in model_pure_elements:
                 continue
             mod_pure = self.__class__(endmember_only_dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)
             # apply the modifications to the Models

@@ -470,6 +470,32 @@ def test_shift_reference_state_model_contribs_take_effect():
     check_output(m, statevars, 'GMR', idmix_val-1000.0)
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
+def test_reference_states_with_species():
+    """Reference states apply to phases without pure element constituents and can be phases of species."""
+    TDB = """
+     ELEMENT CU   FCC_A1                     63.546     5004.1     33.15 !
+     ELEMENT O    1/2_MOLE_O2(G)             15.999     4341.0    102.52 !
+     SPECIES CU2O CU2O1 !
+     SPECIES O2 O2 !
+     TYPE_DEFINITION % SEQ * !
+     PHASE FCC_A1 % 1 1 !
+     CONSTITUENT FCC_A1 :CU: !
+     PHASE GAS % 1 1 !
+     CONSTITUENT GAS :O2: !
+     PHASE CUPRITE % 1 1 !
+     CONSTITUENT CUPRITE :CU2O: !
+     PARAMETER G(FCC_A1,CU;0) 1 -1000+5*T; 6000 N !
+     PARAMETER G(GAS,O2;0) 1 -4000+10*T; 6000 N !
+     PARAMETER G(CUPRITE,CU2O;0) 1 -30000+7*T; 6000 N !
+    """
+    dbf = Database(TDB)
+    m = Model(dbf, ['CU', 'O'], 'CUPRITE')
+    m.shift_reference_state([ReferenceState('CU', 'FCC_A1'), ReferenceState('O', 'GAS')], dbf)
+    # per mole of atoms: -30000/3 - 2/3*(-1000) - 1/3*(-4000/2)
+    check_output(m, {v.T: 300, v.SiteFraction('CUPRITE', 0, 'CU2O'): 1}, 'HMR', -26000/3)
+
+
 @select_database("femns.tdb")
 def test_ionic_liquid_energy_anion_sublattice(load_database):
     """Test that having anions, vacancies, and neutral species in the anion sublattice of a two sublattice ionic liquid produces the correct Gibbs energy"""
