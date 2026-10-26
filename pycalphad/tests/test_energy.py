@@ -186,6 +186,23 @@ def test_binary_xiong_twostate_einstein(load_database):
                  -86332.217, mode='sympy')
 
 
+@pytest.mark.parametrize("phase_name, x_ni, temperature, expected", [
+    ("BCC_A2", 0.3, 1600, 0.0),  # BMAGN < -1, TC < 0, NT < 0
+    ("BCC_A2", 0.01, 100, 0.0),  # -1 < BMAGN < 0, NT > 0
+    ("FCC_A1", 1.0, 630, -61.998),  # just below TC, Xiong et al. (2012) Eq. 13
+])
+@select_database("CrNi-21Hao-3g.tdb")
+def test_xiong_magnetic_energy(load_database, phase_name, x_ni, temperature, expected):
+    "Xiong magnetic energy is zero for non-positive BMAGN and follows Xiong et al. (2012) Eq. 13."
+    class MagneticModel(Model):
+        contributions = [('mag', 'magnetic_energy')]
+    dbf = load_database()
+    check_energy(MagneticModel(dbf, ['CR', 'NI', 'VA'], phase_name),
+                 {v.T: temperature, v.SiteFraction(phase_name, 0, 'CR'): 1 - x_ni,
+                  v.SiteFraction(phase_name, 0, 'NI'): x_ni, v.SiteFraction(phase_name, 1, 'VA'): 1},
+                 expected, mode='sympy')
+
+
 # TERNARY TESTS
 @select_database("alcrni.tdb")
 def test_ternary_rkm_solution(load_database):

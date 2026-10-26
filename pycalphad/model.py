@@ -1121,10 +1121,10 @@ class Model(object):
         p = phase.model_hints['ihj_magnetic_structure_factor']
         D = 0.33471979 + 0.49649686*(1/p - 1)
         sub_tau_curie = 1 - (1/D) * ((0.38438376/p)*(tau_curie**(-1)) + 0.63570895*(1/p - 1) \
-            * ((tau_curie**3)/6 + (tau_curie**9)/135 + (tau_curie**15)/600) + (tau_curie**21)/1617
+            * ((tau_curie**3)/6 + (tau_curie**9)/135 + (tau_curie**15)/600 + (tau_curie**21)/1617)
                               )
         sub_tau_neel = 1 - (1/D) * ((0.38438376/p)*(tau_neel**(-1)) + 0.63570895*(1/p - 1) \
-            * ((tau_neel**3)/6 + (tau_neel**9)/135 + (tau_neel**15)/600) + (tau_neel**21)/1617
+            * ((tau_neel**3)/6 + (tau_neel**9)/135 + (tau_neel**15)/600 + (tau_neel**21)/1617)
                               )
         super_tau_curie = -(1/D) * ((tau_curie**-7)/21 + (tau_curie**-21)/630 + (tau_curie**-35)/2975 + (tau_curie**-49)/8232)
         super_tau_neel = -(1/D) * ((tau_neel**-7)/21 + (tau_neel**-21)/630 + (tau_neel**-35)/2975 + (tau_neel**-49)/8232)
@@ -1139,7 +1139,8 @@ class Model(object):
                                ]
         g_term = Piecewise(*expr_cond_pairs_curie) + Piecewise(*expr_cond_pairs_neel)
 
-        return v.R * v.T * log(beta+1) * g_term
+        # Negative magnetic moment gives no magnetic contribution
+        return v.R * v.T * log(Piecewise((beta, beta > 0), (0, True)) + 1) * g_term
 
     def twostate_energy(self, dbe):
         """
