@@ -3,6 +3,7 @@ The model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 import copy
+import itertools
 import warnings
 from symengine import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
 from tinydb import where
@@ -1538,6 +1539,20 @@ class Model(object):
             for contrib, new_val in contrib_mods.items():
                 mod_pure.models[contrib] = new_val
             site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
+            # With several endmembers of the pure element (e.g. O and O2 in a gas), use the one most stable per mole of
+            # atoms at the fixed state variables, by default 298.15 K and 101325 Pa
+            endmembers = [em for em in itertools.product(*[sorted(subl) for subl in mod_pure.constituents])
+                          if sum(sp.number_of_atoms for sp in em) > 0]
+            if len(endmembers) > 1:
+                fixed_statevars = {str(sv): val for sv, val in ref_state.fixed_statevars.items()}
+                selection_statevars = {v.T: fixed_statevars.get('T', 298.15), v.P: fixed_statevars.get('P', 101325)}
+                database_symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
+                def endmember_subs(em):
+                    return {sf: float(sf.species == em[sf.sublattice_index]) for sf in mod_pure.site_fractions}
+                def endmember_energy(em):
+                    energy = self.symbol_replace(mod_pure.GM.xreplace(endmember_subs(em)), database_symbols)
+                    return float(energy.xreplace(selection_statevars))
+                site_frac_subs = endmember_subs(min(endmembers, key=endmember_energy))
             moles = self.moles(ref_state.species)
             # Get the property from the pure model set all free site
             # fractions to one, substitute the fixed state variables
