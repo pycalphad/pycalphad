@@ -5,9 +5,10 @@ import numpy as np
 from pycalphad import Database, variables as v
 from pycalphad.codegen.phase_record_factory import PhaseRecordFactory
 from pycalphad.core.utils import instantiate_models
+from pycalphad.core.composition_set import CompositionSet
 
 from pycalphad.mapping.starting_points import point_from_equilibrium
-from pycalphad.mapping.primitives import ZPFLine, ZPFState, Direction
+from pycalphad.mapping.primitives import ZPFLine, ZPFState, Direction, Point
 import pycalphad.mapping.zpf_equilibrium as zeq
 import pycalphad.mapping.zpf_checks as zchk
 from pycalphad.tests.fixtures import select_database, load_database
@@ -258,3 +259,28 @@ def test_check_global_min(load_database):
     extra_args["do_not_create_node"] = True
     new_node = zchk.check_global_min(zpf_line, step_result, axis_data, **extra_args)
     assert zpf_line.status == ZPFState.FAILED
+
+def test_detect_degenerate_phase_lower_energy_configuration():
+    "An ordered configuration of a stable disordered composition set is not a new composition set"
+    dbf = Database("""
+    ELEMENT A BLANK 0 0 0 !
+    ELEMENT B BLANK 0 0 0 !
+    PHASE B2 % 2 0.5 0.5 !
+    CONSTITUENT B2 :A,B:A,B: !
+    PARAMETER G(B2,A:B;0) 1 -10000; 6000 N !
+    PARAMETER G(B2,B:A;0) 1 -10000; 6000 N !
+    """)
+    prf = PhaseRecordFactory(dbf, ["A", "B"], {v.N, v.P, v.T}, instantiate_models(dbf, ["A", "B"], ["B2"]))
+    # Bragg-Williams: at X(B) = 0.5 the disordered state is a saddle point below Tc = -W/R
+    T = 0.9 * 10000 / 8.3145
+    conds = {v.N: 1.0, v.P: 101325.0, v.T: T, v.X("B"): 0.5}
+    state_variables = np.array([conds[sv] for sv in prf["B2"].state_variables])
+    disordered, ordered = CompositionSet(prf["B2"]), CompositionSet(prf["B2"])
+    disordered.update(np.array([0.5, 0.5, 0.5, 0.5]), 1.0, state_variables)
+    ordered.update(np.array([0.8, 0.2, 0.3, 0.7]), 1.0, state_variables)
+    point = Point(conds, np.zeros(2), [], [disordered])
+    assert not zeq._detect_degenerate_phase(point, ordered)
+    # The stable composition set is ordered in place: m = y'(B) - y''(B) solves m = tanh(m*Tc/T)
+    m = abs(disordered.dof[4] - disordered.dof[6])
+    assert m > 0.1
+    np.testing.assert_allclose(m, np.tanh(m / 0.9), atol=1e-8)
