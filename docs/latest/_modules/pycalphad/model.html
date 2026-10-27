@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.model - pycalphad 0.11.3.dev37+gd7d240bf4 documentation</title>
+        <title>pycalphad.model - pycalphad 0.11.3.dev38+g8a1a2c459 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev37+gd7d240bf4 documentation</div></a>
+      <a href="../../index.html"><div class="brand">pycalphad 0.11.3.dev38+g8a1a2c459 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -185,7 +185,7 @@
     <img class="sidebar-logo" src="../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev37+gd7d240bf4 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev38+g8a1a2c459 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -296,6 +296,7 @@
 <span class="sd">calculations under specified conditions.</span>
 <span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">symengine</span><span class="w"> </span><span class="kn">import</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Abs</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tinydb</span><span class="w"> </span><span class="kn">import</span> <span class="n">where</span>
@@ -1871,7 +1872,7 @@
             <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="k">return</span> <span class="kc">False</span>
-                <span class="n">all_comps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">all_comps</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="n">pure_els</span> <span class="o">=</span> <span class="n">all_comps</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">model_pure_elements</span><span class="p">)</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">pure_els</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
 
@@ -1880,13 +1881,27 @@
         <span class="n">endmember_only_dbe</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="o">~</span><span class="n">where</span><span class="p">(</span><span class="s1">'constituent_array'</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">_pure_element_test</span><span class="p">))</span>
         <span class="n">reference_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">out</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">output</span><span class="p">}</span>  <span class="c1"># output: terms list</span>
         <span class="k">for</span> <span class="n">ref_state</span> <span class="ow">in</span> <span class="n">reference_states</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">ref_state</span><span class="o">.</span><span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ref_state</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_pure_elements</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">mod_pure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">endmember_only_dbe</span><span class="p">,</span> <span class="p">[</span><span class="n">ref_state</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">'VA'</span><span class="p">)],</span> <span class="n">ref_state</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters_arg</span><span class="p">)</span>
             <span class="c1"># apply the modifications to the Models</span>
             <span class="k">for</span> <span class="n">contrib</span><span class="p">,</span> <span class="n">new_val</span> <span class="ow">in</span> <span class="n">contrib_mods</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">mod_pure</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">contrib</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_val</span>
             <span class="n">site_frac_subs</span> <span class="o">=</span> <span class="p">{</span><span class="n">sf</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">sf</span> <span class="ow">in</span> <span class="n">mod_pure</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)}</span>
+            <span class="c1"># With several endmembers of the pure element (e.g. O and O2 in a gas), use the one most stable per mole of</span>
+            <span class="c1"># atoms at the fixed state variables, by default 298.15 K and 101325 Pa</span>
+            <span class="n">endmembers</span> <span class="o">=</span> <span class="p">[</span><span class="n">em</span> <span class="k">for</span> <span class="n">em</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">subl</span><span class="p">)</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">mod_pure</span><span class="o">.</span><span class="n">constituents</span><span class="p">])</span>
+                          <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">number_of_atoms</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">em</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">endmembers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">fixed_statevars</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">sv</span><span class="p">):</span> <span class="n">val</span> <span class="k">for</span> <span class="n">sv</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ref_state</span><span class="o">.</span><span class="n">fixed_statevars</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="n">selection_statevars</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="n">fixed_statevars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'T'</span><span class="p">,</span> <span class="mf">298.15</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="n">fixed_statevars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'P'</span><span class="p">,</span> <span class="mi">101325</span><span class="p">)}</span>
+                <span class="n">database_symbols</span> <span class="o">=</span> <span class="p">{</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="n">val</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dbe</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">endmember_subs</span><span class="p">(</span><span class="n">em</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="p">{</span><span class="n">sf</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">sf</span><span class="o">.</span><span class="n">species</span> <span class="o">==</span> <span class="n">em</span><span class="p">[</span><span class="n">sf</span><span class="o">.</span><span class="n">sublattice_index</span><span class="p">])</span> <span class="k">for</span> <span class="n">sf</span> <span class="ow">in</span> <span class="n">mod_pure</span><span class="o">.</span><span class="n">site_fractions</span><span class="p">}</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">endmember_energy</span><span class="p">(</span><span class="n">em</span><span class="p">):</span>
+                    <span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">mod_pure</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">endmember_subs</span><span class="p">(</span><span class="n">em</span><span class="p">)),</span> <span class="n">database_symbols</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">energy</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">selection_statevars</span><span class="p">))</span>
+                <span class="n">site_frac_subs</span> <span class="o">=</span> <span class="n">endmember_subs</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">endmembers</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">endmember_energy</span><span class="p">))</span>
             <span class="n">moles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">ref_state</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
             <span class="c1"># Get the property from the pure model set all free site</span>
             <span class="c1"># fractions to one, substitute the fixed state variables</span>
@@ -2075,7 +2090,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=9c3f9998"></script>
+</div><script src="../../_static/documentation_options.js?v=19b2a215"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
