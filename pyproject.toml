@@ -129,6 +129,7 @@ source = [
 ]
 
 [tool.coverage.run]
+core = "ctrace"  # Python 3.14+ defaults to sysmon, which doesn't support the Cython.Coverage plugin
 plugins = [
     "Cython.Coverage",
 ]
