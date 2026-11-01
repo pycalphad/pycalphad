@@ -63,7 +63,8 @@ def test_model_pickle_expression_integrity(load_database):
     "Pickle roundtrips preserve Rationals in the magnetic contribution (gh-601)."
     dbf = load_database()
     mag = Model(dbf, ['NI', 'PT', 'VA'], 'FCC_L12').models['mag']
-    # Corruption is intermittent, about 1 in 10 Model roundtrips on Windows with symengine 0.14
+    # symengine 0.14 dedupes serialized objects by address, which freed temporaries can reuse, so corruption is
+    # intermittent: https://github.com/symengine/symengine/pull/2144
     for _ in range(100):
         assert pickle.loads(pickle.dumps(mag)) == mag
 
