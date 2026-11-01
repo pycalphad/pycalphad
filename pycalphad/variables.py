@@ -365,8 +365,10 @@ class StateVariable(Symbol):
     @classmethod
     @lru_cache(maxsize=10000)
     def _with_display_units(cls, args, display_units):
-        "Unpickle a display_units override without allocating each time; StateVariable objects are never freed (gh-656)"
-        return cls(*args)[display_units]
+        "Shared display_units variant, so unit overrides don't allocate each time; StateVariable objects are never freed (gh-656)"
+        newobj = copy(cls(*args))
+        newobj.display_units = display_units
+        return newobj
 
     def __reduce_ex__(self, protocol):
         cls, args = self.__reduce__()
@@ -389,6 +391,9 @@ class StateVariable(Symbol):
 
     def __getitem__(self, new_units: str) -> "StateVariable":
         "Get StateVariable with different display units"
+        cls, args = self.__reduce__()
+        if self.__dict__ == cls(*args).__dict__:
+            return cls._with_display_units(args, new_units)
         newobj = copy(self)
         newobj.display_units = new_units
         return newobj

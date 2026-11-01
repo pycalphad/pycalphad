@@ -114,7 +114,7 @@ def test_copy_with_cached_new():
 def test_getitem_units_does_not_mutate_original():
     """Test that using __getitem__ for unit conversion doesn't mutate the original.
 
-    v.T['degC'] should return a new object with different display_units,
+    v.T['degC'] should return a separate object with different display_units,
     leaving v.T unchanged.
     """
     original_units = v.T.display_units
@@ -128,6 +128,9 @@ def test_getitem_units_does_not_mutate_original():
 
     # But they should be equal (same underlying symbol)
     assert t_celsius == v.T
+
+    # Repeated lookups share one object, since StateVariable objects are never freed (gh-656)
+    assert v.T['degC'] is t_celsius
 
 
 def test_issue557_state_variable_unit_changes_survive_roundtrip_pickle():
