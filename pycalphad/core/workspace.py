@@ -328,7 +328,7 @@ class Workspace:
         # Assume positional arguments are specified in class typed-attribute definition order
         for arg, attrname in zip(args, ['database', 'components', 'phases', 'conditions']):
             kwargs[attrname] = arg
-        attributes = list(self.__annotations__.keys())
+        attributes = list(Workspace.__annotations__.keys())
         # avoid unnecessary work by initializing in a graph-optimal order (least-dependent first)
         # don't include 'eq' in the init order to avoid an expensive code path in the partially initialized case
         init_order = ['database', 'verbose', 'parameters', 'calc_opts', 'solver',
