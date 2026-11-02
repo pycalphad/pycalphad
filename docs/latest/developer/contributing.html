@@ -7,7 +7,7 @@
         <link rel="prefetch" href="../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Contributing to PyCalphad - pycalphad 0.11.3.dev39+g7d6bec073 documentation</title>
+        <title>Contributing to PyCalphad - pycalphad 0.11.3.dev40+gfeae5e38a documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">pycalphad 0.11.3.dev39+g7d6bec073 documentation</div></a>
+      <a href="../index.html"><div class="brand">pycalphad 0.11.3.dev40+gfeae5e38a documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev39+g7d6bec073 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev40+gfeae5e38a documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -307,7 +307,7 @@ See <a class="reference internal" href="onboarding.html"><span class="doc">Onboa
 <p>The PyCalphad test suite is one of the most valuable cumulative contributions of the library that ensures quality and continuous improvement.</p>
 <ol class="arabic simple">
 <li><p>PyCalphad tests aim for high code coverage. Ideally every PR has a net improvement on test coverage without trivially exercising code paths to improve coverage metrics.</p></li>
-<li><p>Tests are for verifying correctness.</p></li>
+<li><p>Tests are for verifying correctness. Prefer testing with real databases.</p></li>
 <li><p>Most tests should be small, fast, and test only one thing so if/when the test fails, it is obvious where the problem lies.</p>
 <ol class="loweralpha simple">
 <li><p>Tests for <code class="docutils literal notranslate"><span class="pre">Model</span></code> (and subclass) implementations should prefer to use <code class="xref py py-mod docutils literal notranslate"><span class="pre">pycalphad.tests.test_energy.check_output</span></code> or <code class="xref py py-mod docutils literal notranslate"><span class="pre">pycalphad.tests.test_energy.check_energy</span></code> rather than using <code class="docutils literal notranslate"><span class="pre">Workspace</span></code> (or <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>) as that also exercises the minimizer.</p></li>
@@ -316,6 +316,27 @@ See <a class="reference internal" href="onboarding.html"><span class="doc">Onboa
 </li>
 <li><p>PyCalphad provides custom <a class="reference external" href="https://docs.pytest.org/en/stable/explanation/fixtures.html">pytest fixtures</a> <code class="xref py py-mod docutils literal notranslate"><span class="pre">pycalphad.tests.fixtures.select_database</span></code> and <code class="xref py py-mod docutils literal notranslate"><span class="pre">pycalphad.tests.fixtures.load_database</span></code> for loading databases from <code class="docutils literal notranslate"><span class="pre">pycalphad.tests.databases</span></code>. Prefer not to add new databases to the test suite if a feature or bug can be exercised with a database already present in the test suite.</p></li>
 </ol>
+</section>
+<section id="contribution-workflow">
+<h2>Contribution Workflow<a class="headerlink" href="#contribution-workflow" title="Link to this heading">¶</a></h2>
+<p>All changes are made through <a class="reference external" href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request">GitHub pull requests</a> and are reviewed by a maintainer before merging.
+Before submitting a pull request, please <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues">open an issue</a> or comment on an existing relevant one to discuss the changes you plan to make.
+A little alignment upfront prevents significant re-work later.</p>
+</section>
+<section id="ai-policy">
+<h2>AI Policy<a class="headerlink" href="#ai-policy" title="Link to this heading">¶</a></h2>
+<p><strong>Contributors may use any tools they would like to craft contributions, but there must be a human-in-the-loop.</strong></p>
+<p>The PyCalphad project values human contributors more than their contributions.
+Maintainers/Reviewers expect to engage with humans, not with AI.
+We encourage new contributors to _not_ use AI as they learn the project.</p>
+<p>Human contributors, are responsible for:</p>
+<ul class="simple">
+<li><p>authoring issue and pull request descriptions</p></li>
+<li><p>understanding every change</p></li>
+<li><p>reviewing and testing the changes, and</p></li>
+<li><p>ensuring the changes are correct (to the best of their ability)</p></li>
+</ul>
+<p>Please read <a class="reference external" href="https://numba.readthedocs.io/en/latest/reference/ai_tools_policy.html">Numba’s AI Tool Use Policy</a>, which informed our policy, for additional details and rationale.</p>
 </section>
 </section>
 
@@ -376,6 +397,8 @@ See <a class="reference internal" href="onboarding.html"><span class="doc">Onboa
             <ul>
 <li><a class="reference internal" href="#">Contributing to PyCalphad</a><ul>
 <li><a class="reference internal" href="#tests">Tests</a></li>
+<li><a class="reference internal" href="#contribution-workflow">Contribution Workflow</a></li>
+<li><a class="reference internal" href="#ai-policy">AI Policy</a></li>
 </ul>
 </li>
 </ul>
@@ -387,7 +410,7 @@ See <a class="reference internal" href="onboarding.html"><span class="doc">Onboa
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=29c88279"></script>
+</div><script src="../_static/documentation_options.js?v=405900d9"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
