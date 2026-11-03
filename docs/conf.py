@@ -26,6 +26,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'IPython.sphinxext.ipython_console_highlighting', # Fix per https://github.com/dynamicslab/pysindy/pull/266#issuecomment-1336220315
     'nbsphinx_link',
+    'sphinx_design',
 ]
 autosummary_generate = True
 numpydoc_class_members_toctree = True

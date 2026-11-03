@@ -76,6 +76,7 @@ dev = [
     "setuptools",
     "sphinx<9",
     "sphinx-autobuild>=2025.8.25",
+    "sphinx-design",  # tabs in installation instructions
     "wheel",
 ]
 
