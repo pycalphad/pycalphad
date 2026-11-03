@@ -7,9 +7,10 @@
         <link rel="prefetch" href="_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Install PyCalphad - pycalphad 0.11.3.dev41+gb51f422a7 documentation</title>
+        <title>Install PyCalphad - pycalphad 0.11.3.dev42+g65fac5a5b documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
@@ -162,7 +163,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">pycalphad 0.11.3.dev41+gb51f422a7 documentation</div></a>
+      <a href="index.html"><div class="brand">pycalphad 0.11.3.dev42+g65fac5a5b documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -173,7 +174,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -186,7 +187,7 @@
     <img class="sidebar-logo" src="_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev41+gb51f422a7 documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev42+g65fac5a5b documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -292,326 +293,191 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
           <section id="install-pycalphad">
 <h1>Install PyCalphad<a class="headerlink" href="#install-pycalphad" title="Link to this heading">¶</a></h1>
- <html>
-<head>
-<script language="JavaScript">
-
-function find_value(element_name) {
-    const elements = document.getElementsByName(element_name)
-    for (var i = 0; i < elements.length; i++) {
-        if (elements[i].checked) {
-            return elements[i].value
-        }
-    }
-}
-
- function update_instruction_state(){
-    var pkg = find_value("package-manager")
-    var plt = find_value("platform")
-    var jup = document.getElementById("jupyter_flag")
-    var env = document.getElementById("environment_flag")
-
-    // Loop over all code samples and set their state to hidden
-    var code_samples = document.getElementById("install-samples").children
-    for (var i = 0; i < code_samples.length; i++) {
-      code_samples[i].hidden = true;
-    }
-
-   // Construct id of the preformatted text to show
-   var id_to_show = ""
-   id_to_show += pkg + "_"
-   id_to_show += plt + "_"
-   if (env.checked) {
-       id_to_show += "env_"
-   } else {
-       id_to_show += "noenv_"
-   }
-   if (jup.checked) {
-       id_to_show += "jupyter"
-   } else {
-       id_to_show += "nojupyter"
-   }
-
-   // Unhide the desired element
-   document.getElementById(id_to_show).hidden = false;
-}
-
-/*Update the state on page load*/
-document.addEventListener("DOMContentLoaded", function() {
-  update_instruction_state();
-});
-</script>
-<style>
-.install-configurator {
-    /* sized to contents */
-  display: inline-block;
-  font-size: 1rem;
-  font-weight: 600;
-  background-color: var(--color-background-secondary);
-  border: solid 1px var(--color-background-border);
-  color: var(--color-foreground);
-  border-radius: 4px 4px 4px 4px;
-}
-
-.install-configurator p {
-    /* needs auto so it can center itself within the flexbox */
-    margin-top: auto;
-    margin-bottom: auto;
-}
-
-
-.install-configurator-container {
-    display: flex;
-    flex-direction: column;
-    margin: 2rem;
-}
-
-.install-configurator p {
-  color: var(--color-foreground-secondary);
-    padding-right: 2rem;
-}
-
-.install-toggle {
-  box-sizing: border-box;
-  font-size: 0;
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: flex-start;
-  align-items: stretch;
-}
-
-.install-toggle input {
-  /* Off screen because we want to hide it */
-  width: 0;
-  height: 0;
-  position: absolute;
-  left: -9999px;
-}
-
-.install-toggle input + label {
-  margin: 0;
-  padding: 0.75rem 2rem;
-  box-sizing: border-box;
-  position: relative;
-  display: inline-block;
-  border: solid 1px var(--color-background-border);
-  background-color: var(--color-background-primary);
-  font-size: 1rem;
-  text-align: center;
-}
-
-.install-toggle input + label:first-of-type {
-  border-radius: 6px 0 0 6px;
-  border-right: none;
-}
-
-.install-toggle input + label:last-of-type {
-  border-radius: 0 6px 6px 0;
-  border-left: none;
-}
-
-.install-toggle input:checked + label {
-  background-color: #4B9DEA;
-  color: #FFF;
-  z-index: 1;
-}
-
-.install-checkbox input[type=checkbox] {
-    width: 0;
-    height: 0;
-    position: absolute;
-    left: -9999px;
-}
-
-.install-checkbox input[type=checkbox] + label {
-  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTkgMTYuMTcyTDE5LjU5NCA1LjU3OCAyMSA2Ljk4NGwtMTIgMTItNS41NzgtNS41NzhMNC44MjggMTJ6Ii8+PC9zdmc+);
-  height: 1.2rem;
-  width: 1.2rem;
-  display: inline-block;
-  padding: 0 0 0 0px;
-  border: solid 1px var(--color-background-border);
-  background-color: #FFF;
-  border-radius: 4px 4px 4px 4px;
-  background-size: contain;
-  margin: 0.2rem;
-  min-width: 1.2rem;
-  min-height: 1.2rem;
-}
-
-.install-checkbox input[type=checkbox] + label + label {
-    margin-right: 1.4rem;
-}
-
-.install-checkbox {
-    padding: 0 0 0 0px;
-    margin: 0;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-}
-
-.install-checkbox label {
-  margin: 0;
-}
-
-input[type=checkbox]:checked + label {
-  background-color: #4B9DEA;
-  border-color: var(--color-background-border);
-}
-
-.install-field-row {
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: start;
-    align-items: center;
-    margin: 0.75rem 0 0.75rem;
-}
-
-@media (max-width: 800px) {
-  .install-configurator-container {
-    margin: 0.2rem;
-}
-  .install-field-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .install-toggle input + label {
-    padding: 0.25rem 0.25rem;
-    flex: 0 0 35%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-}
-</style>
-</head>
-<body>
-  <fieldset class="install-configurator">
-  <div class="install-configurator-container">
-  <div class="install-field-row">
-      <p>Operating System</p>
-  <div class="install-toggle">
-    <input onclick="update_instruction_state()" type="radio" value="linux" id="pltlinux" name="platform" checked/>
-    <label for="pltlinux">Linux</label>
-    <input onclick="update_instruction_state()" type="radio" value="windows" id="pltwindows" name="platform"/>
-    <label for="pltwindows">Windows</label>
-    <input onclick="update_instruction_state()" type="radio" value="linux" id="pltmacos" name="platform"/>
-    <label for="pltmacos">macOS/OSX</label>
-  </div>
-  </div>
-  <div class="install-field-row">
-    <p>Package manager</p>
-    <div class="install-toggle">
-    <input onclick="update_instruction_state()" type="radio" value="pip" id="pkgpip" name="package-manager" checked />
-      <label for="pkgpip">pip</label>
-    <input onclick="update_instruction_state()" type="radio" value="conda" id="pkgconda" name="package-manager"/>
-    <label for="pkgconda">conda</label>
-    <input onclick="update_instruction_state()" type="radio" value="source" id="pkgsource" name="package-manager"/>
-    <label for="pkgsource">source</label>
-    </div>
-  </div>
-  <div class="install-field-row">
-      <p style="padding-right:4rem;">Configuration</p>
-  <div class="install-checkbox">
-    <input onclick="update_instruction_state()" type="checkbox" id="jupyter_flag"/><label for="jupyter_flag"></label>
-    <label for="jupyter_flag">Jupyter Lab</label>
-    <input onclick="update_instruction_state()" type="checkbox" value="env" id="environment_flag"/><label for="environment_flag"></label>
-    <label for="environment_flag">Virtual environment</label>
-  </div>
-  </div>
-  </div>
-</fieldset>
-
-<br><br>
-
-<!-- AUTOGENERATED CONFIGURATIONS START (DO NOT EDIT MANUALLY) -->
-<div id="install-samples"><div id=pip_linux_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>pip install -U pycalphad</pre></div></div></div><div id=pip_linux_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>pip install -U pycalphad jupyterlab</pre></div></div></div><div id=pip_linux_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>source pycalphad-env/bin/activate<br>pip install -U pycalphad</pre></div></div></div><div id=pip_linux_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>source pycalphad-env/bin/activate<br>pip install -U pycalphad jupyterlab</pre></div></div></div><div id=pip_windows_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>pip install -U pycalphad</pre></div></div></div><div id=pip_windows_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>pip install -U pycalphad jupyterlab</pre></div></div></div><div id=pip_windows_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>pycalphad-env\Scripts\activate<br>pip install -U pycalphad</pre></div></div></div><div id=pip_windows_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>pycalphad-env\Scripts\activate<br>pip install -U pycalphad jupyterlab</pre></div></div></div><div id=conda_linux_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda install -c conda-forge pycalphad</pre></div></div></div><div id=conda_linux_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda install -c conda-forge pycalphad jupyterlab</pre></div></div></div><div id=conda_linux_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda create -n pycalphad-env python<br>conda activate pycalphad-env<br>conda install -c conda-forge pycalphad</pre></div></div></div><div id=conda_linux_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda create -n pycalphad-env python<br>conda activate pycalphad-env<br>conda install -c conda-forge pycalphad jupyterlab</pre></div></div></div><div id=conda_windows_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda install -c conda-forge pycalphad</pre></div></div></div><div id=conda_windows_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda install -c conda-forge pycalphad jupyterlab</pre></div></div></div><div id=conda_windows_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda create -n pycalphad-env python<br>conda activate pycalphad-env<br>conda install -c conda-forge pycalphad</pre></div></div></div><div id=conda_windows_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>conda create -n pycalphad-env python<br>conda activate pycalphad-env<br>conda install -c conda-forge pycalphad jupyterlab</pre></div></div></div><div id=source_linux_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U --editable .</pre></div></div></div><div id=source_linux_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U --editable .<br>pip install -U jupyterlab</pre></div></div></div><div id=source_linux_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>source pycalphad-env/bin/activate<br>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U --editable .</pre></div></div></div><div id=source_linux_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>source pycalphad-env/bin/activate<br>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U --editable .<br>pip install -U jupyterlab</pre></div></div></div><div id=source_windows_noenv_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U --editable .</pre></div></div></div><div id=source_windows_noenv_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U --editable .<br>pip install -U jupyterlab</pre></div></div></div><div id=source_windows_env_nojupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>pycalphad-env\Scripts\activate<br>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U --editable .</pre></div></div></div><div id=source_windows_env_jupyter hidden><div class="highlight-bash notranslate"><div class="highlight"><pre>python -m venv pycalphad-env<br>pycalphad-env\Scripts\activate<br>git clone https://github.com/pycalphad/pycalphad<br>cd pycalphad<br>pip install -U pip setuptools<br>pip install -U --editable .<br>pip install -U jupyterlab</pre></div></div></div></div>
-<!-- AUTOGENERATED CONFIGURATIONS END (DO NOT EDIT MANUALLY) -->
-</body>
-</html>
-<section id="pip-recommended">
-<h2>pip (recommended)<a class="headerlink" href="#pip-recommended" title="Link to this heading">¶</a></h2>
-<p>To install pycalphad from <a class="reference external" href="https://pypi.org/project/pycalphad/">PyPI</a> using pip:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip<span class="w"> </span>setuptools
-pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pycalphad
+<p>The recommended method of installing PyCalphad depends on your preferred workflow.
+The common workflows can roughly be broken down into the following categories:</p>
+<ul class="simple">
+<li><p><strong>Project-based</strong> (e.g. <code class="docutils literal notranslate"><span class="pre">uv</span></code>, <code class="docutils literal notranslate"><span class="pre">pixi</span></code>) <em>(recommended for new users)</em></p></li>
+<li><p><strong>Environment-based</strong> (e.g. <code class="docutils literal notranslate"><span class="pre">pip</span></code>, <code class="docutils literal notranslate"><span class="pre">conda</span></code>) <em>(the traditional workflow)</em></p></li>
+<li><p><strong>Development version</strong> (building from source) <em>(for contributing to PyCalphad)</em></p></li>
+</ul>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Project-based</label><div class="sd-tab-content docutils">
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+uv</label><div class="sd-tab-content docutils">
+<p>Here is a step-by-step guide to setting up a project to use PyCalphad with <a class="reference external" href="https://docs.astral.sh/uv/">uv</a>, a Python package manager.</p>
+<ol class="arabic">
+<li><p>Install uv by following <a class="reference external" href="https://docs.astral.sh/uv/getting-started/installation/">the instructions in the uv documentation</a>.</p></li>
+<li><p>Create a new project in a new subdirectory by running the following in a terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>init<span class="w"> </span>try-pycalphad
+<span class="nb">cd</span><span class="w"> </span>try-pycalphad
 </pre></div>
 </div>
-<p>A recommended best practice is to install pycalphad into a virtual environment.
-To create an environment called <code class="docutils literal notranslate"><span class="pre">pycalphad-env</span></code> on Linux and macOS/OSX:</p>
+<p>The second command changes directory into the directory of your project.</p>
+</li>
+<li><p>Add PyCalphad to your project:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>add<span class="w"> </span>pycalphad
+</pre></div>
+</div>
+<p>This will automatically install Python if you don’t already have it installed.</p>
+</li>
+<li><p>Try out PyCalphad!</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>python
+</pre></div>
+</div>
+<p>This will launch a Python interpreter session, from which you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">pycalphad</span></code>.</p>
+</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can install other Python libraries in the same way.
+For example, to run the PyCalphad examples in Jupyter notebooks:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>add<span class="w"> </span>jupyterlab
+uv<span class="w"> </span>run<span class="w"> </span>jupyter<span class="w"> </span>lab
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>After rebooting your computer, you’ll want to navigate to your <code class="docutils literal notranslate"><span class="pre">try-pycalphad</span></code> project directory and run <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span> <span class="pre">python</span></code> to drop back into a Python interpreter with PyCalphad importable.
+To run a Python script, you can use <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span> <span class="pre">myscript.py</span></code>.</p>
+<p>Read more in <a class="reference external" href="https://docs.astral.sh/uv/guides/projects/">the uv guide to working on projects</a>.</p>
+</div>
+</div>
+<input id="sd-tab-item-4" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-4">
+pixi</label><div class="sd-tab-content docutils">
+<p>If you work with non-Python packages, you may prefer to install PyCalphad as a <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/index.html">conda</a> package, so that you can use the same workflow for packages which are not available on <a class="reference external" href="https://pypi.org/">PyPI</a>, the Python Package Index.
+Conda can manage packages in any language, so you can use it to install Python itself, compilers, and other languages.</p>
+<p>The steps to install PyCalphad from <a class="reference external" href="https://conda-forge.org/">conda-forge</a> using <a class="reference external" href="https://pixi.sh/latest/">pixi</a> are very similar to the steps for uv:</p>
+<ol class="arabic">
+<li><p>Install pixi by following <a class="reference external" href="https://pixi.sh/latest/installation/">the instructions in the pixi documentation</a>.</p></li>
+<li><p>Create a new project in a new subdirectory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pixi<span class="w"> </span>init<span class="w"> </span>try-pycalphad
+<span class="nb">cd</span><span class="w"> </span>try-pycalphad
+</pre></div>
+</div>
+</li>
+<li><p>Add PyCalphad to your project:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pixi<span class="w"> </span>add<span class="w"> </span>pycalphad
+</pre></div>
+</div>
+</li>
+<li><p>Try out PyCalphad!</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pixi<span class="w"> </span>run<span class="w"> </span>python
+</pre></div>
+</div>
+</li>
+</ol>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can install other packages in the same way.
+For example, to run the PyCalphad examples in Jupyter notebooks:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pixi<span class="w"> </span>add<span class="w"> </span>jupyterlab
+pixi<span class="w"> </span>run<span class="w"> </span>jupyter<span class="w"> </span>lab
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Environment-based</label><div class="sd-tab-content docutils">
+<p>In project-based workflows, a project is a directory containing a manifest file describing the project, a lock file describing the exact dependencies of the project, and the project’s (potentially multiple) environments.
+In contrast, in environment-based workflows you install packages into an environment, which you can activate and deactivate from any directory.
+These workflows are well-established, but lack some reproducibility benefits of project-based workflows.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-5">
+pip</label><div class="sd-tab-content docutils">
+<ol class="arabic">
+<li><p><a class="reference external" href="https://www.python.org/downloads/">Install Python</a>.</p></li>
+<li><p>A recommended best practice is to install PyCalphad into a virtual environment.
+To create and activate an environment called <code class="docutils literal notranslate"><span class="pre">pycalphad-env</span></code> on Linux and macOS:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>pycalphad-env
 <span class="nb">source</span><span class="w"> </span>pycalphad-env/bin/activate
-pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip<span class="w"> </span>setuptools
-pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pycalphad
 </pre></div>
 </div>
-<p>This environment must be activated every time you use pycalphad.</p>
-</section>
-<section id="conda">
-<h2>conda<a class="headerlink" href="#conda" title="Link to this heading">¶</a></h2>
-<p><a class="reference external" href="https://anaconda.com/download">Anaconda</a> is a distribution platform for scientific Python packages created by Anaconda, Inc.
-It comes bundled with the <code class="docutils literal notranslate"><span class="pre">conda</span></code> package manager to install Python and non-Python packages.
-If you don’t have Anaconda already, you can download the <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">Miniconda</a> distribution.</p>
-<p>To install pycalphad from <a class="reference external" href="https://github.com/conda-forge/pycalphad-feedstock/">conda-forge</a> using conda:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>pycalphad
+<p>On Windows, activate the environment by running <code class="docutils literal notranslate"><span class="pre">pycalphad-env\Scripts\activate</span></code> instead.
+This environment must be activated every time you use PyCalphad.</p>
+</li>
+<li><p>Install PyCalphad from <a class="reference external" href="https://pypi.org/project/pycalphad/">PyPI</a> using <a class="reference external" href="https://pip.pypa.io/en/stable/getting-started/">pip</a>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pycalphad
 </pre></div>
 </div>
-</section>
-<section id="development-version">
-<h2>Development version<a class="headerlink" href="#development-version" title="Link to this heading">¶</a></h2>
-<section id="installing">
-<h3>Installing<a class="headerlink" href="#installing" title="Link to this heading">¶</a></h3>
-<p>The source code for the latest development version of pycalphad is available on <a class="reference external" href="https://github.com/pycalphad/pycalphad">GitHub</a>.
-You will need a working version of  <a class="reference external" href="https://git-scm.com/">git</a> to download the source code.
-Installing development versions of pycalphad also requires a working C++ compiler.</p>
+</li>
+</ol>
+</div>
+<input id="sd-tab-item-6" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-6">
+conda</label><div class="sd-tab-content docutils">
+<p><a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/index.html">conda</a> is a package manager that can install Python and non-Python packages.
+If you don’t have conda already, <a class="reference external" href="https://conda-forge.org/download/">Miniforge</a> is the recommended way to install it.</p>
+<p>To create an environment called <code class="docutils literal notranslate"><span class="pre">pycalphad-env</span></code> with PyCalphad installed from <a class="reference external" href="https://conda-forge.org/">conda-forge</a>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>pycalphad-env<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>pycalphad
+conda<span class="w"> </span>activate<span class="w"> </span>pycalphad-env
+</pre></div>
+</div>
+<p>This environment must be activated every time you use PyCalphad.</p>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Development version</label><div class="sd-tab-content docutils">
+<p>The source code for the latest development version of PyCalphad is available on <a class="reference external" href="https://github.com/pycalphad/pycalphad">GitHub</a>.
+Development versions are built from source and installed in editable mode, which is mainly needed by users who wish to contribute to PyCalphad.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-7" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-7">
+Quickstart</label><div class="sd-tab-content docutils">
+<p>You will need a working version of <a class="reference external" href="https://git-scm.com/">git</a> to download the source code and <a class="reference external" href="https://docs.astral.sh/uv/">uv</a> to install PyCalphad and its dependencies.
+Installing development versions of PyCalphad also requires a working C++ compiler.</p>
 <ul class="simple">
 <li><p><strong>Windows:</strong> Install <a class="reference external" href="https://git-scm.com/">git</a> and <a class="reference external" href="https://visualstudio.microsoft.com/downloads/">Microsoft Visual C++ Build Tools version 14.X</a>.
 If you are unfamiliar with the process, you can find a <a class="reference external" href="https://beenje.github.io/blog/posts/how-to-setup-a-windows-vm-to-build-conda-packages/#developer-tools-installation">tutorial here</a>.</p></li>
+<li><p><strong>macOS:</strong> Install the Xcode Command Line Tools by running <code class="docutils literal notranslate"><span class="pre">xcode-select</span> <span class="pre">--install</span></code>.</p></li>
 </ul>
-<p>To install an editable version the latest development branch of pycalphad, run:</p>
+<p>To install an editable version of the latest development branch of PyCalphad, run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/pycalphad/pycalphad.git
 <span class="nb">cd</span><span class="w"> </span>pycalphad
-pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip<span class="w"> </span>setuptools
-pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>--editable<span class="w"> </span>.
+uv<span class="w"> </span>sync
 </pre></div>
 </div>
 <p>Then run the automated tests to ensure everything installed correctly:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>pycalphad
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>pytest
 </pre></div>
 </div>
-</section>
-<section id="upgrading">
-<h3>Upgrading<a class="headerlink" href="#upgrading" title="Link to this heading">¶</a></h3>
-<p>Changes to Python files (<code class="docutils literal notranslate"><span class="pre">.py</span></code> extension) in an editable install will be reflected as soon a file is saved.
+</div>
+<input id="sd-tab-item-8" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-8">
+Detailed instructions</label><div class="sd-tab-content docutils">
+<p>The <a class="reference internal" href="developer/onboarding.html"><span class="doc">onboarding guide</span></a> has detailed instructions for setting up a development environment, including installing the prerequisite tools, configuring VSCode, setting up your fork and remote repositories, building a local version of this website, and troubleshooting.
+Please read the <a class="reference internal" href="developer/contributing.html"><span class="doc">contributing guide</span></a> before submitting a pull request.</p>
+<p class="rubric">Upgrading</p>
+<p>Changes to Python files (<code class="docutils literal notranslate"><span class="pre">.py</span></code> extension) in an editable install will be reflected as soon as a file is saved.
 Changes to <a class="reference external" href="https://cython.org/">Cython</a> files (<code class="docutils literal notranslate"><span class="pre">.pyx</span></code> and <code class="docutils literal notranslate"><span class="pre">.pxd</span></code> extensions) must be recompiled before they take effect.
-The Cython files can be recompiled by running (from the root directory <a class="footnote-reference brackets" href="#f1" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> of the project):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>setup.py<span class="w"> </span>build_ext<span class="w"> </span>--inplace
-</pre></div>
+uv recompiles the Cython files automatically the next time you run <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code> or <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code>.</p>
+<p>By default, the development version installed will track the latest changes in the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch of PyCalphad <a class="reference external" href="https://github.com/pycalphad/pycalphad">on GitHub</a>.</p>
+<p>To update the code in the current branch to the latest changes on GitHub, the changes are pulled from GitHub by running <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>.</p>
+<p>To switch to a different branch, e.g. <code class="docutils literal notranslate"><span class="pre">master</span></code> (which tracks the latest released version) or another feature branch, run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">&lt;branch&gt;</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;branch&gt;</span></code> is the name of the branch to checkout, such as <code class="docutils literal notranslate"><span class="pre">master</span></code> (without the brackets <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>).</p>
 </div>
-<p>By default, the development version installed will track the latest changes in
-the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch of pycalphad
-<a class="reference external" href="https://github.com/pycalphad/pycalphad">on GitHub</a>.</p>
-<p>To update the code in the current branch to the latest changes on GitHub, the
-changes are pulled from GitHub by running <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>.</p>
-<p>To switch to a different branch, e.g. <code class="docutils literal notranslate"><span class="pre">master</span></code> (which tracks the latest
-released version) or another feature branch, run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">&lt;branch&gt;</span></code>,
-where <code class="docutils literal notranslate"><span class="pre">&lt;branch&gt;</span></code> is the name of the branch to checkout, such as <code class="docutils literal notranslate"><span class="pre">master</span></code>
-(without the brackets <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>).</p>
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="f1" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>The “root directory” is the the top level project directory containing the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file, the <code class="docutils literal notranslate"><span class="pre">pycalphad/</span></code> package directory, etc.</p>
-</aside>
-</aside>
-</section>
-</section>
+</div>
+</div>
+</div>
+<p>See next steps in the <a class="reference internal" href="examples/1_Phase_Diagrams/index.html"><span class="doc">examples</span></a>.
+Questions about installing and using PyCalphad can be addressed on the <a class="reference external" href="https://github.com/pycalphad/pycalphad/discussions">PyCalphad Discussion board</a>.</p>
 </section>
 
         </article>
@@ -657,41 +523,17 @@ where <code class="docutils literal notranslate"><span class="pre">&lt;branch&gt
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Install PyCalphad</a><ul>
-<li><a class="reference internal" href="#pip-recommended">pip (recommended)</a></li>
-<li><a class="reference internal" href="#conda">conda</a></li>
-<li><a class="reference internal" href="#development-version">Development version</a><ul>
-<li><a class="reference internal" href="#installing">Installing</a></li>
-<li><a class="reference internal" href="#upgrading">Upgrading</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=c51d22ed"></script>
+</div><script src="_static/documentation_options.js?v=29de3711"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>
 </html>
