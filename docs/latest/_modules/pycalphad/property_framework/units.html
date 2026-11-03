@@ -6,7 +6,7 @@
         <link rel="prefetch" href="../../../_static/pycalphad-logo-withtext.png" as="image">
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>pycalphad.property_framework.units - pycalphad 0.11.3.dev42+g65fac5a5b documentation</title>
+        <title>pycalphad.property_framework.units - pycalphad 0.11.3.dev43+g0cbc613c0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -162,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev42+g65fac5a5b documentation</div></a>
+      <a href="../../../index.html"><div class="brand">pycalphad 0.11.3.dev43+g0cbc613c0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -186,7 +186,7 @@
     <img class="sidebar-logo" src="../../../_static/pycalphad-logo-withtext.png" alt="Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">pycalphad 0.11.3.dev42+g65fac5a5b documentation</span>
+  <span class="sidebar-brand-text">pycalphad 0.11.3.dev43+g0cbc613c0 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -414,6 +414,8 @@
 <span class="sd">    Filters composition sets to match phase-specific properties before</span>
 <span class="sd">    building the molar mass context for per-mole to per-mass conversions.</span>
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">'implementation_units'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span> <span class="o">==</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">'display_units'</span><span class="p">,</span> <span class="s1">''</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
     <span class="n">implementation_units</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">'implementation_units'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
     <span class="n">display_units</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="s1">'display_units'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span>
     <span class="n">context</span> <span class="o">=</span> <span class="n">unit_conversion_context</span><span class="p">(</span><span class="n">_composition_sets_for_unit_conversion</span><span class="p">(</span><span class="n">comp_sets</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">prop</span><span class="p">)</span>
@@ -451,7 +453,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=29de3711"></script>
+</div><script src="../../../_static/documentation_options.js?v=e9a50bdf"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
