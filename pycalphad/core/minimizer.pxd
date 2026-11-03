@@ -1,7 +1,7 @@
 cdef class SystemState:
     cdef public list compsets
     cdef public list cs_states
-    cdef object dof
+    cdef double[:, ::1] dof
     cdef public int iteration
     cdef int num_statevars, iterations_since_last_phase_change
     cdef int[::1] metastable_phase_iterations
@@ -17,6 +17,10 @@ cdef class SystemState:
     cdef double[::1] _driving_forces
     cdef double[:, ::1] _phase_energies_per_mole_atoms
     cdef double[:, :, ::1] _phase_amounts_per_mole_atoms
+    cdef double[::1, :] _equilibrium_matrix
+    cdef double[::1] _equilibrium_rhs
+    cdef int _equilibrium_size
+    cdef int[::1] _compset_removal_flags
     cpdef void recompute(self, SystemSpecification spec)
     cdef double[::1] driving_forces(self)
     cdef void increment_phase_metastability_counters(self)
