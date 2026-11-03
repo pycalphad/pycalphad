@@ -1,9 +1,9 @@
-The recommended method of installing pycalphad depends on your preferred workflow.
+The recommended method of installing PyCalphad depends on your preferred workflow.
 The common workflows can roughly be broken down into the following categories:
 
 * **Project-based** (e.g. ``uv``, ``pixi``) *(recommended for new users)*
 * **Environment-based** (e.g. ``pip``, ``conda``) *(the traditional workflow)*
-* **Development version** (building from source) *(for contributing to pycalphad)*
+* **Development version** (building from source) *(for contributing to PyCalphad)*
 
 .. tab-set::
 
@@ -13,7 +13,7 @@ The common workflows can roughly be broken down into the following categories:
 
          .. tab-item:: uv
 
-            Here is a step-by-step guide to setting up a project to use pycalphad with `uv`_, a Python package manager.
+            Here is a step-by-step guide to setting up a project to use PyCalphad with `uv`_, a Python package manager.
 
             #. Install uv by following `the instructions in the uv documentation <https://docs.astral.sh/uv/getting-started/installation/>`__.
 
@@ -26,7 +26,7 @@ The common workflows can roughly be broken down into the following categories:
 
                The second command changes directory into the directory of your project.
 
-            #. Add pycalphad to your project:
+            #. Add PyCalphad to your project:
 
                .. code-block:: bash
 
@@ -34,7 +34,7 @@ The common workflows can roughly be broken down into the following categories:
 
                This will automatically install Python if you don't already have it installed.
 
-            #. Try out pycalphad!
+            #. Try out PyCalphad!
 
                .. code-block:: bash
 
@@ -45,7 +45,7 @@ The common workflows can roughly be broken down into the following categories:
             .. tip::
 
                You can install other Python libraries in the same way.
-               For example, to run the pycalphad examples in Jupyter notebooks:
+               For example, to run the PyCalphad examples in Jupyter notebooks:
 
                .. code-block:: bash
 
@@ -54,17 +54,17 @@ The common workflows can roughly be broken down into the following categories:
 
             .. note::
 
-               After rebooting your computer, you'll want to navigate to your ``try-pycalphad`` project directory and run ``uv run python`` to drop back into a Python interpreter with pycalphad importable.
+               After rebooting your computer, you'll want to navigate to your ``try-pycalphad`` project directory and run ``uv run python`` to drop back into a Python interpreter with PyCalphad importable.
                To run a Python script, you can use ``uv run myscript.py``.
 
                Read more in `the uv guide to working on projects <https://docs.astral.sh/uv/guides/projects/>`__.
 
          .. tab-item:: pixi
 
-            If you work with non-Python packages, you may prefer to install pycalphad as a `conda`_ package, so that you can use the same workflow for packages which are not available on `PyPI <https://pypi.org/>`__, the Python Package Index.
+            If you work with non-Python packages, you may prefer to install PyCalphad as a `conda`_ package, so that you can use the same workflow for packages which are not available on `PyPI <https://pypi.org/>`__, the Python Package Index.
             Conda can manage packages in any language, so you can use it to install Python itself, compilers, and other languages.
 
-            The steps to install pycalphad from `conda-forge`_ using `pixi`_ are very similar to the steps for uv:
+            The steps to install PyCalphad from `conda-forge`_ using `pixi`_ are very similar to the steps for uv:
 
             #. Install pixi by following `the instructions in the pixi documentation <https://pixi.sh/latest/installation/>`__.
 
@@ -75,13 +75,13 @@ The common workflows can roughly be broken down into the following categories:
                   pixi init try-pycalphad
                   cd try-pycalphad
 
-            #. Add pycalphad to your project:
+            #. Add PyCalphad to your project:
 
                .. code-block:: bash
 
                   pixi add pycalphad
 
-            #. Try out pycalphad!
+            #. Try out PyCalphad!
 
                .. code-block:: bash
 
@@ -90,7 +90,7 @@ The common workflows can roughly be broken down into the following categories:
             .. tip::
 
                You can install other packages in the same way.
-               For example, to run the pycalphad examples in Jupyter notebooks:
+               For example, to run the PyCalphad examples in Jupyter notebooks:
 
                .. code-block:: bash
 
@@ -109,7 +109,7 @@ The common workflows can roughly be broken down into the following categories:
 
             #. `Install Python <https://www.python.org/downloads/>`__.
 
-            #. A recommended best practice is to install pycalphad into a virtual environment.
+            #. A recommended best practice is to install PyCalphad into a virtual environment.
                To create and activate an environment called ``pycalphad-env`` on Linux and macOS:
 
                .. code-block:: bash
@@ -118,9 +118,9 @@ The common workflows can roughly be broken down into the following categories:
                   source pycalphad-env/bin/activate
 
                On Windows, activate the environment by running ``pycalphad-env\Scripts\activate`` instead.
-               This environment must be activated every time you use pycalphad.
+               This environment must be activated every time you use PyCalphad.
 
-            #. Install pycalphad from `PyPI`_ using `pip`_:
+            #. Install PyCalphad from `PyPI`_ using `pip`_:
 
                .. code-block:: bash
 
@@ -131,32 +131,32 @@ The common workflows can roughly be broken down into the following categories:
             `conda`_ is a package manager that can install Python and non-Python packages.
             If you don't have conda already, `Miniforge`_ is the recommended way to install it.
 
-            To create an environment called ``pycalphad-env`` with pycalphad installed from `conda-forge`_:
+            To create an environment called ``pycalphad-env`` with PyCalphad installed from `conda-forge`_:
 
             .. code-block:: bash
 
                conda create -n pycalphad-env -c conda-forge pycalphad
                conda activate pycalphad-env
 
-            This environment must be activated every time you use pycalphad.
+            This environment must be activated every time you use PyCalphad.
 
    .. tab-item:: Development version
 
-      The source code for the latest development version of pycalphad is available on `GitHub <https://github.com/pycalphad/pycalphad>`__.
-      Development versions are built from source and installed in editable mode, which is mainly needed by users who wish to contribute to pycalphad.
+      The source code for the latest development version of PyCalphad is available on `GitHub <https://github.com/pycalphad/pycalphad>`__.
+      Development versions are built from source and installed in editable mode, which is mainly needed by users who wish to contribute to PyCalphad.
 
       .. tab-set::
 
          .. tab-item:: Quickstart
 
-            You will need a working version of `git`_ to download the source code and `uv`_ to install pycalphad and its dependencies.
-            Installing development versions of pycalphad also requires a working C++ compiler.
+            You will need a working version of `git`_ to download the source code and `uv`_ to install PyCalphad and its dependencies.
+            Installing development versions of PyCalphad also requires a working C++ compiler.
 
             * **Windows:** Install `git`_ and `Microsoft Visual C++ Build Tools version 14.X <https://visualstudio.microsoft.com/downloads/>`__.
               If you are unfamiliar with the process, you can find a `tutorial here <https://beenje.github.io/blog/posts/how-to-setup-a-windows-vm-to-build-conda-packages/#developer-tools-installation>`__.
             * **macOS:** Install the Xcode Command Line Tools by running ``xcode-select --install``.
 
-            To install an editable version of the latest development branch of pycalphad, run:
+            To install an editable version of the latest development branch of PyCalphad, run:
 
             .. code-block:: bash
 
@@ -181,14 +181,14 @@ The common workflows can roughly be broken down into the following categories:
             Changes to `Cython`_ files (``.pyx`` and ``.pxd`` extensions) must be recompiled before they take effect.
             uv recompiles the Cython files automatically the next time you run ``uv sync`` or ``uv run``.
 
-            By default, the development version installed will track the latest changes in the ``develop`` branch of pycalphad `on GitHub <https://github.com/pycalphad/pycalphad>`__.
+            By default, the development version installed will track the latest changes in the ``develop`` branch of PyCalphad `on GitHub <https://github.com/pycalphad/pycalphad>`__.
 
             To update the code in the current branch to the latest changes on GitHub, the changes are pulled from GitHub by running ``git pull``.
 
             To switch to a different branch, e.g. ``master`` (which tracks the latest released version) or another feature branch, run ``git checkout <branch>``, where ``<branch>`` is the name of the branch to checkout, such as ``master`` (without the brackets ``<`` and ``>``).
 
 See next steps in the :doc:`examples <examples/1_Phase_Diagrams/index>`.
-Questions about installing and using pycalphad can be addressed on the `PyCalphad Discussion board <https://github.com/pycalphad/pycalphad/discussions>`__.
+Questions about installing and using PyCalphad can be addressed on the `PyCalphad Discussion board <https://github.com/pycalphad/pycalphad/discussions>`__.
 
 
 .. _conda: https://docs.conda.io/projects/conda/en/latest/index.html
