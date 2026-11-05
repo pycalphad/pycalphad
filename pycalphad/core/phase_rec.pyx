@@ -28,7 +28,7 @@ cdef class FastFunction:
         self.func_data =  (<void**><size_t>ctypes.addressof(addr2))[0]
     def __reduce__(self):
         return FastFunction, (self._objref,)
-    cdef void call(self, double *out, double *inp) nogil:
+    cdef void call(self, double *out, double *inp) noexcept nogil:
         if self.f_ptr != NULL:
             self.f_ptr(out, inp, self.func_data)
 
@@ -301,7 +301,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) nogil:
+    cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._internal_cons_func.call(&out[0], &dof_concat[0])
@@ -310,7 +310,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_cons_jac(self, double[:, ::1] out, double[::1] dof) nogil:
+    cpdef void internal_cons_jac(self, double[:, ::1] out, double[::1] dof) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._internal_cons_jac.call(&out[0, 0], &dof_concat[0])
@@ -319,7 +319,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_cons_hess(self, double[:, :, ::1] out, double[::1] dof) nogil:
+    cpdef void internal_cons_hess(self, double[:, :, ::1] out, double[::1] dof) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._internal_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
@@ -328,7 +328,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void phase_local_cons_func(self, double[::1] out, double[::1] dof, FastFunction func) nogil:
+    cpdef void phase_local_cons_func(self, double[::1] out, double[::1] dof, FastFunction func) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         func.call(&out[0], &dof_concat[0])
@@ -337,7 +337,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void phase_local_cons_jac(self, double[:, ::1] out, double[::1] dof, FastFunction jac_func) nogil:
+    cpdef void phase_local_cons_jac(self, double[:, ::1] out, double[::1] dof, FastFunction jac_func) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         jac_func.call(&out[0, 0], &dof_concat[0])
@@ -346,7 +346,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
+    cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         (<FastFunction>self._masses_ptr[comp_idx]).call(&out[0], &dof_concat[0])
@@ -355,7 +355,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
+    cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) noexcept nogil:
         # dof.shape[1] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
@@ -368,7 +368,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void formulamole_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
+    cpdef void formulamole_obj(self, double[::1] out, double[::1] dof, int comp_idx) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         (<FastFunction>self._formulamoles_ptr[comp_idx]).call(&out[0], &dof_concat[0])
@@ -377,7 +377,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void formulamole_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
+    cpdef void formulamole_grad(self, double[::1] out, double[::1] dof, int comp_idx) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         (<FastFunction>self._formulamolegrads_ptr[comp_idx]).call(&out[0], &dof_concat[0])
@@ -386,7 +386,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void formulamole_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil:
+    cpdef void formulamole_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) noexcept nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         (<FastFunction>self._formulamolehessians_ptr[comp_idx]).call(&out[0,0], &dof_concat[0])

@@ -487,6 +487,88 @@ def test_shift_reference_state_model_contribs_take_effect():
     check_output(m, statevars, 'GMR', idmix_val-1000.0)
 
 
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
+def test_reference_states_with_species():
+    """Reference states apply to phases without pure element constituents and can be phases of species."""
+    TDB = """
+     ELEMENT CU   FCC_A1                     63.546     5004.1     33.15 !
+     ELEMENT O    1/2_MOLE_O2(G)             15.999     4341.0    102.52 !
+     SPECIES CU2O CU2O1 !
+     SPECIES O2 O2 !
+     TYPE_DEFINITION % SEQ * !
+     PHASE FCC_A1 % 1 1 !
+     CONSTITUENT FCC_A1 :CU: !
+     PHASE GAS % 1 1 !
+     CONSTITUENT GAS :O2: !
+     PHASE CUPRITE % 1 1 !
+     CONSTITUENT CUPRITE :CU2O: !
+     PARAMETER G(FCC_A1,CU;0) 1 -1000+5*T; 6000 N !
+     PARAMETER G(GAS,O2;0) 1 -4000+10*T; 6000 N !
+     PARAMETER G(CUPRITE,CU2O;0) 1 -30000+7*T; 6000 N !
+    """
+    dbf = Database(TDB)
+    m = Model(dbf, ['CU', 'O'], 'CUPRITE')
+    m.shift_reference_state([ReferenceState('CU', 'FCC_A1'), ReferenceState('O', 'GAS')], dbf)
+    # per mole of atoms: -30000/3 - 2/3*(-1000) - 1/3*(-4000/2)
+    check_output(m, {v.T: 300, v.SiteFraction('CUPRITE', 0, 'CU2O'): 1}, 'HMR', -26000/3)
+
+
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
+def test_reference_state_uses_most_stable_endmember():
+    """A reference phase with several endmembers of the element uses the most stable one at the fixed temperature."""
+    TDB = """
+     ELEMENT CU   FCC_A1                     63.546     5004.1     33.15 !
+     ELEMENT O    1/2_MOLE_O2(G)             15.999     4341.0    102.52 !
+     SPECIES CU2O CU2O1 !
+     SPECIES O2 O2 !
+     TYPE_DEFINITION % SEQ * !
+     PHASE FCC_A1 % 1 1 !
+     CONSTITUENT FCC_A1 :CU: !
+     PHASE GAS % 1 1 !
+     CONSTITUENT GAS :O,O2: !
+     PHASE CUPRITE % 1 1 !
+     CONSTITUENT CUPRITE :CU2O: !
+     PARAMETER G(FCC_A1,CU;0) 1 -1000+5*T; 6000 N !
+     PARAMETER G(GAS,O;0) 1 -40*T; 6000 N !
+     PARAMETER G(GAS,O2;0) 1 -20000-20*T; 6000 N !
+     PARAMETER G(CUPRITE,CU2O;0) 1 -30000+7*T; 6000 N !
+    """
+    dbf = Database(TDB)
+    statevars = {v.T: 300, v.SiteFraction('CUPRITE', 0, 'CU2O'): 1}
+    # O2 is the most stable per mole of atoms at 298.15 K: -30000/3 - 2/3*(-1000) - 1/3*(-20000/2)
+    m = Model(dbf, ['CU', 'O'], 'CUPRITE')
+    m.shift_reference_state([ReferenceState('CU', 'FCC_A1'), ReferenceState('O', 'GAS')], dbf)
+    check_output(m, statevars, 'HMR', -6000)
+    # (-30000+7*300)/3 - 2/3*(-1000+5*300) - 1/3*(-20000-20*300)/2
+    check_output(m, statevars, 'GMR', -5300)
+    # O is the most stable at 2000 K: -30000/3 - 2/3*(-1000)
+    m = Model(dbf, ['CU', 'O'], 'CUPRITE')
+    m.shift_reference_state([ReferenceState('CU', 'FCC_A1'), ReferenceState('O', 'GAS', {v.T: 2000})], dbf)
+    check_output(m, statevars, 'HMR', -28000/3)
+
+
+@pytest.mark.filterwarnings("ignore:shift_reference_state*:DeprecationWarning")
+def test_reference_state_ignores_vacancy_endmember():
+    """The pure vacancy endmember of a reference phase is not a candidate reference endmember."""
+    TDB = """
+     ELEMENT VA   VACUUM                      0.0        0.0       0.0 !
+     ELEMENT ZN   HCP_ZN                     65.38    5656.8    41.631 !
+     TYPE_DEFINITION % SEQ * !
+     PHASE HCP % 2 1 1 !
+     CONSTITUENT HCP :VA,ZN:VA: !
+     PHASE LIQUID % 1 1 !
+     CONSTITUENT LIQUID :ZN: !
+     PARAMETER G(HCP,ZN:VA;0) 1 -2000+3*T; 6000 N !
+     PARAMETER G(HCP,VA:VA;0) 1 500; 6000 N !
+     PARAMETER G(LIQUID,ZN;0) 1 1000+2*T; 6000 N !
+    """
+    dbf = Database(TDB)
+    m = Model(dbf, ['ZN', 'VA'], 'LIQUID')
+    m.shift_reference_state([ReferenceState('ZN', 'HCP')], dbf)
+    # 1000 - (-2000)
+    check_output(m, {v.T: 300, v.SiteFraction('LIQUID', 0, 'ZN'): 1}, 'HMR', 3000)
+
+
 @select_database("femns.tdb")
 def test_ionic_liquid_energy_anion_sublattice(load_database):
     """Test that having anions, vacancies, and neutral species in the anion sublattice of a two sublattice ionic liquid produces the correct Gibbs energy"""

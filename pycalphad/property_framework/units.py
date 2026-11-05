@@ -112,6 +112,8 @@ def to_display_units(value: npt.ArrayLike, comp_sets: Sequence[CompositionSet], 
     Filters composition sets to match phase-specific properties before
     building the molar mass context for per-mole to per-mass conversions.
     """
+    if getattr(prop, 'implementation_units', '') == getattr(prop, 'display_units', ''):
+        return value
     implementation_units = ureg.Unit(getattr(prop, 'implementation_units', ''))
     display_units = ureg.Unit(getattr(prop, 'display_units', ''))
     context = unit_conversion_context(_composition_sets_for_unit_conversion(comp_sets, prop), prop)

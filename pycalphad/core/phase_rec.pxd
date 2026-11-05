@@ -7,13 +7,13 @@ from libcpp.string cimport string
 import numpy
 cimport numpy
 
-ctypedef void (*math_function_t)(double*, const double*, void* user_data) nogil
+ctypedef void (*math_function_t)(double*, const double*, void* user_data) noexcept nogil
 
 cdef class FastFunction:
     cdef readonly object _objref
     cdef math_function_t f_ptr
     cdef void *func_data
-    cdef void call(self, double *out, double *inp) nogil
+    cdef void call(self, double *out, double *inp) noexcept nogil
 
 cdef class FastFunctionFactory:
     cdef object phase_record_factory
@@ -77,14 +77,14 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void obj_parameters_2d(self, double[:, ::1] out, double[:, ::1] dof, double[:, ::1] parameters) nogil
     cpdef void formulagrad(self, double[::1] out, double[::1] dof) nogil
     cpdef void formulahess(self, double[:,::1] out, double[::1] dof) nogil
-    cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) nogil
-    cpdef void internal_cons_jac(self, double[:,::1] out, double[::1] dof) nogil
-    cpdef void internal_cons_hess(self, double[:,:,::1] out, double[::1] dof) nogil
-    cpdef void phase_local_cons_func(self, double[::1] out, double[::1] dof, FastFunction func) nogil
-    cpdef void phase_local_cons_jac(self, double[:, ::1] out, double[::1] dof, FastFunction jac_func) nogil
-    cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil
-    cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
-    cpdef void formulamole_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil
-    cpdef void formulamole_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
-    cpdef void formulamole_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil
+    cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) noexcept nogil
+    cpdef void internal_cons_jac(self, double[:,::1] out, double[::1] dof) noexcept nogil
+    cpdef void internal_cons_hess(self, double[:,:,::1] out, double[::1] dof) noexcept nogil
+    cpdef void phase_local_cons_func(self, double[::1] out, double[::1] dof, FastFunction func) noexcept nogil
+    cpdef void phase_local_cons_jac(self, double[:, ::1] out, double[::1] dof, FastFunction jac_func) noexcept nogil
+    cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) noexcept nogil
+    cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) noexcept nogil
+    cpdef void formulamole_obj(self, double[::1] out, double[::1] dof, int comp_idx) noexcept nogil
+    cpdef void formulamole_grad(self, double[::1] out, double[::1] dof, int comp_idx) noexcept nogil
+    cpdef void formulamole_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) noexcept nogil
 
