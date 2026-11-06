@@ -240,6 +240,15 @@ def test_lincomb_ratio_binary_condition(load_database):
     result = wks.get('X(AL)') / wks.get('X(ZN)')
     np.testing.assert_almost_equal(result, [0.25, 1, 1.5], decimal=8)
 
+@select_database("alcrni.tdb")
+def test_lincomb_ratio_ternary_condition(load_database):
+    "The denominator's column is found by element: here elements that sort before Ni are not all in the ratio"
+    dbf = load_database()
+    wks = Workspace(database=dbf, components=['AL', 'CR', 'NI', 'VA'], phases=['LIQUID'],
+                    conditions={v.T: 2500, v.P: 1e5, v.N: 1, v.X('AL'): 0.1, v.X('CR')/v.X('NI'): [0.25, 0.5, 1]})
+    result = wks.get('X(CR)') / wks.get('X(NI)')
+    np.testing.assert_almost_equal(result, [0.25, 0.5, 1], decimal=8)
+
 @select_database("alzn_mey.tdb")
 def test_phaselocal_binary_sitefrac_condition(load_database):
     dbf = load_database()

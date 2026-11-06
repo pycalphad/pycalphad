@@ -101,15 +101,14 @@ class Solver(SolverBase):
                     if symbol == 1:
                         constant = coef
                         continue
-                    el = str(symbol)[2:]
-                    el_idx = list(nonvacant_elements).index(el)
+                    el_idx = list(nonvacant_elements).index(str(symbol.species))
                     coefs[el_idx] = coef
                 if cond.denominator == 1:
                     prescribed_mole_fraction_rhs.append(value - float(constant))
                 else:
                     # Adjust coefficients to account for molar ratio
                     prescribed_mole_fraction_rhs.append(-float(constant))
-                    denominator_idx = cond.symbols.index(cond.denominator)
+                    denominator_idx = list(nonvacant_elements).index(str(cond.denominator.species))
                     coefs[denominator_idx] -= value
                 prescribed_mole_fraction_coefficients.append(coefs)
         prescribed_mole_fraction_coefficients = np.array(prescribed_mole_fraction_coefficients).reshape(-1, num_components)
