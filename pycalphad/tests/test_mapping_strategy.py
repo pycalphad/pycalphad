@@ -1043,7 +1043,6 @@ def test_no_duplicate_boundary_remapping(load_database):
     strategy.add_nodes_from_conditions({v.P: 101325, v.N: 1, v.T: 691.243, v.X("MG"): MIN_COMPOSITION})
     for node in strategy.node_queue.nodes:
         assert sorted(node.stable_phases) == ["CAMG2_C14", "FCC_A1"]
-        node.skip_if_mapped = True
     strategy.do_map()
 
     assert len(strategy.zpf_lines) == 1, f"CAMG2_C14+FCC_A1 mapped {len(strategy.zpf_lines)} times"
@@ -1149,9 +1148,9 @@ def test_issue_662_phase_boundary_loop(load_database):
     assert no_more_nodes
 
     # should only have zpf lines for liquid-AlCuY
-    # there should be two zpf lines since the node we manually add
-    # will map in the positive and negative axis directions
-    assert len(strat.zpf_lines) == 2
+    # there should be one zpf line: mapped in one direction from the node we manually add,
+    # it goes around the whole loop, so the other direction is already mapped
+    assert len(strat.zpf_lines) == 1
     for z in strat.zpf_lines:
         assert len(set(z.stable_phases) - {'LIQUID', 'ALCUY'}) == 0
 
