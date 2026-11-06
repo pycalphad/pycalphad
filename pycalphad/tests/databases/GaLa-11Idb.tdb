@@ -1,0 +1,195 @@
+$
+$ Database for Ga-La from M. Idbenali and C. Servant 2011.
+$
+$ M. Idbenali, C. Servant, JEEP, 2011.
+$
+$ Dataset created 2018.07.08 by Bengt Hallstedt.
+$ 2021.01.03: Modified for use with GES6.
+$
+$ Invariant equilibria differ by up to 5 K.
+$
+$ ------------------------------------------------------------------------------
+ TEMP-LIM 298.15 6000.00 !
+$
+$ELEMENT NAME  REF. STATE               ATOMIC MASS H298-H0    S298    !
+$
+ ELEMENT VA   VACUUM                      0.0          0.0      0.0    ! 
+ ELEMENT GA   ORTHORHOMBIC_GA            69.72      5572.0     40.7271 ! 
+ ELEMENT LA   DHCP                      138.9055    6665.112   56.9024 ! 
+$ ------------------------------------------------------------------------------
+$ Phase definitions
+$
+ PHASE LIQUID:L % 1 1 !
+ CONST LIQUID:L : GA LA : !
+$
+$ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+$
+ PHASE FCC_A1 %A 2 1 1 !
+ CONST FCC_A1 : GA LA% : VA : !
+$
+$ Bcc (cI2, Im-3m)
+$
+ PHASE BCC_A2 %B 2 1 3 !
+ CONST BCC_A2 : GA LA% : VA : !
+$
+$ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+$
+ PHASE HCP_A3 %A 2 1 0.5 !
+ CONST HCP_A3 : GA : VA : !
+$
+$ Prototype alpha-La (hP4, P6_3/mmc)
+$
+ PHASE DHCP % 1 1 !
+ CONST DHCP : LA : !
+$
+$ alpha-Ga (oC8, Cmca)
+$
+ PHASE ORTHORHOMBIC_A11 % 1 1 !
+ CONST ORTHORHOMBIC_A11 : GA : !
+$
+$ Prototype Ga6Pu (tP14, P4/nbm)
+$
+ PHASE GA6LA % 2 6 1 !
+ CONST GA6LA : GA : LA : !
+$
+$ Prototype Ga4La (oP20, Pmmm)
+$
+ PHASE GA4LA % 2 4 1 !
+ CONST GA4LA : GA : LA : !
+$
+$ Prototype AlB2 (hP3, P6/mmm)
+$
+ PHASE GA2LA_C32 % 2 2 1 !
+ CONST GA2LA_C32 : GA : GA LA% : !
+$
+$ Prototype CrB (oC8, Cmcm)
+$
+ PHASE GALA_B33 % 2 1 1 !
+ CONST GALA_B33 : GA : LA : !
+$
+$ Prototype Ba5Si3 (tP32, P4/ncc)
+$
+ PHASE GA3LA5 % 2 3 5 !
+ CONST GA3LA5 : GA : LA : !
+$
+$ Prototype AuCu3 (cP4, Pm-3m)
+$
+ PHASE GALA3_L12 % 2 1 3 !
+ CONST GALA3_L12 : GA : LA : !
+$ ------------------------------------------------------------------------------
+$ Defaults
+$
+ DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+ DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+ TYPE-DEF % SEQ * !
+ TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+ TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+ FUNCTION ZERO      298.15  0;                                         6000 N !
+ FUNCTION UN_ASS    298.15  0;                                         6000 N !
+ FUNCTION R         298.15  +8.31451;                                  6000 N !
+$ ------------------------------------------------------------------------------
+$ Element data
+$ ------------------------------------------------------------------------------
+$ Ga
+$
+$ DIAMOND_A4 added in unary 5.0
+$
+$ Changed name from ORTHORHOMBIC_GA to ORTHORHOMBIC_A11
+$
+ PAR  G(ORTHORHOMBIC_A11,GA)    200.00  +GHSERGA;                4000 N 91Din !
+ PAR  G(FCC_A1,GA:VA)           200.00  +GHSERGA+3800-10.2*T;    4000 N 91Din !
+ PAR  G(BCC_A2,GA:VA)           200.00  +GHSERGA+4500-11.7*T;    4000 N 91Din !
+ PAR  G(HCP_A3,GA:VA)           200.00  +GHSERGA+4500-9.5*T;     4000 N 91Din !
+$PAR  G(DIAMOND_A4,GA)          200.00  +GHSERGA+20900-2*T;      4000 N 09SGUN !
+$PAR  G(BCT_A5,GA)              200.00  +GHSERGA+3846-9.8*T;     4000 N 91Din !
+$PAR  G(TETRAGONAL_A6,GA)       200.00  +GHSERGA+3500-10*T;      4000 N 91Din !
+ PAR  G(LIQUID,GA)              200.00  +GLIQGA;                 4000 N 91Din !
+$
+ PAR  G(GA2LA_C32,GA:GA),,              +3*GHSERGA+15000;,,           N 11Idb !
+$
+ FUNCTION GHSERGA   200.00  -21312.331+585.263691*T-108.228783*T*LN(T)
+       +0.227155636*T**2-1.18575257E-04*T**3+439954*T**(-1);
+       302.91  Y  -7055.643+132.73019*T-26.0692906*T*LN(T)
+       +1.506E-04*T**2-4.0173E-08*T**3-118332*T**(-1)+1.64547E+23*T**(-9);
+      4000.00  N !
+ FUNCTION GLIQGA    200.00  +5491.298-18.073995*T+GHSERGA-7.0171E-17*T**7;
+       302.91  Y  +5666.455-18.681147*T+GHSERGA-1.64547E+23*T**(-9);
+      4000.00  N !
+ FUNCTION GHCPGA    298.15  +GHSERGA+4500-9.5*T;                       6000 N !
+$ ------------------------------------------------------------------------------
+$ La
+$
+ PAR  G(DHCP,LA),,                      +GHSERLA;                4000 N 91Din !
+ PAR  G(FCC_A1,LA:VA),,                 +GFCCLA;                 4000 N 91Din !
+ PAR  G(BCC_A2,LA:VA),,                 +GBCCLA;                 4000 N 91Din !
+ PAR  G(LIQUID,LA),,                    +GLIQLA;                 4000 N 91Din !
+$
+ FUNCTION GHSERLA   298.15  -7968.403+120.284604*T-26.34*T*LN(T)
+       -0.001295165*T**2;
+       550.00  Y  -3381.413+59.06113*T-17.1659411*T*LN(T)
+       -0.008371705*T**2+6.8932E-07*T**3-399448*T**(-1);
+      2000.00  Y  -15608.882+181.390071*T-34.3088*T*LN(T);
+      4000.00  N !
+ FUNCTION GFCCLA    298.15  -6109.797+89.878761*T-21.7919*T*LN(T)
+       -0.004045175*T**2-5.25865E-07*T**3;
+      1134.00  Y  -124598.976+955.878375*T-139.346741*T*LN(T)
+       +0.042032405*T**2-3.066199E-06*T**3+20994153*T**(-1);
+      2000.00  Y  +3009.496-2.846081*T+GHSERLA;
+      4000.00  N !
+ FUNCTION GBCCLA    298.15  -3952.161+88.072353*T-21.7919*T*LN(T)
+       -0.004045175*T**2-5.25865E-07*T**3;
+       800.00  Y  +321682.673-3565.08252*T+513.440708*T*LN(T)
+       -0.387295093*T**2+4.9547989E-05*T**3-36581228*T**(-1);
+      1134.00  Y  -16377.894+218.492988*T-39.5388*T*LN(T);
+      1193.00  Y  -136609.91+1123.34397*T-163.413074*T*LN(T)
+       +0.053968535*T**2-4.056395E-06*T**3+21167204*T**(-1);
+      2000.00  Y  +7402.894-6.553756*T+GHSERLA;
+      4000.00  N !
+ FUNCTION GLIQLA    298.15  +5332.653+18.23012*T-11.0188191*T*LN(T)
+       -0.020171603*T**2+2.93775E-06*T**3-133541*T**(-1);
+      1134.00  Y  -3942.004+171.018431*T-34.3088*T*LN(T);
+      4000.00  N !
+$ ------------------------------------------------------------------------------
+$ Binary system
+$
+$ M. Idbenali, C. Servant, JEEP, 2011.
+$
+$ Checked against paper. Checked at 6000K.
+$
+$ Invariant equilibria differ by up to 5 K.
+$
+ PAR  L(LIQUID,GA,LA;0),,               -236395.138+39.8826274*T;,,   N 11Idb !
+ PAR  L(LIQUID,GA,LA;1),,               -64504.295+0.137122278*T;,,   N 11Idb !
+$
+ PAR  L(FCC_A1,GA,LA:VA;0),,            +UN_ASS;,,                    N !
+ PAR  L(BCC_A2,GA,LA:VA;0),,            +UN_ASS;,,                    N !
+$
+ PAR  G(GA6LA,GA:LA),,                  +6*GHSERGA+GHSERLA
+             -293615.9506+7.35*T;,,                                   N 11Idb !
+ PAR  G(GA4LA,GA:LA),,                  +4*GHSERGA+GHSERLA
+             -275145.53+15.35*T;,,                                    N 11Idb !
+$
+ PAR  G(GA2LA_C32,GA:LA),,              +2*GHSERGA+GHSERLA
+             -232352.2311+11.34407478*T;,,                            N 11Idb !
+ PAR  L(GA2LA_C32,GA:GA,LA;0),,         -96762.2466+3.74849574*T;,,   N 11Idb !
+ PAR  L(GA2LA_C32,GA:GA,LA;1),,         +30093.3945;,,                N 11Idb !
+$
+ PAR  G(GALA_B33,GA:LA),,               +GHSERGA+GHSERLA
+             -155484.1578+21.4888724*T;,,                             N 11Idb !
+ PAR  G(GA3LA5,GA:LA),,                 +3*GHSERGA+5*GHSERLA
+             -468072.5808+40.12*T;,,                                  N 11Idb !
+ PAR  G(GALA3_L12,GA:LA),,              +GHSERGA+3*GHSERLA
+             -154528+7.2*T;,,                                         N 11Idb !
+$ ------------------------------------------------------------------------------
+$
+$
+ LIST-OF-REFERENCE
+ NUMBER  SOURCE
+  Null   'Unknown source'
+  Same   'Same or similar interaction as in the corresponding stable phase'
+  REFLAV 'Laves phase convention: G(LAVES,X:X)=+3*GHSERXX+15000'
+  COST   'COST 507 database'
+  91Din  'A.T. Dinsdale, Calphad, 15, 317-425(1991).'
+  09SGUN 'SGTE unary database V.5.0, 2009.'
+  11Idb  'M. Idbenali, C. Servant, JEEP, 2011; Ga-La'
+!

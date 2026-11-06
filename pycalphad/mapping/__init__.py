@@ -1,5 +1,4 @@
-from pycalphad.mapping.strategy.binary_strategy import BinaryStrategy
-from pycalphad.mapping.strategy.ternary_strategy import TernaryStrategy
+from pycalphad.mapping.strategy.tieline_strategy import TielineStrategy, BinaryStrategy, TernaryStrategy
 from pycalphad.mapping.strategy.isopleth_strategy import IsoplethStrategy
 from pycalphad.mapping.strategy.step_strategy import StepStrategy
 

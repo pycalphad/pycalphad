@@ -277,7 +277,7 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
 
         if ref_cs_copy.NP < 1e-3:
             cs.update(new_cs_copy.dof[num_sv:], cs.NP, new_cs_copy.dof[:num_sv])
-            return True
+            return False
 
     return True
     
