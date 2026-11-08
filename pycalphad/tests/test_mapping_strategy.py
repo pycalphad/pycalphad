@@ -1126,6 +1126,21 @@ def test_degenerate_check_does_not_end_line_at_congruent_extremum(load_database)
     else:
         assert False, "FCC_A1+LIQUID liquidus was not mapped past the congruent maximum to the Pt side"
 
+@select_database("AuCu-98Sun-LB.tdb")
+def test_ordered_configuration_of_stable_composition_set_ends_zpf_line(load_database):
+    """
+    The Au3Cu+AuCu boundary ends at the 525 K A1+Au3Cu+AuCu invariant instead of continuing as A1+AuCu
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (518, 530, 2), v.X("CU"): (0.30, 0.44, 0.02)}
+    strategy = TielineStrategy(dbf, ["AU", "CU", "VA"], ["FCC_4SL"], conds)
+    # Above the invariant, A1 at the composition of the Au3Cu composition set is lower in energy, and both are local minima
+    strategy.add_nodes_from_conditions({v.P: 101325, v.N: 1, v.T: 521, v.X("CU"): 0.37}, Direction.POSITIVE)
+    strategy.do_map()
+
+    invariant_T = [float(np.ravel(inv.data[0].y)[0]) for inv in strategy.get_invariant_data(v.X("CU"), v.T)]
+    assert any(abs(T - 524.7) < 0.5 for T in invariant_T), f"No invariant at 524.7 K, got {invariant_T}"
+
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):
     T = 2260
