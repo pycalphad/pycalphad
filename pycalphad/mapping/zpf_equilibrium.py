@@ -275,10 +275,6 @@ def _detect_degenerate_phase(point: Point, new_cs: CompositionSet):
         if np.allclose(ref_cs_copy.dof[num_sv:], new_cs_copy.dof[num_sv:], atol=10*COMP_DIFFERENCE_TOL):
             return False
 
-        if ref_cs_copy.NP < 1e-3:
-            cs.update(new_cs_copy.dof[num_sv:], cs.NP, new_cs_copy.dof[:num_sv])
-            return False
-
     return True
     
 def create_node_from_different_points(new_point: Point, orig_cs: list[CompositionSet], axis_vars : list[v.StateVariable]):
