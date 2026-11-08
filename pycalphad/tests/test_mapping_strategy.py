@@ -1141,6 +1141,21 @@ def test_ordered_configuration_of_stable_composition_set_ends_zpf_line(load_data
     invariant_T = [float(np.ravel(inv.data[0].y)[0]) for inv in strategy.get_invariant_data(v.X("CU"), v.T)]
     assert any(abs(T - 524.7) < 0.5 for T in invariant_T), f"No invariant at 524.7 K, got {invariant_T}"
 
+@pytest.mark.xfail(strict=True, reason="The solver leaves L12 of the starting point on a saddle point (gh-746)")
+@select_database("alnipt.tdb")
+def test_zpf_line_from_saddle_point_configuration_reaches_invariant(load_database):
+    """
+    The Ni-Pt L12+L10 boundary at 840 K is mapped up to the 850 K L12+A1+L10 invariant
+    """
+    dbf = load_database()
+    conds = {v.P: 101325, v.N: 1, v.T: (840, 870, 5), v.X("PT"): (0.38, 0.44, 0.005)}
+    strategy = TielineStrategy(dbf, ["NI", "PT", "VA"], ["FCC_L12"], conds)
+    strategy.add_nodes_from_conditions({v.P: 101325, v.N: 1, v.T: 840, v.X("PT"): 0.40}, Direction.POSITIVE)
+    strategy.do_map()
+
+    invariant_T = [float(np.ravel(inv.data[0].y)[0]) for inv in strategy.get_invariant_data(v.X("PT"), v.T)]
+    assert any(abs(T - 850.3) < 0.5 for T in invariant_T), f"No invariant at 850.3 K, got {invariant_T}"
+
 @select_database("Al-Cu-Y.tdb")
 def test_issue_662_phase_boundary_loop(load_database):
     T = 2260
