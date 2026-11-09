@@ -1,6 +1,7 @@
 import numpy as np
 from pycalphad.core.errors import ConditionError
 from pycalphad.property_framework import as_property, as_quantity
+from pycalphad.property_framework.computed_property import LinearCombination
 from pycalphad.property_framework.units import Q_
 import pycalphad.variables as v
 from collections.abc import Iterable
@@ -126,6 +127,15 @@ class Conditions:
 
         if isinstance(prop, (v.MoleFraction, v.MassFraction, v.ChemicalPotential)) and prop.species not in self._wks.components:
             raise ConditionError('{} refers to non-existent component'.format(prop))
+
+        if isinstance(prop, LinearCombination):
+            for symbol in prop.symbols:
+                if symbol == 1:
+                    continue
+                if symbol.phase_name is not None:
+                    raise ConditionError(f'{symbol} in {item} is phase-local; linear combination conditions only support overall mole fractions')
+                if symbol.species not in self._wks.components:
+                    raise ConditionError(f'{symbol} in {item} refers to non-existent component')
 
         if isinstance(prop, v.SiteFraction) and prop not in self._wks.models[prop.phase_name].variables:
             raise ConditionError('{} refers to non-existent constituent'.format(prop))
